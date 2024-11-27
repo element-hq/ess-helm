@@ -6,9 +6,9 @@ apiVersion: v2
 name: synapse
 description: A Helm chart for deploying Synapse
 type: application
-version: "0.0.0-dev"
+version: "0.0.1-dev"
 appVersion: "v1.116.0"
 dependencies:
   - name: ess-library
     repository: file://../ess-library
-    version: 0.0.0-dev
+    version: 0.0.1-dev

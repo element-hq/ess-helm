@@ -6,13 +6,13 @@ apiVersion: v2
 name: matrix-stack
 description: A Helm meta-chart for deploying a Matrix Stack from Element
 type: application
-version: "0.0.0-dev"
+version: "0.0.1-dev"
 dependencies:
   - name: "element-web"
-    version: "0.0.0-dev"
+    version: "0.0.1-dev"
     repository: "file://../element-web"
     condition: element-web.enabled
   - name: "synapse"
-    version: "0.0.0-dev"
+    version: "0.0.1-dev"
     repository: "file://../synapse"
     condition: synapse.enabled

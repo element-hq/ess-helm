@@ -6,9 +6,9 @@ apiVersion: v2
 name: element-web
 description: A Helm chart for deploying Element Web
 type: application
-version: "0.0.0-dev"
+version: "0.0.1-dev"
 appVersion: "v1.11.82"
 dependencies:
   - name: ess-library
     repository: file://../ess-library
-    version: 0.0.0-dev
+    version: 0.0.1-dev
