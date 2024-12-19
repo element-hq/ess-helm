@@ -7,3 +7,12 @@ __pycache__
 .venv
 *.tgz
 charts/*/user_values/*.yaml
+
+# IDE files
+.idea/
+.vscode/
+nbproject/
+*.iml
+*.ipr
+*.iws
+.DS_Store
