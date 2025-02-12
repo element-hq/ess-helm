@@ -103,6 +103,41 @@ func TestParseArgs(t *testing.T) {
 			expected: &Options{},
 			err:      true,
 		},
+		{
+			name: "Invalid number of arguments for concat",
+			args: []string{"cmd", "concat"},
+			expected: &Options{
+				Command: Concat,
+			},
+			err: true,
+		},
+		{
+			name: "Missing --target flag for concat",
+			args: []string{"cmd", "concat", "1.crt"},
+			expected: &Options{
+				Files:   []string{"1.crt"},
+				Command: Concat,
+			},
+			err: true,
+		},
+		{
+			name: "Invalid flag for concat",
+			args: []string{"cmd", "concat", "1.crt", "-invalidflag"},
+			expected: &Options{
+				Command: Concat,
+			},
+			err: true,
+		},
+		{
+			name: "Correct usage of concat",
+			args: []string{"cmd", "concat", "-target", "target.crt", "1.crt", "2.crt"},
+			expected: &Options{
+				Output:  "target.crt",
+				Files:   []string{"1.crt", "2.crt"},
+				Command: Concat,
+			},
+			err: false,
+		},
 	}
 
 	for _, tc := range testCases {

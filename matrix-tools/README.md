@@ -54,6 +54,7 @@ golangci-lint run ./...
 `matrix-tools` is built around subcomands calling different internal packages :
 - `render-config` relies on package `internal/pkg/renderer`
 - `tcpwait` relies on package `internal/pkg/tcpwait`
+- `concat` relies on package `internal/pkg/concat`
 
 ### Render Config
 
@@ -67,6 +68,11 @@ Similarly to `envsubstr`, it supports the use of environment variables in config
 ### TCP Wait
 
 `tcpwait` is a command line tool that waits until a given port becomes available on a given address.
+
+### Concat
+
+`concat` is a command line tool that appends a provided list of files to a target file.
+If the target file does not exist, it will be created as an empty file before being appended to.
 
 ## Running Tests
 

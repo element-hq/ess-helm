@@ -6,12 +6,13 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"io"
+	"os"
 
 	"flag"
 
 	"github.com/element-hq/ess-helm/matrix-tools/internal/pkg/args"
+	"github.com/element-hq/ess-helm/matrix-tools/internal/pkg/concat"
 	"github.com/element-hq/ess-helm/matrix-tools/internal/pkg/renderer"
 	"github.com/element-hq/ess-helm/matrix-tools/internal/pkg/secret"
 	"github.com/element-hq/ess-helm/matrix-tools/internal/pkg/tcpwait"
@@ -32,7 +33,6 @@ func getKubernetesClient() (kubernetes.Interface, error) {
 	}
 	return clientset, nil
 }
-
 
 func readFiles(paths []string) ([]io.Reader, []func() error, error) {
 	files := make([]io.Reader, 0)
@@ -116,9 +116,28 @@ func main() {
 				os.Exit(1)
 			}
 		}
+	case args.Concat:
+		fileReaders, closeFiles, err := readFiles(options.Files)
+		defer func() {
+			for _, closeFn := range closeFiles {
+				err := closeFn()
+				if err != nil {
+					fmt.Println("Error closing file : ", err)
+				}
+			}
+		}()
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		err = concat.Concat(fileReaders, options.Output)
+		if err != nil {
+			fmt.Println("Error:", err)
+			os.Exit(1)
+		}
 	default:
 		fmt.Printf("Unknown command")
 		os.Exit(1)
 	}
 }
-

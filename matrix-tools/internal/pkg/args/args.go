@@ -16,6 +16,7 @@ const (
 	RenderConfig CommandType = iota
 	GenerateSecrets
 	TCPWait
+	Concat
 )
 
 type SecretType int
@@ -61,7 +62,7 @@ type Options struct {
 	Command          CommandType
 	Files            []string
 	Output           string
-	Debug					 bool
+	Debug            bool
 	Address          string
 	GeneratedSecrets []GeneratedSecret
 	SecretLabels     map[string]string
@@ -79,6 +80,9 @@ func ParseArgs(args []string) (*Options, error) {
 	generateSecretsSet := flag.NewFlagSet("generate-secrets", flag.ExitOnError)
 	secrets := generateSecretsSet.String("secrets", "", "Comma-separated list of secrets to generate, in the format of `name:key:type`, where `type` is one of: rand32")
 	secretsLabels := generateSecretsSet.String("labels", "", "Comma-separated list of labels for generated secrets, in the format of `key=value`")
+
+	concatSet := flag.NewFlagSet("concat", flag.ExitOnError)
+	concatTarget := concatSet.String("target", "", "file to append to or create")
 
 	switch args[1] {
 	case "render-config":
@@ -130,6 +134,19 @@ func ParseArgs(args []string) (*Options, error) {
 		}
 		options.SecretLabels["app.kubernetes.io/managed-by"] = "matrix-tools-init-secrets"
 		options.Command = GenerateSecrets
+	case "concat":
+		err := concatSet.Parse(args[2:])
+		if err != nil {
+			return nil, err
+		}
+		for _, file := range concatSet.Args() {
+			if strings.HasPrefix(file, "-") {
+				return nil, flag.ErrHelp
+			}
+			options.Files = append(options.Files, file)
+		}
+		options.Output = *concatTarget
+		options.Command = Concat
 	default:
 		return nil, flag.ErrHelp
 	}
