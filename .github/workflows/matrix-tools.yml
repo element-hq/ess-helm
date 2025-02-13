@@ -85,7 +85,7 @@ jobs:
 
       - name: Build and Push Image
         id: build_image
-        uses: docker/bake-action@v4.1.0
+        uses: docker/bake-action@v6.3.0
         with:
           # Only for tags
           push: "${{ github.ref_type == 'tag' }}"
