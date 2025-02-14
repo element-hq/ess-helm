@@ -57,7 +57,7 @@ def other_secrets(release_name, values, templates):
 
 
 def generated_secrets(release_name: str, values: Any | None, helm_generated_templates: list[Any]) -> Iterator[Any]:
-    if values.get("initSecrets", {}).get("enabled", False):
+    if values.get("initSecrets", {}).get("enabled", True):
         init_secrets_job = None
         for template in helm_generated_templates:
             if template["kind"] == "Job" and template["metadata"]["name"] == f"{release_name}-init-secrets":
