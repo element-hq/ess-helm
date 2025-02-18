@@ -26,6 +26,9 @@ defaults
 
   log global
 
+  # same as http log, with %Th (handshake time)
+  log-format "%ci:%cp [%tr] %ft %b/%s %Th/%TR/%Tw/%Tc/%Tr/%Ta %ST %B %CC %CS %tsc %ac/%fc/%bc/%sc/%rc %sq/%bq %hr %hs %{+Q}r"
+
   # wait for 5s when connecting to a server
   timeout connect 5s
 
