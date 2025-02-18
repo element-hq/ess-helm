@@ -127,6 +127,7 @@ This will test the chart with all values files matching
 
 From the `matrix-stack` directory: `bash scripts/ct-lint.sh --charts . --validate-maintainers=false`
 
+
 ### checkov
 
 Detects misconfigurations and lack of hardening in the manifests.
