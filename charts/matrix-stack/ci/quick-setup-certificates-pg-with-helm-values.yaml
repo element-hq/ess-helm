@@ -1,0 +1,24 @@
+# Copyright 2024-2025 New Vector Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-Element-Commercial
+#
+# source_fragments: quick-setup-all-enabled.yaml quick-setup-hostnames.yaml quick-setup-certificates.yaml
+# DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
+
+# initSecrets, postgres don't have any required properties to be set and defaults to enabled
+elementWeb:
+  ingress:
+    host: chat.your.tld
+    tlsSecret: ess-chat-certificate
+matrixAuthenticationService:
+  ingress:
+    host: auth.your.tld
+    tlsSecret: ess-auth-certificate
+serverName: your.tld
+synapse:
+  ingress:
+    host: matrix.your.tld
+    tlsSecret: ess-matrix-certificate
+wellKnownDelegation:
+  ingress:
+    tlsSecret: ess-well-knowncertificate

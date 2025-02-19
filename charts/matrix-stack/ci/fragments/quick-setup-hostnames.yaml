@@ -1,0 +1,14 @@
+# Copyright 2024-2025 New Vector Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-Element-Commercial
+
+elementWeb:
+  ingress:
+    host: chat.your.tld
+matrixAuthenticationService:
+  ingress:
+    host: auth.your.tld
+serverName: your.tld
+synapse:
+  ingress:
+    host: matrix.your.tld

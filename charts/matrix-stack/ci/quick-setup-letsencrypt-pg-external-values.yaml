@@ -1,0 +1,36 @@
+# Copyright 2024-2025 New Vector Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-Element-Commercial
+#
+# source_fragments: quick-setup-all-enabled.yaml quick-setup-hostnames.yaml quick-setup-letsencrypt.yaml quick-setup-postgresql.yaml
+# DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
+
+# initSecrets, postgres, wellKnownDelegation don't have any required properties to be set and defaults to enabled
+certManager:
+  clusterIssuer: letsencrypt-prod
+elementWeb:
+  ingress:
+    host: chat.your.tld
+matrixAuthenticationService:
+  ingress:
+    host: auth.your.tld
+  postgres:
+    database: another-db-name
+    host: your-db-host.tld
+    password:
+      value: another-db-password
+    port: 5432
+    sslMode: prefer
+    user: another-db-user
+serverName: your.tld
+synapse:
+  ingress:
+    host: matrix.your.tld
+  postgres:
+    database: your-db-name
+    host: your-db-host.tld
+    password:
+      value: your-db-password
+    port: 5432
+    sslMode: prefer
+    user: your-db-user

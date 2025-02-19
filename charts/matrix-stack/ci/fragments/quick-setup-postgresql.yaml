@@ -1,0 +1,23 @@
+# Copyright 2025 New Vector Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-Element-Commercial
+
+synapse:
+  postgres:
+    host: your-db-host.tld
+    port: 5432
+    user: your-db-user
+    password:
+      value: your-db-password
+    database: your-db-name
+    sslMode: prefer
+
+matrixAuthenticationService:
+  postgres:
+    host: your-db-host.tld
+    port: 5432
+    user: another-db-user
+    password:
+      value: another-db-password
+    database: another-db-name
+    sslMode: prefer
