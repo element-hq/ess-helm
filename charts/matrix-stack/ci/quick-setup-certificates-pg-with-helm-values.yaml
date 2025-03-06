@@ -12,7 +12,7 @@ elementWeb:
     tlsSecret: ess-chat-certificate
 matrixAuthenticationService:
   ingress:
-    host: auth.your.tld
+    host: account.your.tld
     tlsSecret: ess-auth-certificate
 serverName: your.tld
 synapse:

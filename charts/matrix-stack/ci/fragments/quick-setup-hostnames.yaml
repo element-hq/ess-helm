@@ -7,7 +7,7 @@ elementWeb:
     host: chat.your.tld
 matrixAuthenticationService:
   ingress:
-    host: auth.your.tld
+    host: account.your.tld
 serverName: your.tld
 synapse:
   ingress:

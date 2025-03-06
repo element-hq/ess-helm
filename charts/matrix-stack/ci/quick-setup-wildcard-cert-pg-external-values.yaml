@@ -13,7 +13,7 @@ ingress:
   tlsSecret: ess-certificate
 matrixAuthenticationService:
   ingress:
-    host: auth.your.tld
+    host: account.your.tld
   postgres:
     database: your-matrix-auth-service-database-name
     host: your-db-host.tld
