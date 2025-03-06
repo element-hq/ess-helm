@@ -449,11 +449,7 @@ kubectl exec -n ess sts/ess-postgres -- bash -c "psql -U postgres -d postgres < 
 Adjust to your own kubernetes namespace and release name if required.
 
 4. Restore the synapse media files using `kubectl cp` to copy them in Synapse pod. If you are using `k3s`, you can find where the new persistent volume has been mounted with `kubectl get pv -n ess -o yaml | grep synapse-media` and copy your files in the destination path.
-5. Restart Synapse and Matrix Authentication Service :
-```
-kubectl scale sts -l "app.kubernetes.io/component=matrix-server" -n ess --replicas=1
-kubectl scale deploy -l "app.kubernetes.io/component=matrix-authentication" -n ess --replicas=1
-```
+5. Run the `helm upgrade --install....` command again to restore your workloads pods
 
 ### Monitoring
 
