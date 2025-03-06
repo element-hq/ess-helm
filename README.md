@@ -309,10 +309,11 @@ To implement Element Web configuration in Element Server Suite, create a values 
 
 ```
 elementWeb:
-  additional: |
-    {
-      "some": "settings"
-    }
+  additional:
+    user-config.json: |
+      {
+        "some": "settings"
+      }
 ```
 
 #### Configure Synapse
@@ -424,12 +425,12 @@ You need to backup a couple of things to be able to restore your deployment :
 
 #### Restore
 
-1. Restore requires to recreate the namespace and the backed up secret in step 3 : 
+1. Restore requires to recreate the namespace and the backed-up secret in step 3 : 
 ```
 kubectl create ns ess
 kubectl apply -f secrets.yaml
 ```
-2. Redeploy the chart using the values backed up in step 2.
+2. Redeploy the chart using the values backed-up in step 2.
 3. Stop Synapse and Matrix Authentication Service workloads :
 ```
 kubectl scale sts -l "app.kubernetes.io/component=matrix-server" -n ess --replicas=0
