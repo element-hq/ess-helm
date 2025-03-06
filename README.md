@@ -40,7 +40,7 @@ Element Server Suite Community Edition allows you to deploy an official Element 
 
 ESS Community Edition configures the following components automatically. It is possible to enable/disable each one of them on a per-component basis. The can also be customized using dedicated values :
 
-- HAProxy : Provides the routing to Synapse processes and Matrix Authentication Service
+- HAProxy : Provides the routing to Synapse processes
 - Synapse : Provides the Matrix homeserver, allowing you to communicate with the full Matrix network.
 - Matrix Authentication Service: Handles the authentication of your users, compatible with Element X.
 - Element Web : This is the official Matrix Web Client provided by Element

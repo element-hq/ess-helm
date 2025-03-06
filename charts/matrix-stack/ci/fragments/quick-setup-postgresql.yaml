@@ -6,18 +6,18 @@ synapse:
   postgres:
     host: your-db-host.tld
     port: 5432
-    user: your-db-user
+    user: your-synapse-user
     password:
-      value: your-db-password
-    database: your-db-name
+      value: your-synapse-user-password
+    database: your-synapse-database-name
     sslMode: prefer
 
 matrixAuthenticationService:
   postgres:
     host: your-db-host.tld
     port: 5432
-    user: another-db-user
+    user: your-matrix-auth-service-user
     password:
-      value: another-db-password
-    database: another-db-name
+      value: your-matrix-auth-service-user-password
+    database: your-matrix-auth-service-database-name
     sslMode: prefer

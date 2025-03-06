@@ -15,22 +15,22 @@ matrixAuthenticationService:
   ingress:
     host: auth.your.tld
   postgres:
-    database: another-db-name
+    database: your-matrix-auth-service-database-name
     host: your-db-host.tld
     password:
-      value: another-db-password
+      value: your-matrix-auth-service-user-password
     port: 5432
     sslMode: prefer
-    user: another-db-user
+    user: your-matrix-auth-service-user
 serverName: your.tld
 synapse:
   ingress:
     host: matrix.your.tld
   postgres:
-    database: your-db-name
+    database: your-synapse-database-name
     host: your-db-host.tld
     password:
-      value: your-db-password
+      value: your-synapse-user-password
     port: 5432
     sslMode: prefer
-    user: your-db-user
+    user: your-synapse-user
