@@ -361,6 +361,15 @@ Configuration samples are available [in the github repository](https://github.co
 
 If your server already has a reverse proxy, the port 80 and 443 are already used by it.
 
+Use the following command to get the external-ip provisioned by kubernetes for Traefik :
+
+```
+kubectl get svc/traefik -n kube-system
+NAME      TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)                      AGE
+traefik   LoadBalancer   10.43.184.49   172.20.1.60   80:32100/TCP,443:30129/TCP   5d18h
+```
+
+
 In such a case, you will need to set up K3S with custom ports. Create a file `/var/lib/rancher/k3s/server/manifests/traefik-config.yaml` with the following content :
 
 ```
@@ -376,6 +385,10 @@ spec:
         exposedPort: 8080
       websecure:
         exposedPort: 8443
+    service:
+      spec:
+        externalIPs:
+        - `<external IP returned by the command above>`
 ```
 
 k3s will apply the file content automatically. You can verify it is using your new ports using the command :
@@ -385,7 +398,7 @@ kubectl get svc -n kube-system | grep traefik
 traefik          LoadBalancer   10.43.184.49    172.20.1.60   8080:32100/TCP,8443:30129/TCP   5d18h
 ```
 
-Configure your reverse proxy so that the DNS Names you configured are serving to localhost on the port 8080 (HTTP) and 8443 (HTTPS).
+Configure your reverse proxy so that the DNS Names you configured are serving to the external IP of traefik on the port 8080 (HTTP) and 8443 (HTTPS).
 
 ## Maintenance
 
