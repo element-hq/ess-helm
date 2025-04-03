@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# SPDX-License-Identifier: AGPL-3.0-only
+
 # This script installs the Element Software Stack (ESS) Community Edition.
 # It depends on the following tools:
 # - kubectl: Command-line tool for interacting with Kubernetes clusters.
@@ -16,7 +18,8 @@ TOTAL_STEPS=9
 
 # Function to log the current step
 # Arguments:
-#   1. Step name
+#   1. Step number
+#   2. Step name
 log_step() {
   STEP_NUMBER=$1
   STEP_NAME=$2
