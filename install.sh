@@ -4,7 +4,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# This script installs the Element Software Stack (ESS) Community Edition.
+# This script installs the Element Server Suite (ESS) Community Edition.
 # It depends on the following tools:
 # - kubectl: Command-line tool for interacting with Kubernetes clusters.
 # - curl: Command-line tool for transferring data with URLs.
