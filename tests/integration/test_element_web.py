@@ -15,5 +15,5 @@ async def test_element_web_can_access_config_json(ingress_ready, generated_data:
 
     json_content = await aiottp_get_json(f"https://element.{generated_data.server_name}/config.json", ssl_context)
     assert "element_call" in json_content
-    assert json_content["element_call"]["url"] == f"https://call.{generated_data.server_name}"
+    assert json_content["element_call"]["url"] == f"https://mrtc.{generated_data.server_name}"
     assert json_content["element_call"]["use_exclusively"]

@@ -22,6 +22,8 @@ matrixAuthenticationService:
     port: 5432
     sslMode: prefer
     user: your-matrix-auth-service-user
+matrixRTC:
+  enabled: false
 serverName: your.tld
 synapse:
   ingress:

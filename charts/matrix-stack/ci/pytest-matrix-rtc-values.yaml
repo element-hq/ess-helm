@@ -1,0 +1,97 @@
+# Copyright 2024-2025 New Vector Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# source_fragments: matrix-rtc-minimal.yaml matrix-rtc-pytest-extras.yaml synapse-minimal.yaml synapse-pytest-base-extras.yaml synapse-pytest-self-extras.yaml matrix-authentication-service-minimal.yaml matrix-authentication-service-pytest-extras.yaml init-secrets-minimal.yaml init-secrets-pytest-extras.yaml postgres-minimal.yaml well-known-minimal.yaml well-known-pytest-extras.yaml
+# DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
+
+elementWeb:
+  enabled: false
+global:
+  baseDomain: ess.localhost
+haproxy:
+  podSecurityContext:
+    runAsGroup: 0
+ingress:
+  controllerType: ingress-nginx
+initSecrets:
+  annotations:
+    has-no-service-monitor: "true"
+  podSecurityContext:
+    runAsGroup: 0
+matrixAuthenticationService:
+  additional:
+    000-pytest-admin:
+      configSecret: '{{ $.Release.Name }}-pytest-admin'
+      configSecretKey: admin.yaml
+  extraEnv:
+    - name: DEBUG_RENDERING
+      value: "1"
+  ingress:
+    host: mas.{{ $.Values.serverName }}
+    tlsSecret: '{{ $.Release.Name }}-mas-web-tls'
+  podSecurityContext:
+    runAsGroup: 0
+matrixRTC:
+  extraEnv:
+    - name: LIVEKIT_INSECURE_SKIP_VERIFY_TLS
+      value: YES_I_KNOW_WHAT_I_AM_DOING
+  ingress:
+    host: mrtc.{{ $.Values.serverName }}
+    tlsSecret: '{{ $.Release.Name }}-matrix-rtc-tls'
+  podSecurityContext:
+    runAsGroup: 0
+  sfu:
+    extraEnv:
+      - name: DEBUG_RENDERING
+        value: "1"
+    podSecurityContext:
+      runAsGroup: 0
+postgres:
+  podSecurityContext:
+    runAsGroup: 0
+# To check that templating works against the ingress
+serverName: '{{ $.Values.global.baseDomain }}'
+synapse:
+  additional:
+    00-userconfig.yaml:
+      config: |
+        push:
+          jitter_dalay: 10
+    01-other-user-config.yaml:
+      configSecret: '{{ $.Release.Name }}-synapse-secrets'
+      configSecretKey: 01-other-user-config.yaml
+  checkConfigHook:
+    annotations:
+      has-no-service-monitor: "true"
+  extraArgs:
+    # Validate that any Synapse config that has a <foo>_path equivalent uses it
+    - --no-secrets-in-config
+  extraEnv:
+    - name: DEBUG_RENDERING
+      value: "1"
+  ingress:
+    host: synapse.{{ $.Values.serverName }}
+    tlsSecret: '{{ $.Release.Name }}-synapse-web-tls'
+  podSecurityContext:
+    runAsGroup: 0
+  redis:
+    annotations:
+      has-no-service-monitor: "true"
+    podSecurityContext:
+      runAsGroup: 0
+  workers:
+    # A non-HTTP worker & a stream writer
+    event-persister:
+      enabled: true
+    # Media repo is fairly distinct from other workers
+    media-repository:
+      enabled: true
+    # A standard HTTP worker
+    sliding-sync:
+      enabled: true
+wellKnownDelegation:
+  baseDomainRedirect:
+    url: https://redirect.localhost/path
+  ingress:
+    tlsSecret: '{{ $.Release.Name }}-well-known-web-tls'

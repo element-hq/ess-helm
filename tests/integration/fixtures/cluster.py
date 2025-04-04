@@ -13,7 +13,7 @@ import pytest
 import yaml
 from lightkube import AsyncClient, KubeConfig
 from lightkube.models.meta_v1 import ObjectMeta
-from lightkube.resources.core_v1 import Namespace
+from lightkube.resources.core_v1 import Namespace, Service
 from pytest_kubernetes.options import ClusterOptions
 from pytest_kubernetes.providers import KindManager
 from python_on_whales import docker
@@ -88,7 +88,7 @@ async def kube_client(cluster):
 
 
 @pytest.fixture(autouse=True, scope="session")
-async def ingress(cluster, helm_client: pyhelm3.Client):
+async def ingress(cluster, kube_client, helm_client: pyhelm3.Client):
     chart = await helm_client.get_chart("ingress-nginx", repo="https://kubernetes.github.io/ingress-nginx")
 
     values_file = Path(__file__).parent.resolve() / Path("files/charts/ingress-nginx.yml")
@@ -115,6 +115,7 @@ async def ingress(cluster, helm_client: pyhelm3.Client):
         waitfor="jsonpath='{.spec.holderIdentity}'",
         namespace="ingress-nginx",
     )
+    return (await kube_client.get(Service, name="ingress-nginx-controller", namespace="ingress-nginx")).spec.clusterIP
 
 
 @pytest.fixture(autouse=True, scope="session")

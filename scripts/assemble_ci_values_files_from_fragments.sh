@@ -36,6 +36,7 @@ for values_file in "$values_file_root"/*-values.yaml; do
   # Remove any fields with null values so we have a way of removing things
   yq_command+=" | del(... | select(. == null))"
   # We could remove enabled: true for all default enabled components by setting enabled: null in their minimal values file,
+  yq_command+=" | del(.matrixRTC.enabled | select(.))"
   yq_command+=" | del(.elementWeb.enabled | select(.))"
   yq_command+=" | del(.initSecrets.enabled | select(.))"
   yq_command+=" | del(.postgres.enabled | select(.))"

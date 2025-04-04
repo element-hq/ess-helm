@@ -1,0 +1,25 @@
+{{- /*
+Copyright 2024 New Vector Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+
+{{- with $.Values.matrixRTC -}}
+{{- if .enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    {{- include "element-io.matrix-rtc-sfu-jwt.labels" (dict "root" $ "context" .) | nindent 4 }}
+  name: {{ $.Release.Name }}-matrix-rtc-sfu-jwt
+  namespace: {{ $.Release.Namespace }}
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 8080
+    targetPort: http
+  selector:
+    app.kubernetes.io/instance: "{{ $.Release.Name }}-matrix-rtc-sfu-jwt"
+{{- end -}}
+{{- end -}}

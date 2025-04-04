@@ -17,7 +17,7 @@ spec:
   type: {{ .ingress.service.type | default $.Values.ingress.service.type }}
   ports:
   - name: haproxy-wkd
-    port: 80
+    port: 8010
     targetPort: haproxy-wkd
   selector:
     app.kubernetes.io/instance: "{{ $.Release.Name }}-haproxy"

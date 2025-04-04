@@ -1,0 +1,19 @@
+# Copyright 2025 New Vector Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+matrixRTC:
+  ingress:
+    host: mrtc.{{ $.Values.serverName }}
+    tlsSecret: "{{ $.Release.Name }}-matrix-rtc-tls"
+  extraEnv:
+  - name: LIVEKIT_INSECURE_SKIP_VERIFY_TLS
+    value: "YES_I_KNOW_WHAT_I_AM_DOING"
+  sfu:
+    extraEnv:
+    - name: DEBUG_RENDERING
+      value: "1"
+    podSecurityContext:
+      runAsGroup: 0
+  podSecurityContext:
+    runAsGroup: 0

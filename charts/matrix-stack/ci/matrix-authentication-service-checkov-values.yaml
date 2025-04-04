@@ -20,6 +20,8 @@ matrixAuthenticationService:
     checkov.io/skip3: CKV2_K8S_6=No network policy yet
   ingress:
     host: mas.ess.localhost
+matrixRTC:
+  enabled: false
 postgres:
   annotations:
     checkov.io/skip1: CKV_K8S_11=We deliberately don't set CPU limits. Pod is BestEffort not Guaranteed

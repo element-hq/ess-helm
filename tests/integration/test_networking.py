@@ -4,14 +4,14 @@
 
 import asyncio
 import os
-import time
 
 import pytest
 from lightkube import AsyncClient
 from lightkube import operators as op
-from lightkube.resources.core_v1 import Endpoints, Pod, Service
+from lightkube.resources.core_v1 import Pod, Service
 
 from .fixtures.data import ESSData
+from .lib.helpers import wait_for_endpoint_ready
 from .lib.utils import read_service_monitor_kind
 
 
@@ -59,33 +59,15 @@ async def test_services_have_endpoints(
     kube_client: AsyncClient,
     generated_data: ESSData,
 ):
-    async def _wait_for_endpoint_ready(name):
-        await asyncio.to_thread(
-            cluster.wait,
-            name=f"endpoints/{name}",
-            namespace=generated_data.ess_namespace,
-            waitfor="jsonpath='{.subsets[].addresses}'",
-        )
-        # We wait maximum 30 seconds for the endpoints to be ready
-        start_time = time.time()
-        while time.time() - start_time < 30:
-            endpoint = await kube_client.get(Endpoints, name=name, namespace=generated_data.ess_namespace)
-
-            for subset in endpoint.subsets:
-                if not subset or subset.notReadyAddresses or not subset.addresses or not subset.ports:
-                    await asyncio.sleep(0.1)
-                    break
-            else:
-                break
-        return endpoint
-
     endpoints_to_wait = []
     services = {}
     async for service in kube_client.list(
         Service, namespace=generated_data.ess_namespace, labels={"app.kubernetes.io/part-of": op.in_(["matrix-stack"])}
     ):
         assert service.metadata is not None, f"Encountered a service without metadata : {service}"
-        endpoints_to_wait.append(_wait_for_endpoint_ready(service.metadata.name))
+        endpoints_to_wait.append(
+            wait_for_endpoint_ready(service.metadata.name, generated_data.ess_namespace, cluster, kube_client)
+        )
         services[service.metadata.name] = service
 
     for endpoint in await asyncio.gather(*endpoints_to_wait):

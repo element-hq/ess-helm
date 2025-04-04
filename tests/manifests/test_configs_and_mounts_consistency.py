@@ -181,6 +181,7 @@ def get_keys_from_container_using_rendered_config(template, templates, other_sec
     mounted_keys = []
     mounted_keys_to_parents = {}
     for container in template["spec"]["template"]["spec"]["containers"]:
+        assert "volumeMounts" in container, f"{container} does not have a 'volumeMounts' field"
         if "rendered-config" in [v["name"] for v in container["volumeMounts"]]:
             for volume_mount in container["volumeMounts"]:
                 current_volume = get_volume_from_mount(template, volume_mount)

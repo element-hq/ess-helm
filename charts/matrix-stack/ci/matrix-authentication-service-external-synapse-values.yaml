@@ -22,6 +22,8 @@ matrixAuthenticationService:
           endpoint: https://syn.external.localhost
   ingress:
     host: mas.ess.localhost
+matrixRTC:
+  enabled: false
 synapse:
   enabled: false
 wellKnownDelegation:

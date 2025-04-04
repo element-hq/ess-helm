@@ -11,6 +11,8 @@ elementWeb:
 matrixAuthenticationService:
   ingress:
     host: mas.ess.localhost
+matrixRTC:
+  enabled: false
 synapse:
   enabled: false
 wellKnownDelegation:

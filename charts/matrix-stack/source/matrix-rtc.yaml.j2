@@ -1,0 +1,64 @@
+{#
+Copyright 2024 New Vector Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+#}
+
+{% import 'sub_schema_values.yaml.j2' as sub_schema_values -%}
+enabled: true
+
+{{- sub_schema_values.credential("The API key for the LiveKit SFU", "livekitKey", initIfAbsent=True) }}
+{{- sub_schema_values.credential("The secret for the LiveKit SFU", "livekitSecret", initIfAbsent=True) }}
+
+{{- sub_schema_values.ingress() -}}
+{{- sub_schema_values.extraEnv() }}
+
+{{- sub_schema_values.image(registry='ghcr.io', repository='element-hq/lk-jwt-service', tag='0.2.3') }}
+{{- sub_schema_values.labels() }}
+{{- sub_schema_values.workloadAnnotations() }}
+{{- sub_schema_values.containersSecurityContext() }}
+{{- sub_schema_values.nodeSelector() }}
+{{- sub_schema_values.podSecurityContext(user_id='10033', group_id='10033') }}
+{{- sub_schema_values.resources(requests_memory='20Mi', requests_cpu='50m', limits_memory='20Mi') }}
+{{- sub_schema_values.serviceMonitors() }}
+{{- sub_schema_values.serviceAccount() }}
+{{- sub_schema_values.tolerations() }}
+
+sfu:
+  enabled: true
+
+  # LiveKit Logging level
+  logging:
+    # log level, valid values: debug, info, warn, error
+    level: info
+    # log level for pion, default error
+    pionLevel: error
+    # when set to true, emit json fields
+    json: false
+
+  # Wether to advertise the external IP of the SFU during ICE Negociations
+  # Should be true unless you are using `hostMode: true`
+  useExternalIp: true
+  # A list of stun servers to use
+  # The SFU will fallback to google stun servers if the list is empty
+  stunServers: []
+  # Whether to start the SFU in host network mode or not
+  hostNetwork: false
+  exposedServices:
+    {{- sub_schema_values.exposedServicePort('rtcTcp', 30881, 'NodePort') | indent(4) }}
+    {{- sub_schema_values.exposedServicePort('rtcMuxedUdp', 30882, 'NodePort') | indent(4) }}
+    {{- sub_schema_values.exposedServicePortRange('rtcUdp', 31000, 32000, 'NodePort') | indent(4) }}
+
+
+{{- sub_schema_values.image(registry='docker.io', repository='livekit/livekit-server', tag='v1.7.2') | indent(2) }}
+{{- sub_schema_values.extraEnv() | indent(2) }}
+{{- sub_schema_values.labels() | indent(2) }}
+{{- sub_schema_values.workloadAnnotations() | indent(2) }}
+{{- sub_schema_values.containersSecurityContext() | indent(2) }}
+{{- sub_schema_values.hostAliases() | indent(2) }}
+{{- sub_schema_values.nodeSelector() | indent(2) }}
+{{- sub_schema_values.podSecurityContext(user_id='10030', group_id='10030') | indent(2) }}
+{{- sub_schema_values.resources(requests_memory='150Mi', requests_cpu='100m', limits_memory='4Gi') | indent(2) }}
+{{- sub_schema_values.serviceAccount() | indent(2) }}
+{{- sub_schema_values.serviceMonitors() | indent(2) }}
+{{- sub_schema_values.tolerations() | indent(2) }}

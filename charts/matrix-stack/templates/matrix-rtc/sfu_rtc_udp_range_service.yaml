@@ -1,0 +1,36 @@
+{{- /*
+Copyright 2024 New Vector Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+
+{{- with $.Values.matrixRTC -}}
+{{- if .enabled -}}
+{{- with .sfu -}}
+{{- if and .enabled .exposedServices.rtcUdp.enabled (eq .exposedServices.rtcUdp.portType "NodePort") -}}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    {{- include "element-io.matrix-rtc-sfu-rtc.labels" (dict "root" $ "context" .) | nindent 4 }}
+  name: {{ $.Release.Name }}-matrix-rtc-sfu-udp-range
+  namespace: {{ $.Release.Namespace }}
+spec:
+  type: NodePort
+  externalTrafficPolicy: Local
+  ports:
+{{- with .exposedServices.rtcUdp.portRange }}
+{{- range $port := seq .startPort .endPort  }}
+  - name: rtc-udp-{{ $port }}
+    port: {{ $port }}
+    targetPort: {{ $port }}
+    nodePort: {{ $port }}
+    protocol: UDP
+{{- end }}
+{{- end }}
+  selector:
+    app.kubernetes.io/instance: "{{ $.Release.Name }}-matrix-rtc-sfu"
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

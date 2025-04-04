@@ -359,3 +359,23 @@ labels: {}
 ## Most settings are configurable but some settings are owned by the chart and can't overwritten
 {{ key }}: {}
 {% endmacro %}
+
+{% macro exposedServicePort(name, port, portType='NodePort') %}
+{{ name }}:
+  enabled: true
+  # Either a NodePort or a HostPort
+  portType: {{ portType }}
+  port: {{ port }}
+{%- endmacro %}
+
+{% macro exposedServicePortRange(name, startPort, endPort, portType='NodePort') %}
+{{ name }}:
+  enabled: false
+  # Either a NodePort or a HostPort
+  portType: {{ portType }}
+  portRange:
+    # The beginning port of the range
+    startPort: {{ startPort }}
+    # The last port of the range
+    endPort: {{ endPort }}
+{%- endmacro %}

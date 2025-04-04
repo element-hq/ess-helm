@@ -5,6 +5,7 @@
 import pytest
 
 from . import values_files_to_test
+from .utils import template_id
 
 
 @pytest.mark.parametrize("values_file", ["nothing-enabled-values.yaml"])
@@ -40,5 +41,5 @@ async def test_values_file_renders_only_itself(release_name, deployables_details
 
     for template in templates:
         assert any(template["metadata"]["name"].startswith(allowed_start) for allowed_start in allowed_starts_with), (
-            f"{[template['metadata']['name']]} does not start with one of {allowed_starts_with}"
+            f"{template_id(template)} does not start with one of {allowed_starts_with}"
         )

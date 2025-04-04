@@ -23,7 +23,9 @@ async def test_has_ingress(templates, template_to_deployable_details):
             seen_deployables_with_ingresses.add(deployable_details)
 
     for seen_deployable in seen_deployables:
-        assert seen_deployable.has_ingress == (seen_deployable in seen_deployables_with_ingresses)
+        assert seen_deployable.has_ingress or seen_deployable.uses_shared_ingress == (
+            seen_deployable in seen_deployables_with_ingresses
+        )
 
 
 @pytest.mark.parametrize("values_file", values_files_with_ingresses)

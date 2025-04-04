@@ -15,4 +15,5 @@ controller:
   allowSnippetAnnotations: true
 
   service:
-    enabled: false
+    type: ClusterIP
+    enabled: true

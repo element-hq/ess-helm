@@ -1,0 +1,19 @@
+{
+  "type": "object",
+  "required": [
+    "enabled",
+    "portType",
+    "port"
+  ],
+  "properties": {
+    "enabled": {
+      "type": "boolean"
+    },
+    "portType": {
+      "type": "string"
+    },
+    "port": {
+      "type": "number"
+    }
+  }
+}

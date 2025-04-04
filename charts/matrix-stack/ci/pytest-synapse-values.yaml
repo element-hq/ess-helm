@@ -17,6 +17,8 @@ initSecrets:
     runAsGroup: 0
 matrixAuthenticationService:
   enabled: false
+matrixRTC:
+  enabled: false
 postgres:
   podSecurityContext:
     runAsGroup: 0

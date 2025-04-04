@@ -1,0 +1,32 @@
+{{- /*
+Copyright 2024 New Vector Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+
+{{- with $.Values.matrixRTC -}}
+{{- if .enabled -}}
+{{- with .sfu -}}
+{{- if and .enabled .exposedServices.rtcTcp.enabled (eq .exposedServices.rtcTcp.portType "NodePort") -}}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    {{- include "element-io.matrix-rtc-sfu-rtc.labels" (dict "root" $ "context" .) | nindent 4 }}
+  name: {{ $.Release.Name }}-matrix-rtc-sfu-tcp
+  namespace: {{ $.Release.Namespace }}
+spec:
+  type: NodePort
+  externalTrafficPolicy: Local
+  ports:
+  - name: "rtc-tcp"
+    protocol: "TCP"
+    port: {{ .exposedServices.rtcTcp.port }}
+    targetPort: {{ .exposedServices.rtcTcp.port }}
+    nodePort: {{ .exposedServices.rtcTcp.port }}
+  selector:
+    app.kubernetes.io/instance: "{{ $.Release.Name }}-matrix-rtc-sfu"
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

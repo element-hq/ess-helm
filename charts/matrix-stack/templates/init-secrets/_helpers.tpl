@@ -40,6 +40,16 @@ app.kubernetes.io/version: {{ $root.Values.matrixTools.image.tag }}
 {{- define "element-io.init-secrets.generated-secrets" -}}
 {{- $root := .root -}}
 {{- include "element-io.init-secrets.postgres-generated-secrets" (dict "root" $root) -}}
+{{- with $root.Values.matrixRTC }}
+{{- if .enabled -}}
+{{- if not .livekitKey }}
+- {{ (printf "%s-generated" $root.Release.Name) }}:ELEMENT_CALL_LIVEKIT_KEY:rand32
+{{- end }}
+{{- if not .livekitSecret }}
+- {{ (printf "%s-generated" $root.Release.Name) }}:ELEMENT_CALL_LIVEKIT_SECRET:rand32
+{{- end }}
+{{- end }}
+{{- end }}
 {{- with $root.Values.synapse }}
 {{- if .enabled -}}
 {{- if not .macaroon }}

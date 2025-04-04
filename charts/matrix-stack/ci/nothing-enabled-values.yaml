@@ -2,6 +2,9 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
+matrixRTC:
+  enabled: false
+
 elementWeb:
   enabled: false
 

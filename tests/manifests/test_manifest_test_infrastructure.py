@@ -10,7 +10,7 @@ from . import all_components_details, secret_values_files_to_test, values_files_
 
 
 def test_all_components_covered():
-    expected_folders = [details.name for details in all_components_details]
+    expected_folders = [details.value_file_prefix for details in all_components_details]
 
     templates_folder = Path(__file__).parent.parent.parent / Path("charts/matrix-stack/templates")
     for contents in templates_folder.iterdir():

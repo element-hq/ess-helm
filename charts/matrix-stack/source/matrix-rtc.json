@@ -1,0 +1,154 @@
+{
+  "$id": "file://matrix-rtc",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "enabled": {
+      "type": "boolean"
+    },
+    "livekitKey": {
+      "$ref": "file://common/credential.json"
+    },
+    "livekitSecret": {
+      "$ref": "file://common/credential.json"
+    },
+    "extraEnv": {
+      "$ref": "file://common/extraEnv.json"
+    },
+    "image": {
+      "$ref": "file://common/image.json"
+    },
+    "ingress": {
+      "$ref": "file://common/ingress.json"
+    },
+    "labels": {
+      "$ref": "file://common/labels.json"
+    },
+    "hostAliases": {
+      "$ref": "file://common/hostAliases.json"
+    },
+    "annotations": {
+      "$ref": "file://common/workloadAnnotations.json"
+    },
+    "containersSecurityContext": {
+      "$ref": "file://common/containersSecurityContext.json"
+    },
+    "serviceMonitors": {
+      "$ref": "file://common/serviceMonitors.json"
+    },
+    "nodeSelector": {
+      "$ref": "file://common/nodeSelector.json"
+    },
+    "podSecurityContext": {
+      "$ref": "file://common/podSecurityContext.json"
+    },
+    "resources": {
+      "$ref": "file://common/resources.json"
+    },
+    "serviceAccount": {
+      "$ref": "file://common/serviceAccount.json"
+    },
+    "tolerations": {
+      "$ref": "file://common/tolerations.json"
+    },
+    "topologySpreadConstraints": {
+      "$ref": "file://common/topologySpreadConstraints.json"
+    },
+    "sfu": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "image": {
+          "$ref": "file://common/image.json"
+        },
+        "labels": {
+          "$ref": "file://common/labels.json"
+        },
+        "extraEnv": {
+          "$ref": "file://common/extraEnv.json"
+        },
+        "annotations": {
+          "$ref": "file://common/workloadAnnotations.json"
+        },
+        "useExternalIp": {
+          "type": "boolean"
+        },
+        "hostNetwork": {
+          "type": "boolean"
+        },
+        "stunServers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "logging": {
+          "type": "object",
+          "properties": {
+            "level": {
+              "type": "string",
+              "enum": [
+                "debug",
+                "info",
+                "warn",
+                "error"
+              ]
+            },
+            "pionLevel": {
+              "type": "string",
+              "enum": [
+                "debug",
+                "info",
+                "warn",
+                "error"
+              ]
+            },
+            "json": {
+              "type": "boolean"
+            }
+          }
+        },
+        "exposedServices": {
+          "type": "object",
+          "properties": {
+            "rtcTcp": {
+              "$ref": "file://common/exposedServicePort.json"
+            },
+            "rtcMuxedUdp": {
+              "$ref": "file://common/exposedServicePort.json"
+            },
+            "rtcUdp": {
+              "$ref": "file://common/exposedServicePortRange.json"
+            }
+          }
+        },
+        "containersSecurityContext": {
+          "$ref": "file://common/containersSecurityContext.json"
+        },
+        "hostAliases": {
+          "$ref": "file://common/hostAliases.json"
+        },
+        "nodeSelector": {
+          "$ref": "file://common/nodeSelector.json"
+        },
+        "podSecurityContext": {
+          "$ref": "file://common/podSecurityContext.json"
+        },
+        "serviceMonitors": {
+          "$ref": "file://common/serviceMonitors.json"
+        },
+        "resources": {
+          "$ref": "file://common/resources.json"
+        },
+        "serviceAccount": {
+          "$ref": "file://common/serviceAccount.json"
+        },
+        "tolerations": {
+          "$ref": "file://common/tolerations.json"
+        }
+      }
+    }
+  }
+}

@@ -28,6 +28,8 @@ matrixAuthenticationService:
     tlsSecret: '{{ $.Release.Name }}-mas-web-tls'
   podSecurityContext:
     runAsGroup: 0
+matrixRTC:
+  enabled: false
 postgres:
   podSecurityContext:
     runAsGroup: 0

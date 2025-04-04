@@ -1,0 +1,31 @@
+{
+  "type": "object",
+  "required": [
+    "enabled",
+    "portType",
+    "portRange"
+  ],
+  "properties": {
+    "enabled": {
+      "type": "boolean"
+    },
+    "portType": {
+      "type": "string"
+    },
+    "portRange": {
+      "type": "object",
+      "required": [
+        "startPort",
+        "endPort"
+      ],
+      "properties": {
+        "startPort": {
+          "type": "number"
+        },
+        "endPort": {
+          "type": "number"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,220 @@
+{{- /*
+Copyright 2024 New Vector Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+
+{{- with $.Values.matrixRTC -}}
+{{- if .enabled -}}
+{{- with .sfu -}}
+{{- if .enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+{{- with .annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+  labels:
+    {{- include "element-io.matrix-rtc-sfu.labels" (dict "root" $ "context" .) | nindent 4 }}
+  name: {{ $.Release.Name }}-matrix-rtc-sfu
+  namespace: {{ $.Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ $.Release.Name }}-matrix-rtc-sfu
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 2
+  template:
+    metadata:
+      labels:
+        {{- include "element-io.matrix-rtc-sfu.labels" (dict "root" $ "context" .) | nindent 8 }}
+{{- with .annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+{{- end }}
+    spec:
+{{- with .hostAliases }}
+      hostAliases:
+        {{- tpl (toYaml . | nindent 8) $ }}
+{{- end }}
+{{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "key" "matrix-rtc-sfu" "deployment" true "usesMatrixTools" true)) | nindent 6 }}
+      initContainers:
+      - name: render-config
+{{- with $.Values.matrixTools.image -}}
+{{- if .digest }}
+        image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
+        imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
+{{- else }}
+        image: "{{ .registry }}/{{ .repository }}:{{ required "synapse.image.tag is required if no digest" .tag }}"
+        imagePullPolicy: {{ .pullPolicy | default "Always" }}
+{{- end }}
+{{- end }}
+{{- with .containersSecurityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+{{- end }}
+        env:
+        {{- (include "element-io.matrix-rtc-sfu.env" (dict "root" $ "context" .)) | nindent 8 }}
+        - name: "LIVEKIT_KEY"
+          value: >-
+            {{ printf "{{ readfile \"/secrets/%s\" }}" (
+              include "element-io.ess-library.init-secret-path" (
+                  dict "root" $
+                  "context" (dict
+                    "secretPath" "matrixRTC.livekitKey"
+                    "initSecretKey" "ELEMENT_CALL_LIVEKIT_KEY"
+                    "defaultSecretName" (printf "%s-matrix-rtc-sfu-jwt" $.Release.Name)
+                    "defaultSecretKey" "LIVEKIT_KEY"
+                  )
+                )
+              )
+            }}
+        - name: LIVEKIT_SECRET
+          value: >-
+           {{ (printf "{{ readfile \"/secrets/%s\" }}" (
+                (include "element-io.ess-library.init-secret-path" (
+                    dict "root" $
+                    "context" (dict
+                      "secretPath" "matrixRTC.livekitSecret"
+                      "initSecretKey" "ELEMENT_CALL_LIVEKIT_SECRET"
+                      "defaultSecretName" (printf "%s-matrix-rtc-sfu-jwt" $.Release.Name)
+                      "defaultSecretKey" "LIVEKIT_SECRET"
+                      )
+                    )
+                  )
+                )
+              )
+           }}
+        command:
+        - "/matrix-tools"
+        - render-config
+        - -output
+        - /conf/keys.yaml
+        - /config-templates/keys.yaml
+{{- with .resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+{{- end }}
+        volumeMounts:
+        - mountPath: /config-templates
+          name: plain-config
+          readOnly: true
+        - mountPath: /conf
+          name: rendered-config
+          readOnly: false
+{{- range $secret := include "element-io.matrix-rtc-sfu-jwt.configSecrets" (dict "root" $ "context" $.Values.matrixRTC) | fromJsonArray }}
+        - mountPath: /secrets/{{ tpl $secret $ }}
+          name: "secret-{{ tpl $secret $ }}"
+          readOnly: true
+{{- end }}
+      hostNetwork: {{ .hostNetwork }}
+      containers:
+      - name: sfu
+        args:
+        - --config
+        - /conf/config.yaml
+{{- with .image -}}
+{{- if .digest }}
+        image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
+        imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
+{{- else }}
+        image: "{{ .registry }}/{{ .repository }}:{{ required ".matrixRTC.image.tag is required if no digest" .tag }}"
+        imagePullPolicy: {{ .pullPolicy | default "Always" }}
+{{- end }}
+{{- end }}
+{{- with .containersSecurityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+{{- end }}
+{{- with (include "element-io.matrix-rtc-sfu.env" (dict "root" $ "context" .)) }}
+        env:
+          {{- . | nindent 10 }}
+  {{- end }}
+        ports:
+        - containerPort: 6789
+          name: metrics
+          protocol: TCP
+        - containerPort: 7880
+          name: http
+          protocol: TCP
+{{- with .exposedServices }}
+  {{- with .rtcTcp }}
+  {{- if .enabled }}
+        - containerPort: {{ .port }}
+    {{- if eq .type "HostPort" }}
+          hostPort: {{ .port }}
+    {{- end }}
+          name: rtc-tcp
+          protocol: TCP
+  {{- end }}
+  {{- end }}
+  {{- with .rtcMuxedUdp }}
+  {{- if .enabled }}
+        - containerPort: {{ .port }}
+    {{- if eq .type "HostPort" }}
+          hostPort: {{ .port }}
+    {{- end }}
+          name: rtc-muxed-udp
+          protocol: TCP
+  {{- end }}
+  {{- end }}
+  {{- with .rtcUdp }}
+  {{- if .enabled }}
+    {{- $portType := .type -}}
+    {{- with .portRange }}
+    {{- range $port := seq .startPort .endPort  }}
+          - containerPort: {{ $port }}
+            name: rtc-udp-{{ $port }}
+            protocol: UDP
+      {{ if eq .type "HostPort" }}
+            hostPort: {{ $port }}
+      {{- end }}
+    {{- end }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
+{{- end }}
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+        startupProbe:
+          httpGet:
+            path: /
+            port: http
+{{- with .resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+{{- end }}
+        volumeMounts:
+        - mountPath: /rendered-config
+          name: rendered-config
+        - mountPath: /conf/config.yaml
+          name: plain-config
+          subPath: config.yaml
+      volumes:
+{{- range $secret := include "element-io.matrix-rtc-sfu-jwt.configSecrets" (dict "root" $ "context" $.Values.matrixRTC) | fromJsonArray }}
+      - secret:
+          secretName: {{ tpl $secret $ }}
+        name: secret-{{ tpl $secret $ }}
+{{- end }}
+      - configMap:
+          name: "{{ $.Release.Name }}-matrix-rtc-sfu"
+          defaultMode: 420
+        name: plain-config
+      - emptyDir:
+          medium: Memory
+        name: "rendered-config"
+{{- end }}
+{{- end }}
+{{- end -}}
+{{- end -}}

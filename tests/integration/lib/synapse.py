@@ -8,9 +8,7 @@ import mimetypes
 from pathlib import Path
 from ssl import SSLContext
 
-import aiohttp
-
-from .utils import KubeCtl, aiohttp_post_json, aiottp_get_json
+from .utils import KubeCtl, aiohttp_client, aiohttp_post_json, aiottp_get_json
 
 
 async def get_nonce(synapse_fqdn: str, ssl_context) -> str:
@@ -78,8 +76,8 @@ async def upload_media(synapse_fqdn: str, user_access_token: str, file_path: Pat
 
     with open(file_path, "rb") as f:
         async with (
-            aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=ssl_context)) as session,
-            session.post(
+            aiohttp_client(ssl_context) as client,
+            client.post(
                 "https://127.0.0.1/_matrix/media/v3/upload",
                 server_hostname=synapse_fqdn,
                 headers=headers,
@@ -105,8 +103,8 @@ async def download_media(
     # Initialize SHA-256 hasher
     sha256_hash = hashlib.sha256()
     async with (
-        aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=ssl_context)) as session,
-        session.get(
+        aiohttp_client(ssl_context) as client,
+        client.get(
             f"https://127.0.0.1/_matrix/client/v1/media/download/{server_name}/{content_id}",
             headers=headers,
             server_hostname=synapse_fqdn,

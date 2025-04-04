@@ -41,9 +41,9 @@ PostgreSQL is used as our primary storage backend. It stores user profiles, room
 
 Matrix Authentication Service provides the future OIDC-Based matrix authentication. It is enabled by default, allowing users to authenticate with the most recent clients.
 
-### Element Call and Livekit SFU (Not available in the chart yet)
+### Matrix RTC Backend
 
-Element Call and Livekit SFU will provide Matrix VOiP calls. It will allow users to make video calls between each other using their Matrix accounts.
+Matrix RTC Backend provides Matrix VOiP calls. It allows users to make video calls between each other using their Matrix accounts.
 
 ## Chart Features
 

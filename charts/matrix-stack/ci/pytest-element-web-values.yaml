@@ -16,7 +16,7 @@ elementWeb:
           }
         },
         "element_call": {
-          "url": "https://call.{{ $.Values.serverName }}",
+          "url": "https://mrtc.{{ $.Values.serverName }}",
           "use_exclusively": true
         },
         "features": {
@@ -35,6 +35,8 @@ elementWeb:
     runAsGroup: 0
   replicas: 1
 matrixAuthenticationService:
+  enabled: false
+matrixRTC:
   enabled: false
 serverName: ess.localhost
 synapse:

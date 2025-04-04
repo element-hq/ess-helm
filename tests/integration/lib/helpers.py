@@ -2,10 +2,12 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
+import asyncio
+import time
 from collections.abc import Awaitable
 
 from lightkube.models.meta_v1 import ObjectMeta
-from lightkube.resources.core_v1 import Namespace, Secret
+from lightkube.resources.core_v1 import Endpoints, Namespace, Secret
 
 from ..artifacts import CertKey, generate_cert
 
@@ -36,3 +38,24 @@ def kubernetes_tls_secret(
         },
     )
     return secret
+
+
+async def wait_for_endpoint_ready(name, namespace, cluster, kube_client):
+    await asyncio.to_thread(
+        cluster.wait,
+        name=f"endpoints/{name}",
+        namespace=namespace,
+        waitfor="jsonpath='{.subsets[].addresses}'",
+    )
+    # We wait maximum 30 seconds for the endpoints to be ready
+    start_time = time.time()
+    while time.time() - start_time < 30:
+        endpoint = await kube_client.get(Endpoints, name=name, namespace=namespace)
+
+        for subset in endpoint.subsets:
+            if not subset or subset.notReadyAddresses or not subset.addresses or not subset.ports:
+                await asyncio.sleep(0.1)
+                break
+        else:
+            break
+    return endpoint
