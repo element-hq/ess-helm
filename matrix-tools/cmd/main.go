@@ -89,7 +89,7 @@ func main() {
 		if os.Getenv("DEBUG_RENDERING") == "1" {
 			fmt.Println(string(outputYAML))
 		}
-		err = os.WriteFile(options.Output, outputYAML, 0644)
+		err = os.WriteFile(options.Output, outputYAML, 0440)
 		if err != nil {
 			fmt.Println("Error writing to file:", err)
 			os.Exit(1)
