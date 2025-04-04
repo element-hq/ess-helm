@@ -6,10 +6,12 @@
 
 # This script installs the Element Server Suite (ESS) Community Edition.
 # It depends on the following tools:
-# - kubectl: Command-line tool for interacting with Kubernetes clusters.
 # - curl: Command-line tool for transferring data with URLs.
 # - dig: DNS lookup utility for querying DNS records.
-# - helm: Package manager for Kubernetes, used to deploy applications.
+# It can install the following tools, as needed:
+# - k3s: Lightweight Kubernetes distribution.
+# - kubectl: Command-line tool for interacting with Kubernetes clusters.
+# - helm: Package manager for Kubernetes.
 
 ESS_NAMESPACE="ess"
 CONFIG_VALUES_PATH="$HOME/ess-config-values"
