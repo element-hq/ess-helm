@@ -15,11 +15,15 @@ Requirements for development:
 
 Optional Tools:
 * [chart-testing](https://github.com/helm/chart-testing) for Helm linting
+  * [yamllint](https://github.com/adrienverge/yamllint)
+  * [yamale](https://github.com/23andMe/Yamale)
 * [kubeconform](https://github.com/yannh/kubeconform) for Kubernetes manifest validation
 * [shellcheck](https://www.shellcheck.net/)
 * Managed via Poetry and so should be available after `poetry install`
   * [checkov](https://www.checkov.io/)
   * [reuse](https://reuse.software/)
+
+`brew install poetry helm yq chart-testing kubeconform shellcheck yamllint`
 
 Changes to the chart templates are directly made to `charts/matrix-stack/templates`.
 
