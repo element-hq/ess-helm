@@ -14,6 +14,8 @@ metadata:
 {{- end }}
   labels:
     {{- include "element-io.element-web.labels" (dict "root" $ "context" .) | nindent 4 }}
+    k8s.element.io/confighash: "{{( include "element-io.element-web.configmap-data" (dict "root" $ "context" .)) | sha1sum }}"
+    k8s.element.io/nginxhash: "{{ include "element-io.element-web.nginx-configmap-data" (dict "root" $) | sha1sum }}"
   name: {{ $.Release.Name }}-element-web
   namespace: {{ $.Release.Namespace }}
 spec:
