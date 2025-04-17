@@ -13,6 +13,7 @@ metadata:
     {{- include "element-io.synapse.labels" (dict "root" $ "context" .) | nindent 4 }}
   name: {{ include "element-io.synapse.configmap-name" (dict "root" $ "context" (dict "isHook" false)) }}
   namespace: {{ $.Release.Namespace }}
-{{- include "element-io.synapse.configmap-data"  (dict "root" $ "context" (dict "isHook" false)) -}}
+data:
+  {{- include "element-io.synapse.configmap-data" (dict "root" $ "context" (dict "isHook" false)) | nindent 2 }}
 {{- end -}}
 {{- end -}}
