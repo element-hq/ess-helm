@@ -16,6 +16,7 @@ metadata:
     "helm.sh/hook-weight": "-5"
   name: {{ include "element-io.synapse.configmap-name" (dict "root" $ "context" (dict "isHook" true)) }}
   namespace: {{ $.Release.Namespace }}
-{{- include "element-io.synapse.configmap-data"  (dict "root" $ "context" (dict "isHook" true)) -}}
+data:
+  {{- include "element-io.synapse.configmap-data" (dict "root" $ "context" (dict "isHook" true)) | nindent 2 }}
 {{- end -}}
 {{- end -}}
