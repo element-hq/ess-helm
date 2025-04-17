@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
+import re
 from hashlib import sha1
 
 import pytest
@@ -64,7 +65,7 @@ async def test_templates_have_postgres_hash_label(release_name, templates, value
             if not deployable_details.has_db:
                 continue
 
-            assert "k8s.element.io/postgresPasswordHash" in labels, f"{id} does not have postgres password hash label"
+            assert "k8s.element.io/postgres-password-hash" in labels, f"{id} does not have postgres password hash label"
             helm_key = deployable_details.helm_key
             values_fragment = deployable_details.get_helm_values_fragment(values)
             if values_fragment.get("postgres", {}).get("password", {}).get("value", None):
@@ -80,14 +81,14 @@ async def test_templates_have_postgres_hash_label(release_name, templates, value
             else:
                 expected = f"{release_name}-generated"
             expected = expected.replace("{{ $.Release.Name }}", release_name)
-            assert labels["k8s.element.io/postgresPasswordHash"] == sha1(expected.encode()).hexdigest(), (
+            assert labels["k8s.element.io/postgres-password-hash"] == sha1(expected.encode()).hexdigest(), (
                 f"{id} has incorrect postgres password hash, expect {expected} hashed as sha1"
             )
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_pod_spec_labels_are_consistent_with_parent_labels(release_name, templates):
+async def test_pod_spec_labels_are_consistent_with_parent_labels(templates):
     for template in templates:
         if template["kind"] not in ["Deployment", "Job", "StatefulSet"]:
             continue
@@ -102,3 +103,25 @@ async def test_pod_spec_labels_are_consistent_with_parent_labels(release_name, t
             f"{template_id(template)} has differing labels between itself and the Pods it would create. "
             f"{parent_labels=} vs {pod_labels=}"
         )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_our_labels_are_named_consistently(templates):
+    acceptable_matches = [
+        "k8s.element.io/as-registration-[0-9]+-hash",
+        "k8s.element.io/([a-z0-9-]+)-(config|secret)-hash",
+        "k8s.element.io/postgres-password-hash",
+        "k8s.element.io/synapse-instance",
+        "k8s.element.io/target-(instance|name)",
+    ]
+    for template in templates:
+        labels = template["metadata"]["labels"]
+        our_labels = [key for key in labels if "k8s.element.io" in key]
+        for our_label in our_labels:
+            has_match = any(
+                [re.match(f"^{acceptable_match}$", our_label) is not None for acceptable_match in acceptable_matches]
+            )
+            assert has_match, (
+                f"{template_id(template)} has label {our_label} that does not match one of {acceptable_matches=}"
+            )

@@ -18,8 +18,8 @@ template:
 {{- else }}
       {{- include "element-io.synapse.process.labels" (dict "root" $root "context" (dict "image" .image "labels" .labels "withChartVersion" false "isHook" $isHook "processType" $processType)) | nindent 6 }}
 {{- end }}
-      k8s.element.io/configdatahash: "{{ include "element-io.synapse.configmap-data"  (dict "root" $root "context" .) | sha1sum }}"
-      k8s.element.io/secretdatahash: "{{ include "element-io.synapse.secret-data"  (dict "root" $root "context" .) | sha1sum }}"
+      k8s.element.io/synapse-config-hash: "{{ include "element-io.synapse.configmap-data"  (dict "root" $root "context" .) | sha1sum }}"
+      k8s.element.io/synapse-secret-hash: "{{ include "element-io.synapse.secret-data"  (dict "root" $root "context" .) | sha1sum }}"
 {{- range $index, $appservice := .appservices }}
 {{- if .configMap }}
       k8s.element.io/as-registration-{{ $index }}-hash: "{{ (lookup "v1" "ConfigMap" $root.Release.Namespace (tpl $appservice.configMap $root)) | toJson | sha1sum }}"

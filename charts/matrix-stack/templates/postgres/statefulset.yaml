@@ -10,12 +10,12 @@ kind: StatefulSet
 metadata:
   labels:
     {{- include "element-io.postgres.labels" (dict "root" $ "context" .) | nindent 4 }}
+    k8s.element.io/postgres-secret-hash: "{{ include "element-io.postgres.secret-data" (dict "root" $ "context" .) | sha1sum }}"
+    k8s.element.io/postgres-config-hash: "{{ include "element-io.postgres.configmap-data" (dict "root" $ "context" .) | sha1sum }}"
   name: {{ $.Release.Name }}-postgres
   namespace: {{ $.Release.Namespace }}
-  annotations:
-    k8s.element.io/secrethash: "{{ include "element-io.postgres.secret-data" (dict "root" $ "context" .) | sha1sum }}"
-    k8s.element.io/confighash: "{{ include "element-io.postgres.configmap-data" (dict "root" $ "context" .) | sha1sum }}"
 {{- with .annotations }}
+  annotations:
     {{- toYaml . | nindent 4 }}
 {{- end }}
 spec:
@@ -30,10 +30,10 @@ spec:
     metadata:
       labels:
         {{- include "element-io.postgres.labels" (dict "root" $ "context" (dict "image" .image "labels" .labels "withChartVersion" false)) | nindent 8 }}
-      annotations:
-        k8s.element.io/secrethash: "{{ include "element-io.postgres.secret-data" (dict "root" $ "context" .) | sha1sum }}"
-        k8s.element.io/confighash: "{{ include "element-io.postgres.configmap-data" (dict "root" $ "context" .) | sha1sum }}"
+        k8s.element.io/postgres-secret-hash: "{{ include "element-io.postgres.secret-data" (dict "root" $ "context" .) | sha1sum }}"
+        k8s.element.io/postgres-config-hash: "{{ include "element-io.postgres.configmap-data" (dict "root" $ "context" .) | sha1sum }}"
 {{- with .annotations }}
+      annotations:
         {{- toYaml . | nindent 8 }}
 {{- end }}
     spec:

@@ -14,8 +14,8 @@ metadata:
 {{- end }}
   labels:
     {{- include "element-io.element-web.labels" (dict "root" $ "context" .) | nindent 4 }}
-    k8s.element.io/confighash: "{{( include "element-io.element-web.configmap-data" (dict "root" $ "context" .)) | sha1sum }}"
-    k8s.element.io/nginxhash: "{{ include "element-io.element-web.nginx-configmap-data" (dict "root" $) | sha1sum }}"
+    k8s.element.io/element-web-config-hash: "{{( include "element-io.element-web.configmap-data" (dict "root" $ "context" .)) | sha1sum }}"
+    k8s.element.io/nginx-config-hash: "{{ include "element-io.element-web.nginx-configmap-data" (dict "root" $) | sha1sum }}"
   name: {{ $.Release.Name }}-element-web
   namespace: {{ $.Release.Namespace }}
 spec:
@@ -32,8 +32,8 @@ spec:
     metadata:
       labels:
         {{- include "element-io.element-web.labels" (dict "root" $ "context" (dict "image" .image "labels" .labels "withChartVersion" false)) | nindent 8 }}
-        k8s.element.io/confighash: "{{( include "element-io.element-web.configmap-data" (dict "root" $ "context" .)) | sha1sum }}"
-        k8s.element.io/nginxhash: "{{ include "element-io.element-web.nginx-configmap-data" (dict "root" $) | sha1sum }}"
+        k8s.element.io/element-web-config-hash: "{{( include "element-io.element-web.configmap-data" (dict "root" $ "context" .)) | sha1sum }}"
+        k8s.element.io/nginx-config-hash: "{{ include "element-io.element-web.nginx-configmap-data" (dict "root" $) | sha1sum }}"
 {{- with .annotations }}
       annotations:
         {{- toYaml . | nindent 8 }}

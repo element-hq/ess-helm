@@ -16,12 +16,12 @@ metadata:
 {{- end }}
   labels:
     {{- include "element-io.haproxy.labels" (dict "root" $ "context" .) | nindent 4 }}
-    k8s.element.io/confighash: "{{ include "element-io.haproxy.configmap-data" (dict "root" $ "context" .) | sha1sum }}"
+    k8s.element.io/shared-haproxy-config-hash: "{{ include "element-io.haproxy.configmap-data" (dict "root" $ "context" .) | sha1sum }}"
 {{- if $.Values.synapse.enabled }}
-    k8s.element.io/synapsehash: "{{ include "element-io.synapse-haproxy.configmap-data" (dict "root" $) | sha1sum }}"
+    k8s.element.io/synapse-haproxy-config-hash: "{{ include "element-io.synapse-haproxy.configmap-data" (dict "root" $) | sha1sum }}"
 {{- end }}
 {{- if $.Values.wellKnownDelegation.enabled }}
-    k8s.element.io/wellknowndelegationhash: {{ include "element-io.well-known-delegation.configmap-data" (dict "root" $ "context" $.Values.wellKnownDelegation) | sha1sum }}
+    k8s.element.io/wellknowndelegation-haproxy-config-hash: {{ include "element-io.well-known-delegation.configmap-data" (dict "root" $ "context" $.Values.wellKnownDelegation) | sha1sum }}
 {{- end }}
   name: {{ $.Release.Name }}-haproxy
   namespace: {{ $.Release.Namespace }}
@@ -39,12 +39,12 @@ spec:
     metadata:
       labels:
         {{- include "element-io.haproxy.labels" (dict "root" $ "context" (dict "image" .image "labels" .labels "withChartVersion" false)) | nindent 8 }}
-        k8s.element.io/confighash: {{ include "element-io.haproxy.configmap-data" (dict "root" $ "context" .) | sha1sum }}
+        k8s.element.io/shared-haproxy-config-hash: {{ include "element-io.haproxy.configmap-data" (dict "root" $ "context" .) | sha1sum }}
 {{- if $.Values.synapse.enabled }}
-        k8s.element.io/synapsehash: {{ include "element-io.synapse-haproxy.configmap-data" (dict "root" $) | sha1sum }}
+        k8s.element.io/synapse-haproxy-config-hash: {{ include "element-io.synapse-haproxy.configmap-data" (dict "root" $) | sha1sum }}
 {{- end }}
 {{- if $.Values.wellKnownDelegation.enabled }}
-        k8s.element.io/wellknowndelegationhash: {{ include "element-io.well-known-delegation.configmap-data" (dict "root" $ "context" $.Values.wellKnownDelegation) | sha1sum }}
+        k8s.element.io/wellknowndelegation-haproxy-config-hash: {{ include "element-io.well-known-delegation.configmap-data" (dict "root" $ "context" $.Values.wellKnownDelegation) | sha1sum }}
 {{- end }}
 {{- with .annotations }}
       annotations:
