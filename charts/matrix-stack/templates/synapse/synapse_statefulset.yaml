@@ -28,6 +28,11 @@ metadata:
     k8s.element.io/as-registration-{{ $index }}-hash: "{{ (lookup "v1" "Secret" $.Release.Namespace (tpl $appservice.secret $)) | toJson | sha1sum }}"
 {{- end }}
 {{- end }}
+    {{ include "element-io.ess-library.postgres-label" (dict "root" $ "context" (dict
+                                                            "essPassword" "synapse"
+                                                            "postgresProperty" .postgres
+                                                            )
+                                        ) }}
   name: {{ $.Release.Name }}-synapse-{{ $processType }}
   namespace: {{ $.Release.Namespace }}
 spec:

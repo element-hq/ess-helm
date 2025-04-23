@@ -7,6 +7,7 @@ from hashlib import sha1
 import pytest
 
 from . import secret_values_files_to_test, values_files_to_test
+from .utils import template_id
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -23,7 +24,7 @@ async def test_templates_have_expected_labels(release_name, templates):
     ]
 
     for template in templates:
-        id = f"{template['kind']}/{template['metadata']['name']}"
+        id = template_id(template)
         labels = template["metadata"]["labels"]
 
         for expected_label in expected_labels:
@@ -57,7 +58,7 @@ async def test_templates_have_expected_labels(release_name, templates):
 async def test_templates_have_postgres_hash_label(release_name, templates, values, template_to_deployable_details):
     for template in templates:
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            id = f"{template['kind']}/{template['metadata']['name']}"
+            id = template_id(template)
             labels = template["spec"]["template"]["metadata"]["labels"]
             deployable_details = template_to_deployable_details(template)
             if not deployable_details.has_db:
@@ -82,3 +83,22 @@ async def test_templates_have_postgres_hash_label(release_name, templates, value
             assert labels["k8s.element.io/postgresPasswordHash"] == sha1(expected.encode()).hexdigest(), (
                 f"{id} has incorrect postgres password hash, expect {expected} hashed as sha1"
             )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_pod_spec_labels_are_consistent_with_parent_labels(release_name, templates):
+    for template in templates:
+        if template["kind"] not in ["Deployment", "Job", "StatefulSet"]:
+            continue
+
+        parent_labels = template["metadata"]["labels"]
+        pod_labels = template["spec"]["template"]["metadata"]["labels"]
+
+        # Explicitly omitted from Pod labels so that they don't restart blindly on chart upgrade
+        del parent_labels["helm.sh/chart"]
+
+        assert parent_labels == pod_labels, (
+            f"{template_id(template)} has differing labels between itself and the Pods it would create. "
+            f"{parent_labels=} vs {pod_labels=}"
+        )
