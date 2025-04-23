@@ -11,7 +11,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 app.kubernetes.io/component: matrix-authentication
 app.kubernetes.io/name: matrix-authentication-service
 app.kubernetes.io/instance: {{ $root.Release.Name }}-matrix-authentication-service
-app.kubernetes.io/version: {{ .image.tag }}
+app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .image.tag }}
 {{- end }}
 {{- end }}
 

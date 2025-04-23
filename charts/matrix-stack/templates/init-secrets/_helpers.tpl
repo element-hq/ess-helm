@@ -11,7 +11,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 app.kubernetes.io/component: matrix-tools
 app.kubernetes.io/name: init-secrets
 app.kubernetes.io/instance: {{ $root.Release.Name }}-init-secrets
-app.kubernetes.io/version: {{ $root.Values.matrixTools.image.tag }}
+app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" $root.Values.matrixTools.image.tag }}
 {{- end }}
 {{- end }}
 

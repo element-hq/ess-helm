@@ -3,6 +3,9 @@ Copyright 2024 New Vector Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
+{{- define "element-io.ess-library.labels.makeSafe" -}}
+{{ . | replace  "+" "_" | trunc 63 | trimSuffix "-" | quote }}
+{{- end -}}
 
 {{- define "element-io.ess-library.labels.common" -}}
 {{- $root := .root }}
@@ -25,7 +28,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- toYaml $userLabels }}
 {{- end }}
 {{- if ne .context.withChartVersion false }}
-helm.sh/chart: {{ (printf "%v-%v" $root.Chart.Name ($root.Chart.Version | replace "+" "_")) | trunc 63 }}
+helm.sh/chart: {{ include "element-io.ess-library.labels.makeSafe" (printf "%v-%v" $root.Chart.Name $root.Chart.Version) }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ $root.Release.Service }}
 app.kubernetes.io/part-of: matrix-stack

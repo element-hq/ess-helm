@@ -11,7 +11,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 app.kubernetes.io/component: matrix-server
 app.kubernetes.io/name: synapse
 app.kubernetes.io/instance: {{ $root.Release.Name }}-synapse
-app.kubernetes.io/version: {{ .image.tag }}
+app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .image.tag }}
 k8s.element.io/synapse-instance: {{ $root.Release.Name }}-synapse
 {{- end }}
 {{- end }}
@@ -23,7 +23,7 @@ k8s.element.io/synapse-instance: {{ $root.Release.Name }}-synapse
 app.kubernetes.io/component: matrix-server
 app.kubernetes.io/name: synapse-check-config-hook
 app.kubernetes.io/instance: {{ $root.Release.Name }}-synapse-check-config-hook
-app.kubernetes.io/version: {{ $root.Values.synapse.image.tag }}
+app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" $root.Values.synapse.image.tag }}
 k8s.element.io/synapse-instance: {{ $root.Release.Name }}-synapse-check-config-hook
 {{- end }}
 {{- end }}
@@ -37,7 +37,7 @@ app.kubernetes.io/name: synapse
 app.kubernetes.io/instance: {{ $root.Release.Name }}-synapse
 k8s.element.io/target-name: haproxy
 k8s.element.io/target-instance: {{ $root.Release.Name }}-haproxy
-app.kubernetes.io/version: {{ .image.tag }}
+app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .image.tag }}
 {{- end }}
 {{- end }}
 
@@ -48,7 +48,7 @@ app.kubernetes.io/version: {{ .image.tag }}
 app.kubernetes.io/component: matrix-server
 app.kubernetes.io/name: synapse-{{ .processType }}
 app.kubernetes.io/instance: {{ $root.Release.Name }}-synapse-{{ .processType }}
-app.kubernetes.io/version: {{ .image.tag }}
+app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .image.tag }}
 {{ if required "element-io.synapse.process.labels missing context.isHook" .isHook }}
 k8s.element.io/synapse-instance: {{ $root.Release.Name }}-synapse-check-config-hook
 {{ else }}
@@ -64,7 +64,7 @@ k8s.element.io/synapse-instance: {{ $root.Release.Name }}-synapse
 app.kubernetes.io/component: matrix-server-pubsub
 app.kubernetes.io/name: synapse-redis
 app.kubernetes.io/instance: {{ $root.Release.Name }}-synapse-redis
-app.kubernetes.io/version: {{ .image.tag }}
+app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .image.tag }}
 {{- end }}
 {{- end }}
 

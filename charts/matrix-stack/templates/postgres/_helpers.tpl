@@ -12,7 +12,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 app.kubernetes.io/component: matrix-stack-db
 app.kubernetes.io/name: postgres
 app.kubernetes.io/instance: {{ $root.Release.Name }}-postgres
-app.kubernetes.io/version: {{ .image.tag | quote }}
+app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .image.tag }}
 {{- end }}
 {{- end }}
 

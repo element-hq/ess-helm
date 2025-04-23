@@ -11,7 +11,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 app.kubernetes.io/component: matrix-rtc
 app.kubernetes.io/name: matrix-rtc
 app.kubernetes.io/instance: {{ $root.Release.Name }}-matrix-rtc
-app.kubernetes.io/version: {{ .image.tag }}
+app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .image.tag }}
 {{- end }}
 {{- end }}
 
@@ -22,7 +22,7 @@ app.kubernetes.io/version: {{ .image.tag }}
 app.kubernetes.io/component: matrix-rtc-authorizer
 app.kubernetes.io/name: matrix-rtc-authorizer
 app.kubernetes.io/instance: {{ $root.Release.Name }}-matrix-rtc-authorizer
-app.kubernetes.io/version: {{ .image.tag }}
+app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .image.tag }}
 {{- end }}
 {{- end }}
 
@@ -33,7 +33,7 @@ app.kubernetes.io/version: {{ .image.tag }}
 app.kubernetes.io/component: matrix-rtc-voip-server
 app.kubernetes.io/name: matrix-rtc-sfu
 app.kubernetes.io/instance: {{ $root.Release.Name }}-matrix-rtc-sfu
-app.kubernetes.io/version: {{ .image.tag }}
+app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .image.tag }}
 {{- end }}
 {{- end }}
 
@@ -44,7 +44,7 @@ app.kubernetes.io/version: {{ .image.tag }}
 app.kubernetes.io/component: matrix-rtc-voip-server
 app.kubernetes.io/name: matrix-rtc-sfu-rtc
 app.kubernetes.io/instance: {{ $root.Release.Name }}-matrix-rtc-sfu-rtc
-app.kubernetes.io/version: {{ .image.tag }}
+app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .image.tag }}
 {{- end }}
 {{- end }}
 
