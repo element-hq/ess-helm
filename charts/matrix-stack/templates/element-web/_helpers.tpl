@@ -11,7 +11,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 app.kubernetes.io/component: matrix-client
 app.kubernetes.io/name: element-web
 app.kubernetes.io/instance: {{ $root.Release.Name }}-element-web
-app.kubernetes.io/version: {{ .image.tag }}
+app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .image.tag }}
 {{- end }}
 {{- end }}
 

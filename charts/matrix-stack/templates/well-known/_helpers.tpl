@@ -11,7 +11,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 app.kubernetes.io/component: matrix-delegation
 app.kubernetes.io/name: well-known-delegation
 app.kubernetes.io/instance: {{ $root.Release.Name }}-well-known-delegation
-app.kubernetes.io/version: {{ $root.Values.haproxy.image.tag }}
+app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" $root.Values.haproxy.image.tag }}
 {{- end }}
 {{- end }}
 
@@ -22,7 +22,7 @@ app.kubernetes.io/version: {{ $root.Values.haproxy.image.tag }}
 app.kubernetes.io/component: matrix-stack-ingress
 app.kubernetes.io/name: well-known-ingress
 app.kubernetes.io/instance: {{ $root.Release.Name }}-well-known-ingress
-app.kubernetes.io/version: {{ .image.tag }}
+app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .image.tag }}
 k8s.element.io/target-name: haproxy
 k8s.element.io/target-instance: {{ $root.Release.Name }}-haproxy
 {{- end }}
