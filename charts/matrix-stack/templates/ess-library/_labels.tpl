@@ -25,7 +25,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- toYaml $userLabels }}
 {{- end }}
 {{- if ne .context.withChartVersion false }}
-helm.sh/chart: {{ $root.Chart.Name }}-{{ $root.Chart.Version | replace "+" "_" }}
+helm.sh/chart: {{ (printf "%v-%v" $root.Chart.Name ($root.Chart.Version | replace "+" "_")) | trunc 63 }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ $root.Release.Service }}
 app.kubernetes.io/part-of: matrix-stack
