@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-name: Run Pytest tests
+name: Run PyTest tests - Integration and Manifests
 
 on:
   pull_request_target:
@@ -22,17 +22,28 @@ env:
   GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  pytest:
+  pytest-setup:
     runs-on: ubuntu-latest
+    outputs:
+      envFiles: ${{ steps.data.outputs.envFiles }}
+      manifestTests: ${{ steps.data.outputs.manifestTests }}
+    steps:
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+    - id: data
+      run: |
+        echo "envFiles=$(find tests/integration/env -name '*.rc' | sed 's|tests/integration/env/||' | sed 's/.rc$//' | jq -ncR '{envFiles: [inputs]}')" | tee -a "$GITHUB_OUTPUT"
+        echo "manifestTests=$(find tests/manifests -name 'test_*.py' | sed 's|tests/manifests/||' | sed 's/.py$//' | jq -ncR '{manifestTests: [inputs]}')" | tee -a "$GITHUB_OUTPUT"
+
+  pytest-integration:
+    runs-on: ubuntu-latest
+    needs: pytest-setup
     strategy:
       fail-fast: false
       matrix:
-        test-component:
-        - element-web
-        - matrix-authentication-service
-        - matrix-rtc
-        - synapse
-        - well-known-delegation
+        test-component: ${{ fromJSON(needs.pytest-setup.outputs.envFiles).envFiles }}
+
     steps:
     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
       with:
@@ -99,3 +110,28 @@ jobs:
         name: ess-helm-logs-${{ matrix.test-component }}
         path: ess-helm-logs
         retention-days: 1
+
+  pytest-manifests:
+    runs-on: ubuntu-latest
+    needs: pytest-setup
+    strategy:
+      fail-fast: false
+      matrix:
+        manifest-test: ${{ fromJSON(needs.pytest-setup.outputs.manifestTests).manifestTests }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+
+    - uses: matrix-org/setup-python-poetry@5bbf6603c5c930615ec8a29f1b5d7d258d905aa4  # v2
+      with:
+        poetry-version: "1.8.5"
+        python-version: "3.x"
+
+    - name: Load poetry path
+      run: |
+        echo "$(poetry env info -p)/bin" >> "${GITHUB_PATH}"
+
+    - name: Run our manifest test
+      run: poetry run pytest -vv tests/manifests/${{ matrix.manifest-test }}.py
