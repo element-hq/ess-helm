@@ -11,10 +11,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $mHomeserver := dict }}
 {{- $settingDefaults := dict -}}
 {{- if $root.Values.serverName }}
-{{- $_ := set $mHomeserver "server_name" $root.Values.serverName }}
+{{- $_ := set $mHomeserver "server_name" (tpl $root.Values.serverName $root) }}
 {{- end }}
 {{- if $root.Values.synapse.enabled }}
-{{- $_ := set $mHomeserver "base_url" (printf "https://%s" $root.Values.synapse.ingress.host) -}}
+{{- $_ := set $mHomeserver "base_url" (printf "https://%s" (tpl $root.Values.synapse.ingress.host $root)) -}}
 {{- end }}
 {{- if $root.Values.matrixRTC.enabled }}
 {{- $_ := set $settingDefaults "feature_group_calls" true -}}

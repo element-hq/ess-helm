@@ -58,7 +58,7 @@ telemetry:
 */ -}}
 {{- if $root.Values.synapse.enabled }}
 matrix:
-  homeserver: "{{ $root.Values.serverName }}"
+  homeserver: "{{ tpl $root.Values.serverName $root }}"
   secret: ${SYNAPSE_SHARED_SECRET}
   endpoint: "http://{{ $root.Release.Name }}-synapse-main.{{ $root.Release.Namespace }}.svc.cluster.local:8008"
 {{- end }}
