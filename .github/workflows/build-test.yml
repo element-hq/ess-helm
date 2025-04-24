@@ -94,6 +94,3 @@ jobs:
         for checkov_values in charts/matrix-stack/ci/*checkov*values.yaml; do
           bash scripts/checkov.sh "$checkov_values"
         done
-
-    - name: Run our manifest tests
-      run: poetry run pytest -vv tests/manifests
