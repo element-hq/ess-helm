@@ -22,17 +22,26 @@ env:
   GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  pytest:
+  pytest-setup:
     runs-on: ubuntu-latest
+    outputs:
+      envFiles: ${{ steps.data.outputs.envFiles }}
+    steps:
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+    - id: data
+      run: |
+        echo "envFiles=$(find tests/integration/env -name '*.rc' | sed 's|tests/integration/env/||' | sed 's/.rc$//' | jq -ncR '{envFiles: [inputs]}')" | tee -a "$GITHUB_OUTPUT"
+
+  pytest-integration:
+    runs-on: ubuntu-latest
+    needs: pytest-setup
     strategy:
       fail-fast: false
       matrix:
-        test-component:
-        - element-web
-        - matrix-authentication-service
-        - matrix-rtc
-        - synapse
-        - well-known-delegation
+        test-component: ${{ fromJSON(needs.pytest-setup.outputs.envFiles).envFiles }}
+
     steps:
     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
       with:
