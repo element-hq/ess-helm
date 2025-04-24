@@ -8,7 +8,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- with required "synapse/synapse-04-homeserver-overrides.yaml.tpl missing context" .context }}
 {{- $isHook := required "element-io.synapse.config.shared-overrides requires context.isHook" .isHook -}}
 public_baseurl: https://{{ tpl .ingress.host $root }}/
-server_name: {{ required "Synapse requires serverName set" $root.Values.serverName }}
+server_name: {{ tpl (required "Synapse requires serverName set" $root.Values.serverName) $root }}
 signing_key_path: /secrets/{{
   include "element-io.ess-library.init-secret-path" (
     dict "root" $root "context" (
