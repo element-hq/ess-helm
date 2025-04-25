@@ -116,6 +116,9 @@ async def test_log_level_overrides(values, deployables_details, make_templates):
             assert loggers == {
                 "synapse.storage.SQL": {"level": "INFO"},
             }
+            break
+    else:
+        raise RuntimeError("Could not find log_config.yaml")
 
     values["synapse"]["logging"] = {
         "rootLevel": "WARNING",
@@ -133,3 +136,6 @@ async def test_log_level_overrides(values, deployables_details, make_templates):
             loggers = log_yaml["loggers"]
             assert log_level == "WARNING"
             assert loggers == {"synapse.storage.SQL": {"level": "DEBUG"}, "synapse.over.value": {"level": "INFO"}}
+            break
+    else:
+        raise RuntimeError("Could not find log_config.yaml")

@@ -126,9 +126,8 @@ async def test_synapse_and_mas_injected_in_client_and_server_well_known(release_
                 "issuer": "should-not-override",
                 "account": "https://mas.ess.localhost/account",
             }
-        }
+        },
     )
-
 
 
 @pytest.mark.parametrize("values_file", ["well-known-element-web-values.yaml"])
