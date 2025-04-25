@@ -38,6 +38,7 @@ class DeployableDetails(abc.ABC):
 
     has_db: bool = field(default=False, hash=False)
     has_image: bool | None = field(default=None, hash=False)
+    has_extra_env: bool | None = field(default=True, hash=False)
     has_ingress: bool = field(default=True, hash=False)
     has_workloads: bool = field(default=True, hash=False)
     has_service_monitor: bool = field(default=True, hash=False)
@@ -161,6 +162,7 @@ all_components_details = [
         helm_key="initSecrets",
         has_image=False,
         has_ingress=False,
+        has_extra_env=False,
         has_service_monitor=False,
         has_topology_spread_constraints=False,
         is_shared_component=True,
@@ -168,12 +170,14 @@ all_components_details = [
     ComponentDetails(
         name="haproxy",
         has_ingress=False,
+        has_extra_env=False,
         is_shared_component=True,
         skip_path_consistency_for_files=["haproxy.cfg", "429.http", "path_map_file", "path_map_file_get"],
     ),
     ComponentDetails(
         name="postgres",
         has_ingress=False,
+        has_extra_env=False,
         paths_consistency_noqa=("/docker-entrypoint-initdb.d/init-ess-dbs.sh"),
         is_shared_component=True,
     ),
@@ -226,6 +230,7 @@ all_components_details = [
                 name="synapse-redis",
                 helm_key="redis",
                 has_ingress=False,
+                has_extra_env=False,
                 has_service_monitor=False,
                 has_topology_spread_constraints=False,
             ),
