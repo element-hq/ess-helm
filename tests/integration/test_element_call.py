@@ -8,7 +8,9 @@ from .fixtures import ESSData
 from .lib.utils import aiohttp_post_json, value_file_has
 
 
-@pytest.mark.skipif(value_file_has("matrixRTC.enabled", False), reason="ElementWeb not deployed")
+@pytest.mark.skipif(value_file_has("matrixRTC.enabled", False), reason="Matrix RTC not deployed")
+@pytest.mark.skipif(value_file_has("synapse.enabled", False), reason="Synapse not deployed")
+@pytest.mark.skipif(value_file_has("wellKnownDelegation.enabled", False), reason="Well-Known Delegation not deployed")
 @pytest.mark.parametrize("users", [("matrix-rtc-user",)], indirect=True)
 @pytest.mark.asyncio_cooperative
 async def test_element_call_livekit_jwt(ingress_ready, users, generated_data: ESSData, ssl_context):

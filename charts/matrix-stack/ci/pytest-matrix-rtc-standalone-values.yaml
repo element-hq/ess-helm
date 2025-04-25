@@ -1,0 +1,36 @@
+# Copyright 2024-2025 New Vector Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# source_fragments: matrix-rtc-minimal.yaml matrix-rtc-pytest-extras.yaml init-secrets-minimal.yaml init-secrets-pytest-extras.yaml
+# DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
+
+# postgres don't have any required properties to be set and defaults to enabled
+elementWeb:
+  enabled: false
+initSecrets:
+  annotations:
+    has-no-service-monitor: "true"
+  podSecurityContext:
+    runAsGroup: 0
+matrixAuthenticationService:
+  enabled: false
+matrixRTC:
+  extraEnv:
+    - name: LIVEKIT_INSECURE_SKIP_VERIFY_TLS
+      value: YES_I_KNOW_WHAT_I_AM_DOING
+  ingress:
+    host: mrtc.{{ $.Values.serverName }}
+    tlsSecret: '{{ $.Release.Name }}-matrix-rtc-tls'
+  podSecurityContext:
+    runAsGroup: 0
+  sfu:
+    extraEnv:
+      - name: DEBUG_RENDERING
+        value: "1"
+    podSecurityContext:
+      runAsGroup: 0
+synapse:
+  enabled: false
+wellKnownDelegation:
+  enabled: false
