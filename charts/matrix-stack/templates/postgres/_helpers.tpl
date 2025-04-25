@@ -114,7 +114,7 @@ true
                         "LC_COLLATE" "C"
                         "LC_CTYPE" "C"
 -}}
-{{- $resultEnv := mergeOverwrite $overrideEnv $resultEnv -}}
+{{- $resultEnv := mustMergeOverwrite $overrideEnv $resultEnv -}}
 {{- range $key, $value := $resultEnv }}
 - name: {{ $key | quote }}
   value: {{ $value | quote }}

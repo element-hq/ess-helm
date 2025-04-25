@@ -51,7 +51,7 @@ k8s.element.io/target-instance: {{ $root.Release.Name }}-haproxy
 {{- $_ := set $config "org.matrix.msc4143.rtc_foci" (list (dict "type" "livekit" "livekit_service_url" (printf "https://%s" $root.Values.matrixRTC.ingress.host))) -}}
 {{- end -}}
 {{- $additional := .additional.client | fromJson -}}
-{{- tpl (toPrettyJson (mergeOverwrite $additional $config)) $root -}}
+{{- tpl (toPrettyJson (mustMergeOverwrite $additional $config)) $root -}}
 {{- end -}}
 {{- end }}
 
@@ -65,7 +65,7 @@ k8s.element.io/target-instance: {{ $root.Release.Name }}-haproxy
 {{- end -}}
 {{- end -}}
 {{- $additional := .additional.server | fromJson -}}
-{{- tpl (toPrettyJson (mergeOverwrite $additional $config)) $root -}}
+{{- tpl (toPrettyJson (mustMergeOverwrite $additional $config)) $root -}}
 {{- end -}}
 {{- end }}
 
@@ -74,7 +74,7 @@ k8s.element.io/target-instance: {{ $root.Release.Name }}-haproxy
 {{- with required "element-io.well-known-delegation.element missing context" .context -}}
 {{- $config := dict -}}
 {{- $additional := .additional.element | fromJson -}}
-{{- tpl (toPrettyJson (mergeOverwrite $additional $config)) $root -}}
+{{- tpl (toPrettyJson (mustMergeOverwrite $additional $config)) $root -}}
 {{- end -}}
 {{- end }}
 
@@ -83,7 +83,7 @@ k8s.element.io/target-instance: {{ $root.Release.Name }}-haproxy
 {{- with required "element-io.well-known-delegation.support missing context" .context -}}
 {{- $config := dict -}}
 {{- $additional := .additional.support | fromJson -}}
-{{- tpl (toPrettyJson (mergeOverwrite $additional $config)) $root -}}
+{{- tpl (toPrettyJson (mustMergeOverwrite $additional $config)) $root -}}
 {{- end -}}
 {{- end }}
 

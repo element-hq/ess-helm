@@ -9,7 +9,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $root := .root -}}
 {{- with required "element-io.ess-library.value-from-values-path missing context" .context -}}
 {{- $path := . -}}
-{{- $navigatedToPart := mergeOverwrite (mustDeepCopy $root.Values) (dict) -}}
+{{- $navigatedToPart := mustMergeOverwrite (dict) (mustDeepCopy $root.Values) -}}
 {{- range (mustRegexSplit "\\." $path -1) -}}
 {{- if $navigatedToPart -}}
 {{- $navigatedToPart = dig . nil $navigatedToPart -}}
