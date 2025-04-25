@@ -6,6 +6,31 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 0.11.0 (2025-04-25)
+
+### Changed
+
+- Ensure that all managed Pods have the same labels as their parent Deployment/StatefulSet/Job (apart from the helm.sh/chart label). (#379)
+- Move Postgres config/secret hashes to labels for consistency with all other components. (#380)
+- Enforce a common format for k8s.element.io labels across components. (#380)
+- Extract Synapse config into template files like other config. (#381)
+- Ensure app.kubernetes.io/version labels are properly escaped & restricted. (#386)
+- Update matrix-tools dependencies and release 0.3.4. (#393)
+
+### Fixed
+
+- Fix chart upgrade causing a restart of the whole stack. (#373)
+- Fix `helm.sh/chart` label size with dev builds. (#385)
+
+### Internal
+
+- Make sure `serverName` can be templatized in Synapse and ElementWeb config. (#387)
+- Run manifest tests in parallel. (#388)
+- Dynamically find integration tests to run. (#388)
+- Synapse: Make sure postgres host can be templatized. (#390)
+- Add tests to check that containers env values is a string. (#391)
+
+
 # ESS Community Helm Chart 0.10.1 (2025-04-16)
 
 ### Added
