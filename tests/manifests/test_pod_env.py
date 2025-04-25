@@ -12,7 +12,7 @@ extra_env = {"a_string": "a", "b_boolean": True, "c_integer": 1, "d_float": 1.1}
 
 def set_extra_env(values_fragment, deployable_details):
     if deployable_details.has_extra_env:
-        values_fragment.setdefault("extraEnv", [{"name": k, "value": str(v)} for k, v in extra_env.items()])
+        values_fragment["extraEnv"] = [{"name": k, "value": str(v)} for k, v in extra_env.items()]
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
