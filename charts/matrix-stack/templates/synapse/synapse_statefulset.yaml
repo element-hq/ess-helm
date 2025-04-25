@@ -8,7 +8,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- if .enabled -}}
 {{- $enabledWorkers := (include "element-io.synapse.enabledWorkers" (dict "root" $)) | fromJson }}
 {{- range $processType, $unmergedProcessDetails := mergeOverwrite (dict "main" dict) $enabledWorkers }}
-{{- $perProcessRoot := mergeOverwrite $.Values.synapse (dict "processType" $processType "isHook" false) }}
+{{- $perProcessRoot := mergeOverwrite ($.Values.synapse | deepCopy) (dict "processType" $processType "isHook" false) }}
 {{- with (mergeOverwrite ($.Values.synapse | deepCopy) ($unmergedProcessDetails | deepCopy) dict) }}
 apiVersion: apps/v1
 kind: StatefulSet
