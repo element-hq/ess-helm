@@ -46,7 +46,7 @@ database:
     user: {{ required "Synapse requires postgres.user set" .postgres.user }}
     password: ${SYNAPSE_POSTGRES_PASSWORD}
     database: {{ required "Synapse requires postgres.database set" .postgres.database }}
-    host: {{ required "Synapse requires postgres.host set" .postgres.host }}
+    host: {{ required "Synapse requires postgres.host set" (tpl .postgres.host $root) }}
     port: {{ .postgres.port | default 5432 }}
     sslmode: {{ .postgres.sslMode | default "prefer" }}
 {{- else if $root.Values.postgres.enabled }}
