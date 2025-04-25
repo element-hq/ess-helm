@@ -21,7 +21,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  {{- with (merge dict .serviceAccount.annotations $extraAnnotations) }}
+  {{- with (mergeOverwrite $extraAnnotations .serviceAccount.annotations dict) }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}

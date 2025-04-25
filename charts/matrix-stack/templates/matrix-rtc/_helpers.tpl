@@ -126,7 +126,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- with required "element-io.matrix-rtc-sfu.config missing context" .context -}}
 {{- $config := (tpl ($root.Files.Get "configs/matrix-rtc/sfu/config.yaml.tpl") (dict "root" $root "context" .)) | fromYaml }}
 config.yaml: |
-{{- toYaml (merge (.additional | fromYaml) $config) | nindent 2 }}
+{{- toYaml (mergeOverwrite $config (.additional | fromYaml)) | nindent 2 }}
 {{- if not ($root.Values.matrixRTC.livekitAuth).keysYaml }}
 keys-template.yaml: |
 {{- (tpl ($root.Files.Get "configs/matrix-rtc/sfu/keys-template.yaml.tpl") dict) | nindent 2 }}

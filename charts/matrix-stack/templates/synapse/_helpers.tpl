@@ -190,7 +190,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- /*02 files are user provided in Helm values and end up in the Secret*/}}
 {{- /*03 files are user provided as secrets rather than directly in Helm*/}}
 04-homeserver-overrides.yaml: |
-{{- (tpl ($root.Files.Get "configs/synapse/synapse-04-homeserver-overrides.yaml.tpl") (dict "root" $root "context" (merge dict $root.Values.synapse (dict "isHook" $isHook)))) | nindent 2 }}
+{{- (tpl ($root.Files.Get "configs/synapse/synapse-04-homeserver-overrides.yaml.tpl") (dict "root" $root "context" (mergeOverwrite (dict "isHook" $isHook) $root.Values.synapse dict))) | nindent 2 }}
 05-main.yaml: |
 {{- (tpl ($root.Files.Get "configs/synapse/synapse-05-process-specific.yaml.tpl") (dict "root" $root "context" (dict "processType" "main"))) | nindent 2 }}
 {{- if not $isHook }}

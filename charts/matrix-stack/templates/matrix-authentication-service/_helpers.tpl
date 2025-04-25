@@ -72,7 +72,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- $_ := set $resultEnv $envEntry.name $envEntry.value -}}
 {{- end -}}
 {{- $overrideEnv := dict "MAS_CONFIG" "/config.yaml" -}}
-{{- $resultEnv := merge $resultEnv $overrideEnv -}}
+{{- $resultEnv := mergeOverwrite $overrideEnv $resultEnv -}}
 {{- range $key, $value := $resultEnv }}
 - name: {{ $key | quote }}
   value: {{ $value | quote }}
