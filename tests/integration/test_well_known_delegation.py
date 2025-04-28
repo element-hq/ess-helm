@@ -88,6 +88,31 @@ async def test_delete_405(
                 f"https://127.0.0.1/{path}",
                 headers={"Host": generated_data.server_name},
                 server_hostname=generated_data.server_name,
+                raise_for_status=False,
+            ) as response,
+        ):
+            assert response.status == 405
+
+        async with (
+            aiohttp_client(ssl_context) as client,
+            client.post(
+                f"https://127.0.0.1/{path}",
+                data={},
+                headers={"Host": generated_data.server_name},
+                server_hostname=generated_data.server_name,
+                raise_for_status=False,
+            ) as response,
+        ):
+            assert response.status == 405
+
+        async with (
+            aiohttp_client(ssl_context) as client,
+            client.put(
+                f"https://127.0.0.1/{path}",
+                data={},
+                headers={"Host": generated_data.server_name},
+                server_hostname=generated_data.server_name,
+                raise_for_status=False,
             ) as response,
         ):
             assert response.status == 405
