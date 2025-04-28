@@ -8,7 +8,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- if and .enabled .checkConfigHook.enabled -}}
 {{- $enabledWorkers := (include "element-io.synapse.enabledWorkers" (dict "root" $)) | fromJson }}
 {{- $processType := "check-config-hook" }}
-{{- $perProcessRoot := merge (dict "processType" $processType "isHook" true) (.checkConfigHook | deepCopy) ($.Values.synapse | deepCopy) }}
+{{- $perProcessRoot := mustMergeOverwrite ($.Values.synapse | deepCopy) (.checkConfigHook | deepCopy) (dict "processType" $processType "isHook" true) }}
 apiVersion: batch/v1
 kind: Job
 metadata:

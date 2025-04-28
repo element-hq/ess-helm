@@ -65,7 +65,7 @@ tolerations:
 {{- $defaultConstraintSettings := dict "labelSelector" $labelSelector "matchLabelKeys" $matchLabelKeys "whenUnsatisfiable" "DoNotSchedule" }}
 {{- $topologySpreadConstraints := list -}}
 {{- range $constraint := coalesce .topologySpreadConstraints $root.Values.topologySpreadConstraints -}}
-{{- $constraintWithDefault := (mergeOverwrite (deepCopy $defaultConstraintSettings) $constraint) -}}
+{{- $constraintWithDefault := (mustMergeOverwrite (deepCopy $defaultConstraintSettings) $constraint) -}}
 {{- $defaultMatchLabels := $constraintWithDefault.labelSelector.matchLabels | deepCopy -}}
 {{- range $key, $value := $constraintWithDefault.labelSelector.matchLabels -}}
 {{- if eq $value nil -}}

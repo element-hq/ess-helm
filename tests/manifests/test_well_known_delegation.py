@@ -22,7 +22,16 @@ synapse_base_url = {"m.homeserver": {"base_url": "https://synapse.ess.localhost"
 
 
 async def assert_well_known_files(
-    release_name, values, make_templates, expected_client=None, expected_server=None, expected_element=None
+    release_name,
+    values,
+    make_templates,
+    expected_client=None,
+    expected_server=None,
+    expected_element=None,
+    client_config=None,
+    server_config=None,
+    element_config=None,
+    support_config=None,
 ):
     if expected_element is None:
         expected_element = {}
@@ -31,10 +40,15 @@ async def assert_well_known_files(
     if expected_client is None:
         expected_client = {}
 
-    client_config = {"testclientkey": {"testsubket": "testvalue"}}
-    server_config = {"testserverkey": {"testsubket": "testvalue"}}
-    element_config = {"testelementkey": {"testsubket": "testvalue"}}
-    support_config = {"testsupportkey": {"testsubket": "testvalue"}}
+    if client_config is None:
+        client_config = {"testclientkey": {"testsubkey": "testvalue"}}
+    if server_config is None:
+        server_config = {"testserverkey": {"testsubkey": "testvalue"}}
+    if element_config is None:
+        element_config = {"testelementkey": {"testsubkey": "testvalue"}}
+    if support_config is None:
+        support_config = {"testsupportkey": {"testsubkey": "testvalue"}}
+
     values["wellKnownDelegation"].setdefault("additional", {})["client"] = json.dumps(client_config)
     values["wellKnownDelegation"].setdefault("additional", {})["server"] = json.dumps(server_config)
     values["wellKnownDelegation"].setdefault("additional", {})["element"] = json.dumps(element_config)
@@ -77,6 +91,19 @@ async def test_synapse_injected_in_server_and_client_well_known(release_name, va
 async def test_mas_injected_in_client_well_known(release_name, values, make_templates):
     await assert_well_known_files(release_name, values, make_templates, expected_client=msc_2965_authentication)
 
+    await assert_well_known_files(
+        release_name,
+        values,
+        make_templates,
+        expected_client=msc_2965_authentication,
+        client_config={
+            "org.matrix.msc2965.authentication": {
+                "issuer": "should-not-override",
+                "account": "https://mas.ess.localhost/account",
+            }
+        },
+    )
+
 
 @pytest.mark.parametrize("values_file", ["well-known-synapse-mas-values.yaml"])
 @pytest.mark.asyncio_cooperative
@@ -87,6 +114,19 @@ async def test_synapse_and_mas_injected_in_client_and_server_well_known(release_
         make_templates,
         expected_client=(msc_2965_authentication | synapse_base_url),
         expected_server=synapse_federation,
+    )
+    await assert_well_known_files(
+        release_name,
+        values,
+        make_templates,
+        expected_client=(msc_2965_authentication | synapse_base_url),
+        expected_server=synapse_federation,
+        client_config={
+            "org.matrix.msc2965.authentication": {
+                "issuer": "should-not-override",
+                "account": "https://mas.ess.localhost/account",
+            }
+        },
     )
 
 

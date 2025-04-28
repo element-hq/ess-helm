@@ -5,6 +5,7 @@
 from typing import Any
 
 import pytest
+import yaml
 
 from . import DeployableDetails
 from .utils import iterate_deployables_ingress_parts
@@ -97,3 +98,44 @@ async def test_max_upload_size_annotation_component_ingressType(values, deployab
     for template in await make_templates(values):
         if template["kind"] == "Ingress":
             assert "nginx.ingress.kubernetes.io/proxy-body-size" in template["metadata"].get("annotations", {})
+
+
+@pytest.mark.parametrize("values_file", ["synapse-minimal-values.yaml"])
+@pytest.mark.asyncio_cooperative
+async def test_log_level_overrides(values, deployables_details, make_templates):
+    for template in await make_templates(values):
+        if (
+            template["kind"] == "ConfigMap"
+            and "synapse" in template["metadata"]["name"]
+            and "log_config.yaml" in template["data"]
+        ):
+            log_yaml = yaml.safe_load(template["data"]["log_config.yaml"])
+            log_level = log_yaml["root"]["level"]
+            loggers = log_yaml["loggers"]
+            assert log_level == "INFO"
+            assert loggers == {
+                "synapse.storage.SQL": {"level": "INFO"},
+            }
+            break
+    else:
+        raise RuntimeError("Could not find log_config.yaml")
+
+    values["synapse"]["logging"] = {
+        "rootLevel": "WARNING",
+        "levelOverrides": {"synapse.storage.SQL": "DEBUG", "synapse.over.value": "INFO"},
+    }
+
+    for template in await make_templates(values):
+        if (
+            template["kind"] == "ConfigMap"
+            and "synapse" in template["metadata"]["name"]
+            and "log_config.yaml" in template["data"]
+        ):
+            log_yaml = yaml.safe_load(template["data"]["log_config.yaml"])
+            log_level = log_yaml["root"]["level"]
+            loggers = log_yaml["loggers"]
+            assert log_level == "WARNING"
+            assert loggers == {"synapse.storage.SQL": {"level": "DEBUG"}, "synapse.over.value": {"level": "INFO"}}
+            break
+    else:
+        raise RuntimeError("Could not find log_config.yaml")

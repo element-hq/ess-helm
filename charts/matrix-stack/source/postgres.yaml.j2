@@ -18,6 +18,7 @@ essPasswords:
 
 {{- sub_schema_values.persistentVolumeClaim("storage") }}
 {{- sub_schema_values.image(registry='docker.io', repository='postgres', tag='17-alpine') }}
+{{- sub_schema_values.extraEnv() }}
 {{- sub_schema_values.labels() }}
 {{- sub_schema_values.workloadAnnotations() }}
 {{- sub_schema_values.containersSecurityContext() }}

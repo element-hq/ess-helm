@@ -9,6 +9,9 @@
     "image": {
       "$ref": "file://common/image.json"
     },
+    "extraEnv": {
+      "$ref": "file://common/extraEnv.json"
+    },
     "postgresExporter": {
       "type": "object",
       "properties": {

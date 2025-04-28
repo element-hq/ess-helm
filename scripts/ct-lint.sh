@@ -10,8 +10,12 @@ temp_output_file=$(mktemp)
 
 error=1
 
-find . -type f -name '*.tpl' -exec grep -E '\{\{[^}]*\$[^a-zA-Z0-9_][^}]*\}\}' {} + && {
+find . -type f -name '*.tpl' -exec grep -nE '\{\{[^}]*\$[^a-zA-Z0-9_][^}]*\}\}' {} + && {
   echo 'Error: $ is used in a .tpl files, but helm passes the local context to the special variable $ in included templates.'; exit 1 
+} || echo "OK."
+
+find . '(' -type f -name '*.tpl' -o -name '*.yaml' ')' -exec grep -nE '\{\{[^}]*merge\s[^}]*\}\}' {} + && {
+  echo 'Error: merge function is used in a .yaml or .tpl files, but helm does not merge boolean properly : https://github.com/helm/helm/issues/5238. Use mustMergeOverwrite instead.'; exit 1 
 } || echo "OK."
 
 # Call the ct lint command and stream the output to stdout

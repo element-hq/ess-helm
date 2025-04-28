@@ -13,10 +13,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- if and (not $tlsSecret) $root.Values.certManager -}}
 {{- with $root.Values.certManager -}}
 {{- with .clusterIssuer -}}
-{{- $annotations = merge $annotations (dict "cert-manager.io/cluster-issuer" .) -}}
+{{- $annotations = mustMergeOverwrite (dict "cert-manager.io/cluster-issuer" .) $annotations -}}
 {{- end -}}
 {{- with .issuer -}}
-{{- $annotations = merge $annotations (dict "cert-manager.io/issuer" .) -}}
+{{- $annotations = mustMergeOverwrite (dict "cert-manager.io/issuer" .) $annotations -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}

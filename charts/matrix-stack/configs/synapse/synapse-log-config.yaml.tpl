@@ -22,7 +22,7 @@ Increasing synapse.storage.SQL past INFO will log access tokens. Putting in the 
 nuked if an override is set and then if the root level is increased to debug, the access tokens will be logged.
 Putting here means it is an explicit customer choice to override it.
 */}}
-{{- range $logger, $level := merge dict $root.Values.synapse.logging.levelOverrides (dict "synapse.storage.SQL" "INFO") }}
+{{- range $logger, $level := mustMergeOverwrite (dict "synapse.storage.SQL" "INFO") $root.Values.synapse.logging.levelOverrides }}
   {{ $logger }}:
     level: "{{ $level }}"
 {{- end }}
