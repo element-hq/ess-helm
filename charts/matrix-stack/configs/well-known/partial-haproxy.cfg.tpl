@@ -13,6 +13,9 @@ frontend well-known-in
   # same as http log, with %Th (handshake time)
   log-format "%ci:%cp [%tr] %ft %b/%s %Th/%TR/%Tw/%Tc/%Tr/%Ta %ST %B %CC %CS %tsc %ac/%fc/%bc/%sc/%rc %sq/%bq %hr %hs %{+Q}r"
 
+  acl is_delete_method method DELETE
+  http-request deny status 405 if is_delete_method
+
   acl well-known path /.well-known/matrix/server
   acl well-known path /.well-known/matrix/client
   acl well-known path /.well-known/matrix/support
