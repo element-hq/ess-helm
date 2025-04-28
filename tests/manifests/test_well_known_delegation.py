@@ -41,13 +41,13 @@ async def assert_well_known_files(
         expected_client = {}
 
     if client_config is None:
-        client_config = {"testclientkey": {"testsubket": "testvalue"}}
+        client_config = {"testclientkey": {"testsubkey": "testvalue"}}
     if server_config is None:
-        server_config = {"testserverkey": {"testsubket": "testvalue"}}
+        server_config = {"testserverkey": {"testsubkey": "testvalue"}}
     if element_config is None:
-        element_config = {"testelementkey": {"testsubket": "testvalue"}}
+        element_config = {"testelementkey": {"testsubkey": "testvalue"}}
     if support_config is None:
-        support_config = {"testsupportkey": {"testsubket": "testvalue"}}
+        support_config = {"testsupportkey": {"testsubkey": "testvalue"}}
 
     values["wellKnownDelegation"].setdefault("additional", {})["client"] = json.dumps(client_config)
     values["wellKnownDelegation"].setdefault("additional", {})["server"] = json.dumps(server_config)
