@@ -1478,6 +1478,12 @@ postgres:
     ## pullSecrets:
     ## - name: dockerhub
     pullSecrets: []
+  ## Defines additional environment variables to be injected onto this workload
+  ## e.g.
+  ## extraEnv:
+  ## - name: FOO
+  ##   value: "bar"
+  extraEnv: []
   ## Labels to add to all manifest for this component
   labels: {}
   ## Defines the annotations to add to the workload
