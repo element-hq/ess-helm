@@ -10,6 +10,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
+  annotations:
+    helm.sh/resource-policy: {{ .media.storage.resourcePolicy }}
   labels:
     {{- include "element-io.synapse.labels" (dict "root" $ "context" .) | nindent 4 }}
   name: {{ $.Release.Name }}-synapse-media

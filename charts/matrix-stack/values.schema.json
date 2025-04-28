@@ -3195,6 +3195,13 @@
             },
             "storageClass": {
               "type": "string"
+            },
+            "resourcePolicy": {
+              "type": "string",
+              "enum": [
+                "keep",
+                "delete"
+              ]
             }
           },
           "additionalProperties": false
@@ -3639,6 +3646,13 @@
                 },
                 "storageClass": {
                   "type": "string"
+                },
+                "resourcePolicy": {
+                  "type": "string",
+                  "enum": [
+                    "keep",
+                    "delete"
+                  ]
                 }
               },
               "additionalProperties": false

@@ -197,6 +197,10 @@ labels: {}
   ## Will use the cluster default if not provided
   ## Ignored if existingClaim is provided
   # storageClass:
+
+  ## Whether to instruct Helm to keep or delete the constructed PersistentVolumeClaim when uninstalling the chart
+  ## Ignored if existingClaim is provided
+  resourcePolicy: keep
 {%- endmacro %}
 
 {% macro podSecurityContext(user_id, group_id, filesystem_group_id=-1, key='podSecurityContext') %}

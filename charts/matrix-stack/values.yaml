@@ -1452,6 +1452,10 @@ postgres:
     ## Will use the cluster default if not provided
     ## Ignored if existingClaim is provided
     # storageClass:
+
+    ## Whether to instruct Helm to keep or delete the constructed PersistentVolumeClaim when uninstalling the chart
+    ## Ignored if existingClaim is provided
+    resourcePolicy: keep
   # Details of the image to be used
   image:
     ## The host and (optional) port of the container image registry for this component.
@@ -1679,6 +1683,10 @@ synapse:
       ## Will use the cluster default if not provided
       ## Ignored if existingClaim is provided
       # storageClass:
+
+      ## Whether to instruct Helm to keep or delete the constructed PersistentVolumeClaim when uninstalling the chart
+      ## Ignored if existingClaim is provided
+      resourcePolicy: keep
 
     ## The maximum size (in bytes ending in M or K) that Synapse will accept for media uploads
     ## You may need to adjust your ingress controller to also allow uploads of this size

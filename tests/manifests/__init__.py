@@ -42,6 +42,7 @@ class DeployableDetails(abc.ABC):
     has_ingress: bool = field(default=True, hash=False)
     has_workloads: bool = field(default=True, hash=False)
     has_service_monitor: bool = field(default=True, hash=False)
+    has_storage: bool = field(default=False, hash=False)
     has_topology_spread_constraints: bool | None = field(default=True, hash=False)
 
     paths_consistency_noqa: tuple[str] = field(default=(), hash=False)
@@ -178,6 +179,7 @@ all_components_details = [
         name="postgres",
         has_ingress=False,
         has_extra_env=False,
+        has_storage=True,
         paths_consistency_noqa=("/docker-entrypoint-initdb.d/init-ess-dbs.sh"),
         is_shared_component=True,
     ),
@@ -221,6 +223,7 @@ all_components_details = [
     ComponentDetails(
         name="synapse",
         has_db=True,
+        has_storage=True,
         additional_values_files=[
             "synapse-worker-example-values.yaml",
         ],
