@@ -65,3 +65,29 @@ async def test_root_url_redirects(
         assert response.status == 301
         assert "Location" in response.headers
         assert response.headers["Location"] == "https://redirect.localhost/path"
+
+
+@pytest.mark.skipif(value_file_has("wellKnownDelegation.enabled", False), reason="WellKnownDelegation not deployed")
+@pytest.mark.asyncio_cooperative
+async def test_delete_405(
+    ingress_ready,
+    ssl_context,
+    generated_data: ESSData,
+):
+    await ingress_ready("well-known")
+
+    for path in [
+        ".well-known/matrix/client",
+        ".well-known/matrix/server",
+        ".well-known/matrix/support",
+        ".well-known/element/element.json",
+    ]:
+        async with (
+            aiohttp_client(ssl_context) as client,
+            client.delete(
+                f"https://127.0.0.1/{path}",
+                headers={"Host": generated_data.server_name},
+                server_hostname=generated_data.server_name,
+            ) as response,
+        ):
+            assert response.status == 405
