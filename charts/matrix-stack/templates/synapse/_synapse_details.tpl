@@ -289,8 +289,9 @@ responsibleForMedia
 
 {{- if eq .workerType "federation-inbound" }}
 {{- /* Inbound federation transaction request */}}
-{{ $workerPaths = concat $workerPaths
+{{ $workerPaths = concat $workerPaths (list
   "^/_matrix/federation/v1/send/"
+  )
 }}
 {{- end }}
 
