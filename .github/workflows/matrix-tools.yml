@@ -15,6 +15,7 @@ on:
 
 env:
   REGISTRY_IMAGE: ghcr.io/${{ github.repository }}/matrix-tools
+  GO_VERSION: "1.24"
 
 permissions:
   contents: read
@@ -30,11 +31,12 @@ jobs:
 
     - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b  # v5
       with:
-        go-version: stable
+        go-version: "${{ env.GO_VERSION }}"
 
     - uses: golangci/golangci-lint-action@1481404843c368bc19ca9406f87d6e0fc97bdcfd  # v7
       with:
         working-directory: matrix-tools
+        go-version: "${{ env.GO_VERSION }}"
         args: -v --show-stats --no-config --modules-download-mode readonly
 
     - uses: GoTestTools/gotestfmt-action@8b4478c7019be847373babde9300210e7de34bfb  # v2
