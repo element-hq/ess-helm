@@ -20,7 +20,7 @@ matrixTools:
 
     ## The tag of the container image to use.
     ## Defaults to the Chart's appVersion if not set
-    tag: "0.3.4"
+    tag: "0.3.5"
 
     ## Container digest to use. Used to pull the image instead of the image tag / Chart appVersion if set
     # digest:
