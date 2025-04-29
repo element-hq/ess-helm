@@ -6,6 +6,23 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 0.11.1 (2025-04-29)
+
+### Changed
+
+- HAProxy: Return 405 on POST, PUT and DELETE requests on well-known files. (#398)
+- Make it possible to configure the Helm keep/delete resource-policy for PersistentVolumeClaims and default to keeping them. (#399)
+
+### Fixed
+
+- Fix merging of boolean in configurations. (#395)
+- Synapse: Fix missing `federation-inbound` worker from values schema. (#404)
+
+### Internal
+
+- Add a test for running Matrix RTC on its own. (#396)
+
+
 # ESS Community Helm Chart 0.11.0 (2025-04-25)
 
 ### Changed
