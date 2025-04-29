@@ -33,6 +33,8 @@ pytest-kubernetes = {git = "https://github.com/Blueshoe/pytest-kubernetes.git", 
 pytest-asyncio-cooperative = {git = "https://github.com/kylegentle/pytest-asyncio-cooperative.git", rev = "fix/missing-kwargs"}
 towncrier = "^24.8.0"
 spdx-tools = "^0.8.3"
+mypy = "^1.15.0"
+types-pyyaml = "^6.0.12.20250402"
 
 [build-system]
 requires = ["poetry-core"]
@@ -89,3 +91,7 @@ name = "Security"
 
 [tool.towncrier.fragment.internal]
 name = "Internal"
+
+[[tool.mypy.overrides]]
+module = ["pyhelm3.*"]
+follow_untyped_imports = true

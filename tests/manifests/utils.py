@@ -45,7 +45,7 @@ async def chart(helm_client: pyhelm3.Client):
 
 
 @pytest.fixture(scope="function")
-def deployables_details(values_file) -> tuple[DeployableDetails]:
+def deployables_details(values_file) -> tuple[DeployableDetails, ...]:
     return values_files_to_deployables_details[values_file]
 
 
@@ -79,7 +79,7 @@ def other_secrets(release_name, values, templates):
     return list(generated_secrets(release_name, values, templates)) + list(external_secrets(release_name, values))
 
 
-def generated_secrets(release_name: str, values: Any | None, helm_generated_templates: list[Any]) -> Iterator[Any]:
+def generated_secrets(release_name: str, values: dict[str, Any], helm_generated_templates: list[Any]) -> Iterator[Any]:
     if values["initSecrets"]["enabled"]:
         init_secrets_job = None
         for template in helm_generated_templates:
@@ -90,7 +90,7 @@ def generated_secrets(release_name: str, values: Any | None, helm_generated_temp
             # We don't have an init-secrets job
             return
 
-        command_line = (
+        command_line: list[str] = (
             init_secrets_job.get("spec", {})
             .get("template", {})
             .get("spec", {})
@@ -103,7 +103,7 @@ def generated_secrets(release_name: str, values: Any | None, helm_generated_temp
 
         requested_secrets = command_line[3].split(",")
         requested_labels = {label.split("=")[0]: label.split("=")[1] for label in command_line[5].split(",")}
-        generated_secrets_to_keys = {}
+        generated_secrets_to_keys: dict[str, list[str]] = {}
         for requested_secret in requested_secrets:
             secret_parts = requested_secret.split(":")
             generated_secrets_to_keys.setdefault(secret_parts[0], []).append(secret_parts[1])
@@ -165,13 +165,13 @@ def external_secrets(release_name, values):
 
 async def helm_template(
     chart: pyhelm3.Chart, release_name: str, values: Any | None, has_service_monitor_crd=True, skip_cache=False
-) -> Iterator[Any]:
+) -> list[Any]:
     """Generate template with ServiceMonitor API Versions enabled
 
     The native pyhelm3 template command does expose the --api-versions flag,
     so we implement it here.
     """
-    additional_apis = []
+    additional_apis: list[str] = []
     if has_service_monitor_crd:
         additional_apis.append("monitoring.coreos.com/v1/ServiceMonitor")
 
@@ -179,7 +179,7 @@ async def helm_template(
     command = [
         "template",
         release_name,
-        chart.ref,
+        str(chart.ref),
         # We send the values in on stdin
         "--values",
         "-",
@@ -291,7 +291,7 @@ def template_to_deployable_details(deployables_details: tuple[DeployableDetails]
             if deployable_details.owns_manifest_named(manifest_name):
                 assert match is None, (
                     f"{template_id(template)} could belong to at least 2 (sub-)components: "
-                    f"{match.name} and {deployable_details.name}"
+                    f"{match.name} and {deployable_details.name}"  # type: ignore[attr-defined]
                 )
                 match = deployable_details
 

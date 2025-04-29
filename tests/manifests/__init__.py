@@ -34,19 +34,19 @@ from typing import Any, Callable, Self
 class DeployableDetails(abc.ABC):
     name: str = field(hash=True)
     value_file_prefix: str | None = field(default=None, hash=False)
-    helm_key: str | None = field(default=None, hash=False)
+    helm_key: str = field(default=None, hash=False)  # type: ignore[assignment]
 
-    has_db: bool = field(default=False, hash=False)
-    has_image: bool | None = field(default=None, hash=False)
-    has_extra_env: bool | None = field(default=None, hash=False)
+    has_db: bool = field(default=False, hash=False)  # type: ignore[assignment]
+    has_image: bool = field(default=None, hash=False)  # type: ignore[assignment]
+    has_extra_env: bool = field(default=None, hash=False)  # type: ignore[assignment]
     has_ingress: bool = field(default=True, hash=False)
     has_workloads: bool = field(default=True, hash=False)
-    has_service_monitor: bool | None = field(default=None, hash=False)
+    has_service_monitor: bool = field(default=None, hash=False)  # type: ignore[assignment]
     has_storage: bool = field(default=False, hash=False)
-    has_topology_spread_constraints: bool | None = field(default=None, hash=False)
+    has_topology_spread_constraints: bool = field(default=None, hash=False)  # type: ignore[assignment]
 
-    paths_consistency_noqa: tuple[str] = field(default=(), hash=False)
-    skip_path_consistency_for_files: tuple[str] = field(default=(), hash=False)
+    paths_consistency_noqa: tuple[str, ...] = field(default=(), hash=False)
+    skip_path_consistency_for_files: tuple[str, ...] = field(default=(), hash=False)
 
     def __post_init__(self):
         if self.helm_key is None:
@@ -78,7 +78,7 @@ class DeployableDetails(abc.ABC):
 @dataclass(unsafe_hash=True)
 class SubComponentDetails(DeployableDetails):
     uses_parent_properties: bool = field(default=False, hash=False)
-    parent_helm_key: str = field(default=None, hash=False)
+    parent_helm_key: str = field(default=None, hash=False)  # type: ignore[assignment]
 
     def get_helm_values_fragment(self, values: dict[str, Any]) -> dict[str, Any]:
         return values.setdefault(self.parent_helm_key, {}).setdefault(self.helm_key, {})
@@ -94,22 +94,22 @@ class SubComponentDetails(DeployableDetails):
 
 @dataclass(unsafe_hash=True)
 class ComponentDetails(DeployableDetails):
-    sub_components: tuple[SubComponentDetails] = field(default=(), hash=False)
+    sub_components: tuple[SubComponentDetails, ...] = field(default=(), hash=False)
 
-    active_component_names: tuple[str] = field(init=False, hash=False)
-    values_files: tuple[str] = field(init=False, hash=False)
-    secret_values_files: tuple[str] = field(init=False, hash=False)
+    active_component_names: tuple[str, ...] = field(init=False, hash=False)
+    values_files: tuple[str, ...] = field(init=False, hash=False)
+    secret_values_files: tuple[str, ...] = field(init=False, hash=False)
 
     # Not available after construction
     is_shared_component: InitVar[bool] = field(default=False, hash=False)
-    shared_component_names: InitVar[tuple[str]] = field(default=(), hash=False)
-    additional_values_files: InitVar[tuple[str]] = field(default=(), hash=False)
+    shared_component_names: InitVar[tuple[str, ...]] = field(default=(), hash=False)
+    additional_values_files: InitVar[tuple[str, ...]] = field(default=(), hash=False)
 
     def __post_init__(
         self,
         is_shared_component: bool,
-        shared_component_names: tuple[str],
-        additional_values_files: tuple[str],
+        shared_component_names: tuple[str, ...],
+        additional_values_files: tuple[str, ...],
     ):
         super().__post_init__()
 
@@ -179,26 +179,26 @@ all_components_details = [
         has_ingress=False,
         has_extra_env=False,
         is_shared_component=True,
-        skip_path_consistency_for_files=["haproxy.cfg", "429.http", "path_map_file", "path_map_file_get"],
+        skip_path_consistency_for_files=("haproxy.cfg", "429.http", "path_map_file", "path_map_file_get"),
     ),
     ComponentDetails(
         name="postgres",
         has_ingress=False,
         has_extra_env=False,
         has_storage=True,
-        paths_consistency_noqa=("/docker-entrypoint-initdb.d/init-ess-dbs.sh"),
+        paths_consistency_noqa=("/docker-entrypoint-initdb.d/init-ess-dbs.sh",),
         is_shared_component=True,
     ),
     ComponentDetails(
         name="matrix-rtc",
         helm_key="matrixRTC",
         has_topology_spread_constraints=False,
-        sub_components=[
+        sub_components=(
             SubComponentDetails(
                 name="matrix-rtc-sfu", helm_key="sfu", has_topology_spread_constraints=False, has_ingress=False
-            )
-        ],
-        shared_component_names=["init-secrets"],
+            ),
+        ),
+        shared_component_names=("init-secrets",),
     ),
     ComponentDetails(
         name="element-web",
@@ -230,11 +230,9 @@ all_components_details = [
         name="synapse",
         has_db=True,
         has_storage=True,
-        additional_values_files=[
-            "synapse-worker-example-values.yaml",
-        ],
-        skip_path_consistency_for_files=["path_map_file", "path_map_file_get"],
-        sub_components=[
+        additional_values_files=("synapse-worker-example-values.yaml",),
+        skip_path_consistency_for_files=("path_map_file", "path_map_file_get"),
+        sub_components=(
             SubComponentDetails(
                 name="synapse-redis",
                 helm_key="redis",
@@ -250,19 +248,21 @@ all_components_details = [
                 has_service_monitor=False,
                 uses_parent_properties=True,
             ),
-        ],
-        shared_component_names=["init-secrets", "haproxy", "postgres"],
+        ),
+        shared_component_names=("init-secrets", "haproxy", "postgres"),
     ),
     ComponentDetails(
         name="well-known",
         helm_key="wellKnownDelegation",
         has_workloads=False,
-        shared_component_names=["haproxy"],
+        shared_component_names=("haproxy",),
     ),
 ]
 
 
-def _get_deployables_details_from_base_components_names(base_components_names: list[str]) -> tuple[DeployableDetails]:
+def _get_deployables_details_from_base_components_names(
+    base_components_names: list[str],
+) -> tuple[DeployableDetails, ...]:
     component_names_to_details = {
         component_details.name: component_details for component_details in all_components_details
     }

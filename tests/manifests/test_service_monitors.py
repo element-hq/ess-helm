@@ -50,7 +50,7 @@ def workload_ids_for_service_monitor(service_monitor, templates) -> set[str]:
 
 
 def workload_ids_monitored(templates: Iterator[Any]) -> set[str]:
-    workload_ids_monitored = set()
+    workload_ids_monitored = set[str]()
     for template in templates:
         if template["kind"] == "ServiceMonitor":
             these_monitored_workload_ids = workload_ids_for_service_monitor(template, templates)
