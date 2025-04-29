@@ -1815,6 +1815,16 @@ synapse:
       ## Resources for this worker.
       ## If omitted the global Synapse resources are used
       # resources: {}
+    federation-inbound:
+      ## Set to true to deploy this worker
+      enabled: false
+
+      ## The number of replicas of this worker to run
+      replicas: 1
+
+      ## Resources for this worker.
+      ## If omitted the global Synapse resources are used
+      # resources: {}
     federation-reader:
       ## Set to true to deploy this worker
       enabled: false

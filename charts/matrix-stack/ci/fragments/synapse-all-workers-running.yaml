@@ -17,6 +17,8 @@ synapse:
     event-persister:
       enabled: true
       replicas: 2
+    federation-inbound:
+      enabled: true
     federation-reader:
       enabled: true
     federation-sender:

@@ -193,6 +193,9 @@
         "event-persister": {
           "$ref": "file://synapse/scalable_worker.json"
         },
+        "federation-inbound": {
+          "$ref": "file://synapse/scalable_worker.json"
+        },
         "federation-reader": {
           "$ref": "file://synapse/scalable_worker.json"
         },
