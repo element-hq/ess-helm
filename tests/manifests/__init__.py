@@ -38,12 +38,12 @@ class DeployableDetails(abc.ABC):
 
     has_db: bool = field(default=False, hash=False)
     has_image: bool | None = field(default=None, hash=False)
-    has_extra_env: bool | None = field(default=True, hash=False)
+    has_extra_env: bool | None = field(default=None, hash=False)
     has_ingress: bool = field(default=True, hash=False)
     has_workloads: bool = field(default=True, hash=False)
-    has_service_monitor: bool = field(default=True, hash=False)
+    has_service_monitor: bool | None = field(default=None, hash=False)
     has_storage: bool = field(default=False, hash=False)
-    has_topology_spread_constraints: bool | None = field(default=True, hash=False)
+    has_topology_spread_constraints: bool | None = field(default=None, hash=False)
 
     paths_consistency_noqa: tuple[str] = field(default=(), hash=False)
     skip_path_consistency_for_files: tuple[str] = field(default=(), hash=False)
@@ -53,6 +53,12 @@ class DeployableDetails(abc.ABC):
             self.helm_key = self.name
         if self.has_image is None:
             self.has_image = self.has_workloads
+        if self.has_extra_env is None:
+            self.has_extra_env = self.has_workloads
+        if self.has_service_monitor is None:
+            self.has_service_monitor = self.has_workloads
+        if self.has_topology_spread_constraints is None:
+            self.has_topology_spread_constraints = self.has_workloads
 
     @abc.abstractmethod
     def get_helm_values_fragment(self, values: dict[str, Any]) -> dict[str, Any]:
@@ -250,7 +256,6 @@ all_components_details = [
     ComponentDetails(
         name="well-known",
         helm_key="wellKnownDelegation",
-        has_service_monitor=False,
         has_workloads=False,
         shared_component_names=["haproxy"],
     ),
