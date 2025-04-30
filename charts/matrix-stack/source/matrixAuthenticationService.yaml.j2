@@ -6,7 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 {% import "common/sub_schema_values.yaml.j2" as sub_schema_values %}
 enabled: true
-{{- sub_schema_values.image(registry='ghcr.io', repository='element-hq/matrix-authentication-service', tag='0.14.0') }}
+{{- sub_schema_values.image(registry='ghcr.io', repository='element-hq/matrix-authentication-service', tag='0.15.0') }}
 
 ## Force the authentication to happen with legacy authentication.
 ## This can be used to deploy Matrix Authentication Service and keeping auth on Synapse.
