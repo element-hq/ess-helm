@@ -59,7 +59,7 @@ jobs:
 
     - name: Set helm changes annotations
       run: |
-        python scripts/towncrier_to_helm_annotation.py charts/matrix-stack
+        scripts/towncrier_to_helm_annotation.py charts/matrix-stack
 
     - name: Generate changelog
       run: |
