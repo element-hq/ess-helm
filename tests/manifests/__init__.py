@@ -36,7 +36,7 @@ class DeployableDetails(abc.ABC):
     value_file_prefix: str | None = field(default=None, hash=False)
     helm_key: str = field(default=None, hash=False)  # type: ignore[assignment]
 
-    has_db: bool = field(default=False, hash=False)  # type: ignore[assignment]
+    has_db: bool = field(default=False, hash=False)
     has_image: bool = field(default=None, hash=False)  # type: ignore[assignment]
     has_extra_env: bool = field(default=None, hash=False)  # type: ignore[assignment]
     has_ingress: bool = field(default=True, hash=False)
