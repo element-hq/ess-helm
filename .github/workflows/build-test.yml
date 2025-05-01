@@ -60,7 +60,7 @@ jobs:
     - name: Run chart-testing (lint)
       run: |
         git config --global --add safe.directory "$GITHUB_WORKSPACE"
-        bash scripts/ct-lint.sh --config ct.yaml
+        scripts/ct-lint.sh --config ct.yaml
 
     - uses: matrix-org/setup-python-poetry@5bbf6603c5c930615ec8a29f1b5d7d258d905aa4  # v2
       with:
@@ -92,5 +92,5 @@ jobs:
       run: |
         checkov --version
         for checkov_values in charts/matrix-stack/ci/*checkov*values.yaml; do
-          bash scripts/checkov.sh "$checkov_values"
+          scripts/checkov.sh "$checkov_values"
         done
