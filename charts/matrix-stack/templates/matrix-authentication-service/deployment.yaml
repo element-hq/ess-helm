@@ -161,6 +161,11 @@ spec:
           name: rendered-config
           subPath: config.yaml
           readOnly: true
+{{- range $secret := include "element-io.matrix-authentication-service.configSecrets" (dict "root" $ "context" .) | fromJsonArray }}
+        - mountPath: /secrets/{{ tpl $secret $ }}
+          name: "secret-{{ tpl $secret $ }}"
+          readOnly: true
+{{- end }}
       containers:
       - name: matrix-authentication-service
         args: ["server", "--no-migrate"]
