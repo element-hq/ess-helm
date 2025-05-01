@@ -18,7 +18,8 @@ async def test_log_level_overrides(values, deployables_details, make_templates):
             log_yaml = yaml.safe_load(template["data"]["config.yaml"])
             use_external_ip = log_yaml["rtc"]["use_external_ip"]
             tcp_port = log_yaml["rtc"]["tcp_port"]
-            assert type(use_external_ip) is bool and use_external_ip
+            assert type(use_external_ip) is bool
+            assert use_external_ip
             assert tcp_port == 30881
             break
     else:
@@ -42,7 +43,8 @@ async def test_log_level_overrides(values, deployables_details, make_templates):
             log_yaml = yaml.safe_load(template["data"]["config.yaml"])
             use_external_ip = log_yaml["rtc"]["use_external_ip"]
             tcp_port = log_yaml["rtc"]["tcp_port"]
-            assert type(use_external_ip) is bool and not use_external_ip
+            assert type(use_external_ip) is bool
+            assert not use_external_ip
             assert tcp_port == 32001
             break
     else:

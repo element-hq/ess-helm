@@ -32,7 +32,7 @@ async def helm_client():
     return pyhelm3.Client()
 
 
-@pytest.fixture()
+@pytest.fixture
 async def temp_chart(helm_client):
     with tempfile.TemporaryDirectory() as tmpdirname:
         shutil.copytree("charts/matrix-stack", Path(tmpdirname) / "matrix-stack")
@@ -44,7 +44,7 @@ async def chart(helm_client: pyhelm3.Client):
     return await helm_client.get_chart("charts/matrix-stack")
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def deployables_details(values_file) -> tuple[DeployableDetails, ...]:
     return values_files_to_deployables_details[values_file]
 
@@ -54,7 +54,7 @@ def base_values() -> dict[str, Any]:
     return yaml.safe_load(Path("charts/matrix-stack/values.yaml").read_text("utf-8"))
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def values(values_file) -> dict[str, Any]:
     if values_file not in values_cache:
         v = yaml.safe_load((Path("charts/matrix-stack/ci") / values_file).read_text("utf-8"))
@@ -69,12 +69,12 @@ def values(values_file) -> dict[str, Any]:
     return copy.deepcopy(values_cache[values_file])
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 async def templates(chart: pyhelm3.Chart, release_name: str, values: dict[str, Any]):
     return await helm_template(chart, release_name, values)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def other_secrets(release_name, values, templates):
     return list(generated_secrets(release_name, values, templates)) + list(external_secrets(release_name, values))
 
