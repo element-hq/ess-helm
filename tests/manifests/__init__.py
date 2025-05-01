@@ -65,7 +65,7 @@ class DeployableDetails(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def owns_manifest_named(seflf, manifest_name: str) -> bool:
+    def owns_manifest_named(self, manifest_name: str) -> bool:
         pass
 
     @abc.abstractmethod
