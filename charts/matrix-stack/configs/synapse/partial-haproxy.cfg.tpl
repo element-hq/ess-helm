@@ -98,15 +98,19 @@ frontend synapse-http-in
 {{- end }}
 
 {{ $enabledWorkerTypes := keys ((include "element-io.synapse.enabledWorkers" (dict "root" $root)) | fromJson) }}
+{{ $hasFailoverBackend := false }}
 {{- range $workerType := $enabledWorkerTypes | sortAlpha }}
 {{- if include "element-io.synapse.process.canFallbackToMain" (dict "root" $root "context" $workerType) }}
-  acl has_failover req.backend -m {{ $workerType }}
+  acl has_failover var(req.backend) -m str "{{ $workerType }}"
+{{- $hasFailoverBackend = true -}}
 {{- end }}
 {{- end }}
 
   acl backend_unavailable str(),concat('synapse-',req.backend),nbsrv lt 1
 
+{{- if $hasFailoverBackend }}
   use_backend synapse-main-failover if has_failover backend_unavailable
+{{- end }}
 
   use_backend synapse-%[var(req.backend)]
 
@@ -120,6 +124,7 @@ backend synapse-main
   # Use DNS SRV service discovery on the headless service
   server-template main 1 _synapse-http._tcp.{{ $root.Release.Name }}-synapse-main.{{ $root.Release.Namespace }}.svc.cluster.local resolvers kubedns init-addr none check
 
+{{- if $hasFailoverBackend }}
 backend synapse-main-failover
   default-server maxconn 250
 
@@ -129,6 +134,7 @@ backend synapse-main-failover
 
   # Use DNS SRV service discovery on the headless service
   server-template main 1 _synapse-http._tcp.{{ $root.Release.Name }}-synapse-main.{{ $root.Release.Namespace }}.svc.cluster.local resolvers kubedns init-addr none check
+{{- end }}
 
 {{- range $workerType, $workerDetails := (include "element-io.synapse.enabledWorkers" (dict "root" $root)) | fromJson }}
 {{- if include "element-io.synapse.process.hasHttp" (dict "root" $root "context" $workerType) }}
