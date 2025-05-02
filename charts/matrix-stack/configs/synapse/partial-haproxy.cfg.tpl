@@ -69,11 +69,9 @@ frontend synapse-http-in
 
   # Load the backend from one of the map files.
   acl has_get_map path -m reg -M -f /synapse/path_map_file_get
-  acl has_failover_map path -m reg -M -f /synapse/failover_map_file
 
   http-request set-var(req.backend) path,map_reg(/synapse/path_map_file_get,main) if has_get_map METH_GET
   http-request set-var(req.backend) path,map_reg(/synapse/path_map_file,main) unless { var(req.backend) -m found }
-  http-request set-var(req.failover) path,map_reg(/synapse/failover_map_file) if has_failover_map
 
 {{- if $root.Values.matrixAuthenticationService.enabled }}
   acl rendezvous path_beg /_matrix/client/unstable/org.matrix.msc4108/rendezvous
@@ -99,10 +97,16 @@ frontend synapse-http-in
   use_backend synapse-initial-synchrotron if is_sync !{ urlp("since") -m found } !{ urlp("from") -m found }
 {{- end }}
 
-  acl has_failover var(req.failover) -m found
+{{ $enabledWorkerTypes := keys ((include "element-io.synapse.enabledWorkers" (dict "root" $root)) | fromJson) }}
+{{- range $workerType := $enabledWorkerTypes | sortAlpha }}
+{{- if include "element-io.synapse.process.canFallbackToMain" (dict "root" $root "context" $workerType) }}
+  acl has_failover req.backend -m {{ $workerType }}
+{{- end }}
+{{- end }}
+
   acl backend_unavailable str(),concat('synapse-',req.backend),nbsrv lt 1
 
-  use_backend synapse-%[var(req.failover)] if has_failover backend_unavailable
+  use_backend synapse-main-failover if has_failover backend_unavailable
 
   use_backend synapse-%[var(req.backend)]
 
