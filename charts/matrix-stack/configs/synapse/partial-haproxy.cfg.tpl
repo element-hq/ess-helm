@@ -97,6 +97,21 @@ frontend synapse-http-in
   use_backend synapse-initial-synchrotron if is_sync !{ urlp("since") -m found } !{ urlp("from") -m found }
 {{- end }}
 
+{{ $enabledWorkerTypes := keys ((include "element-io.synapse.enabledWorkers" (dict "root" $root)) | fromJson) }}
+{{ $hasFailoverBackend := false }}
+{{- range $workerType := $enabledWorkerTypes | sortAlpha }}
+{{- if include "element-io.synapse.process.canFallbackToMain" (dict "root" $root "context" $workerType) }}
+  acl has_failover var(req.backend) -m str "{{ $workerType }}"
+{{- $hasFailoverBackend = true -}}
+{{- end }}
+{{- end }}
+
+  acl backend_unavailable str(),concat('synapse-',req.backend),nbsrv lt 1
+
+{{- if $hasFailoverBackend }}
+  use_backend synapse-main-failover if has_failover backend_unavailable
+{{- end }}
+
   use_backend synapse-%[var(req.backend)]
 
 backend synapse-main
@@ -108,6 +123,18 @@ backend synapse-main
 
   # Use DNS SRV service discovery on the headless service
   server-template main 1 _synapse-http._tcp.{{ $root.Release.Name }}-synapse-main.{{ $root.Release.Namespace }}.svc.cluster.local resolvers kubedns init-addr none check
+
+{{- if $hasFailoverBackend }}
+backend synapse-main-failover
+  default-server maxconn 250
+
+  option httpchk
+  http-check connect port 8080
+  http-check send meth GET uri /health
+
+  # Use DNS SRV service discovery on the headless service
+  server-template main 1 _synapse-http._tcp.{{ $root.Release.Name }}-synapse-main.{{ $root.Release.Namespace }}.svc.cluster.local resolvers kubedns init-addr none check
+{{- end }}
 
 {{- range $workerType, $workerDetails := (include "element-io.synapse.enabledWorkers" (dict "root" $root)) | fromJson }}
 {{- if include "element-io.synapse.process.hasHttp" (dict "root" $root "context" $workerType) }}
@@ -181,9 +208,6 @@ backend synapse-{{ $workerType }}
 {{- $workerTypeName := include "element-io.synapse.process.workerTypeName" (dict "root" $root "context" $workerType) }}
   # Use DNS SRV service discovery on the headless service
   server-template {{ $workerTypeName }} {{ $maxInstances }} _synapse-http._tcp.{{ $root.Release.Name }}-synapse-{{ $workerTypeName }}.{{ $root.Release.Namespace }}.svc.cluster.local resolvers kubedns init-addr none check
-{{- if include "element-io.synapse.process.canFallbackToMain" (dict "root" $root "context" $workerType) }}
-  server-template main-backup 1 _synapse-http._tcp.{{ $root.Release.Name }}-synapse-main.{{ $root.Release.Namespace }}.svc.cluster.local resolvers kubedns init-addr none check backup
-{{- end }}
 {{- end }}
 {{- end }}
 
