@@ -9,7 +9,7 @@ import pytest
 
 from .fixtures import ESSData
 from .lib.synapse import assert_downloaded_content, download_media, upload_media
-from .lib.utils import KubeCtl, aiohttp_client, aiohttp_post_json, aiottp_get_json, value_file_has
+from .lib.utils import KubeCtl, aiohttp_client, aiohttp_get_json, aiohttp_post_json, value_file_has
 
 
 @pytest.mark.skipif(value_file_has("synapse.enabled", False), reason="Synapse not deployed")
@@ -21,7 +21,7 @@ async def test_synapse_can_access_client_api(
 ):
     await ingress_ready("synapse")
 
-    json_content = await aiottp_get_json(
+    json_content = await aiohttp_get_json(
         f"https://synapse.{generated_data.server_name}/_matrix/client/versions", ssl_context
     )
     assert "unstable_features" in json_content

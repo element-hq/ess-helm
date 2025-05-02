@@ -8,14 +8,14 @@ import mimetypes
 from pathlib import Path
 from ssl import SSLContext
 
-from .utils import KubeCtl, aiohttp_client, aiohttp_post_json, aiottp_get_json
+from .utils import KubeCtl, aiohttp_client, aiohttp_get_json, aiohttp_post_json
 
 
 async def get_nonce(synapse_fqdn: str, ssl_context) -> str:
     """
     Call Synapse for a nonce.
     """
-    response = await aiottp_get_json(f"https://{synapse_fqdn}/_synapse/admin/v1/register", ssl_context)
+    response = await aiohttp_get_json(f"https://{synapse_fqdn}/_synapse/admin/v1/register", ssl_context)
     return response.get("nonce", "")
 
 
