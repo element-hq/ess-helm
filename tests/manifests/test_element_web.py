@@ -9,7 +9,7 @@ import pytest
 
 @pytest.mark.parametrize("values_file", ["element-web-minimal-values.yaml"])
 @pytest.mark.asyncio_cooperative
-async def test_config_json_override(values, deployables_details, make_templates):
+async def test_config_json_override(values, make_templates):
     for template in await make_templates(values):
         if template["kind"] == "ConfigMap" and "element-web" in template["metadata"]["name"]:
             config_json = json.loads(template["data"]["config.json"])
