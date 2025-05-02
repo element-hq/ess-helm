@@ -8,7 +8,7 @@ import yaml
 
 @pytest.mark.parametrize("values_file", ["matrix-rtc-minimal-values.yaml"])
 @pytest.mark.asyncio_cooperative
-async def test_log_level_overrides(values, deployables_details, make_templates):
+async def test_log_level_overrides(values, make_templates):
     for template in await make_templates(values):
         if (
             template["kind"] == "ConfigMap"

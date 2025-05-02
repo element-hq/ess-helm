@@ -4,7 +4,7 @@
 
 import pytest
 
-from . import values_files_to_test
+from . import PropertyType, values_files_to_test
 from .utils import iterate_deployables_workload_parts
 
 specific_toleration = {
@@ -39,9 +39,8 @@ async def test_no_tolerations_by_default(templates):
 async def test_all_components_and_sub_components_render_tolerations(deployables_details, values, make_templates):
     iterate_deployables_workload_parts(
         deployables_details,
-        values,
-        lambda values_fragment, deployable_details: values_fragment.setdefault("tolerations", []).append(
-            specific_toleration
+        lambda deployable_details: deployable_details.set_helm_values(
+            values, PropertyType.Tolerations, [specific_toleration]
         ),
     )
 
@@ -75,9 +74,8 @@ async def test_global_tolerations_render(values, make_templates):
 async def test_merges_global_and_specific_tolerations(deployables_details, values, make_templates):
     iterate_deployables_workload_parts(
         deployables_details,
-        values,
-        lambda values_fragment, deployable_details: values_fragment.setdefault("tolerations", []).append(
-            specific_toleration
+        lambda deployable_details: deployable_details.set_helm_values(
+            values, PropertyType.Tolerations, [specific_toleration]
         ),
     )
 

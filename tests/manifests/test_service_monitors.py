@@ -7,8 +7,8 @@ from typing import Any
 
 import pytest
 
-from . import DeployableDetails, values_files_to_test
-from .utils import iterate_deployables_parts, template_id
+from . import DeployableDetails, PropertyType, values_files_to_test
+from .utils import iterate_deployables_workload_parts, template_id
 
 
 def selector_match(labels: dict[str, str], selector: dict[str, str]) -> bool:
@@ -77,19 +77,13 @@ async def test_service_monitored_as_appropriate(
 
         return
 
-    def disable_service_monitor(values_fragment: dict[str, Any], deployable_details: DeployableDetails):
+    def disable_service_monitor(deployable_details: DeployableDetails):
         if deployable_details.has_service_monitor:
-            values_fragment.setdefault("serviceMonitors", {}).setdefault("enabled", False)
+            deployable_details.set_helm_values(values, PropertyType.ServiceMonitor, {"enabled": False})
         else:
-            values_fragment.setdefault("labels", {}).setdefault("servicemonitor", "none")
+            deployable_details.set_helm_values(values, PropertyType.Labels, {"servicemonitor": "none"})
 
-    iterate_deployables_parts(
-        deployables_details,
-        values,
-        disable_service_monitor,
-        lambda deployable_details: True,
-        ignore_uses_parent_properties=True,
-    )
+    iterate_deployables_workload_parts(deployables_details, disable_service_monitor)
 
     # We should now have no ServiceMonitors rendered
     workloads_to_cover = set()
@@ -111,13 +105,13 @@ async def test_service_monitored_as_appropriate(
             continue
         # We then render each component & sub-component one by one, and extract its service monitor
         # The rendered ServiceMonitors should not cover any workloads that have already been covered
-        deployable_details.get_helm_values_fragment(values)["serviceMonitors"]["enabled"] = True
+        deployable_details.set_helm_values(values, PropertyType.ServiceMonitor, {"enabled": True})
 
         new_monitored_workload_ids = workload_ids_monitored(await make_templates(values))
         assert seen_covered_workloads.intersection(new_monitored_workload_ids) == set()
         seen_covered_workloads.update(new_monitored_workload_ids)
 
-        deployable_details.get_helm_values_fragment(values)["serviceMonitors"]["enabled"] = False
+        deployable_details.set_helm_values(values, PropertyType.ServiceMonitor, {"enabled": False})
 
     assert seen_covered_workloads.symmetric_difference(workloads_to_cover) == set()
 

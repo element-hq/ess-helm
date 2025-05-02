@@ -4,11 +4,10 @@
 
 import json
 import re
-from typing import Any
 
 import pytest
 
-from . import DeployableDetails
+from . import DeployableDetails, PropertyType
 from .utils import iterate_deployables_ingress_parts
 
 msc_2965_authentication = {
@@ -166,8 +165,8 @@ async def test_dot_path_global_ingressType(values, make_templates):
 @pytest.mark.parametrize("values_file", ["well-known-minimal-values.yaml"])
 @pytest.mark.asyncio_cooperative
 async def test_dot_path_component_ingressType(deployables_details, values, make_templates):
-    def set_ingress_type(values_fragment: dict[str, Any], deployable_details: DeployableDetails):
-        values_fragment.setdefault("ingress", {})["controllerType"] = "ingress-nginx"
+    def set_ingress_type(deployable_details: DeployableDetails):
+        deployable_details.set_helm_values(values, PropertyType.Ingress, {"controllerType": "ingress-nginx"})
 
     for template in await make_templates(values):
         if template["kind"] == "Ingress":
@@ -175,7 +174,7 @@ async def test_dot_path_component_ingressType(deployables_details, values, make_
                 if path["path"].startswith("/.well-known"):
                     assert path["pathType"] == "Prefix"
 
-    iterate_deployables_ingress_parts(deployables_details, values, set_ingress_type)
+    iterate_deployables_ingress_parts(deployables_details, set_ingress_type)
 
     for template in await make_templates(values):
         if template["kind"] == "Ingress":

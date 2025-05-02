@@ -7,7 +7,7 @@ from hashlib import sha1
 
 import pytest
 
-from . import secret_values_files_to_test, values_files_to_test
+from . import PropertyType, secret_values_files_to_test, values_files_to_test
 from .utils import template_id
 
 
@@ -66,13 +66,16 @@ async def test_templates_have_postgres_hash_label(release_name, templates, value
                 continue
 
             assert "k8s.element.io/postgres-password-hash" in labels, f"{id} does not have postgres password hash label"
-            helm_key = deployable_details.helm_key
-            values_fragment = deployable_details.get_helm_values_fragment(values)
-            if values_fragment.get("postgres", {}).get("password", {}).get("value", None):
-                expected = deployable_details.get_helm_values_fragment(values)["postgres"]["password"]["value"]
-            elif values_fragment.get("postgres", {}).get("password", {}).get("secret", None):
-                secret_name = deployable_details.get_helm_values_fragment(values)["postgres"]["password"]["secret"]
-                expected = f"{secret_name}-{values_fragment['postgres']['password']['secretKey']}"
+            assert (
+                len(deployable_details.helm_keys) == 1
+            )  # We currently assume that Postgres is for top-level components only
+            helm_key = deployable_details.helm_keys[0]
+            values_fragment = deployable_details.get_helm_values(values, PropertyType.Postgres)
+            if values_fragment.get("password", {}).get("value", None):
+                expected = values_fragment["password"]["value"]
+            elif values_fragment.get("password", {}).get("secret", None):
+                secret_name = values_fragment["password"]["secret"]
+                expected = f"{secret_name}-{values_fragment['password']['secretKey']}"
             elif values["postgres"].get("essPasswords", {}).get(helm_key, {}).get("value", None):
                 expected = values["postgres"]["essPasswords"][helm_key]["value"]
             elif values["postgres"].get("essPasswords", {}).get(helm_key, {}).get("secret", None):

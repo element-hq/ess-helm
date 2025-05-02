@@ -2,12 +2,11 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-from typing import Any
 
 import pytest
 import yaml
 
-from . import DeployableDetails
+from . import DeployableDetails, PropertyType
 from .utils import iterate_deployables_ingress_parts
 
 
@@ -86,14 +85,14 @@ async def test_max_upload_size_annotation_global_ingressType(values, make_templa
 @pytest.mark.parametrize("values_file", ["synapse-minimal-values.yaml"])
 @pytest.mark.asyncio_cooperative
 async def test_max_upload_size_annotation_component_ingressType(values, deployables_details, make_templates):
-    def set_ingress_type(values_fragment: dict[str, Any], deployable_details: DeployableDetails):
-        values_fragment.setdefault("ingress", {})["controllerType"] = "ingress-nginx"
+    def set_ingress_type(deployable_details: DeployableDetails):
+        deployable_details.set_helm_values(values, PropertyType.Ingress, {"controllerType": "ingress-nginx"})
 
     for template in await make_templates(values):
         if template["kind"] == "Ingress":
             assert "nginx.ingress.kubernetes.io/proxy-body-size" not in template["metadata"].get("annotations", {})
 
-    iterate_deployables_ingress_parts(deployables_details, values, set_ingress_type)
+    iterate_deployables_ingress_parts(deployables_details, set_ingress_type)
 
     for template in await make_templates(values):
         if template["kind"] == "Ingress":
@@ -102,7 +101,7 @@ async def test_max_upload_size_annotation_component_ingressType(values, deployab
 
 @pytest.mark.parametrize("values_file", ["synapse-minimal-values.yaml"])
 @pytest.mark.asyncio_cooperative
-async def test_log_level_overrides(values, deployables_details, make_templates):
+async def test_log_level_overrides(values, make_templates):
     for template in await make_templates(values):
         if (
             template["kind"] == "ConfigMap"

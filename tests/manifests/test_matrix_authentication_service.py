@@ -7,7 +7,7 @@ import pytest
 
 @pytest.mark.parametrize("values_file", ["matrix-authentication-service-minimal-values.yaml"])
 @pytest.mark.asyncio_cooperative
-async def test_matrix_authentication_service_env_overrides(values, deployables_details, make_templates):
+async def test_matrix_authentication_service_env_overrides(values, make_templates):
     for template in await make_templates(values):
         if "matrix-authentication-service" in template["metadata"]["name"] and template["kind"] == "Deployment":
             env = {e["name"]: e["value"] for e in template["spec"]["template"]["spec"]["containers"][0]["env"]}

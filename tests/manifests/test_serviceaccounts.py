@@ -6,7 +6,7 @@ import copy
 
 import pytest
 
-from . import values_files_to_test
+from . import DeployableDetails, PropertyType, values_files_to_test
 from .utils import iterate_deployables_workload_parts
 
 
@@ -58,13 +58,15 @@ async def test_uses_serviceaccount_named_as_per_pod_controller_by_default(templa
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_uses_serviceaccount_named_as_values_if_specified(deployables_details, values, make_templates):
-    def service_account_name(values_fragment, deployable_details):
-        values_fragment.setdefault("serviceAccount", {}).setdefault("name", f"{deployable_details.name}-pytest")
-        values_fragment.setdefault("labels", {}).setdefault("expected.name", f"{deployable_details.name}-pytest")
+    def service_account_name(deployable_details: DeployableDetails):
+        deployable_details.set_helm_values(
+            values, PropertyType.ServiceAccount, {"name": f"{deployable_details.name}-pytest"}
+        )
+        deployable_details.set_helm_values(
+            values, PropertyType.Labels, {"expected.name": f"{deployable_details.name}-pytest"}
+        )
 
-    iterate_deployables_workload_parts(
-        deployables_details, values, service_account_name, ignore_uses_parent_properties=True
-    )
+    iterate_deployables_workload_parts(deployables_details, service_account_name)
 
     workloads_by_id = {}
     serviceaccount_names = []
@@ -90,16 +92,13 @@ async def test_uses_serviceaccount_named_as_values_if_specified(deployables_deta
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_does_not_create_serviceaccounts_if_configured_not_to(deployables_details, values, make_templates):
-    def disable_service_account(values_fragment):
-        values_fragment.setdefault("serviceAccount", {}).setdefault("create", False)
-        values_fragment.setdefault("labels", {}).setdefault("serviceAccount", "none")
-
     for deployable_details in deployables_details:
         if not deployable_details.has_workloads:
             continue
 
         values_to_modify = copy.deepcopy(values)
-        disable_service_account(deployable_details.get_helm_values_fragment(values_to_modify))
+        deployable_details.set_helm_values(values_to_modify, PropertyType.ServiceAccount, {"create": False})
+        deployable_details.set_helm_values(values_to_modify, PropertyType.Labels, {"serviceAccount": "none"})
 
         workloads_by_id = {}
         serviceaccount_names = set()
