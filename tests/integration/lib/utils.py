@@ -68,7 +68,7 @@ async def aiohttp_client(ssl_context: SSLContext) -> AsyncGenerator[RetryClient]
         yield client
 
 
-async def aiottp_get_json(url: str, ssl_context: SSLContext) -> Any:
+async def aiohttp_get_json(url: str, ssl_context: SSLContext) -> Any:
     """Do an async HTTP GET against a url, retry exponentially on 429s. It expects a JSON response.
 
     Args:
