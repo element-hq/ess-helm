@@ -78,13 +78,13 @@ async def cluster():
 
 @pytest.fixture(scope="session")
 async def helm_client(cluster):
-    yield pyhelm3.Client(kubeconfig=cluster.kubeconfig, kubecontext=cluster.context)
+    return pyhelm3.Client(kubeconfig=cluster.kubeconfig, kubecontext=cluster.context)
 
 
 @pytest.fixture(scope="session")
 async def kube_client(cluster):
     kube_config = KubeConfig.from_file(cluster.kubeconfig)
-    yield AsyncClient(config=kube_config)
+    return AsyncClient(config=kube_config)
 
 
 @pytest.fixture(autouse=True, scope="session")

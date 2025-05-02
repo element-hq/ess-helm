@@ -61,6 +61,8 @@ select = [
     "SIM",
     # isort
     "I",
+    # flake8-pytest-style
+    "PT",
 ]
 
 [tool.towncrier]

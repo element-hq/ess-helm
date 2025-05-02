@@ -70,7 +70,7 @@ async def test_local_pull_secrets(deployables_details, values, base_values, make
                 assert len(template["spec"]["template"]["spec"]["imagePullSecrets"]) == 2, (
                     f"Expected {id} to have 2 image pull secrets"
                 )
-                assert "matrix-tools-secret" in secret_names and "global-secret" in secret_names, (
+                assert set(secret_names) == set(["matrix-tools-secret", "global-secret"]), (
                     f"Expected {id} to have image pull secret names: local-secret, global-secret, "
                     f"got {','.join(secret_names)}"
                 )
@@ -80,7 +80,7 @@ async def test_local_pull_secrets(deployables_details, values, base_values, make
                     f"Expected {id} to have 3 image pull secrets"
                 )
 
-                assert "matrix-tools-secret" in secret_names, (
+                assert set(secret_names) == set(["matrix-tools-secret", "local-secret", "global-secret"]), (
                     f"Expected {id} to have image pull secret names: "
                     f"local-secret, global-secret, matrix-tools-secret, got {','.join(secret_names)}"
                 )
@@ -88,7 +88,7 @@ async def test_local_pull_secrets(deployables_details, values, base_values, make
                 assert len(template["spec"]["template"]["spec"]["imagePullSecrets"]) == 2, (
                     f"Expected {id} to have 2 image pull secrets"
                 )
-                assert "local-secret" in secret_names and "global-secret" in secret_names, (
+                assert set(secret_names) == set(["local-secret", "global-secret"]), (
                     f"Expected {id} to have image pull secret names: local-secret, global-secret, "
                     f"got {','.join(secret_names)}"
                 )
