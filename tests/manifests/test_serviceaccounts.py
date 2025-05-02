@@ -99,7 +99,7 @@ async def test_does_not_create_serviceaccounts_if_configured_not_to(deployables_
             continue
 
         values_to_modify = copy.deepcopy(values)
-        disable_service_account(deployable_details.get_helm_values_fragment(values))
+        disable_service_account(deployable_details.get_helm_values_fragment(values_to_modify))
 
         workloads_by_id = {}
         serviceaccount_names = set()
