@@ -66,7 +66,10 @@ async def test_templates_have_postgres_hash_label(release_name, templates, value
                 continue
 
             assert "k8s.element.io/postgres-password-hash" in labels, f"{id} does not have postgres password hash label"
-            helm_key = deployable_details.helm_key
+            assert (
+                len(deployable_details.helm_keys) == 1
+            )  # We currently assume that Postgres is for top-level components only
+            helm_key = deployable_details.helm_keys[0]
             values_fragment = deployable_details.get_helm_values_fragment(values)
             if values_fragment.get("postgres", {}).get("password", {}).get("value", None):
                 expected = deployable_details.get_helm_values_fragment(values)["postgres"]["password"]["value"]

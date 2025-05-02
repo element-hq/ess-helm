@@ -34,7 +34,7 @@ from typing import Any, Callable, Self
 class DeployableDetails(abc.ABC):
     name: str = field(hash=True)
     value_file_prefix: str | None = field(default=None, hash=False)
-    helm_key: str = field(default=None, hash=False)  # type: ignore[assignment]
+    helm_keys: tuple[str, ...] = field(default=None, hash=False)  # type: ignore[arg-type]
 
     has_db: bool = field(default=False, hash=False)
     has_image: bool = field(default=None, hash=False)  # type: ignore[assignment]
@@ -49,8 +49,8 @@ class DeployableDetails(abc.ABC):
     skip_path_consistency_for_files: tuple[str, ...] = field(default=(), hash=False)
 
     def __post_init__(self):
-        if self.helm_key is None:
-            self.helm_key = self.name
+        if self.helm_keys is None or len(self.helm_keys) == 0:
+            self.helm_keys = (self.name,)
         if self.has_image is None:
             self.has_image = self.has_workloads
         if self.has_extra_env is None:
@@ -60,9 +60,11 @@ class DeployableDetails(abc.ABC):
         if self.has_topology_spread_constraints is None:
             self.has_topology_spread_constraints = self.has_workloads
 
-    @abc.abstractmethod
     def get_helm_values_fragment(self, values: dict[str, Any]) -> dict[str, Any]:
-        pass
+        values_fragment = values
+        for helm_key in self.helm_keys:
+            values_fragment = values_fragment.setdefault(helm_key, {})
+        return values_fragment
 
     @abc.abstractmethod
     def owns_manifest_named(self, manifest_name: str) -> bool:
@@ -78,10 +80,6 @@ class DeployableDetails(abc.ABC):
 @dataclass(unsafe_hash=True)
 class SubComponentDetails(DeployableDetails):
     uses_parent_properties: bool = field(default=False, hash=False)
-    parent_helm_key: str = field(default=None, hash=False)  # type: ignore[assignment]
-
-    def get_helm_values_fragment(self, values: dict[str, Any]) -> dict[str, Any]:
-        return values.setdefault(self.parent_helm_key, {}).setdefault(self.helm_key, {})
 
     def owns_manifest_named(self, manifest_name: str) -> bool:
         return manifest_name.startswith(self.name)
@@ -140,12 +138,6 @@ class ComponentDetails(DeployableDetails):
             ]
         self.secret_values_files = tuple(secret_values_files)
 
-        for sub_component in self.sub_components:
-            sub_component.parent_helm_key = self.helm_key
-
-    def get_helm_values_fragment(self, values: dict[str, Any]) -> dict[str, Any]:
-        return values.setdefault(self.helm_key, {})
-
     def owns_manifest_named(self, manifest_name: str) -> bool:
         # We look at sub-components first as while they could have totally distinct names
         # from their parent component, they could have have specific suffixes. If a
@@ -166,7 +158,7 @@ class ComponentDetails(DeployableDetails):
 all_components_details = [
     ComponentDetails(
         name="init-secrets",
-        helm_key="initSecrets",
+        helm_keys=("initSecrets",),
         has_image=False,
         has_ingress=False,
         has_extra_env=False,
@@ -191,18 +183,21 @@ all_components_details = [
     ),
     ComponentDetails(
         name="matrix-rtc",
-        helm_key="matrixRTC",
+        helm_keys=("matrixRTC",),
         has_topology_spread_constraints=False,
         sub_components=(
             SubComponentDetails(
-                name="matrix-rtc-sfu", helm_key="sfu", has_topology_spread_constraints=False, has_ingress=False
+                name="matrix-rtc-sfu",
+                helm_keys=("matrixRTC", "sfu"),
+                has_topology_spread_constraints=False,
+                has_ingress=False,
             ),
         ),
         shared_component_names=("init-secrets",),
     ),
     ComponentDetails(
         name="element-web",
-        helm_key="elementWeb",
+        helm_keys=("elementWeb",),
         has_service_monitor=False,
         paths_consistency_noqa=(
             # Explicitly mounted but wildcard included by the base-image
@@ -222,7 +217,7 @@ all_components_details = [
     ),
     ComponentDetails(
         name="matrix-authentication-service",
-        helm_key="matrixAuthenticationService",
+        helm_keys=("matrixAuthenticationService",),
         has_db=True,
         shared_component_names=("init-secrets", "postgres"),
     ),
@@ -235,7 +230,7 @@ all_components_details = [
         sub_components=(
             SubComponentDetails(
                 name="synapse-redis",
-                helm_key="redis",
+                helm_keys=("synapse", "redis"),
                 has_ingress=False,
                 has_extra_env=False,
                 has_service_monitor=False,
@@ -243,7 +238,7 @@ all_components_details = [
             ),
             SubComponentDetails(
                 name="synapse-check-config-hook",
-                helm_key="checkConfigHook",
+                helm_keys=("synapse", "checkConfigHook"),
                 has_ingress=False,
                 has_service_monitor=False,
                 uses_parent_properties=True,
@@ -253,7 +248,7 @@ all_components_details = [
     ),
     ComponentDetails(
         name="well-known",
-        helm_key="wellKnownDelegation",
+        helm_keys=("wellKnownDelegation",),
         has_workloads=False,
         shared_component_names=("haproxy",),
     ),
