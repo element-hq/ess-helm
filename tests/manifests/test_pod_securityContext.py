@@ -4,7 +4,7 @@
 
 import pytest
 
-from . import values_files_to_test
+from . import PropertyType, values_files_to_test
 from .utils import iterate_deployables_workload_parts
 
 
@@ -41,9 +41,8 @@ async def test_sets_nonRoot_uids_gids_in_pod_securityContext_by_default(template
 async def test_can_nuke_pod_securityContext_ids(deployables_details, values, make_templates):
     iterate_deployables_workload_parts(
         deployables_details,
-        values,
-        lambda values_fragment, deployable_details: values_fragment.setdefault(
-            "podSecurityContext", {"runAsUser": None, "runAsGroup": None, "fsGroup": None}
+        lambda deployable_details: deployable_details.set_helm_values(
+            values, PropertyType.PodSecurityContext, {"runAsUser": None, "runAsGroup": None, "fsGroup": None}
         ),
     )
 
@@ -88,9 +87,8 @@ async def test_sets_seccompProfile_in_pod_securityContext_by_default(templates):
 async def test_can_nuke_pod_securityContext_seccompProfile(deployables_details, values, make_templates):
     iterate_deployables_workload_parts(
         deployables_details,
-        values,
-        lambda values_fragment, deployable_details: values_fragment.setdefault(
-            "podSecurityContext", {"seccompProfile": None}
+        lambda deployable_details: deployable_details.set_helm_values(
+            values, PropertyType.PodSecurityContext, {"seccompProfile": None}
         ),
     )
 

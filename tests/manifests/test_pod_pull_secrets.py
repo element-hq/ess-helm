@@ -4,7 +4,7 @@
 
 import pytest
 
-from . import values_files_to_test
+from . import PropertyType, values_files_to_test
 from .utils import iterate_deployables_image_parts
 
 
@@ -35,9 +35,8 @@ async def test_local_pull_secrets(deployables_details, values, base_values, make
     values.setdefault("matrixTools", {}).setdefault("image", {})["pullSecrets"] = [{"name": "matrix-tools-secret"}]
     iterate_deployables_image_parts(
         deployables_details,
-        values,
-        lambda values_fragment, deployable_details: values_fragment.setdefault(
-            "image", {"pullSecrets": [{"name": "local-secret"}]}
+        lambda deployable_details: deployable_details.set_helm_values(
+            values, PropertyType.Image, {"pullSecrets": [{"name": "local-secret"}]}
         ),
     )
 

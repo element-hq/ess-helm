@@ -217,58 +217,41 @@ def make_templates(chart: pyhelm3.Chart, release_name: str):
 
 def iterate_deployables_parts(
     deployables_details: tuple[DeployableDetails],
-    values: dict[str, Any],
-    visitor: Callable[[dict[str, Any], DeployableDetails], None],
+    visitor: Callable[[DeployableDetails], None],
     if_condition: Callable[[DeployableDetails], bool],
-    ignore_uses_parent_properties: bool = False,
 ):
     for deployable_details in deployables_details:
-        if deployable_details.should_visit_with_values(if_condition, ignore_uses_parent_properties):
-            visitor(deployable_details.get_helm_values_fragment(values), deployable_details)
+        if if_condition(deployable_details):
+            visitor(deployable_details)
 
 
 def iterate_deployables_workload_parts(
     deployables_details: tuple[DeployableDetails],
-    values: dict[str, Any],
-    visitor: Callable[[dict[str, Any], DeployableDetails], None],
-    ignore_uses_parent_properties: bool = False,
+    visitor: Callable[[DeployableDetails], None],
 ):
-    iterate_deployables_parts(
-        deployables_details,
-        values,
-        visitor,
-        lambda deployable_details: deployable_details.has_workloads,
-        ignore_uses_parent_properties,
-    )
+    iterate_deployables_parts(deployables_details, visitor, lambda deployable_details: deployable_details.has_workloads)
 
 
 def iterate_deployables_image_parts(
     deployables_details: tuple[DeployableDetails],
-    values: dict[str, Any],
-    visitor: Callable[[dict[str, Any], DeployableDetails], None],
+    visitor: Callable[[DeployableDetails], None],
 ):
-    iterate_deployables_parts(
-        deployables_details, values, visitor, lambda deployable_details: deployable_details.has_image
-    )
+    iterate_deployables_parts(deployables_details, visitor, lambda deployable_details: deployable_details.has_image)
 
 
 def iterate_deployables_ingress_parts(
     deployables_details: tuple[DeployableDetails],
-    values: dict[str, Any],
-    visitor: Callable[[dict[str, Any], DeployableDetails], None],
+    visitor: Callable[[DeployableDetails], None],
 ):
-    iterate_deployables_parts(
-        deployables_details, values, visitor, lambda deployable_details: deployable_details.has_ingress
-    )
+    iterate_deployables_parts(deployables_details, visitor, lambda deployable_details: deployable_details.has_ingress)
 
 
 def iterate_deployables_service_monitor_parts(
     deployables_details: tuple[DeployableDetails],
-    values: dict[str, Any],
-    visitor: Callable[[dict[str, Any], DeployableDetails], None],
+    visitor: Callable[[DeployableDetails], None],
 ):
     iterate_deployables_parts(
-        deployables_details, values, visitor, lambda deployable_details: deployable_details.has_service_monitor
+        deployables_details, visitor, lambda deployable_details: deployable_details.has_service_monitor
     )
 
 

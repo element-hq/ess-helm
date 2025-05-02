@@ -4,24 +4,44 @@
 
 import abc
 from dataclasses import InitVar, dataclass, field
-from typing import Any, Callable, Self
+from enum import Enum
+from typing import Any
 
-# We introduce 3 DataClasses to store details of the deployables this chart manages
-# * ComponentDetails - details of a top-level deployable. This includes both the headlines
+
+class PropertyType(Enum):
+    Env = "extraEnv"
+    Image = "image"
+    Ingress = "ingress"
+    Labels = "labels"
+    PodSecurityContext = "podSecurityContext"
+    Postgres = "postgres"
+    ServiceAccount = "serviceAccount"
+    ServiceMonitor = "serviceMonitors"
+    Tolerations = "tolerations"
+    TopologySpreadConstraints = "topologySpreadConstraints"
+
+
+# We introduce 4 DataClasses to store details of the deployables this chart manages
+# * ComponentDetails - details of a top-level deployable. This includes both the headline
 #   components like Synapse, Element Web, etc and components that have their own independent
 #   properties at the root of the chart, like HAProxy & Postgres. These latter components might
 #   only be deployed if specific other top-level components are enabled however they are able to
 #   standalone. The shared components should be marked with `is_shared_component` which lets the
-#   manifest test setup know they don't have their own independent values files
+#   manifest test setup know they don't have their own independent values files.
 #
 # * SubComponentDetails - details of a dependent deployable. These are details of a deployable
 #   that belongs to / is only ever deployed as part of a top-level component. For example
 #   Synapse's Redis can never be deployed out of the context of Synapse.
 #
-# * DeployableDetails - a common base class for ComponentDetails and SubComponentDetails. All
-#   of the interesting properties (has_ingress, etc) we care to use to vary test assertions live
-#   here. The distinction between ComonentDetails and SubComponent details should be reserved for
-#   how the values files need to be manipulated.
+# * SidecarDetails - details of a dependent container. It runs inside a top-level or sub-
+#   component. Various Pod properties can't be controlled by the sidecar, they're controlled
+#   by the parent component, however Container properties will be editable and there may be
+#   additional manifests
+#
+# * DeployableDetails - a common base class. All of the interesting properties
+#   (has_ingress, etc) we care to use to vary test assertions live here. The distinction between
+#   ComonentDetails, SubComponentDetails & SidecarDetails should be reserved for how manifests
+#   are owned.
 
 
 # We need to be able to put this and its subclasses into Sets, which means this must be hashable
@@ -34,7 +54,14 @@ from typing import Any, Callable, Self
 class DeployableDetails(abc.ABC):
     name: str = field(hash=True)
     value_file_prefix: str | None = field(default=None, hash=False)
+    # The "path" through the values file that properties for this deployable will be rooted at
+    # by default. The PropertyType value will then finish off the "path".
     helm_keys: tuple[str, ...] = field(default=None, hash=False)  # type: ignore[arg-type]
+    # Per-PropertyType (ingress, env, etc) overrides for the "path" through the values file
+    # that should be used for that specific PropertyType. A path of None for a given PropertyType
+    # means this deployable can't set values of that property type. That doesn't mean that the
+    # deployable won't have e.g. env vars, it means they will be sourced from their parent.
+    helm_keys_overrides: dict[PropertyType, tuple[str, ...] | None] | None = field(default=None, hash=False)
 
     has_db: bool = field(default=False, hash=False)
     has_image: bool = field(default=None, hash=False)  # type: ignore[assignment]
@@ -60,39 +87,128 @@ class DeployableDetails(abc.ABC):
         if self.has_topology_spread_constraints is None:
             self.has_topology_spread_constraints = self.has_workloads
 
-    def get_helm_values_fragment(self, values: dict[str, Any]) -> dict[str, Any]:
+    def _get_helm_keys(self, propertyType: PropertyType) -> tuple[str, ...] | None:
+        """
+        Returns the "path" (tuple of values keys) to a given PropertyType.
+
+        Returns None if this deployable has an override explicitly set to None to indicated
+        that this deployable doesn't have its own values for that PropertyType.
+        """
+        if (
+            propertyType is not None
+            and self.helm_keys_overrides is not None
+            and propertyType in self.helm_keys_overrides
+        ):
+            return self.helm_keys_overrides[propertyType]
+        else:
+            return self.helm_keys + (propertyType.value,)
+
+    def get_helm_values(self, values: dict[str, Any], propertyType: PropertyType) -> dict[str, Any] | None:
+        """
+        Returns the configured values for this deployable for a given PropertyType.
+
+        The function knows the correct location in the values for this PropertyType for this deployable.
+
+        Returns:
+        * None if this deployable explicitly can't configure this PropertyType.
+        * The value or empty dict if this PropertyType can be configured.
+        """
+        helm_keys = self._get_helm_keys(propertyType)
+        if helm_keys is None:
+            return None
+
         values_fragment = values
-        for helm_key in self.helm_keys:
+        for helm_key in helm_keys:
             values_fragment = values_fragment.setdefault(helm_key, {})
         return values_fragment
 
-    @abc.abstractmethod
-    def owns_manifest_named(self, manifest_name: str) -> bool:
-        pass
+    def set_helm_values(self, all_values: dict[str, Any], propertyType: PropertyType, values_to_set: Any):
+        """
+        Sets a fragment of values for this deployable for a given PropertyType.
+        This fragment can be:
+        * A dictionary, in which case it will be merged on top of any values already set.
+        * A list, in which case it will be appended on top of any values already set.
+        * A scalar that could be in the same, in which case it will replace any value already set.
+
+        The function knows the correct location in the values for this PropertyType for this deployable.
+        If this PropertyType can't be set for this deployable then the function silently returns. This
+        is to support the case where sub-components/sidecars obtain values from their parent and so
+        can't set those PropertyTypes themselves.
+        """
+        helm_keys = self._get_helm_keys(propertyType)
+        if helm_keys is None:
+            return
+
+        values_fragment = all_values
+        for index, helm_key in enumerate(helm_keys):
+            # The last iteration through is the specific property we want to set. We know everything
+            # higher this will be a dict, but at the end, for a specific property, we could be
+            # trying to set an object, an array or even a scalar
+            if (index + 1) == len(helm_keys):
+                if isinstance(values_to_set, dict):
+                    values_fragment.setdefault(propertyType.value, {}).update(values_to_set)
+                elif isinstance(values_to_set, list):
+                    values_fragment.setdefault(propertyType.value, []).extend(values_to_set)
+                else:
+                    values_fragment[propertyType.value] = values_to_set
+            else:
+                values_fragment = values_fragment.setdefault(helm_key, {})
 
     @abc.abstractmethod
-    def should_visit_with_values(
-        self, if_condition: Callable[[Self], bool], ignore_uses_parent_properties: bool = False
-    ):
+    def owns_manifest_named(self, manifest_name: str) -> bool:
         pass
 
 
 @dataclass(unsafe_hash=True)
+class SidecarDetails(DeployableDetails):
+    parent: DeployableDetails = field(default=None, init=False, hash=False)  # type: ignore[assignment]
+
+    def __post_init__(self):
+        super().__post_init__()
+
+        sidecar_helm_keys_overrides = {
+            # Not possible, will come from the parent component
+            PropertyType.PodSecurityContext: None,
+            PropertyType.ServiceAccount: None,
+            PropertyType.Tolerations: None,
+            PropertyType.TopologySpreadConstraints: None,
+        }
+        if self.helm_keys_overrides is None:
+            self.helm_keys_overrides = {}
+        self.helm_keys_overrides |= sidecar_helm_keys_overrides
+
+        # Not possible, will come from the parent components
+        self.has_topology_spread_constraints = False
+
+        # We have to be a workload as we're a sidecar
+        self.has_workloads = True
+
+    def owns_manifest_named(self, manifest_name: str) -> bool:
+        # Sidecars shouldn't own anything that their parent could possibly own
+        if self.parent.owns_manifest_named(manifest_name):
+            return False
+
+        return manifest_name.startswith(self.name)
+
+
+@dataclass(unsafe_hash=True)
 class SubComponentDetails(DeployableDetails):
-    uses_parent_properties: bool = field(default=False, hash=False)
+    sidecars: tuple[SidecarDetails, ...] = field(default=(), hash=False)
+
+    def __post_init__(self):
+        super().__post_init__()
+
+        for sidecar in self.sidecars:
+            sidecar.parent = self
 
     def owns_manifest_named(self, manifest_name: str) -> bool:
         return manifest_name.startswith(self.name)
-
-    def should_visit_with_values(
-        self, if_condition: Callable[[Self], bool], ignore_uses_parent_properties: bool = False
-    ):
-        return (ignore_uses_parent_properties or not self.uses_parent_properties) and if_condition(self)
 
 
 @dataclass(unsafe_hash=True)
 class ComponentDetails(DeployableDetails):
     sub_components: tuple[SubComponentDetails, ...] = field(default=(), hash=False)
+    sidecars: tuple[SidecarDetails, ...] = field(default=(), hash=False)
 
     active_component_names: tuple[str, ...] = field(init=False, hash=False)
     values_files: tuple[str, ...] = field(init=False, hash=False)
@@ -110,6 +226,9 @@ class ComponentDetails(DeployableDetails):
         additional_values_files: tuple[str, ...],
     ):
         super().__post_init__()
+
+        for sidecar in self.sidecars:
+            sidecar.parent = self
 
         if not self.value_file_prefix:
             self.value_file_prefix = self.name
@@ -148,11 +267,6 @@ class ComponentDetails(DeployableDetails):
                 return False
 
         return manifest_name.startswith(self.name)
-
-    def should_visit_with_values(
-        self, if_condition: Callable[[Self], bool], ignore_uses_parent_properties: bool = False
-    ):
-        return if_condition(self)
 
 
 all_components_details = [
@@ -239,9 +353,20 @@ all_components_details = [
             SubComponentDetails(
                 name="synapse-check-config-hook",
                 helm_keys=("synapse", "checkConfigHook"),
+                helm_keys_overrides={
+                    # has_extra_env but comes from synapse.extraEnv
+                    PropertyType.Env: None,
+                    # has_workloads and so comes from synapse.image
+                    PropertyType.Image: None,
+                    # has_workloads and so podSecurityContext but comes from synapse.podSecurityContext
+                    PropertyType.PodSecurityContext: None,
+                    # has_workloads and so tolerations but comes from synapse.tolerations
+                    PropertyType.Tolerations: None,
+                    # has_workloads and so topologySpreadConstraints but comes from synapse.topologySpreadConstraints
+                    PropertyType.TopologySpreadConstraints: None,
+                },
                 has_ingress=False,
                 has_service_monitor=False,
-                uses_parent_properties=True,
             ),
         ),
         shared_component_names=("init-secrets", "haproxy", "postgres"),
@@ -267,6 +392,10 @@ def _get_deployables_details_from_base_components_names(
             component_details = component_names_to_details[component_name]
             deployables_details_in_use.add(component_details)
             deployables_details_in_use.update(component_details.sub_components)
+            deployables_details_in_use.update(component_details.sidecars)
+            for sub_component in component_details.sub_components:
+                deployables_details_in_use.update(sub_component.sidecars)
+
     return tuple(deployables_details_in_use)
 
 
