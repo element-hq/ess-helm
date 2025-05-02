@@ -179,7 +179,7 @@ all_components_details = [
         has_ingress=False,
         has_extra_env=False,
         is_shared_component=True,
-        skip_path_consistency_for_files=("haproxy.cfg", "429.http", "path_map_file", "path_map_file_get"),
+        skip_path_consistency_for_files=("haproxy.cfg", "429.http", "failover_map_file", "path_map_file", "path_map_file_get"),
     ),
     ComponentDetails(
         name="postgres",
