@@ -122,6 +122,24 @@ true
 {{- end -}}
 {{- end -}}
 
+{{- define "element-io.postgres.exporter-env" }}
+{{- $root := .root -}}
+{{- with required "element-io.postgres.exporter-env missing context" .context -}}
+{{- $resultEnv := dict -}}
+{{- range $envEntry := .extraEnv -}}
+{{- $_ := set $resultEnv $envEntry.name $envEntry.value -}}
+{{- end -}}
+{{- $overrideEnv := dict "DATA_SOURCE_URI" "localhost?sslmode=disable"
+                         "DATA_SOURCE_USER" "postgres"
+-}}
+{{- $resultEnv := mustMergeOverwrite $resultEnv $overrideEnv -}}
+{{- range $key, $value := $resultEnv }}
+- name: {{ $key | quote }}
+  value: {{ $value | quote }}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
 
 {{- define "element-io.postgres.configmap-data" -}}
 {{- $root := .root -}}

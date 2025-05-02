@@ -9,14 +9,14 @@
     "image": {
       "$ref": "file://common/image.json"
     },
-    "extraEnv": {
-      "$ref": "file://common/extraEnv.json"
-    },
     "postgresExporter": {
       "type": "object",
       "properties": {
         "image": {
           "$ref": "file://common/image.json"
+        },
+        "extraEnv": {
+          "$ref": "file://common/extraEnv.json"
         },
         "containersSecurityContext": {
           "$ref": "file://common/containersSecurityContext.json"
@@ -48,6 +48,9 @@
     },
     "annotations": {
       "$ref": "file://common/workloadAnnotations.json"
+    },
+    "extraEnv": {
+      "$ref": "file://common/extraEnv.json"
     },
     "containersSecurityContext": {
       "$ref": "file://common/containersSecurityContext.json"
