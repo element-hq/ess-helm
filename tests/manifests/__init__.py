@@ -292,6 +292,19 @@ all_components_details = [
         has_ingress=False,
         has_extra_env=False,
         has_storage=True,
+        sidecars=(
+            SidecarDetails(
+                name="postgres-exporter",
+                helm_keys=("postgres", "postgresExporter"),
+                helm_keys_overrides={
+                    # No manifests of its own, so no labels to set
+                    PropertyType.Labels: None,
+                },
+                has_extra_env=False,
+                has_ingress=False,
+                has_service_monitor=False,
+            ),
+        ),
         paths_consistency_noqa=("/docker-entrypoint-initdb.d/init-ess-dbs.sh",),
         is_shared_component=True,
     ),
