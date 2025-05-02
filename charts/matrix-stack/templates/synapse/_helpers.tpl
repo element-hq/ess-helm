@@ -214,6 +214,8 @@ redis.conf: |
 
 {{- define "element-io.synapse-haproxy.configmap-data" -}}
 {{- $root := .root -}}
+failover_map_file: |
+{{- (tpl ($root.Files.Get "configs/synapse/failover_map_file.tpl") (dict "root" $root)) | nindent 2 }}
 path_map_file: |
 {{- (tpl ($root.Files.Get "configs/synapse/path_map_file.tpl") (dict "root" $root)) | nindent 2 }}
 path_map_file_get: |

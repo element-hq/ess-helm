@@ -69,9 +69,11 @@ frontend synapse-http-in
 
   # Load the backend from one of the map files.
   acl has_get_map path -m reg -M -f /synapse/path_map_file_get
+  acl has_failover_map path -m reg -M -f /synapse/failover_map_file
 
   http-request set-var(req.backend) path,map_reg(/synapse/path_map_file_get,main) if has_get_map METH_GET
   http-request set-var(req.backend) path,map_reg(/synapse/path_map_file,main) unless { var(req.backend) -m found }
+  http-request set-var(req.failover) path,map_reg(/synapse/failover_map_file) if has_failover_map
 
 {{- if $root.Values.matrixAuthenticationService.enabled }}
   acl rendezvous path_beg /_matrix/client/unstable/org.matrix.msc4108/rendezvous
@@ -97,19 +99,24 @@ frontend synapse-http-in
   use_backend synapse-initial-synchrotron if is_sync !{ urlp("since") -m found } !{ urlp("from") -m found }
 {{- end }}
 
-{{- range $workerType, $workerDetails := (include "element-io.synapse.enabledWorkers" (dict "root" $root)) | fromJson }}
-{{- if include "element-io.synapse.process.hasHttp" (dict "root" $root "context" $workerType) }}
-{{- $workerTypeName := include "element-io.synapse.process.workerTypeName" (dict "root" $root "context" $workerType) }}
-{{- if include "element-io.synapse.process.canFallbackToMain" (dict "root" $root "context" $workerType) }}
-  acl {{ $workerType | replace "-" "_" }}_not_enough_capacity nbsrv(synapse-{{ $workerType }}) lt 1
-  use_backend synapse-main if {{ $workerType | replace "-" "_" }}_not_enough_capacity
-{{- end }}
-{{- end }}
-{{- end }}
+  acl has_failover var(req.failover) -m found
+  acl backend_unavailable str(),concat('synapse-',req.backend),nbsrv lt 1
+
+  use_backend synapse-%[var(req.failover)] if has_failover backend_unavailable
 
   use_backend synapse-%[var(req.backend)]
 
 backend synapse-main
+  default-server maxconn 250
+
+  option httpchk
+  http-check connect port 8080
+  http-check send meth GET uri /health
+
+  # Use DNS SRV service discovery on the headless service
+  server-template main 1 _synapse-http._tcp.{{ $root.Release.Name }}-synapse-main.{{ $root.Release.Namespace }}.svc.cluster.local resolvers kubedns init-addr none check
+
+backend synapse-main-failover
   default-server maxconn 250
 
   option httpchk
