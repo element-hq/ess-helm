@@ -1008,7 +1008,7 @@ matrixAuthenticationService:
 
     ## The tag of the container image to use.
     ## Defaults to the Chart's appVersion if not set
-    tag: "0.15.0"
+    tag: "0.16.0"
 
     ## Container digest to use. Used to pull the image instead of the image tag / Chart appVersion if set
     # digest:
@@ -1956,7 +1956,7 @@ synapse:
 
     ## The tag of the container image to use.
     ## Defaults to the Chart's appVersion if not set
-    tag: "v1.128.0"
+    tag: "v1.129.0"
 
     ## Container digest to use. Used to pull the image instead of the image tag / Chart appVersion if set
     # digest:
