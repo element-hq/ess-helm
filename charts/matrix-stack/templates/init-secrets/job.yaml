@@ -58,8 +58,7 @@ spec:
           {{- toYaml . | nindent 10 }}
 {{- end }}
         env:
-        - name: NAMESPACE
-          value: {{ $.Release.Namespace }}
+        {{- include "element-io.init-secrets.env" (dict "root" $ "context" .) | nindent 8 }}
         command:
         - "/matrix-tools"
         - "generate-secrets"

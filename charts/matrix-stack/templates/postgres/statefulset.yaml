@@ -191,10 +191,7 @@ spec:
         - name: metrics
           containerPort: 9187
         env:
-        - name: DATA_SOURCE_URI
-          value: "localhost?sslmode=disable"
-        - name: DATA_SOURCE_USER
-          value: "postgres"
+        {{- include "element-io.postgres.exporter-env" (dict "root" $ "context" .) | nindent 8 }}
         startupProbe:
           httpGet:
             path: /metrics

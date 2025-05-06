@@ -65,7 +65,6 @@ class DeployableDetails(abc.ABC):
 
     has_db: bool = field(default=False, hash=False)
     has_image: bool = field(default=None, hash=False)  # type: ignore[assignment]
-    has_extra_env: bool = field(default=None, hash=False)  # type: ignore[assignment]
     has_ingress: bool = field(default=True, hash=False)
     has_workloads: bool = field(default=True, hash=False)
     has_service_monitor: bool = field(default=None, hash=False)  # type: ignore[assignment]
@@ -80,8 +79,6 @@ class DeployableDetails(abc.ABC):
             self.helm_keys = (self.name,)
         if self.has_image is None:
             self.has_image = self.has_workloads
-        if self.has_extra_env is None:
-            self.has_extra_env = self.has_workloads
         if self.has_service_monitor is None:
             self.has_service_monitor = self.has_workloads
         if self.has_topology_spread_constraints is None:
@@ -275,7 +272,6 @@ all_components_details = [
         helm_keys=("initSecrets",),
         has_image=False,
         has_ingress=False,
-        has_extra_env=False,
         has_service_monitor=False,
         has_topology_spread_constraints=False,
         is_shared_component=True,
@@ -283,14 +279,12 @@ all_components_details = [
     ComponentDetails(
         name="haproxy",
         has_ingress=False,
-        has_extra_env=False,
         is_shared_component=True,
         skip_path_consistency_for_files=("haproxy.cfg", "429.http", "path_map_file", "path_map_file_get"),
     ),
     ComponentDetails(
         name="postgres",
         has_ingress=False,
-        has_extra_env=False,
         has_storage=True,
         sidecars=(
             SidecarDetails(
@@ -300,7 +294,6 @@ all_components_details = [
                     # No manifests of its own, so no labels to set
                     PropertyType.Labels: None,
                 },
-                has_extra_env=False,
                 has_ingress=False,
                 has_service_monitor=False,
             ),
@@ -359,7 +352,6 @@ all_components_details = [
                 name="synapse-redis",
                 helm_keys=("synapse", "redis"),
                 has_ingress=False,
-                has_extra_env=False,
                 has_service_monitor=False,
                 has_topology_spread_constraints=False,
             ),
@@ -367,7 +359,7 @@ all_components_details = [
                 name="synapse-check-config-hook",
                 helm_keys=("synapse", "checkConfigHook"),
                 helm_keys_overrides={
-                    # has_extra_env but comes from synapse.extraEnv
+                    # has_workloads but comes from synapse.extraEnv
                     PropertyType.Env: None,
                     # has_workloads and so comes from synapse.image
                     PropertyType.Image: None,
@@ -375,7 +367,8 @@ all_components_details = [
                     PropertyType.PodSecurityContext: None,
                     # has_workloads and so tolerations but comes from synapse.tolerations
                     PropertyType.Tolerations: None,
-                    # has_workloads and so topologySpreadConstraints but comes from synapse.topologySpreadConstraints
+                    # has_topology_spread_constraints and so topologySpreadConstraints
+                    # but comes from synapse.topologySpreadConstraints
                     PropertyType.TopologySpreadConstraints: None,
                 },
                 has_ingress=False,

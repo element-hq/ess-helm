@@ -298,6 +298,25 @@
             "type": "string"
           }
         },
+        "extraEnv": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "value"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
         "containersSecurityContext": {
           "properties": {
             "allowPrivilegeEscalation": {
@@ -1961,6 +1980,25 @@
             "type": "string"
           }
         },
+        "extraEnv": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "value"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
         "containersSecurityContext": {
           "properties": {
             "allowPrivilegeEscalation": {
@@ -2986,25 +3024,6 @@
           },
           "additionalProperties": false
         },
-        "extraEnv": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": [
-              "name",
-              "value"
-            ],
-            "properties": {
-              "name": {
-                "type": "string"
-              },
-              "value": {
-                "type": "string"
-              }
-            },
-            "additionalProperties": false
-          }
-        },
         "postgresExporter": {
           "type": "object",
           "properties": {
@@ -3048,6 +3067,25 @@
                 }
               },
               "additionalProperties": false
+            },
+            "extraEnv": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "value"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
             },
             "containersSecurityContext": {
               "properties": {
@@ -3219,6 +3257,25 @@
           "type": "object",
           "additionalProperties": {
             "type": "string"
+          }
+        },
+        "extraEnv": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "value"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
           }
         },
         "containersSecurityContext": {
@@ -6372,6 +6429,25 @@
               "type": "object",
               "additionalProperties": {
                 "type": "string"
+              }
+            },
+            "extraEnv": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "value"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
               }
             },
             "containersSecurityContext": {

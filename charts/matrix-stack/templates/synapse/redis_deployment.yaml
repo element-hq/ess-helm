@@ -58,6 +58,10 @@ spec:
         securityContext:
           {{- toYaml . | nindent 10 }}
 {{- end }}
+{{- with .extraEnv }}
+        env:
+          {{- toYaml . | nindent 10 }}
+{{- end }}
         ports:
         - containerPort: 6379
           name: redis

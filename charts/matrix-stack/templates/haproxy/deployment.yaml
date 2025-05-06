@@ -85,6 +85,10 @@ spec:
         securityContext:
           {{- toYaml . | nindent 10 }}
 {{- end }}
+{{- with .extraEnv }}
+        env:
+          {{- toYaml . | nindent 10 }}
+{{- end }}
         ports:
 {{- if $.Values.synapse.enabled }}
         - containerPort: 8008
