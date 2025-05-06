@@ -6,6 +6,32 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 0.11.2 (2025-05-06)
+
+### Changed
+
+- matrix-tools: Update Go to 1.24. (#405)
+- matrix-tools: Update to 0.3.5. (#407)
+- Update Architecture diagram. (#408)
+- Upgrade to Matrix Authentication Service 0.15.0. (#412)
+- Matrix Authentication Service: perform database migration with an init container, instead of on the startup of the main container. (#416)
+- HAProxy: Use ACLs instead of `backup` for synapse main worker fallback. (#417)
+- Add extraEnv support to HAProxy, Synapse Redis, Postgres Exporter and Init Secrets so that all components support it. (#421)
+
+### Fixed
+
+- Fix typo in Matrix Authentication Service additional comment docs. (#422)
+
+### Internal
+
+- Type check manifest tests. (#409)
+- Use released version of pytest-asyncio-cooperative. (#411)
+- Make scripts executable. (#415)
+- Fix ServiceAccount manifest being unreliable. (#418)
+- Fix typo in integration test utility function. (#419)
+- All varying of values for sidecars in manifest tests. (#420)
+
+
 # ESS Community Helm Chart 0.11.1 (2025-04-29)
 
 ### Changed
