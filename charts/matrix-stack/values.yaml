@@ -662,7 +662,7 @@ elementWeb:
 
     ## The tag of the container image to use.
     ## Defaults to the Chart's appVersion if not set
-    tag: "v1.11.97"
+    tag: "v1.11.100"
 
     ## Container digest to use. Used to pull the image instead of the image tag / Chart appVersion if set
     # digest:
