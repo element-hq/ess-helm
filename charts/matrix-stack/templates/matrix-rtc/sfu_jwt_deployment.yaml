@@ -64,7 +64,7 @@ spec:
         - containerPort: 8080
           name: http
           protocol: TCP
-        livenessProbe:
+        livenessProbe: {{- toYaml .livenessProbe | nindent 10 }}
           httpGet:
             path: /healthz
             port: http

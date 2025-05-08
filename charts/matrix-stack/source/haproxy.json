@@ -42,6 +42,9 @@
     },
     "topologySpreadConstraints": {
       "$ref": "file://common/topologySpreadConstraints.json"
+    },
+    "livenessProbe": {
+      "$ref": "file://common/probe.json"
     }
   }
 }

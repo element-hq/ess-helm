@@ -4,8 +4,8 @@
 
 import pytest
 
-from . import values_files_to_test
-from .utils import template_id
+from . import DeployableDetails, PropertyType, values_files_to_test
+from .utils import iterate_deployables_workload_parts, template_id
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -40,3 +40,104 @@ async def test_no_probes_for_initContainers(templates):
                 assert "startupProbe" not in init_container, (
                     f"{template_id(template)} has initContainer {init_container['name']} with a startupProbe"
                 )
+
+
+def assert_sensible_default_probe(template, probe_type):
+    for container in template["spec"]["template"]["spec"]["containers"]:
+        assert probe_type in container, (
+            f"{template_id(template)} has container {container['name']} without a {probe_type}"
+        )
+        probe = container[probe_type]
+
+        assert "failureThreshold" in probe, (
+            f"{template_id(template)} has container {container['name']} with a {probe_type} missing a failureThreshold"
+        )
+        assert "periodSeconds" in probe, (
+            f"{template_id(template)} has container {container['name']} with a {probe_type} missing a periodSeconds"
+        )
+
+        assert "httpGet" in probe or "exec" in probe or "tcpSocket" in probe
+        if "httpGet" in probe:
+            assert "port" in probe["httpGet"], (
+                f"{template_id(template)} has container {container['name']} whose "
+                "{probe_type}.http which doesn't specify a port"
+            )
+
+            probePort = probe["httpGet"]["port"]
+            assert isinstance(probePort, str), (
+                f"{template_id(template)} has container {container['name']} whose "
+                "{probe_type}.httpGet.port isn't a named port"
+            )
+
+            assert any([port["name"] == probePort for port in container["ports"]])
+
+
+def set_probe_details(deployables_details, values, probe_type):
+    deployable_details_to_probe_details = {}
+    counter = 100
+
+    def set_probe_details(deployable_details: DeployableDetails):
+        nonlocal counter
+        probe_details = {
+            "failureThreshold": counter,
+            "initialDelaySeconds": counter + 1,
+            "periodSeconds": counter + 2,
+            # livenessProbes can only set this to 1 (or absent which then defaults to 1)
+            "successThreshold": None if probe_type in [PropertyType.LivenessProbe] else counter + 3,
+            "timeoutSeconds": counter + 4,
+        }
+        counter += 5
+        deployable_details_to_probe_details[deployable_details] = probe_details
+        deployable_details.set_helm_values(values, probe_type, probe_details)
+
+    iterate_deployables_workload_parts(deployables_details, set_probe_details)
+    return deployable_details_to_probe_details
+
+
+def assert_matching_probe(template, probe_type, deployable_details_to_probe_details, template_to_deployable_details):
+    for container in template["spec"]["template"]["spec"]["containers"]:
+        assert probe_type in container, (
+            f"{template_id(template)} has container {container['name']} without a {probe_type}"
+        )
+
+        # We must do this inside the loop as deployable_details can vary based on container name
+        deployable_details = template_to_deployable_details(template, container["name"])
+        probe_details = deployable_details_to_probe_details[deployable_details]
+
+        probe = container[probe_type]
+
+        for key, value in probe_details.items():
+            if value is not None:
+                assert key in probe, (
+                    f"{template_id(template)} has container {container['name']} with a {probe_type} missing a {key}"
+                )
+                assert value == probe[key], (
+                    f"{template_id(template)} has container {container['name']} with {probe_type}.{key} "
+                    f"where {probe[key]} != {value}"
+                )
+            else:
+                assert key not in probe, (
+                    f"{template_id(template)} has container {container['name']} with a {probe_type} "
+                    f"with {key} present when it should be absent"
+                )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_sensible_livenessProbes_by_default(templates):
+    for template in templates:
+        if template["kind"] in ["Deployment", "StatefulSet"]:
+            assert_sensible_default_probe(template, "livenessProbe")
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_livenessProbes_are_configurable(
+    deployables_details, values, make_templates, template_to_deployable_details
+):
+    deployable_details_to_probe_details = set_probe_details(deployables_details, values, PropertyType.LivenessProbe)
+    for template in await make_templates(values):
+        if template["kind"] in ["Deployment", "StatefulSet"]:
+            assert_matching_probe(
+                template, "livenessProbe", deployable_details_to_probe_details, template_to_deployable_details
+            )

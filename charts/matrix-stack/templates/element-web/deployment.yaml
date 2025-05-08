@@ -75,13 +75,11 @@ spec:
         - containerPort: 8080
           name: element
           protocol: TCP
-        livenessProbe:
-          failureThreshold: 3
+        livenessProbe: {{- toYaml .livenessProbe | nindent 10 }}
           httpGet:
             path: /health
             port: element
             scheme: HTTP
-          periodSeconds: 10
         readinessProbe:
           failureThreshold: 3
           httpGet:

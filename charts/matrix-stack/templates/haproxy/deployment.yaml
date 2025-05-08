@@ -119,12 +119,10 @@ spec:
           periodSeconds: 2
           failureThreshold: 150
 {{- end }}
-        livenessProbe:
+        livenessProbe: {{- toYaml .livenessProbe | nindent 10 }}
           httpGet:
             path: /haproxy_test
-            port: 8405
-          initialDelaySeconds: 10
-          timeoutSeconds: 5
+            port: haproxy-metrics
         readinessProbe:
           httpGet:
             path: /haproxy_test
