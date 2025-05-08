@@ -6,6 +6,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 0.11.3 (2025-05-08)
+
+### Changed
+
+- Upgrade to Synapse v1.129.0. (#427)
+- Upgrade to Matrix Authentication Service 0.16.0. (#427)
+- Update Element Web to v1.11.100. (#428)
+
+
 # ESS Community Helm Chart 0.11.2 (2025-05-06)
 
 ### Changed
