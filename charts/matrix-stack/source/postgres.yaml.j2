@@ -9,6 +9,7 @@ postgresExporter:
   {{- sub_schema_values.image(registry='docker.io', repository='prometheuscommunity/postgres-exporter', tag='v0.17.0') | indent(2) }}
   {{- sub_schema_values.resources(requests_memory='10Mi', requests_cpu='10m', limits_memory='500Mi')| indent(2) }}
   {{- sub_schema_values.containersSecurityContext()| indent(2) }}
+  {{- sub_schema_values.probe("liveness", periodSeconds=6, timeoutSeconds=2) | indent(2) }}
 
 {{- sub_schema_values.credential("Postgres Admin Password", "adminPassword", initIfAbsent=true) }}
 
@@ -29,3 +30,4 @@ essPasswords:
 {{- sub_schema_values.serviceMonitors() }}
 {{- sub_schema_values.tolerations() }}
 {{- sub_schema_values.topologySpreadConstraints() }}
+{{- sub_schema_values.probe("liveness", initialDelaySeconds=45, timeoutSeconds=2) }}

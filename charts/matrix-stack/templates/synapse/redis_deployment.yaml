@@ -69,10 +69,9 @@ spec:
         startupProbe:
           tcpSocket:
             port: redis
-        livenessProbe:
+        livenessProbe: {{- include "element-io.ess-library.pods.probe" .livenessProbe | nindent 10 }}
           tcpSocket:
             port: redis
-          initialDelaySeconds: 15
         readinessProbe:
           exec:
             command:

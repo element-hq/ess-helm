@@ -30,6 +30,7 @@ enabled: true
 {{- sub_schema_values.serviceMonitors() }}
 {{- sub_schema_values.serviceAccount() }}
 {{- sub_schema_values.tolerations() }}
+{{- sub_schema_values.probe("liveness") }}
 
 sfu:
   enabled: true
@@ -68,3 +69,4 @@ sfu:
 {{- sub_schema_values.serviceAccount() | indent(2) }}
 {{- sub_schema_values.serviceMonitors() | indent(2) }}
 {{- sub_schema_values.tolerations() | indent(2) }}
+{{- sub_schema_values.probe("liveness") | indent(2) }}

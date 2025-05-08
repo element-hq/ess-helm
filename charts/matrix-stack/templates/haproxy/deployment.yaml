@@ -122,12 +122,10 @@ spec:
 {{- end }}
           periodSeconds: 2
           failureThreshold: 150
-        livenessProbe:
+        livenessProbe: {{- include "element-io.ess-library.pods.probe" .livenessProbe | nindent 10 }}
           httpGet:
             path: /haproxy_test
             port: haproxy-metrics
-          initialDelaySeconds: 10
-          timeoutSeconds: 5
         readinessProbe:
           httpGet:
             path: /haproxy_test

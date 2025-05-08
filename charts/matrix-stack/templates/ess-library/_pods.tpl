@@ -81,3 +81,26 @@ topologySpreadConstraints:
 {{- end }}
 {{- end }}
 {{- end }}
+
+{{- /*
+The only differences this has over (. | toYaml) are that
+* it allows us to omit nullable values for individual properties
+* it renders nothing rather than {} when no properties are specified.
+*/ -}}
+{{- define "element-io.ess-library.pods.probe" -}}
+{{- with .failureThreshold }}
+failureThreshold: {{ . }}
+{{- end }}
+{{- with .initialDelaySeconds }}
+initialDelaySeconds: {{ . }}
+{{- end }}
+{{- with .periodSeconds }}
+periodSeconds: {{ . }}
+{{- end }}
+{{- with .successThreshold }}
+successThreshold: {{ . }}
+{{- end }}
+{{- with .timeoutSeconds }}
+timeoutSeconds: {{ . }}
+{{- end }}
+{{- end }}

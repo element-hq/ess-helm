@@ -13,6 +13,7 @@ class PropertyType(Enum):
     Image = "image"
     Ingress = "ingress"
     Labels = "labels"
+    LivenessProbe = "livenessProbe"
     PodSecurityContext = "podSecurityContext"
     Postgres = "postgres"
     ServiceAccount = "serviceAccount"
@@ -289,6 +290,10 @@ all_components_details = [
     ComponentDetails(
         name="init-secrets",
         helm_keys=("initSecrets",),
+        helm_keys_overrides={
+            # Job so no livenessProbe
+            PropertyType.LivenessProbe: None,
+        },
         has_image=False,
         has_ingress=False,
         has_service_monitor=False,
@@ -382,6 +387,8 @@ all_components_details = [
                     PropertyType.Env: None,
                     # has_workloads and so comes from synapse.image
                     PropertyType.Image: None,
+                    # Job so no livenessProbe
+                    PropertyType.LivenessProbe: None,
                     # has_workloads and so podSecurityContext but comes from synapse.podSecurityContext
                     PropertyType.PodSecurityContext: None,
                     # has_workloads and so tolerations but comes from synapse.tolerations

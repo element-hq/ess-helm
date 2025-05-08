@@ -86,6 +86,9 @@
     "topologySpreadConstraints": {
       "$ref": "file://common/topologySpreadConstraints.json"
     },
+    "livenessProbe": {
+      "$ref": "file://common/probe.json"
+    },
     "sfu": {
       "type": "object",
       "properties": {
@@ -173,6 +176,9 @@
         },
         "tolerations": {
           "$ref": "file://common/tolerations.json"
+        },
+        "livenessProbe": {
+          "$ref": "file://common/probe.json"
         }
       }
     }

@@ -73,11 +73,9 @@ spec:
             command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
           initialDelaySeconds: 15
           timeoutSeconds: 2
-        livenessProbe:
+        livenessProbe: {{- include "element-io.ess-library.pods.probe" .livenessProbe | nindent 10 }}
           exec:
             command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
-          initialDelaySeconds: 45
-          timeoutSeconds: 2
         volumeMounts:
 {{- with (include "element-io.init-secrets.postgres-generated-secrets" (dict "root" $)) | fromYamlArray }}
   {{- range . -}}
@@ -148,11 +146,9 @@ spec:
             command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
           initialDelaySeconds: 15
           timeoutSeconds: 2
-        livenessProbe:
+        livenessProbe: {{- include "element-io.ess-library.pods.probe" .livenessProbe | nindent 10 }}
           exec:
             command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
-          initialDelaySeconds: 45
-          timeoutSeconds: 2
         ports:
         - containerPort: 5432
           name: postgres
@@ -204,12 +200,10 @@ spec:
             port: metrics
           periodSeconds: 2
           failureThreshold: 20
-        livenessProbe:
+        livenessProbe: {{- include "element-io.ess-library.pods.probe" .livenessProbe | nindent 10 }}
           httpGet:
             path: /metrics
             port: metrics
-          periodSeconds: 6
-          timeoutSeconds: 2
         readinessProbe:
           httpGet:
             path: /metrics

@@ -4,6 +4,8 @@ Copyright 2024 New Vector Ltd
 SPDX-License-Identifier: AGPL-3.0-only
 #}
 
+{% import 'sub_schema_values.yaml.j2' as sub_schema_values -%}
+
 {% macro single_worker(workerType) %}
 {{ workerType }}:
   ## Set to true to deploy this worker
@@ -12,6 +14,8 @@ SPDX-License-Identifier: AGPL-3.0-only
   ## Resources for this worker.
   ## If omitted the global Synapse resources are used
   # resources: {}
+
+{{- sub_schema_values.probe("liveness", failureThreshold=8, periodSeconds=6, timeoutSeconds=2) | indent(2) }}
 {%- endmacro %}
 
 {% macro scalable_worker(workerType) %}
@@ -25,4 +29,6 @@ SPDX-License-Identifier: AGPL-3.0-only
   ## Resources for this worker.
   ## If omitted the global Synapse resources are used
   # resources: {}
+
+{{- sub_schema_values.probe("liveness", failureThreshold=3, periodSeconds=6, timeoutSeconds=2) | indent(2) }}
 {%- endmacro %}

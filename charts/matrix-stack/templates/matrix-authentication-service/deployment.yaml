@@ -201,8 +201,7 @@ spec:
             port: internal
             scheme: HTTP
           initialDelaySeconds: 5
-        livenessProbe:
-          failureThreshold: 3
+        livenessProbe: {{- include "element-io.ess-library.pods.probe" .livenessProbe | nindent 10 }}
           httpGet:
             path: /health
             port: internal

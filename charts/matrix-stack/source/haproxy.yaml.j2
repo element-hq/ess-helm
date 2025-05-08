@@ -18,3 +18,4 @@ replicas: 1
 {{- sub_schema_values.serviceMonitors() }}
 {{- sub_schema_values.tolerations() }}
 {{- sub_schema_values.topologySpreadConstraints() }}
+{{- sub_schema_values.probe("liveness", initialDelaySeconds=10, timeoutSeconds=5) }}

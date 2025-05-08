@@ -5,6 +5,9 @@
     },
     "resources": {
       "$ref": "file://common/resources.json"
+    },
+    "livenessProbe": {
+      "$ref": "file://common/probe.json"
     }
   },
   "type": "object"

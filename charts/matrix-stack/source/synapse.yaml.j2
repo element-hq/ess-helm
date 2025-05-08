@@ -96,6 +96,7 @@ logging:
 {{- sub_schema_values.serviceMonitors() }}
 {{- sub_schema_values.tolerations() }}
 {{- sub_schema_values.topologySpreadConstraints() }}
+{{- sub_schema_values.probe("liveness", failureThreshold=8, periodSeconds=6, timeoutSeconds=2) }}
 
 ## Extra command line arguments to provide to Synapse
 extraArgs: []
@@ -110,3 +111,4 @@ redis:
 {{- sub_schema_values.resources(requests_memory='50Mi', requests_cpu='50m', limits_memory='50Mi') | indent(2) }}
 {{- sub_schema_values.serviceAccount() | indent(2) }}
 {{- sub_schema_values.tolerations() | indent(2) }}
+{{- sub_schema_values.probe("liveness", initialDelaySeconds=15) | indent(2) }}
