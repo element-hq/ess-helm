@@ -44,4 +44,4 @@ privateKeys:
 {{ sub_schema_values.extraEnv() }}
 {{ sub_schema_values.probe("liveness") }}
 {{ sub_schema_values.probe("readiness") }}
-{{ sub_schema_values.probe("startup", initialDelaySeconds=5) }}
+{{ sub_schema_values.probe("startup", failureThreshold=4) }}
