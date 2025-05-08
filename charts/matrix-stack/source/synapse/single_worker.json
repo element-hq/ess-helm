@@ -8,6 +8,9 @@
     },
     "livenessProbe": {
       "$ref": "file://common/probe.json"
+    },
+    "readinessProbe": {
+      "$ref": "file://common/probe.json"
     }
   },
   "type": "object"

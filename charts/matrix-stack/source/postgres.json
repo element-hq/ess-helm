@@ -26,6 +26,9 @@
         },
         "livenessProbe": {
           "$ref": "file://common/probe.json"
+        },
+        "readinessProbe": {
+          "$ref": "file://common/probe.json"
         }
       }
     },
@@ -77,6 +80,9 @@
       "$ref": "file://common/topologySpreadConstraints.json"
     },
     "livenessProbe": {
+      "$ref": "file://common/probe.json"
+    },
+    "readinessProbe": {
       "$ref": "file://common/probe.json"
     },
     "serviceMonitors": {

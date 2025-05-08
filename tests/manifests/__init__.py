@@ -16,6 +16,7 @@ class PropertyType(Enum):
     LivenessProbe = "livenessProbe"
     PodSecurityContext = "podSecurityContext"
     Postgres = "postgres"
+    ReadinessProbe = "readinessProbe"
     ServiceAccount = "serviceAccount"
     ServiceMonitor = "serviceMonitors"
     Tolerations = "tolerations"
@@ -293,6 +294,8 @@ all_components_details = [
         helm_keys_overrides={
             # Job so no livenessProbe
             PropertyType.LivenessProbe: None,
+            # Job so no readinessProbe
+            PropertyType.ReadinessProbe: None,
         },
         has_image=False,
         has_ingress=False,
@@ -391,6 +394,8 @@ all_components_details = [
                     PropertyType.LivenessProbe: None,
                     # has_workloads and so podSecurityContext but comes from synapse.podSecurityContext
                     PropertyType.PodSecurityContext: None,
+                    # Job so no readinessProbe
+                    PropertyType.ReadinessProbe: None,
                     # has_workloads and so tolerations but comes from synapse.tolerations
                     PropertyType.Tolerations: None,
                     # has_topology_spread_constraints and so topologySpreadConstraints

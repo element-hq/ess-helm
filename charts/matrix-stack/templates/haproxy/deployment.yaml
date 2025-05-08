@@ -123,12 +123,10 @@ spec:
           httpGet:
             path: /haproxy_test
             port: haproxy-metrics
-        readinessProbe:
+        readinessProbe: {{- toYaml .readinessProbe | nindent 10 }}
           httpGet:
             path: /haproxy_test
-            port: 8405
-          initialDelaySeconds: 20
-          timeoutSeconds: 5
+            port: haproxy-metrics
 {{- with .resources }}
         resources:
           {{- toYaml . | nindent 10 }}

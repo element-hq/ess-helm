@@ -65,11 +65,9 @@ spec:
           preStop:
             exec:
               command: ["pg_ctl", "stop", "-D", "/var/lib/postgres/data", "-w", "-t", "55", "-m", "fast"]
-        readinessProbe:
+        readinessProbe: {{- toYaml .readinessProbe | nindent 10 }}
           exec:
             command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
-          initialDelaySeconds: 15
-          timeoutSeconds: 2
         livenessProbe: {{- toYaml .livenessProbe | nindent 10 }}
           exec:
             command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
@@ -135,11 +133,9 @@ spec:
           preStop:
             exec:
               command: ["pg_ctl", "stop", "-D", "/var/lib/postgres/data", "-w", "-t", "55", "-m", "fast"]
-        readinessProbe:
+        readinessProbe: {{- toYaml .readinessProbe | nindent 10 }}
           exec:
             command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
-          initialDelaySeconds: 15
-          timeoutSeconds: 2
         livenessProbe: {{- toYaml .livenessProbe | nindent 10 }}
           exec:
             command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
@@ -198,13 +194,10 @@ spec:
           httpGet:
             path: /metrics
             port: metrics
-        readinessProbe:
+        readinessProbe: {{- toYaml .readinessProbe | nindent 10 }}
           httpGet:
             path: /metrics
             port: metrics
-          periodSeconds: 2
-          timeoutSeconds: 2
-          successThreshold: 2
 {{- with .resources }}
         resources:
           {{- toYaml . | nindent 10 }}

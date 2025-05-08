@@ -80,13 +80,11 @@ spec:
             path: /health
             port: element
             scheme: HTTP
-        readinessProbe:
-          failureThreshold: 3
+        readinessProbe: {{- toYaml .readinessProbe | nindent 10 }}
           httpGet:
             path: /health
             port: element
             scheme: HTTP
-          periodSeconds: 3
         startupProbe:
           failureThreshold: 3
           httpGet:

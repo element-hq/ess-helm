@@ -69,12 +69,11 @@ spec:
         livenessProbe: {{- toYaml .livenessProbe | nindent 10 }}
           tcpSocket:
             port: redis
-        readinessProbe:
+        readinessProbe: {{- toYaml .readinessProbe | nindent 10 }}
           exec:
             command:
             - redis-cli
             - ping
-          initialDelaySeconds: 5
 {{- with .resources }}
         resources:
           {{- toYaml . | nindent 10 }}
