@@ -16,6 +16,7 @@ SPDX-License-Identifier: AGPL-3.0-only
   # resources: {}
 
 {{- sub_schema_values.probe("liveness", failureThreshold=8, periodSeconds=6, timeoutSeconds=2) | indent(2) }}
+{{- sub_schema_values.probe("readiness", failureThreshold=8, periodSeconds=2, successThreshold=2, timeoutSeconds=2) | indent(2) }}
 {%- endmacro %}
 
 {% macro scalable_worker(workerType) %}
@@ -31,4 +32,5 @@ SPDX-License-Identifier: AGPL-3.0-only
   # resources: {}
 
 {{- sub_schema_values.probe("liveness", failureThreshold=3, periodSeconds=6, timeoutSeconds=2) | indent(2) }}
+{{- sub_schema_values.probe("readiness", failureThreshold=3, periodSeconds=2, successThreshold=2, timeoutSeconds=2) | indent(2) }}
 {%- endmacro %}

@@ -43,3 +43,4 @@ privateKeys:
 {{ sub_schema_values.serviceMonitors() }}
 {{ sub_schema_values.extraEnv() }}
 {{ sub_schema_values.probe("liveness", failureThreshold=3) }}
+{{ sub_schema_values.probe("readiness", failureThreshold=3) }}

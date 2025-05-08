@@ -31,3 +31,4 @@ replicas: 1
 {{- sub_schema_values.tolerations() -}}
 {{- sub_schema_values.topologySpreadConstraints() }}
 {{- sub_schema_values.probe("liveness", failureThreshold=3, periodSeconds=10) }}
+{{- sub_schema_values.probe("readiness", failureThreshold=3, periodSeconds=3) }}

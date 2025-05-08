@@ -126,12 +126,10 @@ spec:
           httpGet:
             path: /haproxy_test
             port: haproxy-metrics
-        readinessProbe:
+        readinessProbe: {{- include "element-io.ess-library.pods.probe" .readinessProbe | nindent 10 }}
           httpGet:
             path: /haproxy_test
             port: haproxy-metrics
-          initialDelaySeconds: 20
-          timeoutSeconds: 5
 {{- with .resources }}
         resources:
           {{- toYaml . | nindent 10 }}

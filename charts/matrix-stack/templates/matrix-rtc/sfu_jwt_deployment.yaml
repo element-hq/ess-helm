@@ -68,7 +68,7 @@ spec:
           httpGet:
             path: /healthz
             port: http
-        readinessProbe:
+        readinessProbe: {{- include "element-io.ess-library.pods.probe" .readinessProbe | nindent 10 }}
           httpGet:
             path: /healthz
             port: http

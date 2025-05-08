@@ -175,7 +175,7 @@ spec:
           httpGet:
             path: /
             port: http
-        readinessProbe:
+        readinessProbe: {{- include "element-io.ess-library.pods.probe" .readinessProbe | nindent 10 }}
           httpGet:
             path: /
             port: http

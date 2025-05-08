@@ -196,14 +196,10 @@ We have an init container to render & merge the config for several reasons:
         httpGet:
           path: /health
           port: synapse-health
-      readinessProbe:
+      readinessProbe: {{- include "element-io.ess-library.pods.probe" .readinessProbe | nindent 8 }}
         httpGet:
           path: /health
           port: synapse-health
-        periodSeconds: 2
-        timeoutSeconds: 2
-        successThreshold: 2
-        failureThreshold: {{ ternary 8 3 (eq "isSingle" (include "element-io.synapse.process.isSingle" (dict "root" $root "context" $processType))) }}
 {{- end }}
 {{- with .resources }}
       resources:

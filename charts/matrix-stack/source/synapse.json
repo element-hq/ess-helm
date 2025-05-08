@@ -175,6 +175,9 @@
     "livenessProbe": {
       "$ref": "file://common/probe.json"
     },
+    "readinessProbe": {
+      "$ref": "file://common/probe.json"
+    },
     "workers": {
       "type": "object",
       "properties": {
@@ -274,6 +277,9 @@
           "$ref": "file://common/tolerations.json"
         },
         "livenessProbe": {
+          "$ref": "file://common/probe.json"
+        },
+        "readinessProbe": {
           "$ref": "file://common/probe.json"
         }
       }

@@ -206,8 +206,7 @@ spec:
             path: /health
             port: internal
             scheme: HTTP
-        readinessProbe:
-          failureThreshold: 3
+        readinessProbe: {{- include "element-io.ess-library.pods.probe" .readinessProbe | nindent 10 }}
           httpGet:
             path: /health
             port: internal

@@ -1084,6 +1084,47 @@
           },
           "additionalProperties": false
         },
+        "readinessProbe": {
+          "type": "object",
+          "properties": {
+            "failureThreshold": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "initialDelaySeconds": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "periodSeconds": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "successThreshold": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "timeoutSeconds": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
+        },
         "sfu": {
           "type": "object",
           "properties": {
@@ -1505,6 +1546,47 @@
               }
             },
             "livenessProbe": {
+              "type": "object",
+              "properties": {
+                "failureThreshold": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 1
+                },
+                "initialDelaySeconds": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 0
+                },
+                "periodSeconds": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 1
+                },
+                "successThreshold": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 1
+                },
+                "timeoutSeconds": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 1
+                }
+              },
+              "additionalProperties": false
+            },
+            "readinessProbe": {
               "type": "object",
               "properties": {
                 "failureThreshold": {
@@ -2034,6 +2116,47 @@
             }
           },
           "additionalProperties": false
+        },
+        "readinessProbe": {
+          "type": "object",
+          "properties": {
+            "failureThreshold": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "initialDelaySeconds": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "periodSeconds": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "successThreshold": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "timeoutSeconds": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -2435,6 +2558,47 @@
           }
         },
         "livenessProbe": {
+          "type": "object",
+          "properties": {
+            "failureThreshold": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "initialDelaySeconds": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "periodSeconds": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "successThreshold": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "timeoutSeconds": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "readinessProbe": {
           "type": "object",
           "properties": {
             "failureThreshold": {
@@ -3176,6 +3340,47 @@
             }
           },
           "additionalProperties": false
+        },
+        "readinessProbe": {
+          "type": "object",
+          "properties": {
+            "failureThreshold": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "initialDelaySeconds": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "periodSeconds": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "successThreshold": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "timeoutSeconds": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -3374,6 +3579,47 @@
               "additionalProperties": false
             },
             "livenessProbe": {
+              "type": "object",
+              "properties": {
+                "failureThreshold": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 1
+                },
+                "initialDelaySeconds": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 0
+                },
+                "periodSeconds": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 1
+                },
+                "successThreshold": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 1
+                },
+                "timeoutSeconds": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 1
+                }
+              },
+              "additionalProperties": false
+            },
+            "readinessProbe": {
               "type": "object",
               "properties": {
                 "failureThreshold": {
@@ -3828,6 +4074,47 @@
           }
         },
         "livenessProbe": {
+          "type": "object",
+          "properties": {
+            "failureThreshold": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "initialDelaySeconds": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "periodSeconds": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "successThreshold": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "timeoutSeconds": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "readinessProbe": {
           "type": "object",
           "properties": {
             "failureThreshold": {
@@ -4734,6 +5021,47 @@
           },
           "additionalProperties": false
         },
+        "readinessProbe": {
+          "type": "object",
+          "properties": {
+            "failureThreshold": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "initialDelaySeconds": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "periodSeconds": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "successThreshold": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "timeoutSeconds": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
+        },
         "workers": {
           "type": "object",
           "properties": {
@@ -4777,6 +5105,47 @@
                   "additionalProperties": false
                 },
                 "livenessProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "readinessProbe": {
                   "type": "object",
                   "properties": {
                     "failureThreshold": {
@@ -4861,6 +5230,47 @@
                   "additionalProperties": false
                 },
                 "livenessProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "readinessProbe": {
                   "type": "object",
                   "properties": {
                     "failureThreshold": {
@@ -5094,6 +5504,47 @@
                     }
                   },
                   "additionalProperties": false
+                },
+                "readinessProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
                 }
               },
               "type": "object",
@@ -5139,6 +5590,47 @@
                   "additionalProperties": false
                 },
                 "livenessProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "readinessProbe": {
                   "type": "object",
                   "properties": {
                     "failureThreshold": {
@@ -5372,6 +5864,47 @@
                     }
                   },
                   "additionalProperties": false
+                },
+                "readinessProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
                 }
               },
               "type": "object",
@@ -5527,6 +6060,47 @@
                   }
                 },
                 "livenessProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "readinessProbe": {
                   "type": "object",
                   "properties": {
                     "failureThreshold": {
@@ -5760,6 +6334,47 @@
                     }
                   },
                   "additionalProperties": false
+                },
+                "readinessProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
                 }
               },
               "type": "object",
@@ -5915,6 +6530,47 @@
                   }
                 },
                 "livenessProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "readinessProbe": {
                   "type": "object",
                   "properties": {
                     "failureThreshold": {
@@ -6148,6 +6804,47 @@
                     }
                   },
                   "additionalProperties": false
+                },
+                "readinessProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
                 }
               },
               "type": "object",
@@ -6342,6 +7039,47 @@
                     }
                   },
                   "additionalProperties": false
+                },
+                "readinessProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
                 }
               },
               "type": "object",
@@ -6387,6 +7125,47 @@
                   "additionalProperties": false
                 },
                 "livenessProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "readinessProbe": {
                   "type": "object",
                   "properties": {
                     "failureThreshold": {
@@ -6510,6 +7289,47 @@
                     }
                   },
                   "additionalProperties": false
+                },
+                "readinessProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
                 }
               },
               "type": "object",
@@ -6555,6 +7375,47 @@
                   "additionalProperties": false
                 },
                 "livenessProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "readinessProbe": {
                   "type": "object",
                   "properties": {
                     "failureThreshold": {
@@ -6788,6 +7649,47 @@
                     }
                   },
                   "additionalProperties": false
+                },
+                "readinessProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
                 }
               },
               "type": "object",
@@ -6833,6 +7735,47 @@
                   "additionalProperties": false
                 },
                 "livenessProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "readinessProbe": {
                   "type": "object",
                   "properties": {
                     "failureThreshold": {
@@ -7066,6 +8009,47 @@
                     }
                   },
                   "additionalProperties": false
+                },
+                "readinessProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
                 }
               },
               "type": "object",
@@ -7111,6 +8095,47 @@
                   "additionalProperties": false
                 },
                 "livenessProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "readinessProbe": {
                   "type": "object",
                   "properties": {
                     "failureThreshold": {
@@ -7344,6 +8369,47 @@
                     }
                   },
                   "additionalProperties": false
+                },
+                "readinessProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
                 }
               },
               "type": "object",
@@ -7428,6 +8494,47 @@
                     }
                   },
                   "additionalProperties": false
+                },
+                "readinessProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
                 }
               },
               "type": "object",
@@ -7473,6 +8580,47 @@
                   "additionalProperties": false
                 },
                 "livenessProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "readinessProbe": {
                   "type": "object",
                   "properties": {
                     "failureThreshold": {
@@ -7799,6 +8947,47 @@
               }
             },
             "livenessProbe": {
+              "type": "object",
+              "properties": {
+                "failureThreshold": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 1
+                },
+                "initialDelaySeconds": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 0
+                },
+                "periodSeconds": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 1
+                },
+                "successThreshold": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 1
+                },
+                "timeoutSeconds": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 1
+                }
+              },
+              "additionalProperties": false
+            },
+            "readinessProbe": {
               "type": "object",
               "properties": {
                 "failureThreshold": {

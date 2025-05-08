@@ -72,12 +72,11 @@ spec:
         livenessProbe: {{- include "element-io.ess-library.pods.probe" .livenessProbe | nindent 10 }}
           tcpSocket:
             port: redis
-        readinessProbe:
+        readinessProbe: {{- include "element-io.ess-library.pods.probe" .readinessProbe | nindent 10 }}
           exec:
             command:
             - redis-cli
             - ping
-          initialDelaySeconds: 5
 {{- with .resources }}
         resources:
           {{- toYaml . | nindent 10 }}
