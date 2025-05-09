@@ -82,8 +82,10 @@ def set_probe_details(deployables_details, values, probe_type):
             "failureThreshold": counter,
             "initialDelaySeconds": counter + 1,
             "periodSeconds": counter + 2,
-            # livenessProbes can only set this to 1 (or absent which then defaults to 1)
-            "successThreshold": None if probe_type in [PropertyType.LivenessProbe] else counter + 3,
+            # livenessProbes & startupProbes can only set this to 1 (or absent which then defaults to 1)
+            "successThreshold": None
+            if probe_type in [PropertyType.LivenessProbe, PropertyType.StartupProbe]
+            else counter + 3,
             "timeoutSeconds": counter + 4,
         }
         counter += 5
@@ -161,4 +163,25 @@ async def test_readinessProbes_are_configurable(
         if template["kind"] in ["Deployment", "StatefulSet"]:
             assert_matching_probe(
                 template, "readinessProbe", deployable_details_to_probe_details, template_to_deployable_details
+            )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_sensible_startupProbes_by_default(templates):
+    for template in templates:
+        if template["kind"] in ["Deployment", "StatefulSet"]:
+            assert_sensible_default_probe(template, "startupProbe")
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_startupProbes_are_configurable(
+    deployables_details, values, make_templates, template_to_deployable_details
+):
+    deployable_details_to_probe_details = set_probe_details(deployables_details, values, PropertyType.StartupProbe)
+    for template in await make_templates(values):
+        if template["kind"] in ["Deployment", "StatefulSet"]:
+            assert_matching_probe(
+                template, "startupProbe", deployable_details_to_probe_details, template_to_deployable_details
             )

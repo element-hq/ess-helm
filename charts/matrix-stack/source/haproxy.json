@@ -48,6 +48,9 @@
     },
     "readinessProbe": {
       "$ref": "file://common/probe.json"
+    },
+    "startupProbe": {
+      "$ref": "file://common/probe.json"
     }
   }
 }

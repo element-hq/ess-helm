@@ -74,6 +74,9 @@ spec:
             command:
             - redis-cli
             - ping
+        startupProbe: {{- toYaml .startupProbe | nindent 10 }}
+          tcpSocket:
+            port: redis
 {{- with .resources }}
         resources:
           {{- toYaml . | nindent 10 }}

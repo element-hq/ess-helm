@@ -1095,6 +1095,32 @@
           },
           "additionalProperties": false
         },
+        "startupProbe": {
+          "type": "object",
+          "properties": {
+            "failureThreshold": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "initialDelaySeconds": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "periodSeconds": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "successThreshold": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "timeoutSeconds": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
+        },
         "sfu": {
           "type": "object",
           "properties": {
@@ -1542,6 +1568,32 @@
               "additionalProperties": false
             },
             "readinessProbe": {
+              "type": "object",
+              "properties": {
+                "failureThreshold": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "initialDelaySeconds": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "periodSeconds": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "successThreshold": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "timeoutSeconds": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "additionalProperties": false
+            },
+            "startupProbe": {
               "type": "object",
               "properties": {
                 "failureThreshold": {
@@ -2067,6 +2119,32 @@
             }
           },
           "additionalProperties": false
+        },
+        "startupProbe": {
+          "type": "object",
+          "properties": {
+            "failureThreshold": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "initialDelaySeconds": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "periodSeconds": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "successThreshold": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "timeoutSeconds": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -2494,6 +2572,32 @@
           "additionalProperties": false
         },
         "readinessProbe": {
+          "type": "object",
+          "properties": {
+            "failureThreshold": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "initialDelaySeconds": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "periodSeconds": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "successThreshold": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "timeoutSeconds": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "startupProbe": {
           "type": "object",
           "properties": {
             "failureThreshold": {
@@ -3231,6 +3335,32 @@
             }
           },
           "additionalProperties": false
+        },
+        "startupProbe": {
+          "type": "object",
+          "properties": {
+            "failureThreshold": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "initialDelaySeconds": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "periodSeconds": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "successThreshold": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "timeoutSeconds": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -3455,6 +3585,32 @@
               "additionalProperties": false
             },
             "readinessProbe": {
+              "type": "object",
+              "properties": {
+                "failureThreshold": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "initialDelaySeconds": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "periodSeconds": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "successThreshold": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "timeoutSeconds": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "additionalProperties": false
+            },
+            "startupProbe": {
               "type": "object",
               "properties": {
                 "failureThreshold": {
@@ -3920,6 +4076,32 @@
           "additionalProperties": false
         },
         "readinessProbe": {
+          "type": "object",
+          "properties": {
+            "failureThreshold": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "initialDelaySeconds": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "periodSeconds": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "successThreshold": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "timeoutSeconds": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "startupProbe": {
           "type": "object",
           "properties": {
             "failureThreshold": {
@@ -4822,6 +5004,32 @@
           },
           "additionalProperties": false
         },
+        "startupProbe": {
+          "type": "object",
+          "properties": {
+            "failureThreshold": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "initialDelaySeconds": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "periodSeconds": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "successThreshold": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "timeoutSeconds": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
+        },
         "workers": {
           "type": "object",
           "properties": {
@@ -4891,6 +5099,32 @@
                   "additionalProperties": false
                 },
                 "readinessProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "startupProbe": {
                   "type": "object",
                   "properties": {
                     "failureThreshold": {
@@ -4986,6 +5220,32 @@
                   "additionalProperties": false
                 },
                 "readinessProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "startupProbe": {
                   "type": "object",
                   "properties": {
                     "failureThreshold": {
@@ -5215,6 +5475,32 @@
                     }
                   },
                   "additionalProperties": false
+                },
+                "startupProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
                 }
               },
               "type": "object",
@@ -5286,6 +5572,32 @@
                   "additionalProperties": false
                 },
                 "readinessProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "startupProbe": {
                   "type": "object",
                   "properties": {
                     "failureThreshold": {
@@ -5515,6 +5827,32 @@
                     }
                   },
                   "additionalProperties": false
+                },
+                "startupProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
                 }
               },
               "type": "object",
@@ -5696,6 +6034,32 @@
                   "additionalProperties": false
                 },
                 "readinessProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "startupProbe": {
                   "type": "object",
                   "properties": {
                     "failureThreshold": {
@@ -5925,6 +6289,32 @@
                     }
                   },
                   "additionalProperties": false
+                },
+                "startupProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
                 }
               },
               "type": "object",
@@ -6106,6 +6496,32 @@
                   "additionalProperties": false
                 },
                 "readinessProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "startupProbe": {
                   "type": "object",
                   "properties": {
                     "failureThreshold": {
@@ -6335,6 +6751,32 @@
                     }
                   },
                   "additionalProperties": false
+                },
+                "startupProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
                 }
               },
               "type": "object",
@@ -6540,6 +6982,32 @@
                     }
                   },
                   "additionalProperties": false
+                },
+                "startupProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
                 }
               },
               "type": "object",
@@ -6611,6 +7079,32 @@
                   "additionalProperties": false
                 },
                 "readinessProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "startupProbe": {
                   "type": "object",
                   "properties": {
                     "failureThreshold": {
@@ -6730,6 +7224,32 @@
                     }
                   },
                   "additionalProperties": false
+                },
+                "startupProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
                 }
               },
               "type": "object",
@@ -6801,6 +7321,32 @@
                   "additionalProperties": false
                 },
                 "readinessProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "startupProbe": {
                   "type": "object",
                   "properties": {
                     "failureThreshold": {
@@ -7030,6 +7576,32 @@
                     }
                   },
                   "additionalProperties": false
+                },
+                "startupProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
                 }
               },
               "type": "object",
@@ -7101,6 +7673,32 @@
                   "additionalProperties": false
                 },
                 "readinessProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "startupProbe": {
                   "type": "object",
                   "properties": {
                     "failureThreshold": {
@@ -7330,6 +7928,32 @@
                     }
                   },
                   "additionalProperties": false
+                },
+                "startupProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
                 }
               },
               "type": "object",
@@ -7401,6 +8025,32 @@
                   "additionalProperties": false
                 },
                 "readinessProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "startupProbe": {
                   "type": "object",
                   "properties": {
                     "failureThreshold": {
@@ -7630,6 +8280,32 @@
                     }
                   },
                   "additionalProperties": false
+                },
+                "startupProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
                 }
               },
               "type": "object",
@@ -7725,6 +8401,32 @@
                     }
                   },
                   "additionalProperties": false
+                },
+                "startupProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
                 }
               },
               "type": "object",
@@ -7796,6 +8498,32 @@
                   "additionalProperties": false
                 },
                 "readinessProbe": {
+                  "type": "object",
+                  "properties": {
+                    "failureThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "initialDelaySeconds": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "periodSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "successThreshold": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "timeoutSeconds": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "startupProbe": {
                   "type": "object",
                   "properties": {
                     "failureThreshold": {
@@ -8133,6 +8861,32 @@
               "additionalProperties": false
             },
             "readinessProbe": {
+              "type": "object",
+              "properties": {
+                "failureThreshold": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "initialDelaySeconds": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "periodSeconds": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "successThreshold": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "timeoutSeconds": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "additionalProperties": false
+            },
+            "startupProbe": {
               "type": "object",
               "properties": {
                 "failureThreshold": {

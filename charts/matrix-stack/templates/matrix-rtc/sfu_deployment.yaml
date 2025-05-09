@@ -179,7 +179,7 @@ spec:
           httpGet:
             path: /
             port: http
-        startupProbe:
+        startupProbe: {{- toYaml .startupProbe | nindent 10 }}
           httpGet:
             path: /
             port: http

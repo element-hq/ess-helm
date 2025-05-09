@@ -71,6 +71,9 @@ spec:
         livenessProbe: {{- toYaml .livenessProbe | nindent 10 }}
           exec:
             command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
+        startupProbe: {{- toYaml .startupProbe | nindent 10 }}
+          exec:
+            command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
         volumeMounts:
 {{- with (include "element-io.init-secrets.postgres-generated-secrets" (dict "root" $)) | fromYamlArray }}
   {{- range . -}}
@@ -139,6 +142,9 @@ spec:
         livenessProbe: {{- toYaml .livenessProbe | nindent 10 }}
           exec:
             command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
+        startupProbe: {{- toYaml .startupProbe | nindent 10 }}
+          exec:
+            command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
         ports:
         - containerPort: 5432
           name: postgres
@@ -184,12 +190,10 @@ spec:
           containerPort: 9187
         env:
         {{- include "element-io.postgres.exporter-env" (dict "root" $ "context" .) | nindent 8 }}
-        startupProbe:
+        startupProbe: {{- toYaml .startupProbe | nindent 10 }}
           httpGet:
             path: /metrics
             port: metrics
-          periodSeconds: 2
-          failureThreshold: 20
         livenessProbe: {{- toYaml .livenessProbe | nindent 10 }}
           httpGet:
             path: /metrics
