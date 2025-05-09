@@ -94,3 +94,50 @@ jobs:
         for checkov_values in charts/matrix-stack/ci/*checkov*values.yaml; do
           scripts/checkov.sh "$checkov_values"
         done
+
+  template-dyff:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout PR
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+
+    - name: Generate manifests for PR
+      run: |
+        mkdir -p /tmp/{old,new}
+        for values in charts/matrix-stack/ci/*values.yaml; do
+          echo "Generating new templates with $values";
+          helm template \
+              -a monitoring.coreos.com/v1/ServiceMonitor \
+              -f "$values" charts/matrix-stack > "/tmp/new/$(basename "$values")"
+        done
+
+    - name: Checkout target
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
+      with:
+        ref: ${{ github.event.pull_request.base.sha }}
+
+    - name: Generate manifests for base
+      run: |
+        for values in charts/matrix-stack/ci/*values.yaml; do
+          echo "Generating old templates with $values";
+          helm template \
+              -a monitoring.coreos.com/v1/ServiceMonitor \
+              -f "$values" charts/matrix-stack > "/tmp/old/$(basename "$values")"
+        done
+
+    - name: dyff old and new manifests
+      uses: asdf-vm/actions/install@05e0d2ed97b598bfce82fd30daf324ae0c4570e6  # v3
+      with:
+        tool_versions: |
+          dyff 1.10.1
+      run: |
+        old_files=$(find /tmp/old -name '*values.yaml' -maxdepth 1 | sed 's|/tmp/old/||' | sort)
+        new_files=$(find /tmp/new -name '*values.yaml' -maxdepth 1 | sed 's|/tmp/new/||' | sort)
+        echo "The following CI values files have been removed in this PR: $(comm -23 <(echo "$old_files") <(echo "$new_files"))"
+        echo "The following CI values files have been added in this PR: $(comm -13 <(echo "$old_files") <(echo "$new_files"))"
+
+        for values in $(comm -12 <(echo "$old_files") <(echo "$new_files")); do
+          dyff between "/tmp/old/$values" "/tmp/new/$values";
+        done
