@@ -65,16 +65,15 @@ spec:
           preStop:
             exec:
               command: ["pg_ctl", "stop", "-D", "/var/lib/postgres/data", "-w", "-t", "55", "-m", "fast"]
-        readinessProbe:
+        readinessProbe: {{- toYaml .readinessProbe | nindent 10 }}
           exec:
             command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
-          initialDelaySeconds: 15
-          timeoutSeconds: 2
-        livenessProbe:
+        livenessProbe: {{- toYaml .livenessProbe | nindent 10 }}
           exec:
             command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
-          initialDelaySeconds: 45
-          timeoutSeconds: 2
+        startupProbe: {{- toYaml .startupProbe | nindent 10 }}
+          exec:
+            command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
         volumeMounts:
 {{- with (include "element-io.init-secrets.postgres-generated-secrets" (dict "root" $)) | fromYamlArray }}
   {{- range . -}}
@@ -137,16 +136,15 @@ spec:
           preStop:
             exec:
               command: ["pg_ctl", "stop", "-D", "/var/lib/postgres/data", "-w", "-t", "55", "-m", "fast"]
-        readinessProbe:
+        readinessProbe: {{- toYaml .readinessProbe | nindent 10 }}
           exec:
             command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
-          initialDelaySeconds: 15
-          timeoutSeconds: 2
-        livenessProbe:
+        livenessProbe: {{- toYaml .livenessProbe | nindent 10 }}
           exec:
             command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
-          initialDelaySeconds: 45
-          timeoutSeconds: 2
+        startupProbe: {{- toYaml .startupProbe | nindent 10 }}
+          exec:
+            command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
         ports:
         - containerPort: 5432
           name: postgres
@@ -192,25 +190,18 @@ spec:
           containerPort: 9187
         env:
         {{- include "element-io.postgres.exporter-env" (dict "root" $ "context" .) | nindent 8 }}
-        startupProbe:
+        startupProbe: {{- toYaml .startupProbe | nindent 10 }}
           httpGet:
             path: /metrics
             port: metrics
-          periodSeconds: 2
-          failureThreshold: 20
-        livenessProbe:
+        livenessProbe: {{- toYaml .livenessProbe | nindent 10 }}
           httpGet:
             path: /metrics
             port: metrics
-          periodSeconds: 6
-          timeoutSeconds: 2
-        readinessProbe:
+        readinessProbe: {{- toYaml .readinessProbe | nindent 10 }}
           httpGet:
             path: /metrics
             port: metrics
-          periodSeconds: 2
-          timeoutSeconds: 2
-          successThreshold: 2
 {{- with .resources }}
         resources:
           {{- toYaml . | nindent 10 }}

@@ -66,16 +66,17 @@ spec:
         - containerPort: 6379
           name: redis
           protocol: TCP
-        livenessProbe:
+        livenessProbe: {{- toYaml .livenessProbe | nindent 10 }}
           tcpSocket:
             port: redis
-          initialDelaySeconds: 15
-        readinessProbe:
+        readinessProbe: {{- toYaml .readinessProbe | nindent 10 }}
           exec:
             command:
             - redis-cli
             - ping
-          initialDelaySeconds: 5
+        startupProbe: {{- toYaml .startupProbe | nindent 10 }}
+          tcpSocket:
+            port: redis
 {{- with .resources }}
         resources:
           {{- toYaml . | nindent 10 }}

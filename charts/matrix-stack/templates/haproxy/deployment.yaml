@@ -111,26 +111,23 @@ spec:
           name: synapse-ready
           protocol: TCP
 {{- end }}
+        startupProbe:  {{- toYaml .startupProbe | nindent 10 }}
+          httpGet:
 {{- if $.Values.synapse.enabled }}
-        startupProbe:
-          httpGet:
             path: /synapse_ready
-            port: 8406
-          periodSeconds: 2
-          failureThreshold: 150
+            port: synapse-ready
+{{- else }}
+            path: /haproxy_test
+            port: haproxy-metrics
 {{- end }}
-        livenessProbe:
+        livenessProbe: {{- toYaml .livenessProbe | nindent 10 }}
           httpGet:
             path: /haproxy_test
-            port: 8405
-          initialDelaySeconds: 10
-          timeoutSeconds: 5
-        readinessProbe:
+            port: haproxy-metrics
+        readinessProbe: {{- toYaml .readinessProbe | nindent 10 }}
           httpGet:
             path: /haproxy_test
-            port: 8405
-          initialDelaySeconds: 20
-          timeoutSeconds: 5
+            port: haproxy-metrics
 {{- with .resources }}
         resources:
           {{- toYaml . | nindent 10 }}

@@ -171,15 +171,15 @@ spec:
   {{- end }}
   {{- end }}
 {{- end }}
-        livenessProbe:
+        livenessProbe: {{- toYaml .livenessProbe | nindent 10 }}
           httpGet:
             path: /
             port: http
-        readinessProbe:
+        readinessProbe: {{- toYaml .readinessProbe | nindent 10 }}
           httpGet:
             path: /
             port: http
-        startupProbe:
+        startupProbe: {{- toYaml .startupProbe | nindent 10 }}
           httpGet:
             path: /
             port: http

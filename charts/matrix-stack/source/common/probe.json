@@ -1,0 +1,25 @@
+{
+  "type": "object",
+  "properties": {
+    "failureThreshold": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "initialDelaySeconds": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "periodSeconds": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "successThreshold": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "timeoutSeconds": {
+      "type": "integer",
+      "minimum": 1
+    }
+  }
+}

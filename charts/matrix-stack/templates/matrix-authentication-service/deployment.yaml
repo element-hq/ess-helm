@@ -195,20 +195,17 @@ spec:
         resources:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-        startupProbe:
+        startupProbe: {{- toYaml .startupProbe | nindent 10 }}
           httpGet:
             path: /health
             port: internal
             scheme: HTTP
-          initialDelaySeconds: 5
-        livenessProbe:
-          failureThreshold: 3
+        livenessProbe: {{- toYaml .livenessProbe | nindent 10 }}
           httpGet:
             path: /health
             port: internal
             scheme: HTTP
-        readinessProbe:
-          failureThreshold: 3
+        readinessProbe: {{- toYaml .readinessProbe | nindent 10 }}
           httpGet:
             path: /health
             port: internal

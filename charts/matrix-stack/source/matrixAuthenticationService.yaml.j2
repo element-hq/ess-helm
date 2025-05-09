@@ -42,3 +42,6 @@ privateKeys:
 {{ sub_schema_values.workloadAnnotations() }}
 {{ sub_schema_values.serviceMonitors(key= 'serviceMonitors') }}
 {{ sub_schema_values.extraEnv() }}
+{{ sub_schema_values.probe("liveness") }}
+{{ sub_schema_values.probe("readiness") }}
+{{ sub_schema_values.probe("startup", failureThreshold=4) }}

@@ -257,7 +257,9 @@ def iterate_deployables_service_monitor_parts(
 
 @pytest.fixture
 def template_to_deployable_details(deployables_details: tuple[DeployableDetails]):
-    def _template_to_deployable_details(template: dict[str, Any]) -> DeployableDetails:
+    def _template_to_deployable_details(
+        template: dict[str, Any], container_name: str | None = None
+    ) -> DeployableDetails:
         # As per test_labels this doesn't have the release_name prefixed to it
         manifest_name: str = template["metadata"]["labels"]["app.kubernetes.io/name"]
 
@@ -279,7 +281,7 @@ def template_to_deployable_details(deployables_details: tuple[DeployableDetails]
                 match = deployable_details
 
         assert match is not None, f"{template_id(template)} can't be linked to any (sub-)component"
-        return match
+        return match.deployable_details_for_container(container_name)
 
     return _template_to_deployable_details
 

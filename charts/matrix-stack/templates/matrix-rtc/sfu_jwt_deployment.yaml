@@ -64,15 +64,15 @@ spec:
         - containerPort: 8080
           name: http
           protocol: TCP
-        livenessProbe:
+        livenessProbe: {{- toYaml .livenessProbe | nindent 10 }}
           httpGet:
             path: /healthz
             port: http
-        readinessProbe:
+        readinessProbe: {{- toYaml .readinessProbe | nindent 10 }}
           httpGet:
             path: /healthz
             port: http
-        startupProbe:
+        startupProbe: {{- toYaml .startupProbe | nindent 10 }}
           httpGet:
             path: /healthz
             port: http
