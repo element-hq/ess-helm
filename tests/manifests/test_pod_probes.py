@@ -55,6 +55,15 @@ def assert_sensible_default_probe(template, probe_type):
         assert "periodSeconds" in probe, (
             f"{template_id(template)} has container {container['name']} with a {probe_type} missing a periodSeconds"
         )
+        assert "initialDelaySeconds" in probe, (
+            f"{template_id(template)} has container {container['name']} with a {probe_type} missing a "
+            "initialDelaySeconds"
+        )
+        # We use startupProbes for this
+        assert probe["initialDelaySeconds"] == 0, (
+            f"{template_id(template)} has container {container['name']} with {probe_type}.initialDelaySeconds != 0 "
+            "when we should be using a startupProbe"
+        )
 
         assert "httpGet" in probe or "exec" in probe or "tcpSocket" in probe
         if "httpGet" in probe:
