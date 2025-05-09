@@ -92,6 +92,9 @@
     "readinessProbe": {
       "$ref": "file://common/probe.json"
     },
+    "startupProbe": {
+      "$ref": "file://common/probe.json"
+    },
     "sfu": {
       "type": "object",
       "properties": {
@@ -184,6 +187,9 @@
           "$ref": "file://common/probe.json"
         },
         "readinessProbe": {
+          "$ref": "file://common/probe.json"
+        },
+        "startupProbe": {
           "$ref": "file://common/probe.json"
         }
       }

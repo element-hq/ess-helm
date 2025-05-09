@@ -72,7 +72,7 @@ spec:
           httpGet:
             path: /healthz
             port: http
-        startupProbe:
+        startupProbe: {{- include "element-io.ess-library.pods.probe" .startupProbe | nindent 10 }}
           httpGet:
             path: /healthz
             port: http

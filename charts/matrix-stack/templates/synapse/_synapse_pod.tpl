@@ -184,14 +184,10 @@ We have an init container to render & merge the config for several reasons:
       - containerPort: 9001
         name: synapse-metrics
         protocol: TCP
-      startupProbe:
+      startupProbe: {{- include "element-io.ess-library.pods.probe" .startupProbe | nindent 8 }}
         httpGet:
           path: /health
           port: synapse-health
-        periodSeconds: 2
-        {{- /* For Synapse processes where there can only be 1 instance we're more generous with the threshold.
-                This is because people can't scale the process up and so the impact of a restart is greater. */}}
-        failureThreshold: {{ ternary 54 21 (eq "isSingle" (include "element-io.synapse.process.isSingle" (dict "root" $root "context" $processType))) }}
       livenessProbe: {{- include "element-io.ess-library.pods.probe" .livenessProbe | nindent 8 }}
         httpGet:
           path: /health

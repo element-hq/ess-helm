@@ -85,14 +85,11 @@ spec:
             path: /health
             port: element
             scheme: HTTP
-        startupProbe:
-          failureThreshold: 3
+        startupProbe: {{- include "element-io.ess-library.pods.probe" .startupProbe | nindent 10 }}
           httpGet:
             path: /health
             port: element
             scheme: HTTP
-          initialDelaySeconds: 2
-          periodSeconds: 3
 {{- with .resources }}
         resources:
           {{- toYaml . | nindent 10 }}

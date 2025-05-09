@@ -11,6 +11,7 @@ postgresExporter:
   {{- sub_schema_values.containersSecurityContext()| indent(2) }}
   {{- sub_schema_values.probe("liveness", periodSeconds=6, timeoutSeconds=2) | indent(2) }}
   {{- sub_schema_values.probe("readiness", periodSeconds=2, successThreshold=2, timeoutSeconds=2) | indent(2) }}
+  {{- sub_schema_values.probe("startup", failureThreshold=20, periodSeconds=2) | indent(2) }}
 
 {{- sub_schema_values.credential("Postgres Admin Password", "adminPassword", initIfAbsent=true) }}
 
@@ -33,3 +34,4 @@ essPasswords:
 {{- sub_schema_values.topologySpreadConstraints() }}
 {{- sub_schema_values.probe("liveness", initialDelaySeconds=45, timeoutSeconds=2) }}
 {{- sub_schema_values.probe("readiness", initialDelaySeconds=15, timeoutSeconds=2) }}
+{{- sub_schema_values.probe("startup") }}

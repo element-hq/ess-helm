@@ -195,12 +195,11 @@ spec:
         resources:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-        startupProbe:
+        startupProbe: {{- include "element-io.ess-library.pods.probe" .startupProbe | nindent 10 }}
           httpGet:
             path: /health
             port: internal
             scheme: HTTP
-          initialDelaySeconds: 5
         livenessProbe: {{- include "element-io.ess-library.pods.probe" .livenessProbe | nindent 10 }}
           httpGet:
             path: /health

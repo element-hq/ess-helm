@@ -20,3 +20,6 @@ replicas: 1
 {{- sub_schema_values.topologySpreadConstraints() }}
 {{- sub_schema_values.probe("liveness", initialDelaySeconds=10, timeoutSeconds=5) }}
 {{- sub_schema_values.probe("readiness", initialDelaySeconds=20, timeoutSeconds=5) }}
+# The failureThreshold here is tweaked towards Synapse being ready
+# If Synapse isn't being deployed, unsetting this or setting it to 3 maybe more appropriate
+{{- sub_schema_values.probe("startup", failureThreshold=150, periodSeconds=2) }}

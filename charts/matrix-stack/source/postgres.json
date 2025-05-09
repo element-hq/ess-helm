@@ -29,6 +29,9 @@
         },
         "readinessProbe": {
           "$ref": "file://common/probe.json"
+        },
+        "startupProbe": {
+          "$ref": "file://common/probe.json"
         }
       }
     },
@@ -83,6 +86,9 @@
       "$ref": "file://common/probe.json"
     },
     "readinessProbe": {
+      "$ref": "file://common/probe.json"
+    },
+    "startupProbe": {
       "$ref": "file://common/probe.json"
     },
     "serviceMonitors": {

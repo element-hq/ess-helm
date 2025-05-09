@@ -65,7 +65,7 @@ spec:
           preStop:
             exec:
               command: ["pg_ctl", "stop", "-D", "/var/lib/postgres/data", "-w", "-t", "55", "-m", "fast"]
-        startupProbe:
+        startupProbe: {{- include "element-io.ess-library.pods.probe" .startupProbe | nindent 10 }}
           exec:
             command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
         readinessProbe: {{- include "element-io.ess-library.pods.probe" .readinessProbe | nindent 10 }}
@@ -136,7 +136,7 @@ spec:
           preStop:
             exec:
               command: ["pg_ctl", "stop", "-D", "/var/lib/postgres/data", "-w", "-t", "55", "-m", "fast"]
-        startupProbe:
+        startupProbe: {{- include "element-io.ess-library.pods.probe" .startupProbe | nindent 10 }}
           exec:
             command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
         readinessProbe: {{- include "element-io.ess-library.pods.probe" .readinessProbe | nindent 10 }}
@@ -190,12 +190,10 @@ spec:
           containerPort: 9187
         env:
         {{- include "element-io.postgres.exporter-env" (dict "root" $ "context" .) | nindent 8 }}
-        startupProbe:
+        startupProbe: {{- include "element-io.ess-library.pods.probe" .startupProbe | nindent 10 }}
           httpGet:
             path: /metrics
             port: metrics
-          periodSeconds: 2
-          failureThreshold: 20
         livenessProbe: {{- include "element-io.ess-library.pods.probe" .livenessProbe | nindent 10 }}
           httpGet:
             path: /metrics

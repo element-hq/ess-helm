@@ -17,6 +17,7 @@ class PropertyType(Enum):
     PodSecurityContext = "podSecurityContext"
     Postgres = "postgres"
     ReadinessProbe = "readinessProbe"
+    StartupProbe = "startupProbe"
     ServiceAccount = "serviceAccount"
     ServiceMonitor = "serviceMonitors"
     Tolerations = "tolerations"
@@ -296,6 +297,8 @@ all_components_details = [
             PropertyType.LivenessProbe: None,
             # Job so no readinessProbe
             PropertyType.ReadinessProbe: None,
+            # Job so no startupProbe
+            PropertyType.StartupProbe: None,
         },
         has_image=False,
         has_ingress=False,
@@ -396,6 +399,8 @@ all_components_details = [
                     PropertyType.PodSecurityContext: None,
                     # Job so no readinessProbe
                     PropertyType.ReadinessProbe: None,
+                    # Job so no startupProbe
+                    PropertyType.StartupProbe: None,
                     # has_workloads and so tolerations but comes from synapse.tolerations
                     PropertyType.Tolerations: None,
                     # has_topology_spread_constraints and so topologySpreadConstraints
