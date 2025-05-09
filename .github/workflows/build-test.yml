@@ -94,3 +94,107 @@ jobs:
         for checkov_values in charts/matrix-stack/ci/*checkov*values.yaml; do
           scripts/checkov.sh "$checkov_values"
         done
+
+  template-dyff:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write # required to post a comment to a pull request
+    steps:
+
+    - name: Checkout PR
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+
+    # helm template doesn't reliably order manifests within the same kind, so use yq to do it for us
+    - name: Generate manifests for PR
+      run: |
+        mkdir -p /tmp/{old,new}
+        for values in charts/matrix-stack/ci/*values.yaml; do
+          echo "Generating new templates with $values";
+          helm template \
+              -a monitoring.coreos.com/v1/ServiceMonitor \
+              -f "$values" charts/matrix-stack | \
+          yq ea '[.] | sort_by(.kind, .metadata.name) | .[] | splitDoc' > "/tmp/new/$(basename "$values")"
+        done
+
+    - name: Checkout target
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
+      with:
+        ref: ${{ github.event.pull_request.base.sha }}
+
+    - name: Generate manifests for base
+      run: |
+        for values in charts/matrix-stack/ci/*values.yaml; do
+          echo "Generating old templates with $values";
+          helm template \
+              -a monitoring.coreos.com/v1/ServiceMonitor \
+              -f "$values" charts/matrix-stack | \
+          yq ea '[.] | sort_by(.kind, .metadata.name) | .[] | splitDoc' > "/tmp/old/$(basename "$values")"
+        done
+
+    - name: Install dyff with asdf
+      uses: asdf-vm/actions/install@05e0d2ed97b598bfce82fd30daf324ae0c4570e6  # v3
+      with:
+        # Until v4 is released or we get spam about bash vs go implementations
+        # https://github.com/asdf-vm/actions/issues/587
+        asdf_branch: v0.15.0
+        tool_versions: |
+          dyff 1.10.1
+
+    - name: dyff old and new manifests
+      id: dyff
+      run: |
+        templates_files=$(find /tmp/old /tmp/new -maxdepth 1 -name '*values.yaml' | sed -E 's|/tmp/(old\|new)/||' | sort | uniq)
+
+        comment_body=""
+        while read -r templates_file; do
+          if [ ! -f "/tmp/old/$templates_file" ]; then
+            comment_body+="**$templates_file** (added)\n\n"
+            continue
+          fi
+
+          if [ ! -f "/tmp/new/$templates_file" ]; then
+            comment_body+="**$templates_file** (removed)\n\n"
+            continue
+          fi
+
+          exit_code=0
+          dyff_detail=$(dyff between --set-exit-code --omit-header --output=github "/tmp/old/$templates_file" "/tmp/new/$templates_file") || exit_code=$?
+          if [ $exit_code -ne 0 ]; then
+            comment_body+="<details><summary><b>$templates_file</b> (changed)</summary>\n"
+            comment_body+='\n```diff\n'
+            comment_body+=$dyff_detail
+            comment_body+='\n```\n</details>\n\n'
+          fi
+        done <<< "$templates_files"
+
+        if [ -z "$comment_body" ]; then
+          echo "changes=no" >> "$GITHUB_OUTPUT"
+          comment_body="No changes in rendered templates"
+        else
+          echo "changes=yes" >> "$GITHUB_OUTPUT"
+        fi
+
+        echo "$comment_body"
+        { echo 'body<<EOF'; echo -e "$comment_body"; echo 'EOF'; } >> "$GITHUB_OUTPUT"
+
+    - name: Find dyff comment
+      uses: peter-evans/find-comment@3eae4d37986fb5a8592848f6a574fdf654e61f9e  # v3
+      id: find-dyff-comment
+      with:
+        issue-number: ${{ github.event.pull_request.number }}
+        comment-author: 'github-actions[bot]'
+        body-includes: 'dyff of changes in rendered templates'
+
+    - name: Create or update comment
+      uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043  # v4
+      with:
+        comment-id: ${{ steps.find-dyff-comment.outputs.comment-id }}
+        issue-number: ${{ github.event.pull_request.number }}
+        body: |
+          # dyff of changes in rendered templates of CI manifests
+
+          ${{ steps.dyff.outputs.body }}
+        edit-mode: replace
