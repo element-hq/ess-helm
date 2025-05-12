@@ -8,8 +8,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- if .enabled -}}
 {{- $enabledWorkers := (include "element-io.synapse.enabledWorkers" (dict "root" $)) | fromJson }}
 {{- range $processType, $unmergedProcessDetails := mustMergeOverwrite (dict "main" dict) $enabledWorkers }}
-{{- $perProcessRoot := mustMergeOverwrite ($.Values.synapse | deepCopy) (dict "processType" $processType "isHook" false) }}
-{{- with (mustMergeOverwrite ($.Values.synapse | deepCopy) ($unmergedProcessDetails | deepCopy) dict) }}
+{{- with (mustMergeOverwrite ($.Values.synapse | deepCopy) ($unmergedProcessDetails | deepCopy) (dict "processType" $processType "isHook" false)) }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -18,9 +17,9 @@ metadata:
     {{- toYaml . | nindent 4 }}
 {{- end }}
   labels:
-    {{- include "element-io.synapse.process.labels" (dict "root" $ "context" $perProcessRoot) | nindent 4 }}
-    k8s.element.io/synapse-config-hash: "{{ include "element-io.synapse.configmap-data"  (dict "root" $ "context" $perProcessRoot) | sha1sum }}"
-    k8s.element.io/synapse-secret-hash: "{{ include "element-io.synapse.secret-data"  (dict "root" $ "context" $perProcessRoot) | sha1sum }}"
+    {{- include "element-io.synapse.process.labels" (dict "root" $ "context" .) | nindent 4 }}
+    k8s.element.io/synapse-config-hash: "{{ include "element-io.synapse.configmap-data"  (dict "root" $ "context" .) | sha1sum }}"
+    k8s.element.io/synapse-secret-hash: "{{ include "element-io.synapse.secret-data"  (dict "root" $ "context" .) | sha1sum }}"
 {{- range $index, $appservice := .appservices }}
 {{- if .configMap }}
     k8s.element.io/as-registration-{{ $index }}-hash: "{{ (lookup "v1" "ConfigMap" $.Release.Namespace (tpl $appservice.configMap $)) | toJson | sha1sum }}"
@@ -45,7 +44,7 @@ spec:
     type: RollingUpdate
   # Without this CrashLoopBackoffs due to config failures block pod recreation
   podManagementPolicy: Parallel
-  {{- include "element-io.synapse.pod-template" (dict "root" $ "context" $perProcessRoot) | nindent 2 }}
+  {{- include "element-io.synapse.pod-template" (dict "root" $ "context" .) | nindent 2 }}
 ---
 {{- end }}
 {{- end }}

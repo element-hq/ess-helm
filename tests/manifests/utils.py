@@ -70,6 +70,26 @@ def values(values_file) -> dict[str, Any]:
 
 
 @pytest.fixture
+def all_values(values, base_values) -> dict[str, Any]:
+    def merge(a: dict, b: dict, path=None):
+        if not path:
+            path = []
+        for key in b:
+            if key in a:
+                if isinstance(a[key], dict) and isinstance(b[key], dict):
+                    merge(a[key], b[key], path + [str(key)])
+                elif type(a[key]) is not type(b[key]):
+                    raise Exception("Conflict at " + ".".join(path + [str(key)]))
+                else:
+                    a[key] = b[key]
+            else:
+                a[key] = b[key]
+        return a
+
+    return merge(copy.deepcopy(base_values), copy.deepcopy(values))
+
+
+@pytest.fixture
 async def templates(chart: pyhelm3.Chart, release_name: str, values: dict[str, Any]):
     return await helm_template(chart, release_name, values)
 
@@ -253,6 +273,24 @@ def iterate_deployables_service_monitor_parts(
     iterate_deployables_parts(
         deployables_details, visitor, lambda deployable_details: deployable_details.has_service_monitor
     )
+
+
+def iterate_synapse_workers_parts(
+    all_values: dict[str, Any],
+    visitor: Callable[[str, dict[str, Any]], None],
+    key_to_check: str | None = None,
+) -> None:
+    if not all_values["synapse"]["enabled"]:
+        return
+
+    if key_to_check is None or key_to_check in all_values["synapse"]:
+        visitor("main", all_values["synapse"])
+
+    for worker_name, worker_values in all_values["synapse"]["workers"].items():
+        if not worker_values["enabled"]:
+            continue
+        if key_to_check is None or key_to_check in worker_values:
+            visitor(worker_name, worker_values)
 
 
 @pytest.fixture
