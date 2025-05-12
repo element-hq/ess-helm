@@ -35,10 +35,10 @@ privateKeys:
 {{ sub_schema_values.labels() }}
 {{ sub_schema_values.serviceAccount() }}
 {{ sub_schema_values.nodeSelector() }}
-{{ sub_schema_values.tolerations(global=false, key='tolerations') }}
-{{ sub_schema_values.topologySpreadConstraints(global=true, key= 'topologySpreadConstraints') }}
+{{ sub_schema_values.tolerations() }}
+{{ sub_schema_values.topologySpreadConstraints() }}
 {{ sub_schema_values.podSecurityContext(user_id=10005, group_id=10005) }}
-{{ sub_schema_values.containersSecurityContext(key='containersSecurityContext') }}
+{{ sub_schema_values.containersSecurityContext() }}
 {{ sub_schema_values.workloadAnnotations() }}
-{{ sub_schema_values.serviceMonitors(key= 'serviceMonitors') }}
+{{ sub_schema_values.serviceMonitors() }}
 {{ sub_schema_values.extraEnv() }}
