@@ -111,14 +111,17 @@ spec:
           name: synapse-ready
           protocol: TCP
 {{- end }}
-{{- if $.Values.synapse.enabled }}
         startupProbe:
           httpGet:
+{{- if $.Values.synapse.enabled }}
             path: /synapse_ready
             port: synapse-ready
+{{- else }}
+            path: /haproxy_test
+            port: haproxy-metrics
+{{- end }}
           periodSeconds: 2
           failureThreshold: 150
-{{- end }}
         livenessProbe:
           httpGet:
             path: /haproxy_test
