@@ -148,6 +148,7 @@ jobs:
       run: |
         templates_files=$(find /tmp/old /tmp/new -maxdepth 1 -name '*values.yaml' | sed -E 's|/tmp/(old\|new)/||' | sort | uniq)
 
+        header="# dyff of changes in rendered templates of CI manifests\n\n"
         comment_body=""
         while read -r templates_file; do
           if [ ! -f "/tmp/old/$templates_file" ]; then
@@ -171,16 +172,13 @@ jobs:
         done <<< "$templates_files"
 
         if [ -z "$comment_body" ]; then
-          echo "changes=no" >> "$GITHUB_OUTPUT"
           comment_body="No changes in rendered templates"
-        else
-          echo "changes=yes" >> "$GITHUB_OUTPUT"
         fi
 
-        echo "$comment_body"
-        { echo 'body<<EOF'; echo -e "$comment_body"; echo 'EOF'; } >> "$GITHUB_OUTPUT"
+        echo -e "$header$comment_body" | tee "/tmp/dyff-output"
 
     - name: Find dyff comment
+      if: github.event.pull_request.number != ''
       uses: peter-evans/find-comment@3eae4d37986fb5a8592848f6a574fdf654e61f9e  # v3
       id: find-dyff-comment
       with:
@@ -189,12 +187,10 @@ jobs:
         body-includes: 'dyff of changes in rendered templates'
 
     - name: Create or update comment
+      if: github.event.pull_request.number != ''
       uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043  # v4
       with:
         comment-id: ${{ steps.find-dyff-comment.outputs.comment-id }}
         issue-number: ${{ github.event.pull_request.number }}
-        body: |
-          # dyff of changes in rendered templates of CI manifests
-
-          ${{ steps.dyff.outputs.body }}
+        body-path: /tmp/dyff-output
         edit-mode: replace
