@@ -66,6 +66,9 @@ spec:
         - containerPort: 6379
           name: redis
           protocol: TCP
+        startupProbe:
+          tcpSocket:
+            port: redis
         livenessProbe:
           tcpSocket:
             port: redis
