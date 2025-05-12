@@ -23,6 +23,9 @@ jobs:
     - name: Install action-validator with asdf
       uses: asdf-vm/actions/install@05e0d2ed97b598bfce82fd30daf324ae0c4570e6  # v3
       with:
+        # Until v4 is released or we get spam about bash vs go implementations
+        # https://github.com/asdf-vm/actions/issues/587
+        asdf_branch: v0.15.0
         tool_versions: |
           action-validator 0.6.0
 
