@@ -36,7 +36,7 @@ privateKeys:
 {{ sub_schema_values.serviceAccount() }}
 {{ sub_schema_values.nodeSelector() }}
 {{ sub_schema_values.tolerations() }}
-{{ sub_schema_values.topologySpreadConstraints(global=true) }}
+{{ sub_schema_values.topologySpreadConstraints() }}
 {{ sub_schema_values.podSecurityContext(user_id=10005, group_id=10005) }}
 {{ sub_schema_values.containersSecurityContext() }}
 {{ sub_schema_values.workloadAnnotations() }}
