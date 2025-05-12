@@ -178,6 +178,7 @@ jobs:
         echo -e "$header$comment_body" | tee "/tmp/dyff-output"
 
     - name: Find dyff comment
+      if: github.event.pull_request.number != ''
       uses: peter-evans/find-comment@3eae4d37986fb5a8592848f6a574fdf654e61f9e  # v3
       id: find-dyff-comment
       with:
@@ -186,6 +187,7 @@ jobs:
         body-includes: 'dyff of changes in rendered templates'
 
     - name: Create or update comment
+      if: github.event.pull_request.number != ''
       uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043  # v4
       with:
         comment-id: ${{ steps.find-dyff-comment.outputs.comment-id }}
