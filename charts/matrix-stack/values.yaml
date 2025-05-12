@@ -436,53 +436,53 @@ matrixRTC:
 
   tolerations: []
   ## Configuration of the thresholds and frequencies of the livenessProbe
-  # livenessProbe:
+  livenessProbe:
     ## How many consecutive failures for the probe to be considered failed
-    # failureThreshold: 3
+    failureThreshold: 3
 
     ## Number of seconds after the container has started before the probe starts
-    # initialDelaySeconds: 0
+    initialDelaySeconds: 0
 
     ## How often (in seconds) to perform the probe
-    # periodSeconds: 1
+    periodSeconds: 10
 
     ## How many consecutive successes for the probe to be consider successful after having failed
-    # successThreshold: 1
+    successThreshold: 1
 
     ## Number of seconds after which the probe times out
-    # timeoutSeconds: 1
+    timeoutSeconds: 1
   ## Configuration of the thresholds and frequencies of the readinessProbe
-  # readinessProbe:
+  readinessProbe:
     ## How many consecutive failures for the probe to be considered failed
-    # failureThreshold: 3
+    failureThreshold: 3
 
     ## Number of seconds after the container has started before the probe starts
-    # initialDelaySeconds: 0
+    initialDelaySeconds: 0
 
     ## How often (in seconds) to perform the probe
-    # periodSeconds: 1
+    periodSeconds: 10
 
     ## How many consecutive successes for the probe to be consider successful after having failed
-    # successThreshold: 1
+    successThreshold: 1
 
     ## Number of seconds after which the probe times out
-    # timeoutSeconds: 1
+    timeoutSeconds: 1
   ## Configuration of the thresholds and frequencies of the startupProbe
-  # startupProbe:
+  startupProbe:
     ## How many consecutive failures for the probe to be considered failed
-    # failureThreshold: 3
+    failureThreshold: 3
 
     ## Number of seconds after the container has started before the probe starts
-    # initialDelaySeconds: 0
+    initialDelaySeconds: 0
 
     ## How often (in seconds) to perform the probe
-    # periodSeconds: 1
+    periodSeconds: 10
 
     ## How many consecutive successes for the probe to be consider successful after having failed
-    # successThreshold: 1
+    successThreshold: 1
 
     ## Number of seconds after which the probe times out
-    # timeoutSeconds: 1
+    timeoutSeconds: 1
 
   sfu:
     enabled: true
@@ -687,53 +687,53 @@ matrixRTC:
 
     tolerations: []
     ## Configuration of the thresholds and frequencies of the livenessProbe
-    # livenessProbe:
+    livenessProbe:
       ## How many consecutive failures for the probe to be considered failed
-      # failureThreshold: 3
+      failureThreshold: 3
 
       ## Number of seconds after the container has started before the probe starts
-      # initialDelaySeconds: 0
+      initialDelaySeconds: 0
 
       ## How often (in seconds) to perform the probe
-      # periodSeconds: 1
+      periodSeconds: 10
 
       ## How many consecutive successes for the probe to be consider successful after having failed
-      # successThreshold: 1
+      successThreshold: 1
 
       ## Number of seconds after which the probe times out
-      # timeoutSeconds: 1
+      timeoutSeconds: 1
     ## Configuration of the thresholds and frequencies of the readinessProbe
-    # readinessProbe:
+    readinessProbe:
       ## How many consecutive failures for the probe to be considered failed
-      # failureThreshold: 3
+      failureThreshold: 3
 
       ## Number of seconds after the container has started before the probe starts
-      # initialDelaySeconds: 0
+      initialDelaySeconds: 0
 
       ## How often (in seconds) to perform the probe
-      # periodSeconds: 1
+      periodSeconds: 10
 
       ## How many consecutive successes for the probe to be consider successful after having failed
-      # successThreshold: 1
+      successThreshold: 1
 
       ## Number of seconds after which the probe times out
-      # timeoutSeconds: 1
+      timeoutSeconds: 1
     ## Configuration of the thresholds and frequencies of the startupProbe
-    # startupProbe:
+    startupProbe:
       ## How many consecutive failures for the probe to be considered failed
-      # failureThreshold: 3
+      failureThreshold: 3
 
       ## Number of seconds after the container has started before the probe starts
-      # initialDelaySeconds: 0
+      initialDelaySeconds: 0
 
       ## How often (in seconds) to perform the probe
-      # periodSeconds: 1
+      periodSeconds: 10
 
       ## How many consecutive successes for the probe to be consider successful after having failed
-      # successThreshold: 1
+      successThreshold: 1
 
       ## Number of seconds after which the probe times out
-      # timeoutSeconds: 1
+      timeoutSeconds: 1
 
 elementWeb:
   enabled: true
@@ -935,32 +935,32 @@ elementWeb:
     failureThreshold: 3
 
     ## Number of seconds after the container has started before the probe starts
-    # initialDelaySeconds: 0
+    initialDelaySeconds: 0
 
     ## How often (in seconds) to perform the probe
     periodSeconds: 10
 
     ## How many consecutive successes for the probe to be consider successful after having failed
-    # successThreshold: 1
+    successThreshold: 1
 
     ## Number of seconds after which the probe times out
-    # timeoutSeconds: 1
+    timeoutSeconds: 1
   ## Configuration of the thresholds and frequencies of the readinessProbe
   readinessProbe:
     ## How many consecutive failures for the probe to be considered failed
     failureThreshold: 3
 
     ## Number of seconds after the container has started before the probe starts
-    # initialDelaySeconds: 0
+    initialDelaySeconds: 0
 
     ## How often (in seconds) to perform the probe
     periodSeconds: 3
 
     ## How many consecutive successes for the probe to be consider successful after having failed
-    # successThreshold: 1
+    successThreshold: 1
 
     ## Number of seconds after which the probe times out
-    # timeoutSeconds: 1
+    timeoutSeconds: 1
   ## Configuration of the thresholds and frequencies of the startupProbe
   startupProbe:
     ## How many consecutive failures for the probe to be considered failed
@@ -973,10 +973,10 @@ elementWeb:
     periodSeconds: 3
 
     ## How many consecutive successes for the probe to be consider successful after having failed
-    # successThreshold: 1
+    successThreshold: 1
 
     ## Number of seconds after which the probe times out
-    # timeoutSeconds: 1
+    timeoutSeconds: 1
 
 haproxy:
   replicas: 1
@@ -1141,32 +1141,32 @@ haproxy:
   ## Configuration of the thresholds and frequencies of the livenessProbe
   livenessProbe:
     ## How many consecutive failures for the probe to be considered failed
-    # failureThreshold: 3
+    failureThreshold: 3
 
     ## Number of seconds after the container has started before the probe starts
     initialDelaySeconds: 10
 
     ## How often (in seconds) to perform the probe
-    # periodSeconds: 1
+    periodSeconds: 10
 
     ## How many consecutive successes for the probe to be consider successful after having failed
-    # successThreshold: 1
+    successThreshold: 1
 
     ## Number of seconds after which the probe times out
     timeoutSeconds: 5
   ## Configuration of the thresholds and frequencies of the readinessProbe
   readinessProbe:
     ## How many consecutive failures for the probe to be considered failed
-    # failureThreshold: 3
+    failureThreshold: 3
 
     ## Number of seconds after the container has started before the probe starts
     initialDelaySeconds: 20
 
     ## How often (in seconds) to perform the probe
-    # periodSeconds: 1
+    periodSeconds: 10
 
     ## How many consecutive successes for the probe to be consider successful after having failed
-    # successThreshold: 1
+    successThreshold: 1
 
     ## Number of seconds after which the probe times out
     timeoutSeconds: 5
@@ -1178,16 +1178,16 @@ haproxy:
     failureThreshold: 150
 
     ## Number of seconds after the container has started before the probe starts
-    # initialDelaySeconds: 0
+    initialDelaySeconds: 0
 
     ## How often (in seconds) to perform the probe
     periodSeconds: 2
 
     ## How many consecutive successes for the probe to be consider successful after having failed
-    # successThreshold: 1
+    successThreshold: 1
 
     ## Number of seconds after which the probe times out
-    # timeoutSeconds: 1
+    timeoutSeconds: 1
 
 matrixAuthenticationService:
   enabled: true
@@ -1538,16 +1538,16 @@ matrixAuthenticationService:
     failureThreshold: 3
 
     ## Number of seconds after the container has started before the probe starts
-    # initialDelaySeconds: 0
+    initialDelaySeconds: 0
 
     ## How often (in seconds) to perform the probe
-    # periodSeconds: 1
+    periodSeconds: 10
 
     ## How many consecutive successes for the probe to be consider successful after having failed
-    # successThreshold: 1
+    successThreshold: 1
 
     ## Number of seconds after which the probe times out
-    # timeoutSeconds: 1
+    timeoutSeconds: 1
 
   ## Configuration of the thresholds and frequencies of the readinessProbe
   readinessProbe:
@@ -1555,33 +1555,33 @@ matrixAuthenticationService:
     failureThreshold: 3
 
     ## Number of seconds after the container has started before the probe starts
-    # initialDelaySeconds: 0
+    initialDelaySeconds: 0
 
     ## How often (in seconds) to perform the probe
-    # periodSeconds: 1
+    periodSeconds: 10
 
     ## How many consecutive successes for the probe to be consider successful after having failed
-    # successThreshold: 1
+    successThreshold: 1
 
     ## Number of seconds after which the probe times out
-    # timeoutSeconds: 1
+    timeoutSeconds: 1
 
   ## Configuration of the thresholds and frequencies of the startupProbe
   startupProbe:
     ## How many consecutive failures for the probe to be considered failed
-    # failureThreshold: 3
+    failureThreshold: 3
 
     ## Number of seconds after the container has started before the probe starts
     initialDelaySeconds: 5
 
     ## How often (in seconds) to perform the probe
-    # periodSeconds: 1
+    periodSeconds: 10
 
     ## How many consecutive successes for the probe to be consider successful after having failed
-    # successThreshold: 1
+    successThreshold: 1
 
     ## Number of seconds after which the probe times out
-    # timeoutSeconds: 1
+    timeoutSeconds: 1
 
 postgres:
   enabled: true
@@ -1649,26 +1649,26 @@ postgres:
     ## Configuration of the thresholds and frequencies of the livenessProbe
     livenessProbe:
       ## How many consecutive failures for the probe to be considered failed
-      # failureThreshold: 3
+      failureThreshold: 3
 
       ## Number of seconds after the container has started before the probe starts
-      # initialDelaySeconds: 0
+      initialDelaySeconds: 0
 
       ## How often (in seconds) to perform the probe
       periodSeconds: 6
 
       ## How many consecutive successes for the probe to be consider successful after having failed
-      # successThreshold: 1
+      successThreshold: 1
 
       ## Number of seconds after which the probe times out
       timeoutSeconds: 2
     ## Configuration of the thresholds and frequencies of the readinessProbe
     readinessProbe:
       ## How many consecutive failures for the probe to be considered failed
-      # failureThreshold: 3
+      failureThreshold: 3
 
       ## Number of seconds after the container has started before the probe starts
-      # initialDelaySeconds: 0
+      initialDelaySeconds: 0
 
       ## How often (in seconds) to perform the probe
       periodSeconds: 2
@@ -1684,16 +1684,16 @@ postgres:
       failureThreshold: 20
 
       ## Number of seconds after the container has started before the probe starts
-      # initialDelaySeconds: 0
+      initialDelaySeconds: 0
 
       ## How often (in seconds) to perform the probe
       periodSeconds: 2
 
       ## How many consecutive successes for the probe to be consider successful after having failed
-      # successThreshold: 1
+      successThreshold: 1
 
       ## Number of seconds after which the probe times out
-      # timeoutSeconds: 1
+      timeoutSeconds: 1
   ## Postgres Admin Password.
   ## This secret is optional, and will be generated by the `initSecrets` job
   ## if it is empty.
@@ -1916,51 +1916,51 @@ postgres:
   ## Configuration of the thresholds and frequencies of the livenessProbe
   livenessProbe:
     ## How many consecutive failures for the probe to be considered failed
-    # failureThreshold: 3
+    failureThreshold: 3
 
     ## Number of seconds after the container has started before the probe starts
     initialDelaySeconds: 45
 
     ## How often (in seconds) to perform the probe
-    # periodSeconds: 1
+    periodSeconds: 10
 
     ## How many consecutive successes for the probe to be consider successful after having failed
-    # successThreshold: 1
+    successThreshold: 1
 
     ## Number of seconds after which the probe times out
     timeoutSeconds: 2
   ## Configuration of the thresholds and frequencies of the readinessProbe
   readinessProbe:
     ## How many consecutive failures for the probe to be considered failed
-    # failureThreshold: 3
+    failureThreshold: 3
 
     ## Number of seconds after the container has started before the probe starts
     initialDelaySeconds: 15
 
     ## How often (in seconds) to perform the probe
-    # periodSeconds: 1
+    periodSeconds: 10
 
     ## How many consecutive successes for the probe to be consider successful after having failed
-    # successThreshold: 1
+    successThreshold: 1
 
     ## Number of seconds after which the probe times out
     timeoutSeconds: 2
   ## Configuration of the thresholds and frequencies of the startupProbe
-  # startupProbe:
+  startupProbe:
     ## How many consecutive failures for the probe to be considered failed
-    # failureThreshold: 3
+    failureThreshold: 3
 
     ## Number of seconds after the container has started before the probe starts
-    # initialDelaySeconds: 0
+    initialDelaySeconds: 0
 
     ## How often (in seconds) to perform the probe
-    # periodSeconds: 1
+    periodSeconds: 10
 
     ## How many consecutive successes for the probe to be consider successful after having failed
-    # successThreshold: 1
+    successThreshold: 1
 
     ## Number of seconds after which the probe times out
-    # timeoutSeconds: 1
+    timeoutSeconds: 1
 
 synapse:
   enabled: true
@@ -2118,13 +2118,13 @@ synapse:
         failureThreshold: 8
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 6
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
         timeoutSeconds: 2
@@ -2134,7 +2134,7 @@ synapse:
         failureThreshold: 8
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
@@ -2150,16 +2150,16 @@ synapse:
         failureThreshold: 54
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
-        # timeoutSeconds: 1
+        timeoutSeconds: 1
     background:
       ## Set to true to deploy this worker
       enabled: false
@@ -2173,13 +2173,13 @@ synapse:
         failureThreshold: 8
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 6
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
         timeoutSeconds: 2
@@ -2189,7 +2189,7 @@ synapse:
         failureThreshold: 8
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
@@ -2205,16 +2205,16 @@ synapse:
         failureThreshold: 54
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
-        # timeoutSeconds: 1
+        timeoutSeconds: 1
     client-reader:
       ## Set to true to deploy this worker
       enabled: false
@@ -2231,13 +2231,13 @@ synapse:
         failureThreshold: 3
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 6
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
         timeoutSeconds: 2
@@ -2247,7 +2247,7 @@ synapse:
         failureThreshold: 3
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
@@ -2263,16 +2263,16 @@ synapse:
         failureThreshold: 21
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
-        # timeoutSeconds: 1
+        timeoutSeconds: 1
     encryption:
       ## Set to true to deploy this worker
       enabled: false
@@ -2286,13 +2286,13 @@ synapse:
         failureThreshold: 8
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 6
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
         timeoutSeconds: 2
@@ -2302,7 +2302,7 @@ synapse:
         failureThreshold: 8
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
@@ -2318,16 +2318,16 @@ synapse:
         failureThreshold: 54
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
-        # timeoutSeconds: 1
+        timeoutSeconds: 1
     event-creator:
       ## Set to true to deploy this worker
       enabled: false
@@ -2344,13 +2344,13 @@ synapse:
         failureThreshold: 3
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 6
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
         timeoutSeconds: 2
@@ -2360,7 +2360,7 @@ synapse:
         failureThreshold: 3
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
@@ -2376,16 +2376,16 @@ synapse:
         failureThreshold: 21
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
-        # timeoutSeconds: 1
+        timeoutSeconds: 1
     event-persister:
       ## Set to true to deploy this worker
       enabled: false
@@ -2402,13 +2402,13 @@ synapse:
         failureThreshold: 3
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 6
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
         timeoutSeconds: 2
@@ -2418,7 +2418,7 @@ synapse:
         failureThreshold: 3
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
@@ -2434,16 +2434,16 @@ synapse:
         failureThreshold: 21
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
-        # timeoutSeconds: 1
+        timeoutSeconds: 1
     federation-inbound:
       ## Set to true to deploy this worker
       enabled: false
@@ -2460,13 +2460,13 @@ synapse:
         failureThreshold: 3
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 6
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
         timeoutSeconds: 2
@@ -2476,7 +2476,7 @@ synapse:
         failureThreshold: 3
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
@@ -2492,16 +2492,16 @@ synapse:
         failureThreshold: 21
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
-        # timeoutSeconds: 1
+        timeoutSeconds: 1
     federation-reader:
       ## Set to true to deploy this worker
       enabled: false
@@ -2518,13 +2518,13 @@ synapse:
         failureThreshold: 3
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 6
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
         timeoutSeconds: 2
@@ -2534,7 +2534,7 @@ synapse:
         failureThreshold: 3
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
@@ -2550,16 +2550,16 @@ synapse:
         failureThreshold: 21
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
-        # timeoutSeconds: 1
+        timeoutSeconds: 1
     federation-sender:
       ## Set to true to deploy this worker
       enabled: false
@@ -2576,13 +2576,13 @@ synapse:
         failureThreshold: 3
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 6
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
         timeoutSeconds: 2
@@ -2592,7 +2592,7 @@ synapse:
         failureThreshold: 3
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
@@ -2608,16 +2608,16 @@ synapse:
         failureThreshold: 21
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
-        # timeoutSeconds: 1
+        timeoutSeconds: 1
     initial-synchrotron:
       ## Set to true to deploy this worker
       enabled: false
@@ -2634,13 +2634,13 @@ synapse:
         failureThreshold: 3
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 6
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
         timeoutSeconds: 2
@@ -2650,7 +2650,7 @@ synapse:
         failureThreshold: 3
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
@@ -2666,16 +2666,16 @@ synapse:
         failureThreshold: 21
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
-        # timeoutSeconds: 1
+        timeoutSeconds: 1
     media-repository:
       ## Set to true to deploy this worker
       enabled: false
@@ -2689,13 +2689,13 @@ synapse:
         failureThreshold: 8
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 6
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
         timeoutSeconds: 2
@@ -2705,7 +2705,7 @@ synapse:
         failureThreshold: 8
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
@@ -2721,16 +2721,16 @@ synapse:
         failureThreshold: 54
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
-        # timeoutSeconds: 1
+        timeoutSeconds: 1
     presence-writer:
       ## Set to true to deploy this worker
       enabled: false
@@ -2744,13 +2744,13 @@ synapse:
         failureThreshold: 8
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 6
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
         timeoutSeconds: 2
@@ -2760,7 +2760,7 @@ synapse:
         failureThreshold: 8
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
@@ -2776,16 +2776,16 @@ synapse:
         failureThreshold: 54
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
-        # timeoutSeconds: 1
+        timeoutSeconds: 1
     push-rules:
       ## Set to true to deploy this worker
       enabled: false
@@ -2799,13 +2799,13 @@ synapse:
         failureThreshold: 8
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 6
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
         timeoutSeconds: 2
@@ -2815,7 +2815,7 @@ synapse:
         failureThreshold: 8
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
@@ -2831,16 +2831,16 @@ synapse:
         failureThreshold: 54
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
-        # timeoutSeconds: 1
+        timeoutSeconds: 1
     pusher:
       ## Set to true to deploy this worker
       enabled: false
@@ -2857,13 +2857,13 @@ synapse:
         failureThreshold: 3
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 6
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
         timeoutSeconds: 2
@@ -2873,7 +2873,7 @@ synapse:
         failureThreshold: 3
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
@@ -2889,16 +2889,16 @@ synapse:
         failureThreshold: 21
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
-        # timeoutSeconds: 1
+        timeoutSeconds: 1
     receipts-account:
       ## Set to true to deploy this worker
       enabled: false
@@ -2912,13 +2912,13 @@ synapse:
         failureThreshold: 8
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 6
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
         timeoutSeconds: 2
@@ -2928,7 +2928,7 @@ synapse:
         failureThreshold: 8
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
@@ -2944,16 +2944,16 @@ synapse:
         failureThreshold: 54
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
-        # timeoutSeconds: 1
+        timeoutSeconds: 1
     sliding-sync:
       ## Set to true to deploy this worker
       enabled: false
@@ -2970,13 +2970,13 @@ synapse:
         failureThreshold: 3
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 6
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
         timeoutSeconds: 2
@@ -2986,7 +2986,7 @@ synapse:
         failureThreshold: 3
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
@@ -3002,16 +3002,16 @@ synapse:
         failureThreshold: 21
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
-        # timeoutSeconds: 1
+        timeoutSeconds: 1
     sso-login:
       ## Set to true to deploy this worker
       enabled: false
@@ -3025,13 +3025,13 @@ synapse:
         failureThreshold: 8
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 6
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
         timeoutSeconds: 2
@@ -3041,7 +3041,7 @@ synapse:
         failureThreshold: 8
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
@@ -3057,16 +3057,16 @@ synapse:
         failureThreshold: 54
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
-        # timeoutSeconds: 1
+        timeoutSeconds: 1
     synchrotron:
       ## Set to true to deploy this worker
       enabled: false
@@ -3083,13 +3083,13 @@ synapse:
         failureThreshold: 3
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 6
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
         timeoutSeconds: 2
@@ -3099,7 +3099,7 @@ synapse:
         failureThreshold: 3
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
@@ -3115,16 +3115,16 @@ synapse:
         failureThreshold: 21
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
-        # timeoutSeconds: 1
+        timeoutSeconds: 1
     typing-persister:
       ## Set to true to deploy this worker
       enabled: false
@@ -3138,13 +3138,13 @@ synapse:
         failureThreshold: 8
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 6
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
         timeoutSeconds: 2
@@ -3154,7 +3154,7 @@ synapse:
         failureThreshold: 8
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
@@ -3170,16 +3170,16 @@ synapse:
         failureThreshold: 54
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
-        # timeoutSeconds: 1
+        timeoutSeconds: 1
     user-dir:
       ## Set to true to deploy this worker
       enabled: false
@@ -3193,13 +3193,13 @@ synapse:
         failureThreshold: 8
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 6
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
         timeoutSeconds: 2
@@ -3209,7 +3209,7 @@ synapse:
         failureThreshold: 8
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
@@ -3225,16 +3225,16 @@ synapse:
         failureThreshold: 54
 
         ## Number of seconds after the container has started before the probe starts
-        # initialDelaySeconds: 0
+        initialDelaySeconds: 0
 
         ## How often (in seconds) to perform the probe
         periodSeconds: 2
 
         ## How many consecutive successes for the probe to be consider successful after having failed
-        # successThreshold: 1
+        successThreshold: 1
 
         ## Number of seconds after which the probe times out
-        # timeoutSeconds: 1
+        timeoutSeconds: 1
 
   ## Synapse's logging settings
   logging:
@@ -3450,13 +3450,13 @@ synapse:
     failureThreshold: 8
 
     ## Number of seconds after the container has started before the probe starts
-    # initialDelaySeconds: 0
+    initialDelaySeconds: 0
 
     ## How often (in seconds) to perform the probe
     periodSeconds: 6
 
     ## How many consecutive successes for the probe to be consider successful after having failed
-    # successThreshold: 1
+    successThreshold: 1
 
     ## Number of seconds after which the probe times out
     timeoutSeconds: 2
@@ -3466,7 +3466,7 @@ synapse:
     failureThreshold: 8
 
     ## Number of seconds after the container has started before the probe starts
-    # initialDelaySeconds: 0
+    initialDelaySeconds: 0
 
     ## How often (in seconds) to perform the probe
     periodSeconds: 2
@@ -3482,16 +3482,16 @@ synapse:
     failureThreshold: 54
 
     ## Number of seconds after the container has started before the probe starts
-    # initialDelaySeconds: 0
+    initialDelaySeconds: 0
 
     ## How often (in seconds) to perform the probe
     periodSeconds: 2
 
     ## How many consecutive successes for the probe to be consider successful after having failed
-    # successThreshold: 1
+    successThreshold: 1
 
     ## Number of seconds after which the probe times out
-    # timeoutSeconds: 1
+    timeoutSeconds: 1
 
   ## Extra command line arguments to provide to Synapse
   extraArgs: []
@@ -3641,51 +3641,51 @@ synapse:
     ## Configuration of the thresholds and frequencies of the livenessProbe
     livenessProbe:
       ## How many consecutive failures for the probe to be considered failed
-      # failureThreshold: 3
+      failureThreshold: 3
 
       ## Number of seconds after the container has started before the probe starts
       initialDelaySeconds: 15
 
       ## How often (in seconds) to perform the probe
-      # periodSeconds: 1
+      periodSeconds: 10
 
       ## How many consecutive successes for the probe to be consider successful after having failed
-      # successThreshold: 1
+      successThreshold: 1
 
       ## Number of seconds after which the probe times out
-      # timeoutSeconds: 1
+      timeoutSeconds: 1
     ## Configuration of the thresholds and frequencies of the readinessProbe
     readinessProbe:
       ## How many consecutive failures for the probe to be considered failed
-      # failureThreshold: 3
+      failureThreshold: 3
 
       ## Number of seconds after the container has started before the probe starts
       initialDelaySeconds: 5
 
       ## How often (in seconds) to perform the probe
-      # periodSeconds: 1
+      periodSeconds: 10
 
       ## How many consecutive successes for the probe to be consider successful after having failed
-      # successThreshold: 1
+      successThreshold: 1
 
       ## Number of seconds after which the probe times out
-      # timeoutSeconds: 1
+      timeoutSeconds: 1
     ## Configuration of the thresholds and frequencies of the startupProbe
-    # startupProbe:
+    startupProbe:
       ## How many consecutive failures for the probe to be considered failed
-      # failureThreshold: 3
+      failureThreshold: 3
 
       ## Number of seconds after the container has started before the probe starts
-      # initialDelaySeconds: 0
+      initialDelaySeconds: 0
 
       ## How often (in seconds) to perform the probe
-      # periodSeconds: 1
+      periodSeconds: 10
 
       ## How many consecutive successes for the probe to be consider successful after having failed
-      # successThreshold: 1
+      successThreshold: 1
 
       ## Number of seconds after which the probe times out
-      # timeoutSeconds: 1
+      timeoutSeconds: 1
 
 wellKnownDelegation:
   enabled: true
