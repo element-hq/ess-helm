@@ -69,12 +69,12 @@ def get_ca(name, root_ca=None) -> CertKey:
         os.makedirs(ca_filename.parent, exist_ok=True)
     certkey = None
 
-    if os.path.exists(cert_path) and os.path.exists(key_path):
+    if cert_path.exists() and key_path.exists():
         with open(key_path, "rb") as pem_in:
             private_key = load_pem_private_key(pem_in.read(), None, default_backend())
         with open(cert_path, "rb") as pem_in:
             cert = x509.load_pem_x509_certificate(pem_in.read(), default_backend())
-        if cert.not_valid_after_utc < pytz.UTC.localize(datetime.datetime.now()):
+        if cert.not_valid_after_utc > pytz.UTC.localize(datetime.datetime.now()):
             certkey = CertKey(ca=root_ca, cert=cert, key=private_key)
     if not certkey:
         certkey = generate_ca(name, root_ca)
