@@ -319,10 +319,13 @@ def template_to_deployable_details(deployables_details: tuple[DeployableDetails]
                 match = deployable_details
 
         assert match is not None, f"{template_id(template)} can't be linked to any (sub-)component"
-        match = match.deployable_details_for_container(container_name)
-        assert match is not None, (
-            f"{template_id(template)} can't be linked to any (sub-)component or specific container"
-        )
+        # If this is a template that has multiple containers, the containers could have different ownership
+        # e.g. a sidecar. For everything else we don't need to check further as there's no shared ownership
+        if container_name is not None:
+            match = match.deployable_details_for_container(container_name)
+            assert match is not None, (
+                f"{template_id(template)} can't be linked to any (sub-)component or specific container"
+            )
         return match
 
     return _template_to_deployable_details
