@@ -101,7 +101,6 @@ jobs:
       contents: read
       pull-requests: write # required to post a comment to a pull request
     steps:
-
     - name: Checkout PR
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
       with:
@@ -110,13 +109,13 @@ jobs:
     # helm template doesn't reliably order manifests within the same kind, so use yq to do it for us
     - name: Generate manifests for PR
       run: |
-        mkdir -p /tmp/{old,new}
+        mkdir -p "$RUNNER_TEMP/new"
         for values in charts/matrix-stack/ci/*values.yaml; do
           echo "Generating new templates with $values";
           helm template \
               -a monitoring.coreos.com/v1/ServiceMonitor \
               -f "$values" charts/matrix-stack | \
-          yq ea '[.] | sort_by(.kind, .metadata.name) | .[] | splitDoc' > "/tmp/new/$(basename "$values")"
+          yq ea '[.] | sort_by(.kind, .metadata.name) | .[] | splitDoc' > "$RUNNER_TEMP/new/$(basename "$values")"
         done
 
     - name: Checkout target
@@ -126,12 +125,13 @@ jobs:
 
     - name: Generate manifests for base
       run: |
+        mkdir -p "$RUNNER_TEMP/old"
         for values in charts/matrix-stack/ci/*values.yaml; do
           echo "Generating old templates with $values";
           helm template \
               -a monitoring.coreos.com/v1/ServiceMonitor \
               -f "$values" charts/matrix-stack | \
-          yq ea '[.] | sort_by(.kind, .metadata.name) | .[] | splitDoc' > "/tmp/old/$(basename "$values")"
+          yq ea '[.] | sort_by(.kind, .metadata.name) | .[] | splitDoc' > "$RUNNER_TEMP/old/$(basename "$values")"
         done
 
     - name: Install dyff with asdf
@@ -145,24 +145,25 @@ jobs:
 
     - name: dyff old and new manifests
       id: dyff
+      shell: bash
       run: |
-        templates_files=$(find /tmp/old /tmp/new -maxdepth 1 -name '*values.yaml' | sed -E 's|/tmp/(old\|new)/||' | sort | uniq)
+        templates_files=$(find "$RUNNER_TEMP/old" "$RUNNER_TEMP/new" -maxdepth 1 -name '*values.yaml' | sed -E 's|'"$RUNNER_TEMP"'/(old\|new)/||' | sort | uniq)
 
         header="# dyff of changes in rendered templates of CI manifests\n\n"
         comment_body=""
         while read -r templates_file; do
-          if [ ! -f "/tmp/old/$templates_file" ]; then
+          if [ ! -f "$RUNNER_TEMP/old/$templates_file" ]; then
             comment_body+="**$templates_file** (added)\n\n"
             continue
           fi
 
-          if [ ! -f "/tmp/new/$templates_file" ]; then
+          if [ ! -f "$RUNNER_TEMP/new/$templates_file" ]; then
             comment_body+="**$templates_file** (removed)\n\n"
             continue
           fi
 
           exit_code=0
-          dyff_detail=$(dyff between --set-exit-code --omit-header --output=github "/tmp/old/$templates_file" "/tmp/new/$templates_file") || exit_code=$?
+          dyff_detail=$(dyff between --set-exit-code --omit-header --output=github "$RUNNER_TEMP/old/$templates_file" "$RUNNER_TEMP/new/$templates_file") || exit_code=$?
           if [ $exit_code -ne 0 ]; then
             comment_body+="<details><summary><b>$templates_file</b> (changed)</summary>\n"
             comment_body+='\n```diff\n'
@@ -175,7 +176,7 @@ jobs:
           comment_body="No changes in rendered templates"
         fi
 
-        echo -e "$header$comment_body" | tee "/tmp/dyff-output"
+        echo -e "$header$comment_body" | tee "$RUNNER_TEMP/dyff-output"
 
     - name: Find dyff comment
       if: github.event.pull_request.number != ''
@@ -192,5 +193,5 @@ jobs:
       with:
         comment-id: ${{ steps.find-dyff-comment.outputs.comment-id }}
         issue-number: ${{ github.event.pull_request.number }}
-        body-path: /tmp/dyff-output
+        body-path: ${{ runner.temp }}/dyff-output
         edit-mode: replace
