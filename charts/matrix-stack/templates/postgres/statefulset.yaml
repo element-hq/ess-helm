@@ -65,19 +65,15 @@ spec:
           preStop:
             exec:
               command: ["pg_ctl", "stop", "-D", "/var/lib/postgres/data", "-w", "-t", "55", "-m", "fast"]
-        startupProbe:
+        startupProbe: {{- include "element-io.ess-library.pods.probe" .startupProbe | nindent 10 }}
           exec:
             command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
-        readinessProbe:
+        readinessProbe: {{- include "element-io.ess-library.pods.probe" .readinessProbe | nindent 10 }}
           exec:
             command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
-          initialDelaySeconds: 15
-          timeoutSeconds: 2
-        livenessProbe:
+        livenessProbe: {{- include "element-io.ess-library.pods.probe" .livenessProbe | nindent 10 }}
           exec:
             command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
-          initialDelaySeconds: 45
-          timeoutSeconds: 2
         volumeMounts:
 {{- with (include "element-io.init-secrets.postgres-generated-secrets" (dict "root" $)) | fromYamlArray }}
   {{- range . -}}
@@ -140,19 +136,15 @@ spec:
           preStop:
             exec:
               command: ["pg_ctl", "stop", "-D", "/var/lib/postgres/data", "-w", "-t", "55", "-m", "fast"]
-        startupProbe:
+        startupProbe: {{- include "element-io.ess-library.pods.probe" .startupProbe | nindent 10 }}
           exec:
             command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
-        readinessProbe:
+        readinessProbe: {{- include "element-io.ess-library.pods.probe" .readinessProbe | nindent 10 }}
           exec:
             command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
-          initialDelaySeconds: 15
-          timeoutSeconds: 2
-        livenessProbe:
+        livenessProbe: {{- include "element-io.ess-library.pods.probe" .livenessProbe | nindent 10 }}
           exec:
             command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
-          initialDelaySeconds: 45
-          timeoutSeconds: 2
         ports:
         - containerPort: 5432
           name: postgres
@@ -198,25 +190,18 @@ spec:
           containerPort: 9187
         env:
         {{- include "element-io.postgres.exporter-env" (dict "root" $ "context" .) | nindent 8 }}
-        startupProbe:
+        startupProbe: {{- include "element-io.ess-library.pods.probe" .startupProbe | nindent 10 }}
           httpGet:
             path: /metrics
             port: metrics
-          periodSeconds: 2
-          failureThreshold: 20
-        livenessProbe:
+        livenessProbe: {{- include "element-io.ess-library.pods.probe" .livenessProbe | nindent 10 }}
           httpGet:
             path: /metrics
             port: metrics
-          periodSeconds: 6
-          timeoutSeconds: 2
-        readinessProbe:
+        readinessProbe: {{- include "element-io.ess-library.pods.probe" .readinessProbe | nindent 10 }}
           httpGet:
             path: /metrics
             port: metrics
-          periodSeconds: 2
-          timeoutSeconds: 2
-          successThreshold: 2
 {{- with .resources }}
         resources:
           {{- toYaml . | nindent 10 }}

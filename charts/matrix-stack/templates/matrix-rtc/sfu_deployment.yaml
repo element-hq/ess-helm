@@ -171,15 +171,15 @@ spec:
   {{- end }}
   {{- end }}
 {{- end }}
-        livenessProbe:
+        livenessProbe: {{- include "element-io.ess-library.pods.probe" .livenessProbe | nindent 10 }}
           httpGet:
             path: /
             port: http
-        readinessProbe:
+        readinessProbe: {{- include "element-io.ess-library.pods.probe" .readinessProbe | nindent 10 }}
           httpGet:
             path: /
             port: http
-        startupProbe:
+        startupProbe: {{- include "element-io.ess-library.pods.probe" .startupProbe | nindent 10 }}
           httpGet:
             path: /
             port: http

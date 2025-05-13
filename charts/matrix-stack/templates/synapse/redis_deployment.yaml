@@ -66,19 +66,17 @@ spec:
         - containerPort: 6379
           name: redis
           protocol: TCP
-        startupProbe:
+        startupProbe: {{- include "element-io.ess-library.pods.probe" .startupProbe | nindent 10 }}
           tcpSocket:
             port: redis
-        livenessProbe:
+        livenessProbe: {{- include "element-io.ess-library.pods.probe" .livenessProbe | nindent 10 }}
           tcpSocket:
             port: redis
-          initialDelaySeconds: 15
-        readinessProbe:
+        readinessProbe: {{- include "element-io.ess-library.pods.probe" .readinessProbe | nindent 10 }}
           exec:
             command:
             - redis-cli
             - ping
-          initialDelaySeconds: 5
 {{- with .resources }}
         resources:
           {{- toYaml . | nindent 10 }}

@@ -75,28 +75,21 @@ spec:
         - containerPort: 8080
           name: element
           protocol: TCP
-        livenessProbe:
-          failureThreshold: 3
+        livenessProbe: {{- include "element-io.ess-library.pods.probe" .livenessProbe | nindent 10 }}
           httpGet:
             path: /health
             port: element
             scheme: HTTP
-          periodSeconds: 10
-        readinessProbe:
-          failureThreshold: 3
+        readinessProbe: {{- include "element-io.ess-library.pods.probe" .readinessProbe | nindent 10 }}
           httpGet:
             path: /health
             port: element
             scheme: HTTP
-          periodSeconds: 3
-        startupProbe:
-          failureThreshold: 3
+        startupProbe: {{- include "element-io.ess-library.pods.probe" .startupProbe | nindent 10 }}
           httpGet:
             path: /health
             port: element
             scheme: HTTP
-          initialDelaySeconds: 2
-          periodSeconds: 3
 {{- with .resources }}
         resources:
           {{- toYaml . | nindent 10 }}

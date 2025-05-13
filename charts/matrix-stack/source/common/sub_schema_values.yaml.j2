@@ -276,6 +276,53 @@ labels: {}
 {{ (credential("PostgreSQL password", "password", commented=True) | indent(2)) }}
 {%- endmacro %}
 
+{% macro probe(type, failureThreshold=none, initialDelaySeconds=none, periodSeconds=none, successThreshold=none, timeoutSeconds=none) %}
+## Configuration of the thresholds and frequencies of the {{ type }}Probe
+{%- if failureThreshold is none and initialDelaySeconds is none and periodSeconds is none and successThreshold is none and timeoutSeconds is none %}
+# {{ type }}Probe:
+{%- else %}
+{{ type }}Probe:
+{%- endif %}
+  ## How many consecutive failures for the probe to be considered failed
+{%- if failureThreshold is not none %}
+  failureThreshold: {{ failureThreshold }}
+{%- else %}
+  # failureThreshold: 3
+{%- endif %}
+
+  ## Number of seconds after the container has started before the probe starts
+{%- if initialDelaySeconds is not none %}
+  initialDelaySeconds: {{ initialDelaySeconds }}
+{%- else %}
+  # initialDelaySeconds: 0
+{%- endif %}
+
+  ## How often (in seconds) to perform the probe
+{%- if periodSeconds is not none %}
+  periodSeconds: {{ periodSeconds }}
+{%- else %}
+  # periodSeconds: 1
+{%- endif %}
+
+  ## How many consecutive successes for the probe to be consider successful after having failed
+{%- if successThreshold is not none %}
+{%- if type in ["startup", "liveness"] %}
+  successThreshold: 1
+{%- else %}
+  successThreshold: {{ successThreshold }}
+{%- endif %}
+{%- else %}
+  # successThreshold: 1
+{%- endif %}
+
+  ## Number of seconds after which the probe times out
+{%- if timeoutSeconds is not none %}
+  timeoutSeconds: {{ timeoutSeconds }}
+{%- else %}
+  # timeoutSeconds: 1
+{%- endif %}
+{%- endmacro %}
+
 {% macro resources(requests_memory, requests_cpu, limits_memory, key='resources') %}
 ## Kubernetes resources to allocate to each instance.
 {{ key }}:

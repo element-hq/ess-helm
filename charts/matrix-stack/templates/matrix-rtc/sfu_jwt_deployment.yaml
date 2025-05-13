@@ -64,15 +64,15 @@ spec:
         - containerPort: 8080
           name: http
           protocol: TCP
-        livenessProbe:
+        livenessProbe: {{- include "element-io.ess-library.pods.probe" .livenessProbe | nindent 10 }}
           httpGet:
             path: /healthz
             port: http
-        readinessProbe:
+        readinessProbe: {{- include "element-io.ess-library.pods.probe" .readinessProbe | nindent 10 }}
           httpGet:
             path: /healthz
             port: http
-        startupProbe:
+        startupProbe: {{- include "element-io.ess-library.pods.probe" .startupProbe | nindent 10 }}
           httpGet:
             path: /healthz
             port: http

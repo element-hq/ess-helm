@@ -51,6 +51,15 @@
     },
     "topologySpreadConstraints": {
       "$ref": "file://common/topologySpreadConstraints.json"
+    },
+    "livenessProbe": {
+      "$ref": "file://common/probe.json"
+    },
+    "readinessProbe": {
+      "$ref": "file://common/probe.json"
+    },
+    "startupProbe": {
+      "$ref": "file://common/probe.json"
     }
   }
 }
