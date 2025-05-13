@@ -4,7 +4,7 @@
 
 name: Helm Chart Building tests
 on:
-  pull_request:
+  pull_request_target:
   push:
     branches:
     - main
@@ -79,6 +79,7 @@ jobs:
         for values in charts/matrix-stack/ci/*values.yaml; do
           echo "Testing matrix-stack with $values";
           helm template \
+              -n ess-ci \
               -a monitoring.coreos.com/v1/ServiceMonitor \
               -f "$values" charts/matrix-stack \
             | kubeconform \
@@ -113,6 +114,7 @@ jobs:
         for values in charts/matrix-stack/ci/*values.yaml; do
           echo "Generating new templates with $values";
           helm template \
+              -n ess-ci \
               -a monitoring.coreos.com/v1/ServiceMonitor \
               -f "$values" charts/matrix-stack | \
           yq ea '[.] | sort_by(.kind, .metadata.name) | .[] | splitDoc' > "$RUNNER_TEMP/new/$(basename "$values")"
