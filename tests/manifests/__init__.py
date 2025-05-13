@@ -159,7 +159,7 @@ class DeployableDetails(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def deployable_details_for_container(self, container_name: str | None) -> "DeployableDetails | None":
+    def deployable_details_for_container(self, container_name: str) -> "DeployableDetails | None":
         pass
 
 
@@ -194,8 +194,8 @@ class SidecarDetails(DeployableDetails):
 
         return manifest_name.startswith(self.name)
 
-    def deployable_details_for_container(self, container_name: str | None) -> DeployableDetails | None:
-        return self if container_name is not None and container_name.startswith(self.name) else None
+    def deployable_details_for_container(self, container_name: str) -> DeployableDetails | None:
+        return self if container_name.startswith(self.name) else None
 
 
 @dataclass(unsafe_hash=True)
@@ -211,7 +211,7 @@ class SubComponentDetails(DeployableDetails):
     def owns_manifest_named(self, manifest_name: str) -> bool:
         return manifest_name.startswith(self.name)
 
-    def deployable_details_for_container(self, container_name: str | None) -> DeployableDetails:
+    def deployable_details_for_container(self, container_name: str) -> DeployableDetails:
         for sidecar in self.sidecars:
             if sidecar.deployable_details_for_container(container_name) is not None:
                 return sidecar
@@ -281,7 +281,7 @@ class ComponentDetails(DeployableDetails):
 
         return manifest_name.startswith(self.name)
 
-    def deployable_details_for_container(self, container_name: str | None) -> DeployableDetails:
+    def deployable_details_for_container(self, container_name: str) -> DeployableDetails:
         for sidecar in self.sidecars:
             if sidecar.deployable_details_for_container(container_name) is not None:
                 return sidecar
