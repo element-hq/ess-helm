@@ -17,6 +17,7 @@ class PropertyType(Enum):
     PodSecurityContext = "podSecurityContext"
     Postgres = "postgres"
     ReadinessProbe = "readinessProbe"
+    Resources = "resources"
     StartupProbe = "startupProbe"
     ServiceAccount = "serviceAccount"
     ServiceMonitor = "serviceMonitors"
@@ -457,6 +458,8 @@ all_components_details = [
                     PropertyType.LivenessProbe: None,
                     # has_workloads and so podSecurityContext but comes from synapse.podSecurityContext
                     PropertyType.PodSecurityContext: None,
+                    # has_workloads but comes from synapse.resources
+                    PropertyType.Resources: None,
                     # Job so no readinessProbe
                     PropertyType.ReadinessProbe: None,
                     # Job so no startupProbe
