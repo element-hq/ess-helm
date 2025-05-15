@@ -12,7 +12,7 @@ matrixAuthenticationService:
 
 matrixRTC:
   ingress:
-    tlsSecret: ess-auth-certificate
+    tlsSecret: ess-mrtc-certificate
 
 synapse:
   ingress:
