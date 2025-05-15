@@ -2,12 +2,11 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-from typing import Any, Callable
 
 import pytest
 
 from . import DeployableDetails, PropertyType, values_files_to_test
-from .utils import iterate_deployables_workload_parts, iterate_synapse_workers_parts, template_id
+from .utils import iterate_deployables_workload_parts, template_id
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -95,55 +94,14 @@ def set_probe_details(deployables_details, values, probe_type):
     return deployable_details_to_probe_details
 
 
-def set_synapse_probe_details(all_values, probe_type):
-    worker_to_probe_details = {}
-
-    # We have a counter that increments for each probe field for each worker
-    # That way we can assert a) the correct value is going into the correct field and
-    # b) that the correct part of the values file is being used
-    counter = 100
-
-    def set_probe_details(worker_name, values):
-        nonlocal counter
-        probe_details = {
-            "failureThreshold": counter,
-            "initialDelaySeconds": counter + 1,
-            "periodSeconds": counter + 2,
-            # livenessProbes can only set this to 1 (or absent which then defaults to 1)
-            "successThreshold": None if probe_type in [PropertyType.LivenessProbe] else counter + 3,
-            "timeoutSeconds": counter + 4,
-        }
-        counter += 5
-        worker_to_probe_details[worker_name] = probe_details
-        values[probe_type.value] = probe_details
-
-    iterate_synapse_workers_parts(all_values, set_probe_details)
-    return worker_to_probe_details
-
-
-def deployable_details_probe_fetcher(deployable_details_to_probe_details, template_to_deployable_details):
-    def probe_details_fetcher(template, container_name):
-        deployable_details = template_to_deployable_details(template, container_name)
-        return deployable_details_to_probe_details[deployable_details]
-
-    return probe_details_fetcher
-
-
-def synapse_worker_probe_fetcher(release_name, worker_to_probe_details):
-    def probe_details_fetcher(template, _):
-        worker_name = template["metadata"]["name"].replace(f"{release_name}-synapse-", "")
-        return worker_to_probe_details[worker_name]
-
-    return probe_details_fetcher
-
-
-def assert_matching_probe(template, probe_type, probe_details_fetcher: Callable[[dict[str, Any], str], dict[str, Any]]):
+def assert_matching_probe(template, probe_type, deployable_details_to_probe_details, template_to_deployable_details):
     for container in template["spec"]["template"]["spec"]["containers"]:
         assert probe_type in container, (
             f"{template_id(template)} has container {container['name']} without a {probe_type}"
         )
 
-        probe_details = probe_details_fetcher(template, container["name"])
+        deployable_details = template_to_deployable_details(template, container["name"])
+        probe_details = deployable_details_to_probe_details[deployable_details]
         probe = container[probe_type]
 
         for key, value in probe_details.items():
@@ -177,30 +135,12 @@ async def test_livenessProbes_are_configurable(
 ):
     deployable_details_to_probe_details = set_probe_details(deployables_details, values, PropertyType.LivenessProbe)
     for template in await make_templates(values):
-        if (
-            template["kind"] in ["Deployment", "StatefulSet"]
-            and template_to_deployable_details(template).name != "synapse"
-        ):
+        if template["kind"] in ["Deployment", "StatefulSet"]:
             assert_matching_probe(
                 template,
                 "livenessProbe",
-                deployable_details_probe_fetcher(deployable_details_to_probe_details, template_to_deployable_details),
-            )
-
-
-@pytest.mark.parametrize("values_file", values_files_to_test)
-@pytest.mark.asyncio_cooperative
-async def test_synapse_livenessProbes_are_configurable(
-    all_values, release_name, make_templates, template_to_deployable_details
-):
-    workers_to_probe_details = set_synapse_probe_details(all_values, PropertyType.LivenessProbe)
-    for template in await make_templates(all_values):
-        if (
-            template["kind"] in ["Deployment", "StatefulSet"]
-            and template_to_deployable_details(template).name == "synapse"
-        ):
-            assert_matching_probe(
-                template, "livenessProbe", synapse_worker_probe_fetcher(release_name, workers_to_probe_details)
+                deployable_details_to_probe_details,
+                template_to_deployable_details,
             )
 
 
@@ -219,30 +159,12 @@ async def test_readinessProbes_are_configurable(
 ):
     deployable_details_to_probe_details = set_probe_details(deployables_details, values, PropertyType.ReadinessProbe)
     for template in await make_templates(values):
-        if (
-            template["kind"] in ["Deployment", "StatefulSet"]
-            and template_to_deployable_details(template).name != "synapse"
-        ):
+        if template["kind"] in ["Deployment", "StatefulSet"]:
             assert_matching_probe(
                 template,
                 "readinessProbe",
-                deployable_details_probe_fetcher(deployable_details_to_probe_details, template_to_deployable_details),
-            )
-
-
-@pytest.mark.parametrize("values_file", values_files_to_test)
-@pytest.mark.asyncio_cooperative
-async def test_synapse_readinessProbes_are_configurable(
-    all_values, release_name, make_templates, template_to_deployable_details
-):
-    workers_to_probe_details = set_synapse_probe_details(all_values, PropertyType.ReadinessProbe)
-    for template in await make_templates(all_values):
-        if (
-            template["kind"] in ["Deployment", "StatefulSet"]
-            and template_to_deployable_details(template).name == "synapse"
-        ):
-            assert_matching_probe(
-                template, "readinessProbe", synapse_worker_probe_fetcher(release_name, workers_to_probe_details)
+                deployable_details_to_probe_details,
+                template_to_deployable_details,
             )
 
 
@@ -261,28 +183,10 @@ async def test_startupProbes_are_configurable(
 ):
     deployable_details_to_probe_details = set_probe_details(deployables_details, values, PropertyType.StartupProbe)
     for template in await make_templates(values):
-        if (
-            template["kind"] in ["Deployment", "StatefulSet"]
-            and template_to_deployable_details(template).name != "synapse"
-        ):
+        if template["kind"] in ["Deployment", "StatefulSet"]:
             assert_matching_probe(
                 template,
                 "startupProbe",
-                deployable_details_probe_fetcher(deployable_details_to_probe_details, template_to_deployable_details),
-            )
-
-
-@pytest.mark.parametrize("values_file", values_files_to_test)
-@pytest.mark.asyncio_cooperative
-async def test_synapse_startupProbes_are_configurable(
-    all_values, release_name, make_templates, template_to_deployable_details
-):
-    workers_to_probe_details = set_synapse_probe_details(all_values, PropertyType.StartupProbe)
-    for template in await make_templates(all_values):
-        if (
-            template["kind"] in ["Deployment", "StatefulSet"]
-            and template_to_deployable_details(template).name == "synapse"
-        ):
-            assert_matching_probe(
-                template, "startupProbe", synapse_worker_probe_fetcher(release_name, workers_to_probe_details)
+                deployable_details_to_probe_details,
+                template_to_deployable_details,
             )

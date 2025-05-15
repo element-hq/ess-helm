@@ -73,6 +73,7 @@ class DeployableDetails(abc.ABC):
     has_service_monitor: bool = field(default=None, hash=False)  # type: ignore[assignment]
     has_storage: bool = field(default=False, hash=False)
     has_topology_spread_constraints: bool = field(default=None, hash=False)  # type: ignore[assignment]
+    is_synapse_process: bool = field(default=False)
 
     paths_consistency_noqa: tuple[str, ...] = field(default=(), hash=False)
     skip_path_consistency_for_files: tuple[str, ...] = field(default=(), hash=False)
@@ -288,6 +289,63 @@ class ComponentDetails(DeployableDetails):
         return self
 
 
+def make_synapse_worker_sub_component(worker_name: str) -> SubComponentDetails:
+    helm_keys_overrides: dict[PropertyType, tuple[str, ...] | None] = {
+        # Doesn't have its own env, comes from synapse.extraEnv
+        PropertyType.Env: None,
+        # Doesn't have its own image, comes from synapse.image
+        PropertyType.Image: None,
+        # Doesn't have its own labels, comes from synapse.labels
+        PropertyType.Labels: None,
+        # Doesn't have its own podSecurityContext, comes from synapse.podSecurityContext
+        PropertyType.PodSecurityContext: None,
+        # Doesn't have its own serviceAccount, comes from synapse.serviceAccount
+        PropertyType.ServiceAccount: None,
+        # Doesn't have its own serviceMonitor, comes from synapse.serviceMonitor
+        PropertyType.ServiceMonitor: None,
+        # has_workloads and so tolerations but comes from synapse.tolerations
+        PropertyType.Tolerations: None,
+        # has_topology_spread_constraints and so topologySpreadConstraints
+        # but comes from synapse.topologySpreadConstraints
+        PropertyType.TopologySpreadConstraints: None,
+    }
+
+    return SubComponentDetails(
+        f"synapse-{worker_name}",
+        helm_keys=("synapse", "workers", worker_name),
+        helm_keys_overrides=helm_keys_overrides,
+        has_ingress=False,
+        is_synapse_process=True,
+    )
+
+
+synapse_workers_details = tuple(
+    make_synapse_worker_sub_component(worker_name)
+    for worker_name in [
+        "appservice",
+        "background",
+        "client-reader",
+        "encryption",
+        "event-creator",
+        "event-persister",
+        "federation-inbound",
+        "federation-reader",
+        "federation-sender",
+        "initial-synchrotron",
+        "media-repository",
+        "presence-writer",
+        "push-rules",
+        "pusher",
+        "receipts-account",
+        "sliding-sync",
+        "sso-login",
+        "synchrotron",
+        "typing-persister",
+        "user-dir",
+    ]
+)
+
+
 all_components_details = [
     ComponentDetails(
         name="init-secrets",
@@ -375,9 +433,11 @@ all_components_details = [
         name="synapse",
         has_db=True,
         has_storage=True,
+        is_synapse_process=True,
         additional_values_files=("synapse-worker-example-values.yaml",),
         skip_path_consistency_for_files=("path_map_file", "path_map_file_get"),
-        sub_components=(
+        sub_components=synapse_workers_details
+        + (
             SubComponentDetails(
                 name="synapse-redis",
                 helm_keys=("synapse", "redis"),
@@ -391,7 +451,7 @@ all_components_details = [
                 helm_keys_overrides={
                     # has_workloads but comes from synapse.extraEnv
                     PropertyType.Env: None,
-                    # has_workloads and so comes from synapse.image
+                    # has_workloads but comes from synapse.image
                     PropertyType.Image: None,
                     # Job so no livenessProbe
                     PropertyType.LivenessProbe: None,

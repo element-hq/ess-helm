@@ -1,4 +1,4 @@
-# Copyright 2024 New Vector Ltd
+# Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -9,7 +9,11 @@ import pytest
 import yaml
 
 from . import DeployableDetails, PropertyType
-from .utils import iterate_deployables_ingress_parts, iterate_synapse_workers_parts, template_id
+from .utils import (
+    iterate_deployables_ingress_parts,
+    iterate_synapse_workers_parts,
+    template_id,
+)
 
 
 @pytest.mark.parametrize("values_file", ["synapse-minimal-values.yaml"])
