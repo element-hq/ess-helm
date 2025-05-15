@@ -37,7 +37,7 @@ key_file: /secrets/{{ (printf "/secrets/%s"
       (include "element-io.ess-library.provided-secret-path" (
         dict "root" $root "context" (
           dict "secretPath" "matrixRTC.livekitAuth.keysYaml"
-              "defaultSecretName" (printf "%s-matrix-rtc-authorizer" $root.Release.Name)
+              "defaultSecretName" (printf "%s-matrix-rtc-authorisation-service" $root.Release.Name)
               "defaultSecretKey" "LIVEKIT_KEYS_YAML"
               )
         ))) }}
