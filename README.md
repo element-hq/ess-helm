@@ -171,6 +171,7 @@ mkdir ~/.kube
 export KUBECONFIG=~/.kube/config
 sudo k3s kubectl config view --raw > "$KUBECONFIG"
 chmod 600 "$KUBECONFIG"
+chown "$USER:$USER" "$KUBECONFIG"
 ```
 
 3. Add `export KUBECONFIG=~/.kube/config` to `~/.bashrc` to make it persistent
@@ -264,6 +265,7 @@ kubectl create secret tls ess-certificate -n ess --cert=path/to/cert/file --key=
 kubectl create secret tls ess-chat-certificate -n ess --cert=path/to/cert/file --key=path/to/key/file
 kubectl create secret tls ess-matrix-certificate -n ess --cert=path/to/cert/file --key=path/to/key/file
 kubectl create secret tls ess-auth-certificate -n ess --cert=path/to/cert/file --key=path/to/key/file
+kubectl create secret tls ess-mtrc-certificate -n ess --cert=path/to/cert/file --key=path/to/key/file
 kubectl create secret tls ess-well-known-certificate -n ess --cert=path/to/cert/file --key=path/to/key/file
 ```
 
@@ -439,4 +441,7 @@ rm -rf /usr/local/bin/helm $HOME/.cache/helm $HOME/.config/helm $HOME/.local/sha
 
 # Uninstall k3s
 /usr/local/bin/k3s-uninstall.sh
+
+# (Optional) Remove config
+rm -rf ~/ess-config-values ~/.kube
 ```
