@@ -252,13 +252,6 @@ def iterate_deployables_workload_parts(
     iterate_deployables_parts(deployables_details, visitor, lambda deployable_details: deployable_details.has_workloads)
 
 
-def iterate_deployables_image_parts(
-    deployables_details: tuple[DeployableDetails],
-    visitor: Callable[[DeployableDetails], None],
-):
-    iterate_deployables_parts(deployables_details, visitor, lambda deployable_details: deployable_details.has_image)
-
-
 def iterate_deployables_ingress_parts(
     deployables_details: tuple[DeployableDetails],
     visitor: Callable[[DeployableDetails], None],
