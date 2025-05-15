@@ -106,6 +106,7 @@ jobs:
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
       with:
         ref: ${{ github.event.pull_request.head.sha }}
+        fetch-depth: 0
 
     # helm template doesn't reliably order manifests within the same kind, so use yq to do it for us
     - name: Generate manifests for PR
@@ -120,10 +121,18 @@ jobs:
           yq ea '[.] | sort_by(.kind, .metadata.name) | .[] | splitDoc' > "$RUNNER_TEMP/new/$(basename "$values")"
         done
 
+    # We want the most recent common ancestor between the target & PR branches rather than the target branch itself
+    # There could have been more commits to the target branch since the PR branch was created and we don't want to see
+    # those changes in the dyff, only what this branch is doing.
+    - name: Determine most recent common ancestor of target and PR branches
+      id: merge-base
+      run: |
+        echo "merge-base=$(git merge-base ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})" | tee -a "$GITHUB_OUTPUT"
+
     - name: Checkout target
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
       with:
-        ref: ${{ github.event.pull_request.base.sha }}
+        ref: ${{ steps.merge-base.outputs.merge-base }}
 
     - name: Generate manifests for base
       run: |
