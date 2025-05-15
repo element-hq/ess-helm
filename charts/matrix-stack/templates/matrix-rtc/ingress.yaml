@@ -24,7 +24,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: "{{ $.Release.Name }}-matrix-rtc-authorizer"
+            name: "{{ $.Release.Name }}-matrix-rtc-authorisation-service"
             port:
               name: http
 {{ if .sfu.enabled }}

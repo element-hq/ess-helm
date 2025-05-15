@@ -12,8 +12,8 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   labels:
-    {{- include "element-io.matrix-rtc-authorizer.labels" (dict "root" $ "context" .) | nindent 4 }}
-  name: {{ $.Release.Name }}-matrix-rtc-authorizer
+    {{- include "element-io.matrix-rtc-authorisation-service.labels" (dict "root" $ "context" .) | nindent 4 }}
+  name: {{ $.Release.Name }}-matrix-rtc-authorisation-service
   namespace: {{ $.Release.Namespace }}
 spec:
   endpoints:
@@ -22,8 +22,8 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/part-of: matrix-stack
-      app.kubernetes.io/component: matrix-rtc-authorizer
-      app.kubernetes.io/instance: {{ $.Release.Name }}-matrix-rtc-authorizer
+      app.kubernetes.io/component: matrix-rtc-authorisation-service
+      app.kubernetes.io/instance: {{ $.Release.Name }}-matrix-rtc-authorisation-service
 {{- end }}
 {{- end }}
 {{- end -}}
