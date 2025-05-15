@@ -41,6 +41,7 @@ jobs:
         reuse --version
         reuse spdx | ./scripts/spdx_checks.py
 
+# REUSE-IgnoreStart
     - name: Copyright dates
       env:
         BASE_REF: ${{ github.event.pull_request.base.sha }}
@@ -84,3 +85,4 @@ jobs:
           echo "no errors"
           exit 0
         fi
+# REUSE-IgnoreEnd
