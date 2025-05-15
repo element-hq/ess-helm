@@ -16,7 +16,7 @@ import pyhelm3
 import pytest
 import yaml
 
-from . import DeployableDetails, values_files_to_deployables_details
+from . import DeployableDetails, PropertyType, values_files_to_deployables_details
 
 template_cache = {}
 values_cache = {}
@@ -266,15 +266,6 @@ def iterate_deployables_ingress_parts(
     iterate_deployables_parts(deployables_details, visitor, lambda deployable_details: deployable_details.has_ingress)
 
 
-def iterate_deployables_service_monitor_parts(
-    deployables_details: tuple[DeployableDetails],
-    visitor: Callable[[DeployableDetails], None],
-):
-    iterate_deployables_parts(
-        deployables_details, visitor, lambda deployable_details: deployable_details.has_service_monitor
-    )
-
-
 def iterate_synapse_workers_parts(
     all_values: dict[str, Any],
     visitor: Callable[[str, dict[str, Any]], None],
@@ -341,3 +332,72 @@ def get_or_empty(d, key):
         return res
     else:
         return {}
+
+
+def find_workload_ids_matching_selector(templates: list[dict[str, Any]], selector: dict[str, str]) -> set[str]:
+    workload_ids = set[str]()
+    for template in templates:
+        if template["kind"] in ("Deployment", "StatefulSet", "Job") and selector_match(
+            template["spec"]["template"]["metadata"]["labels"], selector
+        ):
+            workload_ids.add(template_id(template))
+
+    return workload_ids
+
+
+def find_services_matching_selector(templates: list[dict[str, Any]], selector: dict[str, str]) -> list[dict[str, Any]]:
+    services = []
+    for template in templates:
+        if template["kind"] == "Service" and selector_match(template["metadata"]["labels"], selector):
+            services.append(template)
+    return services
+
+
+def selector_match(labels: dict[str, str], selector: dict[str, str]) -> bool:
+    return all(labels.get(key) == value for key, value in selector.items())
+
+
+async def assert_covers_expected_workloads(
+    deployables_details,
+    values,
+    make_templates,
+    template_to_deployable_details,
+    covering_kind: str,
+    toggling_property_type: PropertyType,
+    if_condition: Callable[[DeployableDetails], bool],
+    workload_ids_covered_by_template: Callable[[dict[str, Any], dict[str, list[dict[str, Any]]]], set[str]],
+):
+    def disable_covering_templates(deployable_details: DeployableDetails):
+        deployable_details.set_helm_values(values, toggling_property_type, {"enabled": False})
+
+    iterate_deployables_parts(deployables_details, disable_covering_templates, if_condition)
+
+    # We should now have no rendered templates of the covering_kind
+    workload_ids_to_cover = set()
+    for template in await make_templates(values):
+        assert template["kind"] != covering_kind, (
+            f"{template_id(template)} unexpectedly exists when all {covering_kind} should be turned off"
+        )
+        deployable_details = template_to_deployable_details(template)
+        if template["kind"] in ["Deployment", "StatefulSet"] and if_condition(deployable_details):
+            workload_ids_to_cover.add(template_id(template))
+
+    def enable_covering_templates(deployable_details: DeployableDetails):
+        deployable_details.set_helm_values(values, toggling_property_type, {"enabled": True})
+
+    iterate_deployables_parts(deployables_details, enable_covering_templates, if_condition)
+
+    templates_by_kind = dict[str, list[dict[str, Any]]]()
+    for template in await make_templates(values):
+        templates_by_kind.setdefault(template["kind"], []).append(template)
+
+    covered_workload_ids = set[str]()
+    for seen_covering_template in templates_by_kind.get(covering_kind, []):
+        new_covered_workload_ids = workload_ids_covered_by_template(seen_covering_template, templates_by_kind)
+        assert len(new_covered_workload_ids) > 0, f"{template_id(seen_covering_template)} should cover some workloads"
+        assert covered_workload_ids.intersection(new_covered_workload_ids) == set(), (
+            "Workloads were covered more than once"
+        )
+        covered_workload_ids.update(new_covered_workload_ids)
+
+    assert workload_ids_to_cover == covered_workload_ids, "Not all workloads we were expecting to cover were covered"
