@@ -1,4 +1,4 @@
-# Copyright 2024 New Vector Ltd
+# Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -19,6 +19,7 @@ jobs:
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
       with:
         ref: ${{ github.event.pull_request.head.sha }}
+        fetch-depth: 0
 
     - uses: matrix-org/setup-python-poetry@5bbf6603c5c930615ec8a29f1b5d7d258d905aa4  # v2
       with:
@@ -40,3 +41,50 @@ jobs:
         git config --global --add safe.directory "$GITHUB_WORKSPACE"
         reuse --version
         reuse spdx | ./scripts/spdx_checks.py
+
+# REUSE-IgnoreStart
+    - name: Copyright dates
+      env:
+        BASE_REF: ${{ github.event.pull_request.base.sha }}
+        HEAD_REF: ${{ github.event.pull_request.head.sha }}
+      run: |
+        echo "Comparing $BASE_REF against current branch HEAD $(git rev-parse "$HEAD_REF")"
+        error_flag="false"
+
+        # Get the list of changed files
+        changed_files=$(git diff --diff-filter=rd --name-only "$BASE_REF...$HEAD_REF")
+        copyright_year_now=$(date +%Y)
+        # Function to check if the copyright header is present in the file
+        # We ignore files without copyrights as we only want to check if the copyright is correct
+        # The check-enterprise-licensing job will verify that all files are copyrighted
+        has_copyright_header() {
+            file="$1"
+            head -n 5 "$file" | grep -q "Copyright"
+        }
+        # Function to check if the copyright header is present with the correct date
+        check_copyright_header() {
+            file="$1"
+            head -n 5 "$file" | grep -qE "Copyright $2" "$file"
+        }
+
+        echo "Changed files to verify : $changed_files"
+        # Loop through each changed file
+        for file in $changed_files; do
+            if [ -e "$file" ]; then
+                if has_copyright_header "$file" && ! check_copyright_header "$file" "$copyright_year_now"  && ! check_copyright_header "$file" "20[0-9]{2}-$copyright_year_now"; then
+                    echo "Copyright header not found or incorrect in $file"
+                    error_flag="true"
+                fi
+            else
+              echo "$file was removed"
+            fi
+        done
+
+        if [[ "$error_flag" == "true" ]]; then
+          echo "errors happened"
+          exit 1
+        else
+          echo "no errors"
+          exit 0
+        fi
+# REUSE-IgnoreEnd
