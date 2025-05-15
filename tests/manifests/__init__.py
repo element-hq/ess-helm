@@ -122,7 +122,7 @@ class DeployableDetails(abc.ABC):
             values_fragment = values_fragment.setdefault(helm_key, {})
         return values_fragment
 
-    def set_helm_values(self, all_values: dict[str, Any], propertyType: PropertyType, values_to_set: Any):
+    def set_helm_values(self, values: dict[str, Any], propertyType: PropertyType, values_to_set: Any):
         """
         Sets a fragment of values for this deployable for a given PropertyType.
         This fragment can be:
@@ -139,7 +139,7 @@ class DeployableDetails(abc.ABC):
         if helm_keys is None:
             return
 
-        values_fragment = all_values
+        values_fragment = values
         for index, helm_key in enumerate(helm_keys):
             # The last iteration through is the specific property we want to set. We know everything
             # higher this will be a dict, but at the end, for a specific property, we could be
