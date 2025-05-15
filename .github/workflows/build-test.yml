@@ -131,6 +131,7 @@ jobs:
         for values in charts/matrix-stack/ci/*values.yaml; do
           echo "Generating old templates with $values";
           helm template \
+              -n ess-ci \
               -a monitoring.coreos.com/v1/ServiceMonitor \
               -f "$values" charts/matrix-stack | \
           yq ea '[.] | sort_by(.kind, .metadata.name) | .[] | splitDoc' > "$RUNNER_TEMP/old/$(basename "$values")"
