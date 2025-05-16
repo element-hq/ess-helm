@@ -75,26 +75,7 @@ We have an init container to render & merge the config for several reasons:
         {{- toYaml . | nindent 8 }}
 {{- end }}
       command:
-      - "/matrix-tools"
-      - render-config
-      - -output
-      - /conf/homeserver.yaml
-      - /config-templates/01-homeserver-underrides.yaml
-        {{- range $key := (.additional | keys | uniq | sortAlpha) -}}
-        {{- $prop := index $root.Values.synapse.additional $key }}
-        {{- if $prop.config }}
-      - /secrets/{{ (include "element-io.synapse.secret-name" (dict "root" $root "context" (dict "isHook" $isHook))) }}/user-{{ $key }}
-        {{- end }}
-        {{- if $prop.configSecret }}
-      - /secrets/{{ tpl $prop.configSecret $root }}/{{ $prop.configSecretKey }}
-        {{- end }}
-        {{- end }}
-      - /config-templates/04-homeserver-overrides.yaml
-{{- if eq $processType "check-config-hook" }}
-      - /config-templates/05-main.yaml
-{{- else }}
-      - /config-templates/05-{{ $processType }}.yaml
-{{- end }}
+      {{- include "element-io.synapse.render-config" (dict "root" $root "context" .) | nindent 6 }}
       env:
         {{- include "element-io.synapse.matrixToolsEnv" (dict "root" $root "context" .) | nindent 8 }}
         {{- include "element-io.synapse.env" (dict "root" $root "context" .) | nindent 8 }}

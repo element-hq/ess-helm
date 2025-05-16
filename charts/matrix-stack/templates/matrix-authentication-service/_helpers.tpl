@@ -254,3 +254,24 @@ config.yaml: |
 {{- end -}}
 {{- end }}
 {{- end -}}
+
+
+{{- define "element-io.matrix-authentication-service.render-config" -}}
+{{- $root := .root -}}
+{{- with required "element-io.matrix-authentication-service.render-config missing context" .context -}}
+- "/matrix-tools"
+- render-config
+- -output
+- /conf/config.yaml
+  {{- range $key := (.additional | keys | uniq | sortAlpha) -}}
+  {{- $prop := index $root.Values.matrixAuthenticationService.additional $key }}
+  {{- if $prop.config }}
+- /secrets/{{ $root.Release.Name }}-matrix-authentication-service/user-{{ $key }}
+  {{- end }}
+  {{- if $prop.configSecret }}
+- /secrets/{{ tpl $prop.configSecret $root }}/{{ $prop.configSecretKey }}
+  {{- end }}
+  {{- end }}
+- /config-templates/config.yaml
+{{- end }}
+{{- end }}

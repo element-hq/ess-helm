@@ -5,9 +5,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 
 {{- with .Values.matrixAuthenticationService -}}
-{{- if and .enabled (not .syn2mas.enabled) -}}
-apiVersion: apps/v1
-kind: Deployment
+{{- if and .enabled .syn2mas.enabled .syn2mas.check $.Values.synapse.enabled -}}
+{{- $synapseContext := (mustMergeOverwrite ($.Values.synapse | deepCopy) (dict "processType" "main" "isHook" false)) -}}
+apiVersion: batch/v1
+kind: Job
 metadata:
 {{- with .annotations }}
   annotations:
@@ -25,46 +26,25 @@ metadata:
   name: {{ $.Release.Name }}-matrix-authentication-service
   namespace: {{ $.Release.Namespace }}
 spec:
-  replicas: {{ .replicas }}
-  selector:
-    matchLabels:
-      app.kubernetes.io/instance: "{{ $.Release.Name }}-matrix-authentication-service"
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: 1
-      maxSurge: 2
+  backoffLimit: 0
+  completionMode: NonIndexed
+  completions: 1
+  manualSelector: false
+  parallelism: 1
+  podReplacementPolicy: TerminatingOrFailed
   template:
     metadata:
-      labels:
-        {{- include "element-io.matrix-authentication-service.labels" (dict "root" $ "context" (dict "image" .image "labels" .labels "withChartVersion" false)) | nindent 8 }}
-        k8s.element.io/matrix-authentication-service-config-hash: "{{ include "element-io.matrix-authentication-service.configmap-data" (dict "root" $ "context" .) | sha1sum }}"
-        k8s.element.io/matrix-authentication-service-secret-hash: "{{ include "element-io.matrix-authentication-service.secret-data" (dict "root" $ "context" .) | sha1sum }}"
-        {{ include "element-io.ess-library.postgres-label" (dict "root" $ "context" (dict
-                                                                "essPassword" "matrixAuthenticationService"
-                                                                "postgresProperty" .postgres
-                                                                )
-                                            ) }}
-{{- with .annotations }}
       annotations:
+{{- with .annotations }}
         {{- toYaml . | nindent 8 }}
 {{- end }}
+      labels:
+        {{- include "element-io.init-secrets.labels" (dict "root" $ "context" (dict "labels" .labels "withChartVersion" false)) | nindent 8 }}
     spec:
-{{- if gt (.replicas | int) 1 }}
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-              - key: app.kubernetes.io/instance
-                operator: In
-                values:
-                - "{{ $.Release.Name }}-matrix-authentication-service"
-            topologyKey: kubernetes.io/hostname
-{{- end }}
-{{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "matrix-authentication-service" "deployment" true "usesMatrixTools" true)) | nindent 6 }}
+      restartPolicy: OnFailure
+{{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "init-secrets" "deployment" false "usesMatrixTools" true "mountServiceAccountToken" true)) | nindent 6 }}
       initContainers:
-      - name: render-config
+      - name: render-config-mas
 {{- with $.Values.matrixTools.image -}}
 {{- if .digest }}
         image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
@@ -99,7 +79,44 @@ spec:
         - mountPath: /conf
           name: rendered-config
           readOnly: false
-      - name: db-wait
+{{- with $synapseContext }}
+      - name: render-config-syn
+{{- with $.Values.matrixTools.image -}}
+{{- if .digest }}
+        image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
+        imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
+{{- else }}
+        image: "{{ .registry }}/{{ .repository }}:{{ required "matrixTools.image.tag is required if no digest" .tag }}"
+        imagePullPolicy: {{ .pullPolicy | default "Always" }}
+{{- end }}
+{{- end }}
+{{- with .containersSecurityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+{{- end }}
+        command:
+        {{- include "element-io.synapse.render-config" (dict "root" $ "context" .) | nindent 8 }}
+        env:
+          {{- include "element-io.synapse.matrixToolsEnv" (dict "root" $ "context" .) | nindent 10 }}
+          {{- include "element-io.synapse.env" (dict "root" $ "context" .) | nindent 10 }}
+{{- with .resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+{{- end }}
+        volumeMounts:
+        - mountPath: /config-templates
+          name: plain-config
+          readOnly: true
+{{- range $secret := include "element-io.synapse.configSecrets" (dict "root" $ "context" .) | fromJsonArray }}
+        - mountPath: /secrets/{{ tpl $secret $ }}
+          name: "secret-{{ tpl $secret $ }}"
+          readOnly: true
+{{- end }}
+        - mountPath: /conf
+          name: rendered-config
+          readOnly: false
+{{- end }}
+      - name: db-wait-mas
 {{- with $.Values.matrixTools.image -}}
 {{- if .digest }}
         image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
@@ -122,14 +139,14 @@ spec:
         resources:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-      - name: database-migrate
-        args: ["database", "migrate"]
-{{- with .image -}}
+{{- with $synapseContext }}
+      - name: db-wait-syn
+{{- with $.Values.matrixTools.image -}}
 {{- if .digest }}
         image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
         imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
 {{- else }}
-        image: "{{ .registry }}/{{ .repository }}:{{ required "matrixAuthenticationService.image.tag is required if no digest" .tag }}"
+        image: "{{ .registry }}/{{ .repository }}:{{ required "matrixTools.image.tag is required if no digest" .tag }}"
         imagePullPolicy: {{ .pullPolicy | default "Always" }}
 {{- end }}
 {{- end }}
@@ -137,25 +154,19 @@ spec:
         securityContext:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-        env:
-        {{- include "element-io.matrix-authentication-service.env" (dict "root" $ "context" .) | nindent 10 }}
+        command:
+        - "/matrix-tools"
+        - tcpwait
+        - -address
+        - {{ include "element-io.ess-library.postgres-host-port" (dict "root" $ "context" (dict "postgres" .postgres)) | quote }}
 {{- with .resources }}
         resources:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-        volumeMounts:
-        - mountPath: "/config.yaml"
-          name: rendered-config
-          subPath: config.yaml
-          readOnly: true
-{{- range $secret := include "element-io.matrix-authentication-service.configSecrets" (dict "root" $ "context" .) | fromJsonArray }}
-        - mountPath: /secrets/{{ tpl $secret $ }}
-          name: "secret-{{ tpl $secret $ }}"
-          readOnly: true
 {{- end }}
       containers:
-      - name: matrix-authentication-service
-        args: ["server", "--no-migrate"]
+      - name: syn2mas-check
+        args: ["syn2mas", "check", "--config", "/conf/config.yaml", "--synapse-config", "/conf/homeserver.yaml"]
 {{- with .image -}}
 {{- if .digest }}
         image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
@@ -171,32 +182,10 @@ spec:
 {{- end }}
         env:
         {{- include "element-io.matrix-authentication-service.env" (dict "root" $ "context" .) | nindent 10 }}
-        ports:
-        - containerPort: 8080
-          protocol: TCP
-          name: http
-        - containerPort: 8081
-          protocol: TCP
-          name: internal
 {{- with .resources }}
         resources:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-        startupProbe: {{- include "element-io.ess-library.pods.probe" .startupProbe | nindent 10 }}
-          httpGet:
-            path: /health
-            port: internal
-            scheme: HTTP
-        livenessProbe: {{- include "element-io.ess-library.pods.probe" .livenessProbe | nindent 10 }}
-          httpGet:
-            path: /health
-            port: internal
-            scheme: HTTP
-        readinessProbe: {{- include "element-io.ess-library.pods.probe" .readinessProbe | nindent 10 }}
-          httpGet:
-            path: /health
-            port: internal
-            scheme: HTTP
         volumeMounts:
         - mountPath: "/config.yaml"
           name: rendered-config
@@ -207,17 +196,10 @@ spec:
           name: "secret-{{ tpl $secret $ }}"
           readOnly: true
 {{- end }}
-      volumes:
-      - emptyDir:
-          medium: Memory
-        name: "rendered-config"
-      - name: plain-config
-        configMap:
-          name: {{ $.Release.Name }}-matrix-authentication-service
-{{- range $secret := include "element-io.matrix-authentication-service.configSecrets" (dict "root" $ "context" .) | fromJsonArray }}
-      - secret:
-          secretName: {{ tpl $secret $ }}
-        name: secret-{{ tpl $secret $ }}
+{{- range $secret := include "element-io.synapse.configSecrets" (dict "root" $ "context" $synapseContext) | fromJsonArray }}
+        - mountPath: /secrets/{{ tpl $secret $ }}
+          name: "secret-{{ tpl $secret $ }}"
+          readOnly: true
 {{- end }}
-{{- end -}}
-{{- end -}}
+{{- end }}
+{{- end }}
