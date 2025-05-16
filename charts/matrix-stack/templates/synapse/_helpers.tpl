@@ -219,3 +219,31 @@ path_map_file: |
 path_map_file_get: |
 {{- (tpl ($root.Files.Get "configs/synapse/path_map_file_get.tpl") (dict "root" $root)) | nindent 2 -}}
 {{- end -}}
+
+{{- define "element-io.synapse.render-config" -}}
+{{- $root := .root -}}
+{{- with required "element-io.synapse.render-config missing context" .context }}
+{{- $isHook := required "element-io.synapse.render-config requires context.isHook" .isHook }}
+{{- $processType := required "element-io.synapse.render-config requires context.processType" .processType }}
+- "/matrix-tools"
+- render-config
+- -output
+- /conf/homeserver.yaml
+- /config-templates/01-homeserver-underrides.yaml
+  {{- range $key := (.additional | keys | uniq | sortAlpha) -}}
+  {{- $prop := index $root.Values.synapse.additional $key }}
+  {{- if $prop.config }}
+- /secrets/{{ (include "element-io.synapse.secret-name" (dict "root" $root "context" (dict "isHook" $isHook))) }}/user-{{ $key }}
+  {{- end }}
+  {{- if $prop.configSecret }}
+- /secrets/{{ tpl $prop.configSecret $root }}/{{ $prop.configSecretKey }}
+  {{- end }}
+  {{- end }}
+- /config-templates/04-homeserver-overrides.yaml
+{{- if eq $processType "check-config-hook" }}
+- /config-templates/05-main.yaml
+{{- else }}
+- /config-templates/05-{{ $processType }}.yaml
+{{- end }}
+{{- end }}
+{{- end }}
