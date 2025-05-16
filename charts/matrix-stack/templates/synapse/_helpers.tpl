@@ -236,3 +236,23 @@ path_map_file: |
 path_map_file_get: |
 {{- (tpl ($root.Files.Get "configs/synapse/path_map_file_get.tpl") (dict "root" $root)) | nindent 2 -}}
 {{- end -}}
+
+{{- define "element-io.synapse.render-config-container" -}}
+{{- $root := .root -}}
+{{- with required "element-io.synapse.render-config-container missing context" .context }}
+{{- $processType := required "element-io.synapse.render-config-container context required processType" .processType -}}
+{{- $isHook := required "element-io.synapse.render-config-container context required isHook" .isHook -}}
+{{- include "element-io.ess-library.render-config-container" (dict "root" $root "context"
+            (dict "additionalPath" "synapse.additional"
+                  "nameSuffix" "synapse"
+                  "containerName" .containerName
+                  "underrides" (list "01-homeserver-underrides.yaml")
+                  "overrides" (list "04-homeserver-overrides.yaml"
+                                    (eq $processType "check-config-hook" | ternary "05-main.yaml" (printf "05-%s.yaml" $processType)))
+                  "outputFile" "homeserver.yaml"
+                  "resources" .resources
+                  "containersSecurityContext" .containersSecurityContext
+                  "extraEnv" .extraEnv
+                  "isHook" $isHook)) }}
+{{- end }}
+{{- end }}

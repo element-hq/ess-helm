@@ -47,6 +47,32 @@
     "replicas": {
       "type": "integer"
     },
+    "syn2mas": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable synapse to Matrix Authentication Service migration."
+        },
+        "check": {
+          "type": "boolean",
+          "description": "Run the check job to verify that the migration is possible."
+        },
+        "migrate": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Run the migration job to migrate the data from Synapse to Matrix Authentication Service."
+            },
+            "dryRun": {
+              "type": "boolean",
+              "description": "Run the migration job in dry-run mode. Do not actually migrate the data."
+            }
+          }
+        }
+      }
+    },
     "ingress": {
       "$ref": "file://common/ingress.json"
     },

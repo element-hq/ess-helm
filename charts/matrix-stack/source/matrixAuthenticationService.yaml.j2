@@ -47,3 +47,16 @@ privateKeys:
 {{ sub_schema_values.probe("liveness") }}
 {{ sub_schema_values.probe("readiness") }}
 {{ sub_schema_values.probe("startup", failureThreshold=4) }}
+
+## Enables synapse to Matrix Authentication Service migration
+## The migration process must follow the following steps:
+## 1. Set `matrixAuthenticationService.enabled: true` and `matrixAuthenticationService.syn2mas.enabled: true`, run the `helm upgrade` command, check the result of the check job
+## 2. Set `matrixAuthenticationService.syn2mas.migrate.enable: true`, run the  helm upgrade command, check the result of the post-hook job
+## 3. Set `matrixAuthenticationService.syn2mas.migrate.dryRun`: false, run the helm upgrade command, check the result of the post-hook job
+## 4. Set `matrixAuthenticationService.syn2mas.enabled`: false, run the helm upgrade command, synapse restarts, Matrix Authentication Service as well, and users should now be migrated
+syn2mas:
+  enabled: false
+  check: true
+  migrate:
+    enabled: false
+    dryRun: true

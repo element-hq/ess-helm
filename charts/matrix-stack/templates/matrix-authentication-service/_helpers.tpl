@@ -276,3 +276,20 @@ config.yaml: |
 {{- end -}}
 {{- end }}
 {{- end -}}
+
+
+{{- define "element-io.matrix-authentication-service.render-config-container" -}}
+{{- $root := .root -}}
+{{- with required "element-io.matrix-authentication-service.render-config missing context" .context -}}
+{{ include "element-io.ess-library.render-config-container" (dict "root" $root "context" (
+        dict "additionalPath" "matrixAuthenticationService.additional"
+              "nameSuffix" "matrix-authentication-service"
+              "containerName" .containerName
+              "overrides" (list "config.yaml")
+              "outputFile" "config.yaml"
+              "resources" .resources
+              "containersSecurityContext" .containersSecurityContext
+              "extraEnv" .extraEnv
+              "isHook" false)) }}
+{{- end }}
+{{- end }}
