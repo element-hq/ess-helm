@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 
 {{- with .Values.matrixAuthenticationService -}}
-{{- if and .enabled (not .syn2mas.enabled) -}}
+{{- if .enabled -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -79,7 +79,20 @@ spec:
           {{- toYaml . | nindent 10 }}
 {{- end }}
         command:
-        {{- include "element-io.matrix-authentication-service.render-config" (dict "root" $ "context" .) | nindent 8 }}
+        - "/matrix-tools"
+        - render-config
+        - -output
+        - /conf/config.yaml
+          {{- range $key := (.additional | keys | uniq | sortAlpha) -}}
+          {{- $prop := index $.Values.matrixAuthenticationService.additional $key }}
+          {{- if $prop.config }}
+        - /secrets/{{ $.Release.Name }}-matrix-authentication-service/user-{{ $key }}
+          {{- end }}
+          {{- if $prop.configSecret }}
+        - /secrets/{{ tpl $prop.configSecret $ }}/{{ $prop.configSecretKey }}
+          {{- end }}
+          {{- end }}
+        - /config-templates/config.yaml
         env:
         {{- include "element-io.matrix-authentication-service.matrixToolsEnv" (dict "root" $ "context" .) | nindent 8 }}
         {{- include "element-io.matrix-authentication-service.env" (dict "root" $ "context" .) | nindent 8 }}
