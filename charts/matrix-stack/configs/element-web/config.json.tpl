@@ -38,7 +38,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- with .additional }}
 {{- range $key := (. | keys | uniq | sortAlpha) }}
 {{- $prop := index $root.Values.elementWeb.additional $key }}
-{{- $config = (mustMergeOverwrite ((tpl $prop $root) | fromJson) $config) -}}
+{{- $config = (mustMergeOverwrite $config ((tpl $prop $root) | fromJson)) -}}
 {{- end }}
 {{- end }}
 {{- toPrettyJson $config -}}
