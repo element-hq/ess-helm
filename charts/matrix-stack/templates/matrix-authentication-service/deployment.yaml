@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 
 {{- with .Values.matrixAuthenticationService -}}
-{{- if and .enabled (not .syn2mas.enabled) -}}
+{{- if .enabled -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
