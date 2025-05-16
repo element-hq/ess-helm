@@ -1,5 +1,5 @@
 {#
-Copyright 2024 New Vector Ltd
+Copyright 2024-2025 New Vector Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 #}
@@ -32,7 +32,7 @@ SPDX-License-Identifier: AGPL-3.0-only
   ## If omitted the global Synapse resources are used
   # resources: {}
 
-{{- sub_schema_values.probe("liveness", failureThreshold=3, periodSeconds=6, timeoutSeconds=2) | indent(2) }}
-{{- sub_schema_values.probe("readiness", failureThreshold=3, periodSeconds=2, successThreshold=2, timeoutSeconds=2) | indent(2) }}
+{{- sub_schema_values.probe("liveness", periodSeconds=6, timeoutSeconds=2) | indent(2) }}
+{{- sub_schema_values.probe("readiness", periodSeconds=2, successThreshold=2, timeoutSeconds=2) | indent(2) }}
 {{- sub_schema_values.probe("startup", failureThreshold=21, periodSeconds=2) | indent(2) }}
 {%- endmacro %}

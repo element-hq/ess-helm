@@ -50,6 +50,19 @@ def assert_sensible_default_probe(template, probe_type):
         )
         probe = container[probe_type]
 
+        assert "failureThreshold" in probe, (
+            f"{template_id(template)} has container {container['name']} with a {probe_type} missing a failureThreshold"
+        )
+        assert "periodSeconds" in probe, (
+            f"{template_id(template)} has container {container['name']} with a {probe_type} missing a periodSeconds"
+        )
+        assert "successThreshold" in probe, (
+            f"{template_id(template)} has container {container['name']} with a {probe_type} missing a successThreshold"
+        )
+        assert "timeoutSeconds" in probe, (
+            f"{template_id(template)} has container {container['name']} with a {probe_type} missing a timeoutSeconds"
+        )
+
         assert "httpGet" in probe or "exec" in probe or "tcpSocket" in probe
         if "httpGet" in probe:
             assert "port" in probe["httpGet"], (
