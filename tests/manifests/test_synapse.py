@@ -1,15 +1,17 @@
-# Copyright 2024 New Vector Ltd
+# Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-
-from typing import Any, Callable
 
 import pytest
 import yaml
 
 from . import DeployableDetails, PropertyType
-from .utils import iterate_deployables_ingress_parts, iterate_synapse_workers_parts, template_id
+from .utils import (
+    iterate_deployables_ingress_parts,
+    iterate_deployables_parts,
+    template_id,
+)
 
 
 @pytest.mark.parametrize("values_file", ["synapse-minimal-values.yaml"])
@@ -142,27 +144,11 @@ async def test_log_level_overrides(values, make_templates):
         raise RuntimeError("Could not find log_config.yaml")
 
 
-def assert_synapse_container(
-    templates, template_to_deployable_details, assertion_visitor: Callable[[dict[str, Any], dict[str, Any]], None]
-):
-    for template in templates:
-        if template_to_deployable_details(template).name != "synapse":
-            continue
-
-        if template["kind"] != "StatefulSet":
-            continue
-
-        for container in template["spec"]["template"]["spec"]["containers"]:
-            if container["name"] == "synapse":
-                assertion_visitor(template, container)
-                break
-        else:
-            raise AssertionError(f"{template_id(template)} has no container named 'synapse'")
-
-
 @pytest.mark.parametrize("values_file", ["synapse-worker-example-values.yaml"])
 @pytest.mark.asyncio_cooperative
-async def test_synapse_resources_shared_by_default(values, make_templates, template_to_deployable_details):
+async def test_synapse_resources_shared_by_default(
+    deployables_details, values, make_templates, template_to_deployable_details
+):
     resources = {
         "requests": {
             "cpu": "1000",
@@ -173,53 +159,25 @@ async def test_synapse_resources_shared_by_default(values, make_templates, templ
             "memory": "4000Mi",
         },
     }
-    values["synapse"]["resources"] = resources
 
-    def assert_expected_resources(template, container):
-        assert container["resources"] == resources, (
-            f"{template_id(template)} has incorrect resources {container['resources']} vs {resources}"
-        )
+    def set_resources(deployable_details: DeployableDetails):
+        if deployable_details.name == "synapse":
+            deployable_details.set_helm_values(values, PropertyType.Resources, resources)
 
-    assert_synapse_container(await make_templates(values), template_to_deployable_details, assert_expected_resources)
-
-
-@pytest.mark.parametrize("values_file", ["synapse-worker-example-values.yaml"])
-@pytest.mark.asyncio_cooperative
-async def test_per_worker_synapse_resources(all_values, release_name, make_templates, template_to_deployable_details):
-    workers_to_resources = {}
-    counter = 1
-
-    def set_resources(worker_name, values_fragment):
-        nonlocal counter
-        workers_to_resources[worker_name] = {
-            "requests": {
-                "cpu": f"{1000 + counter}",
-                "memory": f"{2000 + counter}Mi",
-            },
-            "limits": {
-                "cpu": f"{3000 + counter}",
-                "memory": f"{4000 + counter}Mi",
-            },
-        }
-        counter += 1
-        values_fragment["resources"] = workers_to_resources[worker_name]
-
-    iterate_synapse_workers_parts(all_values, set_resources)
-
-    seen_workers = []
-
-    def assert_expected_resources(template, container):
-        worker_name = template["metadata"]["name"].replace(f"{release_name}-synapse-", "")
-        if worker_name == "":
-            worker_name = "main"
-        seen_workers.append(worker_name)
-
-        expected_resources = workers_to_resources[worker_name]
-        assert container["resources"] == expected_resources, (
-            f"{template_id(template)} has incorrect resources {container['resources']} vs {expected_resources}"
-        )
-
-    assert_synapse_container(
-        await make_templates(all_values), template_to_deployable_details, assert_expected_resources
+    iterate_deployables_parts(
+        deployables_details, set_resources, lambda deployable_details: deployable_details.is_synapse_process
     )
-    assert len(workers_to_resources) == len(seen_workers), f"{seen_workers} has not seen all the expected workers"
+    for template in await make_templates(values):
+        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
+            deployable_details = template_to_deployable_details(template)
+            if not deployable_details.is_synapse_process:
+                continue
+
+            for container in template["spec"]["template"]["spec"]["containers"]:
+                assert "resources" in container, (
+                    f"{template_id(template)} has container {container['name']} without resources"
+                )
+                assert resources == container["resources"], (
+                    f"{template_id(template)} has container {container['name']} "
+                    "which doesn't have the expected resources"
+                )

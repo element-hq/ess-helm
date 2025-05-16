@@ -1,11 +1,11 @@
-# Copyright 2024 New Vector Ltd
+# Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
 import pytest
 
 from . import PropertyType, values_files_to_test
-from .utils import iterate_deployables_image_parts
+from .utils import iterate_deployables_parts
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -33,11 +33,12 @@ async def test_local_pull_secrets(deployables_details, values, base_values, make
         {"name": "global-secret"},
     ]
     values.setdefault("matrixTools", {}).setdefault("image", {})["pullSecrets"] = [{"name": "matrix-tools-secret"}]
-    iterate_deployables_image_parts(
+    iterate_deployables_parts(
         deployables_details,
         lambda deployable_details: deployable_details.set_helm_values(
             values, PropertyType.Image, {"pullSecrets": [{"name": "local-secret"}]}
         ),
+        lambda deployable_details: deployable_details.has_image,
     )
 
     for template in await make_templates(values):
