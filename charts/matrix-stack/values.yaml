@@ -964,10 +964,10 @@ elementWeb:
   ## Configuration of the thresholds and frequencies of the startupProbe
   startupProbe:
     ## How many consecutive failures for the probe to be considered failed
-    failureThreshold: 3
+    failureThreshold: 4
 
     ## Number of seconds after the container has started before the probe starts
-    initialDelaySeconds: 2
+    initialDelaySeconds: 0
 
     ## How often (in seconds) to perform the probe
     periodSeconds: 3
@@ -1144,7 +1144,7 @@ haproxy:
     failureThreshold: 3
 
     ## Number of seconds after the container has started before the probe starts
-    initialDelaySeconds: 10
+    initialDelaySeconds: 0
 
     ## How often (in seconds) to perform the probe
     periodSeconds: 10
@@ -1160,7 +1160,7 @@ haproxy:
     failureThreshold: 3
 
     ## Number of seconds after the container has started before the probe starts
-    initialDelaySeconds: 20
+    initialDelaySeconds: 0
 
     ## How often (in seconds) to perform the probe
     periodSeconds: 10
@@ -1569,10 +1569,10 @@ matrixAuthenticationService:
   ## Configuration of the thresholds and frequencies of the startupProbe
   startupProbe:
     ## How many consecutive failures for the probe to be considered failed
-    failureThreshold: 3
+    failureThreshold: 4
 
     ## Number of seconds after the container has started before the probe starts
-    initialDelaySeconds: 5
+    initialDelaySeconds: 0
 
     ## How often (in seconds) to perform the probe
     periodSeconds: 10
@@ -1919,7 +1919,7 @@ postgres:
     failureThreshold: 3
 
     ## Number of seconds after the container has started before the probe starts
-    initialDelaySeconds: 45
+    initialDelaySeconds: 0
 
     ## How often (in seconds) to perform the probe
     periodSeconds: 10
@@ -1935,7 +1935,7 @@ postgres:
     failureThreshold: 3
 
     ## Number of seconds after the container has started before the probe starts
-    initialDelaySeconds: 15
+    initialDelaySeconds: 0
 
     ## How often (in seconds) to perform the probe
     periodSeconds: 10
@@ -1948,7 +1948,7 @@ postgres:
   ## Configuration of the thresholds and frequencies of the startupProbe
   startupProbe:
     ## How many consecutive failures for the probe to be considered failed
-    failureThreshold: 3
+    failureThreshold: 8
 
     ## Number of seconds after the container has started before the probe starts
     initialDelaySeconds: 0
@@ -3644,7 +3644,7 @@ synapse:
       failureThreshold: 3
 
       ## Number of seconds after the container has started before the probe starts
-      initialDelaySeconds: 15
+      initialDelaySeconds: 0
 
       ## How often (in seconds) to perform the probe
       periodSeconds: 10
@@ -3660,7 +3660,7 @@ synapse:
       failureThreshold: 3
 
       ## Number of seconds after the container has started before the probe starts
-      initialDelaySeconds: 5
+      initialDelaySeconds: 0
 
       ## How often (in seconds) to perform the probe
       periodSeconds: 10
@@ -3673,7 +3673,7 @@ synapse:
     ## Configuration of the thresholds and frequencies of the startupProbe
     startupProbe:
       ## How many consecutive failures for the probe to be considered failed
-      failureThreshold: 3
+      failureThreshold: 5
 
       ## Number of seconds after the container has started before the probe starts
       initialDelaySeconds: 0
