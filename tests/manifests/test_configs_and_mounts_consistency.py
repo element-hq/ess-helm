@@ -82,13 +82,15 @@ def find_paths_in_contents(container, mounted_config_maps, deployable_details):
     return paths_found
 
 
-def find_mount_paths_and_assert_key_is_consistent(container_name, mounted_keys, mount_path, matches_in):
+def find_mount_paths_and_assert_key_is_consistent(container_name, mounted_keys, mount_path, matches_in, deployable_details):
     found_mount = False
     for match_in in matches_in:
         for match in re.findall(rf"(?:^|\s|\"){mount_path}/([^\s\n\")`;,]+(?!.*noqa))", match_in):
+            if f"{mount_path}/{match}" in deployable_details.paths_consistency_noqa:
+                continue
             assert f"{mount_path}/{match}" in mounted_keys, (
                 f"{mount_path}/{match} used in {container_name} but it is not found "
-                f"from any mounted secret or configmap"
+                f"from any mounted secret or configmap ({deployable_details.name})"
             )
             found_mount = True
     return found_mount
@@ -102,12 +104,15 @@ def find_keys_mounts_in_content(mounted_key, matches_in):
     return False
 
 
-def get_key_from_render_config(template):
+def get_keys_from_render_config(template):
+    keys = []
     for container in template["spec"]["template"]["spec"]["initContainers"]:
-        if container["name"] == "render-config":
+        if container["name"].startswith("render-config"):
             for idx, cmd in enumerate(container["command"]):
                 if cmd == "-output":
-                    return container["command"][idx + 1].split("/")[-1]
+                    keys.append(container["command"][idx + 1].split("/")[-1])
+    if keys:
+        return keys
     raise AssertionError(
         f"{template_id(template)} has a rendered-config volume, but no render-config output file could be found"
     )
@@ -158,7 +163,8 @@ def get_virtual_config_map_from_render_config(template, templates):
     in the rendered config files
     """
     for container in template["spec"]["template"]["spec"]["initContainers"]:
-        if container["name"] == "render-config":
+        data = {}
+        if container["name"].startswith("render-config"):
             paths_to_keys = {}
             for volume_mount in container["volumeMounts"]:
                 current_volume = get_volume_from_mount(template, volume_mount)
@@ -172,7 +178,10 @@ def get_virtual_config_map_from_render_config(template, templates):
                         for key in current_config_map["data"]:
                             paths_to_keys[volume_mount["mountPath"] + "/" + key] = current_config_map["data"][key]
             source_files = container["command"][4:]
-            return {"data": {p: k for p, k in paths_to_keys.items() if p in source_files}}
+            for p, k in paths_to_keys.items():
+                if p in source_files:
+                    data[p] = k
+        return {"data": data}
     raise RuntimeError("No render-config container found")
 
 
@@ -280,11 +289,12 @@ async def test_secrets_consistency(templates, other_secrets):
                     uses_rendered_config = True
                     mount_paths.append(volume_mount["mountPath"])
                     if "subPath" in volume_mount:
-                        key = volume_mount["mountPath"]
+                        keys = [volume_mount["mountPath"]]
                     else:
-                        key = f"{volume_mount['mountPath']}/{get_key_from_render_config(template)}"
-                    mounted_keys.append(key)
-                    mounted_keys_to_parents[key] = volume_mount["mountPath"]
+                        keys = [f"{volume_mount['mountPath']}/{k}" for k in get_keys_from_render_config(template)]
+                    mounted_keys += keys
+                    for k in keys:
+                        mounted_keys_to_parents[k] = volume_mount["mountPath"]
 
             assert len(mounted_keys) == len(set(mounted_keys)), (
                 f"Mounted key paths are not unique in {template['metadata']['name']}: {mounted_keys}"
@@ -295,7 +305,7 @@ async def test_secrets_consistency(templates, other_secrets):
 
             # If we are checking render-config,
             # we need to look up mounted_keys in the container using the rendered-config
-            if container["name"] == "render-config":
+            if container["name"].startswith("render-config"):
                 rendered_mounted_keys, rendered_mounted_keys_to_parents = get_keys_from_container_using_rendered_config(
                     template, templates, other_secrets
                 )
@@ -350,6 +360,7 @@ async def test_secrets_consistency(templates, other_secrets):
                     [e.get("value", "") for e in container.get("env", [])]
                     + container.get("command", [])
                     + container.get("args", []),
+                    deployable_details,
                 ):
                     mount_path_found = True
 
@@ -362,6 +373,7 @@ async def test_secrets_consistency(templates, other_secrets):
                             mounted_keys,
                             mounted_keys_to_parents[mounted_key],
                             [content],
+                            deployable_details,
                         ):
                             mount_path_found = True
                 if not mount_path_found and not uses_rendered_config:

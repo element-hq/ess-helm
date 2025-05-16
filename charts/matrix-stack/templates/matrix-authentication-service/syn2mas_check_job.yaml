@@ -5,9 +5,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 
 {{- with .Values.matrixAuthenticationService -}}
-{{- if and .enabled .syn2mas.enabled .syn2mas.check $.Values.synapse.enabled -}}
-{{- $masContext := (mustMergeOverwrite ($.Values.matrixAuthenticationService | deepCopy) (dict "isHook" false)) -}}
+{{- if and .enabled .syn2mas.enabled $.Values.synapse.enabled -}}
 {{- $synapseContext := (mustMergeOverwrite ($.Values.synapse | deepCopy) (dict "processType" "main" "isHook" false)) -}}
+{{- $masContext := (mustMergeOverwrite ($.Values.matrixAuthenticationService | deepCopy) (dict "isHook" false)) -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -16,15 +16,17 @@ metadata:
     {{- toYaml . | nindent 4 }}
 {{- end }}
   labels:
-    {{- include "element-io.matrix-authentication-service.labels" (dict "root" $ "context" .) | nindent 4 }}
+    {{- include "element-io.matrix-authentication-service-syn2mas.labels" (dict "root" $ "context" .) | nindent 4 }}
     k8s.element.io/matrix-authentication-service-config-hash: {{ include "element-io.matrix-authentication-service.configmap-data" (dict "root" $ "context" .) | sha1sum }}
     k8s.element.io/matrix-authentication-service-secret-hash: {{ include "element-io.matrix-authentication-service.secret-data" (dict "root" $ "context" .) | sha1sum }}
+    k8s.element.io/synapse-config-hash: {{ include "element-io.synapse.configmap-data"  (dict "root" $ "context" $synapseContext) | sha1sum }}
+    k8s.element.io/synapse-secret-hash: {{ include "element-io.synapse.secret-data"  (dict "root" $ "context" $synapseContext) | sha1sum }}
     {{ include "element-io.ess-library.postgres-label" (dict "root" $ "context" (dict
                                                             "essPassword" "matrixAuthenticationService"
                                                             "postgresProperty" .postgres
                                                             )
                                         ) }}
-  name: {{ $.Release.Name }}-matrix-authentication-service
+  name: {{ $.Release.Name }}-matrix-authentication-service-syn2mas
   namespace: {{ $.Release.Namespace }}
 spec:
   backoffLimit: 0
@@ -43,7 +45,7 @@ spec:
         {{- include "element-io.init-secrets.labels" (dict "root" $ "context" (dict "labels" .labels "withChartVersion" false)) | nindent 8 }}
     spec:
       restartPolicy: OnFailure
-{{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "init-secrets" "deployment" false "usesMatrixTools" true "mountServiceAccountToken" true)) | nindent 6 }}
+{{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "matrix-authentication-service-syn2mas" "deployment" false "usesMatrixTools" true "mountServiceAccountToken" true)) | nindent 6 }}
       initContainers:
       {{- include "element-io.matrix-authentication-service.render-config-container" (dict "root" $ "context" (mustMergeOverwrite $masContext (dict "containerName" "render-config-mas"))) | nindent 6 }}
       {{- include "element-io.synapse.render-config-container" (dict "root" $ "context" (mustMergeOverwrite  $synapseContext (dict "containerName" "render-config-syn"))) | nindent 6 }}
@@ -118,19 +120,29 @@ spec:
           {{- toYaml . | nindent 10 }}
 {{- end }}
         volumeMounts:
-        - mountPath: "/config.yaml"
+        - mountPath: "/conf"
           name: rendered-config
-          subPath: config.yaml
           readOnly: true
-{{- range $secret := include "element-io.matrix-authentication-service.configSecrets" (dict "root" $ "context" $masContext) | fromJsonArray }}
+{{- range $secret := include "element-io.matrix-authentication-service.syn2masConfigSecrets" (dict "root" $ "context" (dict "synapseContext" $synapseContext "masContext" $masContext)) | fromJsonArray }}
         - mountPath: /secrets/{{ tpl $secret $ }}
           name: "secret-{{ tpl $secret $ }}"
           readOnly: true
 {{- end }}
-{{- range $secret := include "element-io.synapse.configSecrets" (dict "root" $ "context" $synapseContext) | fromJsonArray }}
-        - mountPath: /secrets/{{ tpl $secret $ }}
-          name: "secret-{{ tpl $secret $ }}"
-          readOnly: true
+      volumes:
+      - name: plain-syn-config
+        configMap:
+          defaultMode: 420
+          name: {{ include "element-io.synapse.configmap-name" (dict "root" $ "context" (dict "isHook" false)) }}
+      - name: plain-mas-config
+        configMap:
+          name: {{ $.Release.Name }}-matrix-authentication-service
+{{- range $secret := include "element-io.matrix-authentication-service.syn2masConfigSecrets" (dict "root" $ "context" (dict "synapseContext" $synapseContext "masContext" $masContext)) | fromJsonArray }}
+      - secret:
+          secretName: {{ tpl $secret $ }}
+        name: secret-{{ tpl $secret $ }}
 {{- end }}
+      - emptyDir:
+          medium: Memory
+        name: "rendered-config"
 {{- end }}
 {{- end }}

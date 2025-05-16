@@ -484,6 +484,34 @@ all_components_details = [
         values_file_path=ValuesFilePath.read_write("matrixAuthenticationService"),
         has_db=True,
         shared_component_names=("deployment-markers", "init-secrets", "postgres"),
+        sub_components=(
+            SubComponentDetails(
+                name="matrix-authentication-service-syn2mas",
+                helm_keys=("matrixAuthenticationService", "syn2mas"),
+                paths_consistency_noqa=("/conf/log_config.yaml", "/media_store", "/media/media_store", "/as/0/bridge_registration.yaml", ),
+                helm_keys_overrides={
+                    # has_workloads but comes from synapse.extraEnv
+                    PropertyType.Env: None,
+                    # has_workloads and so comes from synapse.image
+                    PropertyType.Image: None,
+                    # Job so no livenessProbe
+                    PropertyType.LivenessProbe: None,
+                    # has_workloads and so podSecurityContext but comes from synapse.podSecurityContext
+                    PropertyType.PodSecurityContext: None,
+                    # Job so no readinessProbe
+                    PropertyType.ReadinessProbe: None,
+                    # Job so no startupProbe
+                    PropertyType.StartupProbe: None,
+                    # has_workloads and so tolerations but comes from synapse.tolerations
+                    PropertyType.Tolerations: None,
+                    # has_topology_spread_constraints and so topologySpreadConstraints
+                    # but comes from synapse.topologySpreadConstraints
+                    PropertyType.TopologySpreadConstraints: None,
+                },
+                has_ingress=False,
+                has_service_monitor=False,
+            ),
+        )
     ),
     ComponentDetails(
         name="synapse",

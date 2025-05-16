@@ -3454,10 +3454,6 @@
               "type": "boolean",
               "description": "Enable synapse to Matrix Authentication Service migration."
             },
-            "check": {
-              "type": "boolean",
-              "description": "Run the check job to verify that the migration is possible."
-            },
             "migrate": {
               "type": "object",
               "properties": {

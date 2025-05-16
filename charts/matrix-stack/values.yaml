@@ -1729,7 +1729,6 @@ matrixAuthenticationService:
   ## 4. Set `matrixAuthenticationService.syn2mas.enabled`: false, run the helm upgrade command, synapse restarts, Matrix Authentication Service as well, and users should now be migrated
   syn2mas:
     enabled: false
-    check: true
     migrate:
       enabled: false
       dryRun: true
