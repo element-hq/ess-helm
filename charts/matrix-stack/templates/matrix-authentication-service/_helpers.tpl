@@ -15,6 +15,18 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- end }}
 {{- end }}
 
+{{- define "element-io.matrix-authentication-service-syn2mas.labels" -}}
+{{- $root := .root -}}
+{{- with required "element-io.matrix-authentication-service.labels missing context" .context -}}
+{{ include "element-io.ess-library.labels.common" (dict "root" $root "context" (dict "labels" .labels "withChartVersion" .withChartVersion)) }}
+app.kubernetes.io/component: matrix-authentication
+app.kubernetes.io/name: matrix-authentication-service-syn2mas
+app.kubernetes.io/instance: {{ $root.Release.Name }}-matrix-authentication-service-syn2mas
+app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .image.tag }}
+{{- end }}
+{{- end }}
+
+
 {{- define "element-io.matrix-authentication-service.config" }}
 {{- $root := .root -}}
 {{- with required "element-io.matrix-authentication-service.config missing context" .context -}}
@@ -253,4 +265,36 @@ config.yaml: |
 {{- end }}
 {{- end -}}
 {{- end }}
+{{- end -}}
+
+
+{{- define "element-io.matrix-authentication-service.render-config" -}}
+{{- $root := .root -}}
+{{- with required "element-io.matrix-authentication-service.render-config missing context" .context -}}
+- "/matrix-tools"
+- render-config
+- -output
+- /conf/config.yaml
+  {{- range $key := (.additional | keys | uniq | sortAlpha) -}}
+  {{- $prop := index $root.Values.matrixAuthenticationService.additional $key }}
+  {{- if $prop.config }}
+- /secrets/{{ $root.Release.Name }}-matrix-authentication-service/user-{{ $key }}
+  {{- end }}
+  {{- if $prop.configSecret }}
+- /secrets/{{ tpl $prop.configSecret $root }}/{{ $prop.configSecretKey }}
+  {{- end }}
+  {{- end }}
+- /config-templates/config.yaml
+{{- end }}
+{{- end }}
+
+
+{{- define "element-io.matrix-authentication-service.syn2masConfigSecrets" -}}
+{{- $root := .root -}}
+{{- with required "element-io.matrix-authentication-service.syn2masConfigSecrets missing context" .context -}}
+{{- $masSecrets := include "element-io.matrix-authentication-service.configSecrets" (dict "root" $root "context" .masContext) | fromJsonArray }}
+{{- $synapseSecrets := include "element-io.synapse.configSecrets" (dict "root" $root "context" .synapseContext) | fromJsonArray }}
+{{- $syn2masSecrets := concat $masSecrets $synapseSecrets | uniq | sortAlpha }}
+{{- $syn2masSecrets | toJson -}}
+{{- end -}}
 {{- end -}}
