@@ -6,6 +6,23 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 25.04.01 (2025-05-16)
+
+### Changed
+
+- The ESS Community Helm Chart now uses a new versioning scheme, time-based : `YY.MM.XX`. (#455)
+
+### Fixed
+
+- Fix built-in Element Web not being allowed to be overridden. (#456)
+
+### Internal
+
+- Improve the reliability of the ServiceMonitor tests. (#452)
+- Add manifest test to confirm that all Pods have configurable resources. (#453)
+- Make it easier to test manifests for Synapse workers. (#453)
+
+
 # ESS Community Helm Chart 0.12.0 (2025-05-16)
 
 ### Changed
