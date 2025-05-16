@@ -37,14 +37,10 @@ async def test_config_json_override(values, make_templates):
     }
 
     for template in await make_templates(values):
-        if (
-            template["kind"] == "ConfigMap"
-            and "synapse" in template["metadata"]["name"]
-            and "log_config.yaml" in template["data"]
-        ):
-            config_json = json.safe_load(template["data"]["config.json"])
+        if template["kind"] == "ConfigMap" and "element-web" in template["metadata"]["name"]:
+            config_json = json.loads(template["data"]["config.json"])
             assert config_json == {
-                "bug_report_endpoint_url": "other-url",
+                "bug_report_endpoint_url": "https://other-url",
                 "default_server_config": {"m.homeserver": {}},
                 "map_style_url": "https://api.maptiler.com/maps/streets/style.json?key=fU3vlMsMn4Jb6dnEIFsx",
                 "setting_defaults": {},
@@ -53,3 +49,5 @@ async def test_config_json_override(values, make_templates):
                 "again_other_key": {"other_value": "value_third"},
             }
             break
+    else:
+        raise RuntimeError("Could not find config.json")
