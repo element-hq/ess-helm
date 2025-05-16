@@ -6,6 +6,32 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 0.12.0 (2025-05-16)
+
+### Changed
+
+- Allow configuration of thresholds and frequencies for all startupProbes. (#430)
+- Allow configuration of thresholds and frequencies for all readinessProbes. (#430)
+- Ensure Synapse's Redis has a startupProbe. (#435)
+- Ensure all Postgres containers have a startupProbe. (#435)
+- Ensure HAProxy has a startupProbe when Synapse isn't enabled. (#437)
+- Allow configuration of thresholds and frequencies for all livenessProbes. (#445)
+- Matrix RTC Authorizer is now named Matrix RTC Authorisation Service. (#446)
+- Minor quick setup docs fixes and improvements. (#448)
+
+### Fixed
+
+- Fix Synapse per-worker resource overrides not being respected. (#438)
+- Fix required message when matrix-tools image tag is missing in MAS templates. (#441)
+
+### Internal
+
+- Add a job to compare the generated templates between source and target branches in PRs. (#431, #436, #443, #444, #447, #450)
+- MAS: Fix schema schema method calls do not need to respecify default keys values. (#432)
+- Fix pytest CA was re-generated on every pytest run, preventing tests in local browsers. (#442)
+- Check files copyright dates in CI. (#449)
+
+
 # ESS Community Helm Chart 0.11.3 (2025-05-08)
 
 ### Changed
