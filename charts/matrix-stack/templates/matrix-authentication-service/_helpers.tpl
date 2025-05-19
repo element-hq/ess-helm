@@ -37,7 +37,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- define "element-io.matrix-authentication-service.configSecrets" -}}
 {{- $root := .root -}}
 {{- with required "element-io.matrix-authentication-service.configSecrets missing context" .context -}}
-{{ $configSecrets := list (printf "%s-matrix-authentication-service" $root.Release.Name) }}
+{{ $configSecrets := list (include "element-io.matrix-authentication-service.secret-name" (dict "root" $root "context" .)) }}
 {{- if and $root.Values.initSecrets.enabled (include "element-io.init-secrets.generated-secrets" (dict "root" $root)) }}
 {{ $configSecrets = append $configSecrets (printf "%s-generated" $root.Release.Name) }}
 {{- end }}
@@ -45,7 +45,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
                                             (dict "root" $root "context" (dict
                                                                 "essPassword" "matrixAuthenticationService"
                                                                 "componentPasswordPath" "matrixAuthenticationService.postgres.password"
-                                                                "defaultSecretName" (printf "%s-matrix-authentication-service" $root.Release.Name)
+                                                                "defaultSecretName" (include "element-io.matrix-authentication-service.secret-name" (dict "root" $root "context" .))
                                                                 "isHook" false
                                                                 )
                                             )
@@ -112,7 +112,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
                 "essPassword" "matrixAuthenticationService"
                 "initSecretKey" "POSTGRES_MATRIX_AUTHENTICATION_SERVICE_PASSWORD"
                 "componentPasswordPath" "matrixAuthenticationService.postgres.password"
-                "defaultSecretName" (printf "%s-matrix-authentication-service" $root.Release.Name)
+                "defaultSecretName" (include "element-io.matrix-authentication-service.secret-name" (dict "root" $root "context" .))
                 "defaultSecretKey" "POSTGRES_PASSWORD"
                 "isHook" false
               )
@@ -128,7 +128,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
               "context" (dict
                 "secretPath" "matrixAuthenticationService.encryptionSecret"
                 "initSecretKey" "MAS_ENCRYPTION_SECRET"
-                "defaultSecretName" (printf "%s-matrix-authentication-service" $root.Release.Name)
+                "defaultSecretName" (include "element-io.matrix-authentication-service.secret-name" (dict "root" $root "context" .))
                 "defaultSecretKey" "ENCRYPTION_SECRET"
               )
           )
@@ -147,7 +147,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
               "context" (dict
                 "secretPath" "matrixAuthenticationService.synapseSharedSecret"
                 "initSecretKey" "MAS_SYNAPSE_SHARED_SECRET"
-                "defaultSecretName" (printf "%s-matrix-authentication-service" $root.Release.Name)
+                "defaultSecretName" (include "element-io.matrix-authentication-service.secret-name" (dict "root" $root "context" .))
                 "defaultSecretKey" "SYNAPSE_SHARED_SECRET"
               )
           )
@@ -162,7 +162,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
               "context" (dict
                 "secretPath" "matrixAuthenticationService.synapseOIDCClientSecret"
                 "initSecretKey" "MAS_SYNAPSE_OIDC_CLIENT_SECRET"
-                "defaultSecretName" (printf "%s-matrix-authentication-service" $root.Release.Name)
+                "defaultSecretName" (include "element-io.matrix-authentication-service.secret-name" (dict "root" $root "context" .))
                 "defaultSecretKey" "SYNAPSE_OIDC_CLIENT_SECRET"
               )
           )
@@ -176,7 +176,20 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- define "element-io.matrix-authentication-service.secret-name" }}
 {{- $root := .root }}
 {{- with required "element-io.matrix-authentication-service.secret-name requires context" .context }}
-{{- $isHook := required "element-io.matrix-authentication-service.secret-name requires context.isHook" .isHook }}
+{{- $isHook := .isHook }}
+{{- if $isHook }}
+{{- $root.Release.Name }}-matrix-authentication-service-hook
+{{- else }}
+{{- $root.Release.Name }}-matrix-authentication-service
+{{- end }}
+{{- end }}
+{{- end }}
+
+
+{{- define "element-io.matrix-authentication-service.configmap-name" }}
+{{- $root := .root }}
+{{- with required "element-io.matrix-authentication-service.configmap-name requires context" .context }}
+{{- $isHook := required "element-io.matrix-authentication-service.configmap-name requires context.isHook" .isHook }}
 {{- if $isHook }}
 {{- $root.Release.Name }}-matrix-authentication-service-hook
 {{- else }}
@@ -271,6 +284,7 @@ config.yaml: |
 {{- define "element-io.matrix-authentication-service.render-config" -}}
 {{- $root := .root -}}
 {{- with required "element-io.matrix-authentication-service.render-config missing context" .context -}}
+{{- $context := . -}}
 - "/matrix-tools"
 - render-config
 - -output
@@ -278,7 +292,7 @@ config.yaml: |
   {{- range $key := (.additional | keys | uniq | sortAlpha) -}}
   {{- $prop := index $root.Values.matrixAuthenticationService.additional $key }}
   {{- if $prop.config }}
-- /secrets/{{ $root.Release.Name }}-matrix-authentication-service/user-{{ $key }}
+- /secrets/{{ include "element-io.matrix-authentication-service.secret-name" (dict "root" $root "context" $context) }}/user-{{ $key }}
   {{- end }}
   {{- if $prop.configSecret }}
 - /secrets/{{ tpl $prop.configSecret $root }}/{{ $prop.configSecretKey }}

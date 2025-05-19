@@ -1,0 +1,24 @@
+# Copyright 2024-2025 New Vector Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# source_fragments: synapse-minimal.yaml matrix-authentication-service-minimal.yaml matrix-authentication-service-syn2mas-migrate.yaml init-secrets-minimal.yaml postgres-minimal.yaml
+# DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
+
+# initSecrets, postgres don't have any required properties to be set and defaults to enabled
+elementWeb:
+  enabled: false
+matrixAuthenticationService:
+  ingress:
+    host: mas.ess.localhost
+  syn2mas:
+    dryRun: true
+    enabled: true
+matrixRTC:
+  enabled: false
+serverName: ess.localhost
+synapse:
+  ingress:
+    host: synapse.ess.localhost
+wellKnownDelegation:
+  enabled: false
