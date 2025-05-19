@@ -5,6 +5,4 @@
 matrixAuthenticationService:
   syn2mas:
     enabled: true
-    migrate:
-      enabled: true
-      dryRun: true
+    dryRun: true

@@ -226,28 +226,28 @@ spec:
 {{- end }}
       containers:
       - name: syn2mas-migrate
-{{- if .syn2mas.migrate.dryRun }}
-        args: ["mas-cli", "syn2mas", "migrate", "--config", "/conf/config.yaml", "--synapse-config", "/conf/homeserver.yaml", "--dry-run"],
-{{- with .image -}}
-{{- if .digest }}
+{{- if .syn2mas.dryRun }}
+        args: ["mas-cli", "syn2mas", "migrate", "--config", "/conf/config.yaml", "--synapse-config", "/conf/homeserver.yaml", "--dry-run"]
+    {{- with .image -}}
+    {{- if .digest }}
         image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
         imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
-{{- else }}
+    {{- else }}
         image: "{{ .registry }}/{{ .repository }}:{{ required "matrixAuthenticationService.image.tag is required if no digest" .tag }}"
         imagePullPolicy: {{ .pullPolicy | default "Always" }}
-{{- end }}
-{{- end }}
+    {{- end }}
+    {{- end }}
 {{- else }}
         args: ["matrix-tools", "syn2mas", "--config", "/conf/config.yaml", "--synapse-config", "/conf/homeserver.yaml"]
-{{- with $root.Values.matrixTools.image -}}
-{{- if .digest }}
+    {{- with $.Values.matrixTools.image -}}
+    {{- if .digest }}
         image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
         imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
-{{- else }}
+    {{- else }}
         image: "{{ .registry }}/{{ .repository }}:{{ required "matrixTools.image.tag is required if no digest" .tag }}"
         imagePullPolicy: {{ .pullPolicy | default "Always" }}
-{{- end }}
-{{- end }}
+    {{- end }}
+    {{- end }}
 {{- end }}
 {{- with .containersSecurityContext }}
         securityContext:

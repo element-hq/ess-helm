@@ -14,9 +14,6 @@ matrixAuthenticationService:
     tlsSecret: "{{ $.Release.Name }}-mas-web-tls"
     host: mas.{{ $.Values.serverName }}
 
-  syn2mas:
-    enabled: true
-
   additional:
     000-pytest-admin:
       configSecret: "{{ $.Release.Name }}-pytest-admin"
