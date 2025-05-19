@@ -9,6 +9,7 @@ from typing import Any
 
 
 class PropertyType(Enum):
+    Enabled = "enabled"
     Env = "extraEnv"
     Image = "image"
     Ingress = "ingress"
@@ -105,7 +106,9 @@ class DeployableDetails(abc.ABC):
         else:
             return self.helm_keys + (propertyType.value,)
 
-    def get_helm_values(self, values: dict[str, Any], propertyType: PropertyType) -> dict[str, Any] | None:
+    def get_helm_values(
+        self, values: dict[str, Any], propertyType: PropertyType, default_value: Any = None
+    ) -> dict[str, Any] | None:
         """
         Returns the configured values for this deployable for a given PropertyType.
 
@@ -120,8 +123,16 @@ class DeployableDetails(abc.ABC):
             return None
 
         values_fragment = values
-        for helm_key in helm_keys:
-            values_fragment = values_fragment.setdefault(helm_key, {})
+        for index, helm_key in enumerate(helm_keys):
+            # The last iteration through is the specific property we want to get. We know everything
+            # higher this will be a dict, but at the end, for a specific property, we could be
+            # trying to fetch an object, an array or a scalar and the default value should reflect that
+            if (index + 1) == len(helm_keys):
+                if default_value is None:
+                    default_value = {}
+                values_fragment = values_fragment.setdefault(helm_key, default_value)
+            else:
+                values_fragment = values_fragment.setdefault(helm_key, {})
         return values_fragment
 
     def set_helm_values(self, values: dict[str, Any], propertyType: PropertyType, values_to_set: Any):
@@ -544,6 +555,9 @@ _extra_secret_values_files_to_test = [
     "matrix-rtc-external-livekit-secrets-in-helm-values.yaml",
     "matrix-rtc-external-livekit-secrets-externally-values.yaml",
 ]
+
+_extra_services_values_files_to_test = ["matrix-rtc-exposed-services-values.yaml", "matrix-rtc-host-mode-values.yaml"]
+
 secret_values_files_to_test = [
     values_file for details in all_components_details for values_file in details.secret_values_files
 ] + _extra_secret_values_files_to_test
@@ -551,13 +565,7 @@ secret_values_files_to_test = [
 values_files_to_test = [
     values_file for values_file in values_files_to_deployables_details if values_file not in secret_values_files_to_test
 ]
-values_files_with_ingresses = [
-    values_file
-    for values_file, deployables_details in values_files_to_deployables_details.items()
-    if any([deployable_details.has_ingress for deployable_details in deployables_details])
-    and values_file not in secret_values_files_to_test
-]
-_extra_services_values_files_to_test = ["matrix-rtc-exposed-services-values.yaml", "matrix-rtc-host-mode-values.yaml"]
+
 
 services_values_files_to_test = [
     values_file for details in all_components_details for values_file in details.values_files

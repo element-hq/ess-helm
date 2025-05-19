@@ -58,12 +58,19 @@ def base_values() -> dict[str, Any]:
 def values(values_file) -> dict[str, Any]:
     if values_file not in values_cache:
         v = yaml.safe_load((Path("charts/matrix-stack/ci") / values_file).read_text("utf-8"))
-        if not v.get("initSecrets"):
-            v["initSecrets"] = {"enabled": True}
-        if not v.get("postgres"):
-            v["postgres"] = {"enabled": True}
-        if not v.get("wellKnownDelegation"):
-            v["wellKnownDelegation"] = {"enabled": True}
+        for default_enabled_component in [
+            "elementWeb",
+            "initSecrets",
+            "postgres",
+            "matrixRTC",
+            "matrixAuthenticationService",
+            "synapse",
+            "wellKnownDelegation",
+        ]:
+            if default_enabled_component not in v:
+                v[default_enabled_component] = {}
+            if "enabled" not in v[default_enabled_component]:
+                v[default_enabled_component]["enabled"] = True
 
         values_cache[values_file] = v
     return copy.deepcopy(values_cache[values_file])
