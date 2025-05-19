@@ -2985,9 +2985,6 @@
           "type": "boolean",
           "description": "Enable the Matrix Authentication Service (MAS) service."
         },
-        "preMigrationSynapseHandlesAuth": {
-          "type": "boolean"
-        },
         "additional": {
           "type": "object",
           "additionalProperties": {
