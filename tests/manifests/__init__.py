@@ -494,7 +494,7 @@ all_components_details = [
                     "/media_store",
                     "/media/media_store",
                     "/as/0/bridge_registration.yaml",
-                    "/usr/local/bin/mas-cli",
+                    "/tmp-mas-cli/mas-cli",
                 ),
                 helm_keys_overrides={
                     # has_workloads but comes from synapse.extraEnv

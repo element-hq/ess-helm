@@ -6,8 +6,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 {{- with .Values.matrixAuthenticationService -}}
 {{- if and .enabled .syn2mas.enabled $.Values.synapse.enabled -}}
-{{- $synapseContext := (mustMergeOverwrite ($.Values.synapse | deepCopy) (dict "processType" "main" "isHook" false)) -}}
-{{- $masContext := (mustMergeOverwrite ($.Values.matrixAuthenticationService | deepCopy) (dict "isHook" false)) -}}
+{{- $synapseContext := (mustMergeOverwrite ($.Values.synapse | deepCopy) (dict "processType" "main" "isHook" true)) -}}
+{{- $masContext := (mustMergeOverwrite ($.Values.matrixAuthenticationService | deepCopy) (dict "isHook" true)) -}}
+{{- with $masContext -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -26,6 +27,15 @@ metadata:
                                                             "postgresProperty" .postgres
                                                             )
                                         ) }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+{{- /*
+Hook Weights are
+- -10 : The initSecret hook generating secrets used by the check config job
+- -5 : The synapse secret & configMap for the hook, so that they are created before the job
+- 0 : The job itself, so that it is run after the secrets and configs are created &
+*/}}
+    "helm.sh/hook-weight": "0"
   name: {{ $.Release.Name }}-matrix-authentication-service-syn2mas
   namespace: {{ $.Release.Namespace }}
 spec:
@@ -58,11 +68,9 @@ spec:
 {{- end }}
 {{- end }}
         command:
-        - "bash"
-        - "-c"
-        - |
-          set -e
-          cp $(which mas-cli) /usr/local/bin/mas-cli
+        - cp
+        - /usr/local/bin/mas-cli
+        - /tmp-mas-cli/mas-cli
 {{- with .containersSecurityContext }}
         securityContext:
           {{- toYaml . | nindent 10 }}
@@ -72,8 +80,8 @@ spec:
           {{- toYaml . | nindent 10 }}
 {{- end }}
         volumeMounts:
-        - mountPath: /usr/local/bin
-          name: usr-local-bin
+        - mountPath: /tmp-mas-cli
+          name: tmp-mas-cli
       - name: render-config-mas
 {{- with $.Values.matrixTools.image -}}
 {{- if .digest }}
@@ -101,7 +109,7 @@ spec:
         - mountPath: /config-templates
           name: plain-mas-config
           readOnly: true
-{{- range $secret := include "element-io.matrix-authentication-service.configSecrets" (dict "root" $ "context" .) | fromJsonArray }}
+{{- range $secret := include "element-io.matrix-authentication-service.configSecrets" (dict "root" $ "context" $masContext) | fromJsonArray }}
         - mountPath: /secrets/{{ tpl $secret $ }}
           name: "secret-{{ tpl $secret $ }}"
           readOnly: true
@@ -137,7 +145,7 @@ spec:
         - mountPath: /config-templates
           name: plain-syn-config
           readOnly: true
-{{- range $secret := include "element-io.synapse.configSecrets" (dict "root" $ "context" .) | fromJsonArray }}
+{{- range $secret := include "element-io.synapse.configSecrets" (dict "root" $ "context" $synapseContext) | fromJsonArray }}
         - mountPath: /secrets/{{ tpl $secret $ }}
           name: "secret-{{ tpl $secret $ }}"
           readOnly: true
@@ -195,7 +203,7 @@ spec:
 {{- end }}
 {{- end }}
       - name: syn2mas-check
-        args: ["syn2mas", "check", "--config", "/conf/config.yaml", "--synapse-config", "/conf/homeserver.yaml"]
+        args: ["mas-cli", "syn2mas", "check", "--config", "/conf/config.yaml", "--synapse-config", "/conf/homeserver.yaml"]
 {{- with .image -}}
 {{- if .digest }}
         image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
@@ -263,6 +271,9 @@ spec:
         - mountPath: "/conf"
           name: rendered-config
           readOnly: true
+        - mountPath: "/usr/local/bin"
+          name: tmp-mas-cli
+          readOnly: true
 {{- range $secret := include "element-io.matrix-authentication-service.syn2masConfigSecrets" (dict "root" $ "context" (dict "synapseContext" $synapseContext "masContext" $masContext)) | fromJsonArray }}
         - mountPath: /secrets/{{ tpl $secret $ }}
           name: "secret-{{ tpl $secret $ }}"
@@ -272,10 +283,10 @@ spec:
       - name: plain-syn-config
         configMap:
           defaultMode: 420
-          name: {{ include "element-io.synapse.configmap-name" (dict "root" $ "context" (dict "isHook" false)) }}
+          name: {{ include "element-io.synapse.configmap-name" (dict "root" $ "context" (dict "isHook" true)) }}
       - name: plain-mas-config
         configMap:
-          name: {{ $.Release.Name }}-matrix-authentication-service
+          name: {{ include "element-io.matrix-authentication-service.configmap-name" (dict "root" $ "context" (dict "isHook" true)) }}
 {{- range $secret := include "element-io.matrix-authentication-service.syn2masConfigSecrets" (dict "root" $ "context" (dict "synapseContext" $synapseContext "masContext" $masContext)) | fromJsonArray }}
       - secret:
           secretName: {{ tpl $secret $ }}
@@ -286,6 +297,7 @@ spec:
         name: "rendered-config"
       - emptyDir:
           medium: Memory
-        name: "usr-local-bin"
+        name: "tmp-mas-cli"
+{{- end }}
 {{- end }}
 {{- end }}
