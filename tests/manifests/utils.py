@@ -44,11 +44,6 @@ async def chart(helm_client: pyhelm3.Client):
     return await helm_client.get_chart("charts/matrix-stack")
 
 
-@pytest.fixture
-def deployables_details() -> set[DeployableDetails]:
-    return all_deployables_details
-
-
 @pytest.fixture(scope="session")
 def base_values() -> dict[str, Any]:
     return yaml.safe_load(Path("charts/matrix-stack/values.yaml").read_text("utf-8"))
@@ -223,31 +218,28 @@ def make_templates(chart: pyhelm3.Chart, release_name: str):
 
 
 def iterate_deployables_parts(
-    deployables_details: tuple[DeployableDetails],
     visitor: Callable[[DeployableDetails], None],
     if_condition: Callable[[DeployableDetails], bool],
 ):
-    for deployable_details in deployables_details:
+    for deployable_details in all_deployables_details:
         if if_condition(deployable_details):
             visitor(deployable_details)
 
 
 def iterate_deployables_workload_parts(
-    deployables_details: tuple[DeployableDetails],
     visitor: Callable[[DeployableDetails], None],
 ):
-    iterate_deployables_parts(deployables_details, visitor, lambda deployable_details: deployable_details.has_workloads)
+    iterate_deployables_parts(visitor, lambda deployable_details: deployable_details.has_workloads)
 
 
 def iterate_deployables_ingress_parts(
-    deployables_details: tuple[DeployableDetails],
     visitor: Callable[[DeployableDetails], None],
 ):
-    iterate_deployables_parts(deployables_details, visitor, lambda deployable_details: deployable_details.has_ingress)
+    iterate_deployables_parts(visitor, lambda deployable_details: deployable_details.has_ingress)
 
 
 @pytest.fixture
-def template_to_deployable_details(deployables_details: tuple[DeployableDetails]):
+def template_to_deployable_details():
     def _template_to_deployable_details(
         template: dict[str, Any], container_name: str | None = None
     ) -> DeployableDetails:
@@ -255,7 +247,7 @@ def template_to_deployable_details(deployables_details: tuple[DeployableDetails]
         manifest_name: str = template["metadata"]["labels"]["app.kubernetes.io/name"]
 
         match = None
-        for deployable_details in deployables_details:
+        for deployable_details in all_deployables_details:
             # We name the various DeployableDetails to match the name the chart should use for
             # the manifest name and thus the app.kubernetes.io/name label above. e.g. A manifest
             # belonging to Synapse should be named `<release-name>-synapse(-<optional extra>)`.
@@ -320,7 +312,6 @@ def selector_match(labels: dict[str, str], selector: dict[str, str]) -> bool:
 
 
 async def assert_covers_expected_workloads(
-    deployables_details,
     values,
     make_templates,
     template_to_deployable_details,
@@ -332,7 +323,7 @@ async def assert_covers_expected_workloads(
     def disable_covering_templates(deployable_details: DeployableDetails):
         deployable_details.set_helm_values(values, toggling_property_type, {"enabled": False})
 
-    iterate_deployables_parts(deployables_details, disable_covering_templates, if_condition)
+    iterate_deployables_parts(disable_covering_templates, if_condition)
 
     # We should now have no rendered templates of the covering_kind
     workload_ids_to_cover = set()
@@ -347,7 +338,7 @@ async def assert_covers_expected_workloads(
     def enable_covering_templates(deployable_details: DeployableDetails):
         deployable_details.set_helm_values(values, toggling_property_type, {"enabled": True})
 
-    iterate_deployables_parts(deployables_details, enable_covering_templates, if_condition)
+    iterate_deployables_parts(enable_covering_templates, if_condition)
 
     templates_by_kind = dict[str, list[dict[str, Any]]]()
     for template in await make_templates(values):

@@ -85,7 +85,7 @@ def assert_sensible_default_probe(template, probe_type):
             assert any([port["name"] == probePort for port in container["ports"]])
 
 
-def set_probe_details(deployables_details, values, probe_type):
+def set_probe_details(values, probe_type):
     deployable_details_to_probe_details = {}
 
     # We have a counter that increments for each probe field for each deployable details
@@ -109,7 +109,7 @@ def set_probe_details(deployables_details, values, probe_type):
         deployable_details_to_probe_details[deployable_details] = probe_details
         deployable_details.set_helm_values(values, probe_type, probe_details)
 
-    iterate_deployables_workload_parts(deployables_details, set_probe_details)
+    iterate_deployables_workload_parts(set_probe_details)
     return deployable_details_to_probe_details
 
 
@@ -149,10 +149,8 @@ async def test_sensible_livenessProbes_by_default(templates):
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_livenessProbes_are_configurable(
-    deployables_details, values, make_templates, template_to_deployable_details
-):
-    deployable_details_to_probe_details = set_probe_details(deployables_details, values, PropertyType.LivenessProbe)
+async def test_livenessProbes_are_configurable(values, make_templates, template_to_deployable_details):
+    deployable_details_to_probe_details = set_probe_details(values, PropertyType.LivenessProbe)
     for template in await make_templates(values):
         if template["kind"] in ["Deployment", "StatefulSet"]:
             assert_matching_probe(
@@ -173,10 +171,8 @@ async def test_sensible_readinessProbes_by_default(templates):
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_readinessProbes_are_configurable(
-    deployables_details, values, make_templates, template_to_deployable_details
-):
-    deployable_details_to_probe_details = set_probe_details(deployables_details, values, PropertyType.ReadinessProbe)
+async def test_readinessProbes_are_configurable(values, make_templates, template_to_deployable_details):
+    deployable_details_to_probe_details = set_probe_details(values, PropertyType.ReadinessProbe)
     for template in await make_templates(values):
         if template["kind"] in ["Deployment", "StatefulSet"]:
             assert_matching_probe(
@@ -197,10 +193,8 @@ async def test_sensible_startupProbes_by_default(templates):
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_startupProbes_are_configurable(
-    deployables_details, values, make_templates, template_to_deployable_details
-):
-    deployable_details_to_probe_details = set_probe_details(deployables_details, values, PropertyType.StartupProbe)
+async def test_startupProbes_are_configurable(values, make_templates, template_to_deployable_details):
+    deployable_details_to_probe_details = set_probe_details(values, PropertyType.StartupProbe)
     for template in await make_templates(values):
         if template["kind"] in ["Deployment", "StatefulSet"]:
             assert_matching_probe(

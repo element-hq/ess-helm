@@ -28,13 +28,12 @@ async def test_sets_global_pull_secrets(values, make_templates):
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_local_pull_secrets(deployables_details, values, base_values, make_templates):
+async def test_local_pull_secrets(values, base_values, make_templates):
     values["imagePullSecrets"] = [
         {"name": "global-secret"},
     ]
     values.setdefault("matrixTools", {}).setdefault("image", {})["pullSecrets"] = [{"name": "matrix-tools-secret"}]
     iterate_deployables_parts(
-        deployables_details,
         lambda deployable_details: deployable_details.set_helm_values(
             values, PropertyType.Image, {"pullSecrets": [{"name": "local-secret"}]}
         ),

@@ -1,10 +1,10 @@
-# Copyright 2024 New Vector Ltd
+# Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
 import pytest
 
-from . import values_files_to_test
+from . import all_deployables_details, values_files_to_test
 from .utils import template_id
 
 
@@ -32,11 +32,11 @@ async def test_postgres_on_its_own_renders_nothing(values, make_templates):
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_values_file_renders_only_itself(release_name, deployables_details, templates):
+async def test_values_file_renders_only_itself(release_name, templates):
     assert len(templates) > 0
 
     allowed_starts_with = []
-    for deployable_details in deployables_details:
+    for deployable_details in all_deployables_details:
         allowed_starts_with.append(f"{release_name}-{deployable_details.name}")
 
     for template in templates:
@@ -47,7 +47,7 @@ async def test_values_file_renders_only_itself(release_name, deployables_details
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_values_file_renders_idempotent(release_name, values, make_templates):
+async def test_values_file_renders_idempotent(values, make_templates):
     first_render = {}
     for template in await make_templates(values, skip_cache=True):
         first_render[template_id(template)] = template

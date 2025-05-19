@@ -1,4 +1,4 @@
-# Copyright 2024 New Vector Ltd
+# Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -36,9 +36,8 @@ async def test_no_tolerations_by_default(templates):
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_all_components_and_sub_components_render_tolerations(deployables_details, values, make_templates):
+async def test_all_components_and_sub_components_render_tolerations(values, make_templates):
     iterate_deployables_workload_parts(
-        deployables_details,
         lambda deployable_details: deployable_details.set_helm_values(
             values, PropertyType.Tolerations, [specific_toleration]
         ),
@@ -71,9 +70,8 @@ async def test_global_tolerations_render(values, make_templates):
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_merges_global_and_specific_tolerations(deployables_details, values, make_templates):
+async def test_merges_global_and_specific_tolerations(values, make_templates):
     iterate_deployables_workload_parts(
-        deployables_details,
         lambda deployable_details: deployable_details.set_helm_values(
             values, PropertyType.Tolerations, [specific_toleration]
         ),
