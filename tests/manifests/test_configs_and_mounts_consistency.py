@@ -82,7 +82,9 @@ def find_paths_in_contents(container, mounted_config_maps, deployable_details):
     return paths_found
 
 
-def find_mount_paths_and_assert_key_is_consistent(container_name, mounted_keys, mount_path, matches_in, deployable_details):
+def find_mount_paths_and_assert_key_is_consistent(
+    container_name, mounted_keys, mount_path, matches_in, deployable_details
+):
     found_mount = False
     for match_in in matches_in:
         for match in re.findall(rf"(?:^|\s|\"){mount_path}/([^\s\n\")`;,]+(?!.*noqa))", match_in):
