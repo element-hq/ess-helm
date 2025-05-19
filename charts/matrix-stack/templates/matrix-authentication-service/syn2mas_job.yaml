@@ -52,7 +52,7 @@ spec:
         {{- toYaml . | nindent 8 }}
 {{- end }}
       labels:
-        {{- include "element-io.init-secrets.labels" (dict "root" $ "context" (dict "labels" .labels "withChartVersion" false)) | nindent 8 }}
+        {{- include "element-io.matrix-authentication-service-syn2mas.labels" (dict "root" $ "context" .) | nindent 4 }}
     spec:
       restartPolicy: OnFailure
 {{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "matrix-authentication-service-syn2mas" "deployment" false "usesMatrixTools" true "mountServiceAccountToken" true)) | nindent 6 }}
@@ -203,7 +203,7 @@ spec:
 {{- end }}
 {{- end }}
       - name: syn2mas-check
-        args: ["mas-cli", "syn2mas", "check", "--config", "/conf/config.yaml", "--synapse-config", "/conf/homeserver.yaml"]
+        args: ["syn2mas", "check", "--config", "/conf/config.yaml", "--synapse-config", "/conf/homeserver.yaml"]
 {{- with .image -}}
 {{- if .digest }}
         image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
@@ -235,7 +235,7 @@ spec:
       containers:
       - name: syn2mas-migrate
 {{- if .syn2mas.dryRun }}
-        args: ["mas-cli", "syn2mas", "migrate", "--config", "/conf/config.yaml", "--synapse-config", "/conf/homeserver.yaml", "--dry-run"]
+        args: ["syn2mas", "migrate", "--config", "/conf/config.yaml", "--synapse-config", "/conf/homeserver.yaml", "--dry-run"]
     {{- with .image -}}
     {{- if .digest }}
         image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
