@@ -226,7 +226,7 @@ def assert_exists_according_to_hook_weight(template, hook_weight, used_by):
         )
 
 
-@pytest.mark.parametrize("values_file", values_files_to_test + secret_values_files_to_test)
+@pytest.mark.parametrize("values_file", values_files_to_test | secret_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_secrets_consistency(templates, other_secrets, template_to_deployable_details):
     """

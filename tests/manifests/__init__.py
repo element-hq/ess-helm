@@ -244,12 +244,14 @@ class ComponentDetails(DeployableDetails):
     is_shared_component: InitVar[bool] = field(default=False, hash=False)
     shared_component_names: InitVar[tuple[str, ...]] = field(default=(), hash=False)
     additional_values_files: InitVar[tuple[str, ...]] = field(default=(), hash=False)
+    additional_secret_values_files: InitVar[tuple[str, ...]] = field(default=(), hash=False)
 
     def __post_init__(
         self,
         is_shared_component: bool,
         shared_component_names: tuple[str, ...],
         additional_values_files: tuple[str, ...],
+        additional_secret_values_files: tuple[str, ...],
     ):
         super().__post_init__()
 
@@ -270,7 +272,7 @@ class ComponentDetails(DeployableDetails):
         self.active_component_names = tuple([self.name] + list(shared_component_names))
         self.values_files = tuple([f"{self.value_file_prefix}-minimal-values.yaml"] + list(additional_values_files))
 
-        secret_values_files = []
+        secret_values_files = list(additional_secret_values_files)
         if "init-secrets" in shared_component_names:
             secret_values_files += [
                 f"{self.value_file_prefix}-secrets-in-helm-values.yaml",
@@ -414,6 +416,10 @@ all_components_details = [
             ),
         ),
         shared_component_names=("init-secrets",),
+        additional_secret_values_files=(
+            "matrix-rtc-external-livekit-secrets-in-helm-values.yaml",
+            "matrix-rtc-external-livekit-secrets-externally-values.yaml",
+        ),
     ),
     ComponentDetails(
         name="element-web",
@@ -496,77 +502,42 @@ all_components_details = [
 ]
 
 
-def _get_deployables_details_from_base_components_names(
-    base_components_names: list[str],
-) -> tuple[DeployableDetails, ...]:
-    component_names_to_details = {
-        component_details.name: component_details for component_details in all_components_details
-    }
-    deployables_details_in_use = set[DeployableDetails]()
-    for base_component_name in base_components_names:
-        for component_name in component_names_to_details[base_component_name].active_component_names:
-            component_details = component_names_to_details[component_name]
-            deployables_details_in_use.add(component_details)
-            deployables_details_in_use.update(component_details.sub_components)
-            deployables_details_in_use.update(component_details.sidecars)
-            for sub_component in component_details.sub_components:
-                deployables_details_in_use.update(sub_component.sidecars)
-
-    return tuple(deployables_details_in_use)
+def _get_all_deployables_details() -> set[DeployableDetails]:
+    deployables_details = set[DeployableDetails]()
+    for deployable_details in all_components_details:
+        deployables_details.add(deployable_details)
+        deployables_details.update(deployable_details.sub_components)
+        for sub_component in deployable_details.sub_components:
+            deployables_details.update(sub_component.sidecars)
+        deployables_details.update(deployable_details.sidecars)
+    return deployables_details
 
 
-_single_component_values_files_to_base_components_names: dict[str, list[str]] = {
-    values_file: [details.name]
-    for details in all_components_details
-    for values_file in (details.values_files + details.secret_values_files)
-}
-
-_multi_component_values_files_to_base_components_names: dict[str, list[str]] = {
-    "example-default-enabled-components-values.yaml": [
-        "element-web",
-        "matrix-authentication-service",
-        "synapse",
-        "well-known",
-    ],
-    "matrix-authentication-service-synapse-secrets-externally-values.yaml": [
-        "matrix-authentication-service",
-        "synapse",
-    ],
-    "matrix-authentication-service-keep-auth-in-synapse-values.yaml": [
-        "matrix-authentication-service",
-        "synapse",
-    ],
-    "matrix-authentication-service-synapse-secrets-in-helm-values.yaml": ["matrix-authentication-service", "synapse"],
-    "matrix-rtc-external-livekit-secrets-in-helm-values.yaml": ["matrix-rtc"],
-    "matrix-rtc-external-livekit-secrets-externally-values.yaml": ["matrix-rtc"],
-}
+all_deployables_details = _get_all_deployables_details()
 
 
-values_files_to_deployables_details = {
-    values_file: _get_deployables_details_from_base_components_names(base_components_names)
-    for values_file, base_components_names in (
-        _single_component_values_files_to_base_components_names | _multi_component_values_files_to_base_components_names
-    ).items()
-}
+_extra_values_files_to_test: list[str] = [
+    "example-default-enabled-components-values.yaml",
+    "matrix-authentication-service-keep-auth-in-synapse-values.yaml",
+]
 
 _extra_secret_values_files_to_test = [
     "matrix-authentication-service-synapse-secrets-in-helm-values.yaml",
     "matrix-authentication-service-synapse-secrets-externally-values.yaml",
-    "matrix-rtc-external-livekit-secrets-in-helm-values.yaml",
-    "matrix-rtc-external-livekit-secrets-externally-values.yaml",
 ]
 
-_extra_services_values_files_to_test = ["matrix-rtc-exposed-services-values.yaml", "matrix-rtc-host-mode-values.yaml"]
-
-secret_values_files_to_test = [
-    values_file for details in all_components_details for values_file in details.secret_values_files
-] + _extra_secret_values_files_to_test
-
-values_files_to_test = [
-    values_file for values_file in values_files_to_deployables_details if values_file not in secret_values_files_to_test
+_extra_services_values_files_to_test = [
+    "matrix-rtc-exposed-services-values.yaml",
+    "matrix-rtc-host-mode-values.yaml",
 ]
 
+secret_values_files_to_test = set(
+    sum([component_details.secret_values_files for component_details in all_components_details], tuple())
+) | set(_extra_secret_values_files_to_test)
 
-services_values_files_to_test = [
-    values_file for details in all_components_details for values_file in details.values_files
-] + _extra_services_values_files_to_test
+values_files_to_test = set(
+    sum([component_details.values_files for component_details in all_components_details], tuple())
+) | set(_extra_values_files_to_test)
+
+
+services_values_files_to_test = values_files_to_test | set(_extra_services_values_files_to_test)

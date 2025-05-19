@@ -1,4 +1,4 @@
-# Copyright 2024 New Vector Ltd
+# Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -22,7 +22,7 @@ def test_all_components_covered():
         assert contents.name in expected_folders
 
 
-@pytest.mark.parametrize("values_file", values_files_to_test + secret_values_files_to_test)
+@pytest.mark.parametrize("values_file", values_files_to_test | secret_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 def test_component_has_values_file(values_file):
     ci_folder = Path(__file__).parent.parent.parent / Path("charts/matrix-stack/ci")

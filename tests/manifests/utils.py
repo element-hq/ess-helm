@@ -16,7 +16,7 @@ import pyhelm3
 import pytest
 import yaml
 
-from . import DeployableDetails, PropertyType, values_files_to_deployables_details
+from . import DeployableDetails, PropertyType, all_deployables_details
 
 template_cache = {}
 values_cache = {}
@@ -45,8 +45,8 @@ async def chart(helm_client: pyhelm3.Client):
 
 
 @pytest.fixture
-def deployables_details(values_file) -> tuple[DeployableDetails, ...]:
-    return values_files_to_deployables_details[values_file]
+def deployables_details() -> set[DeployableDetails]:
+    return all_deployables_details
 
 
 @pytest.fixture(scope="session")
