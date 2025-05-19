@@ -31,7 +31,6 @@ async def upgrade_enable_syn2mas(
     revision = await helm_client.get_current_revision(generated_data.release_name, namespace=generated_data.ess_namespace)
     values = revision.values
     values.setdefault("matrixAuthenticationService", {})["enabled"] = True
-    values["matrixAuthenticationService"]["preMigrationSynapseHandlesAuth"] = True
     values["matrixAuthenticationService"].setdefault("syn2mas", {})["enabled"] = True
     chart = await helm_client.get_chart("charts/matrix-stack")
     # Install or upgrade a release
@@ -112,7 +111,6 @@ async def upgrade_final_syn2mas(
     revision = await helm_client.get_current_revision(generated_data.release_name, namespace=generated_data.ess_namespace)
     values = revision.values
     values["matrixAuthenticationService"]["syn2mas"]["enabled"] = False
-    values["matrixAuthenticationService"]["preMigrationSynapseHandlesAuth"] = False
     chart = await helm_client.get_chart("charts/matrix-stack")
     # Install or upgrade a release
     revision = await helm_client.install_or_upgrade_release(

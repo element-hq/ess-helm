@@ -316,3 +316,12 @@ config.yaml: |
 {{- $syn2masSecrets | toJson -}}
 {{- end -}}
 {{- end -}}
+
+{{- define "element-io.matrix-authentication-service.readyToHandleAuth" -}}
+{{- $root := $.root -}}
+{{- if (and $root.Values.matrixAuthenticationService.enabled
+  (or (not $root.Values.matrixAuthenticationService.migrate.enabled)
+      (not $root.Values.matrixAuthenticationService.migrate.dryRun))) -}}
+true
+{{- end -}}
+{{- end -}}

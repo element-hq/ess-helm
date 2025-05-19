@@ -10,12 +10,6 @@ enabled: true
 
 replicas: 1
 
-## Force the authentication to happen with legacy authentication.
-## This can be used to deploy Matrix Authentication Service and keeping auth on Synapse.
-## Once MAS is deployed, you can run the syn2mas tool to migrate the data from Synapse to MAS.
-## This should be set back to false and never switch again after the migration to MAS has been run.
-preMigrationSynapseHandlesAuth: false
-
 {{ sub_schema_values.postgresLibPQ() }}
 
 {{ sub_schema_values.credential("Encryption secret", "encryptionSecret", initIfAbsent=True) }}
@@ -50,12 +44,15 @@ privateKeys:
 
 ## Enables synapse to Matrix Authentication Service migration
 ## The migration process must follow the following steps:
-## 1. Set `matrixAuthenticationService.enabled: true`, `matrixAuthenticationService.preMigrationSynapseHandlesAuth: true` and `matrixAuthenticationService.syn2mas.enabled: true`, run the `helm upgrade` command, check the result of the check job
-## 2. Set `matrixAuthenticationService.syn2mas.migrate.enable: true`, run the  helm upgrade command, check the result of the post-hook job
-## 3. Set `matrixAuthenticationService.syn2mas.migrate.dryRun`: false, run the helm upgrade command, check the result of the post-hook job
-## 4. Set `matrixAuthenticationService.syn2mas.enabled`, `matrixAuthenticationService.preMigrationSynapseHandlesAuth: false`: false, run the helm upgrade command, synapse restarts, Matrix Authentication Service as well, and users should now be migrated
+## 1. Set `matrixAuthenticationService.enabled: true` and `matrixAuthenticationService.syn2mas.migrate.enable: true`, run the  helm upgrade command, check the result of the pre-upgrade hook job
+## 2. Set `matrixAuthenticationService.syn2mas.migrate.dryRun`: false, run the helm upgrade command, check the result of the pre-upgrade hook job
+## 3. To disable the job scaling-down Synapse in future helm-upgrades, set `matrixAuthenticationService.syn2mas.enabled: false`
 syn2mas:
   enabled: false
   migrate:
     enabled: false
+    ## Runs the syn2mas process in dryRun mode.
+    ## Force the authentication to happen with legacy authentication.
+    ## This can be used to deploy Matrix Authentication Service and keeping auth on Synapse.
+    ## This should be set back to false and never switch again after the migration to MAS has been run.
     dryRun: true

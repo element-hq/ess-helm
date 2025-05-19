@@ -132,7 +132,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- define "element-io.synapse.ingress.additionalPaths" -}}
 {{- $root := .root -}}
 {{- with required "element-io.synapse.ingress.additionalPaths missing context" .context -}}
-{{- if (and $root.Values.matrixAuthenticationService.enabled (not $root.Values.matrixAuthenticationService.preMigrationSynapseHandlesAuth)) }}
+{{- if include "element-io.matrix-authentication-service.readyToHandleAuth" (dict "root" $root) }}
 {{- range $apiVersion := list "api/v1" "r0" "v3" "unstable" }}
 {{- range $apiSubpath := list "login" "refresh" "logout" }}
 - path: "/_matrix/client/{{ $apiVersion }}/{{ $apiSubpath }}"
