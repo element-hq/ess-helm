@@ -44,8 +44,8 @@ privateKeys:
 
 ## Enables synapse to Matrix Authentication Service migration
 ## The migration process must follow the following steps:
-## 1. Set `matrixAuthenticationService.enabled: true` and `matrixAuthenticationService.syn2mas.migrate.enable: true`, run the  helm upgrade command, check the result of the pre-upgrade hook job
-## 2. Set `matrixAuthenticationService.syn2mas.migrate.dryRun`: false, run the helm upgrade command, check the result of the pre-upgrade hook job
+## 1. Set `matrixAuthenticationService.enabled: true` and `matrixAuthenticationService.syn2mas.enable: true`, run the  helm upgrade command, check the result of the pre-upgrade hook job
+## 2. Set `matrixAuthenticationService.syn2mas.dryRun`: false, run the helm upgrade command, check the result of the pre-upgrade hook job
 ## 3. To disable the job scaling-down Synapse in future helm-upgrades, set `matrixAuthenticationService.syn2mas.enabled: false`
 syn2mas:
   enabled: false
@@ -53,10 +53,8 @@ syn2mas:
   # Syn2Mas relies on the debug image to copy mas-cli to the matrix-tools container
   {{- sub_schema_values.image(registry='ghcr.io', repository='element-hq/matrix-authentication-service', tag='0.16.0-debug') | indent(2) }}
 
-  migrate:
-    enabled: false
-    ## Runs the syn2mas process in dryRun mode.
-    ## Force the authentication to happen with legacy authentication.
-    ## This can be used to deploy Matrix Authentication Service and keeping auth on Synapse.
-    ## This should be set back to false and never switch again after the migration to MAS has been run.
-    dryRun: true
+  ## Runs the syn2mas process in dryRun mode.
+  ## Force the authentication to happen with legacy authentication.
+  ## This can be used to deploy Matrix Authentication Service and keeping auth on Synapse.
+  ## This should be set back to false and never switch again after the migration to MAS has been run.
+  dryRun: true

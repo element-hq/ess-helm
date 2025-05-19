@@ -3492,19 +3492,9 @@
               },
               "additionalProperties": false
             },
-            "migrate": {
-              "type": "object",
-              "properties": {
-                "enabled": {
-                  "type": "boolean",
-                  "description": "Run the migration job to migrate the data from Synapse to Matrix Authentication Service."
-                },
-                "dryRun": {
-                  "type": "boolean",
-                  "description": "Run the migration job in dry-run mode. Do not actually migrate the data."
-                }
-              },
-              "additionalProperties": false
+            "dryRun": {
+              "type": "boolean",
+              "description": "Run the migration job in dry-run mode. Do not actually migrate the data."
             }
           },
           "additionalProperties": false

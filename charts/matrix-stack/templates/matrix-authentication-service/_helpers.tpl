@@ -318,10 +318,15 @@ config.yaml: |
 {{- end -}}
 
 {{- define "element-io.matrix-authentication-service.readyToHandleAuth" -}}
-{{- $root := $.root -}}
+{{- $root := .root -}}
+{{- /*
+  If MAS is enabled, and the migration is disabled, it is ready to handle auth
+  If MAS is enabled, and the migration is enabled, but not running in dryRun, once the migration is complete
+        it will be ready to handle auth (after the pre-upgrade hooks)
+*/}}
 {{- if (and $root.Values.matrixAuthenticationService.enabled
-  (or (not $root.Values.matrixAuthenticationService.migrate.enabled)
-      (not $root.Values.matrixAuthenticationService.migrate.dryRun))) -}}
+  (or (not $root.Values.matrixAuthenticationService.syn2mas.enabled)
+      (not $root.Values.matrixAuthenticationService.syn2mas.dryRun))) -}}
 true
 {{- end -}}
 {{- end -}}

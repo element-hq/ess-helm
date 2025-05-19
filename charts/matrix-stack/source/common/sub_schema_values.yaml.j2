@@ -15,10 +15,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 matrixTools:
 {{ image(registry="ghcr.io", repository="element-hq/ess-helm/matrix-tools", tag="0.4.0") | indent(2) }}
 
-## The kubectl image, used in multiple components
-kubectl:
-{{ image(registry="docker.io", repository="bitnami/kubectl", tag="1.33.1") | indent(2) }}
-
 ## CertManager Issuer to configure by default automatically on all ingresses
 ## If configured, the chart will automatically generate the tlsSecret name for all ingresses
 certManager: {}
