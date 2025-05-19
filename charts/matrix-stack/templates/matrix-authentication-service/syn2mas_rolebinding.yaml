@@ -1,0 +1,28 @@
+{{- /*
+Copyright 2024 New Vector Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+
+{{- with .Values.initSecrets -}}
+{{- if and .enabled .rbac.create (include "element-io.matrix-authentication-service-syn2mas.generated-secrets" (dict "root" $)) -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $.Release.Name }}-matrix-authentication-service-syn2mas
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "element-io.matrix-authentication-service-syn2mas.labels" (dict "root" $ "context" .) | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-10"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $.Release.Name }}-matrix-authentication-service-syn2mas
+subjects:
+- kind: ServiceAccount
+  name: {{ include "element-io.ess-library.serviceAccountName" (dict "root" $ "context" (dict "serviceAccount" .serviceAccount "nameSuffix" "matrix-authentication-service-syn2mas")) }}
+  namespace: {{ $.Release.Namespace }}
+{{- end -}}
+{{- end -}}
