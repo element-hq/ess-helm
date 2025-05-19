@@ -1752,6 +1752,35 @@ matrixAuthenticationService:
   ## 3. To disable the job scaling-down Synapse in future helm-upgrades, set `matrixAuthenticationService.syn2mas.enabled: false`
   syn2mas:
     enabled: false
+
+    # Syn2Mas relies on the debug image to copy mas-cli to the matrix-tools container
+    # Details of the image to be used
+    image:
+      ## The host and (optional) port of the container image registry for this component.
+      ## If not specified Docker Hub is implied
+      registry: ghcr.io
+
+      ## The path in the registry where the container image is located
+      repository: element-hq/matrix-authentication-service
+
+      ## The tag of the container image to use.
+      ## Defaults to the Chart's appVersion if not set
+      tag: "0.16.0-debug"
+
+      ## Container digest to use. Used to pull the image instead of the image tag / Chart appVersion if set
+      # digest:
+
+      ## Whether the image should be pulled on container startup. Valid values are Always, IfNotPresent and Never
+      ## If this isn't provided it defaults to Always when using the image tag / Chart appVersion or
+      ## IfNotPresent if using a digest
+      # pullPolicy:
+
+      ## A list of pull secrets to use for this image
+      ## e.g.
+      ## pullSecrets:
+      ## - name: dockerhub
+      pullSecrets: []
+
     migrate:
       enabled: false
       ## Runs the syn2mas process in dryRun mode.

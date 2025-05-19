@@ -49,6 +49,10 @@ privateKeys:
 ## 3. To disable the job scaling-down Synapse in future helm-upgrades, set `matrixAuthenticationService.syn2mas.enabled: false`
 syn2mas:
   enabled: false
+
+  # Syn2Mas relies on the debug image to copy mas-cli to the matrix-tools container
+  {{- sub_schema_values.image(registry='ghcr.io', repository='element-hq/matrix-authentication-service', tag='0.16.0-debug') | indent(2) }}
+
   migrate:
     enabled: false
     ## Runs the syn2mas process in dryRun mode.

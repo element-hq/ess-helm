@@ -51,6 +51,9 @@
           "type": "boolean",
           "description": "Enable synapse to Matrix Authentication Service migration."
         },
+        "image": {
+          "$ref": "file://common/image.json"
+        },
         "migrate": {
           "type": "object",
           "properties": {
