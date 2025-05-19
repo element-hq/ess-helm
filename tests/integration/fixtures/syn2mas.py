@@ -28,7 +28,9 @@ async def upgrade_enable_syn2mas(
     generated_data: ESSData,
     loaded_matrix_tools: dict,
 ):
-    revision = await helm_client.get_current_revision(generated_data.release_name, namespace=generated_data.ess_namespace)
+    revision = await helm_client.get_current_revision(
+        generated_data.release_name, namespace=generated_data.ess_namespace
+    )
     values = revision.values
     values.setdefault("matrixAuthenticationService", {})["enabled"] = True
     values["matrixAuthenticationService"].setdefault("syn2mas", {})["enabled"] = True
@@ -45,7 +47,6 @@ async def upgrade_enable_syn2mas(
     assert revision.status == pyhelm3.ReleaseRevisionStatus.DEPLOYED
 
 
-
 @pytest.fixture(autouse=True, scope="session")
 async def upgrade_migrate_dryrun_syn2mas(
     helm_client: pyhelm3.Client,
@@ -56,7 +57,9 @@ async def upgrade_migrate_dryrun_syn2mas(
     generated_data: ESSData,
     loaded_matrix_tools: dict,
 ):
-    revision = await helm_client.get_current_revision(generated_data.release_name, namespace=generated_data.ess_namespace)
+    revision = await helm_client.get_current_revision(
+        generated_data.release_name, namespace=generated_data.ess_namespace
+    )
     values = revision.values
     values["matrixAuthenticationService"]["syn2mas"].setdefault("migrate")["enabled"] = True
     chart = await helm_client.get_chart("charts/matrix-stack")
@@ -82,7 +85,9 @@ async def upgrade_migrate_syn2mas(
     generated_data: ESSData,
     loaded_matrix_tools: dict,
 ):
-    revision = await helm_client.get_current_revision(generated_data.release_name, namespace=generated_data.ess_namespace)
+    revision = await helm_client.get_current_revision(
+        generated_data.release_name, namespace=generated_data.ess_namespace
+    )
     values = revision.values
     values["matrixAuthenticationService"]["syn2mas"].setdefault("migrate")["dryRun"] = False
     chart = await helm_client.get_chart("charts/matrix-stack")
@@ -108,7 +113,9 @@ async def upgrade_final_syn2mas(
     generated_data: ESSData,
     loaded_matrix_tools: dict,
 ):
-    revision = await helm_client.get_current_revision(generated_data.release_name, namespace=generated_data.ess_namespace)
+    revision = await helm_client.get_current_revision(
+        generated_data.release_name, namespace=generated_data.ess_namespace
+    )
     values = revision.values
     values["matrixAuthenticationService"]["syn2mas"]["enabled"] = False
     chart = await helm_client.get_chart("charts/matrix-stack")

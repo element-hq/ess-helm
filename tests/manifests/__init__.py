@@ -455,11 +455,18 @@ all_components_details = [
         values_file_path=ValuesFilePath.read_write("matrixAuthenticationService"),
         has_db=True,
         shared_component_names=("init-secrets", "postgres"),
+        additional_values_files=("synapse-worker-example-values.yaml",),
         sub_components=(
             SubComponentDetails(
                 name="matrix-authentication-service-syn2mas",
                 helm_keys=("matrixAuthenticationService", "syn2mas"),
-                paths_consistency_noqa=("/conf/log_config.yaml", "/media_store", "/media/media_store", "/as/0/bridge_registration.yaml", ),
+                paths_consistency_noqa=(
+                    "/conf/log_config.yaml",
+                    "/media_store",
+                    "/media/media_store",
+                    "/as/0/bridge_registration.yaml",
+                    "/usr/local/bin/mas-cli",
+                ),
                 helm_keys_overrides={
                     # has_workloads but comes from synapse.extraEnv
                     PropertyType.Env: None,
@@ -482,14 +489,14 @@ all_components_details = [
                 has_ingress=False,
                 has_service_monitor=False,
             ),
-        )
+        ),
     ),
     ComponentDetails(
         name="synapse",
         has_db=True,
         has_storage=True,
         is_synapse_process=True,
-        additional_values_files=("synapse-worker-example-values.yaml",),
+        additional_values_files=("matrix-authentication-service-syn2mas-values.yaml",),
         skip_path_consistency_for_files=("path_map_file", "path_map_file_get"),
         sub_components=synapse_workers_details
         + (
