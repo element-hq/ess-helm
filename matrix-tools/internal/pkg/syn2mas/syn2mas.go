@@ -82,7 +82,7 @@ func scaleBack(client kubernetes.Interface, namespace string, scaledSts map[stri
 func RunSyn2MAS(client kubernetes.Interface, namespace string, synapseConfigPath string, masConfigMap string) {
 	originStsReplicas := scaleDownSynapse(client, namespace)
 	// Run syn2mas cli, and in case of failure, scale back synapse up
-	cmd := exec.Command("mas-cli", "syn2mas", "migrate", "--config", masConfigMap, "--synapse-config", synapseConfigPath)
+	cmd := exec.Command("/usr/local/bin/mas-cli", "syn2mas", "migrate", "--config", masConfigMap, "--synapse-config", synapseConfigPath)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
