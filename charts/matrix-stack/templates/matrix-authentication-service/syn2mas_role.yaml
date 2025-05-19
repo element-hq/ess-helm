@@ -3,8 +3,8 @@ Copyright 2024 New Vector Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
-{{- with .Values.initSecrets -}}
-{{- if and .enabled .rbac.create (include "element-io.matrix-authentication-service-syn2mas.generated-secrets" (dict "root" $)) -}}
+{{- with .Values.matrixAuthenticationService -}}
+{{- if and .enabled .syn2mas.enabled -}}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
