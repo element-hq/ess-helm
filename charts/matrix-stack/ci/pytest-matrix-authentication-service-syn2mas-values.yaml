@@ -38,6 +38,9 @@ matrixAuthenticationService:
   syn2mas:
     dryRun: true
     enabled: true
+    extraEnv:
+      - name: DEBUG_RENDERING
+        value: "1"
 matrixRTC:
   enabled: false
 postgres:

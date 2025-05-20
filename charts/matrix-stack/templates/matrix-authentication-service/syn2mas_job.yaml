@@ -112,6 +112,9 @@ spec:
         env:
         {{- include "element-io.matrix-authentication-service.matrixToolsEnv" (dict "root" $ "context" .) | nindent 8 }}
         {{- include "element-io.matrix-authentication-service.env" (dict "root" $ "context" .) | nindent 8 }}
+{{- with .extraEnv }}
+        {{- toYaml . | nindent 8 }}
+{{- end }}
 {{- with .resources }}
         resources:
           {{- toYaml . | nindent 10 }}
@@ -146,8 +149,11 @@ spec:
         command:
         {{- include "element-io.synapse.render-config" (dict "root" $ "context" .) | nindent 8 }}
         env:
-          {{- include "element-io.synapse.matrixToolsEnv" (dict "root" $ "context" .) | nindent 10 }}
-          {{- include "element-io.synapse.env" (dict "root" $ "context" .) | nindent 10 }}
+        {{- include "element-io.synapse.matrixToolsEnv" (dict "root" $ "context" .) | nindent 8 }}
+        {{- include "element-io.synapse.env" (dict "root" $ "context" .) | nindent 8 }}
+{{- with .extraEnv }}
+        {{- toYaml . | nindent 8 }}
+{{- end }}
 {{- with .resources }}
         resources:
           {{- toYaml . | nindent 10 }}
@@ -228,8 +234,6 @@ spec:
         securityContext:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-        env:
-        {{- include "element-io.matrix-authentication-service.env" (dict "root" $ "context" .) | nindent 10 }}
 {{- with .resources }}
         resources:
           {{- toYaml . | nindent 10 }}
@@ -275,7 +279,9 @@ spec:
         env:
         - name: NAMESPACE
           value: {{ $.Release.Namespace }}
-        {{- include "element-io.matrix-authentication-service.env" (dict "root" $ "context" .) | nindent 8 }}
+{{- with .extraEnv }}
+        {{- toYaml . | nindent 8 }}
+{{- end }}
 {{- with .resources }}
         resources:
           {{- toYaml . | nindent 10 }}
