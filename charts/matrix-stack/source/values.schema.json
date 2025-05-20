@@ -43,7 +43,7 @@
       }
     },
     "ingress": {
-      "$ref": "file://common/ingress_without_host.json"
+      "$ref": "file://common/ingress_global.json"
     },
     "tolerations": {
       "$ref": "file://common/tolerations.json"
