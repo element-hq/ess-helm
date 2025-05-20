@@ -41,7 +41,7 @@ app.kubernetes.io/part-of: matrix-stack
 {{- with required "element-io.ess-library.postgres-label requires context" .context -}}
 {{- $essPassword := required "element-io.ess-library.postgres-label context missing essPassword" .essPassword -}}
 {{- $postgresProperty := .postgresProperty -}}
-k8s.element.io/postgres-password-hash: {{ if $postgresProperty -}}
+k8s.element.io/postgres-password-{{ $essPassword | lower }}-hash: {{ if $postgresProperty -}}
     {{- if $postgresProperty.password.value -}}
     {{- $postgresProperty.password.value | sha1sum -}}
     {{- else -}}
