@@ -88,7 +88,7 @@ frontend synapse-http-in
   http-request set-var(req.backend) str('initial-synchrotron') if is_initial_sync { nbsrv('synapse-initial-synchrotron') ge 1 }
 {{- end }}
 
-{{- if $root.Values.matrixAuthenticationService.enabled }}
+{{- if include "element-io.matrix-authentication-service.readyToHandleAuth" (dict "root" $root) }}
   acl rendezvous path_beg /_matrix/client/unstable/org.matrix.msc4108/rendezvous
   acl rendezvous path_beg /_synapse/client/rendezvous
   use_backend return_204_rendezvous if { method OPTIONS } rendezvous
