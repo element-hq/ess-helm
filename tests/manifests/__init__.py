@@ -589,7 +589,12 @@ _extra_workloads_files_to_test = [
     "matrix-authentication-service-synapse-syn2mas-migrate-secrets-externally-values.yaml",
 ]
 
-_extra_secret_values_files_to_test = []
+_extra_secret_values_files_to_test = [
+    "matrix-authentication-service-synapse-syn2mas-dry-run-secrets-in-helm-values.yaml",
+    "matrix-authentication-service-synapse-syn2mas-dry-run-secrets-externally-values.yaml",
+    "matrix-authentication-service-synapse-syn2mas-migrate-secrets-in-helm-values.yaml",
+    "matrix-authentication-service-synapse-syn2mas-migrate-secrets-externally-values.yaml",
+]
 
 _extra_services_values_files_to_test = [
     "matrix-rtc-exposed-services-values.yaml",
