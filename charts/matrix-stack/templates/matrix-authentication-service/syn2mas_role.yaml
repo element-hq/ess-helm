@@ -27,9 +27,16 @@ rules:
   You cannot restrict create or deletecollection requests by resourceName.
   For create, this limitation is because the object name is not known at authorization time.
 */}}
-- apiGroups: [""]
+- apiGroups: ["apps"]
   resources: ["statefulsets"]
-  resourceNames: [ "{{ $.Release.Name }}-synapse" ]
-  verbs: ["update"]
+  verbs: ["list"]
+- apiGroups: ["apps"]
+  resources: ["statefulsets"]
+  resourceNames:
+{{- $enabledWorkers := (include "element-io.synapse.enabledWorkers" (dict "root" $)) | fromJson }}
+{{- range $processType, $unmergedProcessDetails := mustMergeOverwrite (dict "main" dict) $enabledWorkers }}
+  - "{{ $.Release.Name }}-synapse-{{ $processType }}"
+{{- end }}
+  verbs: ["get", "update"]
 {{- end -}}
 {{- end -}}
