@@ -20,6 +20,12 @@ matrixAuthenticationService:
     000-pytest-admin:
       configSecret: '{{ $.Release.Name }}-pytest-admin'
       configSecretKey: admin.yaml
+    password-scheme.yml:
+      config: |
+        passwords:
+          schemes:
+            - version: 1
+              algorithm: bcrypt
   enabled: false
   extraEnv:
     - name: DEBUG_RENDERING
