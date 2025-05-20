@@ -64,6 +64,20 @@ spec:
 {{- end }}
       labels:
         {{- include "element-io.matrix-authentication-service-syn2mas.labels" (dict "root" $ "context" (dict "image" .image "labels" .labels "withChartVersion" false)) | nindent 8 }}
+        k8s.element.io/matrix-authentication-service-config-hash: {{ include "element-io.matrix-authentication-service.configmap-data" (dict "root" $ "context" $masContext) | sha1sum }}
+        k8s.element.io/matrix-authentication-service-secret-hash: {{ include "element-io.matrix-authentication-service.secret-data" (dict "root" $ "context" $masContext) | sha1sum }}
+        k8s.element.io/synapse-config-hash: {{ include "element-io.synapse.configmap-data"  (dict "root" $ "context" $synapseContext) | sha1sum }}
+        k8s.element.io/synapse-secret-hash: {{ include "element-io.synapse.secret-data"  (dict "root" $ "context" $synapseContext) | sha1sum }}
+        {{ include "element-io.ess-library.postgres-label" (dict "root" $ "context" (dict
+                                                                "essPassword" "matrixAuthenticationService"
+                                                                "postgresProperty" $masContext.postgres
+                                                                )
+                                                ) }}
+        {{ include "element-io.ess-library.postgres-label" (dict "root" $ "context" (dict
+                                                                "essPassword" "synapse"
+                                                                "postgresProperty" $synapseContext.postgres
+                                                                )
+                                                ) }}
     spec:
       restartPolicy: Never
 {{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "matrix-authentication-service-syn2mas" "deployment" false "usesMatrixTools" true "mountServiceAccountToken" true)) | nindent 6 }}
