@@ -4,11 +4,11 @@
 
 import pytest
 
-from . import PropertyType, values_files_to_test
+from . import PropertyType, workloads_values_files_to_test
 from .utils import iterate_deployables_workload_parts, template_id
 
 
-@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_sets_nonRoot_uids_gids_in_pod_securityContext_by_default(templates):
     for template in templates:
@@ -36,7 +36,7 @@ async def test_sets_nonRoot_uids_gids_in_pod_securityContext_by_default(template
             )
 
 
-@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_can_nuke_pod_securityContext_ids(values, make_templates):
     iterate_deployables_workload_parts(
@@ -59,7 +59,7 @@ async def test_can_nuke_pod_securityContext_ids(values, make_templates):
                 assert idKey not in pod_securityContext, f"{idKey} set in {id}'s Pod securityContext"
 
 
-@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_sets_seccompProfile_in_pod_securityContext_by_default(templates):
     for template in templates:
@@ -81,7 +81,7 @@ async def test_sets_seccompProfile_in_pod_securityContext_by_default(templates):
             )
 
 
-@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_can_nuke_pod_securityContext_seccompProfile(values, make_templates):
     iterate_deployables_workload_parts(

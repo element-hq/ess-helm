@@ -506,6 +506,7 @@ all_components_details = [
                 has_ingress=False,
                 has_replicas=False,
                 has_service_monitor=False,
+                has_topology_spread_constraints=False,
             ),
         ),
     ),
@@ -578,7 +579,10 @@ all_deployables_details = _get_all_deployables_details()
 
 
 _extra_values_files_to_test: list[str] = [
-    "example-default-enabled-components-values.yaml",
+    "example-default-enabled-components-values.yaml"
+]
+
+_extra_workloads_files_to_test = [
     "matrix-authentication-service-synapse-syn2mas-dry-run-secrets-in-helm-values.yaml",
     "matrix-authentication-service-synapse-syn2mas-dry-run-secrets-externally-values.yaml",
     "matrix-authentication-service-synapse-syn2mas-migrate-secrets-in-helm-values.yaml",
@@ -599,6 +603,10 @@ secret_values_files_to_test = set(
 values_files_to_test = set(
     sum([component_details.values_files for component_details in all_components_details], tuple())
 ) | set(_extra_values_files_to_test)
+
+workloads_values_files_to_test = set(
+    sum([component_details.values_files for component_details in all_components_details], tuple())
+) | set(_extra_workloads_files_to_test)
 
 
 services_values_files_to_test = values_files_to_test | set(_extra_services_values_files_to_test)

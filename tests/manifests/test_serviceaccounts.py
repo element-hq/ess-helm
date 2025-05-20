@@ -6,11 +6,11 @@ import copy
 
 import pytest
 
-from . import DeployableDetails, PropertyType, all_deployables_details, values_files_to_test
+from . import DeployableDetails, PropertyType, all_deployables_details, workloads_values_files_to_test
 from .utils import iterate_deployables_workload_parts, template_id
 
 
-@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_dont_automount_serviceaccount_tokens(templates):
     for template in templates:
@@ -20,7 +20,7 @@ async def test_dont_automount_serviceaccount_tokens(templates):
             )
 
 
-@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_uses_serviceaccount_named_as_per_pod_controller_by_default(templates):
     workloads_by_id = {}
@@ -53,7 +53,7 @@ async def test_uses_serviceaccount_named_as_per_pod_controller_by_default(templa
     assert serviceaccount_names == covered_serviceaccount_names, f"{id} created ServiceAccounts that it shouldn't have"
 
 
-@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_uses_serviceaccount_named_as_values_if_specified(values, make_templates):
     def service_account_name(deployable_details: DeployableDetails):
@@ -87,7 +87,7 @@ async def test_uses_serviceaccount_named_as_values_if_specified(values, make_tem
         ), f"{id} uses unexpected ServiceAccount"
 
 
-@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_does_not_create_serviceaccounts_if_configured_not_to(values, make_templates):
     for deployable_details in all_deployables_details:
