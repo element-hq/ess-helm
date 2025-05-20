@@ -65,7 +65,9 @@ async def test_templates_have_postgres_hash_label(release_name, templates, value
             if not deployable_details.has_db:
                 continue
 
-            assert "k8s.element.io/postgres-password-hash" in labels, f"{id} does not have postgres password hash label"
+            assert any(re.match("k8s.element.io/postgres-password-[a-z]+-hash", label) for label in labels), (
+                f"{id} does not have postgres password hash label"
+            )
             assert (
                 len(deployable_details.helm_keys) == 1
             )  # We currently assume that Postgres is for top-level components only
@@ -84,9 +86,10 @@ async def test_templates_have_postgres_hash_label(release_name, templates, value
             else:
                 expected = f"{release_name}-generated"
             expected = expected.replace("{{ $.Release.Name }}", release_name)
-            assert labels["k8s.element.io/postgres-password-hash"] == sha1(expected.encode()).hexdigest(), (
-                f"{id} has incorrect postgres password hash, expect {expected} hashed as sha1"
-            )
+            assert (
+                labels[f"k8s.element.io/postgres-password-{helm_key.lower()}-hash"]
+                == sha1(expected.encode()).hexdigest()
+            ), f"{id} has incorrect postgres password hash, expect {expected} hashed as sha1"
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -114,7 +117,7 @@ async def test_our_labels_are_named_consistently(templates):
     acceptable_matches = [
         "k8s.element.io/as-registration-[0-9]+-hash",
         "k8s.element.io/([a-z0-9-]+)-(config|secret)-hash",
-        "k8s.element.io/postgres-password-hash",
+        "k8s.element.io/postgres-password-([a-z]+)-hash",
         "k8s.element.io/synapse-instance",
         "k8s.element.io/target-(instance|name)",
     ]
