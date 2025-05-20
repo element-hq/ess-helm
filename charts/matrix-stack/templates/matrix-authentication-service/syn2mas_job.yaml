@@ -74,9 +74,9 @@ spec:
 {{- end }}
 {{- end }}
         command:
-        - cp
-        - /usr/local/bin/mas-cli
-        - /tmp-mas-cli/mas-cli
+        - sh
+        - -c
+        - cp -v /usr/local/bin/mas-cli /tmp-mas-cli/mas-cli
 {{- with .containersSecurityContext }}
         securityContext:
           {{- toYaml . | nindent 10 }}
@@ -252,7 +252,7 @@ spec:
     {{- end }}
     {{- end }}
 {{- else }}
-        args: ["matrix-tools", "syn2mas", "--config", "/conf/config.yaml", "--synapse-config", "/conf/homeserver.yaml"]
+        command: ["/matrix-tools", "syn2mas", "--config", "/conf/config.yaml", "--synapse-config", "/conf/homeserver.yaml"]
     {{- with $.Values.matrixTools.image -}}
     {{- if .digest }}
         image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
@@ -268,7 +268,9 @@ spec:
           {{- toYaml . | nindent 10 }}
 {{- end }}
         env:
-        {{- include "element-io.matrix-authentication-service.env" (dict "root" $ "context" .) | nindent 10 }}
+        - name: NAMESPACE
+          value: {{ $.Release.Namespace }}
+        {{- include "element-io.matrix-authentication-service.env" (dict "root" $ "context" .) | nindent 8 }}
 {{- with .resources }}
         resources:
           {{- toYaml . | nindent 10 }}
@@ -277,7 +279,7 @@ spec:
         - mountPath: "/conf"
           name: rendered-config
           readOnly: true
-        - mountPath: "/usr/local/bin"
+        - mountPath: "/tmp-mas-cli"
           name: tmp-mas-cli
           readOnly: true
 {{- range $secret := include "element-io.matrix-authentication-service.syn2masConfigSecrets" (dict "root" $ "context" (dict "synapseContext" $synapseContext "masContext" $masContext)) | fromJsonArray }}
