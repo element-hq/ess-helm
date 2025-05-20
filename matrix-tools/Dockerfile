@@ -12,7 +12,7 @@ RUN go mod download
 ARG TARGETOS TARGETARCH
 RUN GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=0 go build -o /app/matrix-tools cmd/main.go
 
-FROM gcr.io/distroless/static-debian12
+FROM gcr.io/distroless/cc-debian12
 WORKDIR /
 
 COPY --from=buildstage --chmod=0755 /app/matrix-tools /
