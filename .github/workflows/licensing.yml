@@ -19,7 +19,6 @@ jobs:
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
       with:
         ref: ${{ github.event.pull_request.head.sha }}
-        fetch-depth: 0
 
     - uses: matrix-org/setup-python-poetry@5bbf6603c5c930615ec8a29f1b5d7d258d905aa4  # v2
       with:
@@ -41,6 +40,15 @@ jobs:
         git config --global --add safe.directory "$GITHUB_WORKSPACE"
         reuse --version
         reuse spdx | ./scripts/spdx_checks.py
+
+  copyright-dates:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+        fetch-depth: 0
 
 # REUSE-IgnoreStart
     - name: Copyright dates
@@ -80,7 +88,7 @@ jobs:
             fi
         done
 
-        if [[ "$error_flag" == "true" ]]; then
+        if [ "$error_flag" = "true" ]; then
           echo "errors happened"
           exit 1
         else
