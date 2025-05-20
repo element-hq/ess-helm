@@ -1,4 +1,4 @@
-# Copyright 2024 New Vector Ltd
+# Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -34,7 +34,7 @@ pytest-asyncio-cooperative ="^0.39.0"
 towncrier = "^24.8.0"
 spdx-tools = "^0.8.3"
 mypy = "^1.15.0"
-types-pyyaml = "^6.0.12.20250402"
+types-pyyaml = "^6.0.12.20250516"
 
 [build-system]
 requires = ["poetry-core"]
