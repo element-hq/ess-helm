@@ -1,4 +1,4 @@
-# Copyright 2024 New Vector Ltd
+# Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -38,6 +38,7 @@ jobs:
     - name: Set version
       run: |
         if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+          scripts/check_semver.py "$GITHUB_REF_NAME"
           scripts/set_chart_version.sh "$GITHUB_REF_NAME"
         elif [ "$GITHUB_EVENT_NAME" = "pull_request" ] || [ "$GITHUB_EVENT_NAME" = "pull_request_target" ]; then
             actual_pr_head_commit=$(yq --input-format json -r '.pull_request.head.sha' "$GITHUB_EVENT_PATH")
