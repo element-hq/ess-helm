@@ -6,8 +6,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 {{- with .Values.matrixAuthenticationService -}}
 {{- if and .enabled .syn2mas.enabled $.Values.synapse.enabled -}}
-{{- $synapseContext := (mustMergeOverwrite ($.Values.synapse | deepCopy) (dict "processType" "main" "isHook" true)) -}}
-{{- $masContext := (mustMergeOverwrite ($.Values.matrixAuthenticationService | deepCopy) (dict "isHook" true)) -}}
+{{/* dryRun mode runs as a post-upgrade hook, and can use the existing configmaps and secrets */}}
+{{- $isHook := (not .syn2mas.dryRun) -}}
+{{- $synapseContext := (mustMergeOverwrite ($.Values.synapse | deepCopy) (dict "processType" "main" "isHook" $isHook)) -}}
+{{- $masContext := (mustMergeOverwrite ($.Values.matrixAuthenticationService | deepCopy) (dict "isHook" $isHook)) -}}
 {{- with $masContext -}}
 apiVersion: batch/v1
 kind: Job
@@ -28,6 +30,9 @@ metadata:
                                                             )
                                         ) }}
   annotations:
+{{- if .syn2mas.dryRun }}
+    "helm.sh/hook": post-install,post-upgrade
+{{- else }}
     "helm.sh/hook": pre-install,pre-upgrade
 {{- /*
 Hook Weights are
@@ -36,6 +41,7 @@ Hook Weights are
 - 0 : The job itself, so that it is run after the secrets and configs are created &
 */}}
     "helm.sh/hook-weight": "0"
+{{- end }}
   name: {{ $.Release.Name }}-matrix-authentication-service-syn2mas
   namespace: {{ $.Release.Namespace }}
 spec:
@@ -54,7 +60,7 @@ spec:
       labels:
         {{- include "element-io.matrix-authentication-service-syn2mas.labels" (dict "root" $ "context" .) | nindent 4 }}
     spec:
-      restartPolicy: OnFailure
+      restartPolicy: Never
 {{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "matrix-authentication-service-syn2mas" "deployment" false "usesMatrixTools" true "mountServiceAccountToken" true)) | nindent 6 }}
       initContainers:
       - name: copy-mas-cli
@@ -283,10 +289,10 @@ spec:
       - name: plain-syn-config
         configMap:
           defaultMode: 420
-          name: {{ include "element-io.synapse.configmap-name" (dict "root" $ "context" (dict "isHook" true)) }}
+          name: {{ include "element-io.synapse.configmap-name" (dict "root" $ "context" (dict "isHook" $isHook)) }}
       - name: plain-mas-config
         configMap:
-          name: {{ include "element-io.matrix-authentication-service.configmap-name" (dict "root" $ "context" (dict "isHook" true)) }}
+          name: {{ include "element-io.matrix-authentication-service.configmap-name" (dict "root" $ "context" (dict "isHook" $isHook)) }}
 {{- range $secret := include "element-io.matrix-authentication-service.syn2masConfigSecrets" (dict "root" $ "context" (dict "synapseContext" $synapseContext "masContext" $masContext)) | fromJsonArray }}
       - secret:
           secretName: {{ tpl $secret $ }}
