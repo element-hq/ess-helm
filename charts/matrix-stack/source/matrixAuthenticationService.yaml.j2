@@ -32,6 +32,7 @@ privateKeys:
 {{ sub_schema_values.serviceAccount() }}
 {{ sub_schema_values.nodeSelector() }}
 {{ sub_schema_values.tolerations() }}
+{{ sub_schema_values.hostAliases() }}
 {{ sub_schema_values.topologySpreadConstraints() }}
 {{ sub_schema_values.podSecurityContext(user_id=10005, group_id=10005) }}
 {{ sub_schema_values.containersSecurityContext() }}
@@ -52,6 +53,14 @@ syn2mas:
 
   # Syn2Mas relies on the debug image to copy mas-cli to the matrix-tools container
   {{- sub_schema_values.image(registry='ghcr.io', repository='element-hq/matrix-authentication-service', tag='0.16.0-debug') | indent(2) }}
+  {{- sub_schema_values.labels() | indent(2) -}}
+  {{- sub_schema_values.workloadAnnotations() | indent(2) -}}
+  {{- sub_schema_values.containersSecurityContext() | indent(2) -}}
+  {{- sub_schema_values.nodeSelector() | indent(2) -}}
+  {{- sub_schema_values.podSecurityContext(user_id='10005', group_id='10005') | indent(2) -}}
+  {{- sub_schema_values.resources(requests_memory='50Mi', requests_cpu='50m', limits_memory='350Mi') | indent(2) -}}
+  {{- sub_schema_values.serviceAccount() | indent(2) -}}
+  {{- sub_schema_values.tolerations() | indent(2) }}
 
   ## Runs the syn2mas process in dryRun mode.
   ## Force the authentication to happen with legacy authentication.

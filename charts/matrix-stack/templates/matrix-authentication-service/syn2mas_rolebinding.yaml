@@ -6,6 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 {{- with .Values.matrixAuthenticationService -}}
 {{- if and .enabled .syn2mas.enabled -}}
+{{- with .syn2mas -}}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -30,5 +31,6 @@ subjects:
 - kind: ServiceAccount
   name: {{ include "element-io.ess-library.serviceAccountName" (dict "root" $ "context" (dict "serviceAccount" .serviceAccount "nameSuffix" "matrix-authentication-service-syn2mas")) }}
   namespace: {{ $.Release.Namespace }}
+{{- end -}}
 {{- end -}}
 {{- end -}}

@@ -57,6 +57,33 @@
         "dryRun": {
           "type": "boolean",
           "description": "Run the migration job in dry-run mode. Do not actually migrate the data."
+        },
+        "labels": {
+          "$ref": "file://common/labels.json"
+        },
+        "annotations": {
+          "$ref": "file://common/workloadAnnotations.json"
+        },
+        "extraEnv": {
+          "$ref": "file://common/extraEnv.json"
+        },
+        "containersSecurityContext": {
+          "$ref": "file://common/containersSecurityContext.json"
+        },
+        "nodeSelector": {
+          "$ref": "file://common/nodeSelector.json"
+        },
+        "podSecurityContext": {
+          "$ref": "file://common/podSecurityContext.json"
+        },
+        "resources": {
+          "$ref": "file://common/resources.json"
+        },
+        "serviceAccount": {
+          "$ref": "file://common/serviceAccount.json"
+        },
+        "tolerations": {
+          "$ref": "file://common/tolerations.json"
         }
       }
     },
