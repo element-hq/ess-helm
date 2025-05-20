@@ -1,5 +1,5 @@
 {{- /*
-Copyright 2024 New Vector Ltd
+Copyright 2024-2025 New Vector Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -15,10 +15,10 @@ metadata:
   name: {{ $.Release.Name }}-well-known
   namespace: {{ $.Release.Namespace }}
 spec:
-{{- include "element-io.ess-library.ingress.tls" (dict "root" $ "context" (dict "host" (.ingress.host | default $.Values.serverName) "ingress" .ingress "ingressName" "well-known")) | nindent 2 }}
+{{- include "element-io.ess-library.ingress.tls" (dict "root" $ "context" (dict "host" $.Values.serverName "ingress" .ingress "ingressName" "well-known")) | nindent 2 }}
 {{- include "element-io.ess-library.ingress.className" (dict "root" $ "context" .ingress.className) | nindent 2 }}
   rules:
-  - host: "{{ tpl ($.Values.wellKnownDelegation.ingress.host | default $.Values.serverName) $ }}"
+  - host: "{{ tpl $.Values.serverName $ }}"
     http:
       paths:
 {{- if and .baseDomainRedirect.enabled (or $.Values.elementWeb.enabled .baseDomainRedirect.url) }}

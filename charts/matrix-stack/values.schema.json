@@ -10243,9 +10243,6 @@
                 ]
               }
             },
-            "host": {
-              "type": "string"
-            },
             "className": {
               "type": "string"
             },

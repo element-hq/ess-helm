@@ -1,0 +1,42 @@
+{
+  "type": "object",
+  "properties": {
+    "annotations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    },
+    "className": {
+      "type": "string"
+    },
+    "tlsEnabled": {
+      "type": "boolean"
+    },
+    "tlsSecret": {
+      "type": "string"
+    },
+    "controllerType": {
+      "type": "string",
+      "enum": [
+        "ingress-nginx"
+      ]
+    },
+    "service": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "ClusterIP",
+            "NodePort",
+            "LoadBalancer"
+          ]
+        }
+      }
+    }
+  }
+}
