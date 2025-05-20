@@ -148,12 +148,6 @@ jobs:
 
     - name: Install dyff with asdf
       uses: asdf-vm/actions/install@1902764435ca0dd2f3388eea723a4f92a4eb8302  # v4
-      with:
-        # Until v4 is released or we get spam about bash vs go implementations
-        # https://github.com/asdf-vm/actions/issues/587
-        asdf_branch: v0.15.0
-        tool_versions: |
-          dyff 1.10.1
 
     - name: dyff old and new manifests
       id: dyff
