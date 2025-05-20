@@ -122,10 +122,10 @@ spec:
           {{- toYaml . | nindent 10 }}
 {{- end }}
         command:
-        {{- include "element-io.matrix-authentication-service.render-config" (dict "root" $ "context" .) | nindent 8 }}
+        {{- include "element-io.matrix-authentication-service.render-config" (dict "root" $ "context" $masContext) | nindent 8 }}
         env:
-        {{- include "element-io.matrix-authentication-service.matrixToolsEnv" (dict "root" $ "context" .) | nindent 8 }}
-        {{- include "element-io.matrix-authentication-service.env" (dict "root" $ "context" .) | nindent 8 }}
+        {{- include "element-io.matrix-authentication-service.matrixToolsEnv" (dict "root" $ "context" $masContext) | nindent 8 }}
+        {{- include "element-io.matrix-authentication-service.env" (dict "root" $ "context" $masContext) | nindent 8 }}
 {{- with .extraEnv }}
         {{- toYaml . | nindent 8 }}
 {{- end }}
@@ -145,7 +145,6 @@ spec:
         - mountPath: /conf
           name: rendered-config
           readOnly: false
-{{- with $synapseContext }}
       - name: render-config-syn
 {{- with $.Values.matrixTools.image -}}
 {{- if .digest }}
@@ -161,10 +160,10 @@ spec:
           {{- toYaml . | nindent 10 }}
 {{- end }}
         command:
-        {{- include "element-io.synapse.render-config" (dict "root" $ "context" .) | nindent 8 }}
+        {{- include "element-io.synapse.render-config" (dict "root" $ "context" $synapseContext) | nindent 8 }}
         env:
-        {{- include "element-io.synapse.matrixToolsEnv" (dict "root" $ "context" .) | nindent 8 }}
-        {{- include "element-io.synapse.env" (dict "root" $ "context" .) | nindent 8 }}
+        {{- include "element-io.synapse.matrixToolsEnv" (dict "root" $ "context" $synapseContext) | nindent 8 }}
+        {{- include "element-io.synapse.env" (dict "root" $ "context" $synapseContext) | nindent 8 }}
 {{- with .extraEnv }}
         {{- toYaml . | nindent 8 }}
 {{- end }}
@@ -184,7 +183,6 @@ spec:
         - mountPath: /conf
           name: rendered-config
           readOnly: false
-{{- end }}
       - name: db-wait-mas
 {{- with $.Values.matrixTools.image -}}
 {{- if .digest }}
@@ -203,12 +201,11 @@ spec:
         - "/matrix-tools"
         - tcpwait
         - -address
-        - {{ include "element-io.ess-library.postgres-host-port" (dict "root" $ "context" (dict "postgres" .postgres)) | quote }}
+        - {{ include "element-io.ess-library.postgres-host-port" (dict "root" $ "context" (dict "postgres" $masContext.postgres)) | quote }}
 {{- with .resources }}
         resources:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-{{- with $synapseContext }}
       - name: db-wait-syn
 {{- with $.Values.matrixTools.image -}}
 {{- if .digest }}
@@ -227,11 +224,10 @@ spec:
         - "/matrix-tools"
         - tcpwait
         - -address
-        - {{ include "element-io.ess-library.postgres-host-port" (dict "root" $ "context" (dict "postgres" .postgres)) | quote }}
+        - {{ include "element-io.ess-library.postgres-host-port" (dict "root" $ "context" (dict "postgres" $synapseContext.postgres)) | quote }}
 {{- with .resources }}
         resources:
           {{- toYaml . | nindent 10 }}
-{{- end }}
 {{- end }}
       - name: syn2mas-check
         args: ["syn2mas", "check", "--config", "/conf/config.yaml", "--synapse-config", "/conf/homeserver.yaml"]
