@@ -1,4 +1,4 @@
-# Copyright 2024 New Vector Ltd
+# Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -22,9 +22,7 @@ async def test_sets_no_topology_spread_constraint_default(templates):
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_topology_spread_constraint_has_default(
-    deployables_details, values, make_templates, template_to_deployable_details
-):
+async def test_topology_spread_constraint_has_default(values, make_templates, template_to_deployable_details):
     def set_topology_spread_constraints(deployable_details: DeployableDetails):
         deployable_details.set_helm_values(
             values,
@@ -39,7 +37,6 @@ async def test_topology_spread_constraint_has_default(
         )
 
     iterate_deployables_parts(
-        deployables_details,
         set_topology_spread_constraints,
         lambda deployable_details: deployable_details.has_topology_spread_constraints,
     )
@@ -71,9 +68,7 @@ async def test_topology_spread_constraint_has_default(
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_can_nuke_topology_spread_constraint_defaults(
-    deployables_details, values, make_templates, template_to_deployable_details
-):
+async def test_can_nuke_topology_spread_constraint_defaults(values, make_templates, template_to_deployable_details):
     def set_topology_spread_constraints(deployable_details: DeployableDetails):
         deployable_details.set_helm_values(
             values,
@@ -95,7 +90,6 @@ async def test_can_nuke_topology_spread_constraint_defaults(
         )
 
     iterate_deployables_parts(
-        deployables_details,
         set_topology_spread_constraints,
         lambda deployable_details: deployable_details.has_topology_spread_constraints,
     )

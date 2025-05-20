@@ -7,7 +7,7 @@ import pytest
 from . import secret_values_files_to_test, values_files_to_test
 
 
-@pytest.mark.parametrize("values_file", values_files_to_test + secret_values_files_to_test)
+@pytest.mark.parametrize("values_file", values_files_to_test | secret_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_volumes_mounts_exists(templates, other_secrets):
     configmaps_names = [t["metadata"]["name"] for t in templates if t["kind"] == "ConfigMap"]

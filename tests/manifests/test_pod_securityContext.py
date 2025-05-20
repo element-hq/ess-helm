@@ -1,4 +1,4 @@
-# Copyright 2024 New Vector Ltd
+# Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -38,9 +38,8 @@ async def test_sets_nonRoot_uids_gids_in_pod_securityContext_by_default(template
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_can_nuke_pod_securityContext_ids(deployables_details, values, make_templates):
+async def test_can_nuke_pod_securityContext_ids(values, make_templates):
     iterate_deployables_workload_parts(
-        deployables_details,
         lambda deployable_details: deployable_details.set_helm_values(
             values, PropertyType.PodSecurityContext, {"runAsUser": None, "runAsGroup": None, "fsGroup": None}
         ),
@@ -84,9 +83,8 @@ async def test_sets_seccompProfile_in_pod_securityContext_by_default(templates):
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_can_nuke_pod_securityContext_seccompProfile(deployables_details, values, make_templates):
+async def test_can_nuke_pod_securityContext_seccompProfile(values, make_templates):
     iterate_deployables_workload_parts(
-        deployables_details,
         lambda deployable_details: deployable_details.set_helm_values(
             values, PropertyType.PodSecurityContext, {"seccompProfile": None}
         ),

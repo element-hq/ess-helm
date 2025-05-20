@@ -10,9 +10,7 @@ from .utils import iterate_deployables_workload_parts, template_id
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_pod_resources_are_configurable(
-    deployables_details, values, make_templates, template_to_deployable_details
-):
+async def test_pod_resources_are_configurable(values, make_templates, template_to_deployable_details):
     deployable_details_to_resources = {}
     counter = 1
 
@@ -32,7 +30,7 @@ async def test_pod_resources_are_configurable(
         deployable_details_to_resources[deployable_details] = resources
         deployable_details.set_helm_values(values, PropertyType.Resources, resources)
 
-    iterate_deployables_workload_parts(deployables_details, set_resources)
+    iterate_deployables_workload_parts(set_resources)
     for template in await make_templates(values):
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
             for container in template["spec"]["template"]["spec"]["containers"]:

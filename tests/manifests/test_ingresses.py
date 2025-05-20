@@ -1,11 +1,11 @@
-# Copyright 2024 New Vector Ltd
+# Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
 
 import pytest
 
-from . import DeployableDetails, PropertyType, values_files_to_test, values_files_with_ingresses
+from . import DeployableDetails, PropertyType, all_deployables_details, values_files_to_test
 from .utils import iterate_deployables_ingress_parts
 
 
@@ -25,9 +25,9 @@ async def test_has_ingress(templates, template_to_deployable_details):
         assert seen_deployable.has_ingress
 
 
-@pytest.mark.parametrize("values_file", values_files_with_ingresses)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_ingress_is_expected_host(deployables_details, values, templates):
+async def test_ingress_is_expected_host(values, templates):
     def get_hosts_from_fragment(values_fragment, deployable_details):
         if deployable_details.name == "well-known":
             if not values_fragment.get("host"):
@@ -38,8 +38,10 @@ async def test_ingress_is_expected_host(deployables_details, values, templates):
             yield values_fragment["host"]
 
     def get_hosts():
-        for deployable_details in deployables_details:
-            if deployable_details.has_ingress:
+        for deployable_details in all_deployables_details:
+            if deployable_details.has_ingress and deployable_details.get_helm_values(
+                values, PropertyType.Enabled, default_value=False
+            ):
                 yield from get_hosts_from_fragment(
                     deployable_details.get_helm_values(values, PropertyType.Ingress), deployable_details
                 )
@@ -58,7 +60,7 @@ async def test_ingress_is_expected_host(deployables_details, values, templates):
     assert set(found_hosts) == set(expected_hosts)
 
 
-@pytest.mark.parametrize("values_file", values_files_with_ingresses)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_ingress_paths_are_all_prefix(templates):
     for template in templates:
@@ -76,7 +78,7 @@ async def test_ingress_paths_are_all_prefix(templates):
                     assert path["pathType"] == "Prefix"
 
 
-@pytest.mark.parametrize("values_file", values_files_with_ingresses)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_no_ingress_annotations_by_default(templates):
     for template in templates:
@@ -84,9 +86,9 @@ async def test_no_ingress_annotations_by_default(templates):
             assert "annotations" not in template["metadata"]
 
 
-@pytest.mark.parametrize("values_file", values_files_with_ingresses)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_renders_component_ingress_annotations(deployables_details, values, make_templates):
+async def test_renders_component_ingress_annotations(values, make_templates):
     def set_annotations(deployable_details: DeployableDetails):
         deployable_details.set_helm_values(
             values,
@@ -98,7 +100,7 @@ async def test_renders_component_ingress_annotations(deployables_details, values
             },
         )
 
-    iterate_deployables_ingress_parts(deployables_details, set_annotations)
+    iterate_deployables_ingress_parts(set_annotations)
 
     for template in await make_templates(values):
         if template["kind"] == "Ingress":
@@ -107,7 +109,7 @@ async def test_renders_component_ingress_annotations(deployables_details, values
             assert template["metadata"]["annotations"]["component"] == "set"
 
 
-@pytest.mark.parametrize("values_file", values_files_with_ingresses)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_renders_global_ingress_annotations(values, make_templates):
     values.setdefault("ingress", {})["annotations"] = {
@@ -121,9 +123,9 @@ async def test_renders_global_ingress_annotations(values, make_templates):
             assert template["metadata"]["annotations"]["global"] == "set"
 
 
-@pytest.mark.parametrize("values_file", values_files_with_ingresses)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_merges_global_and_component_ingress_annotations(deployables_details, values, make_templates):
+async def test_merges_global_and_component_ingress_annotations(values, make_templates):
     def set_annotations(deployable_details: DeployableDetails):
         deployable_details.set_helm_values(
             values,
@@ -137,7 +139,7 @@ async def test_merges_global_and_component_ingress_annotations(deployables_detai
             },
         )
 
-    iterate_deployables_ingress_parts(deployables_details, set_annotations)
+    iterate_deployables_ingress_parts(set_annotations)
     values.setdefault("ingress", {})["annotations"] = {
         "global": "set",
         "merged": "from_global",
@@ -158,7 +160,7 @@ async def test_merges_global_and_component_ingress_annotations(deployables_detai
             assert template["metadata"]["annotations"]["global"] is None
 
 
-@pytest.mark.parametrize("values_file", values_files_with_ingresses)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_no_ingress_tlsSecret_global(make_templates, values):
     values.setdefault("ingress", {})["tlsEnabled"] = False
@@ -167,25 +169,25 @@ async def test_no_ingress_tlsSecret_global(make_templates, values):
             assert "tls" not in template["spec"]
 
 
-@pytest.mark.parametrize("values_file", values_files_with_ingresses)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_no_ingress_tlsSecret_beats_global(make_templates, values, deployables_details):
+async def test_no_ingress_tlsSecret_beats_global(make_templates, values):
     def set_tls_disabled(deployable_details: DeployableDetails):
         deployable_details.set_helm_values(values, PropertyType.Ingress, {"tlsEnabled": False})
 
-    iterate_deployables_ingress_parts(deployables_details, set_tls_disabled)
+    iterate_deployables_ingress_parts(set_tls_disabled)
     for template in await make_templates(values):
         if template["kind"] == "Ingress":
             assert "tls" not in template["spec"]
 
 
-@pytest.mark.parametrize("values_file", values_files_with_ingresses)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_uses_component_ingress_tlsSecret(deployables_details, values, make_templates):
+async def test_uses_component_ingress_tlsSecret(values, make_templates):
     def set_tls_secret(deployable_details: DeployableDetails):
         deployable_details.set_helm_values(values, PropertyType.Ingress, {"tlsSecret": "component"})
 
-    iterate_deployables_ingress_parts(deployables_details, set_tls_secret)
+    iterate_deployables_ingress_parts(set_tls_secret)
 
     for template in await make_templates(values):
         if template["kind"] == "Ingress":
@@ -196,7 +198,7 @@ async def test_uses_component_ingress_tlsSecret(deployables_details, values, mak
             assert template["spec"]["tls"][0]["secretName"] == "component"
 
 
-@pytest.mark.parametrize("values_file", values_files_with_ingresses)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_uses_global_ingress_tlsSecret(values, make_templates):
     values.setdefault("ingress", {})["tlsSecret"] = "global"
@@ -210,13 +212,13 @@ async def test_uses_global_ingress_tlsSecret(values, make_templates):
             assert template["spec"]["tls"][0]["secretName"] == "global"
 
 
-@pytest.mark.parametrize("values_file", values_files_with_ingresses)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_component_ingress_tlsSecret_beats_global(deployables_details, values, make_templates):
+async def test_component_ingress_tlsSecret_beats_global(values, make_templates):
     def set_tls_secret(deployable_details: DeployableDetails):
         deployable_details.set_helm_values(values, PropertyType.Ingress, {"tlsSecret": "component"})
 
-    iterate_deployables_ingress_parts(deployables_details, set_tls_secret)
+    iterate_deployables_ingress_parts(set_tls_secret)
     values.setdefault("ingress", {})["tlsSecret"] = "global"
 
     for template in await make_templates(values):
@@ -228,7 +230,7 @@ async def test_component_ingress_tlsSecret_beats_global(deployables_details, val
             assert template["spec"]["tls"][0]["secretName"] == "component"
 
 
-@pytest.mark.parametrize("values_file", values_files_with_ingresses)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_tls_no_secretName_by_default(templates):
     for template in templates:
@@ -238,7 +240,7 @@ async def test_tls_no_secretName_by_default(templates):
                 assert "secretName" not in tls_spec
 
 
-@pytest.mark.parametrize("values_file", values_files_with_ingresses)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_no_ingressClassName_by_default(templates):
     for template in templates:
@@ -246,13 +248,13 @@ async def test_no_ingressClassName_by_default(templates):
             assert "ingressClassName" not in template["spec"]
 
 
-@pytest.mark.parametrize("values_file", values_files_with_ingresses)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_uses_component_ingressClassName(deployables_details, values, make_templates):
+async def test_uses_component_ingressClassName(values, make_templates):
     def set_ingress_className(deployable_details: DeployableDetails):
         deployable_details.set_helm_values(values, PropertyType.Ingress, {"className": "component"})
 
-    iterate_deployables_ingress_parts(deployables_details, set_ingress_className)
+    iterate_deployables_ingress_parts(set_ingress_className)
 
     for template in await make_templates(values):
         if template["kind"] == "Ingress":
@@ -260,7 +262,7 @@ async def test_uses_component_ingressClassName(deployables_details, values, make
             assert template["spec"]["ingressClassName"] == "component"
 
 
-@pytest.mark.parametrize("values_file", values_files_with_ingresses)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_uses_global_ingressClassName(values, make_templates):
     values.setdefault("ingress", {})["className"] = "global"
@@ -271,13 +273,13 @@ async def test_uses_global_ingressClassName(values, make_templates):
             assert template["spec"]["ingressClassName"] == "global"
 
 
-@pytest.mark.parametrize("values_file", values_files_with_ingresses)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_component_ingressClassName_beats_global(deployables_details, values, make_templates):
+async def test_component_ingressClassName_beats_global(values, make_templates):
     def set_ingress_className(deployable_details: DeployableDetails):
         deployable_details.set_helm_values(values, PropertyType.Ingress, {"className": "component"})
 
-    iterate_deployables_ingress_parts(deployables_details, set_ingress_className)
+    iterate_deployables_ingress_parts(set_ingress_className)
     values.setdefault("ingress", {})["className"] = "global"
 
     for template in await make_templates(values):
@@ -286,7 +288,7 @@ async def test_component_ingressClassName_beats_global(deployables_details, valu
             assert template["spec"]["ingressClassName"] == "component"
 
 
-@pytest.mark.parametrize("values_file", values_files_with_ingresses)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_ingress_services(templates):
     services_by_name = dict[str, dict]()
@@ -318,7 +320,7 @@ async def test_ingress_services(templates):
                     )
 
 
-@pytest.mark.parametrize("values_file", values_files_with_ingresses)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_ingress_certManager_clusterissuer(make_templates, values):
     values.setdefault("certManager", {})["clusterIssuer"] = "cluster-issuer-name"
@@ -333,7 +335,7 @@ async def test_ingress_certManager_clusterissuer(make_templates, values):
             )
 
 
-@pytest.mark.parametrize("values_file", values_files_with_ingresses)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_ingress_certManager_issuer(make_templates, values):
     values.setdefault("certManager", {})["issuer"] = "issuer-name"
@@ -348,13 +350,13 @@ async def test_ingress_certManager_issuer(make_templates, values):
             )
 
 
-@pytest.mark.parametrize("values_file", values_files_with_ingresses)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_component_ingress_tlsSecret_beats_certManager(deployables_details, values, make_templates):
+async def test_component_ingress_tlsSecret_beats_certManager(values, make_templates):
     def set_tls_secret(deployable_details: DeployableDetails):
         deployable_details.set_helm_values(values, PropertyType.Ingress, {"tlsSecret": "component"})
 
-    iterate_deployables_ingress_parts(deployables_details, set_tls_secret)
+    iterate_deployables_ingress_parts(set_tls_secret)
     values.setdefault("certManager", {})["issuer"] = "issuer-name"
 
     for template in await make_templates(values):

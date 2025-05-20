@@ -1,4 +1,4 @@
-# Copyright 2024 New Vector Ltd
+# Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -164,7 +164,7 @@ async def test_dot_path_global_ingressType(values, make_templates):
 
 @pytest.mark.parametrize("values_file", ["well-known-minimal-values.yaml"])
 @pytest.mark.asyncio_cooperative
-async def test_dot_path_component_ingressType(deployables_details, values, make_templates):
+async def test_dot_path_component_ingressType(values, make_templates):
     def set_ingress_type(deployable_details: DeployableDetails):
         deployable_details.set_helm_values(values, PropertyType.Ingress, {"controllerType": "ingress-nginx"})
 
@@ -174,7 +174,7 @@ async def test_dot_path_component_ingressType(deployables_details, values, make_
                 if path["path"].startswith("/.well-known"):
                     assert path["pathType"] == "Prefix"
 
-    iterate_deployables_ingress_parts(deployables_details, set_ingress_type)
+    iterate_deployables_ingress_parts(set_ingress_type)
 
     for template in await make_templates(values):
         if template["kind"] == "Ingress":

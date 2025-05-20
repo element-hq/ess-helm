@@ -88,7 +88,7 @@ async def test_max_upload_size_annotation_global_ingressType(values, make_templa
 
 @pytest.mark.parametrize("values_file", ["synapse-minimal-values.yaml"])
 @pytest.mark.asyncio_cooperative
-async def test_max_upload_size_annotation_component_ingressType(values, deployables_details, make_templates):
+async def test_max_upload_size_annotation_component_ingressType(values, make_templates):
     def set_ingress_type(deployable_details: DeployableDetails):
         deployable_details.set_helm_values(values, PropertyType.Ingress, {"controllerType": "ingress-nginx"})
 
@@ -96,7 +96,7 @@ async def test_max_upload_size_annotation_component_ingressType(values, deployab
         if template["kind"] == "Ingress":
             assert "nginx.ingress.kubernetes.io/proxy-body-size" not in template["metadata"].get("annotations", {})
 
-    iterate_deployables_ingress_parts(deployables_details, set_ingress_type)
+    iterate_deployables_ingress_parts(set_ingress_type)
 
     for template in await make_templates(values):
         if template["kind"] == "Ingress":
@@ -146,9 +146,7 @@ async def test_log_level_overrides(values, make_templates):
 
 @pytest.mark.parametrize("values_file", ["synapse-worker-example-values.yaml"])
 @pytest.mark.asyncio_cooperative
-async def test_synapse_resources_shared_by_default(
-    deployables_details, values, make_templates, template_to_deployable_details
-):
+async def test_synapse_resources_shared_by_default(values, make_templates, template_to_deployable_details):
     resources = {
         "requests": {
             "cpu": "1000",
@@ -164,9 +162,7 @@ async def test_synapse_resources_shared_by_default(
         if deployable_details.name == "synapse":
             deployable_details.set_helm_values(values, PropertyType.Resources, resources)
 
-    iterate_deployables_parts(
-        deployables_details, set_resources, lambda deployable_details: deployable_details.is_synapse_process
-    )
+    iterate_deployables_parts(set_resources, lambda deployable_details: deployable_details.is_synapse_process)
     for template in await make_templates(values):
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
             deployable_details = template_to_deployable_details(template)
