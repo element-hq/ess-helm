@@ -73,7 +73,7 @@ frontend synapse-http-in
   http-request set-var(req.backend) path,map_reg(/synapse/path_map_file_get,main) if has_get_map METH_GET
   http-request set-var(req.backend) path,map_reg(/synapse/path_map_file,main) unless { var(req.backend) -m found }
 
-{{- if $root.Values.matrixAuthenticationService.enabled }}
+{{- if include "element-io.matrix-authentication-service.readyToHandleAuth" (dict "root" $root) }}
   acl rendezvous path_beg /_matrix/client/unstable/org.matrix.msc4108/rendezvous
   acl rendezvous path_beg /_synapse/client/rendezvous
   use_backend return_204_rendezvous if { method OPTIONS } rendezvous
