@@ -578,9 +578,7 @@ def _get_all_deployables_details() -> set[DeployableDetails]:
 all_deployables_details = _get_all_deployables_details()
 
 
-_extra_values_files_to_test: list[str] = [
-    "example-default-enabled-components-values.yaml"
-]
+_extra_values_files_to_test: list[str] = ["example-default-enabled-components-values.yaml"]
 
 _extra_workloads_files_to_test = [
     "matrix-authentication-service-synapse-syn2mas-dry-run-secrets-in-helm-values.yaml",
