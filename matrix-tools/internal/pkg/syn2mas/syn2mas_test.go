@@ -31,7 +31,7 @@ func TestScaleDown(t *testing.T) {
 			Name:      "synapse",
 			Namespace: namespace,
 			Labels:    map[string]string{
-				"app.kubernetes.io/name": "synapse",
+				"app.kubernetes.io/component": "matrix-server",
 			},
 		},
 		Spec: appsv1.StatefulSetSpec{
