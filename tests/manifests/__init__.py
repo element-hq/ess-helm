@@ -496,23 +496,12 @@ all_components_details = [
                     "/usr/local/bin/mas-cli",
                 ),
                 helm_keys_overrides={
-                    # has_workloads but comes from synapse.extraEnv
-                    PropertyType.Env: None,
-                    # has_workloads and so comes from synapse.image
-                    PropertyType.Image: None,
                     # Job so no livenessProbe
                     PropertyType.LivenessProbe: None,
-                    # has_workloads and so podSecurityContext but comes from synapse.podSecurityContext
-                    PropertyType.PodSecurityContext: None,
                     # Job so no readinessProbe
                     PropertyType.ReadinessProbe: None,
                     # Job so no startupProbe
                     PropertyType.StartupProbe: None,
-                    # has_workloads and so tolerations but comes from synapse.tolerations
-                    PropertyType.Tolerations: None,
-                    # has_topology_spread_constraints and so topologySpreadConstraints
-                    # but comes from synapse.topologySpreadConstraints
-                    PropertyType.TopologySpreadConstraints: None,
                 },
                 has_ingress=False,
                 has_replicas=False,
@@ -590,14 +579,13 @@ all_deployables_details = _get_all_deployables_details()
 
 _extra_values_files_to_test: list[str] = [
     "example-default-enabled-components-values.yaml",
-]
-
-_extra_secret_values_files_to_test = [
     "matrix-authentication-service-synapse-syn2mas-dry-run-secrets-in-helm-values.yaml",
     "matrix-authentication-service-synapse-syn2mas-dry-run-secrets-externally-values.yaml",
     "matrix-authentication-service-synapse-syn2mas-migrate-secrets-in-helm-values.yaml",
     "matrix-authentication-service-synapse-syn2mas-migrate-secrets-externally-values.yaml",
 ]
+
+_extra_secret_values_files_to_test = []
 
 _extra_services_values_files_to_test = [
     "matrix-rtc-exposed-services-values.yaml",
