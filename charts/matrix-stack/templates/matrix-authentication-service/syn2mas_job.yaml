@@ -63,7 +63,7 @@ spec:
         {{- toYaml . | nindent 8 }}
 {{- end }}
       labels:
-        {{- include "element-io.matrix-authentication-service-syn2mas.labels" (dict "root" $ "context" .) | nindent 8 }}
+        {{- include "element-io.matrix-authentication-service-syn2mas.labels" (dict "root" $ "context" (dict "image" .image "labels" .labels "withChartVersion" false)) | nindent 8 }}
     spec:
       restartPolicy: Never
 {{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "matrix-authentication-service-syn2mas" "deployment" false "usesMatrixTools" true "mountServiceAccountToken" true)) | nindent 6 }}
