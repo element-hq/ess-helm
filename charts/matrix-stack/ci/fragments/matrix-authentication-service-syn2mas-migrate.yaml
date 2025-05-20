@@ -4,13 +4,4 @@
 
 matrixAuthenticationService:
   syn2mas:
-    enabled: true
-    dryRun: true
-
-  additional:
-    password-scheme.yml:
-      config: |
-        passwords:
-          schemes:
-            - version: 1
-              algorithm: bcrypt
+    dryRun: false
