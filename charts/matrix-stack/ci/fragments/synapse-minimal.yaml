@@ -4,7 +4,7 @@
 #
 # The secrets listed here are ones that `initSecrets` can't generate yet.
 # Postgres details are also required but this fragment will be combined with
-# synapse-test-postgres-values.yaml or synapse-pytest-extra-values.yaml
+# synapse-postgres-values.yaml or synapse-pytest-extra-values.yaml
 
 serverName: ess.localhost
 
