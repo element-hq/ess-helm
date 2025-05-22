@@ -32,7 +32,7 @@ data:
 {{- with .macaroon.value }}
   MACAROON: {{ . | b64enc }}
 {{- end }}
-{{- with .postgres.password }}
+{{- with (.postgres).password }}
 {{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "synapse.postgres.password" "initIfAbsent" false)) -}}
 {{- with .value }}
   POSTGRES_PASSWORD: {{ . | b64enc }}

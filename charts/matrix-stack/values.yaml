@@ -1225,8 +1225,9 @@ matrixAuthenticationService:
   preMigrationSynapseHandlesAuth: false
 
 
-  ## Details of the Postgres Database to use
-  postgres: {}
+  ## Details of the external Postgres Database to use
+  ## Does not need to be set if postgres.enabled=True
+  # postgres:
     ## PostgreSQL database host
     # host:
 
@@ -1982,8 +1983,9 @@ synapse:
 
       ## Annotations to add to the service account
       annotations: {}
-  ## Details of the Postgres Database to use
-  postgres: {}
+  ## Details of the external Postgres Database to use
+  ## Does not need to be set if postgres.enabled=True
+  # postgres:
     ## PostgreSQL database host
     # host:
 
