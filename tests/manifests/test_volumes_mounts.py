@@ -18,6 +18,7 @@ async def test_volumes_mounts_exists(templates, other_secrets):
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
             volumes_names = []
             for volume in template["spec"]["template"]["spec"].get("volumes", []):
+                assert len(volume["name"]) <= 63, f"Volume name {volume['name']} is too long: {volume['name']}"
                 volumes_names.append(volume["name"])
                 if "secret" in volume:
                     assert volume["secret"]["secretName"] in secrets_names
