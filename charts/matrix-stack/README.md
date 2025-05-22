@@ -24,11 +24,11 @@ The chart requires:
 
 ### Recommendations
 
-The chart comes with an internal postgres database which will be automatically setup by default.
+The chart comes with an internal Postgres database which will be automatically setup by default.
 
 On a production deployment, we advise you to host your own Postgres instance, and configure it accordingly. The chart's built in Postgres is primarily for demonstration.
 
-For each of the following the components, the postgres configuration can be configured in:
+For each of the following the components, the Postgres configuration can be configured in:
 - Synapse under `synapse.postgres`
 - Matrix Authentication Service under `matrixAuthenticationService.postgres`
 
