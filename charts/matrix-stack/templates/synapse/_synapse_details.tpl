@@ -1,5 +1,5 @@
 {{- /*
-Copyright 2024 New Vector Ltd
+Copyright 2024-2025 New Vector Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -241,6 +241,7 @@ responsibleForMedia
   "^/_matrix/client/(api/v1|r0|v3|unstable)/directory/room/.*$"
   "^/_matrix/client/(r0|v3|unstable)/capabilities$"
   "^/_matrix/client/(r0|v3|unstable)/notifications$"
+  "^/_synapse/admin/v1/rooms/"
 ) }}
 
 {{- /* Registration/login requests */}}
@@ -298,6 +299,7 @@ responsibleForMedia
 {{- if eq .workerType "federation-reader" }}
 {{- /* All Federation REST requests for generic_worker */}}
 {{ $workerPaths = concat $workerPaths (list
+  "^/_matrix/federation/v1/version$"
   "^/_matrix/federation/v1/event/"
   "^/_matrix/federation/v1/state/"
   "^/_matrix/federation/v1/state_ids/"
@@ -387,6 +389,13 @@ responsibleForMedia
   "^/_synapse/client/saml2/authn_response$"
   "^/_matrix/client/(api/v1|r0|v3|unstable)/login/cas/ticket$"
 ) }}
+{{- if (and $root.Values.matrixAuthenticationService.enabled (not $root.Values.matrixAuthenticationService.preMigrationSynapseHandlesAuth)) }}
+{{ $workerPaths = concat $workerPaths (list
+    "^/_synapse/admin/v2/users/[^/]+$"
+    "^/_synapse/admin/v1/username_available$"
+    "^/_synapse/admin/v1/users/[^/]+/_allow_cross_signing_replacement_without_uia$"
+) }}
+{{- end }}
 {{- end }}
 
 {{- if eq .workerType "synchrotron" }}
