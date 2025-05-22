@@ -1,5 +1,5 @@
 {{- /*
-Copyright 2024 New Vector Ltd
+Copyright 2024-2025 New Vector Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -25,7 +25,7 @@ export ESS_PASSWORD=`cat /secrets/{{
 include "element-io.ess-library.init-secret-path" (
 dict "root" $root "context" (
   dict "secretPath" (printf "postgres.essPasswords.%s" $key)
-        "initSecretKey" (printf "POSTGRES_%s_PASSWORD" ($key | upper))
+        "initSecretKey" (include "element-io.ess-library.postgres-env-var" (dict "root" $root "context" $key))
         "defaultSecretName" (include "element-io.postgres.secret-name" (dict "root" $root "context"  (dict "isHook" false)))
         "defaultSecretKey" (printf "ESS_PASSWORD_%s" ($key | upper))
   )

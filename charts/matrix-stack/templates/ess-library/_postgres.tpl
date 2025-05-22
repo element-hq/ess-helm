@@ -19,3 +19,18 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- end -}}
 {{- end -}}
 
+
+{{- define "element-io.ess-library.postgres-env-var" -}}
+{{- $root := .root -}}
+{{- with required "element-io.ess-library.postgres-env-var requires context" .context -}}
+{{- $input := . -}}
+{{- $output := list -}}
+{{- range $input | splitList "" -}}
+{{- if (. | regexMatch "[A-Z]") -}}
+{{- $output = append $output "_" -}}
+{{- end -}}
+{{- $output = append $output . -}}
+{{- end -}}
+{{- printf "POSTGRES_%s_PASSWORD" (upper ($output | join "")) -}}
+{{- end -}}
+{{- end -}}

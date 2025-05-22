@@ -98,7 +98,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
               dict "root" $root
               "context" (dict
                 "essPassword" "matrixAuthenticationService"
-                "initSecretKey" "POSTGRES_MATRIXAUTHENTICATIONSERVICE_PASSWORD"
+                "initSecretKey" "POSTGRES_MATRIX_AUTHENTICATION_SERVICE_PASSWORD"
                 "componentPasswordPath" "matrixAuthenticationService.postgres.password"
                 "defaultSecretName" (printf "%s-matrix-authentication-service" $root.Release.Name)
                 "defaultSecretKey" "POSTGRES_PASSWORD"
