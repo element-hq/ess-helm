@@ -1,5 +1,5 @@
 {{- /*
-Copyright 2024 New Vector Ltd
+Copyright 2024-2025 New Vector Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -27,7 +27,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" $
 {{- if and $root.Values.matrixAuthenticationService.enabled
           (not $root.Values.matrixAuthenticationService.postgres)
           (not $root.Values.postgres.essPasswords.matrixAuthenticationService) }}
-- {{ (printf "%s-generated" $root.Release.Name) }}:POSTGRES_MATRIXAUTHENTICATIONSERVICE_PASSWORD:rand32
+- {{ (printf "%s-generated" $root.Release.Name) }}:POSTGRES_MATRIX_AUTHENTICATION_SERVICE_PASSWORD:rand32
 {{- end }}
 {{- if not .adminPassword }}
 - {{ (printf "%s-generated" $root.Release.Name) }}:POSTGRES_ADMIN_PASSWORD:rand32
