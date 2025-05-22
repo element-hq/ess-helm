@@ -21,6 +21,7 @@ function set_chart_version() {
   echo "Setting version to $version for $chart_dir"
   yq -i '(.dependencies[] | select(.repository | test("file://"))).version="'"$version"'"' "$chart_dir/Chart.yaml"
   yq -i '.version="'"$version"'"' "$chart_dir/Chart.yaml"
+  yq -iP '.' "$chart_dir/Chart.yaml"
   # REUSE-IgnoreStart
   reuse annotate --copyright="Copyright 2024-$(date +%Y) New Vector Ltd" --license "AGPL-3.0-only" "$chart_dir/Chart.yaml"
   # REUSE-IgnoreEnd
