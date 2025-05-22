@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2024 New Vector Ltd
+# Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -20,7 +20,7 @@ def find_news_fragments(root_dir):
             if kind != "internal":
                 new_fragments.append(
                     {
-                        "description": path.read_text().strip(),
+                        "description": path.read_text().splitlines()[0].strip(),
                         "kind": kind,
                     }
                 )
