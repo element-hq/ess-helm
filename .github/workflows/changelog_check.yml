@@ -3,7 +3,8 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 name: Changelog
-on: [pull_request]
+on:
+  pull_request_target:
 
 jobs:
   check-newsfile:
