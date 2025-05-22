@@ -3,7 +3,8 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 name: Changelog
-on: [pull_request]
+on:
+  pull_request_target:
 
 jobs:
   check-newsfile:
@@ -24,7 +25,7 @@ jobs:
         run: |
           echo "$(poetry env info -p)/bin" >> "${GITHUB_PATH}"
 
-      - name: Run towncrier
+      - name: Run towncrier check
         env:
           GHEVENTNUMBER: ${{ github.event.number }}
         run: |
@@ -32,3 +33,30 @@ jobs:
           git config --global --add safe.directory "${GITHUB_WORKSPACE}"
           scripts/check_newsfragment.sh "${GHEVENTNUMBER}"
 
+  preview-changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
+        with:
+          ref: ${{github.event.pull_request.head.sha}}
+
+      - uses: matrix-org/setup-python-poetry@5bbf6603c5c930615ec8a29f1b5d7d258d905aa4  # v2
+        with:
+          python-version: "3.x"
+          poetry-version: "1.8.5"
+
+      - name: Load poetry path
+        run: |
+          echo "$(poetry env info -p)/bin" >> "${GITHUB_PATH}"
+
+      - name: Run towncrier build --draft
+        run: |
+          version=$(yq '.version' charts/matrix-stack/Chart.yaml)
+
+          echo "CHANGELOG.md will look like:"
+          towncrier build --draft --version "$version"
+          echo ""
+
+          echo "artifacthub.io's changes will look like:"
+          ./scripts/towncrier_to_helm_annotation.py charts/matrix-stack
+          yq '.annotations["artifacthub.io/changes"]' charts/matrix-stack/Chart.yaml
