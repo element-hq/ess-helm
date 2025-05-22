@@ -66,7 +66,7 @@ We have an init container to render & merge the config for several reasons:
       image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
       imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
 {{- else }}
-      image: "{{ .registry }}/{{ .repository }}:{{ required "matrixTools.image.tag is required if no digest" .tag }}"
+      image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
       imagePullPolicy: {{ .pullPolicy | default "Always" }}
 {{- end }}
 {{- end }}
@@ -121,7 +121,7 @@ We have an init container to render & merge the config for several reasons:
       image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
       imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
 {{- else }}
-      image: "{{ .registry }}/{{ .repository }}:{{ required "matrixTools.image.tag is required if no digest" .tag }}"
+      image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
       imagePullPolicy: {{ .pullPolicy | default "Always" }}
 {{- end }}
 {{- end }}
