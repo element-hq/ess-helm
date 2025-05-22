@@ -22,7 +22,7 @@ The chart requires:
 * If using Synapse, the ability to create `PersistentVolumeClaims` to store media
 * Opening dedicated ports on your cluster for Matrix RTC backend
 
-### Recommandations
+### Recommendations
 
 The chart comes with an internal postgres database which will be automatically setup by default.
 
