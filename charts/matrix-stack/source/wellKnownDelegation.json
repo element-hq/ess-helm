@@ -7,7 +7,7 @@
       "type": "boolean"
     },
     "ingress": {
-      "$ref": "file://common/ingress.json"
+      "$ref": "file://common/ingress_without_host.json"
     },
     "labels": {
       "$ref": "file://common/labels.json"

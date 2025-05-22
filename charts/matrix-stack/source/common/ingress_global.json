@@ -4,10 +4,7 @@
     "annotations": {
       "type": "object",
       "additionalProperties": {
-        "type": [
-          "string",
-          "null"
-        ]
+        "type": "string"
       }
     },
     "className": {
@@ -27,6 +24,9 @@
     },
     "service": {
       "type": "object",
+      "required": [
+        "type"
+      ],
       "properties": {
         "type": {
           "type": "string",
