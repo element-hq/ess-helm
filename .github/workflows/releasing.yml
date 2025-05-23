@@ -109,6 +109,15 @@ jobs:
         name: helm-package
         path: ./
 
+    - uses: matrix-org/setup-python-poetry@5bbf6603c5c930615ec8a29f1b5d7d258d905aa4  # v2
+      with:
+        poetry-version: "1.8.5"
+        python-version: "3.x"
+
+    - name: Load poetry path
+      run: |
+        echo "$(poetry env info -p)/bin" >> "${GITHUB_PATH}"
+
     - name: Calculate versions
       id: versions
       run: |
