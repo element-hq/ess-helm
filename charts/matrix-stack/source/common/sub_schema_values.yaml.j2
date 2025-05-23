@@ -257,8 +257,9 @@ labels: {}
 {%- endmacro %}
 
 {% macro postgresLibPQ(key="postgres") %}
-## Details of the Postgres Database to use
-{{ key }}: {}
+## Details of the external Postgres Database to use
+## Does not need to be set if postgres.enabled=True
+# {{ key }}:
   ## PostgreSQL database host
   # host:
 

@@ -2900,6 +2900,11 @@
         },
         "postgres": {
           "type": "object",
+          "required": [
+            "host",
+            "user",
+            "database"
+          ],
           "properties": {
             "host": {
               "type": "string"
@@ -4506,6 +4511,11 @@
         },
         "postgres": {
           "type": "object",
+          "required": [
+            "host",
+            "user",
+            "database"
+          ],
           "properties": {
             "host": {
               "type": "string"
