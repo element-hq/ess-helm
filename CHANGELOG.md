@@ -6,6 +6,53 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 25.5.1 (2025-05-23)
+
+### Changed
+
+- Make probe defaults explicit. (#433)
+- Replace the use of initialDelaySeconds in default probes with adjustments to the startupProbes. (#434)
+- Document Synapse's Redis extraEnv property in values.yaml. (#458)
+- Remove wellKnownDelegation.ingress.host from values.yaml as serverName is used for the well-known Ingress. (#467)
+- Synapse: Upgrade from v1.129.0 to v1.130.0.
+
+  Highlights :
+  - Add an Admin API endpoint GET /_synapse/admin/v1/scheduled_tasks to fetch scheduled tasks.
+  - Add config option user_directory.exclude_remote_users which, when enabled, excludes remote users from user directory search results.
+  - Add support for handling GET /devices/ on workers.
+  - Fix a longstanding bug where Synapse would immediately retry a failing push endpoint when a new event is received, ignoring any backoff timers.
+  - Fix to pass leave from remote invite rejection down Sliding Sync.
+
+  Full Changelog: https://github.com/element-hq/synapse/releases/tag/v1.130.0
+
+  (#472, #479)
+- Element Web: upgrade from v1.11.100 to v1.11.101.
+
+  Highlights:
+  * Improve identity reset UI
+
+  Full Changelog: https://github.com/element-hq/element-web/releases/tag/v1.11.101
+
+  (#475)
+- Postgres: Pretty print internal postgres env variables. (#476)
+
+### Fixed
+
+- CI: Make sure that released versions follow the semver semantics. (#469, #474)
+
+### Internal
+
+- Fix some values files being accidentally skip in the manifest tests. (#465)
+- Update manifest tests so that the components under test don't need to be enumerated. (#465)
+- Move job validating copyright date header into distinct workflow job. (#466)
+- Pin to Helm 3.17.3 in the integration tests. (#468)
+- Rename exemple values files named `*-test-postgres-*` to `*-postgres-*`. (#470)
+- Add an internal test to check that the kubernetes volume name is not too long. (#471)
+- Add a CI job to preview the changelog for the next release. (#473)
+- Correctly manage the copyright date header line for Chart.yaml. (#474)
+- Add manifest test to ensure YAML/JSON written to `ConfigMaps` and `Secrets` is valid. (#480)
+
+
 # ESS Community Helm Chart 25.04.01 (2025-05-16)
 
 ### Changed
