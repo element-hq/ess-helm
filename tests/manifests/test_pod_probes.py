@@ -5,11 +5,11 @@
 
 import pytest
 
-from . import DeployableDetails, PropertyType, values_files_to_test
+from . import DeployableDetails, PropertyType, workloads_values_files_to_test
 from .utils import iterate_deployables_workload_parts, template_id
 
 
-@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_no_probes_for_jobs(templates):
     for template in templates:
@@ -26,7 +26,7 @@ async def test_no_probes_for_jobs(templates):
                 )
 
 
-@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_no_probes_for_initContainers(templates):
     for template in templates:
@@ -139,7 +139,7 @@ def assert_matching_probe(template, probe_type, deployable_details_to_probe_deta
                 )
 
 
-@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_sensible_livenessProbes_by_default(templates):
     for template in templates:
@@ -147,7 +147,7 @@ async def test_sensible_livenessProbes_by_default(templates):
             assert_sensible_default_probe(template, "livenessProbe")
 
 
-@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_livenessProbes_are_configurable(values, make_templates, template_to_deployable_details):
     deployable_details_to_probe_details = set_probe_details(values, PropertyType.LivenessProbe)
@@ -161,7 +161,7 @@ async def test_livenessProbes_are_configurable(values, make_templates, template_
             )
 
 
-@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_sensible_readinessProbes_by_default(templates):
     for template in templates:
@@ -169,7 +169,7 @@ async def test_sensible_readinessProbes_by_default(templates):
             assert_sensible_default_probe(template, "readinessProbe")
 
 
-@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_readinessProbes_are_configurable(values, make_templates, template_to_deployable_details):
     deployable_details_to_probe_details = set_probe_details(values, PropertyType.ReadinessProbe)
@@ -183,7 +183,7 @@ async def test_readinessProbes_are_configurable(values, make_templates, template
             )
 
 
-@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_sensible_startupProbes_by_default(templates):
     for template in templates:
@@ -191,7 +191,7 @@ async def test_sensible_startupProbes_by_default(templates):
             assert_sensible_default_probe(template, "startupProbe")
 
 
-@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_startupProbes_are_configurable(values, make_templates, template_to_deployable_details):
     deployable_details_to_probe_details = set_probe_details(values, PropertyType.StartupProbe)

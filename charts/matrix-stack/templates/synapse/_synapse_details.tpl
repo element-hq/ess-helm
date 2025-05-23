@@ -161,7 +161,7 @@ responsibleForMedia
                                                                 )
                                             )
                                         ) -}}
-{{- if (and $root.Values.matrixAuthenticationService.enabled (not $root.Values.matrixAuthenticationService.preMigrationSynapseHandlesAuth)) }}
+{{- if include "element-io.matrix-authentication-service.readyToHandleAuth" (dict "root" $root) }}
 {{- with $root.Values.matrixAuthenticationService -}}
   {{- with .synapseSharedSecret -}}
     {{- with .value -}}

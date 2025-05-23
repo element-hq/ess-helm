@@ -32,7 +32,7 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxUnavailable: 1
+      maxUnavailable: {{ min (max 0 (sub .replicas 1)) 1 }}
       maxSurge: 2
   template:
     metadata:

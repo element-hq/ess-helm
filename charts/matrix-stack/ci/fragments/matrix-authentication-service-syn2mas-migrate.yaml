@@ -3,4 +3,5 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 matrixAuthenticationService:
-  preMigrationSynapseHandlesAuth: true
+  syn2mas:
+    dryRun: false
