@@ -11,7 +11,6 @@ from .utils import iterate_deployables_workload_parts, template_id
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_pod_resources_are_configurable(values, make_templates, template_to_deployable_details):
-    deployable_details_to_resources = {}
     counter = 1
 
     def set_resources(deployable_details: DeployableDetails):
@@ -27,7 +26,6 @@ async def test_pod_resources_are_configurable(values, make_templates, template_t
             },
         }
         counter += 1
-        deployable_details_to_resources[deployable_details] = resources
         deployable_details.set_helm_values(values, PropertyType.Resources, resources)
 
     iterate_deployables_workload_parts(set_resources)
@@ -39,14 +37,8 @@ async def test_pod_resources_are_configurable(values, make_templates, template_t
                 )
 
                 deployable_details = template_to_deployable_details(template, container["name"])
+                expected_resources = deployable_details.get_helm_values(values, PropertyType.Resources)
 
-                # The check config job gets its resources from Synapse and doesn't have its own values
-                # We don't have a good way of "redirecting" to Synapse's expected resources so just skip
-                # test_synapse_resources_shared_by_default tests that the check config job uses synapse.resources
-                if deployable_details.name == "synapse-check-config-hook":
-                    continue
-
-                expected_resources = deployable_details_to_resources[deployable_details]
                 assert expected_resources == container["resources"], (
                     f"{template_id(template)} has container {container['name']} "
                     "which doesn't have the expected resources"

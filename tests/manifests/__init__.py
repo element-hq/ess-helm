@@ -26,6 +26,30 @@ class PropertyType(Enum):
     TopologySpreadConstraints = "topologySpreadConstraints"
 
 
+@dataclass
+class ValuesFilePath:
+    write_path: tuple[str, ...] | None
+    read_path: tuple[str, ...] | None
+
+    @classmethod
+    def not_supported(cls):
+        return ValuesFilePath(None, None)
+
+    @classmethod
+    def read_write(cls, *path: str):
+        return ValuesFilePath(tuple(path), tuple(path))
+
+    @classmethod
+    def read_elsewhere(cls, *read_path: str):
+        return ValuesFilePath(None, tuple(read_path))
+
+    def with_property_type(self, propertyType: PropertyType):
+        return ValuesFilePath(
+            self.write_path + (propertyType.value,) if self.write_path is not None else None,
+            self.read_path + (propertyType.value,) if self.read_path is not None else None,
+        )
+
+
 # We introduce 4 DataClasses to store details of the deployables this chart manages
 # * ComponentDetails - details of a top-level deployable. This includes both the headline
 #   components like Synapse, Element Web, etc and components that have their own independent
@@ -61,12 +85,10 @@ class DeployableDetails(abc.ABC):
     value_file_prefix: str | None = field(default=None, hash=False)
     # The "path" through the values file that properties for this deployable will be rooted at
     # by default. The PropertyType value will then finish off the "path".
-    helm_keys: tuple[str, ...] = field(default=None, hash=False)  # type: ignore[arg-type]
+    values_file_path: ValuesFilePath = field(default=None, hash=False)  # type: ignore[assignment]
     # Per-PropertyType (ingress, env, etc) overrides for the "path" through the values file
-    # that should be used for that specific PropertyType. A path of None for a given PropertyType
-    # means this deployable can't set values of that property type. That doesn't mean that the
-    # deployable won't have e.g. env vars, it means they will be sourced from their parent.
-    helm_keys_overrides: dict[PropertyType, tuple[str, ...] | None] | None = field(default=None, hash=False)
+    # that should be used for that specific PropertyType.
+    values_file_path_overrides: dict[PropertyType, ValuesFilePath] | None = field(default=None, hash=False)
 
     has_db: bool = field(default=False, hash=False)
     has_image: bool = field(default=None, hash=False)  # type: ignore[assignment]
@@ -81,8 +103,8 @@ class DeployableDetails(abc.ABC):
     skip_path_consistency_for_files: tuple[str, ...] = field(default=(), hash=False)
 
     def __post_init__(self):
-        if self.helm_keys is None or len(self.helm_keys) == 0:
-            self.helm_keys = (self.name,)
+        if self.values_file_path is None:
+            self.values_file_path = ValuesFilePath.read_write(self.name)
         if self.has_image is None:
             self.has_image = self.has_workloads
         if self.has_service_monitor is None:
@@ -90,21 +112,17 @@ class DeployableDetails(abc.ABC):
         if self.has_topology_spread_constraints is None:
             self.has_topology_spread_constraints = self.has_workloads
 
-    def _get_helm_keys(self, propertyType: PropertyType) -> tuple[str, ...] | None:
+    def _get_values_file_path(self, propertyType: PropertyType) -> ValuesFilePath:
         """
-        Returns the "path" (tuple of values keys) to a given PropertyType.
+        Returns the "path" through the values file to a given PropertyType.
 
-        Returns None if this deployable has an override explicitly set to None to indicated
-        that this deployable doesn't have its own values for that PropertyType.
+        The path may exist for both reading and writing, writing only or not at all, but that's
+        all encapsulated in ValuesFilePath
         """
-        if (
-            propertyType is not None
-            and self.helm_keys_overrides is not None
-            and propertyType in self.helm_keys_overrides
-        ):
-            return self.helm_keys_overrides[propertyType]
+        if self.values_file_path_overrides is not None and propertyType in self.values_file_path_overrides:
+            return self.values_file_path_overrides[propertyType]
         else:
-            return self.helm_keys + (propertyType.value,)
+            return self.values_file_path.with_property_type(propertyType)
 
     def get_helm_values(
         self, values: dict[str, Any], propertyType: PropertyType, default_value: Any = None
@@ -118,16 +136,16 @@ class DeployableDetails(abc.ABC):
         * None if this deployable explicitly can't configure this PropertyType.
         * The value or empty dict if this PropertyType can be configured.
         """
-        helm_keys = self._get_helm_keys(propertyType)
-        if helm_keys is None:
+        values_file_path = self._get_values_file_path(propertyType)
+        if values_file_path.read_path is None:
             return None
 
         values_fragment = values
-        for index, helm_key in enumerate(helm_keys):
+        for index, helm_key in enumerate(values_file_path.read_path):
             # The last iteration through is the specific property we want to get. We know everything
             # higher this will be a dict, but at the end, for a specific property, we could be
             # trying to fetch an object, an array or a scalar and the default value should reflect that
-            if (index + 1) == len(helm_keys):
+            if (index + 1) == len(values_file_path.read_path):
                 if default_value is None:
                     default_value = {}
                 values_fragment = values_fragment.setdefault(helm_key, default_value)
@@ -148,16 +166,16 @@ class DeployableDetails(abc.ABC):
         is to support the case where sub-components/sidecars obtain values from their parent and so
         can't set those PropertyTypes themselves.
         """
-        helm_keys = self._get_helm_keys(propertyType)
-        if helm_keys is None:
+        values_file_path = self._get_values_file_path(propertyType)
+        if values_file_path.write_path is None:
             return
 
         values_fragment = values
-        for index, helm_key in enumerate(helm_keys):
+        for index, helm_key in enumerate(values_file_path.write_path):
             # The last iteration through is the specific property we want to set. We know everything
             # higher this will be a dict, but at the end, for a specific property, we could be
             # trying to set an object, an array or even a scalar
-            if (index + 1) == len(helm_keys):
+            if (index + 1) == len(values_file_path.write_path):
                 if isinstance(values_to_set, dict):
                     values_fragment.setdefault(propertyType.value, {}).update(values_to_set)
                 elif isinstance(values_to_set, list):
@@ -183,16 +201,16 @@ class SidecarDetails(DeployableDetails):
     def __post_init__(self):
         super().__post_init__()
 
-        sidecar_helm_keys_overrides = {
+        sidecar_values_file_path_overrides = {
             # Not possible, will come from the parent component
-            PropertyType.PodSecurityContext: None,
-            PropertyType.ServiceAccount: None,
-            PropertyType.Tolerations: None,
-            PropertyType.TopologySpreadConstraints: None,
+            PropertyType.PodSecurityContext: ValuesFilePath.not_supported(),
+            PropertyType.ServiceAccount: ValuesFilePath.not_supported(),
+            PropertyType.Tolerations: ValuesFilePath.not_supported(),
+            PropertyType.TopologySpreadConstraints: ValuesFilePath.not_supported(),
         }
-        if self.helm_keys_overrides is None:
-            self.helm_keys_overrides = {}
-        self.helm_keys_overrides |= sidecar_helm_keys_overrides
+        if self.values_file_path_overrides is None:
+            self.values_file_path_overrides = {}
+        self.values_file_path_overrides |= sidecar_values_file_path_overrides
 
         # Not possible, will come from the parent components
         self.has_topology_spread_constraints = False
@@ -304,30 +322,21 @@ class ComponentDetails(DeployableDetails):
 
 
 def make_synapse_worker_sub_component(worker_name: str) -> SubComponentDetails:
-    helm_keys_overrides: dict[PropertyType, tuple[str, ...] | None] = {
-        # Doesn't have its own env, comes from synapse.extraEnv
-        PropertyType.Env: None,
-        # Doesn't have its own image, comes from synapse.image
-        PropertyType.Image: None,
-        # Doesn't have its own labels, comes from synapse.labels
-        PropertyType.Labels: None,
-        # Doesn't have its own podSecurityContext, comes from synapse.podSecurityContext
-        PropertyType.PodSecurityContext: None,
-        # Doesn't have its own serviceAccount, comes from synapse.serviceAccount
-        PropertyType.ServiceAccount: None,
-        # Doesn't have its own serviceMonitor, comes from synapse.serviceMonitor
-        PropertyType.ServiceMonitor: None,
-        # has_workloads and so tolerations but comes from synapse.tolerations
-        PropertyType.Tolerations: None,
-        # has_topology_spread_constraints and so topologySpreadConstraints
-        # but comes from synapse.topologySpreadConstraints
-        PropertyType.TopologySpreadConstraints: None,
+    values_file_path_overrides: dict[PropertyType, ValuesFilePath] = {
+        PropertyType.Env: ValuesFilePath.read_elsewhere("synapse", "extraEnv"),
+        PropertyType.Image: ValuesFilePath.read_elsewhere("synapse", "image"),
+        PropertyType.Labels: ValuesFilePath.read_elsewhere("synapse", "labels"),
+        PropertyType.PodSecurityContext: ValuesFilePath.read_elsewhere("synapse", "podSecurityContext"),
+        PropertyType.ServiceAccount: ValuesFilePath.read_elsewhere("synapse", "serviceAccount"),
+        PropertyType.ServiceMonitor: ValuesFilePath.read_elsewhere("synapse", "serviceMonitor"),
+        PropertyType.Tolerations: ValuesFilePath.read_elsewhere("synapse", "tolerations"),
+        PropertyType.TopologySpreadConstraints: ValuesFilePath.read_elsewhere("synapse", "topologySpreadConstraints"),
     }
 
     return SubComponentDetails(
         f"synapse-{worker_name}",
-        helm_keys=("synapse", "workers", worker_name),
-        helm_keys_overrides=helm_keys_overrides,
+        values_file_path=ValuesFilePath.read_write("synapse", "workers", worker_name),
+        values_file_path_overrides=values_file_path_overrides,
         has_ingress=False,
         is_synapse_process=True,
     )
@@ -363,14 +372,14 @@ synapse_workers_details = tuple(
 all_components_details = [
     ComponentDetails(
         name="init-secrets",
-        helm_keys=("initSecrets",),
-        helm_keys_overrides={
+        values_file_path=ValuesFilePath.read_write("initSecrets"),
+        values_file_path_overrides={
             # Job so no livenessProbe
-            PropertyType.LivenessProbe: None,
+            PropertyType.LivenessProbe: ValuesFilePath.not_supported(),
             # Job so no readinessProbe
-            PropertyType.ReadinessProbe: None,
+            PropertyType.ReadinessProbe: ValuesFilePath.not_supported(),
             # Job so no startupProbe
-            PropertyType.StartupProbe: None,
+            PropertyType.StartupProbe: ValuesFilePath.not_supported(),
         },
         has_image=False,
         has_ingress=False,
@@ -391,10 +400,10 @@ all_components_details = [
         sidecars=(
             SidecarDetails(
                 name="postgres-exporter",
-                helm_keys=("postgres", "postgresExporter"),
-                helm_keys_overrides={
+                values_file_path=ValuesFilePath.read_write("postgres", "postgresExporter"),
+                values_file_path_overrides={
                     # No manifests of its own, so no labels to set
-                    PropertyType.Labels: None,
+                    PropertyType.Labels: ValuesFilePath.not_supported(),
                 },
                 has_ingress=False,
                 has_service_monitor=False,
@@ -405,12 +414,12 @@ all_components_details = [
     ),
     ComponentDetails(
         name="matrix-rtc",
-        helm_keys=("matrixRTC",),
+        values_file_path=ValuesFilePath.read_write("matrixRTC"),
         has_topology_spread_constraints=False,
         sub_components=(
             SubComponentDetails(
                 name="matrix-rtc-sfu",
-                helm_keys=("matrixRTC", "sfu"),
+                values_file_path=ValuesFilePath.read_write("matrixRTC", "sfu"),
                 has_topology_spread_constraints=False,
                 has_ingress=False,
             ),
@@ -423,7 +432,7 @@ all_components_details = [
     ),
     ComponentDetails(
         name="element-web",
-        helm_keys=("elementWeb",),
+        values_file_path=ValuesFilePath.read_write("elementWeb"),
         has_service_monitor=False,
         paths_consistency_noqa=(
             # Explicitly mounted but wildcard included by the base-image
@@ -443,7 +452,7 @@ all_components_details = [
     ),
     ComponentDetails(
         name="matrix-authentication-service",
-        helm_keys=("matrixAuthenticationService",),
+        values_file_path=ValuesFilePath.read_write("matrixAuthenticationService"),
         has_db=True,
         shared_component_names=("init-secrets", "postgres"),
     ),
@@ -458,34 +467,30 @@ all_components_details = [
         + (
             SubComponentDetails(
                 name="synapse-redis",
-                helm_keys=("synapse", "redis"),
+                values_file_path=ValuesFilePath.read_write("synapse", "redis"),
                 has_ingress=False,
                 has_service_monitor=False,
                 has_topology_spread_constraints=False,
             ),
             SubComponentDetails(
                 name="synapse-check-config-hook",
-                helm_keys=("synapse", "checkConfigHook"),
-                helm_keys_overrides={
-                    # has_workloads but comes from synapse.extraEnv
-                    PropertyType.Env: None,
-                    # has_workloads but comes from synapse.image
-                    PropertyType.Image: None,
+                values_file_path=ValuesFilePath.read_write("synapse", "checkConfigHook"),
+                values_file_path_overrides={
+                    PropertyType.Env: ValuesFilePath.read_elsewhere("synapse", "extraEnv"),
+                    PropertyType.Image: ValuesFilePath.read_elsewhere("synapse", "image"),
                     # Job so no livenessProbe
-                    PropertyType.LivenessProbe: None,
-                    # has_workloads and so podSecurityContext but comes from synapse.podSecurityContext
-                    PropertyType.PodSecurityContext: None,
-                    # has_workloads but comes from synapse.resources
-                    PropertyType.Resources: None,
+                    PropertyType.LivenessProbe: ValuesFilePath.not_supported(),
+                    PropertyType.PodSecurityContext: ValuesFilePath.read_elsewhere("synapse", "podSecurityContext"),
+                    PropertyType.Resources: ValuesFilePath.read_elsewhere("synapse", "resources"),
                     # Job so no readinessProbe
-                    PropertyType.ReadinessProbe: None,
+                    PropertyType.ReadinessProbe: ValuesFilePath.not_supported(),
+                    PropertyType.ServiceMonitor: ValuesFilePath.read_elsewhere("synapse", "serviceMonitor"),
                     # Job so no startupProbe
-                    PropertyType.StartupProbe: None,
-                    # has_workloads and so tolerations but comes from synapse.tolerations
-                    PropertyType.Tolerations: None,
-                    # has_topology_spread_constraints and so topologySpreadConstraints
-                    # but comes from synapse.topologySpreadConstraints
-                    PropertyType.TopologySpreadConstraints: None,
+                    PropertyType.StartupProbe: ValuesFilePath.not_supported(),
+                    PropertyType.Tolerations: ValuesFilePath.read_elsewhere("synapse", "tolerations"),
+                    PropertyType.TopologySpreadConstraints: ValuesFilePath.read_elsewhere(
+                        "synapse", "topologySpreadConstraints"
+                    ),
                 },
                 has_ingress=False,
                 has_service_monitor=False,
@@ -495,7 +500,7 @@ all_components_details = [
     ),
     ComponentDetails(
         name="well-known",
-        helm_keys=("wellKnownDelegation",),
+        values_file_path=ValuesFilePath.read_write("wellKnownDelegation"),
         has_workloads=False,
         shared_component_names=("haproxy",),
     ),

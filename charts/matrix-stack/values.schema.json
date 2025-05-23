@@ -39,6 +39,34 @@
           "required": [
             "repository"
           ],
+          "oneOf": [
+            {
+              "required": [
+                "tag",
+                "digest"
+              ]
+            },
+            {
+              "required": [
+                "digest"
+              ],
+              "not": {
+                "required": [
+                  "tag"
+                ]
+              }
+            },
+            {
+              "required": [
+                "tag"
+              ],
+              "not": {
+                "required": [
+                  "digest"
+                ]
+              }
+            }
+          ],
           "properties": {
             "registry": {
               "type": "string"
@@ -47,10 +75,16 @@
               "type": "string"
             },
             "tag": {
-              "type": "string"
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "digest": {
-              "type": "string"
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "pullPolicy": {
               "type": "string",
@@ -615,6 +649,34 @@
           "required": [
             "repository"
           ],
+          "oneOf": [
+            {
+              "required": [
+                "tag",
+                "digest"
+              ]
+            },
+            {
+              "required": [
+                "digest"
+              ],
+              "not": {
+                "required": [
+                  "tag"
+                ]
+              }
+            },
+            {
+              "required": [
+                "tag"
+              ],
+              "not": {
+                "required": [
+                  "digest"
+                ]
+              }
+            }
+          ],
           "properties": {
             "registry": {
               "type": "string"
@@ -623,10 +685,16 @@
               "type": "string"
             },
             "tag": {
-              "type": "string"
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "digest": {
-              "type": "string"
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "pullPolicy": {
               "type": "string",
@@ -1177,6 +1245,34 @@
               "required": [
                 "repository"
               ],
+              "oneOf": [
+                {
+                  "required": [
+                    "tag",
+                    "digest"
+                  ]
+                },
+                {
+                  "required": [
+                    "digest"
+                  ],
+                  "not": {
+                    "required": [
+                      "tag"
+                    ]
+                  }
+                },
+                {
+                  "required": [
+                    "tag"
+                  ],
+                  "not": {
+                    "required": [
+                      "digest"
+                    ]
+                  }
+                }
+              ],
               "properties": {
                 "registry": {
                   "type": "string"
@@ -1185,10 +1281,16 @@
                   "type": "string"
                 },
                 "tag": {
-                  "type": "string"
+                  "type": [
+                    "string",
+                    "null"
+                  ]
                 },
                 "digest": {
-                  "type": "string"
+                  "type": [
+                    "string",
+                    "null"
+                  ]
                 },
                 "pullPolicy": {
                   "type": "string",
@@ -1738,6 +1840,34 @@
           "required": [
             "repository"
           ],
+          "oneOf": [
+            {
+              "required": [
+                "tag",
+                "digest"
+              ]
+            },
+            {
+              "required": [
+                "digest"
+              ],
+              "not": {
+                "required": [
+                  "tag"
+                ]
+              }
+            },
+            {
+              "required": [
+                "tag"
+              ],
+              "not": {
+                "required": [
+                  "digest"
+                ]
+              }
+            }
+          ],
           "properties": {
             "registry": {
               "type": "string"
@@ -1746,10 +1876,16 @@
               "type": "string"
             },
             "tag": {
-              "type": "string"
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "digest": {
-              "type": "string"
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "pullPolicy": {
               "type": "string",
@@ -2298,6 +2434,34 @@
           "required": [
             "repository"
           ],
+          "oneOf": [
+            {
+              "required": [
+                "tag",
+                "digest"
+              ]
+            },
+            {
+              "required": [
+                "digest"
+              ],
+              "not": {
+                "required": [
+                  "tag"
+                ]
+              }
+            },
+            {
+              "required": [
+                "tag"
+              ],
+              "not": {
+                "required": [
+                  "digest"
+                ]
+              }
+            }
+          ],
           "properties": {
             "registry": {
               "type": "string"
@@ -2306,10 +2470,16 @@
               "type": "string"
             },
             "tag": {
-              "type": "string"
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "digest": {
-              "type": "string"
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "pullPolicy": {
               "type": "string",
@@ -3064,6 +3234,34 @@
           "required": [
             "repository"
           ],
+          "oneOf": [
+            {
+              "required": [
+                "tag",
+                "digest"
+              ]
+            },
+            {
+              "required": [
+                "digest"
+              ],
+              "not": {
+                "required": [
+                  "tag"
+                ]
+              }
+            },
+            {
+              "required": [
+                "tag"
+              ],
+              "not": {
+                "required": [
+                  "digest"
+                ]
+              }
+            }
+          ],
           "properties": {
             "registry": {
               "type": "string"
@@ -3072,10 +3270,16 @@
               "type": "string"
             },
             "tag": {
-              "type": "string"
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "digest": {
-              "type": "string"
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "pullPolicy": {
               "type": "string",
@@ -3603,6 +3807,34 @@
           "required": [
             "repository"
           ],
+          "oneOf": [
+            {
+              "required": [
+                "tag",
+                "digest"
+              ]
+            },
+            {
+              "required": [
+                "digest"
+              ],
+              "not": {
+                "required": [
+                  "tag"
+                ]
+              }
+            },
+            {
+              "required": [
+                "tag"
+              ],
+              "not": {
+                "required": [
+                  "digest"
+                ]
+              }
+            }
+          ],
           "properties": {
             "registry": {
               "type": "string"
@@ -3611,10 +3843,16 @@
               "type": "string"
             },
             "tag": {
-              "type": "string"
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "digest": {
-              "type": "string"
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "pullPolicy": {
               "type": "string",
@@ -3647,6 +3885,34 @@
               "required": [
                 "repository"
               ],
+              "oneOf": [
+                {
+                  "required": [
+                    "tag",
+                    "digest"
+                  ]
+                },
+                {
+                  "required": [
+                    "digest"
+                  ],
+                  "not": {
+                    "required": [
+                      "tag"
+                    ]
+                  }
+                },
+                {
+                  "required": [
+                    "tag"
+                  ],
+                  "not": {
+                    "required": [
+                      "digest"
+                    ]
+                  }
+                }
+              ],
               "properties": {
                 "registry": {
                   "type": "string"
@@ -3655,10 +3921,16 @@
                   "type": "string"
                 },
                 "tag": {
-                  "type": "string"
+                  "type": [
+                    "string",
+                    "null"
+                  ]
                 },
                 "digest": {
-                  "type": "string"
+                  "type": [
+                    "string",
+                    "null"
+                  ]
                 },
                 "pullPolicy": {
                   "type": "string",
@@ -4867,6 +5139,34 @@
           "required": [
             "repository"
           ],
+          "oneOf": [
+            {
+              "required": [
+                "tag",
+                "digest"
+              ]
+            },
+            {
+              "required": [
+                "digest"
+              ],
+              "not": {
+                "required": [
+                  "tag"
+                ]
+              }
+            },
+            {
+              "required": [
+                "tag"
+              ],
+              "not": {
+                "required": [
+                  "digest"
+                ]
+              }
+            }
+          ],
           "properties": {
             "registry": {
               "type": "string"
@@ -4875,10 +5175,16 @@
               "type": "string"
             },
             "tag": {
-              "type": "string"
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "digest": {
-              "type": "string"
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "pullPolicy": {
               "type": "string",
@@ -9824,6 +10130,34 @@
               "required": [
                 "repository"
               ],
+              "oneOf": [
+                {
+                  "required": [
+                    "tag",
+                    "digest"
+                  ]
+                },
+                {
+                  "required": [
+                    "digest"
+                  ],
+                  "not": {
+                    "required": [
+                      "tag"
+                    ]
+                  }
+                },
+                {
+                  "required": [
+                    "tag"
+                  ],
+                  "not": {
+                    "required": [
+                      "digest"
+                    ]
+                  }
+                }
+              ],
               "properties": {
                 "registry": {
                   "type": "string"
@@ -9832,10 +10166,16 @@
                   "type": "string"
                 },
                 "tag": {
-                  "type": "string"
+                  "type": [
+                    "string",
+                    "null"
+                  ]
                 },
                 "digest": {
-                  "type": "string"
+                  "type": [
+                    "string",
+                    "null"
+                  ]
                 },
                 "pullPolicy": {
                   "type": "string",

@@ -70,7 +70,7 @@ spec:
         image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
         imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
 {{- else }}
-        image: "{{ .registry }}/{{ .repository }}:{{ required "matrixTools.image.tag is required if no digest" .tag }}"
+        image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
         imagePullPolicy: {{ .pullPolicy | default "Always" }}
 {{- end }}
 {{- end }}
@@ -118,7 +118,7 @@ spec:
         image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
         imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
 {{- else }}
-        image: "{{ .registry }}/{{ .repository }}:{{ required "matrixTools.image.tag is required if no digest" .tag }}"
+        image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
         imagePullPolicy: {{ .pullPolicy | default "Always" }}
 {{- end }}
 {{- end }}
@@ -142,7 +142,7 @@ spec:
         image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
         imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
 {{- else }}
-        image: "{{ .registry }}/{{ .repository }}:{{ required "matrixAuthenticationService.image.tag is required if no digest" .tag }}"
+        image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
         imagePullPolicy: {{ .pullPolicy | default "Always" }}
 {{- end }}
 {{- end }}
@@ -174,7 +174,7 @@ spec:
         image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
         imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
 {{- else }}
-        image: "{{ .registry }}/{{ .repository }}:{{ required "matrixAuthenticationService.image.tag is required if no digest" .tag }}"
+        image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
         imagePullPolicy: {{ .pullPolicy | default "Always" }}
 {{- end }}
 {{- end }}
