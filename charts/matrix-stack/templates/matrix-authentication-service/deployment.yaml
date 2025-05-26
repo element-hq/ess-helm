@@ -64,54 +64,12 @@ spec:
 {{- end }}
 {{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "matrix-authentication-service" "deployment" true "usesMatrixTools" true)) | nindent 6 }}
       initContainers:
-      - name: render-config
-{{- with $.Values.matrixTools.image -}}
-{{- if .digest }}
-        image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
-        imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
-{{- else }}
-        image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
-        imagePullPolicy: {{ .pullPolicy | default "Always" }}
-{{- end }}
-{{- end }}
-{{- with .containersSecurityContext }}
-        securityContext:
-          {{- toYaml . | nindent 10 }}
-{{- end }}
-        command:
-        - "/matrix-tools"
-        - render-config
-        - -output
-        - /conf/config.yaml
-          {{- range $key := (.additional | keys | uniq | sortAlpha) -}}
-          {{- $prop := index $.Values.matrixAuthenticationService.additional $key }}
-          {{- if $prop.config }}
-        - /secrets/{{ $.Release.Name }}-matrix-authentication-service/user-{{ $key }}
-          {{- end }}
-          {{- if $prop.configSecret }}
-        - /secrets/{{ tpl $prop.configSecret $ }}/{{ $prop.configSecretKey }}
-          {{- end }}
-          {{- end }}
-        - /config-templates/config.yaml
-        env:
-        {{- include "element-io.matrix-authentication-service.matrixToolsEnv" (dict "root" $ "context" .) | nindent 8 }}
-        {{- include "element-io.matrix-authentication-service.env" (dict "root" $ "context" .) | nindent 8 }}
-{{- with .resources }}
-        resources:
-          {{- toYaml . | nindent 10 }}
-{{- end }}
-        volumeMounts:
-        - mountPath: /config-templates
-          name: plain-config
-          readOnly: true
-{{- range $secret := include "element-io.matrix-authentication-service.configSecrets" (dict "root" $ "context" .) | fromJsonArray }}
-        - mountPath: /secrets/{{ tpl $secret $ }}
-          name: "secret-{{ tpl $secret $ }}"
-          readOnly: true
-{{- end }}
-        - mountPath: /conf
-          name: rendered-config
-          readOnly: false
+      {{ include "element-io.ess-library.render-config-container" (dict "root" $ "context" (
+        dict "additionalPath" "matrixAuthenticationService.additional"
+              "nameSuffix" "matrix-authentication-service"
+              "overrides" (list "config.yaml")
+              "outputFile" "config.yaml"
+              "isHook" false)) | nindent 6 }}
       - name: db-wait
 {{- with $.Values.matrixTools.image -}}
 {{- if .digest }}
@@ -221,16 +179,9 @@ spec:
           readOnly: true
 {{- end }}
       volumes:
-      - emptyDir:
-          medium: Memory
-        name: "rendered-config"
-      - name: plain-config
-        configMap:
-          name: {{ $.Release.Name }}-matrix-authentication-service
-{{- range $secret := include "element-io.matrix-authentication-service.configSecrets" (dict "root" $ "context" .) | fromJsonArray }}
-      - secret:
-          secretName: {{ tpl $secret $ }}
-        name: secret-{{ tpl $secret $ }}
-{{- end }}
+      {{- include "element-io.ess-library.render-config-volumes" (dict "root" $ "context"
+            (dict "additionalPath" "matrixAuthenticationService.additional"
+                  "nameSuffix" "matrix-authentication-service"
+                  "isHook" false)) | nindent 6 }}
 {{- end -}}
 {{- end -}}

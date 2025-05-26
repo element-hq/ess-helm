@@ -60,60 +60,14 @@ We have an init container to render & merge the config for several reasons:
 * We could do this all in the main Synapse container but then there's potential confusion between `/config-templates`, `/conf` in the image and `/conf` the `emptyDir`
 */}}
     initContainers:
-    - name: render-config
-{{- with $root.Values.matrixTools.image -}}
-{{- if .digest }}
-      image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
-      imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
-{{- else }}
-      image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
-      imagePullPolicy: {{ .pullPolicy | default "Always" }}
-{{- end }}
-{{- end }}
-{{- with .containersSecurityContext }}
-      securityContext:
-        {{- toYaml . | nindent 8 }}
-{{- end }}
-      command:
-      - "/matrix-tools"
-      - render-config
-      - -output
-      - /conf/homeserver.yaml
-      - /config-templates/01-homeserver-underrides.yaml
-        {{- range $key := (.additional | keys | uniq | sortAlpha) -}}
-        {{- $prop := index $root.Values.synapse.additional $key }}
-        {{- if $prop.config }}
-      - /secrets/{{ (include "element-io.synapse.secret-name" (dict "root" $root "context" (dict "isHook" $isHook))) }}/user-{{ $key }}
-        {{- end }}
-        {{- if $prop.configSecret }}
-      - /secrets/{{ tpl $prop.configSecret $root }}/{{ $prop.configSecretKey }}
-        {{- end }}
-        {{- end }}
-      - /config-templates/04-homeserver-overrides.yaml
-{{- if eq $processType "check-config-hook" }}
-      - /config-templates/05-main.yaml
-{{- else }}
-      - /config-templates/05-{{ $processType }}.yaml
-{{- end }}
-      env:
-        {{- include "element-io.synapse.matrixToolsEnv" (dict "root" $root "context" .) | nindent 8 }}
-        {{- include "element-io.synapse.env" (dict "root" $root "context" .) | nindent 8 }}
-{{- with .resources }}
-      resources:
-        {{- toYaml . | nindent 8 }}
-{{- end }}
-      volumeMounts:
-      - mountPath: /config-templates
-        name: plain-config
-        readOnly: true
-{{- range $secret := include "element-io.synapse.configSecrets" (dict "root" $root "context" .) | fromJsonArray }}
-      - mountPath: /secrets/{{ tpl $secret $root }}
-        name: "secret-{{ tpl $secret $root }}"
-        readOnly: true
-{{- end }}
-      - mountPath: /conf
-        name: rendered-config
-        readOnly: false
+    {{- include "element-io.ess-library.render-config-container" (dict "root" $root "context"
+            (dict "additionalPath" "synapse.additional"
+                  "nameSuffix" "synapse"
+                  "underrides" (list "01-homeserver-underrides.yaml")
+                  "overrides" (list "04-homeserver-overrides.yaml"
+                                    (eq $processType "check-config-hook" | ternary "05-main.yaml" (printf "05-%s.yaml" $processType)))
+                  "outputFile" "homeserver.yaml"
+                  "isHook" $isHook)) | nindent 4 }}
 {{- if ne $processType "check-config-hook" }}
     - name: db-wait
 {{- with $root.Values.matrixTools.image -}}
@@ -233,18 +187,10 @@ We have an init container to render & merge the config for several reasons:
         name: tmp
         readOnly: false
     volumes:
-    - configMap:
-        defaultMode: 420
-        name: {{ include "element-io.synapse.configmap-name" (dict "root" $root "context" (dict "isHook" $isHook)) }}
-      name: plain-config
-{{- range $secret := include "element-io.synapse.configSecrets" (dict "root" $root "context" .) | fromJsonArray }}
-    - secret:
-        secretName: {{ tpl $secret $root }}
-      name: secret-{{ tpl $secret $root }}
-{{- end }}
-    - emptyDir:
-        medium: Memory
-      name: "rendered-config"
+    {{- include "element-io.ess-library.render-config-volumes" (dict "root" $root "context"
+            (dict "additionalPath" "synapse.additional"
+                  "nameSuffix" "synapse"
+                  "isHook" $isHook)) | nindent 4 }}
 {{- range $idx, $appservice := .appservices }}
     - name: as-{{ $idx }}
 {{- with $appservice.configMap }}

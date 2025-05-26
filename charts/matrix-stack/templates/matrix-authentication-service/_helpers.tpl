@@ -43,6 +43,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{ $configSecrets = append $configSecrets (tpl $value.secret $root) }}
 {{- end -}}
 {{- end -}}
+{{- with $root.Values.matrixAuthenticationService }}
 {{- with .synapseSharedSecret.secret -}}
 {{ $configSecrets = append $configSecrets (tpl . $root) }}
 {{- end -}}
@@ -57,6 +58,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- $prop := index $root.Values.matrixAuthenticationService.additional $key }}
 {{- if $prop.configSecret }}
 {{ $configSecrets = append $configSecrets (tpl $prop.configSecret $root) }}
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}
@@ -158,6 +160,12 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
     }}
 {{- end }}
 {{- end }}
+{{- end }}
+
+
+{{- define "element-io.matrix-authentication-service.configmap-name" -}}
+{{- $root := .root -}}
+{{- $root.Release.Name }}-matrix-authentication-service
 {{- end }}
 
 
