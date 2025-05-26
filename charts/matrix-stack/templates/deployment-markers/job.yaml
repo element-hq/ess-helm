@@ -1,0 +1,71 @@
+{{- /*
+Copyright 2025 New Vector Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+
+{{ range $step := list "pre" "post" -}}
+{{- with $.Values.deploymentMarkers -}}
+{{- if and .enabled (include "element-io.deployment-markers.secret-markers" (dict "root" $ "context" (dict "step" $step))) }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $.Release.Name }}-deployment-markers-{{ $step }}
+  namespace: {{ $.Release.Namespace }}
+  annotations:
+    "helm.sh/hook": {{ $step }}-install,{{ $step }}-upgrade
+{{- with .annotations }}
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+  labels:
+    {{- include "element-io.deployment-markers.labels" (dict "root" $ "context" (mustMergeOverwrite (dict "step" $step) .)) | nindent 4 }}
+spec:
+  backoffLimit: 6
+  completionMode: NonIndexed
+  completions: 1
+  manualSelector: false
+  parallelism: 1
+  podReplacementPolicy: TerminatingOrFailed
+  template:
+    metadata:
+      annotations:
+{{- with .annotations }}
+        {{- toYaml . | nindent 8 }}
+{{- end }}
+      labels:
+        {{- include "element-io.deployment-markers.labels" (dict "root" $ "context" (dict "step" $step "labels" .labels "withChartVersion" false)) | nindent 8 }}
+    spec:
+      restartPolicy: OnFailure
+{{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" (printf "deployment-markers-%s" $step) "deployment" false "usesMatrixTools" true "mountServiceAccountToken" true)) | nindent 6 }}
+      containers:
+      - name: deployment-markers
+{{- with $.Values.matrixTools.image -}}
+{{- if .digest }}
+        image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
+        imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
+{{- else }}
+        image: "{{ .registry }}/{{ .repository }}:{{ required "matrixTools.image.tag is required if no digest" .tag }}"
+        imagePullPolicy: {{ .pullPolicy | default "Always" }}
+{{- end }}
+{{- end }}
+{{- with .containersSecurityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+{{- end }}
+{{- with .resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+{{- end }}
+        env:
+        {{- include "element-io.deployment-markers.env" (dict "root" $ "context" .) | nindent 8 }}
+        command:
+        - "/matrix-tools"
+        - "generate-secrets"
+        - "-secrets"
+        - {{ include "element-io.deployment-markers.secret-markers" (dict "root" $ "context" (dict "step" $step)) | fromYamlArray | join "," | quote }}
+        - "-labels"
+        - {{ include "element-io.deployment-markers.secret-labels" (dict "root" $ "context" (dict "labels" .labels "withChartVersion" false)) | trim  | replace ": " "="| replace "\n" "," | replace "\"" "" | quote }}
+---
+{{- end -}}
+{{- end -}}
+{{- end -}}

@@ -13,6 +13,10 @@ initSecrets:
   {% macro initSecrestValues() %}{% include 'init-secrets.yaml.j2'%}{% endmacro %}
   {{- initSecrestValues() | trim | indent(2) }}
 
+deploymentMarkers:
+  {% macro deploymentMarkersValues() %}{% include 'deployment-markers.yaml.j2'%}{% endmacro %}
+  {{- deploymentMarkersValues() | trim | indent(2) }}
+
 matrixRTC:
   {% macro matrixRTCValues() %}{% include 'matrix-rtc.yaml.j2'%}{% endmacro %}
   {{- matrixRTCValues() | trim | indent(2) }}

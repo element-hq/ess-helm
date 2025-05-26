@@ -124,7 +124,7 @@ async def test_synapse_service_marker_legacy_auth(kube_client, generated_data: E
     secret = await kube_client.get(
         Secret,
         namespace=generated_data.ess_namespace,
-        name="{generated_data.name}-generated-secret",
+        name=f"{generated_data.name}-markers",
     )
     assert secret.data.get("MATRIX_STACK_MSC3861") is not None
     assert secret.data.get("MATRIX_STACK_MSC3861") == b"legacy_auth"

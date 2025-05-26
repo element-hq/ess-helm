@@ -371,6 +371,23 @@ synapse_workers_details = tuple(
 
 all_components_details = [
     ComponentDetails(
+        name="deployment-markers",
+        helm_keys=("deploymentMarkers",),
+        helm_keys_overrides={
+            # Job so no livenessProbe
+            PropertyType.LivenessProbe: None,
+            # Job so no readinessProbe
+            PropertyType.ReadinessProbe: None,
+            # Job so no startupProbe
+            PropertyType.StartupProbe: None,
+        },
+        has_image=False,
+        has_ingress=False,
+        has_service_monitor=False,
+        has_topology_spread_constraints=False,
+        is_shared_component=True,
+    ),
+    ComponentDetails(
         name="init-secrets",
         values_file_path=ValuesFilePath.read_write("initSecrets"),
         values_file_path_overrides={
@@ -454,7 +471,7 @@ all_components_details = [
         name="matrix-authentication-service",
         values_file_path=ValuesFilePath.read_write("matrixAuthenticationService"),
         has_db=True,
-        shared_component_names=("init-secrets", "postgres"),
+        shared_component_names=("deployment-markers", "init-secrets", "postgres"),
     ),
     ComponentDetails(
         name="synapse",
@@ -496,7 +513,7 @@ all_components_details = [
                 has_service_monitor=False,
             ),
         ),
-        shared_component_names=("init-secrets", "haproxy", "postgres"),
+        shared_component_names=("deployment-markers", "init-secrets", "haproxy", "postgres"),
     ),
     ComponentDetails(
         name="well-known",
