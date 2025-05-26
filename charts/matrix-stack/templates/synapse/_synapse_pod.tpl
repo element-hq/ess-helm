@@ -69,6 +69,7 @@ We have an init container to render & merge the config for several reasons:
                   "outputFile" "homeserver.yaml"
                   "resources" .resources
                   "containersSecurityContext" .containersSecurityContext
+                  "extraEnv" .extraEnv
                   "isHook" $isHook)) | nindent 4 }}
 {{- if ne $processType "check-config-hook" }}
     - name: db-wait

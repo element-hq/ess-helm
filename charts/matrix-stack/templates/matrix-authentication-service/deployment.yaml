@@ -71,6 +71,7 @@ spec:
               "outputFile" "config.yaml"
               "resources" .resources
               "containersSecurityContext" .containersSecurityContext
+              "extraEnv" .extraEnv
               "isHook" false)) | nindent 6 }}
       - name: db-wait
 {{- with $.Values.matrixTools.image -}}
