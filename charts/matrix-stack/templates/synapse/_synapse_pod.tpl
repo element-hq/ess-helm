@@ -67,6 +67,8 @@ We have an init container to render & merge the config for several reasons:
                   "overrides" (list "04-homeserver-overrides.yaml"
                                     (eq $processType "check-config-hook" | ternary "05-main.yaml" (printf "05-%s.yaml" $processType)))
                   "outputFile" "homeserver.yaml"
+                  "resources" .resources
+                  "containersSecurityContext" .containersSecurityContext
                   "isHook" $isHook)) | nindent 4 }}
 {{- if ne $processType "check-config-hook" }}
     - name: db-wait

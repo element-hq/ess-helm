@@ -69,6 +69,8 @@ spec:
               "nameSuffix" "matrix-authentication-service"
               "overrides" (list "config.yaml")
               "outputFile" "config.yaml"
+              "resources" .resources
+              "containersSecurityContext" .containersSecurityContext
               "isHook" false)) | nindent 6 }}
       - name: db-wait
 {{- with $.Values.matrixTools.image -}}
