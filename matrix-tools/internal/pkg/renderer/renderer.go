@@ -8,14 +8,14 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"gopkg.in/yaml.v3"
 	"io"
+	"net/url"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
 	"text/template"
-	"net/url"
-	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
@@ -66,7 +66,7 @@ func quote(src string) string {
 }
 
 func indent(i int, src string) string {
-	return strings.Join(strings.Split(src, "\n"), "\n" + strings.Repeat(" ", i))
+	return strings.Join(strings.Split(src, "\n"), "\n"+strings.Repeat(" ", i))
 }
 
 func urlencode(src string) string {

@@ -15,6 +15,7 @@ type CommandType int
 const (
 	RenderConfig CommandType = iota
 	GenerateSecrets
+	DeploymentMarkers
 	TCPWait
 )
 
@@ -51,20 +52,29 @@ func parseSecretType(value string) (SecretType, error) {
 }
 
 type GeneratedSecret struct {
-	ArgValue string
-	Name     string
-	Key      string
-	Type     SecretType
+	ArgValue      string
+	Name          string
+	Key           string
+	Type          SecretType
+}
+
+type DeploymentMarker struct {
+	Name          string
+	Key           string
+	Step          string
+	NewValue      string
+	AllowedValues []string
 }
 
 type Options struct {
 	Command          CommandType
 	Files            []string
 	Output           string
-	Debug					 bool
+	Debug            bool
 	Address          string
 	GeneratedSecrets []GeneratedSecret
-	SecretLabels     map[string]string
+	DeploymentMarkers []DeploymentMarker
+	Labels     map[string]string
 }
 
 func ParseArgs(args []string) (*Options, error) {
@@ -79,6 +89,10 @@ func ParseArgs(args []string) (*Options, error) {
 	generateSecretsSet := flag.NewFlagSet("generate-secrets", flag.ExitOnError)
 	secrets := generateSecretsSet.String("secrets", "", "Comma-separated list of secrets to generate, in the format of `name:key:type`, where `type` is one of: rand32")
 	secretsLabels := generateSecretsSet.String("labels", "", "Comma-separated list of labels for generated secrets, in the format of `key=value`")
+
+	deploymentMarkersSet := flag.NewFlagSet("deployment-markers", flag.ExitOnError)
+	deploymentMarkers := deploymentMarkersSet.String("markers", "", "Comma-separated list of deployment markers, in the format of `name:step:newValue:[allowedValues:..]`")
+	labels := deploymentMarkersSet.String("labels", "", "Comma-separated list of labels for generated secrets, in the format of `key=value`")
 
 	switch args[1] {
 	case "render-config":
@@ -110,26 +124,50 @@ func ParseArgs(args []string) (*Options, error) {
 		}
 		for _, generatedSecretArg := range strings.Split(*secrets, ",") {
 			parsedValue := strings.Split(generatedSecretArg, ":")
-			if len(parsedValue) != 3 {
-				return nil, fmt.Errorf("invalid generated secret format, expect <name:key:type>: %s", generatedSecretArg)
+			if len(parsedValue) < 3 {
+				return nil, fmt.Errorf("invalid generated secret format, expect <name:key:type:...>: %s", generatedSecretArg)
 			}
 			var parsedSecretType SecretType
 			if parsedSecretType, err = parseSecretType(parsedValue[2]); err != nil {
-				return nil, fmt.Errorf("invalid secret type in %s", generatedSecretArg)
+				return nil, fmt.Errorf("invalid secret type in %s : %v", generatedSecretArg, err)
 			}
 
 			generatedSecret := GeneratedSecret{ArgValue: generatedSecretArg, Name: parsedValue[0], Key: parsedValue[1], Type: parsedSecretType}
 			options.GeneratedSecrets = append(options.GeneratedSecrets, generatedSecret)
 		}
-		options.SecretLabels = make(map[string]string)
+		options.Labels = make(map[string]string)
 		if *secretsLabels != "" {
 			for _, label := range strings.Split(*secretsLabels, ",") {
 				parsedLabelValue := strings.Split(label, "=")
-				options.SecretLabels[parsedLabelValue[0]] = parsedLabelValue[1]
+				options.Labels[parsedLabelValue[0]] = parsedLabelValue[1]
 			}
 		}
-		options.SecretLabels["app.kubernetes.io/managed-by"] = "matrix-tools-init-secrets"
+		options.Labels["app.kubernetes.io/managed-by"] = "matrix-tools-init-secrets"
 		options.Command = GenerateSecrets
+	case "deployment-markers":
+		err := deploymentMarkersSet.Parse(args[2:])
+		if err != nil {
+			return nil, err
+		}
+		for _, deploymentMarkerArg := range strings.Split(*deploymentMarkers, ",") {
+			parsedValue := strings.Split(deploymentMarkerArg, ":")
+			if len(parsedValue) < 4 {
+				return nil, fmt.Errorf("invalid deployment marker format, expect <name:step:newValue:[allowedValues:..]>: %s", deploymentMarkerArg)
+			}
+			parsedAllowedValues := make([]string, 0)
+			if len(parsedValue) > 2 {
+				parsedAllowedValues = strings.Split(parsedValue[2], ":")
+			}
+			options.DeploymentMarkers = append(options.DeploymentMarkers, DeploymentMarker{Step: parsedValue[0], NewValue: parsedValue[1], AllowedValues: parsedAllowedValues})
+			options.Labels = make(map[string]string)
+			if *labels != "" {
+				for _, label := range strings.Split(*labels, ",") {
+					parsedLabelValue := strings.Split(label, "=")
+					options.Labels[parsedLabelValue[0]] = parsedLabelValue[1]
+				}
+			}
+			options.Labels["app.kubernetes.io/managed-by"] = "matrix-tools-deployment-markers"
+		}
 	default:
 		return nil, flag.ErrHelp
 	}

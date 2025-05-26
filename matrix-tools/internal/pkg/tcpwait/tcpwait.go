@@ -20,11 +20,11 @@ func WaitForTCP(address string) {
 			time.Sleep(time.Second)
 		} else {
 			defer func() {
-        if err = conn.Close(); err != nil {
+				if err = conn.Close(); err != nil {
 					fmt.Println(err)
 					os.Exit(1)
 				}
-    }()
+			}()
 			break
 		}
 	}

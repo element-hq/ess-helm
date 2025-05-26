@@ -49,8 +49,8 @@ func TestParseArgs(t *testing.T) {
 			name: "Correct usage of render-config",
 			args: []string{"cmd", "render-config", "-output", "outputFile", "file1", "file2"},
 			expected: &Options{
-				Files:  []string{"file1", "file2"},
-				Output: "outputFile",
+				Files:   []string{"file1", "file2"},
+				Output:  "outputFile",
 				Command: RenderConfig,
 			},
 			err: false,
@@ -71,8 +71,8 @@ func TestParseArgs(t *testing.T) {
 				GeneratedSecrets: []GeneratedSecret{
 					{Name: "secret1", Key: "value1", Type: Rand32},
 				},
-				SecretLabels: map[string]string{"mykey": "myval"},
-				Command: GenerateSecrets,
+				Labels: map[string]string{"mykey": "myval"},
+				Command:      GenerateSecrets,
 			},
 			err: false,
 		},
@@ -86,6 +86,32 @@ func TestParseArgs(t *testing.T) {
 					{Name: "secret2", Key: "value2", Type: SigningKey},
 				},
 				Command: GenerateSecrets,
+			},
+			err: false,
+		},
+
+		{
+			name:     "Invalid secret type",
+			args:     []string{"cmd", "generate-secrets", "-secrets", "secret1:value1:unknown"},
+			expected: &Options{},
+			err:      true,
+		},
+
+		{
+			name:     "Wrong syntax of deployment-markers",
+			args:     []string{"cmd", "deployment-markers", "-markers", "value1:rand32"},
+			expected: &Options{},
+			err:      true,
+		},
+		{
+			name: "Multiple deployment-markers",
+			args: []string{"cmd", "deployment-markers", "-markers", "cm1:key1:pre:value1:value1:value2,cm1:key2:pre:value2:value2"},
+			expected: &Options{
+				DeploymentMarkers: []DeploymentMarker{
+					{Name: "cm1", Key: "key1", Step: "pre", NewValue: "value1", AllowedValues: []string{"value1"}},
+					{Name: "cm2", Key: "key2", Step: "pre", NewValue: "value2", AllowedValues: []string{"value1", "value2"}},
+				},
+				Command: DeploymentMarkers,
 			},
 			err: false,
 		},
