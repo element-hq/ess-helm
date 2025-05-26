@@ -6,6 +6,7 @@ import hashlib
 from pathlib import Path
 
 import pytest
+from lightkube.resources.core_v1 import Secret
 
 from .fixtures import ESSData
 from .lib.synapse import assert_downloaded_content, download_media, upload_media
@@ -114,3 +115,16 @@ async def test_rendezvous_cors_headers_are_only_set_with_mas(ingress_ready, gene
         assert "Synapse-Trace-Id" in response.headers["Access-Control-Expose-Headers"]
         assert "Server" in response.headers["Access-Control-Expose-Headers"]
         assert ("ETag" in response.headers["Access-Control-Expose-Headers"]) == supports_qr_code_login
+
+
+@pytest.mark.skipif(value_file_has("synapse.enabled", False), reason="Synapse not deployed")
+@pytest.mark.skipif(value_file_has("matrixAuthenticationService.enabled", True), reason="MAS is deployed")
+@pytest.mark.asyncio_cooperative
+async def test_synapse_service_marker_legacy_auth(kube_client, generated_data: ESSData, ssl_context):
+    secret = await kube_client.get(
+        Secret,
+        namespace=generated_data.ess_namespace,
+        name="{generated_data.name}-generated-secret",
+    )
+    assert secret.data.get("MATRIX_STACK_MSC3861") is not None
+    assert secret.data.get("MATRIX_STACK_MSC3861") == b"legacy_auth"
