@@ -350,9 +350,6 @@ server {
     listen 443 ssl http2;
     listen [::]:443 ssl http2;
 
-    listen 8448 ssl http2;
-    listen [::]:8448 ssl http2;
-
     access_log /var/log/nginx/ess.log main;
     error_log /var/log/nginx/ess.errors;
 
@@ -368,7 +365,6 @@ server {
     ssl_buffer_size 4k;
     ssl_stapling on;
     ssl_stapling_verify on;
-    resolver 1.1.1.1 1.0.0.1 [2606:4700:4700::1111] [2606:4700:4700::1001];
     add_header Strict-Transport-Security 'max-age=31536000; includeSubDomains; preload' always;
     ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-CHACHA20-POLY1305;
     ssl_prefer_server_ciphers on;
