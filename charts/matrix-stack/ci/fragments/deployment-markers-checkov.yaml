@@ -1,0 +1,10 @@
+# Copyright 2025 New Vector Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+deploymentMarkers:
+  annotations:
+    checkov.io/skip1: CKV_K8S_11=We deliberately don't set CPU limits. Pod is BestEffort not Guaranteed
+    checkov.io/skip2: CKV_K8S_43=No digests
+    checkov.io/skip3: CKV2_K8S_6=No network policy yet
+    checkov.io/skip4: CKV_K8S_38=The job needs a service account

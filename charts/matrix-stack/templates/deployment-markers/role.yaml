@@ -9,7 +9,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ $.Release.Name }}-deployment-markers-{{ .step }}
+  name: {{ $.Release.Name }}-deployment-markers-{{ $step }}
   namespace: {{ $.Release.Namespace }}
   labels:
     {{- include "element-io.deployment-markers.labels" (dict "root" $ "context" (mustMergeOverwrite (dict "step" $step) .)) | nindent 4 }}
@@ -26,7 +26,7 @@ rules:
   verbs: ["create"]
 - apiGroups: [""]
   resources: ["secrets"]
-  resourceNames: [ "{{ $.Release.Name }}-generated" ]
+  resourceNames: [ "{{ $.Release.Name }}-markers" ]
   verbs: ["get", "update"]
 ---
 {{- end -}}

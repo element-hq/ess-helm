@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 import hashlib
+from base64 import b64decode
 from pathlib import Path
 
 import pytest
@@ -124,7 +125,7 @@ async def test_synapse_service_marker_legacy_auth(kube_client, generated_data: E
     secret = await kube_client.get(
         Secret,
         namespace=generated_data.ess_namespace,
-        name=f"{generated_data.name}-markers",
+        name=f"{generated_data.release_name}-markers",
     )
     assert secret.data.get("MATRIX_STACK_MSC3861") is not None
-    assert secret.data.get("MATRIX_STACK_MSC3861") == b"legacy_auth"
+    assert b64decode(secret.data.get("MATRIX_STACK_MSC3861")) == b"legacy_auth"

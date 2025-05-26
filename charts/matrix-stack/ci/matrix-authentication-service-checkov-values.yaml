@@ -2,9 +2,15 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 #
-# source_fragments: matrix-authentication-service-minimal.yaml matrix-authentication-service-checkov.yaml init-secrets-minimal.yaml init-secrets-checkov.yaml postgres-minimal.yaml postgres-checkov.yaml
+# source_fragments: matrix-authentication-service-minimal.yaml matrix-authentication-service-checkov.yaml init-secrets-minimal.yaml init-secrets-checkov.yaml postgres-minimal.yaml postgres-checkov.yaml deployment-markers-minimal.yaml deployment-markers-checkov.yaml
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
+deploymentMarkers:
+  annotations:
+    checkov.io/skip1: CKV_K8S_11=We deliberately don't set CPU limits. Pod is BestEffort not Guaranteed
+    checkov.io/skip2: CKV_K8S_43=No digests
+    checkov.io/skip3: CKV2_K8S_6=No network policy yet
+    checkov.io/skip4: CKV_K8S_38=The job needs a service account
 elementWeb:
   enabled: false
 initSecrets:
