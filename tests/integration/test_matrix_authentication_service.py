@@ -2,11 +2,9 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-from base64 import b64decode
-
 import pyhelm3
 import pytest
-from lightkube.resources.core_v1 import Secret
+from lightkube.resources.core_v1 import ConfigMap
 
 from .fixtures import ESSData
 from .lib.utils import aiohttp_post_json, value_file_has
@@ -33,13 +31,12 @@ async def test_matrix_authentication_service_graphql_endpoint(ingress_ready, gen
 async def test_matrix_authentication_service_marker_delegated_auth(
     kube_client, helm_client: pyhelm3.Client, ingress_ready, generated_data: ESSData, ssl_context
 ):
-    secret = await kube_client.get(
-        Secret,
+    configmap = await kube_client.get(
+        ConfigMap,
         namespace=generated_data.ess_namespace,
         name=f"{generated_data.release_name}-markers",
     )
-    assert secret.data.get("MATRIX_STACK_MSC3861") is not None
-    assert b64decode(secret.data.get("MATRIX_STACK_MSC3861")) == b"delegated_auth"
+    assert configmap.data.get("MATRIX_STACK_MSC3861") == "delegated_auth"
 
     revision = await helm_client.get_current_revision(
         generated_data.release_name, namespace=generated_data.ess_namespace

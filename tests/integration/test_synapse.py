@@ -129,7 +129,6 @@ async def test_synapse_service_marker_legacy_auth(
         namespace=generated_data.ess_namespace,
         name=f"{generated_data.release_name}-markers",
     )
-    assert configmap.data.get("MATRIX_STACK_MSC3861") is not None
     assert configmap.data.get("MATRIX_STACK_MSC3861") == "legacy_auth"
     revision = await helm_client.get_current_revision(
         generated_data.release_name, namespace=generated_data.ess_namespace
