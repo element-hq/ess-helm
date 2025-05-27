@@ -181,6 +181,7 @@ responsibleForMedia
   {{- end -}}
 {{- end -}}
 {{- end -}}
+{{- with $root.Values.synapse -}}
 {{- with .macaroon.secret -}}
 {{ $configSecrets = append $configSecrets (tpl . $root) }}
 {{- end -}}
@@ -195,6 +196,7 @@ responsibleForMedia
 {{- $prop := index $root.Values.synapse.additional $key }}
 {{- if $prop.configSecret }}
 {{ $configSecrets = append $configSecrets (tpl $prop.configSecret $root) }}
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}

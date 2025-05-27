@@ -282,7 +282,10 @@ async def test_secrets_consistency(templates, other_secrets, template_to_deploya
                     # We can't verify rendered-config, it's generated at runtime
                     uses_rendered_config = True
                     mount_paths.append(volume_mount["mountPath"])
-                    key = f"{volume_mount['mountPath']}/{get_key_from_render_config(template)}"
+                    if "subPath" in volume_mount:
+                        key = volume_mount["mountPath"]
+                    else:
+                        key = f"{volume_mount['mountPath']}/{get_key_from_render_config(template)}"
                     mounted_keys.append(key)
                     mounted_keys_to_parents[key] = volume_mount["mountPath"]
 

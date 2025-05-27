@@ -1,4 +1,4 @@
-# Copyright 2024 New Vector Ltd
+# Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -11,7 +11,7 @@ async def test_matrix_authentication_service_env_overrides(values, make_template
     for template in await make_templates(values):
         if "matrix-authentication-service" in template["metadata"]["name"] and template["kind"] == "Deployment":
             env = {e["name"]: e["value"] for e in template["spec"]["template"]["spec"]["containers"][0]["env"]}
-            assert env["MAS_CONFIG"] == "/config.yaml"
+            assert env["MAS_CONFIG"] == "/conf/config.yaml"
             break
     else:
         raise RuntimeError("Could not find Matrix Authentication Service deployment")
@@ -24,7 +24,7 @@ async def test_matrix_authentication_service_env_overrides(values, make_template
     for template in await make_templates(values):
         if "matrix-authentication-service" in template["metadata"]["name"] and template["kind"] == "Deployment":
             env = {e["name"]: e["value"] for e in template["spec"]["template"]["spec"]["containers"][0]["env"]}
-            assert env["MAS_CONFIG"] == "/config.yaml"
+            assert env["MAS_CONFIG"] == "/conf/config.yaml"
             assert env["OTHER_KEY"] == "should-exists"
             break
     else:

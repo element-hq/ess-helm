@@ -9,7 +9,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ $.Release.Name }}-matrix-authentication-service
+  name: {{ include "element-io.matrix-authentication-service.configmap-name" (dict "root" $) }}
   namespace: {{ $.Release.Namespace }}
   labels:
     {{- include "element-io.matrix-authentication-service.labels" (dict "root" $ "context" .) | nindent 4 }}

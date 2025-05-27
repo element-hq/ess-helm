@@ -25,7 +25,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- define "element-io.matrix-authentication-service.configSecrets" -}}
 {{- $root := .root -}}
 {{- with required "element-io.matrix-authentication-service.configSecrets missing context" .context -}}
-{{ $configSecrets := list (printf "%s-matrix-authentication-service" $root.Release.Name) }}
+{{ $configSecrets := list (include "element-io.matrix-authentication-service.secret-name" (dict "root" $root "context" .)) }}
 {{- if and $root.Values.initSecrets.enabled (include "element-io.init-secrets.generated-secrets" (dict "root" $root)) }}
 {{ $configSecrets = append $configSecrets (printf "%s-generated" $root.Release.Name) }}
 {{- end }}
@@ -33,7 +33,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
                                             (dict "root" $root "context" (dict
                                                                 "essPassword" "matrixAuthenticationService"
                                                                 "componentPasswordPath" "matrixAuthenticationService.postgres.password"
-                                                                "defaultSecretName" (printf "%s-matrix-authentication-service" $root.Release.Name)
+                                                                "defaultSecretName" (include "element-io.matrix-authentication-service.secret-name" (dict "root" $root "context" .))
                                                                 "isHook" false
                                                                 )
                                             )
@@ -43,6 +43,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{ $configSecrets = append $configSecrets (tpl $value.secret $root) }}
 {{- end -}}
 {{- end -}}
+{{- with $root.Values.matrixAuthenticationService }}
 {{- with .synapseSharedSecret.secret -}}
 {{ $configSecrets = append $configSecrets (tpl . $root) }}
 {{- end -}}
@@ -60,6 +61,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- end }}
 {{- end }}
 {{- end }}
+{{- end }}
 {{ $configSecrets | uniq | toJson }}
 {{- end }}
 {{- end }}
@@ -71,7 +73,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- range $envEntry := .extraEnv -}}
 {{- $_ := set $resultEnv $envEntry.name $envEntry.value -}}
 {{- end -}}
-{{- $overrideEnv := dict "MAS_CONFIG" "/config.yaml" -}}
+{{- $overrideEnv := dict "MAS_CONFIG" "/conf/config.yaml" -}}
 {{- $resultEnv := mustMergeOverwrite $resultEnv $overrideEnv -}}
 {{- range $key, $value := $resultEnv }}
 - name: {{ $key | quote }}
@@ -158,6 +160,12 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
     }}
 {{- end }}
 {{- end }}
+{{- end }}
+
+
+{{- define "element-io.matrix-authentication-service.configmap-name" -}}
+{{- $root := .root -}}
+{{- $root.Release.Name }}-matrix-authentication-service
 {{- end }}
 
 
