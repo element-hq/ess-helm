@@ -1,5 +1,5 @@
 {{- /*
-Copyright 2024 New Vector Ltd
+Copyright 2024-2025 New Vector Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -42,7 +42,7 @@ key_file: /secrets/{{ (printf "/secrets/%s"
               )
         ))) }}
 {{- else }}
-key_file: /rendered-config/keys.yaml
+key_file: /conf/keys.yaml
 {{- end }}
 
 # Logging config
