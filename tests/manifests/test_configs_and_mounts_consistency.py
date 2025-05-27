@@ -8,7 +8,7 @@ import re
 import pytest
 
 from . import secret_values_files_to_test, values_files_to_test
-from .utils import get_or_empty
+from .utils import get_or_empty, template_to_deployable_details
 
 
 def get_configmap(templates, configmap_name):
@@ -228,7 +228,7 @@ def assert_exists_according_to_hook_weight(template, hook_weight, used_by):
 
 @pytest.mark.parametrize("values_file", values_files_to_test | secret_values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_secrets_consistency(templates, other_secrets, template_to_deployable_details):
+async def test_secrets_consistency(templates, other_secrets):
     """
     Test to ensure that all configmaps and secrets are properly mounted and consistent across the cluster.
 

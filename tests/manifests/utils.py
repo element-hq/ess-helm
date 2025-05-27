@@ -243,42 +243,36 @@ def iterate_deployables_ingress_parts(
     iterate_deployables_parts(visitor, lambda deployable_details: deployable_details.has_ingress)
 
 
-@pytest.fixture
-def template_to_deployable_details():
-    def _template_to_deployable_details(
-        template: dict[str, Any], container_name: str | None = None
-    ) -> DeployableDetails:
-        # As per test_labels this doesn't have the release_name prefixed to it
-        manifest_name: str = template["metadata"]["labels"]["app.kubernetes.io/name"]
+def template_to_deployable_details(template: dict[str, Any], container_name: str | None = None) -> DeployableDetails:
+    # As per test_labels this doesn't have the release_name prefixed to it
+    manifest_name: str = template["metadata"]["labels"]["app.kubernetes.io/name"]
 
-        match = None
-        for deployable_details in all_deployables_details:
-            # We name the various DeployableDetails to match the name the chart should use for
-            # the manifest name and thus the app.kubernetes.io/name label above. e.g. A manifest
-            # belonging to Synapse should be named `<release-name>-synapse(-<optional extra>)`.
-            #
-            # When we find a matching (sub-)component we ensure that there has been no other
-            # match (with the exception of matching both a sub-component and its parent) as
-            # otherwise we have no way of identifying the associated DeployableDeploys and
-            # thus which parts of the values files need manipulating for this deployable.
-            if deployable_details.owns_manifest_named(manifest_name):
-                assert match is None, (
-                    f"{template_id(template)} could belong to at least 2 (sub-)components: "
-                    f"{match.name} and {deployable_details.name}"  # type: ignore[attr-defined]
-                )
-                match = deployable_details
-
-        assert match is not None, f"{template_id(template)} can't be linked to any (sub-)component"
-        # If this is a template that has multiple containers, the containers could have different ownership
-        # e.g. a sidecar. For everything else we don't need to check further as there's no shared ownership
-        if container_name is not None:
-            match = match.deployable_details_for_container(container_name)
-            assert match is not None, (
-                f"{template_id(template)} can't be linked to any (sub-)component or specific container"
+    match = None
+    for deployable_details in all_deployables_details:
+        # We name the various DeployableDetails to match the name the chart should use for
+        # the manifest name and thus the app.kubernetes.io/name label above. e.g. A manifest
+        # belonging to Synapse should be named `<release-name>-synapse(-<optional extra>)`.
+        #
+        # When we find a matching (sub-)component we ensure that there has been no other
+        # match (with the exception of matching both a sub-component and its parent) as
+        # otherwise we have no way of identifying the associated DeployableDeploys and
+        # thus which parts of the values files need manipulating for this deployable.
+        if deployable_details.owns_manifest_named(manifest_name):
+            assert match is None, (
+                f"{template_id(template)} could belong to at least 2 (sub-)components: "
+                f"{match.name} and {deployable_details.name}"  # type: ignore[attr-defined]
             )
-        return match
+            match = deployable_details
 
-    return _template_to_deployable_details
+    assert match is not None, f"{template_id(template)} can't be linked to any (sub-)component"
+    # If this is a template that has multiple containers, the containers could have different ownership
+    # e.g. a sidecar. For everything else we don't need to check further as there's no shared ownership
+    if container_name is not None:
+        match = match.deployable_details_for_container(container_name)
+        assert match is not None, (
+            f"{template_id(template)} can't be linked to any (sub-)component or specific container"
+        )
+    return match
 
 
 def template_id(template: dict[str, Any]) -> str:
@@ -319,7 +313,6 @@ def selector_match(labels: dict[str, str], selector: dict[str, str]) -> bool:
 async def assert_covers_expected_workloads(
     values,
     make_templates,
-    template_to_deployable_details,
     covering_kind: str,
     toggling_property_type: PropertyType,
     if_condition: Callable[[DeployableDetails], bool],

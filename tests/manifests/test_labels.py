@@ -8,7 +8,7 @@ from hashlib import sha1
 import pytest
 
 from . import PropertyType, secret_values_files_to_test, values_files_to_test
-from .utils import template_id
+from .utils import template_id, template_to_deployable_details
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -56,7 +56,7 @@ async def test_templates_have_expected_labels(release_name, templates):
 
 @pytest.mark.parametrize("values_file", secret_values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_templates_have_postgres_hash_label(release_name, templates, values, template_to_deployable_details):
+async def test_templates_have_postgres_hash_label(release_name, templates, values):
     for template in templates:
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
             id = template_id(template)

@@ -5,7 +5,7 @@
 import pytest
 
 from . import DeployableDetails, PropertyType, values_files_to_test
-from .utils import iterate_deployables_parts
+from .utils import iterate_deployables_parts, template_to_deployable_details
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -22,7 +22,7 @@ async def test_sets_no_topology_spread_constraint_default(templates):
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_topology_spread_constraint_has_default(values, make_templates, template_to_deployable_details):
+async def test_topology_spread_constraint_has_default(values, make_templates):
     def set_topology_spread_constraints(deployable_details: DeployableDetails):
         deployable_details.set_helm_values(
             values,
@@ -68,7 +68,7 @@ async def test_topology_spread_constraint_has_default(values, make_templates, te
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_can_nuke_topology_spread_constraint_defaults(values, make_templates, template_to_deployable_details):
+async def test_can_nuke_topology_spread_constraint_defaults(values, make_templates):
     def set_topology_spread_constraints(deployable_details: DeployableDetails):
         deployable_details.set_helm_values(
             values,
