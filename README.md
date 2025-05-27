@@ -342,6 +342,63 @@ Find below a minimal example of an Apache2 vhost to work as a reverse proxy with
 ```
 </details>
 
+<details><summary>Nginx</summary>
+
+Below is a simple, but complete example of a Nginx reverse proxy config for ESS Community with TLS termination.
+```
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+
+    access_log /var/log/nginx/ess.log main;
+    error_log /var/log/nginx/ess.errors;
+
+    ssl_certificate /etc/nginx/certs/certificate.full;
+    ssl_certificate_key /etc/nginx/certs/certificate.key;
+
+    #TLSv1.2 is required for iOS support for now
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_dhparam /etc/nginx/dhparam.pem;
+    ssl_session_cache shared:le_nginx_SSL:10m;
+    ssl_session_timeout 1440m;
+    ssl_session_tickets off;
+    ssl_buffer_size 4k;
+    ssl_stapling on;
+    ssl_stapling_verify on;
+    add_header Strict-Transport-Security 'max-age=31536000; includeSubDomains; preload' always;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-CHACHA20-POLY1305;
+    ssl_prefer_server_ciphers on;
+
+    server_name chat.example.com matrix.example.com account.example.com mrtc.example.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host $host;
+
+        client_max_body_size 50M;
+    
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        proxy_read_timeout 86400s;
+        proxy_send_timeout 86400s;
+        proxy_buffering off;
+    }
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name chat.example.com matrix.example.com account.example.com mrtc.example.com;
+    return 301 https://$host$request_uri;
+}
+
+```
+</details>
+
 ### Configuring the database
 
 You can either use the database provided with ESS Community or you use a dedicated PostgreSQL Server. We recommend [using a PostgreSQL server](./docs/advanced.md#using-a-dedicated-postgresql-database) installed with your own distribution packages. For a quick set up, feel free to use the internal PostgreSQL database. The chart will configure it automatically for you by default.
