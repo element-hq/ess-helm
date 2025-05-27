@@ -62,8 +62,10 @@ spec:
         command:
         - "/matrix-tools"
         - "deployment-markers"
+        - "-step"
+        - {{ $step | quote }}
         - "-markers"
-        - {{ include "element-io.deployment-markers.markers" (dict "root" $ "context" (dict "step" $step)) | fromYamlArray | join "," | quote }}
+        - {{ include "element-io.deployment-markers.markers" (dict "root" $) | fromYamlArray | join "," | quote }}
         - "-labels"
         - {{ include "element-io.deployment-markers.configmap-labels" (dict "root" $ "context" (dict "labels" .labels "withChartVersion" false)) | trim  | replace ": " "="| replace "\n" "," | replace "\"" "" | quote }}
 ---

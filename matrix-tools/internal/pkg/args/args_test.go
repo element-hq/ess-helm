@@ -106,7 +106,7 @@ func TestParseArgs(t *testing.T) {
 		},
 		{
 			name: "Multiple deployment-markers",
-			args: []string{"cmd", "deployment-markers", "-markers", "cm1:key1:pre:value1:value1,cm1:key2:pre:value2:value1;value2"},
+			args: []string{"cmd", "deployment-markers", "-step", "pre", "-markers", "cm1:key1:value1:value1,cm1:key2:value2:value1;value2"},
 			expected: &Options{
 				DeploymentMarkers: []DeploymentMarker{
 					{Name: "cm1", Key: "key1", Step: "pre", NewValue: "value1", AllowedValues: []string{"value1"}},
@@ -117,6 +117,20 @@ func TestParseArgs(t *testing.T) {
 			},
 			err: false,
 		},
+		{
+			name: "Multiple deployment-markers (post step)",
+			args: []string{"cmd", "deployment-markers", "-step", "post", "-markers", "cm1:key1:value1:value1,cm1:key2:value2:value1;value2"},
+			expected: &Options{
+				DeploymentMarkers: []DeploymentMarker{
+					{Name: "cm1", Key: "key1", Step: "post", NewValue: "value1", AllowedValues: []string{"value1"}},
+					{Name: "cm1", Key: "key2", Step: "post", NewValue: "value2", AllowedValues: []string{"value1", "value2"}},
+				},
+				Command: DeploymentMarkers,
+				Labels: map[string]string{"app.kubernetes.io/managed-by":"matrix-tools-deployment-markers"},
+			},
+			err: false,
+		},
+
 
 		{
 			name:     "Invalid secret type",

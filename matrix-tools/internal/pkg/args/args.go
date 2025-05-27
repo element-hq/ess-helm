@@ -93,6 +93,7 @@ func ParseArgs(args []string) (*Options, error) {
 	deploymentMarkersSet := flag.NewFlagSet("deployment-markers", flag.ExitOnError)
 	deploymentMarkers := deploymentMarkersSet.String("markers", "", "Comma-separated list of deployment markers, in the format of `name:step:newValue:[allowedValues:..]`")
 	labels := deploymentMarkersSet.String("labels", "", "Comma-separated list of labels for generated secrets, in the format of `key=value`")
+	step := deploymentMarkersSet.String("step", "", "One of `pre` or `post`")
 
 	switch args[1] {
 	case "render-config":
@@ -154,11 +155,11 @@ func ParseArgs(args []string) (*Options, error) {
 		}
 		for _, deploymentMarkerArg := range strings.Split(*deploymentMarkers, ",") {
 			parsedValue := strings.Split(deploymentMarkerArg, ":")
-			if len(parsedValue) < 4 {
-				return nil, fmt.Errorf("invalid deployment marker format, expect <name:key:step:newValue:[allowedValues;..]>: %s", deploymentMarkerArg)
+			if len(parsedValue) < 3 {
+				return nil, fmt.Errorf("invalid deployment marker format, expect <name:key:newValue:[allowedValues;..]>: %s", deploymentMarkerArg)
 			}
-			parsedAllowedValues := strings.Split(parsedValue[4], ";")
-			deploymentMarker := DeploymentMarker{Name: parsedValue[0], Key: parsedValue[1], Step: parsedValue[2], NewValue: parsedValue[3], AllowedValues: parsedAllowedValues}
+			parsedAllowedValues := strings.Split(parsedValue[3], ";")
+			deploymentMarker := DeploymentMarker{Name: parsedValue[0], Key: parsedValue[1], Step: *step, NewValue: parsedValue[2], AllowedValues: parsedAllowedValues}
 			options.DeploymentMarkers = append(options.DeploymentMarkers, deploymentMarker)
 			options.Command = DeploymentMarkers
 			options.Labels = make(map[string]string)
