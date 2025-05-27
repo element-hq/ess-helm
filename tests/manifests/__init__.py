@@ -455,6 +455,30 @@ all_components_details = [
         values_file_path=ValuesFilePath.read_write("matrixAuthenticationService"),
         has_db=True,
         shared_component_names=("init-secrets", "postgres"),
+        sub_components=(
+            SubComponentDetails(
+                name="matrix-authentication-service-syn2mas",
+                helm_keys=("matrixAuthenticationService", "syn2mas"),
+                paths_consistency_noqa=(
+                    "/conf/log_config.yaml",
+                    "/media_store",
+                    "/media/media_store",
+                    "/as/0/bridge_registration.yaml",
+                    "/usr/local/bin/mas-cli",
+                ),
+                helm_keys_overrides={
+                    # Job so no livenessProbe
+                    PropertyType.LivenessProbe: None,
+                    # Job so no readinessProbe
+                    PropertyType.ReadinessProbe: None,
+                    # Job so no startupProbe
+                    PropertyType.StartupProbe: None,
+                },
+                has_ingress=False,
+                has_service_monitor=False,
+                has_topology_spread_constraints=False,
+            ),
+        ),
     ),
     ComponentDetails(
         name="synapse",
@@ -521,14 +545,20 @@ def _get_all_deployables_details() -> set[DeployableDetails]:
 all_deployables_details = _get_all_deployables_details()
 
 
-_extra_values_files_to_test: list[str] = [
-    "example-default-enabled-components-values.yaml",
-    "matrix-authentication-service-keep-auth-in-synapse-values.yaml",
+_extra_values_files_to_test: list[str] = ["example-default-enabled-components-values.yaml"]
+
+_extra_workloads_files_to_test = [
+    "matrix-authentication-service-synapse-syn2mas-dry-run-secrets-in-helm-values.yaml",
+    "matrix-authentication-service-synapse-syn2mas-dry-run-secrets-externally-values.yaml",
+    "matrix-authentication-service-synapse-syn2mas-migrate-secrets-in-helm-values.yaml",
+    "matrix-authentication-service-synapse-syn2mas-migrate-secrets-externally-values.yaml",
 ]
 
 _extra_secret_values_files_to_test = [
-    "matrix-authentication-service-synapse-secrets-in-helm-values.yaml",
-    "matrix-authentication-service-synapse-secrets-externally-values.yaml",
+    "matrix-authentication-service-synapse-syn2mas-dry-run-secrets-in-helm-values.yaml",
+    "matrix-authentication-service-synapse-syn2mas-dry-run-secrets-externally-values.yaml",
+    "matrix-authentication-service-synapse-syn2mas-migrate-secrets-in-helm-values.yaml",
+    "matrix-authentication-service-synapse-syn2mas-migrate-secrets-externally-values.yaml",
 ]
 
 _extra_services_values_files_to_test = [
@@ -543,6 +573,10 @@ secret_values_files_to_test = set(
 values_files_to_test = set(
     sum([component_details.values_files for component_details in all_components_details], tuple())
 ) | set(_extra_values_files_to_test)
+
+workloads_values_files_to_test = set(
+    sum([component_details.values_files for component_details in all_components_details], tuple())
+) | set(_extra_workloads_files_to_test)
 
 
 services_values_files_to_test = values_files_to_test | set(_extra_services_values_files_to_test)

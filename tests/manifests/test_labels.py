@@ -7,11 +7,11 @@ from hashlib import sha1
 
 import pytest
 
-from . import PropertyType, secret_values_files_to_test, values_files_to_test
+from . import PropertyType, secret_values_files_to_test, workloads_values_files_to_test
 from .utils import template_id, template_to_deployable_details
 
 
-@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_templates_have_expected_labels(release_name, templates):
     expected_labels = [
@@ -65,8 +65,9 @@ async def test_templates_have_postgres_hash_label(release_name, templates, value
             if not deployable_details.has_db:
                 continue
 
-            assert "k8s.element.io/postgres-password-hash" in labels, f"{id} does not have postgres password hash label"
-            # We currently assume that Postgres is for top-level components only and so there is a single segment
+            assert any(re.match("k8s.element.io/postgres-password-[a-z]+-hash", label) for label in labels), (
+                f"{id} does not have postgres password hash label"
+            )            # We currently assume that Postgres is for top-level components only and so there is a single segment
             # write (or read) path
             assert len(deployable_details.values_file_path.write_path) == 1
             helm_key = deployable_details.values_file_path.read_path[0]
@@ -84,12 +85,13 @@ async def test_templates_have_postgres_hash_label(release_name, templates, value
             else:
                 expected = f"{release_name}-generated"
             expected = expected.replace("{{ $.Release.Name }}", release_name)
-            assert labels["k8s.element.io/postgres-password-hash"] == sha1(expected.encode()).hexdigest(), (
-                f"{id} has incorrect postgres password hash, expect {expected} hashed as sha1"
-            )
+            assert (
+                labels[f"k8s.element.io/postgres-password-{helm_key.lower()}-hash"]
+                == sha1(expected.encode()).hexdigest()
+            ), f"{id} has incorrect postgres password hash, expect {expected} hashed as sha1"
 
 
-@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_pod_spec_labels_are_consistent_with_parent_labels(templates):
     for template in templates:
@@ -108,13 +110,13 @@ async def test_pod_spec_labels_are_consistent_with_parent_labels(templates):
         )
 
 
-@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_our_labels_are_named_consistently(templates):
     acceptable_matches = [
         "k8s.element.io/as-registration-[0-9]+-hash",
         "k8s.element.io/([a-z0-9-]+)-(config|secret)-hash",
-        "k8s.element.io/postgres-password-hash",
+        "k8s.element.io/postgres-password-([a-z]+)-hash",
         "k8s.element.io/synapse-instance",
         "k8s.element.io/target-(instance|name)",
     ]
