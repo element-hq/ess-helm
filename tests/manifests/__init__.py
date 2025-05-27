@@ -372,14 +372,14 @@ synapse_workers_details = tuple(
 all_components_details = [
     ComponentDetails(
         name="deployment-markers",
-        helm_keys=("deploymentMarkers",),
-        helm_keys_overrides={
+        values_file_path=ValuesFilePath.read_write("deploymentMarkers"),
+        values_file_path_overrides={
             # Job so no livenessProbe
-            PropertyType.LivenessProbe: None,
+            PropertyType.LivenessProbe: ValuesFilePath.not_supported(),
             # Job so no readinessProbe
-            PropertyType.ReadinessProbe: None,
+            PropertyType.ReadinessProbe: ValuesFilePath.not_supported(),
             # Job so no startupProbe
-            PropertyType.StartupProbe: None,
+            PropertyType.StartupProbe: ValuesFilePath.not_supported(),
         },
         has_image=False,
         has_ingress=False,
