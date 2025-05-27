@@ -4,7 +4,9 @@ Copyright 2024-2025 New Vector Ltd
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 {{- define "element-io.ess-library.labels.makeSafe" -}}
+{{- if . -}}
 {{ . | replace  "+" "_" | trunc 63 | trimSuffix "-" | quote }}
+{{- end -}}
 {{- end -}}
 
 {{- define "element-io.ess-library.labels.common" -}}
