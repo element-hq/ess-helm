@@ -9,8 +9,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- with required "element-io.ess-library.render-config-container missing context" .context -}}
 {{- $context := . -}}
 {{- $nameSuffix := required "element-io.ess-library.render-config-container missing context.nameSuffix" .nameSuffix -}}
-{{- $additionalPath := required "element-io.ess-library.render-config-container context missing additionalPath" .additionalPath -}}
-{{- $additionalProperty := include "element-io.ess-library.value-from-values-path" (dict "root" $root "context" $additionalPath) | fromJson -}}
+{{- $additionalPath := .additionalPath -}}
+{{- $additionalProperty := dict -}}
+{{- if $additionalPath }}
+{{- $additionalProperty = include "element-io.ess-library.value-from-values-path" (dict "root" $root "context" $additionalPath) | fromJson -}}
+{{- end -}}
 {{- $outputFile := required "element-io.ess-library.render-config-container missing context.outputFile" .outputFile -}}
 {{- $underrides := .underrides | default list -}}
 {{- $overrides := required "element-io.ess-library.render-config-container missing context.overrides" .overrides -}}
@@ -75,8 +78,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $root := .root -}}
 {{- with required "element-io.ess-library.render-config-volumes missing context" .context -}}
 {{- $nameSuffix := required "element-io.ess-library.render-config-volumes missing context.nameSuffix" .nameSuffix -}}
-{{- $additionalPath := required "element-io.ess-library.render-config-volumes context missing additionalPath" .additionalPath -}}
-{{- $additionalProperty := include "element-io.ess-library.value-from-values-path" (dict "root" $root "context" $additionalPath) | fromJson -}}
+{{- $additionalPath := .additionalPath -}}
+{{- $additionalProperty := dict -}}
+{{- if $additionalPath }}
+{{- $additionalProperty = include "element-io.ess-library.value-from-values-path" (dict "root" $root "context" $additionalPath) | fromJson -}}
+{{- end -}}
 - configMap:
     defaultMode: 420
     name: {{ include (printf "element-io.%s.configmap-name" $nameSuffix) (dict "root" $root "context" .) }}

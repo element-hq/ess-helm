@@ -47,62 +47,14 @@ spec:
 {{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "matrix-rtc-sfu" "deployment" true "usesMatrixTools" true)) | nindent 6 }}
 {{- if not (.livekitAuth).keysYaml }}
       initContainers:
-      - name: render-config
-{{- with $.Values.matrixTools.image }}
-{{- if .digest }}
-        image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
-        imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
-{{- else }}
-        image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
-        imagePullPolicy: {{ .pullPolicy | default "Always" }}
-{{- end }}
-{{- end }}
-{{- with .containersSecurityContext }}
-        securityContext:
-          {{- toYaml . | nindent 10 }}
-{{- end }}
-        env:
-        {{- (include "element-io.matrix-rtc-sfu.env" (dict "root" $ "context" .)) | nindent 8 }}
-        - name: "LIVEKIT_KEY"
-          value: "{{ (.livekitAuth).key | default "matrix-rtc" }}"
-        - name: LIVEKIT_SECRET
-          value: >-
-           {{ (printf "{{ readfile \"/secrets/%s\" }}" (
-                (include "element-io.ess-library.init-secret-path" (
-                    dict "root" $
-                    "context" (dict
-                      "secretPath" "matrixRTC.livekitAuth.secret"
-                      "initSecretKey" "ELEMENT_CALL_LIVEKIT_SECRET"
-                      "defaultSecretName" (printf "%s-matrix-rtc-authorisation-service" $.Release.Name)
-                      "defaultSecretKey" "LIVEKIT_SECRET"
-                      )
-                    )
-                  )
-                )
-              )
-           }}
-        command:
-        - "/matrix-tools"
-        - render-config
-        - -output
-        - /conf/keys.yaml
-        - /config-templates/keys-template.yaml
-{{- with .resources }}
-        resources:
-          {{- toYaml . | nindent 10 }}
-{{- end }}
-        volumeMounts:
-        - mountPath: /config-templates
-          name: plain-config
-          readOnly: true
-        - mountPath: /conf
-          name: rendered-config
-          readOnly: false
-{{- range $secret := include "element-io.matrix-rtc-authorisation-service.configSecrets" (dict "root" $ "context" $.Values.matrixRTC) | fromJsonArray }}
-        - mountPath: /secrets/{{ tpl $secret $ }}
-          name: "secret-{{ tpl $secret $ }}"
-          readOnly: true
-{{- end }}
+      {{- include "element-io.ess-library.render-config-container" (dict "root" $ "context"
+        (dict "nameSuffix" "matrix-rtc-sfu"
+              "underrides" list
+              "overrides" (list "keys-template.yaml")
+              "outputFile" "keys.yaml"
+              "resources" .resources
+              "containersSecurityContext" .containersSecurityContext
+              "extraEnv" .extraEnv)) | nindent 6 }}
 {{- end }}
       hostNetwork: {{ .hostNetwork }}
       containers:
@@ -188,24 +140,15 @@ spec:
           {{- toYaml . | nindent 10 }}
 {{- end }}
         volumeMounts:
-        - mountPath: /rendered-config
-          name: rendered-config
+        {{- include "element-io.ess-library.render-config-volume-mounts" (dict "root" $ "context"
+              (dict "nameSuffix" "matrix-rtc-sfu"
+                    "outputFile" "keys.yaml")) | nindent 8 }}
         - mountPath: /conf/config.yaml
           name: plain-config
           subPath: config.yaml
       volumes:
-{{- range $secret := include "element-io.matrix-rtc-authorisation-service.configSecrets" (dict "root" $ "context" $.Values.matrixRTC) | fromJsonArray }}
-      - secret:
-          secretName: {{ tpl $secret $ }}
-        name: secret-{{ tpl $secret $ }}
-{{- end }}
-      - configMap:
-          name: "{{ $.Release.Name }}-matrix-rtc-sfu"
-          defaultMode: 420
-        name: plain-config
-      - emptyDir:
-          medium: Memory
-        name: "rendered-config"
+      {{- include "element-io.ess-library.render-config-volumes" (dict "root" $ "context"
+              (dict "nameSuffix" "matrix-rtc-sfu")) | nindent 6 }}
 {{- end }}
 {{- end }}
 {{- end -}}
