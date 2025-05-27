@@ -12,7 +12,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $additionalPath := .additionalPath -}}
 {{- $additionalProperty := dict -}}
 {{- if $additionalPath }}
-{{- $additionalProperty := include "element-io.ess-library.value-from-values-path" (dict "root" $root "context" $additionalPath) | fromJson -}}
+{{- $additionalProperty = include "element-io.ess-library.value-from-values-path" (dict "root" $root "context" $additionalPath) | fromJson -}}
 {{- end -}}
 {{- $outputFile := required "element-io.ess-library.render-config-container missing context.outputFile" .outputFile -}}
 {{- $underrides := .underrides | default list -}}
@@ -81,7 +81,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $additionalPath := .additionalPath -}}
 {{- $additionalProperty := dict -}}
 {{- if $additionalPath }}
-{{- $additionalProperty := include "element-io.ess-library.value-from-values-path" (dict "root" $root "context" $additionalPath) | fromJson -}}
+{{- $additionalProperty = include "element-io.ess-library.value-from-values-path" (dict "root" $root "context" $additionalPath) | fromJson -}}
 {{- end -}}
 - configMap:
     defaultMode: 420
