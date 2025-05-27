@@ -60,17 +60,7 @@ We have an init container to render & merge the config for several reasons:
 * We could do this all in the main Synapse container but then there's potential confusion between `/config-templates`, `/conf` in the image and `/conf` the `emptyDir`
 */}}
     initContainers:
-    {{- include "element-io.ess-library.render-config-container" (dict "root" $root "context"
-            (dict "additionalPath" "synapse.additional"
-                  "nameSuffix" "synapse"
-                  "underrides" (list "01-homeserver-underrides.yaml")
-                  "overrides" (list "04-homeserver-overrides.yaml"
-                                    (eq $processType "check-config" | ternary "05-main.yaml" (printf "05-%s.yaml" $processType)))
-                  "outputFile" "homeserver.yaml"
-                  "resources" .resources
-                  "containersSecurityContext" .containersSecurityContext
-                  "extraEnv" .extraEnv
-                  "isHook" $isHook)) | nindent 4 }}
+    {{- include "element-io.synapse.render-config-container" (dict "root" $root "context" .) | nindent 4 }}
 {{- if not $isHook }}
     - name: db-wait
 {{- with $root.Values.matrixTools.image -}}

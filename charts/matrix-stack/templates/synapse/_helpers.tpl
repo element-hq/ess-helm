@@ -245,7 +245,7 @@ path_map_file_get: |
 {{- include "element-io.ess-library.render-config-container" (dict "root" $root "context"
             (dict "additionalPath" "synapse.additional"
                   "nameSuffix" "synapse"
-                  "containerName" .containerName
+                  "containerName" (.containerName | default "render-config")
                   "underrides" (list "01-homeserver-underrides.yaml")
                   "overrides" (list "04-homeserver-overrides.yaml"
                                     (eq $processType "check-config-hook" | ternary "05-main.yaml" (printf "05-%s.yaml" $processType)))

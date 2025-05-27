@@ -9,7 +9,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- with required "element-io.ess-library.render-config-container missing context" .context -}}
 {{- $context := . -}}
 {{- $nameSuffix := required "element-io.ess-library.render-config-container missing context.nameSuffix" .nameSuffix -}}
-{{- $containerName := .containerName | default "render-config" -}}
+{{- $containerName := (.containerName | default "render-config") -}}
 {{- $additionalPath := .additionalPath -}}
 {{- $additionalProperty := dict -}}
 {{- if $additionalPath }}
@@ -18,7 +18,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $outputFile := required "element-io.ess-library.render-config-container missing context.outputFile" .outputFile -}}
 {{- $underrides := .underrides | default list -}}
 {{- $overrides := required "element-io.ess-library.render-config-container missing context.overrides" .overrides -}}
-- name: {{ .containerName }}
+- name: {{ $containerName }}
 {{- with $root.Values.matrixTools.image -}}
 {{- if .digest }}
   image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"

@@ -189,12 +189,6 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- end }}
 
 
-{{- define "element-io.matrix-authentication-service.configmap-name" -}}
-{{- $root := .root -}}
-{{- $root.Release.Name }}-matrix-authentication-service
-{{- end }}
-
-
 {{- define "element-io.matrix-authentication-service.secret-name" }}
 {{- $root := .root }}
 {{- with required "element-io.matrix-authentication-service.secret-name requires context" .context }}
@@ -309,7 +303,7 @@ config.yaml: |
 {{ include "element-io.ess-library.render-config-container" (dict "root" $root "context" (
         dict "additionalPath" "matrixAuthenticationService.additional"
               "nameSuffix" "matrix-authentication-service"
-              "containerName" .containerName
+              "containerName" (.containerName | default "render-config")
               "overrides" (list "config.yaml")
               "outputFile" "config.yaml"
               "resources" .resources
