@@ -59,7 +59,7 @@ func TestParseArgs(t *testing.T) {
 			name: "Correct usage of tcp-wait",
 			args: []string{"cmd", "tcpwait", "-address", "address:port"},
 			expected: &Options{
-				Address: "server:port",
+				Address: "address:port",
 				Command: TCPWait,
 			},
 			err: false,
@@ -69,9 +69,9 @@ func TestParseArgs(t *testing.T) {
 			args: []string{"cmd", "generate-secrets", "-secrets", "secret1:value1:rand32", "-labels", "mykey=myval"},
 			expected: &Options{
 				GeneratedSecrets: []GeneratedSecret{
-					{Name: "secret1", Key: "value1", Type: Rand32},
+					{ArgValue: "secret1:value1:rand32", Name: "secret1", Key: "value1", Type: Rand32},
 				},
-				Labels: map[string]string{"mykey": "myval"},
+				Labels: map[string]string{"mykey": "myval", "app.kubernetes.io/managed-by":"matrix-tools-init-secrets"},
 				Command:      GenerateSecrets,
 			},
 			err: false,
@@ -82,9 +82,10 @@ func TestParseArgs(t *testing.T) {
 			args: []string{"cmd", "generate-secrets", "-secrets", "secret1:value1:rand32,secret2:value2:signingkey"},
 			expected: &Options{
 				GeneratedSecrets: []GeneratedSecret{
-					{Name: "secret1", Key: "value1", Type: Rand32},
-					{Name: "secret2", Key: "value2", Type: SigningKey},
+					{ArgValue: "secret1:value1:rand32", Name: "secret1", Key: "value1", Type: Rand32},
+					{ArgValue: "secret2:value2:signingkey", Name: "secret2", Key: "value2", Type: SigningKey},
 				},
+				Labels: map[string]string{"app.kubernetes.io/managed-by":"matrix-tools-init-secrets"},
 				Command: GenerateSecrets,
 			},
 			err: false,
@@ -105,13 +106,14 @@ func TestParseArgs(t *testing.T) {
 		},
 		{
 			name: "Multiple deployment-markers",
-			args: []string{"cmd", "deployment-markers", "-markers", "cm1:key1:pre:value1:value1:value2,cm1:key2:pre:value2:value2"},
+			args: []string{"cmd", "deployment-markers", "-markers", "cm1:key1:pre:value1:value1,cm1:key2:pre:value2:value1:value2"},
 			expected: &Options{
 				DeploymentMarkers: []DeploymentMarker{
 					{Name: "cm1", Key: "key1", Step: "pre", NewValue: "value1", AllowedValues: []string{"value1"}},
-					{Name: "cm2", Key: "key2", Step: "pre", NewValue: "value2", AllowedValues: []string{"value1", "value2"}},
+					{Name: "cm1", Key: "key2", Step: "pre", NewValue: "value2", AllowedValues: []string{"value1", "value2"}},
 				},
 				Command: DeploymentMarkers,
+				Labels: map[string]string{"app.kubernetes.io/managed-by":"matrix-tools-deployment-markers"},
 			},
 			err: false,
 		},
@@ -133,8 +135,8 @@ func TestParseArgs(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			if options, err := ParseArgs(tc.args); (err != nil) != tc.err && !reflect.DeepEqual(options, tc.expected) {
-				t.Errorf("Expected %v, got %v with err: %v", tc.expected, options, err)
+			if options, err := ParseArgs(tc.args); (err != nil) != tc.err || (err == nil && !reflect.DeepEqual(options, tc.expected)) {
+				t.Errorf("Expected %v with err %v, got %v with err: %v", tc.expected, tc.err, options, (err != nil))
 			}
 		})
 	}

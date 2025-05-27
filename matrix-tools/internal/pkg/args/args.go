@@ -107,6 +107,9 @@ func ParseArgs(args []string) (*Options, error) {
 			options.Files = append(options.Files, file)
 		}
 		options.Output = *output
+		if *output == "" {
+			return nil, fmt.Errorf("output file is required")
+		}
 		options.Command = RenderConfig
 	case "tcpwait":
 		err := tcpWaitSet.Parse(args[2:])
@@ -152,13 +155,15 @@ func ParseArgs(args []string) (*Options, error) {
 		for _, deploymentMarkerArg := range strings.Split(*deploymentMarkers, ",") {
 			parsedValue := strings.Split(deploymentMarkerArg, ":")
 			if len(parsedValue) < 4 {
-				return nil, fmt.Errorf("invalid deployment marker format, expect <name:step:newValue:[allowedValues:..]>: %s", deploymentMarkerArg)
+				return nil, fmt.Errorf("invalid deployment marker format, expect <name:key:step:newValue:[allowedValues:..]>: %s", deploymentMarkerArg)
 			}
 			parsedAllowedValues := make([]string, 0)
-			if len(parsedValue) > 2 {
-				parsedAllowedValues = strings.Split(parsedValue[2], ":")
+			if len(parsedValue) >= 4 {
+				parsedAllowedValues = parsedValue[4:]
 			}
-			options.DeploymentMarkers = append(options.DeploymentMarkers, DeploymentMarker{Step: parsedValue[0], NewValue: parsedValue[1], AllowedValues: parsedAllowedValues})
+			deploymentMarker := DeploymentMarker{Name: parsedValue[0], Key: parsedValue[1], Step: parsedValue[2], NewValue: parsedValue[3], AllowedValues: parsedAllowedValues}
+			options.DeploymentMarkers = append(options.DeploymentMarkers, deploymentMarker)
+			options.Command = DeploymentMarkers
 			options.Labels = make(map[string]string)
 			if *labels != "" {
 				for _, label := range strings.Split(*labels, ",") {
