@@ -30,10 +30,14 @@ async def test_pods_with_tags_and_no_digests(release_name, values, make_template
                 expected_image_values = deployable_details.get_helm_values(values, PropertyType.Image)
             else:
                 expected_image_values = values["matrixTools"]["image"]
-            assert template["metadata"]["labels"]["app.kubernetes.io/version"] == expected_image_values["tag"]
+            assert template["metadata"]["labels"]["app.kubernetes.io/version"] == expected_image_values["tag"], (
+                f"{template_id(template)} doesn't have the expected version label on the parent"
+            )
 
             pod_template = template["spec"]["template"]
-            assert pod_template["metadata"]["labels"]["app.kubernetes.io/version"] == expected_image_values["tag"]
+            assert pod_template["metadata"]["labels"]["app.kubernetes.io/version"] == expected_image_values["tag"], (
+                f"{template_id(template)} doesn't have the expected version label on the pod"
+            )
 
             for container in pod_template["spec"].get("initContainers", []) + pod_template["spec"]["containers"]:
                 assert "image" in container, f"{template_id(template)} has container {container['name']} without image"
@@ -49,7 +53,10 @@ async def test_pods_with_tags_and_no_digests(release_name, values, make_template
                     f"{template_id(template)} has container {container['name']} "
                     "which doesn't have the expected image tag"
                 )
-                assert container["imagePullPolicy"] == "Always"
+                assert container["imagePullPolicy"] == "Always", (
+                    f"{template_id(template)} has container {container['name']} "
+                    "which doesn't have the expected image pull policy"
+                )
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -80,10 +87,14 @@ async def test_pods_with_digests_and_tags(release_name, values, make_templates, 
                 expected_image_values = deployable_details.get_helm_values(values, PropertyType.Image)
             else:
                 expected_image_values = values["matrixTools"]["image"]
-            assert template["metadata"]["labels"]["app.kubernetes.io/version"] == expected_image_values["tag"]
+            assert template["metadata"]["labels"]["app.kubernetes.io/version"] == expected_image_values["tag"], (
+                f"{template_id(template)} doesn't have the expected version label on the parent"
+            )
 
             pod_template = template["spec"]["template"]
-            assert pod_template["metadata"]["labels"]["app.kubernetes.io/version"] == expected_image_values["tag"]
+            assert pod_template["metadata"]["labels"]["app.kubernetes.io/version"] == expected_image_values["tag"], (
+                f"{template_id(template)} doesn't have the expected version label on the pod"
+            )
 
             for container in pod_template["spec"].get("initContainers", []) + pod_template["spec"]["containers"]:
                 assert "image" in container, f"{template_id(template)} has container {container['name']} without image"
@@ -99,7 +110,10 @@ async def test_pods_with_digests_and_tags(release_name, values, make_templates, 
                     f"{template_id(template)} has container {container['name']} "
                     "which doesn't have the expected image digest"
                 )
-                assert container["imagePullPolicy"] == "IfNotPresent"
+                assert container["imagePullPolicy"] == "IfNotPresent", (
+                    f"{template_id(template)} has container {container['name']} "
+                    "which doesn't have the expected image pull policy"
+                )
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -125,10 +139,14 @@ async def test_pods_with_digest_and_no_tags(release_name, values, make_templates
     iterate_deployables_parts(set_tag, lambda deployable_details: deployable_details.has_image)
     for template in await make_templates(values):
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            assert template["metadata"]["labels"]["app.kubernetes.io/version"] is None
+            assert template["metadata"]["labels"]["app.kubernetes.io/version"] is None, (
+                f"{template_id(template)} unexpectedly has a version label on the parent"
+            )
 
             pod_template = template["spec"]["template"]
-            assert pod_template["metadata"]["labels"]["app.kubernetes.io/version"] is None
+            assert pod_template["metadata"]["labels"]["app.kubernetes.io/version"] is None, (
+                f"{template_id(template)} unexpectedly has a version label on the pod"
+            )
 
             for container in pod_template["spec"].get("initContainers", []) + pod_template["spec"]["containers"]:
                 assert "image" in container, f"{template_id(template)} has container {container['name']} without image"
@@ -144,4 +162,7 @@ async def test_pods_with_digest_and_no_tags(release_name, values, make_templates
                     f"{template_id(template)} has container {container['name']} "
                     "which doesn't have the expected image digest"
                 )
-                assert container["imagePullPolicy"] == "IfNotPresent"
+                assert container["imagePullPolicy"] == "IfNotPresent", (
+                    f"{template_id(template)} has container {container['name']} "
+                    "which doesn't have the expected image pull policy"
+                )
