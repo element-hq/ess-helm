@@ -1,5 +1,5 @@
 {{- /*
-Copyright 2024 New Vector Ltd
+Copyright 2024-2025 New Vector Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -38,7 +38,7 @@ app.kubernetes.io/part-of: matrix-stack
 {{- $root := .root -}}
 {{- with required "element-io.ess-library.postgres-label requires context" .context -}}
 {{- $essPassword := required "element-io.ess-library.postgres-label context missing essPassword" .essPassword -}}
-{{- $postgresProperty := required "elment-io.ess-library.postgres-label context missing postgresProperty" .postgresProperty -}}
+{{- $postgresProperty := .postgresProperty -}}
 k8s.element.io/postgres-password-hash: {{ if $postgresProperty -}}
     {{- if $postgresProperty.password.value -}}
     {{- $postgresProperty.password.value | sha1sum -}}
