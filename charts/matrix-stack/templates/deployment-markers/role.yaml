@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 {{ range $step := list "pre" "post" -}}
 {{- with $.Values.deploymentMarkers -}}
-{{- if and .enabled .rbac.create (include "element-io.deployment-markers.secret-markers" (dict "root" $ "context" (dict "step" $step))) }}
+{{- if and .enabled .rbac.create (include "element-io.deployment-markers.markers" (dict "root" $ "context" (dict "step" $step))) }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -23,10 +23,10 @@ rules:
   For create, this limitation is because the object name is not known at authorization time.
 */}}
 - apiGroups: [""]
-  resources: ["secrets"]
+  resources: ["configmaps"]
   verbs: ["create"]
 - apiGroups: [""]
-  resources: ["secrets"]
+  resources: ["configmaps"]
   resourceNames: [ "{{ $.Release.Name }}-markers" ]
   verbs: ["get", "update"]
 ---

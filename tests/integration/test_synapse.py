@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pyhelm3
 import pytest
-from lightkube.resources.core_v1 import Secret
+from lightkube.resources.core_v1 import ConfigMap
 
 from .fixtures import ESSData
 from .lib.synapse import assert_downloaded_content, download_media, upload_media
@@ -125,13 +125,13 @@ async def test_rendezvous_cors_headers_are_only_set_with_mas(ingress_ready, gene
 async def test_synapse_service_marker_legacy_auth(
     kube_client, helm_client: pyhelm3.Client, ingress_ready, generated_data: ESSData, ssl_context
 ):
-    secret = await kube_client.get(
-        Secret,
+    configmap = await kube_client.get(
+        ConfigMap,
         namespace=generated_data.ess_namespace,
         name=f"{generated_data.release_name}-markers",
     )
-    assert secret.data.get("MATRIX_STACK_MSC3861") is not None
-    assert b64decode(secret.data.get("MATRIX_STACK_MSC3861")) == b"legacy_auth"
+    assert configmap.data.get("MATRIX_STACK_MSC3861") is not None
+    assert configmap.data.get("MATRIX_STACK_MSC3861") == "legacy_auth"
     revision = await helm_client.get_current_revision(
         generated_data.release_name, namespace=generated_data.ess_namespace
     )

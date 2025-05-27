@@ -4,7 +4,7 @@ Copyright 2025 New Vector Ltd
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 
-{{- define "element-io.deployment-markers.secret-labels" -}}
+{{- define "element-io.deployment-markers.configmap-labels" -}}
 {{- $root := .root -}}
 {{- with required "element-io.deployment-markers.labels missing context" .context -}}
 {{ include "element-io.ess-library.labels.common" (dict "root" $root "context" (dict "labels" .labels "withChartVersion" .withChartVersion)) }}
@@ -40,16 +40,16 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" $
 {{- end -}}
 {{- end -}}
 
-{{- define "element-io.deployment-markers.secret-markers" -}}
+{{- define "element-io.deployment-markers.markers" -}}
 {{- $root := .root -}}
-{{- with required  "element-io.deployment-markers.secret-markers missing context" .context -}}
+{{- with required  "element-io.deployment-markers.markers missing context" .context -}}
 {{- /* We allow deploying of Synapse without Matrix Authentication Service, only
    * if it was initialized as legacy_auth. This effectively prevents enabling Matrix Authentication Service
    * until Synapse 2 Matrix Authentication Service has been run.
    **/}}
 {{- if and $root.Values.synapse.enabled
           (not $root.Values.matrixAuthenticationService.enabled) }}
-- {{ (printf "%s-markers" $root.Release.Name) }}:MATRIX_STACK_MSC3861:marker:{{ .step }}:legacy_auth:legacy_auth
+- {{ (printf "%s-markers" $root.Release.Name) }}:MATRIX_STACK_MSC3861:{{ .step }}:legacy_auth:legacy_auth
 {{- end }}
 {{- /* We allow deploying of Synapse with Matrix Authentication Service, only
    * if it was initialized as delegated_auth. This effectively prevents disabling Matrix Authentication Service
@@ -57,7 +57,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" $
   **/}}
 {{- if and $root.Values.synapse.enabled
           ($root.Values.matrixAuthenticationService.enabled) }}
-- {{ (printf "%s-markers" $root.Release.Name) }}:MATRIX_STACK_MSC3861:marker:{{ .step }}:delegated_auth:delegated_auth
+- {{ (printf "%s-markers" $root.Release.Name) }}:MATRIX_STACK_MSC3861:{{ .step }}:delegated_auth:delegated_auth
 {{- end }}
 {{- end }}
 {{- end }}

@@ -6,7 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 {{ range $step := list "pre" "post" -}}
 {{- with $.Values.deploymentMarkers -}}
-{{- if and .enabled (include "element-io.deployment-markers.secret-markers" (dict "root" $ "context" (dict "step" $step))) }}
+{{- if and .enabled (include "element-io.deployment-markers.markers" (dict "root" $ "context" (dict "step" $step))) }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -61,11 +61,11 @@ spec:
         {{- include "element-io.deployment-markers.env" (dict "root" $ "context" .) | nindent 8 }}
         command:
         - "/matrix-tools"
-        - "generate-secrets"
-        - "-secrets"
-        - {{ include "element-io.deployment-markers.secret-markers" (dict "root" $ "context" (dict "step" $step)) | fromYamlArray | join "," | quote }}
+        - "deployment-markers"
+        - "-markers"
+        - {{ include "element-io.deployment-markers.markers" (dict "root" $ "context" (dict "step" $step)) | fromYamlArray | join "," | quote }}
         - "-labels"
-        - {{ include "element-io.deployment-markers.secret-labels" (dict "root" $ "context" (dict "labels" .labels "withChartVersion" false)) | trim  | replace ": " "="| replace "\n" "," | replace "\"" "" | quote }}
+        - {{ include "element-io.deployment-markers.configmap-labels" (dict "root" $ "context" (dict "labels" .labels "withChartVersion" false)) | trim  | replace ": " "="| replace "\n" "," | replace "\"" "" | quote }}
 ---
 {{- end -}}
 {{- end -}}
