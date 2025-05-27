@@ -1,0 +1,5 @@
+ESS Community {{ $.Release.Version }}
+
+You are using ESS Community which is tailored to small-/mid-scale, non-commercial community use cases.
+If you're looking for a professional Matrix backend that is designed to support enterprise requirements and certifications,
+take a look at ESS Pro https://element.io/server-suite.
