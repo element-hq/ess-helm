@@ -24,22 +24,22 @@ func GenerateConfigMap(client kubernetes.Interface, labels map[string]string, na
 		Namespace: namespace,
 		Labels:    labels,
 	}
-	// Fetch the existing secret or initialize an empty one
+	// Fetch the existing configmap or initialize an empty one
 	existingConfigMap, err := configMapsClient.Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		existingConfigMap, err = configMapsClient.Create(ctx, &corev1.ConfigMap{
 			ObjectMeta: configMapMeta, Data: nil}, metav1.CreateOptions{},
 		)
 		if err != nil {
-			return fmt.Errorf("failed to initialize secret: %w", err)
+			return fmt.Errorf("failed to initialize configmap: %w", err)
 		}
 	} else {
 		if managedBy, ok := existingConfigMap.Labels["app.kubernetes.io/managed-by"]; ok {
 			if managedBy != "matrix-tools-deployment-markers" {
-				return fmt.Errorf("secret %s/%s is not managed by this matrix-tools-deployment-markers", namespace, name)
+				return fmt.Errorf("configmap %s/%s is not managed by this matrix-tools-deployment-markers", namespace, name)
 			}
 		} else {
-			return fmt.Errorf("secret %s/%s is not managed by this matrix-tools-deployment-markers", namespace, name)
+			return fmt.Errorf("configmap %s/%s is not managed by this matrix-tools-deployment-markers", namespace, name)
 		}
 		// Make sure the labels are set correctly
 		existingConfigMap.Labels = labels
@@ -69,7 +69,7 @@ func GenerateConfigMap(client kubernetes.Interface, labels map[string]string, na
 				}
 			}
 		case "post":
-			// During post-install, we update the secret with the new value as the upgrade succeeded
+			// During post-install, we update the configmap with the new value as the upgrade succeeded
 			existingConfigMap.Data[key] = newValue
 		default:
 			return fmt.Errorf("unknown step: %s", step)

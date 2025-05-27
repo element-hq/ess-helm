@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 import hashlib
-from base64 import b64decode
 from pathlib import Path
 
 import pyhelm3
