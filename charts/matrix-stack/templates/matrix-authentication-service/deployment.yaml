@@ -118,15 +118,9 @@ spec:
           {{- toYaml . | nindent 10 }}
 {{- end }}
         volumeMounts:
-        - mountPath: "/config.yaml"
-          name: rendered-config
-          subPath: config.yaml
-          readOnly: true
-{{- range $secret := include "element-io.matrix-authentication-service.configSecrets" (dict "root" $ "context" .) | fromJsonArray }}
-        - mountPath: /secrets/{{ tpl $secret $ }}
-          name: "secret-{{ tpl $secret $ }}"
-          readOnly: true
-{{- end }}
+        {{- include "element-io.ess-library.render-config-volume-mounts" (dict "root" $ "context"
+            (dict "nameSuffix" "matrix-authentication-service"
+                  "isHook" false)) | nindent 8 }}
       containers:
       - name: matrix-authentication-service
         args: ["server", "--no-migrate"]
@@ -172,15 +166,9 @@ spec:
             port: internal
             scheme: HTTP
         volumeMounts:
-        - mountPath: "/config.yaml"
-          name: rendered-config
-          subPath: config.yaml
-          readOnly: true
-{{- range $secret := include "element-io.matrix-authentication-service.configSecrets" (dict "root" $ "context" .) | fromJsonArray }}
-        - mountPath: /secrets/{{ tpl $secret $ }}
-          name: "secret-{{ tpl $secret $ }}"
-          readOnly: true
-{{- end }}
+        {{- include "element-io.ess-library.render-config-volume-mounts" (dict "root" $ "context"
+            (dict "nameSuffix" "matrix-authentication-service"
+                  "isHook" false)) | nindent 8 }}
       volumes:
       {{- include "element-io.ess-library.render-config-volumes" (dict "root" $ "context"
             (dict "additionalPath" "matrixAuthenticationService.additional"

@@ -159,11 +159,9 @@ We have an init container to render & merge the config for several reasons:
         {{- toYaml . | nindent 8 }}
 {{- end }}
       volumeMounts:
-{{- range $secret := include "element-io.synapse.configSecrets" (dict "root" $root "context" .) | fromJsonArray }}
-      - mountPath: /secrets/{{ tpl $secret $root }}
-        name: "secret-{{ tpl $secret $root }}"
-        readOnly: true
-{{- end }}
+      {{- include "element-io.ess-library.render-config-volume-mounts" (dict "root" $root "context"
+            (dict "nameSuffix" "synapse"
+                  "isHook" $isHook)) | nindent 6 }}
 {{- range $idx, $appservice := .appservices }}
       - name: as-{{ $idx }}
         readOnly: true
@@ -179,9 +177,6 @@ We have an init container to render & merge the config for several reasons:
       - mountPath: /conf/log_config.yaml
         name: plain-config
         subPath: log_config.yaml
-        readOnly: false
-      - mountPath: /conf
-        name: rendered-config
         readOnly: false
       - mountPath: /media
         name: media

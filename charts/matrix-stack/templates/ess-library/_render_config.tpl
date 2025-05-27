@@ -91,3 +91,19 @@ SPDX-License-Identifier: AGPL-3.0-only
   name: "rendered-config"
 {{- end -}}
 {{- end -}}
+
+
+{{- define "element-io.ess-library.render-config-volume-mounts" -}}
+{{- $root := .root -}}
+{{- with required "element-io.ess-library.render-config-volume-mounts context" .context -}}
+{{- $nameSuffix := required "element-io.ess-library.render-config-volume-mounts context.nameSuffix" .nameSuffix -}}
+- mountPath: "/conf"
+  name: rendered-config
+  readOnly: true
+{{- range $secret := include (printf "element-io.%s.configSecrets" $nameSuffix) (dict "root" $root "context" .) | fromJsonArray }}
+- mountPath: /secrets/{{ tpl $secret $root }}
+  name: "secret-{{ tpl $secret $root }}"
+  readOnly: true
+{{- end }}
+{{- end -}}
+{{- end -}}
