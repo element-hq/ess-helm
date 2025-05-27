@@ -5,12 +5,12 @@
 import pytest
 
 from . import DeployableDetails, PropertyType, values_files_to_test
-from .utils import iterate_deployables_workload_parts, template_id
+from .utils import iterate_deployables_workload_parts, template_id, template_to_deployable_details
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_pod_resources_are_configurable(values, make_templates, template_to_deployable_details):
+async def test_pod_resources_are_configurable(values, make_templates):
     counter = 1
 
     def set_resources(deployable_details: DeployableDetails):

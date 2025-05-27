@@ -17,7 +17,7 @@ from .utils import (
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_service_monitored_as_appropriate(values: dict, make_templates, template_to_deployable_details):
+async def test_service_monitored_as_appropriate(values: dict, make_templates):
     def workload_ids_covered_by_service_monitor(
         service_monitor_template: dict[str, Any], templates_by_kind: dict[str, list[dict[str, Any]]]
     ):
@@ -41,7 +41,6 @@ async def test_service_monitored_as_appropriate(values: dict, make_templates, te
     await assert_covers_expected_workloads(
         values,
         make_templates,
-        template_to_deployable_details,
         "ServiceMonitor",
         PropertyType.ServiceMonitor,
         lambda deployable_details: deployable_details.has_service_monitor,

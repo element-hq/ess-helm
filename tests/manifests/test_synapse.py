@@ -11,6 +11,7 @@ from .utils import (
     iterate_deployables_ingress_parts,
     iterate_deployables_parts,
     template_id,
+    template_to_deployable_details,
 )
 
 
@@ -146,7 +147,7 @@ async def test_log_level_overrides(values, make_templates):
 
 @pytest.mark.parametrize("values_file", ["synapse-worker-example-values.yaml"])
 @pytest.mark.asyncio_cooperative
-async def test_synapse_resources_shared_by_default(values, make_templates, template_to_deployable_details):
+async def test_synapse_resources_shared_by_default(values, make_templates):
     resources = {
         "requests": {
             "cpu": "1000",

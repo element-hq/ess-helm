@@ -5,12 +5,12 @@
 import pytest
 
 from . import DeployableDetails, PropertyType, values_files_to_test
-from .utils import iterate_deployables_parts, template_id
+from .utils import iterate_deployables_parts, template_id, template_to_deployable_details
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_pods_with_tags_and_no_digests(release_name, values, make_templates, template_to_deployable_details):
+async def test_pods_with_tags_and_no_digests(release_name, values, make_templates):
     counter = 1
     matrix_tools_marker = f"matrix-tools-marker={release_name}"
     values.setdefault("matrixTools", {}).setdefault("image", {}).update(
@@ -61,7 +61,7 @@ async def test_pods_with_tags_and_no_digests(release_name, values, make_template
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_pods_with_digests_and_tags(release_name, values, make_templates, template_to_deployable_details):
+async def test_pods_with_digests_and_tags(release_name, values, make_templates):
     counter = 1
     matrix_tools_marker = f"matrix-tools-marker={release_name}"
     values.setdefault("matrixTools", {}).setdefault("image", {}).update(
@@ -118,7 +118,7 @@ async def test_pods_with_digests_and_tags(release_name, values, make_templates, 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_pods_with_digest_and_no_tags(release_name, values, make_templates, template_to_deployable_details):
+async def test_pods_with_digest_and_no_tags(release_name, values, make_templates):
     counter = 1
     matrix_tools_marker = f"matrix-tools-marker={release_name}"
     values.setdefault("matrixTools", {}).setdefault("image", {}).update(

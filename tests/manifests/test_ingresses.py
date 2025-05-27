@@ -6,12 +6,12 @@
 import pytest
 
 from . import DeployableDetails, PropertyType, all_deployables_details, values_files_to_test
-from .utils import iterate_deployables_ingress_parts
+from .utils import iterate_deployables_ingress_parts, template_to_deployable_details
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_has_ingress(templates, template_to_deployable_details):
+async def test_has_ingress(templates):
     seen_deployables = set[DeployableDetails]()
     seen_deployables_with_ingresses = set[DeployableDetails]()
 

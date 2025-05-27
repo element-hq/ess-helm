@@ -5,11 +5,12 @@
 import pytest
 
 from . import values_files_to_test
+from .utils import template_to_deployable_details
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_pvcs_only_present_if_expected(templates, template_to_deployable_details):
+async def test_pvcs_only_present_if_expected(templates):
     deployable_details_to_seen_pvcs = {}
     for template in templates:
         deployable_details = template_to_deployable_details(template)
