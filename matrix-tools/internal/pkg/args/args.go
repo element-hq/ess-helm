@@ -155,12 +155,9 @@ func ParseArgs(args []string) (*Options, error) {
 		for _, deploymentMarkerArg := range strings.Split(*deploymentMarkers, ",") {
 			parsedValue := strings.Split(deploymentMarkerArg, ":")
 			if len(parsedValue) < 4 {
-				return nil, fmt.Errorf("invalid deployment marker format, expect <name:key:step:newValue:[allowedValues:..]>: %s", deploymentMarkerArg)
+				return nil, fmt.Errorf("invalid deployment marker format, expect <name:key:step:newValue:[allowedValues;..]>: %s", deploymentMarkerArg)
 			}
-			parsedAllowedValues := make([]string, 0)
-			if len(parsedValue) >= 4 {
-				parsedAllowedValues = parsedValue[4:]
-			}
+			parsedAllowedValues := strings.Split(parsedValue[4], ";")
 			deploymentMarker := DeploymentMarker{Name: parsedValue[0], Key: parsedValue[1], Step: parsedValue[2], NewValue: parsedValue[3], AllowedValues: parsedAllowedValues}
 			options.DeploymentMarkers = append(options.DeploymentMarkers, deploymentMarker)
 			options.Command = DeploymentMarkers

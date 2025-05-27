@@ -106,7 +106,7 @@ func TestParseArgs(t *testing.T) {
 		},
 		{
 			name: "Multiple deployment-markers",
-			args: []string{"cmd", "deployment-markers", "-markers", "cm1:key1:pre:value1:value1,cm1:key2:pre:value2:value1:value2"},
+			args: []string{"cmd", "deployment-markers", "-markers", "cm1:key1:pre:value1:value1,cm1:key2:pre:value2:value1;value2"},
 			expected: &Options{
 				DeploymentMarkers: []DeploymentMarker{
 					{Name: "cm1", Key: "key1", Step: "pre", NewValue: "value1", AllowedValues: []string{"value1"}},
