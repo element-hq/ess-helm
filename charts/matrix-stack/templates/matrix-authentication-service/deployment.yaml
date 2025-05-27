@@ -120,6 +120,7 @@ spec:
         volumeMounts:
         {{- include "element-io.ess-library.render-config-volume-mounts" (dict "root" $ "context"
             (dict "nameSuffix" "matrix-authentication-service"
+                  "outputFile" "config.yaml"
                   "isHook" false)) | nindent 8 }}
       containers:
       - name: matrix-authentication-service
@@ -168,6 +169,7 @@ spec:
         volumeMounts:
         {{- include "element-io.ess-library.render-config-volume-mounts" (dict "root" $ "context"
             (dict "nameSuffix" "matrix-authentication-service"
+                  "outputFile" "config.yaml"
                   "isHook" false)) | nindent 8 }}
       volumes:
       {{- include "element-io.ess-library.render-config-volumes" (dict "root" $ "context"

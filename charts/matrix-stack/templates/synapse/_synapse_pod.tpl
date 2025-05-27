@@ -161,6 +161,7 @@ We have an init container to render & merge the config for several reasons:
       volumeMounts:
       {{- include "element-io.ess-library.render-config-volume-mounts" (dict "root" $root "context"
             (dict "nameSuffix" "synapse"
+                  "outputFile" "homeserver.yaml"
                   "isHook" $isHook)) | nindent 6 }}
 {{- range $idx, $appservice := .appservices }}
       - name: as-{{ $idx }}
