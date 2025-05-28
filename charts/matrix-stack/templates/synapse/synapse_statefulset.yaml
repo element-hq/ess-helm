@@ -1,5 +1,5 @@
 {{- /*
-Copyright 2024 New Vector Ltd
+Copyright 2024-2025 New Vector Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -9,6 +9,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $enabledWorkers := (include "element-io.synapse.enabledWorkers" (dict "root" $)) | fromJson }}
 {{- range $processType, $unmergedProcessDetails := mustMergeOverwrite (dict "main" dict) $enabledWorkers }}
 {{- with (mustMergeOverwrite ($.Values.synapse | deepCopy) ($unmergedProcessDetails | deepCopy) (dict "processType" $processType "isHook" false)) }}
+{{- $workerTypeName := include "element-io.synapse.process.workerTypeName" (dict "root" $ "context" $processType) }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -32,10 +33,10 @@ metadata:
                                                             "postgresProperty" .postgres
                                                             )
                                         ) }}
-  name: {{ $.Release.Name }}-synapse-{{ $processType }}
+  name: {{ $.Release.Name }}-synapse-{{ $workerTypeName }}
   namespace: {{ $.Release.Namespace }}
 spec:
-  serviceName: {{ $.Release.Name }}-synapse-{{ $processType }}
+  serviceName: {{ $.Release.Name }}-synapse-{{ $workerTypeName }}
   replicas: {{ .replicas | default 1 }}
   selector:
     matchLabels:

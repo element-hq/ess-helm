@@ -1,4 +1,4 @@
-# Copyright 2024 New Vector Ltd
+# Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -77,9 +77,7 @@ async def test_synapse_media_upload_fetch_authenticated(
     )
 
     media_pod_suffix = (
-        "synapse-media-repository-0"
-        if value_file_has("synapse.workers.media-repository.enabled", True)
-        else "synapse-main-0"
+        "synapse-media-repo-0" if value_file_has("synapse.workers.media-repository.enabled", True) else "synapse-main-0"
     )
     media_pod = f"{generated_data.release_name}-{media_pod_suffix}"
 

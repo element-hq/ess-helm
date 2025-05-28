@@ -24,7 +24,10 @@ values_cache = {}
 
 @pytest.fixture(scope="session")
 async def release_name():
-    return f"pytest-{''.join(random.choices(string.ascii_lowercase, k=6))}"
+    # As per test_names_arent_too_long we've only got 52 chars to play with
+    # We give most (29) to the release_name (user controlled)
+    # 'pytest-' is 7 chars, we need another 22 to get to 29.
+    return f"pytest-{''.join(random.choices(string.ascii_lowercase, k=22))}"
 
 
 @pytest.fixture(scope="session")
