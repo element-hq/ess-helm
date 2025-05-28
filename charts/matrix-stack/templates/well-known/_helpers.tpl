@@ -1,8 +1,19 @@
 {{- /*
-Copyright 2024 New Vector Ltd
+Copyright 2024-2025 New Vector Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
+
+{{- define "element-io.well-known-delegation.validations" }}
+{{ $root := .root }}
+{{- with required "element-io.well-known-delegation.validations missing context" .context -}}
+{{- $messages := list }}
+{{- if not $root.Values.serverName -}}
+{{ $messages = append $messages "serverName is required when wellKnownDelegation.enabled=true" }}
+{{- end }}
+{{ $messages | toJson }}
+{{- end }}
+{{- end }}
 
 {{- define "element-io.well-known-delegation.labels" -}}
 {{- $root := .root -}}

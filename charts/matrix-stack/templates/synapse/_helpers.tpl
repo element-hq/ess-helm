@@ -1,8 +1,25 @@
 {{- /*
-Copyright 2024 New Vector Ltd
+Copyright 2024-2025 New Vector Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
+
+{{- define "element-io.synapse.validations" }}
+{{ $root := .root }}
+{{- with required "element-io.synapse.validations missing context" .context -}}
+{{ $messages := list }}
+{{- if not .ingress.host -}}
+{{ $messages = append $messages "synapse.ingress.host is required when synapse.enabled=true" }}
+{{- end }}
+{{- if not $root.Values.serverName -}}
+{{ $messages = append $messages "serverName is required when synapse.enabled=true" }}
+{{- end }}
+{{- if and (not $root.Values.postgres.enabled) (not .postgres) -}}
+{{ $messages = append $messages "synapse.postgres is required when synapse.enabled=true but postgres.enabled=false" }}
+{{- end }}
+{{ $messages | toJson }}
+{{- end }}
+{{- end }}
 
 {{- define "element-io.synapse.labels" -}}
 {{- $root := .root -}}

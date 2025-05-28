@@ -42,8 +42,6 @@ database:
 {{- end }}
 {{- else if $root.Values.postgres.enabled }}
   uri: "postgresql://matrixauthenticationservice_user:${POSTGRES_PASSWORD}@{{ $root.Release.Name }}-postgres.{{ $root.Release.Namespace }}.svc.cluster.local:5432/matrixauthenticationservice?sslmode=prefer&application_name=matrix-authentication-service"
-{{ else }}
-  {{ fail "MAS requires matrixAuthenticationService.postgres.* to be configured, or the internal chart Postgres to be enabled with postgres.enabled: true" }}
 {{ end }}
 
 telemetry:
