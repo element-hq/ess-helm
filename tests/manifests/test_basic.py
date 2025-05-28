@@ -58,3 +58,20 @@ async def test_values_file_renders_idempotent(values, make_templates):
     assert set(first_render.keys()) == set(second_render.keys()), "Values file should render the same templates"
     for id in first_render:
         assert first_render[id] == second_render[id], f"Template {id} should be rendered the same twice"
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_names_arent_too_long(templates):
+    for template in templates:
+        max_length = 63
+        if template["kind"] == "StatefulSet":
+            # https://github.com/kubernetes/kubernetes/issues/64023
+            # https://github.com/kubernetes/kubernetes/pull/117507
+            # Max of 63 - 1 for `-` - 10 for hash string
+            max_length = 63 - 1 - 10
+
+        assert len(template["metadata"]["name"]) <= max_length, (
+            f"{template_id(template)} has a name that's too long. "
+            f"Needs to be {len(template['metadata']['name']) - max_length} characters shorter"
+        )
