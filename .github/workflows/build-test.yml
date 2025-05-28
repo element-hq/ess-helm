@@ -167,7 +167,7 @@ jobs:
         comment_body=""
         while read -r templates_file; do
           if [[ "$(basename "$templates_file")" == ".yaml" ]]; then
-            echo "skipping empty file"
+            comment_body+="**$templates_file** (empty)\n\n"
             continue
           fi
 
