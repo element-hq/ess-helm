@@ -81,16 +81,16 @@ spec:
           {{- toYaml . | nindent 10 }}
 {{- end }}
         volumeMounts:
-{{- range $secret := include "element-io.matrix-rtc-authorisation-service.configSecrets" (dict "root" $ "context" $.Values.matrixRTC) | fromJsonArray }}
+{{- range $idx, $secret := include "element-io.matrix-rtc-authorisation-service.configSecrets" (dict "root" $ "context" $.Values.matrixRTC) | fromJsonArray }}
         - mountPath: /secrets/{{ tpl $secret $ }}
-          name: "secret-{{ tpl $secret $ }}"
+          name: "secret-{{ $idx }}"
           readOnly: true
 {{- end }}
       volumes:
-{{- range $secret := include "element-io.matrix-rtc-authorisation-service.configSecrets" (dict "root" $ "context" $.Values.matrixRTC) | fromJsonArray }}
+{{- range $idx, $secret := include "element-io.matrix-rtc-authorisation-service.configSecrets" (dict "root" $ "context" $.Values.matrixRTC) | fromJsonArray }}
       - secret:
           secretName: {{ tpl $secret $ }}
-        name: secret-{{ tpl $secret $ }}
+        name: secret-{{ $idx }}
 {{- end }}
 {{- end }}
 {{- end }}

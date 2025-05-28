@@ -80,15 +80,15 @@ spec:
     {{- $secretArg := . | splitList ":" }}
     {{- if (index $secretArg 1) | contains "POSTGRES" }}
         - mountPath: /secrets/{{ index $secretArg 0 }}/{{ index $secretArg 1 }}
-          name: "secret-{{ index $secretArg 0 }}"
+          name: "secret-generated"
           subPath: "{{ index $secretArg 1 }}"
           readOnly: true
     {{- end }}
   {{- end }}
 {{- end }}
-{{- range $secret := include "element-io.postgres.configSecrets" (dict "root" $ "context" .) | fromJsonArray }}
+{{- range $idx, $secret := include "element-io.postgres.configSecrets" (dict "root" $ "context" .) | fromJsonArray }}
         - mountPath: /secrets/{{ tpl $secret $ }}
-          name: "secret-{{ tpl $secret $ }}"
+          name: "secret-{{ $idx }}"
           readOnly: true
 {{- end }}
         - name: config
@@ -154,15 +154,15 @@ spec:
     {{- $secretArg := . | splitList ":" }}
     {{- if (index $secretArg 1) | contains "POSTGRES" }}
         - mountPath: /secrets/{{ index $secretArg 0 }}/{{ index $secretArg 1 }}
-          name: "secret-{{ index $secretArg 0 }}"
+          name: "secret-generated"
           subPath: "{{ index $secretArg 1 }}"
           readOnly: true
     {{- end }}
   {{- end }}
 {{- end }}
-{{- range $secret := include "element-io.postgres.configSecrets" (dict "root" $ "context" .) | fromJsonArray }}
+{{- range $idx, $secret := include "element-io.postgres.configSecrets" (dict "root" $ "context" .) | fromJsonArray }}
         - mountPath: /secrets/{{ tpl $secret $ }}
-          name: "secret-{{ tpl $secret $ }}"
+          name: "secret-{{ $idx }}"
           readOnly: true
 {{- end }}
         - name: config
@@ -216,12 +216,12 @@ spec:
 {{- if and $.Values.initSecrets.enabled (include "element-io.init-secrets.postgres-generated-secrets" (dict "root" $)) }}
       - secret:
           secretName: {{ $.Release.Name }}-generated
-        name: secret-{{ $.Release.Name }}-generated
+        name: secret-generated
 {{- end }}
-{{- range $secret := include "element-io.postgres.configSecrets" (dict "root" $ "context" .) | fromJsonArray }}
+{{- range $idx, $secret := include "element-io.postgres.configSecrets" (dict "root" $ "context" .) | fromJsonArray }}
       - secret:
           secretName: {{ tpl $secret $ }}
-        name: secret-{{ tpl $secret $ }}
+        name: secret-{{ $idx }}
 {{- end }}
       - name: config
         configMap:

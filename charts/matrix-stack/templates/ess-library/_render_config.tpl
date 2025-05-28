@@ -62,9 +62,9 @@ SPDX-License-Identifier: AGPL-3.0-only
   - mountPath: /config-templates
     name: plain-config
     readOnly: true
-{{- range $secret := include (printf "element-io.%s.configSecrets" $nameSuffix) (dict "root" $root "context" .) | fromJsonArray }}
+{{- range $idx, $secret := include (printf "element-io.%s.configSecrets" $nameSuffix) (dict "root" $root "context" .) | fromJsonArray }}
   - mountPath: /secrets/{{ tpl $secret $root }}
-    name: "secret-{{ tpl $secret $root }}"
+    name: "secret-{{ $idx }}"
     readOnly: true
 {{- end }}
   - mountPath: /conf
@@ -87,10 +87,10 @@ SPDX-License-Identifier: AGPL-3.0-only
     defaultMode: 420
     name: {{ include (printf "element-io.%s.configmap-name" $nameSuffix) (dict "root" $root "context" .) }}
   name: plain-config
-{{- range $secret := include (printf "element-io.%s.configSecrets" $nameSuffix) (dict "root" $root "context" .) | fromJsonArray }}
+{{- range $idx, $secret := include (printf "element-io.%s.configSecrets" $nameSuffix) (dict "root" $root "context" .) | fromJsonArray }}
 - secret:
     secretName: {{ tpl $secret $root }}
-  name: secret-{{ tpl $secret $root }}
+  name: secret-{{ $idx }}
 {{- end }}
 - emptyDir:
     medium: Memory
@@ -108,9 +108,9 @@ SPDX-License-Identifier: AGPL-3.0-only
   name: rendered-config
   subPath: {{ $outputFile }}
   readOnly: true
-{{- range $secret := include (printf "element-io.%s.configSecrets" $nameSuffix) (dict "root" $root "context" .) | fromJsonArray }}
+{{- range $idx, $secret := include (printf "element-io.%s.configSecrets" $nameSuffix) (dict "root" $root "context" .) | fromJsonArray }}
 - mountPath: /secrets/{{ tpl $secret $root }}
-  name: "secret-{{ tpl $secret $root }}"
+  name: "secret-{{ $idx }}"
   readOnly: true
 {{- end }}
 {{- end -}}
