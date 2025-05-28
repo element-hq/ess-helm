@@ -5,7 +5,7 @@
 import pytest
 
 from . import PropertyType, values_files_to_test
-from .utils import iterate_deployables_workload_parts
+from .utils import iterate_deployables_workload_parts, template_id
 
 specific_toleration = {
     "key": "component",
@@ -27,10 +27,8 @@ global_toleration = {
 async def test_no_tolerations_by_default(templates):
     for template in templates:
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            id = f"{template['kind']}/{template['metadata']['name']}"
-
             assert "tolerations" not in template["spec"]["template"]["spec"], (
-                f"Tolerations unexpectedly present for {id}"
+                f"Tolerations unexpectedly present for {template_id(template)}"
             )
 
 
@@ -45,7 +43,7 @@ async def test_all_components_and_sub_components_render_tolerations(values, make
 
     for template in await make_templates(values):
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            id = f"{template['kind']}/{template['metadata']['name']}"
+            id = template_id(template)
 
             pod_spec = template["spec"]["template"]["spec"]
             assert "tolerations" in pod_spec, f"No tolerations for {id}"
@@ -60,7 +58,7 @@ async def test_global_tolerations_render(values, make_templates):
 
     for template in await make_templates(values):
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            id = f"{template['kind']}/{template['metadata']['name']}"
+            id = template_id(template)
 
             pod_spec = template["spec"]["template"]["spec"]
             assert "tolerations" in pod_spec, f"No tolerations for {id}"
@@ -83,7 +81,7 @@ async def test_merges_global_and_specific_tolerations(values, make_templates):
 
     for template in await make_templates(values):
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            id = f"{template['kind']}/{template['metadata']['name']}"
+            id = template_id(template)
 
             pod_spec = template["spec"]["template"]["spec"]
             assert "tolerations" in pod_spec, f"No tolerations for {id}"

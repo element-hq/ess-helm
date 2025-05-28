@@ -5,6 +5,7 @@
 import pytest
 
 from . import values_files_to_test
+from .utils import template_id
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -12,6 +13,7 @@ from . import values_files_to_test
 async def test_all_secrets_have_type(templates):
     for template in templates:
         if template["kind"] == "Secret":
-            id = f"{template['kind']}/{template['metadata']['name']}"
-            assert "type" in template, f"{id} has not set the Secret type"
-            assert template["type"] in ["Opaque"], f"{id} has an unexpected Secret type {template['type']}"
+            assert "type" in template, f"{template_id(template)} has not set the Secret type"
+            assert template["type"] in ["Opaque"], (
+                f"{template_id(template)} has an unexpected Secret type {template['type']}"
+            )
