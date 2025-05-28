@@ -128,3 +128,15 @@ async def test_our_labels_are_named_consistently(templates):
             assert has_match, (
                 f"{template_id(template)} has label {our_label} that does not match one of {acceptable_matches=}"
             )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_workloads_selector_matches_labels(templates):
+    for template in templates:
+        if template["kind"] in ("Deployment", "StatefulSet"):
+            for label in template["spec"]["selector"]["matchLabels"]:
+                assert (
+                    template["spec"]["template"]["metadata"]["labels"][label]
+                    == template["spec"]["selector"]["matchLabels"][label]
+                )
