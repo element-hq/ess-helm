@@ -166,8 +166,7 @@ jobs:
         header="# dyff of changes in rendered templates of CI manifests\n\n"
         comment_body=""
         while read -r templates_file; do
-          if [[ "$(basename "$templates_file")" == ".yaml" ]]; then
-            comment_body+="**$templates_file** (empty)\n\n"
+          if [[ "$(basename "$templates_file")" == ".yaml" ]] && [ ! -s "$template_file" ]; then
             continue
           fi
 
