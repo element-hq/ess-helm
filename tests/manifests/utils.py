@@ -349,6 +349,17 @@ async def assert_covers_expected_workloads(
     for seen_covering_template in templates_by_kind.get(covering_kind, []):
         new_covered_workload_ids = workload_ids_covered_by_template(seen_covering_template, templates_by_kind)
         assert len(new_covered_workload_ids) > 0, f"{template_id(seen_covering_template)} should cover some workloads"
+
+        assert all(
+            [
+                covered_workload_id.split("/")[1].startswith(seen_covering_template["metadata"]["name"])
+                for covered_workload_id in new_covered_workload_ids
+            ]
+        ), (
+            f"{template_id(seen_covering_template)}'s name isn't a prefix of/the same as all the workloads"
+            f" it covers: {new_covered_workload_ids}"
+        )
+
         assert covered_workload_ids.intersection(new_covered_workload_ids) == set(), (
             "Workloads were covered more than once"
         )
