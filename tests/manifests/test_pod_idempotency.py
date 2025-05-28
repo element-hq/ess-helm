@@ -1,4 +1,4 @@
-# Copyright 2024 New Vector Ltd
+# Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -11,7 +11,7 @@ from .utils import helm_template, template_id
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_values_file_renders_idempotent_pods(release_name, values, helm_client, temp_chart):
+async def test_values_file_renders_idempotent_pods(release_name, namespace, values, helm_client, temp_chart):
     async def _patch_version_chart():
         with open(f"{temp_chart}/Chart.yaml") as f:
             chart = yaml.safe_load(f)
@@ -26,11 +26,11 @@ async def test_values_file_renders_idempotent_pods(release_name, values, helm_cl
     first_render = {}
     second_render = {}
     for template in await helm_template(
-        (await _patch_version_chart()), release_name, values, has_service_monitor_crd=True, skip_cache=True
+        (await _patch_version_chart()), release_name, namespace, values, has_service_monitor_crd=True, skip_cache=True
     ):
         first_render[template_id(template)] = template
     for template in await helm_template(
-        (await _patch_version_chart()), release_name, values, has_service_monitor_crd=True, skip_cache=True
+        (await _patch_version_chart()), release_name, namespace, values, has_service_monitor_crd=True, skip_cache=True
     ):
         second_render[template_id(template)] = template
 

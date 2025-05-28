@@ -31,6 +31,11 @@ async def release_name():
 
 
 @pytest.fixture(scope="session")
+async def namespace():
+    return f"pytest-{''.join(random.choices(string.ascii_lowercase, k=10))}"
+
+
+@pytest.fixture(scope="session")
 async def helm_client():
     return pyhelm3.Client()
 
@@ -75,8 +80,8 @@ def values(values_file) -> dict[str, Any]:
 
 
 @pytest.fixture
-async def templates(chart: pyhelm3.Chart, release_name: str, values: dict[str, Any]):
-    return await helm_template(chart, release_name, values)
+async def templates(chart: pyhelm3.Chart, release_name: str, namespace: str, values: dict[str, Any]):
+    return await helm_template(chart, release_name, namespace, values)
 
 
 @pytest.fixture
@@ -174,7 +179,12 @@ def external_secrets(release_name, values):
 
 
 async def helm_template(
-    chart: pyhelm3.Chart, release_name: str, values: Any | None, has_service_monitor_crd=True, skip_cache=False
+    chart: pyhelm3.Chart,
+    release_name: str,
+    namespace: str,
+    values: Any | None,
+    has_service_monitor_crd=True,
+    skip_cache=False,
 ) -> list[Any]:
     """Generate template with ServiceMonitor API Versions enabled
 
@@ -190,6 +200,8 @@ async def helm_template(
         "template",
         release_name,
         str(chart.ref),
+        "--namespace",
+        namespace,
         # We send the values in on stdin
         "--values",
         "-",
@@ -218,9 +230,9 @@ async def helm_template(
 
 
 @pytest.fixture
-def make_templates(chart: pyhelm3.Chart, release_name: str):
+def make_templates(chart: pyhelm3.Chart, release_name: str, namespace: str):
     async def _make_templates(values, has_service_monitor_crd=True, skip_cache=False):
-        return await helm_template(chart, release_name, values, has_service_monitor_crd, skip_cache)
+        return await helm_template(chart, release_name, namespace, values, has_service_monitor_crd, skip_cache)
 
     return _make_templates
 
