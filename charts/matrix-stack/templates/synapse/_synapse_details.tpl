@@ -78,8 +78,24 @@ canFallback
 {{- define "element-io.synapse.process.workerTypeName" -}}
 {{- $root := .root -}}
 {{- with required "element-io.synapse.process.workerTypeName missing context" .context -}}
-{{- if eq . "initial-synchrotron" -}}
+{{- if eq . "event-persister" -}}
+event-persist
+{{- else if eq . "federation-inbound" -}}
+fed-inbound
+{{- else if eq . "federation-reader" -}}
+fed-reader
+{{- else if eq . "federation-sender" -}}
+fed-sender
+{{- else if eq . "initial-synchrotron" -}}
 initial-sync
+{{- else if eq . "media-repository" -}}
+media-repo
+{{- else if eq . "presence-writer" -}}
+presence-write
+{{- else if eq . "receipts-account" -}}
+receipts-accnt
+{{- else if eq . "typing-persister" -}}
+typing
 {{- else -}}
 {{ . }}
 {{- end -}}
