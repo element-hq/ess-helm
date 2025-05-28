@@ -1,5 +1,5 @@
 {#
-Copyright 2024 New Vector Ltd
+Copyright 2024-2025 New Vector Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 #}
@@ -12,6 +12,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 initSecrets:
   {% macro initSecrestValues() %}{% include 'init-secrets.yaml.j2'%}{% endmacro %}
   {{- initSecrestValues() | trim | indent(2) }}
+
+deploymentMarkers:
+  {% macro deploymentMarkersValues() %}{% include 'deployment-markers.yaml.j2'%}{% endmacro %}
+  {{- deploymentMarkersValues() | trim | indent(2) }}
 
 matrixRTC:
   {% macro matrixRTCValues() %}{% include 'matrix-rtc.yaml.j2'%}{% endmacro %}

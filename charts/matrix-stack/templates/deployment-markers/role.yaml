@@ -1,0 +1,35 @@
+{{- /*
+Copyright 2025 New Vector Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+{{ range $step := list "pre" "post" -}}
+{{- with $.Values.deploymentMarkers -}}
+{{- if and .enabled .rbac.create (include "element-io.deployment-markers.markers" (dict "root" $)) }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $.Release.Name }}-deployment-markers-{{ $step }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "element-io.deployment-markers.labels" (dict "root" $ "context" (mustMergeOverwrite (dict "step" $step) .)) | nindent 4 }}
+  annotations:
+    "helm.sh/hook": {{ $step }}-install,{{ $step }}-upgrade
+    "helm.sh/hook-weight": "-20"
+rules:
+{{/*
+  https://kubernetes.io/docs/reference/access-authn-authz/rbac/#referring-to-resources
+  You cannot restrict create or deletecollection requests by resourceName.
+  For create, this limitation is because the object name is not known at authorization time.
+*/}}
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["create"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  resourceNames: [ "{{ $.Release.Name }}-markers" ]
+  verbs: ["get", "update"]
+---
+{{- end -}}
+{{- end -}}
+{{- end -}}

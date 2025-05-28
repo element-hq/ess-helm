@@ -115,7 +115,7 @@ only001Key: only_001`)),
 			err:      true,
 		},
 		{
-			name:     "Indent Function Test",
+			name: "Indent Function Test",
 			readers: []io.Reader{
 				bytes.NewBuffer([]byte(`
 key:
@@ -136,7 +136,7 @@ anotherKey:
 			err: false,
 		},
 		{
-			name:     "UrlEncode Function Test",
+			name: "UrlEncode Function Test",
 			readers: []io.Reader{
 				bytes.NewBuffer([]byte(`key: ${ENCODED_KEY}`)),
 			},

@@ -51,6 +51,9 @@
     "topologySpreadConstraints": {
       "$ref": "file://common/topologySpreadConstraints.json"
     },
+    "deploymentMarkers": {
+      "$ref": "file://deployment-markers.json"
+    },
     "initSecrets": {
       "$ref": "file://init-secrets.json"
     },

@@ -2,9 +2,14 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 #
-# source_fragments: synapse-minimal.yaml synapse-pytest-base-extras.yaml matrix-authentication-service-minimal.yaml matrix-authentication-service-pytest-extras.yaml init-secrets-minimal.yaml init-secrets-pytest-extras.yaml postgres-minimal.yaml
+# source_fragments: synapse-minimal.yaml synapse-pytest-base-extras.yaml matrix-authentication-service-minimal.yaml matrix-authentication-service-pytest-extras.yaml init-secrets-minimal.yaml init-secrets-pytest-extras.yaml postgres-minimal.yaml deployment-markers-minimal.yaml deployment-markers-pytest-extras.yaml
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
+deploymentMarkers:
+  annotations:
+    has-no-service-monitor: "true"
+  podSecurityContext:
+    runAsGroup: 0
 elementWeb:
   enabled: false
 haproxy:

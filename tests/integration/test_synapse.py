@@ -5,7 +5,9 @@
 import hashlib
 from pathlib import Path
 
+import pyhelm3
 import pytest
+from lightkube.resources.core_v1 import ConfigMap
 
 from .fixtures import ESSData
 from .lib.synapse import assert_downloaded_content, download_media, upload_media
@@ -91,7 +93,7 @@ async def test_synapse_media_upload_fetch_authenticated(
     )
 
 
-@pytest.mark.skipif(value_file_has("synapse.enabled", False), reason="MAS not deployed")
+@pytest.mark.skipif(value_file_has("synapse.enabled", False), reason="Synapse not deployed")
 @pytest.mark.asyncio_cooperative
 async def test_rendezvous_cors_headers_are_only_set_with_mas(ingress_ready, generated_data: ESSData, ssl_context):
     await ingress_ready("synapse")
@@ -112,3 +114,57 @@ async def test_rendezvous_cors_headers_are_only_set_with_mas(ingress_ready, gene
         assert "Synapse-Trace-Id" in response.headers["Access-Control-Expose-Headers"]
         assert "Server" in response.headers["Access-Control-Expose-Headers"]
         assert ("ETag" in response.headers["Access-Control-Expose-Headers"]) == supports_qr_code_login
+
+
+@pytest.mark.skipif(value_file_has("synapse.enabled", False), reason="Synapse not deployed")
+@pytest.mark.skipif(value_file_has("matrixAuthenticationService.enabled", True), reason="MAS is deployed")
+@pytest.mark.asyncio_cooperative
+async def test_synapse_service_marker_legacy_auth(
+    kube_client, helm_client: pyhelm3.Client, ingress_ready, generated_data: ESSData, ssl_context
+):
+    configmap = await kube_client.get(
+        ConfigMap,
+        namespace=generated_data.ess_namespace,
+        name=f"{generated_data.release_name}-markers",
+    )
+    assert configmap.data.get("MATRIX_STACK_MSC3861") == "legacy_auth"
+    revision = await helm_client.get_current_revision(
+        generated_data.release_name, namespace=generated_data.ess_namespace
+    )
+    values = await revision.values()
+    values.setdefault("matrixAuthenticationService", {})["enabled"] = True
+    values.setdefault("matrixAuthenticationService", {}).setdefault("ingress", {})["host"] = (
+        "account.{{ $.Values.serverName }}"
+    )
+    chart = await helm_client.get_chart("charts/matrix-stack")
+    with pytest.raises(pyhelm3.errors.Error):
+        # Install or upgrade a release
+        await helm_client.install_or_upgrade_release(
+            generated_data.release_name,
+            chart,
+            values,
+            namespace=generated_data.ess_namespace,
+            atomic=False,
+            timeout="15s",
+            wait=True,
+        )
+    revision = await helm_client.get_current_revision(
+        generated_data.release_name, namespace=generated_data.ess_namespace
+    )
+    assert revision.status == pyhelm3.ReleaseRevisionStatus.FAILED
+    assert "pre-upgrade hooks failed" in revision.description
+    # Assert that MAS is not enabled
+    await ingress_ready("synapse")
+    async with (
+        aiohttp_client(ssl_context) as client,
+        client.options(
+            f"https://synapse.{generated_data.server_name}/_matrix/client/unstable/org.matrix.msc4108/rendezvous",
+        ) as response,
+    ):
+        assert "Access-Control-Allow-Origin" in response.headers
+        assert response.headers["Access-Control-Allow-Origin"] == "*"
+
+        assert "Access-Control-Allow-Headers" in response.headers
+        assert "If-Match" not in response.headers["Access-Control-Allow-Headers"], (
+            "Response headers should not contain If-Match with MAS disabled"
+        )

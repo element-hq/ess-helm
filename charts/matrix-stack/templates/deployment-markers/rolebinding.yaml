@@ -1,0 +1,31 @@
+{{- /*
+Copyright 2025 New Vector Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+
+{{ range $step := list "pre" "post" -}}
+{{- with $.Values.deploymentMarkers -}}
+{{- if and .enabled .rbac.create (include "element-io.deployment-markers.markers" (dict "root" $)) }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $.Release.Name }}-deployment-markers-{{ $step }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "element-io.deployment-markers.labels" (dict "root" $ "context" (mustMergeOverwrite (dict "step" $step) .)) | nindent 4 }}
+  annotations:
+    "helm.sh/hook": {{ $step }}-install,{{ $step }}-upgrade
+    "helm.sh/hook-weight": "-20"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $.Release.Name }}-deployment-markers-{{ $step }}
+subjects:
+- kind: ServiceAccount
+  name: {{ include "element-io.ess-library.serviceAccountName" (dict "root" $ "context" (dict "serviceAccount" .serviceAccount "nameSuffix" (printf "deployment-markers-%s" $step))) }}
+  namespace: {{ $.Release.Namespace }}
+---
+{{- end -}}
+{{- end -}}
+{{- end -}}
