@@ -171,7 +171,7 @@ jobs:
           fi
 
           if [ ! -f "$RUNNER_TEMP/old/$templates_file" ]; then
-            file_content=$(cat "$RUNNER_TEMP/new/$templates_file")
+            file_content=$(sed -e 's/^/+ /' < "$RUNNER_TEMP/new/$templates_file")
             comment_body+="<details><summary><b>$templates_file</b> (added)</summary>\n"
             comment_body+='\n```diff\n'
             comment_body+=$file_content
