@@ -91,7 +91,7 @@ func ParseArgs(args []string) (*Options, error) {
 	secretsLabels := generateSecretsSet.String("labels", "", "Comma-separated list of labels for generated secrets, in the format of `key=value`")
 
 	deploymentMarkersSet := flag.NewFlagSet("deployment-markers", flag.ExitOnError)
-	deploymentMarkers := deploymentMarkersSet.String("markers", "", "Comma-separated list of deployment markers, in the format of `name:step:newValue:[allowedValues:..]`")
+	deploymentMarkers := deploymentMarkersSet.String("markers", "", "Comma-separated list of deployment markers, with Semi-colon separated list of previous allowed values in the format of `name:step:newValue:[allowedValues;..]`")
 	labels := deploymentMarkersSet.String("labels", "", "Comma-separated list of labels for generated secrets, in the format of `key=value`")
 	step := deploymentMarkersSet.String("step", "", "One of `pre` or `post`")
 
