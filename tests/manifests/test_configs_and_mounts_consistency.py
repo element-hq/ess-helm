@@ -8,7 +8,7 @@ import re
 import pytest
 
 from . import secret_values_files_to_test, values_files_to_test
-from .utils import get_or_empty, template_to_deployable_details
+from .utils import get_or_empty, template_id, template_to_deployable_details
 
 
 def get_configmap(templates, configmap_name):
@@ -109,8 +109,7 @@ def get_key_from_render_config(template):
                 if cmd == "-output":
                     return container["command"][idx + 1].split("/")[-1]
     raise AssertionError(
-        f"{template['kind']}/{template['metadata']['name']} has a rendered-config volume, "
-        "but no render-config output file could be found"
+        f"{template_id(template)} has a rendered-config volume, but no render-config output file could be found"
     )
 
 
@@ -197,9 +196,7 @@ def get_keys_from_container_using_rendered_config(template, templates, other_sec
                     parent, keys = get_mounts_part(configmap, volume_mount)
                     mounted_keys += keys
                     mounted_keys_to_parents.update({k: parent for k in keys})
-    assert len(mounted_keys) > 0, (
-        f"No secret or config map is mounted in the template {template['kind']}/{template['metadata']['name']}"
-    )
+    assert len(mounted_keys) > 0, f"No secret or config map is mounted in the template {template_id(template)}"
     return mounted_keys, mounted_keys_to_parents
 
 
@@ -361,7 +358,7 @@ async def test_secrets_consistency(templates, other_secrets):
                 for cm in mounted_config_maps:
                     for data, content in cm["data"].items():
                         if find_mount_paths_and_assert_key_is_consistent(
-                            f"configmap {cm['metadata']['name']}/{data} mounted in {container['name']}",
+                            f"{template_id(cm)}/{data} mounted in {container['name']}",
                             mounted_keys,
                             mounted_keys_to_parents[mounted_key],
                             [content],

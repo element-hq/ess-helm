@@ -7,7 +7,7 @@ import copy
 import pytest
 
 from . import DeployableDetails, PropertyType, all_deployables_details, values_files_to_test
-from .utils import iterate_deployables_workload_parts
+from .utils import iterate_deployables_workload_parts, template_id
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -15,10 +15,8 @@ from .utils import iterate_deployables_workload_parts
 async def test_dont_automount_serviceaccount_tokens(templates):
     for template in templates:
         if template["kind"] in ["Deployment", "StatefulSet"]:
-            id = f"{template['kind']}/{template['metadata']['name']}"
-
             assert not template["spec"]["template"]["spec"]["automountServiceAccountToken"], (
-                f"ServiceAccount token automounted for {id}"
+                f"ServiceAccount token automounted for {template_id(template)}"
             )
 
 
@@ -30,7 +28,7 @@ async def test_uses_serviceaccount_named_as_per_pod_controller_by_default(templa
     covered_serviceaccount_names = set()
     for template in templates:
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            workloads_by_id[f"{template['kind']}/{template['metadata']['name']}"] = template
+            workloads_by_id[template_id(template)] = template
         elif template["kind"] == "ServiceAccount":
             serviceaccount_names.add(template["metadata"]["name"])
 
@@ -72,7 +70,7 @@ async def test_uses_serviceaccount_named_as_values_if_specified(values, make_tem
     serviceaccount_names = []
     for template in await make_templates(values):
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            workloads_by_id[f"{template['kind']}/{template['metadata']['name']}"] = template
+            workloads_by_id[template_id(template)] = template
         elif template["kind"] == "ServiceAccount":
             serviceaccount_names.append(template["metadata"]["name"])
 
@@ -106,7 +104,7 @@ async def test_does_not_create_serviceaccounts_if_configured_not_to(values, make
         for template in await make_templates(values_to_modify):
             if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
                 id_suffix = f" (for {deployable_details.name})"
-                workloads_by_id[f"{template['kind']}/{template['metadata']['name']}{id_suffix}"] = template
+                workloads_by_id[f"{template_id(template)}{id_suffix}"] = template
             elif template["kind"] == "ServiceAccount":
                 serviceaccount_names.add(template["metadata"]["name"])
 

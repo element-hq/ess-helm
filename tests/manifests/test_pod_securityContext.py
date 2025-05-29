@@ -5,7 +5,7 @@
 import pytest
 
 from . import PropertyType, values_files_to_test
-from .utils import iterate_deployables_workload_parts
+from .utils import iterate_deployables_workload_parts, template_id
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -13,7 +13,7 @@ from .utils import iterate_deployables_workload_parts
 async def test_sets_nonRoot_uids_gids_in_pod_securityContext_by_default(templates):
     for template in templates:
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            id = f"{template['kind']}/{template['metadata']['name']}"
+            id = template_id(template)
 
             assert "securityContext" in template["spec"]["template"]["spec"], (
                 f"Pod securityContext unexpectedly absent for {id}"
@@ -47,7 +47,7 @@ async def test_can_nuke_pod_securityContext_ids(values, make_templates):
 
     for template in await make_templates(values):
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            id = f"{template['kind']}/{template['metadata']['name']}"
+            id = template_id(template)
 
             assert "securityContext" in template["spec"]["template"]["spec"], (
                 f"Pod securityContext unexpectedly absent for {id}"
@@ -64,7 +64,7 @@ async def test_can_nuke_pod_securityContext_ids(values, make_templates):
 async def test_sets_seccompProfile_in_pod_securityContext_by_default(templates):
     for template in templates:
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            id = f"{template['kind']}/{template['metadata']['name']}"
+            id = template_id(template)
 
             assert "securityContext" in template["spec"]["template"]["spec"], (
                 f"Pod securityContext unexpectedly absent for {id}"
@@ -92,7 +92,7 @@ async def test_can_nuke_pod_securityContext_seccompProfile(values, make_template
 
     for template in await make_templates(values):
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            id = f"{template['kind']}/{template['metadata']['name']}"
+            id = template_id(template)
 
             assert "securityContext" in template["spec"]["template"]["spec"], (
                 f"Pod securityContext unexpectedly absent for {id}"

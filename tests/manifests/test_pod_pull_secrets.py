@@ -5,7 +5,7 @@
 import pytest
 
 from . import PropertyType, values_files_to_test
-from .utils import iterate_deployables_parts
+from .utils import iterate_deployables_parts, template_id
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -16,13 +16,12 @@ async def test_sets_global_pull_secrets(values, make_templates):
     ]
     for template in await make_templates(values):
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            id = f"{template['kind']}/{template['metadata']['name']}"
             assert "imagePullSecrets" in template["spec"]["template"]["spec"], f"{id} should have an imagePullSecrets"
             assert len(template["spec"]["template"]["spec"]["imagePullSecrets"]) == 1, (
-                f"Expected {id} to have 1 image pull secret"
+                f"Expected {template_id(template)} to have 1 image pull secret"
             )
             assert template["spec"]["template"]["spec"]["imagePullSecrets"][0]["name"] == "global-secret", (
-                f"Expected {id} to have image pull secret '{values['imagePullSecrets'][0]['name']}'"
+                f"Expected {template_id(template)} to have image pull secret '{values['imagePullSecrets'][0]['name']}'"
             )
 
 
@@ -42,7 +41,6 @@ async def test_local_pull_secrets(values, base_values, make_templates):
 
     for template in await make_templates(values):
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            id = f"{template['kind']}/{template['metadata']['name']}"
             any_container_uses_matrix_tools_image = any(
                 [
                     base_values["matrixTools"]["image"]["repository"] in x["image"]
@@ -62,6 +60,7 @@ async def test_local_pull_secrets(values, base_values, make_templates):
             any_container_uses_matrix_tools_image = any(containers_with_matrix_tools_image)
             containers_only_uses_matrix_tools_image = all(containers_with_matrix_tools_image)
 
+            id = template_id(template)
             assert "imagePullSecrets" in template["spec"]["template"]["spec"], f"{id} should have an imagePullSecrets"
 
             secret_names = [x["name"] for x in template["spec"]["template"]["spec"]["imagePullSecrets"]]

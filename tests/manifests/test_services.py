@@ -5,6 +5,7 @@
 import pytest
 
 from . import services_values_files_to_test
+from .utils import template_id
 
 
 @pytest.mark.parametrize("values_file", services_values_files_to_test)
@@ -12,7 +13,7 @@ from . import services_values_files_to_test
 async def test_ports_in_services_are_named(templates):
     for template in templates:
         if template["kind"] == "Service":
-            id = f"{template['kind']}/{template['metadata']['name']}"
+            id = template_id(template)
             assert "ports" in template["spec"], f"{id} does not specify a ports list"
             assert len(template["spec"]["ports"]) > 0, f"{id} does not include any ports"
 
