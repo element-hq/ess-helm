@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
+import os
+import pathlib
 from pathlib import Path
 
 import pytest
@@ -16,7 +18,10 @@ def test_all_components_covered():
     for contents in templates_folder.iterdir():
         if not contents.is_dir():
             continue
-        if contents.name in ("ess-library",):
+        if contents.name in (
+            "ess-library",
+            "z_validation",
+        ):
             continue
 
         assert contents.name in expected_folders
@@ -28,3 +33,21 @@ def test_component_has_values_file(values_file):
     ci_folder = Path(__file__).parent.parent.parent / Path("charts/matrix-stack/ci")
     values_file = ci_folder / values_file
     assert values_file.exists()
+
+
+@pytest.mark.asyncio_cooperative
+def test_validation_messages_will_be_first_processed_template():
+    templates_folder = Path(__file__).parent.parent.parent / Path("charts/matrix-stack/templates")
+    paths = []
+    for path, _, files in os.walk(templates_folder):
+        for name in files:
+            paths.append(pathlib.PurePath(path, name).relative_to(templates_folder))
+
+    # https://github.com/helm/helm/blob/v3.18.0/pkg/engine/engine.go#L347-L356
+    # https://github.com/helm/helm/blob/v3.18.0/pkg/engine/engine_test.go#L37-L69
+    # We don't need to worry about sub-charts, so we just need to sort the paths by how nested they are
+    # then alphabetically for identically nested paths and finally reverse it to get what Helm would load first
+    # This is important as templates that call `tpl` seem to evaluate that call eagerly and fail in an ugly way
+    # and so we want our validation template to have run first
+    paths.sort(key=lambda path: (len(path.parents), path), reverse=True)
+    assert paths[0] == (Path("z_validation") / "validation.txt")

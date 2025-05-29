@@ -1,0 +1,41 @@
+{{- /*
+Copyright 2025 New Vector Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+
+{{ $messages := list }}
+
+{{- with $.Values.elementWeb }}
+{{- if .enabled }}
+{{- $messages = concat $messages (include "element-io.element-web.validations" (dict "root" $ "context" .) | fromJsonArray) }}
+{{- end }}
+{{- end }}
+
+{{- with $.Values.matrixAuthenticationService }}
+{{- if .enabled }}
+{{- $messages = concat $messages (include "element-io.matrix-authentication-service.validations" (dict "root" $ "context" .) | fromJsonArray) }}
+{{- end }}
+{{- end }}
+
+{{- with $.Values.matrixRTC }}
+{{- if .enabled }}
+{{- $messages = concat $messages (include "element-io.matrix-rtc.validations" (dict "root" $ "context" .) | fromJsonArray) }}
+{{- end }}
+{{- end }}
+
+{{- with $.Values.synapse }}
+{{- if .enabled }}
+{{- $messages = concat $messages (include "element-io.synapse.validations" (dict "root" $ "context" .) | fromJsonArray) }}
+{{- end }}
+{{- end }}
+
+{{- with $.Values.wellKnownDelegation }}
+{{- if .enabled }}
+{{- $messages = concat $messages (include "element-io.well-known-delegation.validations" (dict "root" $ "context" .) | fromJsonArray) }}
+{{- end }}
+{{- end }}
+
+{{- if gt (len $messages) 0 }}
+{{ fail (printf "\n- %s" ($messages | join "\n- " )) }}
+{{- end }}

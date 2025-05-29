@@ -1,5 +1,5 @@
 {{- /*
-Copyright 2024 New Vector Ltd
+Copyright 2024-2025 New Vector Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -24,7 +24,7 @@ frontend well-known-in
 {{ if .baseDomainRedirect.enabled }}
 {{- if $root.Values.elementWeb.enabled }}
 {{- with $root.Values.elementWeb }}
-{{- $elementWebHttps := include "element-io.ess-library.ingress.tlsHostsSecret" (dict "root" $root "context" (dict "hosts" (list (required "elementWeb.ingress.host is required" .ingress.host)) "tlsSecret" .ingress.tlsSecret "ingressName" "element-web")) }}
+{{- $elementWebHttps := include "element-io.ess-library.ingress.tlsHostsSecret" (dict "root" $root "context" (dict "hosts" (list .ingress.host) "tlsSecret" .ingress.tlsSecret "ingressName" "element-web")) }}
   http-request redirect  code 301  location http{{ if $elementWebHttps }}s{{ end }}://{{ tpl .ingress.host $root }} unless well-known
 {{- end }}
 {{- else if .baseDomainRedirect.url }}

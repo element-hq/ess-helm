@@ -8,7 +8,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- with required "synapse/synapse-04-homeserver-overrides.yaml.tpl missing context" .context }}
 {{- $isHook := required "element-io.synapse.config.shared-overrides requires context.isHook" .isHook -}}
 public_baseurl: https://{{ tpl .ingress.host $root }}/
-server_name: {{ tpl (required "Synapse requires serverName set" $root.Values.serverName) $root }}
+server_name: {{ tpl $root.Values.serverName $root }}
 signing_key_path: /secrets/{{
   include "element-io.ess-library.init-secret-path" (
     dict "root" $root "context" (
@@ -56,8 +56,6 @@ database:
     host: "{{ $root.Release.Name }}-postgres.{{ $root.Release.Namespace }}.svc.cluster.local"
     port: 5432
     sslmode: prefer
-{{ else }}
-  {{ fail "Synapse requires synapse.postgres.* to be configured, or the internal chart Postgres to be enabled with postgres.enabled: true" }}
 {{ end }}
 
     application_name: ${APPLICATION_NAME}

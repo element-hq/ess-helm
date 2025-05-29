@@ -1,8 +1,19 @@
 {{- /*
-Copyright 2024 New Vector Ltd
+Copyright 2024-2025 New Vector Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
+
+{{- define "element-io.element-web.validations" }}
+{{- $root := .root -}}
+{{- with required "element-io.element-web.validations missing context" .context -}}
+{{ $messages := list }}
+{{- if not .ingress.host -}}
+{{ $messages = append $messages "elementWeb.ingress.host is required when elementWeb.enabled=true" }}
+{{- end }}
+{{ $messages | toJson }}
+{{- end }}
+{{- end }}
 
 {{- define "element-io.element-web.labels" -}}
 {{- $root := .root -}}

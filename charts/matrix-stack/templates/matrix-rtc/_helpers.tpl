@@ -4,6 +4,17 @@ Copyright 2024-2025 New Vector Ltd
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 
+{{- define "element-io.matrix-rtc.validations" }}
+{{- $root := .root -}}
+{{- with required "element-io.matrix-rtc.validations missing context" .context -}}
+{{ $messages := list }}
+{{- if not .ingress.host -}}
+{{ $messages = append $messages "matrixRTC.ingress.host is required when matrixRTC.enabled=true" }}
+{{- end }}
+{{ $messages | toJson }}
+{{- end }}
+{{- end }}
+
 {{- define "element-io.matrix-rtc-ingress.labels" -}}
 {{- $root := .root -}}
 {{- with required "element-io.matrix-rtc.labels missing context" .context -}}
