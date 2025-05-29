@@ -75,3 +75,11 @@ async def test_names_arent_too_long(templates):
             f"{template_id(template)} has a name that's too long. "
             f"Needs to be {len(template['metadata']['name']) - max_length} characters shorter"
         )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_manifests_have_namespaces_correctly_set(templates, namespace):
+    for template in templates:
+        assert "namespace" in template["metadata"], f"{template_id(template)} doesn't specify a namespace"
+        assert template["metadata"]["namespace"] == namespace, f"{template_id(template)} has set the wrong namespace"
