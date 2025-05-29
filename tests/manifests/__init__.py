@@ -490,7 +490,7 @@ all_components_details = [
                 has_topology_spread_constraints=False,
             ),
             SubComponentDetails(
-                name="synapse-check-config-hook",
+                name="synapse-check-config",
                 values_file_path=ValuesFilePath.read_write("synapse", "checkConfigHook"),
                 values_file_path_overrides={
                     PropertyType.Env: ValuesFilePath.read_elsewhere("synapse", "extraEnv"),
