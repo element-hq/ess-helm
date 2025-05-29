@@ -109,7 +109,7 @@ typing
 synapse.app.homeserver
 {{- else if eq . "media-repository" -}}
 synapse.app.media_repository
-{{- else if eq . "check-config-hook" -}}
+{{- else if eq . "check-config" -}}
 synapse.config
 {{- else -}}
 synapse.app.generic_worker

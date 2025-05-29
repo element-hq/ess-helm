@@ -7,12 +7,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- with .Values.synapse -}}
 {{- if and .enabled .checkConfigHook.enabled -}}
 {{- $enabledWorkers := (include "element-io.synapse.enabledWorkers" (dict "root" $)) | fromJson }}
-{{- $processType := "check-config-hook" }}
+{{- $processType := "check-config" }}
 {{- $perProcessRoot := mustMergeOverwrite ($.Values.synapse | deepCopy) (.checkConfigHook | deepCopy) (dict "processType" $processType "isHook" true) }}
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ $.Release.Name }}-synapse-check-config-hook
+  name: {{ $.Release.Name }}-synapse-check-config
   namespace: {{ $.Release.Namespace }}
   annotations:
     "helm.sh/hook": pre-install,pre-upgrade
@@ -27,7 +27,7 @@ Hook Weights are
     {{- toYaml . | nindent 4 }}
 {{- end }}
   labels:
-    {{- include "element-io.synapse-check-config-hook.labels" (dict "root" $ "context" .checkConfigHook) | nindent 4 }}
+    {{- include "element-io.synapse-check-config.labels" (dict "root" $ "context" .checkConfigHook) | nindent 4 }}
     k8s.element.io/synapse-config-hash: "{{ include "element-io.synapse.configmap-data"  (dict "root" $ "context" $perProcessRoot) | sha1sum }}"
     k8s.element.io/synapse-secret-hash: "{{ include "element-io.synapse.secret-data"  (dict "root" $ "context" $perProcessRoot) | sha1sum }}"
 {{- range $index, $appservice := .appservices }}
