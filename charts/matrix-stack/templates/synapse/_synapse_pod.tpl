@@ -14,7 +14,7 @@ template:
   metadata:
     labels:
 {{- if $isHook }}
-      {{- include "element-io.synapse-check-config-hook.labels" (dict "root" $root "context" (dict "labels" .labels "withChartVersion" false)) | nindent 6 }}
+      {{- include "element-io.synapse-check-config.labels" (dict "root" $root "context" (dict "labels" .labels "withChartVersion" false)) | nindent 6 }}
 {{- else }}
       {{- include "element-io.synapse.process.labels" (dict "root" $root "context" (dict "image" .image "labels" .labels "withChartVersion" false "isHook" $isHook "processType" $processType)) | nindent 6 }}
 {{- end }}
@@ -43,8 +43,8 @@ template:
 {{- include "element-io.ess-library.pods.commonSpec"
             (dict "root" $root "context"
                                     (dict "componentValues" .
-                                          "instanceSuffix" ($isHook | ternary "synapse-check-config-hook" (printf "synapse-%s" $processType))
-                                          "serviceAccountNameSuffix" ($isHook | ternary "synapse-check-config-hook" "synapse")
+                                          "instanceSuffix" ($isHook | ternary "synapse-check-config" (printf "synapse-%s" $processType))
+                                          "serviceAccountNameSuffix" ($isHook | ternary "synapse-check-config" "synapse")
                                           "deployment" false
                                           "usesMatrixTools" true)
                                     ) | nindent 4 }}
@@ -65,13 +65,13 @@ We have an init container to render & merge the config for several reasons:
                   "nameSuffix" "synapse"
                   "underrides" (list "01-homeserver-underrides.yaml")
                   "overrides" (list "04-homeserver-overrides.yaml"
-                                    (eq $processType "check-config-hook" | ternary "05-main.yaml" (printf "05-%s.yaml" $processType)))
+                                    (eq $processType "check-config" | ternary "05-main.yaml" (printf "05-%s.yaml" $processType)))
                   "outputFile" "homeserver.yaml"
                   "resources" .resources
                   "containersSecurityContext" .containersSecurityContext
                   "extraEnv" .extraEnv
                   "isHook" $isHook)) | nindent 4 }}
-{{- if ne $processType "check-config-hook" }}
+{{- if not $isHook }}
     - name: db-wait
 {{- with $root.Values.matrixTools.image -}}
 {{- if .digest }}
