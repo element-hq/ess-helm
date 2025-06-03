@@ -248,7 +248,7 @@ path_map_file_get: |
                   "containerName" (.containerName | default "render-config")
                   "underrides" (list "01-homeserver-underrides.yaml")
                   "overrides" (list "04-homeserver-overrides.yaml"
-                                    (eq $processType "check-config-hook" | ternary "05-main.yaml" (printf "05-%s.yaml" $processType)))
+                                    (eq $processType "check-config" | ternary "05-main.yaml" (printf "05-%s.yaml" $processType)))
                   "outputFile" "homeserver.yaml"
                   "resources" .resources
                   "containersSecurityContext" .containersSecurityContext
