@@ -1,0 +1,35 @@
+{{- /*
+Copyright 2025 New Vector Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/}}
+
+ESS Community {{ $.Release.Version }}
+
+You are using ESS Community which is tailored to small-/mid-scale, non-commercial community use cases.
+If you're looking for a professional Matrix backend that is designed to support enterprise requirements and certifications,
+take a look at ESS Pro https://element.io/server-suite.
+
+ESS Pro provides Long-Term Support releases, automatic scaling (horizontal and vertical) of Synapse Workers, Advanced Identity Management
+to manage users and spaces permissions, and more.
+
+Feel free to join our matrix room to discuss at #ess-community:element.io.
+
+{{ if $.Values.matrixAuthenticationService.enabled }}
+To create your first user, please run the following command:
+
+kubectl exec -n ess -it deploy/ess-matrix-authentication-service -- mas-cli manage register-user
+{{- end }}
+
+{{ if and $.Values.elementWeb.enabled $.Values.elementWeb.ingress.host }}
+Your chat client is available at: https://{{ $.Values.elementWeb.ingress.host }}
+{{- end }}
+
+{{ if and $.Values.matrixAuthenticationService.enabled $.Values.matrixAuthenticationService.ingress.host }}
+You can manage your account at : https://{{ $.Values.matrixAuthenticationService.ingress.host }}
+{{ end }}
+
+{{ if $.Values.wellKnownDelegation.enabled }}
+To successfully federate, make sure that the Well-Known Delegation works properly using
+matrix-federation-tester: https://federationtester.matrix.org/#{{ $.Values.serverName }}
+{{- end }}
