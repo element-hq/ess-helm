@@ -81,9 +81,6 @@ jobs:
 
 
     - uses: azure/setup-helm@b9e51907a09c216f16ebe8536097933489208112  # v4.3.0
-      # Until https://github.com/helm/helm/issues/30878 / https://github.com/helm/helm/issues/30880 are fixed
-      with:
-        version: 3.17.3
 
     - name: Test with pytest
       run: |
