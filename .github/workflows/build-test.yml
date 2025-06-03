@@ -169,10 +169,8 @@ jobs:
             continue
           fi
 
-          templates_files=$(find "$RUNNER_TEMP/old/$values_dir" "$RUNNER_TEMP/new/$values_dir" -maxdepth 1 -name '*.yaml' | sed -E 's|'"$RUNNER_TEMP"'/(old\|new)/||' | sort | uniq)
-          if [ "$templates_files" != "" ]; then
-              comment_body+="<details><summary><b>$values_dir.yaml</b></summary>\n"
-          fi
+          templates_files=$(find "$RUNNER_TEMP/old" "$RUNNER_TEMP/new" -maxdepth 2 -name '*.yaml' | grep "$values_dir" | sed -E 's|'"$RUNNER_TEMP"'/(old\|new)/||' | sort | uniq)
+          comment_templates_body=""
 
           while read -r templates_file; do
             current_file="$(basename "$templates_file")"
@@ -182,15 +180,15 @@ jobs:
 
             if [ ! -f "$RUNNER_TEMP/old/$templates_file" ]; then
               file_content=$(sed -e 's/^/+ /' < "$RUNNER_TEMP/new/$templates_file")
-              comment_body+="<details><summary>$current_file (added)</summary>\n"
-              comment_body+='\n```diff\n'
-              comment_body+=$file_content
-              comment_body+='\n```\n</details>\n\n'
+              comment_templates_body+="<details><summary>$current_file (added)</summary>\n"
+              comment_templates_body+='\n```diff\n'
+              comment_templates_body+=$file_content
+              comment_templates_body+='\n```\n</details>\n\n'
               continue
             fi
 
             if [ ! -f "$RUNNER_TEMP/new/$templates_file" ]; then
-              comment_body+="**$current_file** (removed)\n\n"
+              comment_templates_body+="**$current_file** (removed)\n\n"
               continue
             fi
 
@@ -201,14 +199,16 @@ jobs:
                 echo "failed with file $templates_file"
                 exit 1
               fi
-              comment_body+="<details><summary>$current_file (changed)</summary>\n"
-              comment_body+='\n```diff\n'
-              comment_body+=$dyff_detail
-              comment_body+='\n```\n</details>\n\n'
+              comment_templates_body+="<details><summary>$current_file (changed)</summary>\n"
+              comment_templates_body+='\n```diff\n'
+              comment_templates_body+=$dyff_detail
+              comment_templates_body+='\n```\n</details>\n\n'
             fi
           done <<< "$templates_files"
 
-          if [ "$templates_files" != "" ]; then
+          if [[ -n "$comment_templates_body" ]]; then
+              comment_body+="<details><summary><b>$values_dir.yaml</b></summary>\n"
+              comment_body+="$comment_templates_body"
               comment_body+="---\n</details>\n"
           fi
 
