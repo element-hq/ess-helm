@@ -50,6 +50,8 @@ async def test_volumes_mounts_exists(release_name, templates, other_secrets):
                         "haproxy-config",
                         "nginx-config",
                         "plain-config",
+                        "plain-syn-config",
+                        "plain-mas-config",
                         "synapse-haproxy",
                         "well-known-haproxy",
                     ], f"{template_id(template)} contains a ConfigMap mounted with an unexpected name: {volume['name']}"

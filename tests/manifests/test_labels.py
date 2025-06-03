@@ -132,7 +132,7 @@ async def test_our_labels_are_named_consistently(templates):
             )
 
 
-@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_workloads_selector_matches_labels(templates):
     for template in templates:
