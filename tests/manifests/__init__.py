@@ -487,7 +487,7 @@ all_components_details = [
         sub_components=(
             SubComponentDetails(
                 name="matrix-authentication-service-syn2mas",
-                helm_keys=("matrixAuthenticationService", "syn2mas"),
+                values_file_path=ValuesFilePath.read_write("matrixAuthenticationService", "syn2mas"),
                 paths_consistency_noqa=(
                     "/conf/log_config.yaml",
                     "/media_store",
@@ -495,13 +495,13 @@ all_components_details = [
                     "/as/0/bridge_registration.yaml",
                     "/usr/local/bin/mas-cli",
                 ),
-                helm_keys_overrides={
+                values_file_path_overrides={
                     # Job so no livenessProbe
-                    PropertyType.LivenessProbe: None,
+                    PropertyType.LivenessProbe: ValuesFilePath.not_supported(),
                     # Job so no readinessProbe
-                    PropertyType.ReadinessProbe: None,
+                    PropertyType.ReadinessProbe: ValuesFilePath.not_supported(),
                     # Job so no startupProbe
-                    PropertyType.StartupProbe: None,
+                    PropertyType.StartupProbe: ValuesFilePath.not_supported(),
                 },
                 has_ingress=False,
                 has_replicas=False,
