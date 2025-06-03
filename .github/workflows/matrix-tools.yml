@@ -94,7 +94,7 @@ jobs:
           org.opencontainers.image.licenses=AGPL-3.0-only
 
     - name: Build and Push Image
-      uses: docker/bake-action@212c36739681a6271d58dcfe0d001d2ad13f8e75  # v6
+      uses: docker/bake-action@37816e747588cb137173af99ab33873600c46ea8  # v6
       with:
         push: ${{ github.ref_type == 'tag' }}
         files: |
