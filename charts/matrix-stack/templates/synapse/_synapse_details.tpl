@@ -346,13 +346,7 @@ responsibleForMedia
 ) }}
 {{- end }}
 
-{{- /* Route these paths to the initial-synchrotron is available otherwise use the standard synchrotron if we have it */}}
-{{- if or (eq .workerType "initial-synchrotron") (and (eq .workerType "synchrotron") (not (has "initial-synchrotron" .enabledWorkerTypes))) }}
-{{ $workerPaths = concat $workerPaths (list
-  "^/_matrix/client/(api/v1|r0|v3)/initialSync$"
-  "^/_matrix/client/(api/v1|r0|v3)/rooms/[^/]+/initialSync$"
-) }}
-{{- end }}
+{{- /* initial-synchrotron routing is done in configs/synapse/partial-haproxy.cfg.tpl so that it can fallback -> synchrotron -> main */}}
 
 {{- if eq .workerType "media-repository" }}
 {{ $workerPaths = concat $workerPaths (list
@@ -421,6 +415,8 @@ responsibleForMedia
 {{ $workerPaths = concat $workerPaths (list
   "^/_matrix/client/(r0|v3)/sync$"
   "^/_matrix/client/(api/v1|r0|v3)/events$"
+  "^/_matrix/client/(api/v1|r0|v3)/initialSync$"
+  "^/_matrix/client/(api/v1|r0|v3)/rooms/[^/]+/initialSync$"
 ) }}
 {{- end }}
 
