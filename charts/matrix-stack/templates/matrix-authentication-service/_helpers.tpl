@@ -304,12 +304,13 @@ config.yaml: |
         dict "additionalPath" "matrixAuthenticationService.additional"
               "nameSuffix" "matrix-authentication-service"
               "containerName" (.containerName | default "render-config")
+              "templatesVolume" (.templatesVolume | default "plain-config")
               "overrides" (list "config.yaml")
               "outputFile" "config.yaml"
               "resources" .resources
               "containersSecurityContext" .containersSecurityContext
               "extraEnv" .extraEnv
-              "isHook" false)) }}
+              "isHook" .isHook)) }}
 {{- end }}
 {{- end }}
 
@@ -337,3 +338,16 @@ config.yaml: |
 true
 {{- end -}}
 {{- end -}}
+
+
+
+{{- define "element-io.matrix-authentication-service-syn2mas.configSecrets" -}}
+{{- $root := .root -}}
+{{- with required "element-io..matrix-authentication-service.syn2mas.configSecrets missing context" .context -}}
+{{- $masSecrets := include "element-io.matrix-authentication-service.configSecrets" (dict "root" $root "context" .masContext) | fromJsonArray }}
+{{- $synapseSecrets := include "element-io.synapse.configSecrets" (dict "root" $root "context" .synapseContext) | fromJsonArray }}
+{{- $syn2masSecrets := concat $masSecrets $synapseSecrets | uniq | sortAlpha }}
+{{- $syn2masSecrets | toJson -}}
+{{- end -}}
+{{- end -}}
+

@@ -8,8 +8,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- if and .enabled .syn2mas.enabled $.Values.synapse.enabled -}}
 {{/* dryRun mode runs as a post-upgrade hook, and can use the existing configmaps and secrets */}}
 {{- $isHook := (not .syn2mas.dryRun) -}}
-{{- $synapseContext := (mustMergeOverwrite ($.Values.synapse | deepCopy) (dict "processType" "main" "isHook" $isHook)) -}}
-{{- $masContext := (mustMergeOverwrite ($.Values.matrixAuthenticationService | deepCopy) (dict "isHook" $isHook)) -}}
+{{- $synapseContext := (mustMergeOverwrite ($.Values.synapse | deepCopy) (dict "templatesVolume" "plain-syn-config" "containerName" "render-config-syn" "processType" "main" "isHook" $isHook)) -}}
+{{- $masContext := (mustMergeOverwrite ($.Values.matrixAuthenticationService | deepCopy) (dict "templatesVolume" "plain-mas-config" "containerName" "render-config-mas" "isHook" $isHook)) -}}
 {{- with (mustMergeOverwrite ($.Values.matrixAuthenticationService.syn2mas | deepCopy) (dict "isHook" $isHook)) -}}
 apiVersion: batch/v1
 kind: Job
@@ -179,9 +179,11 @@ spec:
           name: rendered-config
           readOnly: true
 {{- range $secret := include "element-io.matrix-authentication-service.syn2masConfigSecrets" (dict "root" $ "context" (dict "synapseContext" $synapseContext "masContext" $masContext)) | fromJsonArray }}
-        - mountPath: /secrets/{{ tpl $secret $ }}
-          name: "secret-{{ tpl $secret $ }}"
+{{- with (tpl $secret $) }}
+        - mountPath: /secrets/{{ . }}
+          name: "secret-{{ . | sha256sum | trunc 12 }}"
           readOnly: true
+{{- end }}
 {{- end }}
       containers:
       - name: syn2mas-migrate
@@ -230,9 +232,11 @@ spec:
           name: tmp-mas-cli
           readOnly: true
 {{- range $secret := include "element-io.matrix-authentication-service.syn2masConfigSecrets" (dict "root" $ "context" (dict "synapseContext" $synapseContext "masContext" $masContext)) | fromJsonArray }}
-        - mountPath: /secrets/{{ tpl $secret $ }}
-          name: "secret-{{ tpl $secret $ }}"
+{{- with (tpl $secret $) }}
+        - mountPath: /secrets/{{ . }}
+          name: "secret-{{ . | sha256sum | trunc 12 }}"
           readOnly: true
+{{- end }}
 {{- end }}
       volumes:
       - name: plain-syn-config
@@ -242,10 +246,12 @@ spec:
       - name: plain-mas-config
         configMap:
           name: {{ include "element-io.matrix-authentication-service.configmap-name" (dict "root" $ "context" (dict "isHook" $isHook)) }}
-{{- range $secret := include "element-io.matrix-authentication-service.syn2masConfigSecrets" (dict "root" $ "context" (dict "synapseContext" $synapseContext "masContext" $masContext)) | fromJsonArray }}
+{{- range $_, $secret := include "element-io.matrix-authentication-service.syn2masConfigSecrets" (dict "root" $ "context" (dict "synapseContext" $synapseContext "masContext" $masContext)) | fromJsonArray }}
+{{- with tpl $secret $ }}
       - secret:
-          secretName: {{ tpl $secret $ }}
-        name: secret-{{ tpl $secret $ }}
+          secretName: {{ . }}
+        name: "secret-{{ . | sha256sum | trunc 12 }}"
+{{- end }}
 {{- end }}
       - emptyDir:
           medium: Memory

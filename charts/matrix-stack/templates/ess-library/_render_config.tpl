@@ -10,6 +10,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $context := . -}}
 {{- $nameSuffix := required "element-io.ess-library.render-config-container missing context.nameSuffix" .nameSuffix -}}
 {{- $containerName := (.containerName | default "render-config") -}}
+{{- $templatesVolume := (.templatesVolume | default "plain-config") -}}
 {{- $additionalPath := .additionalPath -}}
 {{- $additionalProperty := dict -}}
 {{- if $additionalPath }}
@@ -61,7 +62,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- end }}
   volumeMounts:
   - mountPath: /config-templates
-    name: plain-config
+    name: {{ $templatesVolume }}
     readOnly: true
 {{- range $secret := include (printf "element-io.%s.configSecrets" $nameSuffix) (dict "root" $root "context" .) | fromJsonArray }}
 {{- with (tpl $secret $root) }}

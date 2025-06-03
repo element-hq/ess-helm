@@ -246,6 +246,7 @@ path_map_file_get: |
             (dict "additionalPath" "synapse.additional"
                   "nameSuffix" "synapse"
                   "containerName" (.containerName | default "render-config")
+                  "templatesVolume" (.templatesVolume | default "plain-config")
                   "underrides" (list "01-homeserver-underrides.yaml")
                   "overrides" (list "04-homeserver-overrides.yaml"
                                     (eq $processType "check-config" | ternary "05-main.yaml" (printf "05-%s.yaml" $processType)))
