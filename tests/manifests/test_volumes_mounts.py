@@ -37,7 +37,7 @@ async def test_volumes_mounts_exists(release_name, templates, other_secrets):
                         f"Volume {volume['secret']['secretName']} not found in Secret names:"
                         f"{secrets_names} for {template_id(template)}"
                     )
-                    assert re.match(r"^((as)-\d+|(secret)-[a-z0-9]{12}|secret-generated)$", volume["name"]), (
+                    assert re.match(r"^((as)-\d+|(secret)-[a-f0-9]{12}|secret-generated)$", volume["name"]), (
                         f"{template_id(template)} contains a Secret mounted with an unexpected name: {volume['name']}"
                     )
                 if "configMap" in volume:
