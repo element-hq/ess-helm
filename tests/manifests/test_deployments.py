@@ -1,0 +1,68 @@
+# Copyright 2025 New Vector Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+import pytest
+
+from . import DeployableDetails, PropertyType, ValuesFilePath, values_files_to_test
+from .utils import iterate_deployables_workload_parts, template_id, template_to_deployable_details
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_all_deployments_set_replicas(values, make_templates):
+    deployments = []
+    for template in await make_templates(values):
+        if template["kind"] == "Deployment":
+            deployments.append(template)
+
+    for deployment in deployments:
+        id = deployment["metadata"]["name"]
+        assert "replicas" in deployment["spec"], f"{id} does not specify replicas"
+
+
+def set_replicas_details(values):
+    # We have a counter that increments for each replicas field for each deployable details
+    # That way we can assert a) the correct value is going into the correct field and
+    # b) that the correct part of the values file is being used
+    counter = 100
+
+    def set_replicas_details(deployable_details: DeployableDetails):
+        nonlocal counter
+        counter += 1
+        deployable_details.set_helm_values(values, PropertyType.Replicas, counter)
+
+    iterate_deployables_workload_parts(set_replicas_details)
+
+
+def assert_matching_replicas(template, values):
+    deployable_details = template_to_deployable_details(template)
+    replicas = template["spec"]["replicas"]
+    max_unavailable = template["spec"]["strategy"]["rollingUpdate"]["maxUnavailable"]
+    if (
+        not deployable_details.values_file_path_overrides
+        or deployable_details.values_file_path_overrides
+        and deployable_details.values_file_path_overrides[PropertyType.Replicas] != ValuesFilePath.not_supported()
+    ):
+        value = deployable_details.get_helm_values(values, PropertyType.Replicas)
+        assert value == replicas, f"{template_id(template)} has replicas {replicas} where {replicas} != {value}"
+        assert max_unavailable == 1, (
+            f"{template_id(template)} has maxUnavailable {max_unavailable} where {max_unavailable} != 1"
+        )
+    else:
+        assert replicas == 1, (
+            f"{template_id(template)} has replicas {replicas} "
+            f"when replicas should not be settable present when it should be absent"
+        )
+        assert max_unavailable == 0, (
+            f"{template_id(template)} has maxUnavailable {max_unavailable} where {max_unavailable} != 0"
+        )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_all_deployments_can_set_replicas(values, make_templates):
+    set_replicas_details(values)
+    for template in await make_templates(values):
+        if template["kind"] in ["Deployment"]:
+            assert_matching_replicas(template, values)

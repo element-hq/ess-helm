@@ -17,6 +17,7 @@ class PropertyType(Enum):
     LivenessProbe = "livenessProbe"
     PodSecurityContext = "podSecurityContext"
     Postgres = "postgres"
+    Replicas = "replicas"
     ReadinessProbe = "readinessProbe"
     Resources = "resources"
     StartupProbe = "startupProbe"
@@ -207,6 +208,7 @@ class SidecarDetails(DeployableDetails):
             PropertyType.ServiceAccount: ValuesFilePath.not_supported(),
             PropertyType.Tolerations: ValuesFilePath.not_supported(),
             PropertyType.TopologySpreadConstraints: ValuesFilePath.not_supported(),
+            PropertyType.Replicas: ValuesFilePath.not_supported(),
         }
         if self.values_file_path_overrides is None:
             self.values_file_path_overrides = {}
@@ -321,7 +323,7 @@ class ComponentDetails(DeployableDetails):
         return self
 
 
-def make_synapse_worker_sub_component(worker_name: str) -> SubComponentDetails:
+def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> SubComponentDetails:
     values_file_path_overrides: dict[PropertyType, ValuesFilePath] = {
         PropertyType.Env: ValuesFilePath.read_elsewhere("synapse", "extraEnv"),
         PropertyType.Image: ValuesFilePath.read_elsewhere("synapse", "image"),
@@ -333,6 +335,9 @@ def make_synapse_worker_sub_component(worker_name: str) -> SubComponentDetails:
         PropertyType.TopologySpreadConstraints: ValuesFilePath.read_elsewhere("synapse", "topologySpreadConstraints"),
     }
 
+    if worker_type == "single":
+        values_file_path_overrides[PropertyType.Replicas] = ValuesFilePath.not_supported()
+
     return SubComponentDetails(
         f"synapse-{worker_name}",
         values_file_path=ValuesFilePath.read_write("synapse", "workers", worker_name),
@@ -343,29 +348,29 @@ def make_synapse_worker_sub_component(worker_name: str) -> SubComponentDetails:
 
 
 synapse_workers_details = tuple(
-    make_synapse_worker_sub_component(worker_name)
-    for worker_name in [
-        "appservice",
-        "background",
-        "client-reader",
-        "encryption",
-        "event-creator",
-        "event-persister",
-        "federation-inbound",
-        "federation-reader",
-        "federation-sender",
-        "initial-synchrotron",
-        "media-repository",
-        "presence-writer",
-        "push-rules",
-        "pusher",
-        "receipts-account",
-        "sliding-sync",
-        "sso-login",
-        "synchrotron",
-        "typing-persister",
-        "user-dir",
-    ]
+    make_synapse_worker_sub_component(worker_name, worker_type)
+    for worker_name, worker_type in {
+        "appservice": "single",
+        "background": "single",
+        "client-reader": "scalable",
+        "encryption": "single",
+        "event-creator": "scalable",
+        "event-persister": "scalable",
+        "federation-inbound": "scalable",
+        "federation-reader": "scalable",
+        "federation-sender": "scalable",
+        "initial-synchrotron": "scalable",
+        "media-repository": "single",
+        "presence-writer": "single",
+        "push-rules": "single",
+        "pusher": "scalable",
+        "receipts-account": "single",
+        "sliding-sync": "scalable",
+        "sso-login": "single",
+        "synchrotron": "scalable",
+        "typing-persister": "single",
+        "user-dir": "single",
+    }.items()
 )
 
 
@@ -380,6 +385,8 @@ all_components_details = [
             PropertyType.ReadinessProbe: ValuesFilePath.not_supported(),
             # Job so no startupProbe
             PropertyType.StartupProbe: ValuesFilePath.not_supported(),
+            # Job so no replicas
+            PropertyType.Replicas: ValuesFilePath.not_supported(),
         },
         has_image=False,
         has_ingress=False,
@@ -391,6 +398,8 @@ all_components_details = [
         name="init-secrets",
         values_file_path=ValuesFilePath.read_write("initSecrets"),
         values_file_path_overrides={
+            # Job so no replicas
+            PropertyType.Replicas: ValuesFilePath.not_supported(),
             # Job so no livenessProbe
             PropertyType.LivenessProbe: ValuesFilePath.not_supported(),
             # Job so no readinessProbe
@@ -426,6 +435,10 @@ all_components_details = [
                 has_service_monitor=False,
             ),
         ),
+        values_file_path_overrides={
+            # StatefulSet without replicas
+            PropertyType.Replicas: ValuesFilePath.not_supported(),
+        },
         paths_consistency_noqa=("/docker-entrypoint-initdb.d/init-ess-dbs.sh",),
         is_shared_component=True,
     ),
@@ -439,6 +452,10 @@ all_components_details = [
                 values_file_path=ValuesFilePath.read_write("matrixRTC", "sfu"),
                 has_topology_spread_constraints=False,
                 has_ingress=False,
+                values_file_path_overrides={
+                    # Deployment which do not support replicas
+                    PropertyType.Replicas: ValuesFilePath.not_supported(),
+                },
             ),
         ),
         shared_component_names=("init-secrets",),
@@ -480,6 +497,10 @@ all_components_details = [
         is_synapse_process=True,
         additional_values_files=("synapse-worker-example-values.yaml",),
         skip_path_consistency_for_files=("path_map_file", "path_map_file_get"),
+        values_file_path_overrides={
+            # StatefulSet which do not support replicas
+            PropertyType.Replicas: ValuesFilePath.not_supported(),
+        },
         sub_components=synapse_workers_details
         + (
             SubComponentDetails(
@@ -488,6 +509,10 @@ all_components_details = [
                 has_ingress=False,
                 has_service_monitor=False,
                 has_topology_spread_constraints=False,
+                values_file_path_overrides={
+                    # Deployment which do not support replicas
+                    PropertyType.Replicas: ValuesFilePath.not_supported(),
+                },
             ),
             SubComponentDetails(
                 name="synapse-check-config",
@@ -498,6 +523,8 @@ all_components_details = [
                     # Job so no livenessProbe
                     PropertyType.LivenessProbe: ValuesFilePath.not_supported(),
                     PropertyType.PodSecurityContext: ValuesFilePath.read_elsewhere("synapse", "podSecurityContext"),
+                    # Job so no replicas
+                    PropertyType.Replicas: ValuesFilePath.not_supported(),
                     PropertyType.Resources: ValuesFilePath.read_elsewhere("synapse", "resources"),
                     # Job so no readinessProbe
                     PropertyType.ReadinessProbe: ValuesFilePath.not_supported(),
