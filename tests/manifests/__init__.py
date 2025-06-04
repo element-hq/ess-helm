@@ -95,7 +95,7 @@ class DeployableDetails(abc.ABC):
     has_image: bool = field(default=None, hash=False)  # type: ignore[assignment]
     has_ingress: bool = field(default=True, hash=False)
     has_workloads: bool = field(default=True, hash=False)
-    has_replicas: bool = field(default=None, hash=False)
+    has_replicas: bool = field(default=None, hash=False)  # type: ignore[assignment]
     has_service_monitor: bool = field(default=None, hash=False)  # type: ignore[assignment]
     has_storage: bool = field(default=False, hash=False)
     has_topology_spread_constraints: bool = field(default=None, hash=False)  # type: ignore[assignment]
