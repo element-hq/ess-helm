@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-import os
 
 import pyhelm3
 import pytest
@@ -10,6 +9,7 @@ from lightkube import AsyncClient
 from lightkube.resources.core_v1 import ConfigMap
 
 from .fixtures import ESSData
+from .lib.helpers import deploy_with_values_patch
 from .lib.utils import aiohttp_post_json, value_file_has
 from .test_matrix_authentication_service import test_matrix_authentication_service_graphql_endpoint
 
@@ -36,21 +36,10 @@ async def test_run_syn2mas_upgrade(
     assert configmap.data.get("MATRIX_STACK_MSC3861") == "legacy_auth"
 
     # After the base chart is setup, we enable MAS to run the syn2mas dry run job
-    revision = await helm_client.get_current_revision(
-        generated_data.release_name, namespace=generated_data.ess_namespace
+    revision, error = await deploy_with_values_patch(
+        generated_data, helm_client, {"matrixAuthenticationService": {"enabled": True}}
     )
-    values = await revision.values()
-    values["matrixAuthenticationService"]["enabled"] = True
-    chart = await helm_client.get_chart("charts/matrix-stack")
-    # Install or upgrade a release
-    revision = await helm_client.install_or_upgrade_release(
-        generated_data.release_name,
-        chart,
-        values,
-        namespace=generated_data.ess_namespace,
-        atomic="CI" not in os.environ,
-        wait=True,
-    )
+    assert error is None
     assert revision.status == pyhelm3.ReleaseRevisionStatus.DEPLOYED
     # We should still be able to reach synapse ingress
     await ingress_ready("synapse")
@@ -63,22 +52,11 @@ async def test_run_syn2mas_upgrade(
     )
     assert configmap.data.get("MATRIX_STACK_MSC3861") == "legacy_auth"
 
-    # We then run the migration
-    revision = await helm_client.get_current_revision(
-        generated_data.release_name, namespace=generated_data.ess_namespace
+    # After the base chart is setup, we enable MAS to run the syn2mas actual migration
+    revision, error = await deploy_with_values_patch(
+        generated_data, helm_client, {"matrixAuthenticationService": {"syn2mas": {"dryRun": False}}}
     )
-    values = await revision.values()
-    values["matrixAuthenticationService"]["syn2mas"]["dryRun"] = False
-    chart = await helm_client.get_chart("charts/matrix-stack")
-    # Install or upgrade a release
-    revision = await helm_client.install_or_upgrade_release(
-        generated_data.release_name,
-        chart,
-        values,
-        namespace=generated_data.ess_namespace,
-        atomic="CI" not in os.environ,
-        wait=True,
-    )
+    assert error is None
     assert revision.status == pyhelm3.ReleaseRevisionStatus.DEPLOYED
 
     # Syn2Mas is running in migrate mode, so the state must have changed
@@ -102,22 +80,8 @@ async def test_run_syn2mas_upgrade(
     )
 
     assert "pos" in sync_result
-
-    # We then disable syn2mas to complete the migration
-    revision = await helm_client.get_current_revision(
-        generated_data.release_name, namespace=generated_data.ess_namespace
-    )
-    values = await revision.values()
-    values["matrixAuthenticationService"]["syn2mas"]["enabled"] = False
-    chart = await helm_client.get_chart("charts/matrix-stack")
-    # Install or upgrade a release
-    revision = await helm_client.install_or_upgrade_release(
-        generated_data.release_name,
-        chart,
-        values,
-        namespace=generated_data.ess_namespace,
-        atomic="CI" not in os.environ,
-        wait=True,
+    revision, error = await deploy_with_values_patch(
+        generated_data, helm_client, {"matrixAuthenticationService": {"syn2mas": {"enabled": False}}}
     )
     assert error is None
     assert revision.status == pyhelm3.ReleaseRevisionStatus.DEPLOYED
@@ -134,3 +98,11 @@ async def test_run_syn2mas_upgrade(
         name=f"{generated_data.release_name}-markers",
     )
     assert configmap.data.get("MATRIX_STACK_MSC3861") == "delegated_auth"
+    revision = await deploy_with_values_patch(
+        generated_data, helm_client, {"matrixAuthenticationService": {"syn2mas": {"enabled": True}}}
+    )
+    assert error is not None
+    assert revision.status == pyhelm3.ReleaseRevisionStatus.FAILED
+    assert "pre-upgrade hooks failed" in revision.description
+    # Assert that MAS still works
+    await test_matrix_authentication_service_graphql_endpoint(ingress_ready, generated_data, ssl_context)

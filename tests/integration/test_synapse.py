@@ -10,6 +10,7 @@ import pytest
 from lightkube.resources.core_v1 import ConfigMap
 
 from .fixtures import ESSData
+from .lib.helpers import deploy_with_values_patch
 from .lib.synapse import assert_downloaded_content, download_media, upload_media
 from .lib.utils import KubeCtl, aiohttp_client, aiohttp_get_json, aiohttp_post_json, value_file_has
 
@@ -129,29 +130,13 @@ async def test_synapse_service_marker_legacy_auth(
         name=f"{generated_data.release_name}-markers",
     )
     assert configmap.data.get("MATRIX_STACK_MSC3861") == "legacy_auth"
-    revision = await helm_client.get_current_revision(
-        generated_data.release_name, namespace=generated_data.ess_namespace
+    revision = await deploy_with_values_patch(
+        generated_data,
+        helm_client,
+        {"matrixAuthenticationService": {"enabled": True, "ingress": {"host": "account.{{ $.Values.serverName }}"}}},
+        timeout="15s",
     )
-    values = await revision.values()
-    values.setdefault("matrixAuthenticationService", {})["enabled"] = True
-    values.setdefault("matrixAuthenticationService", {}).setdefault("ingress", {})["host"] = (
-        "account.{{ $.Values.serverName }}"
-    )
-    chart = await helm_client.get_chart("charts/matrix-stack")
-    with pytest.raises(pyhelm3.errors.Error):
-        # Install or upgrade a release
-        await helm_client.install_or_upgrade_release(
-            generated_data.release_name,
-            chart,
-            values,
-            namespace=generated_data.ess_namespace,
-            atomic=False,
-            timeout="15s",
-            wait=True,
-        )
-    revision = await helm_client.get_current_revision(
-        generated_data.release_name, namespace=generated_data.ess_namespace
-    )
+    assert error is not None
     assert revision.status == pyhelm3.ReleaseRevisionStatus.FAILED
     assert "pre-upgrade hooks failed" in revision.description
     # Assert that MAS is not enabled
