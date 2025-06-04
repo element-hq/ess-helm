@@ -4,11 +4,11 @@
 
 import pytest
 
-from . import workloads_values_files_to_test
+from . import values_files_to_test
 from .utils import template_id
 
 
-@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_unique_ports_in_containers(templates):
     for template in templates:
@@ -19,7 +19,7 @@ async def test_unique_ports_in_containers(templates):
             assert len(ports) == len(set(ports)), f"Ports are not unique: {template_id(template)}, {ports}"
 
 
-@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_ports_in_containers_are_named(templates):
     for template in templates:
@@ -36,7 +36,7 @@ async def test_ports_in_containers_are_named(templates):
             )
 
 
-@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_no_ports_in_jobs(templates):
     for template in templates:

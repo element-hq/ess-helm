@@ -45,18 +45,35 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" $
 {{- /* We allow deploying of Synapse without Matrix Authentication Service, only
    * if it was initialized as legacy_auth. This effectively prevents enabling Matrix Authentication Service
    * until Synapse 2 Matrix Authentication Service has been run.
+   * We can run with Matrix Authentication Service enabled if we are running syn2mas.
+   * We stay in legacy_auth mode after the dryRun mode has been completed.
    **/}}
 {{- if and $root.Values.synapse.enabled
-          (not $root.Values.matrixAuthenticationService.enabled) }}
+           (or (not $root.Values.matrixAuthenticationService.enabled)
+              (and $root.Values.matrixAuthenticationService.enabled
+                    $root.Values.matrixAuthenticationService.syn2mas.enabled
+                    $root.Values.matrixAuthenticationService.syn2mas.dryRun)) }}
 - {{ (printf "%s-markers" $root.Release.Name) }}:MATRIX_STACK_MSC3861:legacy_auth:legacy_auth
 {{- end }}
+
+{{- /* We allow migrating from legacy_auth to syn2mas_migrated, if we are running syn2mas in migrate mode.
+  **/}}
+{{- if and $root.Values.synapse.enabled
+          $root.Values.matrixAuthenticationService.enabled
+          $root.Values.matrixAuthenticationService.syn2mas.enabled
+          (not $root.Values.matrixAuthenticationService.syn2mas.dryRun) }}
+- {{ (printf "%s-markers" $root.Release.Name) }}:MATRIX_STACK_MSC3861:syn2mas_migrated:legacy_auth;syn2mas_migrated
+{{- end }}
+
 {{- /* We allow deploying of Synapse with Matrix Authentication Service, only
-   * if it was initialized as delegated_auth. This effectively prevents disabling Matrix Authentication Service
+   * if it was initialized as delegated_auth, or if syn2mas was just ran and migration was completed.
+   * This effectively prevents disabling Matrix Authentication Service
    * once it has been enabled.
   **/}}
 {{- if and $root.Values.synapse.enabled
-          ($root.Values.matrixAuthenticationService.enabled) }}
-- {{ (printf "%s-markers" $root.Release.Name) }}:MATRIX_STACK_MSC3861:delegated_auth:delegated_auth
+           $root.Values.matrixAuthenticationService.enabled
+           (not $root.Values.matrixAuthenticationService.syn2mas.enabled) }}
+- {{ (printf "%s-markers" $root.Release.Name) }}:MATRIX_STACK_MSC3861:delegated_auth:delegated_auth;syn2mas_migrated
 {{- end }}
 {{- end }}
 

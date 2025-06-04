@@ -4,11 +4,11 @@
 
 import pytest
 
-from . import PropertyType, workloads_values_files_to_test
+from . import PropertyType, values_files_to_test
 from .utils import iterate_deployables_parts, template_id
 
 
-@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_sets_global_pull_secrets(values, make_templates):
     values["imagePullSecrets"] = [
@@ -25,7 +25,7 @@ async def test_sets_global_pull_secrets(values, make_templates):
             )
 
 
-@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_local_pull_secrets(values, base_values, make_templates):
     values["imagePullSecrets"] = [

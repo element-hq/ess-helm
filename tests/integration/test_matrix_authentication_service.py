@@ -11,7 +11,7 @@ from .lib.utils import aiohttp_post_json, value_file_has
 
 
 @pytest.mark.skipif(value_file_has("matrixAuthenticationService.enabled", False), reason="MAS not deployed")
-@pytest.mark.skipif(value_file_has("matrixAuthenticationService.syn2mas.enabled", False), reason="Syn2Mas not deployed")
+@pytest.mark.skipif(value_file_has("matrixAuthenticationService.syn2mas.enabled", True), reason="Syn2Mas is being run")
 @pytest.mark.asyncio_cooperative
 async def test_matrix_authentication_service_graphql_endpoint(ingress_ready, generated_data: ESSData, ssl_context):
     await ingress_ready("matrix-authentication-service")
@@ -28,6 +28,7 @@ async def test_matrix_authentication_service_graphql_endpoint(ingress_ready, gen
 
 
 @pytest.mark.skipif(value_file_has("matrixAuthenticationService.enabled", False), reason="MAS not deployed")
+@pytest.mark.skipif(value_file_has("matrixAuthenticationService.syn2mas.enabled", True), reason="Syn2Mas is being run")
 @pytest.mark.asyncio_cooperative
 async def test_matrix_authentication_service_marker_delegated_auth(
     kube_client, helm_client: pyhelm3.Client, ingress_ready, generated_data: ESSData, ssl_context

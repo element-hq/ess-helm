@@ -7,11 +7,11 @@ from hashlib import sha1
 
 import pytest
 
-from . import PropertyType, secret_values_files_to_test, workloads_values_files_to_test
+from . import PropertyType, secret_values_files_to_test, values_files_to_test
 from .utils import template_id, template_to_deployable_details
 
 
-@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_templates_have_expected_labels(release_name, templates):
     expected_labels = [
@@ -91,7 +91,7 @@ async def test_templates_have_postgres_hash_label(release_name, templates, value
             ), f"{id} has incorrect postgres password hash, expect {expected} hashed as sha1"
 
 
-@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_pod_spec_labels_are_consistent_with_parent_labels(templates):
     for template in templates:
@@ -110,7 +110,7 @@ async def test_pod_spec_labels_are_consistent_with_parent_labels(templates):
         )
 
 
-@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_our_labels_are_named_consistently(templates):
     acceptable_matches = [
@@ -132,7 +132,7 @@ async def test_our_labels_are_named_consistently(templates):
             )
 
 
-@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_workloads_selector_matches_labels(templates):
     for template in templates:

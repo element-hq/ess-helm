@@ -37,6 +37,7 @@ metadata:
   annotations:
 {{- if .dryRun }}
     "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "-25"
 {{- else }}
     "helm.sh/hook": pre-install,pre-upgrade
 {{- /*

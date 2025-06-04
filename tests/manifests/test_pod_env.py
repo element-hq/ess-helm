@@ -4,13 +4,13 @@
 
 import pytest
 
-from . import DeployableDetails, PropertyType, workloads_values_files_to_test
+from . import DeployableDetails, PropertyType, values_files_to_test
 from .utils import iterate_deployables_workload_parts, template_id
 
 extra_env = {"a_string": "a", "b_boolean": True, "c_integer": 1, "d_float": 1.1}
 
 
-@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_unique_env_name_in_containers(values, make_templates):
     def set_extra_env(deployable_details: DeployableDetails):
@@ -35,7 +35,7 @@ async def test_unique_env_name_in_containers(values, make_templates):
                     )
 
 
-@pytest.mark.parametrize("values_file", workloads_values_files_to_test)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_env_values_are_strings_in_containers(values, make_templates):
     def set_extra_env(deployable_details: DeployableDetails):

@@ -118,6 +118,7 @@ async def test_rendezvous_cors_headers_are_only_set_with_mas(ingress_ready, gene
 
 @pytest.mark.skipif(value_file_has("synapse.enabled", False), reason="Synapse not deployed")
 @pytest.mark.skipif(value_file_has("matrixAuthenticationService.enabled", True), reason="MAS is deployed")
+@pytest.mark.skipif(value_file_has("matrixAuthenticationService.syn2mas.enabled", True), reason="Syn2Mas is being run")
 @pytest.mark.asyncio_cooperative
 async def test_synapse_service_marker_legacy_auth(
     kube_client, helm_client: pyhelm3.Client, ingress_ready, generated_data: ESSData, ssl_context
