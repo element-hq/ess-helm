@@ -9,6 +9,19 @@ from . import values_files_to_test
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
+async def test_all_statefulsets_set_replicas(templates):
+    statefulsets = []
+    for template in templates:
+        if template["kind"] in ["StatefulSet"]:
+            statefulsets.append(template)
+
+    for sts in statefulsets:
+        id = sts["metadata"]["name"]
+        assert "replicas" in sts["spec"], f"{id} does not specify replicas"
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
 async def test_statefulsets_have_headless_services(templates):
     statefulsets = []
     services = []

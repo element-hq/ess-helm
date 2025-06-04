@@ -95,6 +95,7 @@ class DeployableDetails(abc.ABC):
     has_image: bool = field(default=None, hash=False)  # type: ignore[assignment]
     has_ingress: bool = field(default=True, hash=False)
     has_workloads: bool = field(default=True, hash=False)
+    has_replicas: bool = field(default=None, hash=False)
     has_service_monitor: bool = field(default=None, hash=False)  # type: ignore[assignment]
     has_storage: bool = field(default=False, hash=False)
     has_topology_spread_constraints: bool = field(default=None, hash=False)  # type: ignore[assignment]
@@ -112,6 +113,8 @@ class DeployableDetails(abc.ABC):
             self.has_service_monitor = self.has_workloads
         if self.has_topology_spread_constraints is None:
             self.has_topology_spread_constraints = self.has_workloads
+        if self.has_replicas is None:
+            self.has_replicas = self.has_workloads
 
     def _get_values_file_path(self, propertyType: PropertyType) -> ValuesFilePath:
         """
@@ -208,7 +211,6 @@ class SidecarDetails(DeployableDetails):
             PropertyType.ServiceAccount: ValuesFilePath.not_supported(),
             PropertyType.Tolerations: ValuesFilePath.not_supported(),
             PropertyType.TopologySpreadConstraints: ValuesFilePath.not_supported(),
-            PropertyType.Replicas: ValuesFilePath.not_supported(),
         }
         if self.values_file_path_overrides is None:
             self.values_file_path_overrides = {}
@@ -219,6 +221,9 @@ class SidecarDetails(DeployableDetails):
 
         # We have to be a workload as we're a sidecar
         self.has_workloads = True
+
+        # We dont support replicas
+        self.has_replicas = False
 
     def owns_manifest_named(self, manifest_name: str) -> bool:
         # Sidecars shouldn't own anything that their parent could possibly own
@@ -335,15 +340,13 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
         PropertyType.TopologySpreadConstraints: ValuesFilePath.read_elsewhere("synapse", "topologySpreadConstraints"),
     }
 
-    if worker_type == "single":
-        values_file_path_overrides[PropertyType.Replicas] = ValuesFilePath.not_supported()
-
     return SubComponentDetails(
         f"synapse-{worker_name}",
         values_file_path=ValuesFilePath.read_write("synapse", "workers", worker_name),
         values_file_path_overrides=values_file_path_overrides,
         has_ingress=False,
         is_synapse_process=True,
+        has_replicas=(worker_type == "scalable"),
     )
 
 
@@ -385,11 +388,10 @@ all_components_details = [
             PropertyType.ReadinessProbe: ValuesFilePath.not_supported(),
             # Job so no startupProbe
             PropertyType.StartupProbe: ValuesFilePath.not_supported(),
-            # Job so no replicas
-            PropertyType.Replicas: ValuesFilePath.not_supported(),
         },
         has_image=False,
         has_ingress=False,
+        has_replicas=False,
         has_service_monitor=False,
         has_topology_spread_constraints=False,
         is_shared_component=True,
@@ -398,8 +400,6 @@ all_components_details = [
         name="init-secrets",
         values_file_path=ValuesFilePath.read_write("initSecrets"),
         values_file_path_overrides={
-            # Job so no replicas
-            PropertyType.Replicas: ValuesFilePath.not_supported(),
             # Job so no livenessProbe
             PropertyType.LivenessProbe: ValuesFilePath.not_supported(),
             # Job so no readinessProbe
@@ -409,6 +409,7 @@ all_components_details = [
         },
         has_image=False,
         has_ingress=False,
+        has_replicas=False,
         has_service_monitor=False,
         has_topology_spread_constraints=False,
         is_shared_component=True,
@@ -423,6 +424,7 @@ all_components_details = [
         name="postgres",
         has_ingress=False,
         has_storage=True,
+        has_replicas=False,
         sidecars=(
             SidecarDetails(
                 name="postgres-exporter",
@@ -435,10 +437,6 @@ all_components_details = [
                 has_service_monitor=False,
             ),
         ),
-        values_file_path_overrides={
-            # StatefulSet without replicas
-            PropertyType.Replicas: ValuesFilePath.not_supported(),
-        },
         paths_consistency_noqa=("/docker-entrypoint-initdb.d/init-ess-dbs.sh",),
         is_shared_component=True,
     ),
@@ -452,10 +450,7 @@ all_components_details = [
                 values_file_path=ValuesFilePath.read_write("matrixRTC", "sfu"),
                 has_topology_spread_constraints=False,
                 has_ingress=False,
-                values_file_path_overrides={
-                    # Deployment which do not support replicas
-                    PropertyType.Replicas: ValuesFilePath.not_supported(),
-                },
+                has_replicas=False,
             ),
         ),
         shared_component_names=("init-secrets",),
@@ -494,13 +489,10 @@ all_components_details = [
         name="synapse",
         has_db=True,
         has_storage=True,
+        has_replicas=False,
         is_synapse_process=True,
         additional_values_files=("synapse-worker-example-values.yaml",),
         skip_path_consistency_for_files=("path_map_file", "path_map_file_get"),
-        values_file_path_overrides={
-            # StatefulSet which do not support replicas
-            PropertyType.Replicas: ValuesFilePath.not_supported(),
-        },
         sub_components=synapse_workers_details
         + (
             SubComponentDetails(
@@ -509,10 +501,7 @@ all_components_details = [
                 has_ingress=False,
                 has_service_monitor=False,
                 has_topology_spread_constraints=False,
-                values_file_path_overrides={
-                    # Deployment which do not support replicas
-                    PropertyType.Replicas: ValuesFilePath.not_supported(),
-                },
+                has_replicas=False,
             ),
             SubComponentDetails(
                 name="synapse-check-config",
@@ -523,8 +512,6 @@ all_components_details = [
                     # Job so no livenessProbe
                     PropertyType.LivenessProbe: ValuesFilePath.not_supported(),
                     PropertyType.PodSecurityContext: ValuesFilePath.read_elsewhere("synapse", "podSecurityContext"),
-                    # Job so no replicas
-                    PropertyType.Replicas: ValuesFilePath.not_supported(),
                     PropertyType.Resources: ValuesFilePath.read_elsewhere("synapse", "resources"),
                     # Job so no readinessProbe
                     PropertyType.ReadinessProbe: ValuesFilePath.not_supported(),
@@ -538,6 +525,7 @@ all_components_details = [
                 },
                 has_ingress=False,
                 has_service_monitor=False,
+                has_replicas=False,
             ),
         ),
         shared_component_names=("deployment-markers", "init-secrets", "haproxy", "postgres"),
