@@ -28,7 +28,7 @@ async def test_has_ingress(templates):
 @pytest.mark.parametrize(
     "values_file",
     values_files_to_test
-    # This is because MAS ingress is not deployed until it is ready to handle auth,
+    # This is because MAS ingress is not deployed until it is ready to handle auth,
     # which has after syn2mas has been run successfully (dryRun false)
     - {
         "matrix-authentication-service-synapse-syn2mas-dry-run-secrets-externally-values.yaml",

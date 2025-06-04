@@ -6,10 +6,9 @@
 import pyhelm3
 import pytest
 from lightkube import AsyncClient
-from lightkube.resources.core_v1 import ConfigMap
 
 from .fixtures import ESSData
-from .lib.helpers import deploy_with_values_patch
+from .lib.helpers import deploy_with_values_patch, get_deployment_marker
 from .lib.utils import aiohttp_post_json, value_file_has
 from .test_matrix_authentication_service import test_matrix_authentication_service_graphql_endpoint
 
@@ -28,13 +27,7 @@ async def test_run_syn2mas_upgrade(
 ):
     access_token = users[0]
     await ingress_ready("synapse")
-    configmap = await kube_client.get(
-        ConfigMap,
-        namespace=generated_data.ess_namespace,
-        name=f"{generated_data.release_name}-markers",
-    )
-    assert configmap.data.get("MATRIX_STACK_MSC3861") == "legacy_auth"
-
+    assert await get_deployment_marker(kube_client, generated_data, "MATRIX_STACK_MSC3861") == "legacy_auth"
     # After the base chart is setup, we enable MAS to run the syn2mas dry run job
     revision, error = await deploy_with_values_patch(
         generated_data, helm_client, {"matrixAuthenticationService": {"enabled": True}}
@@ -45,12 +38,7 @@ async def test_run_syn2mas_upgrade(
     await ingress_ready("synapse")
 
     # Syn2Mas is running in dryRun mode, so the state has not changed yet
-    configmap = await kube_client.get(
-        ConfigMap,
-        namespace=generated_data.ess_namespace,
-        name=f"{generated_data.release_name}-markers",
-    )
-    assert configmap.data.get("MATRIX_STACK_MSC3861") == "legacy_auth"
+    assert await get_deployment_marker(kube_client, generated_data, "MATRIX_STACK_MSC3861") == "legacy_auth"
 
     # After the base chart is setup, we enable MAS to run the syn2mas actual migration
     revision, error = await deploy_with_values_patch(
@@ -60,12 +48,7 @@ async def test_run_syn2mas_upgrade(
     assert revision.status == pyhelm3.ReleaseRevisionStatus.DEPLOYED
 
     # Syn2Mas is running in migrate mode, so the state must have changed
-    configmap = await kube_client.get(
-        ConfigMap,
-        namespace=generated_data.ess_namespace,
-        name=f"{generated_data.release_name}-markers",
-    )
-    assert configmap.data.get("MATRIX_STACK_MSC3861") == "syn2mas_migrated"
+    assert await get_deployment_marker(kube_client, generated_data, "MATRIX_STACK_MSC3861") == "syn2mas_migrated"
 
     # We should still be able to reach synapse ingress
     await ingress_ready("synapse")
@@ -92,14 +75,9 @@ async def test_run_syn2mas_upgrade(
     await test_matrix_authentication_service_graphql_endpoint(ingress_ready, generated_data, ssl_context)
 
     # The marker should now show delegated_auth
-    configmap = await kube_client.get(
-        ConfigMap,
-        namespace=generated_data.ess_namespace,
-        name=f"{generated_data.release_name}-markers",
-    )
-    assert configmap.data.get("MATRIX_STACK_MSC3861") == "delegated_auth"
-    revision = await deploy_with_values_patch(
-        generated_data, helm_client, {"matrixAuthenticationService": {"syn2mas": {"enabled": True}}}
+    assert await get_deployment_marker(kube_client, generated_data, "MATRIX_STACK_MSC3861") == "delegated_auth"
+    revision, error = await deploy_with_values_patch(
+        generated_data, helm_client, {"matrixAuthenticationService": {"syn2mas": {"enabled": True}}}, timeout="15s"
     )
     assert error is not None
     assert revision.status == pyhelm3.ReleaseRevisionStatus.FAILED

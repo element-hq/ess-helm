@@ -4,10 +4,9 @@
 
 import pyhelm3
 import pytest
-from lightkube.resources.core_v1 import ConfigMap
 
 from .fixtures import ESSData
-from .lib.helpers import deploy_with_values_patch
+from .lib.helpers import deploy_with_values_patch, get_deployment_marker
 from .lib.utils import aiohttp_post_json, value_file_has
 
 
@@ -34,12 +33,7 @@ async def test_matrix_authentication_service_graphql_endpoint(ingress_ready, gen
 async def test_matrix_authentication_service_marker_delegated_auth(
     kube_client, helm_client: pyhelm3.Client, ingress_ready, generated_data: ESSData, ssl_context
 ):
-    configmap = await kube_client.get(
-        ConfigMap,
-        namespace=generated_data.ess_namespace,
-        name=f"{generated_data.release_name}-markers",
-    )
-    assert configmap.data.get("MATRIX_STACK_MSC3861") == "delegated_auth"
+    assert await get_deployment_marker(kube_client, generated_data, "MATRIX_STACK_MSC3861") == "delegated_auth"
 
     revision, error = await deploy_with_values_patch(
         generated_data, helm_client, {"matrixAuthenticationService": {"enabled": False}}, timeout="15s"
