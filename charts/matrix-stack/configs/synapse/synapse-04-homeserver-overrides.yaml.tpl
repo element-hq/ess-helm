@@ -86,8 +86,18 @@ ip_range_blacklist:
 - 'ff00::/8'
 - 'fec0::/10'
 
-{{- if (and $root.Values.matrixAuthenticationService.enabled (not $root.Values.matrixAuthenticationService.preMigrationSynapseHandlesAuth)) }}
+{{- $enable_delegated_auth := (and $root.Values.matrixAuthenticationService.enabled (not $root.Values.matrixAuthenticationService.preMigrationSynapseHandlesAuth)) }}
+{{- if or $enable_delegated_auth $root.Values.matrixRTC.enabled }}
 experimental_features:
+{{- if $root.Values.matrixRTC.enabled }}
+  # MSC3266: Room summary API. Used for knocking over federation
+  msc3266_enabled: true
+  # MSC4222 needed for syncv2 state_after. This allow clients to
+  # correctly track the state of the room.
+  msc4222_enabled: true
+{{- end }}
+
+{{- if $enable_delegated_auth }}
   msc3861:
     enabled: true
 
@@ -121,6 +131,7 @@ experimental_features:
 password_config:
   localdb_enabled: false
   enabled: false
+{{- end }}
 {{- end }}
 
 {{- if dig "appservice" "enabled" false .workers }}
