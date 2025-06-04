@@ -11,14 +11,9 @@ from .utils import iterate_deployables_parts, template_id, template_to_deployabl
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_all_deployments_set_replicas(templates):
-    deployments = []
     for template in templates:
         if template["kind"] in ["Deployment"]:
-            deployments.append(template)
-
-    for deployment in deployments:
-        id = deployment["metadata"]["name"]
-        assert "replicas" in deployment["spec"], f"{id} does not specify replicas"
+            assert "replicas" in template["spec"], f"{template_id(template)} does not specify replicas"
 
 
 def set_replicas_details(values):
