@@ -17,6 +17,7 @@ class PropertyType(Enum):
     LivenessProbe = "livenessProbe"
     PodSecurityContext = "podSecurityContext"
     Postgres = "postgres"
+    Replicas = "replicas"
     ReadinessProbe = "readinessProbe"
     Resources = "resources"
     StartupProbe = "startupProbe"
@@ -94,6 +95,7 @@ class DeployableDetails(abc.ABC):
     has_image: bool = field(default=None, hash=False)  # type: ignore[assignment]
     has_ingress: bool = field(default=True, hash=False)
     has_workloads: bool = field(default=True, hash=False)
+    has_replicas: bool = field(default=None, hash=False)  # type: ignore[assignment]
     has_service_monitor: bool = field(default=None, hash=False)  # type: ignore[assignment]
     has_storage: bool = field(default=False, hash=False)
     has_topology_spread_constraints: bool = field(default=None, hash=False)  # type: ignore[assignment]
@@ -111,6 +113,8 @@ class DeployableDetails(abc.ABC):
             self.has_service_monitor = self.has_workloads
         if self.has_topology_spread_constraints is None:
             self.has_topology_spread_constraints = self.has_workloads
+        if self.has_replicas is None:
+            self.has_replicas = self.has_workloads
 
     def _get_values_file_path(self, propertyType: PropertyType) -> ValuesFilePath:
         """
@@ -218,6 +222,9 @@ class SidecarDetails(DeployableDetails):
         # We have to be a workload as we're a sidecar
         self.has_workloads = True
 
+        # We dont support replicas
+        self.has_replicas = False
+
     def owns_manifest_named(self, manifest_name: str) -> bool:
         # Sidecars shouldn't own anything that their parent could possibly own
         if self.parent.owns_manifest_named(manifest_name):
@@ -321,7 +328,7 @@ class ComponentDetails(DeployableDetails):
         return self
 
 
-def make_synapse_worker_sub_component(worker_name: str) -> SubComponentDetails:
+def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> SubComponentDetails:
     values_file_path_overrides: dict[PropertyType, ValuesFilePath] = {
         PropertyType.Env: ValuesFilePath.read_elsewhere("synapse", "extraEnv"),
         PropertyType.Image: ValuesFilePath.read_elsewhere("synapse", "image"),
@@ -339,33 +346,34 @@ def make_synapse_worker_sub_component(worker_name: str) -> SubComponentDetails:
         values_file_path_overrides=values_file_path_overrides,
         has_ingress=False,
         is_synapse_process=True,
+        has_replicas=(worker_type == "scalable"),
     )
 
 
 synapse_workers_details = tuple(
-    make_synapse_worker_sub_component(worker_name)
-    for worker_name in [
-        "appservice",
-        "background",
-        "client-reader",
-        "encryption",
-        "event-creator",
-        "event-persister",
-        "federation-inbound",
-        "federation-reader",
-        "federation-sender",
-        "initial-synchrotron",
-        "media-repository",
-        "presence-writer",
-        "push-rules",
-        "pusher",
-        "receipts-account",
-        "sliding-sync",
-        "sso-login",
-        "synchrotron",
-        "typing-persister",
-        "user-dir",
-    ]
+    make_synapse_worker_sub_component(worker_name, worker_type)
+    for worker_name, worker_type in {
+        "appservice": "single",
+        "background": "single",
+        "client-reader": "scalable",
+        "encryption": "single",
+        "event-creator": "scalable",
+        "event-persister": "scalable",
+        "federation-inbound": "scalable",
+        "federation-reader": "scalable",
+        "federation-sender": "scalable",
+        "initial-synchrotron": "scalable",
+        "media-repository": "single",
+        "presence-writer": "single",
+        "push-rules": "single",
+        "pusher": "scalable",
+        "receipts-account": "single",
+        "sliding-sync": "scalable",
+        "sso-login": "single",
+        "synchrotron": "scalable",
+        "typing-persister": "single",
+        "user-dir": "single",
+    }.items()
 )
 
 
@@ -383,6 +391,7 @@ all_components_details = [
         },
         has_image=False,
         has_ingress=False,
+        has_replicas=False,
         has_service_monitor=False,
         has_topology_spread_constraints=False,
         is_shared_component=True,
@@ -400,6 +409,7 @@ all_components_details = [
         },
         has_image=False,
         has_ingress=False,
+        has_replicas=False,
         has_service_monitor=False,
         has_topology_spread_constraints=False,
         is_shared_component=True,
@@ -414,6 +424,7 @@ all_components_details = [
         name="postgres",
         has_ingress=False,
         has_storage=True,
+        has_replicas=False,
         sidecars=(
             SidecarDetails(
                 name="postgres-exporter",
@@ -439,6 +450,7 @@ all_components_details = [
                 values_file_path=ValuesFilePath.read_write("matrixRTC", "sfu"),
                 has_topology_spread_constraints=False,
                 has_ingress=False,
+                has_replicas=False,
             ),
         ),
         shared_component_names=("init-secrets",),
@@ -477,6 +489,7 @@ all_components_details = [
         name="synapse",
         has_db=True,
         has_storage=True,
+        has_replicas=False,
         is_synapse_process=True,
         additional_values_files=("synapse-worker-example-values.yaml",),
         skip_path_consistency_for_files=("path_map_file", "path_map_file_get"),
@@ -488,6 +501,7 @@ all_components_details = [
                 has_ingress=False,
                 has_service_monitor=False,
                 has_topology_spread_constraints=False,
+                has_replicas=False,
             ),
             SubComponentDetails(
                 name="synapse-check-config",
@@ -511,6 +525,7 @@ all_components_details = [
                 },
                 has_ingress=False,
                 has_service_monitor=False,
+                has_replicas=False,
             ),
         ),
         shared_component_names=("deployment-markers", "init-secrets", "haproxy", "postgres"),

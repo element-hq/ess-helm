@@ -44,6 +44,9 @@
         }
       }
     },
+    "replicas": {
+      "type": "integer"
+    },
     "ingress": {
       "$ref": "file://common/ingress.json"
     },

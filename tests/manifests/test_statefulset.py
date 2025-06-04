@@ -5,6 +5,15 @@
 import pytest
 
 from . import values_files_to_test
+from .utils import template_id
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_all_statefulsets_set_replicas(templates):
+    for template in templates:
+        if template["kind"] in ["StatefulSet"]:
+            assert "replicas" in template["spec"], f"{template_id(template)} does not specify replicas"
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
