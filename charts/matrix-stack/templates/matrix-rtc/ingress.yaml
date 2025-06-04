@@ -1,5 +1,5 @@
 {{- /*
-Copyright 2024 New Vector Ltd
+Copyright 2024-2025 New Vector Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -8,7 +8,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-{{- include "element-io.ess-library.ingress.annotations" (dict "root" $ "context" (dict "ingress" .ingress)) | nindent 2 }}
+{{- $extraAnnotations := dict }}
+{{- if .sfu.enabled }}
+{{- if eq "ingress-nginx" (include "element-io.ess-library.ingress-controller-type" (dict "root" $ "context" .ingress.controllerType)) }}
+{{- $_ := set $extraAnnotations "nginx.ingress.kubernetes.io/proxy-send-timeout" "120" }}
+{{- $_ := set $extraAnnotations "nginx.ingress.kubernetes.io/proxy-read-timeout" "120" }}
+{{- $_ := set $extraAnnotations "nginx.ingress.kubernetes.io/proxy-buffering" "off" }}
+{{- end }}
+{{- end }}
+{{- include "element-io.ess-library.ingress.annotations" (dict "root" $ "context" (dict "ingress" .ingress "extraAnnotations" $extraAnnotations)) | nindent 2 }}
   labels:
     {{- include "element-io.matrix-rtc-ingress.labels" (dict "root" $ "context" .) | nindent 4 }}
   name: {{ $.Release.Name }}-matrix-rtc
