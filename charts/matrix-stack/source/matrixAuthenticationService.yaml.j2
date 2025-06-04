@@ -8,6 +8,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 enabled: true
 {{- sub_schema_values.image(registry='ghcr.io', repository='element-hq/matrix-authentication-service', tag='0.16.0') }}
 
+replicas: 1
+
 ## Force the authentication to happen with legacy authentication.
 ## This can be used to deploy Matrix Authentication Service and keeping auth on Synapse.
 ## Once MAS is deployed, you can run the syn2mas tool to migrate the data from Synapse to MAS.

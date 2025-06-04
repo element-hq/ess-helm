@@ -21,15 +21,7 @@ metadata:
   name: {{ $.Release.Name }}-matrix-rtc-sfu
   namespace: {{ $.Release.Namespace }}
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app.kubernetes.io/instance: {{ $.Release.Name }}-matrix-rtc-sfu
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: 1
-      maxSurge: 2
+  {{ include "element-io.ess-library.deployments.commonSpec" (dict "root" $ "context" (dict "nameSuffix" "matrix-rtc-sfu")) | nindent 2 }}
   template:
     metadata:
       labels:

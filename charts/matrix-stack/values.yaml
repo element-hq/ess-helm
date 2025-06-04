@@ -423,6 +423,8 @@ matrixRTC:
   ## - name: FOO
   ##   value: "bar"
   extraEnv: []
+
+  replicas: 1
   # Details of the image to be used
   image:
     ## The host and (optional) port of the container image registry for this component.
@@ -1350,6 +1352,8 @@ matrixAuthenticationService:
     ## pullSecrets:
     ## - name: dockerhub
     pullSecrets: []
+
+  replicas: 1
 
   ## Force the authentication to happen with legacy authentication.
   ## This can be used to deploy Matrix Authentication Service and keeping auth on Synapse.

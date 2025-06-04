@@ -19,15 +19,7 @@ metadata:
   name: {{ $.Release.Name }}-element-web
   namespace: {{ $.Release.Namespace }}
 spec:
-  replicas: {{ .replicas }}
-  selector:
-    matchLabels:
-      app.kubernetes.io/instance: {{ $.Release.Name }}-element-web
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: 1
-      maxSurge: 2
+  {{ include "element-io.ess-library.deployments.commonSpec" (dict "root" $ "context" (dict "replicas" .replicas "nameSuffix" "element-web")) | nindent 2 }}
   template:
     metadata:
       labels:

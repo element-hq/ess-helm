@@ -879,6 +879,9 @@
           },
           "additionalProperties": false
         },
+        "replicas": {
+          "type": "integer"
+        },
         "extraEnv": {
           "type": "array",
           "items": {
@@ -3440,6 +3443,9 @@
             }
           },
           "additionalProperties": false
+        },
+        "replicas": {
+          "type": "integer"
         },
         "ingress": {
           "type": "object",

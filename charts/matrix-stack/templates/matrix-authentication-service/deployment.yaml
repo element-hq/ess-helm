@@ -25,15 +25,7 @@ metadata:
   name: {{ $.Release.Name }}-matrix-authentication-service
   namespace: {{ $.Release.Namespace }}
 spec:
-  replicas: {{ .replicas }}
-  selector:
-    matchLabels:
-      app.kubernetes.io/instance: "{{ $.Release.Name }}-matrix-authentication-service"
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: 1
-      maxSurge: 2
+  {{ include "element-io.ess-library.deployments.commonSpec" (dict "root" $ "context" (dict "replicas" .replicas "nameSuffix" "matrix-authentication-service")) | nindent 2 }}
   template:
     metadata:
       labels:
