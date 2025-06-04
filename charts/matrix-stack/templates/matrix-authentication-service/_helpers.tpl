@@ -29,13 +29,13 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- end }}
 {{- end }}
 
-{{- define "element-io.matrix-authentication-service-syn2mas.labels" -}}
+{{- define "element-io.syn2mas.labels" -}}
 {{- $root := .root -}}
 {{- with required "element-io.matrix-authentication-service.labels missing context" .context -}}
 {{ include "element-io.ess-library.labels.common" (dict "root" $root "context" (dict "labels" .labels "withChartVersion" .withChartVersion)) }}
 app.kubernetes.io/component: matrix-authentication
-app.kubernetes.io/name: matrix-authentication-service-syn2mas
-app.kubernetes.io/instance: {{ $root.Release.Name }}-matrix-authentication-service-syn2mas
+app.kubernetes.io/name: syn2mas
+app.kubernetes.io/instance: {{ $root.Release.Name }}-syn2mas
 app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .image.tag }}
 {{- end }}
 {{- end }}
@@ -341,7 +341,7 @@ true
 
 
 
-{{- define "element-io.matrix-authentication-service-syn2mas.configSecrets" -}}
+{{- define "element-io.syn2mas.configSecrets" -}}
 {{- $root := .root -}}
 {{- with required "element-io..matrix-authentication-service.syn2mas.configSecrets missing context" .context -}}
 {{- $masSecrets := include "element-io.matrix-authentication-service.configSecrets" (dict "root" $root "context" .masContext) | fromJsonArray }}

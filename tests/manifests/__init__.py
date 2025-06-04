@@ -486,7 +486,7 @@ all_components_details = [
         shared_component_names=("deployment-markers", "init-secrets", "postgres"),
         sub_components=(
             SubComponentDetails(
-                name="matrix-authentication-service-syn2mas",
+                name="syn2mas",
                 values_file_path=ValuesFilePath.read_write("matrixAuthenticationService", "syn2mas"),
                 paths_consistency_noqa=(
                     "/conf/log_config.yaml",
@@ -578,7 +578,11 @@ def _get_all_deployables_details() -> set[DeployableDetails]:
 all_deployables_details = _get_all_deployables_details()
 
 
-_extra_values_files_to_test: list[str] = ["example-default-enabled-components-values.yaml"]
+_extra_values_files_to_test: list[str] = ["example-default-enabled-components-values.yaml",
+    "matrix-authentication-service-synapse-syn2mas-dry-run-secrets-in-helm-values.yaml",
+    "matrix-authentication-service-synapse-syn2mas-dry-run-secrets-externally-values.yaml",
+    "matrix-authentication-service-synapse-syn2mas-migrate-secrets-in-helm-values.yaml",
+    "matrix-authentication-service-synapse-syn2mas-migrate-secrets-externally-values.yaml",]
 
 _extra_workloads_files_to_test = [
     "matrix-authentication-service-synapse-syn2mas-dry-run-secrets-in-helm-values.yaml",

@@ -10,10 +10,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ $.Release.Name }}-matrix-authentication-service-syn2mas
+  name: {{ $.Release.Name }}-syn2mas
   namespace: {{ $.Release.Namespace }}
   labels:
-    {{- include "element-io.matrix-authentication-service-syn2mas.labels" (dict "root" $ "context" .) | nindent 4 }}
+    {{- include "element-io.syn2mas.labels" (dict "root" $ "context" .) | nindent 4 }}
   annotations:
     "helm.sh/hook": pre-install,pre-upgrade
 {{- /*
@@ -26,10 +26,10 @@ Hook Weights are
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: {{ $.Release.Name }}-matrix-authentication-service-syn2mas
+  name: {{ $.Release.Name }}-syn2mas
 subjects:
 - kind: ServiceAccount
-  name: {{ include "element-io.ess-library.serviceAccountName" (dict "root" $ "context" (dict "serviceAccount" .serviceAccount "nameSuffix" "matrix-authentication-service-syn2mas")) }}
+  name: {{ include "element-io.ess-library.serviceAccountName" (dict "root" $ "context" (dict "serviceAccount" .serviceAccount "nameSuffix" "syn2mas")) }}
   namespace: {{ $.Release.Namespace }}
 {{- end -}}
 {{- end -}}

@@ -19,7 +19,7 @@ metadata:
     {{- toYaml . | nindent 4 }}
 {{- end }}
   labels:
-    {{- include "element-io.matrix-authentication-service-syn2mas.labels" (dict "root" $ "context" .) | nindent 4 }}
+    {{- include "element-io.syn2mas.labels" (dict "root" $ "context" .) | nindent 4 }}
     k8s.element.io/matrix-authentication-service-config-hash: {{ include "element-io.matrix-authentication-service.configmap-data" (dict "root" $ "context" $masContext) | sha1sum }}
     k8s.element.io/matrix-authentication-service-secret-hash: {{ include "element-io.matrix-authentication-service.secret-data" (dict "root" $ "context" $masContext) | sha1sum }}
     k8s.element.io/synapse-config-hash: {{ include "element-io.synapse.configmap-data"  (dict "root" $ "context" $synapseContext) | sha1sum }}
@@ -47,7 +47,7 @@ Hook Weights are
 */}}
     "helm.sh/hook-weight": "0"
 {{- end }}
-  name: {{ $.Release.Name }}-matrix-authentication-service-syn2mas
+  name: {{ $.Release.Name }}-syn2mas
   namespace: {{ $.Release.Namespace }}
 spec:
   backoffLimit: 0
@@ -63,7 +63,7 @@ spec:
         {{- toYaml . | nindent 8 }}
 {{- end }}
       labels:
-        {{- include "element-io.matrix-authentication-service-syn2mas.labels" (dict "root" $ "context" (dict "image" .image "labels" .labels "withChartVersion" false)) | nindent 8 }}
+        {{- include "element-io.syn2mas.labels" (dict "root" $ "context" (dict "image" .image "labels" .labels "withChartVersion" false)) | nindent 8 }}
         k8s.element.io/matrix-authentication-service-config-hash: {{ include "element-io.matrix-authentication-service.configmap-data" (dict "root" $ "context" $masContext) | sha1sum }}
         k8s.element.io/matrix-authentication-service-secret-hash: {{ include "element-io.matrix-authentication-service.secret-data" (dict "root" $ "context" $masContext) | sha1sum }}
         k8s.element.io/synapse-config-hash: {{ include "element-io.synapse.configmap-data"  (dict "root" $ "context" $synapseContext) | sha1sum }}
@@ -80,7 +80,7 @@ spec:
                                                 ) }}
     spec:
       restartPolicy: Never
-{{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "matrix-authentication-service-syn2mas" "deployment" false "usesMatrixTools" true "mountServiceAccountToken" true)) | nindent 6 }}
+{{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "syn2mas" "deployment" false "usesMatrixTools" true "mountServiceAccountToken" true)) | nindent 6 }}
       initContainers:
       - name: copy-mas-cli
 {{- with .image -}}
