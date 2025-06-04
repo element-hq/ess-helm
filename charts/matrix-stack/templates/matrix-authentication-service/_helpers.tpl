@@ -194,7 +194,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- with required "element-io.matrix-authentication-service.secret-name requires context" .context }}
 {{- $isHook := .isHook }}
 {{- if $isHook }}
-{{- $root.Release.Name }}-matrix-authentication-service-hook
+{{- $root.Release.Name }}-matrix-authentication-service-pre
 {{- else }}
 {{- $root.Release.Name }}-matrix-authentication-service
 {{- end }}
@@ -207,7 +207,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- with required "element-io.matrix-authentication-service.configmap-name requires context" .context }}
 {{- $isHook := required "element-io.matrix-authentication-service.configmap-name requires context.isHook" .isHook }}
 {{- if $isHook }}
-{{- $root.Release.Name }}-matrix-authentication-service-hook
+{{- $root.Release.Name }}-matrix-authentication-service-pre
 {{- else }}
 {{- $root.Release.Name }}-matrix-authentication-service
 {{- end }}
