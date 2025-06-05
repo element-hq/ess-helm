@@ -20,17 +20,24 @@ The syn2mas migration will run in a couple of minutes. It involves **three key s
 | 2 | Run migration (dry run disabled) | System transitions to `syn2mas_migrated`. Users now login using the delegated authentication. Rollback to legacy authentication is not possible anymore.  syn2mas cannot be run anymore. |
 | 3 | Disable syn2mas | System finalizes to `delegated_auth`. |
 
+## Important Notes
+
+- Please make sure to backup the synapse database before running the migration.
+- The migration is a **one-way process**.Once the system is in the `delegated_auth` state, it cannot be rolled back to `legacy_auth`.
+
 ## Step-by-Step Upgrade Process
 
-### Step 1: Setup Matrix Authenticatin Service and prepare the migration
+### Step 1: Setup Matrix Authentication Service and prepare the migration
 
 1. You need to enable Matrix Authentication Service. The minimal settings required are described in `charts/matrix-stack/ci/fragments/matrix-authentication-service-minimal.yaml`. This is a minimal configuration that you can use if :
    - The `initSecrets` job is enabled (default)
    - You are using the chart-managed Postgres Server (we recommend using an external Postgres Server)
 
-2. If you are using an external Postgres database, please refer to the quick-setup example in `charts/matrix-stack/ci/fragments/quick-setup-postgresql.yaml` to configure the Matrix Authentication Service database.
+2. To migrate passwords from Synapse to Matrix Authentication Service, you need to enable Synapse passwords scheme into Matrix Authentication Service. Enable them under `matrixAuthenticationService.additional` according to the example file `charts/matrix-stack/ci/fragments/matrix-authentication-service-migrated-password-scheme.yaml`.
 
-3. If you have disabled the `initSecrets` job, please refer to the example in `charts/matrix-stack/ci/fragments/matrix-authentication-service-secrets-in-helm.yaml` to configure the secrets manually.
+3. If you are using an external Postgres database, please refer to the quick-setup example in `charts/matrix-stack/ci/fragments/quick-setup-postgresql.yaml` to configure the Matrix Authentication Service database.
+
+4. If you have disabled the `initSecrets` job, please refer to the example in `charts/matrix-stack/ci/fragments/matrix-authentication-service-secrets-in-helm.yaml` to configure the secrets manually.
 
 5. Run the helm upgrade command and enable syn2mas with `--set matrixAuthenticationService.syn2mas.enabled=true` :
 
@@ -89,11 +96,5 @@ If the `deploymentMarkers` feature is enabled, the `MATRIX_STACK_MSC3861` marker
 4. **After Step 3** – `delegated_auth` (migration finalized)
 
 > ⚠️ **Note:** The `MATRIX_STACK_MSC3861` marker will :
-> **Prevent running syn2mas migration again** after it has run successfully and is in `syn2mas_migrated` state
-> **Prevent downgrading** from `syn2mas_migrated`/`delegated_auth` back to `legacy_auth`
-
-
-## Important Notes
-
-- Please make sure to backup the synapse database before running the migration.
-- The migration is a **one-way process**.Once the system is in the `delegated_auth` state, it cannot be rolled back to `legacy_auth`.
+> - **Prevent running syn2mas migration again** after it has run successfully and is in `syn2mas_migrated` state
+> - **Prevent downgrading** from `syn2mas_migrated`/`delegated_auth` back to `legacy_auth`
