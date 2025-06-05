@@ -133,8 +133,16 @@ func ParseArgs(args []string) (*Options, error) {
 		if err != nil {
 			return nil, err
 		}
-		options.MASConfig = *masConfig
-		options.SynapseConfig = *synapseConfig
+		if *masConfig != "" {
+			options.MASConfig = *masConfig
+		} else {
+			return nil, fmt.Errorf("-config <file> is required")
+		}
+		if *synapseConfig != "" {
+			options.SynapseConfig = *synapseConfig
+		} else {
+			return nil, fmt.Errorf("-synapse-config <file> is required")
+		}
 		options.Command = Syn2Mas
 	case "generate-secrets":
 		err := generateSecretsSet.Parse(args[2:])

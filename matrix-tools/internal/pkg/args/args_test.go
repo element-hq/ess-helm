@@ -145,6 +145,25 @@ func TestParseArgs(t *testing.T) {
 			expected: &Options{},
 			err:      true,
 		},
+
+		{
+			name:     "Proper syntax of syn2mas",
+			args:     []string{"cmd", "syn2mas", "-config", "file1", "-synapse-config", "file2"},
+			expected: &Options{
+				MASConfig: "file1",
+				SynapseConfig: "file2",
+				Command: Syn2Mas,
+			},
+			err:      false,
+		},
+		{
+			name:     "Wrong syntax of syn2mas",
+			args:     []string{"cmd", "syn2mas"},
+			expected: &Options{
+				Command: Syn2Mas,
+			},
+			err:      true,
+		},
 	}
 
 	for _, tc := range testCases {
