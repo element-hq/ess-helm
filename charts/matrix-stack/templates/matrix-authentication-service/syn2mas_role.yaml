@@ -36,7 +36,7 @@ rules:
   resourceNames:
 {{- $enabledWorkers := (include "element-io.synapse.enabledWorkers" (dict "root" $)) | fromJson }}
 {{- range $processType, $unmergedProcessDetails := mustMergeOverwrite (dict "main" dict) $enabledWorkers }}
-  - "{{ $.Release.Name }}-synapse-{{ $processType }}"
+  - "{{ $.Release.Name }}-synapse-{{ include "element-io.synapse.process.workerTypeName" (dict "root" $ "context" $processType) }}"
 {{- end }}
   verbs: ["get", "update"]
 {{- end -}}
