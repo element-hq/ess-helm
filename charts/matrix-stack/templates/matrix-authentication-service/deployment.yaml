@@ -108,7 +108,15 @@ spec:
                   "isHook" false)) | nindent 8 }}
       containers:
       - name: matrix-authentication-service
-        args: ["server", "--no-migrate"]
+        args:
+        - server
+        - --no-migrate
+{{/* When in syn2mas dryRun mode, migration has not run yet
+We don't want background jobs to get failed use up their retries because MAS hasn't been set up yet
+*/}}
+{{ if and .syn2mas.enabled .syn2mas.dryRun }}
+        - --no-worker
+{{- end }}
 {{- with .image -}}
 {{- if .digest }}
         image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"

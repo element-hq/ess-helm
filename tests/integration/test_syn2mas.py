@@ -40,6 +40,11 @@ async def test_run_syn2mas_upgrade(
     # Syn2Mas is running in dryRun mode, so the state has not changed yet
     assert await get_deployment_marker(kube_client, generated_data, "MATRIX_STACK_MSC3861") == "legacy_auth"
 
+    # We should still be able to reach synapse ingress
+    await ingress_ready("synapse")
+    # MAS should be reachable through its ingress
+    await test_matrix_authentication_service_graphql_endpoint(ingress_ready, generated_data, ssl_context)
+
     # After the base chart is setup, we enable MAS to run the syn2mas actual migration
     revision, error = await deploy_with_values_patch(
         generated_data, helm_client, {"matrixAuthenticationService": {"syn2mas": {"dryRun": False}}}
@@ -50,9 +55,7 @@ async def test_run_syn2mas_upgrade(
     # Syn2Mas is running in migrate mode, so the state must have changed
     assert await get_deployment_marker(kube_client, generated_data, "MATRIX_STACK_MSC3861") == "syn2mas_migrated"
 
-    # We should still be able to reach synapse ingress
-    await ingress_ready("synapse")
-    # MAS should be available
+    # MAS should be reachable through its ingress
     await test_matrix_authentication_service_graphql_endpoint(ingress_ready, generated_data, ssl_context)
 
     sync_result = await aiohttp_post_json(
@@ -69,8 +72,6 @@ async def test_run_syn2mas_upgrade(
     assert error is None
     assert revision.status == pyhelm3.ReleaseRevisionStatus.DEPLOYED
 
-    # We should still be able to reach synapse ingress
-    await ingress_ready("synapse")
     # MAS should be available
     await test_matrix_authentication_service_graphql_endpoint(ingress_ready, generated_data, ssl_context)
 

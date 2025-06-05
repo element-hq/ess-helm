@@ -59,6 +59,12 @@ matrix:
   homeserver: "{{ tpl $root.Values.serverName $root }}"
   secret: ${SYNAPSE_SHARED_SECRET}
   endpoint: "http://{{ $root.Release.Name }}-synapse-main.{{ $root.Release.Namespace }}.svc.cluster.local:8008"
+{{- /* When in syn2mas dryRun mode, migration has not run yet
+We don't want MAS to change data in Synapse
+*/}}
+{{- if and .syn2mas.enabled .syn2mas.dryRun }}
+  kind: synapse_read_only
+{{- end }}
 {{- end }}
 
 policy:
