@@ -9,6 +9,7 @@ import pytest
 from lightkube import AsyncClient
 
 from .fixtures import ESSData
+from .fixtures.users import create_mas_user, get_client_token
 from .lib.helpers import deploy_with_values_patch, get_deployment_marker
 from .lib.utils import aiohttp_get_json, aiohttp_post_json, value_file_has
 from .test_matrix_authentication_service import test_matrix_authentication_service_graphql_endpoint
@@ -93,6 +94,27 @@ async def test_run_syn2mas_upgrade(
 
     # The marker should now show delegated_auth
     assert await get_deployment_marker(kube_client, generated_data, "MATRIX_STACK_MSC3861") == "delegated_auth"
+
+    admin_token = await get_client_token(f"mas.{generated_data.server_name}", generated_data, ssl_context)
+    mas_created_user = await create_mas_user(
+        f"mas.{generated_data.server_name}",
+        "after-syn2mas",
+        generated_data.secrets_random,
+        False,
+        admin_token,
+        ssl_context,
+    )
+
+    # The MAS-issued tokens should also work
+    sync_result = await aiohttp_post_json(
+        f"https://synapse.{generated_data.server_name}/_matrix/client/unstable/org.matrix.simplified_msc3575/sync",
+        {},
+        {"Authorization": f"Bearer {mas_created_user}"},
+        ssl_context,
+    )
+
+    assert "pos" in sync_result, "The sync result failed, meaning the MAS-issued tokens are wrong"
+
     revision, error = await deploy_with_values_patch(
         generated_data, helm_client, {"matrixAuthenticationService": {"syn2mas": {"enabled": True}}}, timeout="15s"
     )
@@ -101,10 +123,3 @@ async def test_run_syn2mas_upgrade(
     assert "pre-upgrade hooks failed" in revision.description
     # Assert that MAS still works
     await test_matrix_authentication_service_graphql_endpoint(ingress_ready, generated_data, ssl_context)
-
-    # Auth metadata endpoint should be reachable
-    response = await aiohttp_get_json(
-        f"https://synapse.{generated_data.server_name}/_matrix/client/unstable/org.matrix.msc2965/auth_metadata",
-        ssl_context,
-    )
-    assert "issuer" in response
