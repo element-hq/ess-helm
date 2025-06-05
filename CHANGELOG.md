@@ -6,6 +6,68 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 25.6.0 (2025-06-05)
+
+### Added
+
+- Add a new `deploymentMarkers` job which prevent users from accidentally breaking their setup by choosing incompatible values. (#487)
+- Add a `NOTES.txt` for some post-setup messages. (#491, #509)
+- Add support for Matrix Authentication Service replicas. (#515)
+- Add support for configuring replicas of the `matrix-rtc-authorization-service`. (#515)
+
+### Changed
+
+- Improve the validation that for every image the tag and/or the digest is set. (#484)
+- Improve the validation on set properties for external Postgreses. (#485)
+- Add example config for Nginx reverse proxy. (#486)
+- Restrict some Synapse worker names such that release_names can be 29 characters long. (#494)
+- Improve validation messages for values that are templated. (#497)
+- Rename `synapse-check-config-hook` to `synapse-check-config` for consistency with `init-secrets` and `deployment-markers`. (#501)
+- Upgrade Synapse to v1.131.0.
+
+  Highlights:
+  - Add msc4263_limit_key_queries_to_users_who_share_rooms config option as per MSC4263.
+  - Add option to allow registrations that begin with `_`.
+  - Add support for calling Policy Servers (MSC4284) to mark events as spam.
+
+  (#511)
+- Upgrade Element Web to v1.11.102.
+
+  Highlights:
+  - Modernize the recovery key input modal.
+  - General enhancements of the new room list (sorting, filtering, etc.).
+  - Prompt the user when key storage is unexpectedly off.
+
+  (#512)
+- Configure Synapse appropriately for Element Call when matrixRTC is enabled. (#513)
+- Set deployments `maxUnavailable` to 0 if it has only one replicas. (#515)
+- Pull Synapse from ghcr.io/element-hq/synapse rather than the legacy repository on Docker Hub. (#517)
+- Pull Element Web from ghcr.io/element-hq/element-web rather than the legacy repository on Docker Hub. (#518)
+
+### Fixed
+
+- Fix routing to the initial-synchrotron worker in HAProxy. (#494)
+- Ensure the names of Secrets in volume/volumeMounts don't have names that are too long. (#495)
+- Fix initial-synchrotron paths not falling back to main if the worker is unavailable. (#508)
+- Matrix RTC: Set proxy timeout and enforce disabled buffering `nginx-ingress` `controllerType` annotations if SFU is enabled. (#514)
+
+### Internal
+
+- Add tests to verify that `additional.config/configSecret/configSecretKey` is properly being used. (#483)
+- Make it easier to write manifest tests where sub-components and sidecars read values from their parent component. (#484)
+- Refactor to use a common helper for `render-config` additional mechanism. (#488)
+- Improve error messages in pod images manifest test. (#492)
+- Simplify manifest tests by making template_to_deployable_details an import not a fixture. (#492)
+- Use internal render-config helper for the SFU keys.yaml generation. (#493)
+- Validate manifest name lengths in tests. (#494)
+- Validate that workload selectors match the labels in the template. (#496)
+- Validate that covering manifests are named consistently with what they cover. (#496)
+- Validate manifests set the namespace correctly. (#496)
+- Consistently use template_id helper for identifying manifests. (#500)
+- Unpin from Helm 3.17.3 after https://github.com/helm/helm/issues/30878 / https://github.com/helm/helm/issues/30880 are fixed. (#502)
+- CI: Enhance dyff comment formatting. (#510)
+
+
 # ESS Community Helm Chart 25.5.1 (2025-05-23)
 
 ### Changed
