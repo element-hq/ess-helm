@@ -4,7 +4,7 @@ Copyright 2025 New Vector Ltd
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 {{- with .Values.matrixAuthenticationService -}}
-{{- if and .enabled .syn2mas.enabled -}}
+{{- if and .enabled .syn2mas.enabled (not .syn2mas.dryRun) -}}
 {{- with .syn2mas -}}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
