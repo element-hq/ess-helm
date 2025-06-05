@@ -62,6 +62,11 @@ async def test_run_syn2mas_upgrade(
     # Syn2Mas is running in migrate mode, so the state must have changed
     assert await get_deployment_marker(kube_client, generated_data, "MATRIX_STACK_MSC3861") == "syn2mas_migrated"
 
+    # Assert we cant run syn2mas again
+    revision, error = await deploy_with_values_patch(generated_data, helm_client, {}, timeout="15s")
+    assert error is not None
+    assert revision.status == pyhelm3.ReleaseRevisionStatus.FAILED
+
     # Auth metadata endpoint should be reachable
     response = await aiohttp_get_json(
         f"https://synapse.{generated_data.server_name}/_matrix/client/unstable/org.matrix.msc2965/auth_metadata",

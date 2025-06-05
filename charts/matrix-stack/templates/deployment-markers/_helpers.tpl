@@ -62,7 +62,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" $
           $root.Values.matrixAuthenticationService.enabled
           $root.Values.matrixAuthenticationService.syn2mas.enabled
           (not $root.Values.matrixAuthenticationService.syn2mas.dryRun) }}
-- {{ (printf "%s-markers" $root.Release.Name) }}:MATRIX_STACK_MSC3861:syn2mas_migrated:legacy_auth;syn2mas_migrated
+- {{ (printf "%s-markers" $root.Release.Name) }}:MATRIX_STACK_MSC3861:syn2mas_migrated:legacy_auth
 {{- end }}
 
 {{- /* We allow deploying of Synapse with Matrix Authentication Service, only
