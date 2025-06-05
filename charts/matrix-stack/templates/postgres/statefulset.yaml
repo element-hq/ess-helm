@@ -86,10 +86,12 @@ spec:
     {{- end }}
   {{- end }}
 {{- end }}
-{{- range $idx, $secret := include "element-io.postgres.configSecrets" (dict "root" $ "context" .) | fromJsonArray }}
-        - mountPath: /secrets/{{ tpl $secret $ }}
-          name: "secret-{{ $idx }}"
+{{- range $secret := include "element-io.postgres.configSecrets" (dict "root" $ "context" .) | fromJsonArray }}
+{{- with (tpl $secret $) }}
+        - mountPath: /secrets/{{ . }}
+          name: "secret-{{ . | sha256sum | trunc 12 }}"
           readOnly: true
+{{- end }}
 {{- end }}
         - name: config
           mountPath: /docker-entrypoint-initdb.d/init-ess-dbs.sh
@@ -160,10 +162,12 @@ spec:
     {{- end }}
   {{- end }}
 {{- end }}
-{{- range $idx, $secret := include "element-io.postgres.configSecrets" (dict "root" $ "context" .) | fromJsonArray }}
-        - mountPath: /secrets/{{ tpl $secret $ }}
-          name: "secret-{{ $idx }}"
+{{- range $secret := include "element-io.postgres.configSecrets" (dict "root" $ "context" .) | fromJsonArray }}
+{{- with (tpl $secret $) }}
+        - mountPath: /secrets/{{ . }}
+          name: "secret-{{ . | sha256sum | trunc 12 }}"
           readOnly: true
+{{- end }}
 {{- end }}
         - name: config
           mountPath: /var/run/configure-ess-dbs.sh
@@ -218,10 +222,12 @@ spec:
           secretName: {{ $.Release.Name }}-generated
         name: secret-generated
 {{- end }}
-{{- range $idx, $secret := include "element-io.postgres.configSecrets" (dict "root" $ "context" .) | fromJsonArray }}
+{{- range $secret := include "element-io.postgres.configSecrets" (dict "root" $ "context" .) | fromJsonArray }}
+{{- with (tpl $secret $) }}
       - secret:
-          secretName: {{ tpl $secret $ }}
-        name: secret-{{ $idx }}
+          secretName: {{ . }}
+        name: "secret-{{ . | sha256sum | trunc 12 }}"
+{{- end }}
 {{- end }}
       - name: config
         configMap:

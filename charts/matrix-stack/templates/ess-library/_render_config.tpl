@@ -62,10 +62,12 @@ SPDX-License-Identifier: AGPL-3.0-only
   - mountPath: /config-templates
     name: plain-config
     readOnly: true
-{{- range $idx, $secret := include (printf "element-io.%s.configSecrets" $nameSuffix) (dict "root" $root "context" .) | fromJsonArray }}
-  - mountPath: /secrets/{{ tpl $secret $root }}
-    name: "secret-{{ $idx }}"
+{{- range $secret := include (printf "element-io.%s.configSecrets" $nameSuffix) (dict "root" $root "context" .) | fromJsonArray }}
+{{- with (tpl $secret $root) }}
+  - mountPath: /secrets/{{ . }}
+    name: "secret-{{ . | sha256sum | trunc 12 }}"
     readOnly: true
+{{- end }}
 {{- end }}
   - mountPath: /conf
     name: rendered-config
@@ -78,19 +80,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $root := .root -}}
 {{- with required "element-io.ess-library.render-config-volumes missing context" .context -}}
 {{- $nameSuffix := required "element-io.ess-library.render-config-volumes missing context.nameSuffix" .nameSuffix -}}
-{{- $additionalPath := .additionalPath -}}
-{{- $additionalProperty := dict -}}
-{{- if $additionalPath }}
-{{- $additionalProperty = include "element-io.ess-library.value-from-values-path" (dict "root" $root "context" $additionalPath) | fromJson -}}
-{{- end -}}
 - configMap:
     defaultMode: 420
     name: {{ include (printf "element-io.%s.configmap-name" $nameSuffix) (dict "root" $root "context" .) }}
   name: plain-config
-{{- range $idx, $secret := include (printf "element-io.%s.configSecrets" $nameSuffix) (dict "root" $root "context" .) | fromJsonArray }}
+{{- range $secret := include (printf "element-io.%s.configSecrets" $nameSuffix) (dict "root" $root "context" .) | fromJsonArray }}
+{{- with (tpl $secret $root) }}
 - secret:
-    secretName: {{ tpl $secret $root }}
-  name: secret-{{ $idx }}
+    secretName: {{ . }}
+  name: secret-{{ . | sha256sum | trunc 12  }}
+{{- end }}
 {{- end }}
 - emptyDir:
     medium: Memory
@@ -108,10 +107,12 @@ SPDX-License-Identifier: AGPL-3.0-only
   name: rendered-config
   subPath: {{ $outputFile }}
   readOnly: true
-{{- range $idx, $secret := include (printf "element-io.%s.configSecrets" $nameSuffix) (dict "root" $root "context" .) | fromJsonArray }}
-- mountPath: /secrets/{{ tpl $secret $root }}
-  name: "secret-{{ $idx }}"
+{{- range $secret := include (printf "element-io.%s.configSecrets" $nameSuffix) (dict "root" $root "context" .) | fromJsonArray }}
+{{- with (tpl $secret $root) }}
+- mountPath: /secrets/{{ . }}
+  name: "secret-{{ . | sha256sum | trunc 12 }}"
   readOnly: true
+{{- end }}
 {{- end }}
 {{- end -}}
 {{- end -}}

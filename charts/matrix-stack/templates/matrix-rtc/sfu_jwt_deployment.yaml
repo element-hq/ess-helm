@@ -73,16 +73,20 @@ spec:
           {{- toYaml . | nindent 10 }}
 {{- end }}
         volumeMounts:
-{{- range $idx, $secret := include "element-io.matrix-rtc-authorisation-service.configSecrets" (dict "root" $ "context" $.Values.matrixRTC) | fromJsonArray }}
-        - mountPath: /secrets/{{ tpl $secret $ }}
-          name: "secret-{{ $idx }}"
+{{- range $secret := include "element-io.matrix-rtc-authorisation-service.configSecrets" (dict "root" $ "context" $.Values.matrixRTC) | fromJsonArray }}
+{{- with (tpl $secret $) }}
+        - mountPath: /secrets/{{ . }}
+          name: "secret-{{ . | sha256sum | trunc 12 }}"
           readOnly: true
 {{- end }}
+{{- end }}
       volumes:
-{{- range $idx, $secret := include "element-io.matrix-rtc-authorisation-service.configSecrets" (dict "root" $ "context" $.Values.matrixRTC) | fromJsonArray }}
+{{- range $secret := include "element-io.matrix-rtc-authorisation-service.configSecrets" (dict "root" $ "context" $.Values.matrixRTC) | fromJsonArray }}
+{{- with (tpl $secret $) }}
       - secret:
-          secretName: {{ tpl $secret $ }}
-        name: secret-{{ $idx }}
+          secretName: {{ . }}
+        name: "secret-{{ . | sha256sum | trunc 12 }}"
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}
