@@ -17,8 +17,8 @@ The syn2mas migration will run in a couple of minutes. It involves **three key s
 | Step | Action | Result |
 |------|--------|--------|
 | 1 | Setup Matrix Authentication Service and enable `syn2mas` in dryRun mode | System remains in `legacy_auth`. Matrix Authentication Service is deployed in `read-only` mode. It initializes the database. Users are still able to login using the legacy authentication. |
-| 2 | Run migration (dry run disabled) | System transitions to `syn2mas_migrated`. Users now login using the delegated authentication. Rollback to legacy authentication is not possible anymore. |
-| 3 | Disable syn2mas | System finalizes to `delegated_auth`. syn2mas cannot be run anymore. |
+| 2 | Run migration (dry run disabled) | System transitions to `syn2mas_migrated`. Users now login using the delegated authentication. Rollback to legacy authentication is not possible anymore.  syn2mas cannot be run anymore. |
+| 3 | Disable syn2mas | System finalizes to `delegated_auth`. |
 
 ## Step-by-Step Upgrade Process
 
@@ -32,12 +32,10 @@ The syn2mas migration will run in a couple of minutes. It involves **three key s
 
 3. If you have disabled the `initSecrets` job, please refer to the example in `charts/matrix-stack/ci/fragments/matrix-authentication-service-secrets-in-helm.yaml` to configure the secrets manually.
 
-4. Enable syn2mas in dryRun mode using the example values in `charts/matrix-stack/ci/fragments/matrix-authentication-service-syn2mas-dryrun.yaml`.
-
-5. Run the helm upgrade command:
+5. Run the helm upgrade command and enable syn2mas with `--set matrixAuthenticationService.syn2mas.enabled=true` :
 
 ```bash
-helm upgrade --install --namespace "ess" ess oci://ghcr.io/element-hq/ess-helm/matrix-stack -f ~/ess-config-values/hostnames.yaml <optional additional values files to pass> --wait
+helm upgrade --install --namespace "ess" ess oci://ghcr.io/element-hq/ess-helm/matrix-stack -f ~/ess-config-values/hostnames.yaml <optional additional values files to pass> --wait --set matrixAuthenticationService.syn2mas.enabled=true
 ```
 
 6. This step will deploy the following resources :
@@ -51,12 +49,10 @@ helm upgrade --install --namespace "ess" ess oci://ghcr.io/element-hq/ess-helm/m
 
 ### Step 2: Execute the syn2mas Migration
 
-1. Disable syn2mas dryRun mode by setting `matrixAuthenticationService.syn2mas.dryRun: false`. See the example values in `charts/matrix-stack/ci/fragments/matrix-authentication-service-syn2mas-migrate.yaml`.
-
-2. Run the helm upgrade command:
+1. Run the helm upgrade command with `--reuse-values` and `--set matrixAuthenticationService.syn2mas.dryRun=false` :
 
 ```bash
-helm upgrade --install --namespace "ess" ess oci://ghcr.io/element-hq/ess-helm/matrix-stack -f ~/ess-config-values/hostnames.yaml <optional additional values files to pass> --wait
+helm upgrade --namespace "ess" ess oci://ghcr.io/element-hq/ess-helm/matrix-stack --reuse-values --wait --set matrixAuthenticationService.syn2mas.dryRun=false
 ```
 
 2. This step will deploy the following resources :
@@ -71,11 +67,9 @@ Your users are now able to login using the delegated authentication. It is not p
 
 ### Step 3: Disable syn2mas
 
-While syn2mas is enabled, everytime you will run `helm upgrade`, it will downscale Synapse and its workers to 0 replicas.
+When in `syn2mas_migrated` state, running `helm upgrade` will prevent any deployment until `syn2mas` is disabled and the state becomes `delegated_auth`.
 
-1. Disable syn2mas by setting `matrixAuthenticationService.syn2mas.enabled: false`.
-
-2. Run the helm upgrade command:
+2. Run the helm upgrade command without syn2mas arguments:
 
 ```bash
 helm upgrade --install --namespace "ess" ess oci://ghcr.io/element-hq/ess-helm/matrix-stack -f ~/ess-config-values/hostnames.yaml <optional additional values files to pass> --wait
@@ -94,7 +88,9 @@ If the `deploymentMarkers` feature is enabled, the `MATRIX_STACK_MSC3861` marker
 3. **After Step 2** – `syn2mas_migrated` (migration completed)
 4. **After Step 3** – `delegated_auth` (migration finalized)
 
-> ⚠️ **Note:** The `MATRIX_STACK_MSC3861` marker will **prevent downgrading** from `syn2mas_migrated` or `delegated_auth` back to `legacy_auth`.
+> ⚠️ **Note:** The `MATRIX_STACK_MSC3861` marker will :
+> **Prevent running syn2mas migration again** after it has run successfully and is in `syn2mas_migrated` state
+> **Prevent downgrading** from `syn2mas_migrated`/`delegated_auth` back to `legacy_auth`
 
 
 ## Important Notes
