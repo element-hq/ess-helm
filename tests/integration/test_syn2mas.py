@@ -3,13 +3,14 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 
+import aiohttp
 import pyhelm3
 import pytest
 from lightkube import AsyncClient
 
 from .fixtures import ESSData
 from .lib.helpers import deploy_with_values_patch, get_deployment_marker
-from .lib.utils import aiohttp_post_json, value_file_has
+from .lib.utils import aiohttp_get_json, aiohttp_post_json, value_file_has
 from .test_matrix_authentication_service import test_matrix_authentication_service_graphql_endpoint
 
 
@@ -37,11 +38,16 @@ async def test_run_syn2mas_upgrade(
     # We should still be able to reach synapse ingress
     await ingress_ready("synapse")
 
+    # Auth metadata endpoint should not be reachable
+    with pytest.raises(aiohttp.ClientResponseError):
+        await aiohttp_get_json(
+            f"https://synapse.{generated_data.server_name}/_matrix/client/unstable/org.matrix.msc2965/auth_metadata",
+            ssl_context,
+        )
+
     # Syn2Mas is running in dryRun mode, so the state has not changed yet
     assert await get_deployment_marker(kube_client, generated_data, "MATRIX_STACK_MSC3861") == "legacy_auth"
 
-    # We should still be able to reach synapse ingress
-    await ingress_ready("synapse")
     # MAS should be reachable through its ingress
     await test_matrix_authentication_service_graphql_endpoint(ingress_ready, generated_data, ssl_context)
 
@@ -55,9 +61,17 @@ async def test_run_syn2mas_upgrade(
     # Syn2Mas is running in migrate mode, so the state must have changed
     assert await get_deployment_marker(kube_client, generated_data, "MATRIX_STACK_MSC3861") == "syn2mas_migrated"
 
+    # Auth metadata endpoint should be reachable
+    response = await aiohttp_get_json(
+        f"https://synapse.{generated_data.server_name}/_matrix/client/unstable/org.matrix.msc2965/auth_metadata",
+        ssl_context,
+    )
+    assert "issuer" in response
+
     # MAS should be reachable through its ingress
     await test_matrix_authentication_service_graphql_endpoint(ingress_ready, generated_data, ssl_context)
 
+    # The Synapse-issued tokens should have been migrated
     sync_result = await aiohttp_post_json(
         f"https://synapse.{generated_data.server_name}/_matrix/client/unstable/org.matrix.simplified_msc3575/sync",
         {},
@@ -65,7 +79,9 @@ async def test_run_syn2mas_upgrade(
         ssl_context,
     )
 
-    assert "pos" in sync_result
+    assert "pos" in sync_result, (
+        "The sync result failed, meaning the Synapse-issued tokens have probably not been migrated"
+    )
     revision, error = await deploy_with_values_patch(
         generated_data, helm_client, {"matrixAuthenticationService": {"syn2mas": {"enabled": False}}}
     )
@@ -85,3 +101,10 @@ async def test_run_syn2mas_upgrade(
     assert "pre-upgrade hooks failed" in revision.description
     # Assert that MAS still works
     await test_matrix_authentication_service_graphql_endpoint(ingress_ready, generated_data, ssl_context)
+
+    # Auth metadata endpoint should be reachable
+    response = await aiohttp_get_json(
+        f"https://synapse.{generated_data.server_name}/_matrix/client/unstable/org.matrix.msc2965/auth_metadata",
+        ssl_context,
+    )
+    assert "issuer" in response
