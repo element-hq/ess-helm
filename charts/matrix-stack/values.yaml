@@ -1733,6 +1733,12 @@ matrixAuthenticationService:
   ## 1. Set `matrixAuthenticationService.enabled: true` and `matrixAuthenticationService.syn2mas.enable: true`, run the  helm upgrade command, check the result of the pre-upgrade hook job
   ## 2. Set `matrixAuthenticationService.syn2mas.dryRun`: false, run the helm upgrade command, check the result of the pre-upgrade hook job
   ## 3. To disable the job scaling-down Synapse in future helm-upgrades, set `matrixAuthenticationService.syn2mas.enabled: false`
+  ##
+  ## If `deploymentMarkers` are enabled, following the steps above will cause the following `MATRIX_STACK_MSC3861` marker transitions :
+  ## 1. Stay on `legacy_auth`
+  ## 2. `legacy_auth` -> `syn2mas_migrated`
+  ## 3. `syn2mas_migrated` -> `delegated_auth`
+  ## The marker will effectively prevent downgrading from `syn2mas_migrated`/`delegated_auth` to `legacy_auth`
   syn2mas:
     enabled: false
 
@@ -1882,7 +1888,7 @@ matrixAuthenticationService:
     ## Runs the syn2mas process in dryRun mode.
     ## Force the authentication to happen with legacy authentication.
     ## This can be used to deploy Matrix Authentication Service and keeping auth on Synapse.
-    ## This should be set back to false and never switch again after the migration to MAS has been run.
+    ## This must be set to false and never switch again after the migration to MAS has been run or the deployment markers hooks will prevent redeploying.
     dryRun: true
 
 postgres:
