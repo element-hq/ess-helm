@@ -36,7 +36,6 @@ jobs:
     - uses: golangci/golangci-lint-action@4afd733a84b1f43292c63897423277bb7f4313a9  # v8
       with:
         working-directory: matrix-tools
-        go-version: "${{ env.GO_VERSION }}"
         args: -v --show-stats --no-config --modules-download-mode readonly
 
     - uses: GoTestTools/gotestfmt-action@8b4478c7019be847373babde9300210e7de34bfb  # v2
