@@ -41,11 +41,32 @@ class ESSData:
     def server_name(self):
         return f"ess-test-{self.secrets_random}.localhost"
 
+    @classmethod
+    def from_dict(cls, kv):
+        return ESSData(
+            secrets_random=kv["secrets_random"],
+            mas_oidc_client_secret=kv["mas_oidc_client_secret"],
+            ca=CertKey.from_dict(kv["ca"]),
+        )
+
+    def __dict__(self) -> dict:
+        return {
+            "secrets_random": self.secrets_random,
+            "ca": self.ca.__dict__(),
+            "mas_oidc_client_secret": self.mas_oidc_client_secret,
+        }
+
 
 @pytest.fixture(scope="session")
-async def generated_data(ca):
-    return ESSData(
-        secrets_random=random_string(string.ascii_lowercase + string.digits, 8),
-        ca=ca,
-        mas_oidc_client_secret=secrets.token_urlsafe(36),
-    )
+async def generated_data(pytestconfig, ca):
+    serialized_data = pytestconfig.cache.get("ess-helm/generated-data", None)
+    if serialized_data:
+        data = ESSData.from_dict(serialized_data)
+    else:
+        data = ESSData(
+            secrets_random=random_string(string.ascii_lowercase + string.digits, 8),
+            ca=ca,
+            mas_oidc_client_secret=secrets.token_urlsafe(36),
+        )
+        pytestconfig.cache.set("ess-helm/generated-data", data.__dict__())
+    return data

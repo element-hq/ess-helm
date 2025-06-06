@@ -59,6 +59,17 @@ class CertKey:
             encryption_algorithm=serialization.NoEncryption(),
         ).decode("utf-8")
 
+    @classmethod
+    def from_dict(cls, kv):
+        return CertKey(
+            ca=CertKey.from_dict(kv["ca"]) if kv["ca"] else None,
+            cert=x509.load_pem_x509_certificate(kv["cert"].encode("utf-8"), default_backend()),
+            key=load_pem_private_key(kv["key"].encode("utf-8"), None, default_backend()),
+        )
+
+    def __dict__(self) -> dict:
+        return {"ca": self.ca.__dict__() if self.ca else None, "cert": self.cert_as_pem(), "key": self.key_as_pem()}
+
 
 def get_ca(name, root_ca=None) -> CertKey:
     ca_filename = Path(user_cache_dir("pytest-ess", "element")) / Path(name.lower().replace(" ", "-"))

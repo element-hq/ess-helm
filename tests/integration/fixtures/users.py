@@ -1,4 +1,4 @@
-# Copyright 2024 New Vector Ltd
+# Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -13,7 +13,9 @@ from .data import ESSData
 
 
 @pytest.fixture(scope="session")
-async def users(request, matrix_stack, secrets_generated, generated_data: ESSData, ssl_context, ingress_ready):
+async def users(
+    request, pytestconfig, matrix_stack, secrets_generated, generated_data: ESSData, ssl_context, ingress_ready
+):
     await ingress_ready("synapse")
     if value_file_has("matrixAuthenticationService.enabled", True):
         await ingress_ready("matrix-authentication-service")
@@ -30,6 +32,7 @@ async def users(request, matrix_stack, secrets_generated, generated_data: ESSDat
                     False,
                     admin_token,
                     ssl_context,
+                    pytestconfig,
                 )
             )
     else:
@@ -43,6 +46,7 @@ async def users(request, matrix_stack, secrets_generated, generated_data: ESSDat
                     False,
                     synapse_registration_shared_secret,
                     ssl_context,
+                    pytestconfig,
                 )
             )
     return await asyncio.gather(*wait_for_users)
