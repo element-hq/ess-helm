@@ -16,7 +16,11 @@ from .test_matrix_authentication_service import test_matrix_authentication_servi
 
 
 @pytest.mark.skipif(value_file_has("synapse.enabled", False), reason="Synapse not deployed")
-@pytest.mark.skipif(value_file_has("matrixAuthenticationService.syn2mas.enabled", False), reason="Syn2Mas not deployed")
+@pytest.mark.skipif(
+    not value_file_has("matrixAuthenticationService.syn2mas")
+    or value_file_has("matrixAuthenticationService.syn2mas.enabled", False),
+    reason="Syn2Mas not deployed or the tested chart version does not support syn2mas",
+)
 @pytest.mark.parametrize("users", [("syn2mas-user",)], indirect=True)
 @pytest.mark.asyncio_cooperative
 async def test_run_syn2mas_upgrade(
@@ -26,6 +30,7 @@ async def test_run_syn2mas_upgrade(
     ingress_ready,
     ssl_context,
     generated_data: ESSData,
+    pytestconfig,
 ):
     access_token = users[0]
     await ingress_ready("synapse")
@@ -108,6 +113,7 @@ async def test_run_syn2mas_upgrade(
         False,
         admin_token,
         ssl_context,
+        pytestconfig,
     )
 
     # The MAS-issued tokens should also work

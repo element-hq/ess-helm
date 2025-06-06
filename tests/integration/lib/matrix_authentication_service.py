@@ -6,6 +6,7 @@ from ssl import SSLContext
 from urllib.parse import urlparse
 
 import aiohttp
+import pytest
 from aiohttp_retry import RetryClient
 
 from ..fixtures import ESSData
@@ -40,10 +41,15 @@ async def create_mas_user(
     admin: bool,
     bearer_token: str,
     ssl_context: SSLContext,
+    pytestconfig: pytest.Config,
 ) -> str:
     """
     Create the user and return their user id
     """
+    cached_user_token = pytestconfig.cache.get(f"ess-helm/cached-tokens/{username}", None)
+    if cached_user_token:
+        return cached_user_token
+
     create_user_data = {"username": username}
     headers = {"Authorization": f"Bearer {bearer_token}"}
     response = await aiohttp_post_json(
@@ -103,4 +109,5 @@ async def create_mas_user(
     response = await aiohttp_post_json(
         f"https://{mas_fqdn}/graphql", headers=headers, data=add_access_token_data, ssl_context=ssl_context
     )
+    pytestconfig.cache.set(f"ess-helm/cached-tokens/{username}", response["data"]["createOauth2Session"]["accessToken"])
     return response["data"]["createOauth2Session"]["accessToken"]

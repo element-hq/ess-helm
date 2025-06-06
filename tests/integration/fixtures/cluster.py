@@ -11,7 +11,7 @@ from typing import Any
 import pyhelm3
 import pytest
 import yaml
-from lightkube import AsyncClient, KubeConfig
+from lightkube import ApiError, AsyncClient, KubeConfig
 from lightkube.models.meta_v1 import ObjectMeta
 from lightkube.resources.core_v1 import Namespace, Service
 from pytest_kubernetes.options import ClusterOptions
@@ -179,25 +179,28 @@ async def ess_namespace(
     cluster: PotentiallyExistingKindCluster, kube_client: AsyncClient, generated_data: ESSData
 ) -> AsyncGenerator[Namespace, Any]:
     (major_version, minor_version) = cluster.version()
-    namespace = await kube_client.create(
-        Namespace(
-            metadata=ObjectMeta(
-                name=generated_data.ess_namespace,
-                labels={
-                    "app.kubernetes.io/managed-by": "pytest",
-                    # We do turn on enforce here to cause test failures.
-                    # If we actually need restricted functionality then the tests can drop this
-                    # and parse the audit logs
-                    "pod-security.kubernetes.io/enforce": "restricted",
-                    "pod-security.kubernetes.io/enforce-version": f"v{major_version}.{minor_version}",
-                    "pod-security.kubernetes.io/audit": "restricted",
-                    "pod-security.kubernetes.io/audit-version": f"v{major_version}.{minor_version}",
-                    "pod-security.kubernetes.io/warn": "restricted",
-                    "pod-security.kubernetes.io/warn-version": f"v{major_version}.{minor_version}",
-                },
+    try:
+        namespace = await kube_client.get(Namespace, name=generated_data.ess_namespace)
+    except ApiError:
+        namespace = await kube_client.create(
+            Namespace(
+                metadata=ObjectMeta(
+                    name=generated_data.ess_namespace,
+                    labels={
+                        "app.kubernetes.io/managed-by": "pytest",
+                        # We do turn on enforce here to cause test failures.
+                        # If we actually need restricted functionality then the tests can drop this
+                        # and parse the audit logs
+                        "pod-security.kubernetes.io/enforce": "restricted",
+                        "pod-security.kubernetes.io/enforce-version": f"v{major_version}.{minor_version}",
+                        "pod-security.kubernetes.io/audit": "restricted",
+                        "pod-security.kubernetes.io/audit-version": f"v{major_version}.{minor_version}",
+                        "pod-security.kubernetes.io/warn": "restricted",
+                        "pod-security.kubernetes.io/warn-version": f"v{major_version}.{minor_version}",
+                    },
+                )
             )
         )
-    )
 
     yield namespace
 

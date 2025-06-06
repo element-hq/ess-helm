@@ -27,14 +27,19 @@ jobs:
     outputs:
       envFiles: ${{ steps.data.outputs.envFiles }}
       manifestTests: ${{ steps.data.outputs.manifestTests }}
+      upgradeFrom: ${{ steps.data.outputs.upgradeFrom }}
     steps:
     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
       with:
         ref: ${{ github.event.pull_request.head.sha }}
+        fetch-depth: 0
+        tags: true
     - id: data
       run: |
         echo "envFiles=$(find tests/integration/env -name '*.rc' | sed 's|tests/integration/env/||' | sed 's/.rc$//' | jq -ncR '{envFiles: [inputs]}')" | tee -a "$GITHUB_OUTPUT"
         echo "manifestTests=$(find tests/manifests -name 'test_*.py' | sed 's|tests/manifests/||' | sed 's/.py$//' | jq -ncR '{manifestTests: [inputs]}')" | tee -a "$GITHUB_OUTPUT"
+        LATEST_TAG=$(git tag | grep -E '^([0-9]+)\.([0-9]+)\.([0-9]+)$' | sort -V | tail -n 1)
+        echo "upgradeFrom=$LATEST_TAG" | tee -a "$GITHUB_OUTPUT"
 
   pytest-integration:
     runs-on: ubuntu-latest
@@ -43,11 +48,18 @@ jobs:
       fail-fast: false
       matrix:
         test-component: ${{ fromJSON(needs.pytest-setup.outputs.envFiles).envFiles }}
-
+        test-from-ref:
+        - "${{ github.event.pull_request.head.sha }}"
+        - "${{ needs.pytest-setup.outputs.upgradeFrom }}"
+    env:
+      MATRIX_TEST_COMPONENT: ${{ matrix.test-component }}
+      MATRIX_TEST_FROM_REF: ${{ matrix.test-from-ref }}
     steps:
     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
       with:
         ref: ${{ github.event.pull_request.head.sha }}
+        fetch-depth: 0
+        fetch-tags: true
 
     - uses: matrix-org/setup-python-poetry@5bbf6603c5c930615ec8a29f1b5d7d258d905aa4  # v2
       with:
@@ -79,13 +91,34 @@ jobs:
         skipClusterCreation: "true"
         skipClusterLogsExport: "true"
 
-
     - uses: azure/setup-helm@b9e51907a09c216f16ebe8536097933489208112  # v4.3.0
 
-    - name: Test with pytest
+    - name: Checkout values files from previous ref
       run: |
-        . tests/integration/env/${{ matrix.test-component }}.rc
+        git checkout --no-overlay -f "${MATRIX_TEST_FROM_REF}" -- charts/matrix-stack tests/integration/env/
+      if: ${{ matrix.test-from-ref != github.event.pull_request.head.sha }}
+
+    - name: Deploy with pytest once
+      run: |
+        if [ -f "tests/integration/env/${MATRIX_TEST_COMPONENT}.rc" ]; then
+          # shellcheck source=/dev/null
+          . "tests/integration/env/${MATRIX_TEST_COMPONENT}.rc"
+          PYTEST_KEEP_CLUSTER=1 poetry run pytest -vv tests/integration
+        else
+          echo "The integration test does not exist in previous ref, skipping..."
+        fi
+
+    - name: Checkout values files back
+      run: |
+        git checkout --no-overlay -f HEAD -- charts/matrix-stack tests/integration/env/
+
+    - name: Test with pytest (upgrade or idempotent setup)
+      run: |
+        # shellcheck source=/dev/null
+        . "tests/integration/env/${MATRIX_TEST_COMPONENT}.rc"
         PYTEST_KEEP_CLUSTER=1 poetry run pytest -vv tests/integration
+      # syn2mas is a special case that cannot run twice by design
+      if: ${{ matrix.test-component != 'matrix-authentication-service-syn2mas' }}
 
     - name: Export logs
       if: ${{ failure() }}

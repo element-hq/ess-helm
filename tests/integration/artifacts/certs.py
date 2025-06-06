@@ -9,6 +9,7 @@ import os
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import pytz
 from cryptography import x509
@@ -58,6 +59,21 @@ class CertKey:
             format=serialization.PrivateFormat.PKCS8,
             encryption_algorithm=serialization.NoEncryption(),
         ).decode("utf-8")
+
+    @classmethod
+    def from_dict(cls, kv):
+        return CertKey(
+            ca=CertKey.from_dict(kv["ca"]) if kv["ca"] else None,
+            cert=x509.load_pem_x509_certificate(kv["cert"].encode("utf-8"), default_backend()),
+            key=load_pem_private_key(kv["key"].encode("utf-8"), None, default_backend()),
+        )
+
+    def to_json_mapping(self) -> dict[str, Any]:
+        return {
+            "ca": self.ca.to_json_mapping() if self.ca else None,
+            "cert": self.cert_as_pem(),
+            "key": self.key_as_pem(),
+        }
 
 
 def get_ca(name, root_ca=None) -> CertKey:

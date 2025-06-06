@@ -1,4 +1,4 @@
-# Copyright 2024 New Vector Ltd
+# Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -7,6 +7,8 @@ import hmac
 import mimetypes
 from pathlib import Path
 from ssl import SSLContext
+
+import pytest
 
 from .utils import KubeCtl, aiohttp_client, aiohttp_get_json, aiohttp_post_json
 
@@ -46,10 +48,15 @@ async def create_synapse_user(
     admin: bool,
     registration_shared_secret: str,
     ssl_context: SSLContext,
+    pytestconfig: pytest.Config,
 ) -> str:
     """
     Create the user and return access_token
     """
+    cached_user_token = pytestconfig.cache.get(f"ess-helm/cached-tokens/{username}", None)
+    if cached_user_token:
+        return cached_user_token
+
     nonce = await get_nonce(synapse_fqdn, ssl_context)
     mac = generate_mac(username, password, admin, registration_shared_secret, nonce)
     data = {
@@ -60,6 +67,7 @@ async def create_synapse_user(
         "mac": mac,
     }
     response = await aiohttp_post_json(f"https://{synapse_fqdn}/_synapse/admin/v1/register", data, {}, ssl_context)
+    pytestconfig.cache.set(f"ess-helm/cached-tokens/{username}", response["access_token"])
     return response["access_token"]
 
 
