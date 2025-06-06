@@ -95,7 +95,7 @@ jobs:
 
     - name: Checkout values files from previous ref
       run: |
-        git checkout "${MATRIX_TEST_FROM_REF}" -- charts/matrix-stack/ci tests/integration/env/
+        git checkout --no-overlay -f "${MATRIX_TEST_FROM_REF}" -- charts/matrix-stack tests/integration/env/
       if: ${{ matrix.test-from-ref != github.event.pull_request.head.sha }}
 
     - name: Deploy with pytest once
@@ -110,7 +110,7 @@ jobs:
 
     - name: Checkout values files back
       run: |
-        git checkout HEAD -- charts/matrix-stack/ci tests/integration/env/
+        git checkout --no-overlay -f HEAD -- charts/matrix-stack tests/integration/env/
 
     - name: Test with pytest (upgrade or idempotent setup)
       run: |
