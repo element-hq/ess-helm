@@ -34,6 +34,11 @@ async def test_templates_have_expected_labels(release_name, templates):
                 f"{expected_label} label is null in {id} and so won't be present in cluster"
             )
 
+        for k in labels:
+            assert len(k) <= 63, (
+                f"Label {k} has a length of {len(k)} which is longer than the maximum allowed of 63 characters"
+            )
+
         assert labels["helm.sh/chart"].startswith("matrix-stack-")
         assert labels["app.kubernetes.io/managed-by"] == "Helm"
         assert labels["app.kubernetes.io/part-of"] == "matrix-stack"
