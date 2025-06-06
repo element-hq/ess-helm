@@ -4,7 +4,6 @@
 
 import asyncio
 import time
-from collections.abc import Awaitable
 
 import pyhelm3
 from lightkube.models.meta_v1 import ObjectMeta
@@ -14,11 +13,11 @@ from ..artifacts import CertKey, generate_cert
 from .utils import merge
 
 
-def namespace(name: str) -> Awaitable[Namespace]:
+def namespace(name: str) -> Namespace:
     return Namespace(metadata=ObjectMeta(name=name))
 
 
-def kubernetes_docker_secret(name: str, namespace: str, docker_config_json: str) -> Awaitable[Secret]:
+def kubernetes_docker_secret(name: str, namespace: str, docker_config_json: str) -> Secret:
     secret = Secret(
         type="kubernetes.io/dockerconfigjson",
         metadata=ObjectMeta(name=name, namespace=namespace, labels={"app.kubernetes.io/managed-by": "pytest"}),
@@ -27,9 +26,7 @@ def kubernetes_docker_secret(name: str, namespace: str, docker_config_json: str)
     return secret
 
 
-def kubernetes_tls_secret(
-    name: str, namespace: str, ca: CertKey, dns_names: list[str], bundled=False
-) -> Awaitable[Secret]:
+def kubernetes_tls_secret(name: str, namespace: str, ca: CertKey, dns_names: list[str], bundled=False) -> Secret:
     certificate = generate_cert(ca, dns_names)
     secret = Secret(
         type="kubernetes.io/tls",
@@ -65,7 +62,7 @@ async def wait_for_endpoint_ready(name, namespace, cluster, kube_client):
 
 async def deploy_with_values_patch(
     generated_data, helm_client: pyhelm3.Client, values_patch: dict, timeout="600s"
-) -> pyhelm3.ReleaseRevision:
+) -> tuple[pyhelm3.ReleaseRevision, pyhelm3.Error | None]:
     # Get the current deployed values to patch them
     revision = await helm_client.get_current_revision(
         generated_data.release_name, namespace=generated_data.ess_namespace

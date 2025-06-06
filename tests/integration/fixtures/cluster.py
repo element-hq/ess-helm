@@ -1,4 +1,4 @@
-# Copyright 2024 New Vector Ltd
+# Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -176,7 +176,7 @@ async def prometheus_operator_crds(helm_client):
 
 @pytest.fixture(scope="session")
 async def ess_namespace(
-    cluster: PotentiallyExistingKindCluster, kube_client: pyhelm3.Client, generated_data: ESSData
+    cluster: PotentiallyExistingKindCluster, kube_client: AsyncClient, generated_data: ESSData
 ) -> AsyncGenerator[Namespace, Any]:
     (major_version, minor_version) = cluster.version()
     namespace = await kube_client.create(

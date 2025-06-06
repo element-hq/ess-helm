@@ -1,4 +1,4 @@
-# Copyright 2024 New Vector Ltd
+# Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -32,12 +32,16 @@ async def test_services_have_matching_labels(
     async for service in kube_client.list(
         Service, namespace=generated_data.ess_namespace, labels={"app.kubernetes.io/part-of": op.in_(["matrix-stack"])}
     ):
-        assert service.spec is not None, f"Encountered a service without spec : {service}"
+        assert service.spec, f"Encountered a service without spec : {service}"
+        assert service.spec.selector, f"Encountered a service missing a selector : {service}"
+        assert service.metadata, f"Encountered a service without metadata : {service}"
+        assert service.metadata.labels, f"Encountered a service without labels : {service}"
         label_selectors = {label: value for label, value in service.spec.selector.items()}
 
         async for pod in kube_client.list(Pod, namespace=generated_data.ess_namespace, labels=label_selectors):
-            assert service.metadata is not None, f"Encountered a service without metadata : {service}"
-            assert pod.metadata is not None, f"Encountered a pod without metadata : {pod}"
+            assert service.metadata, f"Encountered a service without metadata : {service}"
+            assert pod.metadata, f"Encountered a pod without metadata : {pod}"
+            assert pod.metadata.labels, f"Encountered a pod without labels : {pod}"
             has_target_label = any(label.startswith("k8s.element.io/target-") for label in service.metadata.labels)
             for label, value in service.metadata.labels.items():
                 if label in ["k8s.element.io/owner-name", "k8s.element.io/owner-group-kind"]:
@@ -65,7 +69,8 @@ async def test_services_have_endpoints(
     async for service in kube_client.list(
         Service, namespace=generated_data.ess_namespace, labels={"app.kubernetes.io/part-of": op.in_(["matrix-stack"])}
     ):
-        assert service.metadata is not None, f"Encountered a service without metadata : {service}"
+        assert service.metadata, f"Encountered a service without metadata : {service}"
+        assert service.spec, f"Encountered a service without spec : {service}"
         endpoints_to_wait.append(
             wait_for_endpoint_ready(service.metadata.name, generated_data.ess_namespace, cluster, kube_client)
         )
@@ -84,8 +89,10 @@ async def test_services_have_endpoints(
 
         port_names = [port.name for port in ports if port.name]
         port_numbers = [port.port for port in ports]
-        assert services[endpoint.metadata.name].spec is not None, f"Service {service.metadata.name} has no spec"
-        for port in services[endpoint.metadata.name].spec.ports:
+        service_from_endpoint = services[endpoint.metadata.name]
+        assert service_from_endpoint.spec, f"Service {endpoint.metadata.name} has no spec"
+        assert service_from_endpoint.spec.ports, f"Service {endpoint.metadata.name} has no port"
+        for port in service_from_endpoint.spec.ports:
             if port.name:
                 assert port.name in port_names
             else:
@@ -108,6 +115,7 @@ async def test_pods_monitored(
         if pod.metadata and pod.metadata.annotations and "has-no-service-monitor" in pod.metadata.annotations:
             continue
         elif pod.metadata:
+            assert pod.metadata.name, "Encountered a pod without a name"
             all_monitorable_pods.add(pod.metadata.name)
         else:
             raise RuntimeError(f"Pod {pod} has no metadata")
@@ -122,8 +130,10 @@ async def test_pods_monitored(
         async for service in kube_client.list(
             Service, namespace=generated_data.ess_namespace, labels=service_monitor["spec"]["selector"]["matchLabels"]
         ):
-            if not service.spec:
-                raise RuntimeError(f"Service {service} has no spec")
+            assert service.metadata, f"Encountered a service without metadata : {service}"
+            assert service.spec, f"Encountered a service without spec : {service}"
+            assert service.spec.ports, f"Ecountered a service without port : {service}"
+            assert service.spec.selector, f"Ecountered a service without selectors : {service}"
 
             for endpoint in service_monitor["spec"]["endpoints"]:
                 service_port_names = [port.name for port in service.spec.ports if port.name]
@@ -143,7 +153,7 @@ async def test_pods_monitored(
                 assert covered_pod.metadata.name not in monitored_pods, (
                     f"Pod {covered_pod.metadata.name} is monitored multiple times"
                 )
-
+                assert covered_pod.metadata.name
                 monitored_pods.add(covered_pod.metadata.name)
                 service_monitor_is_useful = True
 
