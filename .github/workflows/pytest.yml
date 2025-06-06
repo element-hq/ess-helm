@@ -51,7 +51,9 @@ jobs:
         test-from-ref:
         - "${{ github.event.pull_request.head.sha }}"
         - "${{ needs.pytest-setup.outputs.upgradeFrom }}"
-
+    env:
+      MATRIX_TEST_COMPONENT: ${{ matrix.test-component }}
+      MATRIX_TEST_FROM_REF: ${{ matrix.test-from-ref }}
     steps:
     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
       with:
@@ -93,13 +95,14 @@ jobs:
 
     - name: Checkout values files from previous ref
       run: |
-        git checkout ${{ matrix.test-from-ref }} -- charts/matrix-stack/ci tests/integration/env/
+        git checkout "${MATRIX_TEST_FROM_REF}" -- charts/matrix-stack/ci tests/integration/env/
       if: ${{ matrix.test-from-ref != github.event.pull_request.head.sha }}
 
     - name: Deploy with pytest once
       run: |
-        if [ -f tests/integration/env/${{ matrix.test-component }}.rc ]; then
-          . tests/integration/env/${{ matrix.test-component }}.rc
+        if [ -f "tests/integration/env/${MATRIX_TEST_COMPONENT}.rc" ]; then
+          # shellcheck source=/dev/null
+          . "tests/integration/env/${MATRIX_TEST_COMPONENT}.rc"
           PYTEST_KEEP_CLUSTER=1 poetry run pytest -vv tests/integration
         else
           echo "The integration test does not exist in previous ref, skipping..."
@@ -116,10 +119,11 @@ jobs:
 
     - name: Test with pytest (upgrade or idempotent setup)
       run: |
-        . tests/integration/env/${{ matrix.test-component }}.rc
+        # shellcheck source=/dev/null
+        . "tests/integration/env/${MATRIX_TEST_COMPONENT}.rc"
         PYTEST_KEEP_CLUSTER=1 poetry run pytest -vv tests/integration
       # syn2mas is a special case that cannot run twice by design
-      if: ${{ matrix.test-component != "matrix-authentication-service-syn2mas" }}
+      if: ${{ matrix.test-component != 'matrix-authentication-service-syn2mas' }}
 
     - name: Export logs
       if: ${{ failure() }}
