@@ -174,7 +174,8 @@ async def matrix_stack(
     ]
     values["synapse"]["hostAliases"] = values["matrixRTC"]["hostAliases"]
 
-    chart = await helm_client.get_chart(os.environ.get("MATRIX_STACK_CHART", "charts/matrix-stack"))
+    chart = await helm_client.get_chart("charts/matrix-stack")
+
     # Install or upgrade a release
     revision = await helm_client.install_or_upgrade_release(
         generated_data.release_name,
