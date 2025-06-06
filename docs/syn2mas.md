@@ -33,7 +33,9 @@ The syn2mas migration will run in a couple of minutes. It involves **three key s
    - The `initSecrets` job is enabled (default)
    - You are using the chart-managed Postgres Server (we recommend using an external Postgres Server)
 
-2. To migrate passwords from Synapse to Matrix Authentication Service, you need to enable Synapse passwords scheme into Matrix Authentication Service. Enable them under `matrixAuthenticationService.additional` according to the example file `charts/matrix-stack/ci/fragments/matrix-authentication-service-migrated-password-scheme.yaml`.
+2. To migrate passwords from Synapse to Matrix Authentication Service, you need to enable Synapse passwords scheme into Matrix Authentication Service.
+   - Please refer to the [Matrix Authentication Service Migration documentation](https://element-hq.github.io/matrix-authentication-service/setup/migration.html) to see any other additional setting you might need.
+   - Configure them under `matrixAuthenticationService.additional` according to the [advanced documentation](./advanced.md#configuring-matrix-authentication-service)
 
 3. If you are using an external Postgres database, please refer to the quick-setup example in `charts/matrix-stack/ci/fragments/quick-setup-postgresql.yaml` to configure the Matrix Authentication Service database.
 
