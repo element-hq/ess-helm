@@ -93,17 +93,21 @@ jobs:
 
     - name: Checkout values files from previous ref
       run: |
-        git checkout ${{ matrix.test-from-ref }} -- charts/matrix-stack/ci
+        git checkout ${{ matrix.test-from-ref }} -- charts/matrix-stack/ci tests/integration/env/
       if: ${{ matrix.test-from-ref != github.event.pull_request.head.sha }}
 
     - name: Deploy with pytest once
       run: |
-        . tests/integration/env/${{ matrix.test-component }}.rc
-        PYTEST_KEEP_CLUSTER=1 poetry run pytest -vv tests/integration
+        if [ -f tests/integration/env/${{ matrix.test-component }}.rc ]; then
+          . tests/integration/env/${{ matrix.test-component }}.rc
+          PYTEST_KEEP_CLUSTER=1 poetry run pytest -vv tests/integration
+        else
+          echo "The integration test does not exist in previous ref, skipping..."
+        fi
 
     - name: Checkout values files back
       run: |
-        git checkout HEAD -- charts/matrix-stack/ci
+        git checkout HEAD -- charts/matrix-stack/ci tests/integration/env/
 
     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
       with:
