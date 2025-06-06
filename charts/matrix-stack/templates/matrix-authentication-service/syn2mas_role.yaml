@@ -23,6 +23,9 @@ Hook Weights are
 */}}
     "helm.sh/hook-weight": "0"
 rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["list"]
 {{/*
   https://kubernetes.io/docs/reference/access-authn-authz/rbac/#referring-to-resources
   You cannot restrict create or deletecollection requests by resourceName.
