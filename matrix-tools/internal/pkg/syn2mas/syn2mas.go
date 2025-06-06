@@ -61,7 +61,7 @@ func scaleDownSynapse(client kubernetes.Interface, namespace string) map[string]
 	}
 	podsClient := client.CoreV1().Pods(namespace)
 	pods, err := podsClient.List(ctx, metav1.ListOptions{
-		LabelSelector: "app.kubernetes.io/component=matrix-server",
+		LabelSelector: "app.kubernetes.io/component=matrix-server,app.kubernetes.io/name!=synapse-check-config",
 	})
 	if err != nil {
 		fmt.Println(err)
