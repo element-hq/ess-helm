@@ -35,6 +35,8 @@ jobs:
       run: |
         echo "envFiles=$(find tests/integration/env -name '*.rc' | sed 's|tests/integration/env/||' | sed 's/.rc$//' | jq -ncR '{envFiles: [inputs]}')" | tee -a "$GITHUB_OUTPUT"
         echo "manifestTests=$(find tests/manifests -name 'test_*.py' | sed 's|tests/manifests/||' | sed 's/.py$//' | jq -ncR '{manifestTests: [inputs]}')" | tee -a "$GITHUB_OUTPUT"
+        LATEST_TAG=$(git tag | grep -E '^([0-9]+)\.([0-9]+)\.([0-9]+)$' | sort -V | tail -n 1)
+        echo "upgradeFrom=$LATEST_TAG" | tee -a "$GITHUB_OUTPUT"
 
   pytest-integration:
     runs-on: ubuntu-latest
@@ -43,6 +45,9 @@ jobs:
       fail-fast: false
       matrix:
         test-component: ${{ fromJSON(needs.pytest-setup.outputs.envFiles).envFiles }}
+        test-upgrade:
+        - "charts/matrix-stack"
+        - "oci://ghcr.io/${{ github.repository }}:${{ (needs.pytest-setup.outputs.upgradeFrom }}"
 
     steps:
     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
@@ -79,10 +84,16 @@ jobs:
         skipClusterCreation: "true"
         skipClusterLogsExport: "true"
 
-
     - uses: azure/setup-helm@b9e51907a09c216f16ebe8536097933489208112  # v4.3.0
 
-    - name: Test with pytest
+    - name: Deploy with pytest once
+      env:
+        MATRIX_STACK_CHART: "${{ matrix.test-upgrade }}"
+      run: |
+        . tests/integration/env/${{ matrix.test-component }}.rc
+        PYTEST_KEEP_CLUSTER=1 poetry run pytest -vv tests/integration
+
+    - name: Test with pytest (upgrade or idempotent setup)
       run: |
         . tests/integration/env/${{ matrix.test-component }}.rc
         PYTEST_KEEP_CLUSTER=1 poetry run pytest -vv tests/integration
