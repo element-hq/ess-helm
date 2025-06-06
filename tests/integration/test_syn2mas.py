@@ -26,6 +26,7 @@ async def test_run_syn2mas_upgrade(
     ingress_ready,
     ssl_context,
     generated_data: ESSData,
+    pytestconfig,
 ):
     access_token = users[0]
     await ingress_ready("synapse")
@@ -108,6 +109,7 @@ async def test_run_syn2mas_upgrade(
         False,
         admin_token,
         ssl_context,
+        pytestconfig,
     )
 
     # The MAS-issued tokens should also work
