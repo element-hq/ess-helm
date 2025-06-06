@@ -114,6 +114,8 @@ jobs:
       run: |
         . tests/integration/env/${{ matrix.test-component }}.rc
         PYTEST_KEEP_CLUSTER=1 poetry run pytest -vv tests/integration
+      # syn2mas is a special case that cannot run twice by design
+      if: ${{ matrix.test-component != "matrix-authentication-service-syn2mas" }}
 
     - name: Export logs
       if: ${{ failure() }}
