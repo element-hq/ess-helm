@@ -110,6 +110,7 @@ jobs:
 
     # helm template doesn't reliably order manifests within the same kind, so use yq to do it for us
     - name: Generate manifests for PR
+      id: generate-manifests
       run: |
         mkdir -p "$RUNNER_TEMP/new"
         for values in charts/matrix-stack/ci/*values.yaml; do
@@ -122,6 +123,7 @@ jobs:
           yq ea '[.] | .[] | splitDoc' | \
           yq -s "\"$RUNNER_TEMP/new/$(basename "$values" ".yaml")/\""' + ([.kind, .metadata.name] | join("-") | downcase) + ".yaml"'
         done
+        echo "output_dir=$RUNNER_TEMP/new" | tee -a "$GITHUB_OUTPUT"
 
     # We want the most recent common ancestor between the target & PR branches rather than the target branch itself
     # There could have been more commits to the target branch since the PR branch was created and we don't want to see
@@ -156,9 +158,19 @@ jobs:
         tool_versions: |
           dyff 1.10.1
 
+    - name: Upload new manifests
+      id: upload-new
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+      with:
+        name: new-manifests
+        path: ${{ steps.generate-manifests.outputs.output_dir }}
+        retention-days: 1
+
     - name: dyff old and new manifests
       id: dyff
       shell: bash
+      env:
+        ARTIFACT_URL: ${{ steps.upload-new.outputs.artifact-url }}
       run: |
         echo "output_dir=$RUNNER_TEMP" | tee -a "$GITHUB_OUTPUT"
         values_directories=$(find "$RUNNER_TEMP/old" "$RUNNER_TEMP/new" -maxdepth 1 -type d | sed -E 's|'"$RUNNER_TEMP"'/(old\|new)||' | sed -E 's|^/||' | sort | uniq)
@@ -182,8 +194,9 @@ jobs:
               file_content=$(sed -e 's/^/+ /' < "$RUNNER_TEMP/new/$templates_file")
               comment_templates_body+="<details><summary>$current_file (added)</summary>\n"
               comment_templates_body+='\n```diff\n'
-              comment_templates_body+=$file_content
-              comment_templates_body+='\n```\n</details>\n\n'
+              comment_templates_body+="# The full content of the file is available in ${ARTIFACT_URL}\n"
+              comment_templates_body+=$(head -n 5 <<< "$file_content")
+              comment_templates_body+='\n...\n```\n</details>\n\n'
               continue
             fi
 
