@@ -7,9 +7,9 @@ from pathlib import Path
 
 import pyhelm3
 import pytest
-from lightkube.resources.core_v1 import ConfigMap
 
 from .fixtures import ESSData
+from .lib.helpers import deploy_with_values_patch, get_deployment_marker
 from .lib.synapse import assert_downloaded_content, download_media, upload_media
 from .lib.utils import KubeCtl, aiohttp_client, aiohttp_get_json, aiohttp_post_json, value_file_has
 
@@ -118,39 +118,19 @@ async def test_rendezvous_cors_headers_are_only_set_with_mas(ingress_ready, gene
 
 @pytest.mark.skipif(value_file_has("synapse.enabled", False), reason="Synapse not deployed")
 @pytest.mark.skipif(value_file_has("matrixAuthenticationService.enabled", True), reason="MAS is deployed")
+@pytest.mark.skipif(value_file_has("matrixAuthenticationService.syn2mas.enabled", True), reason="Syn2Mas is being run")
 @pytest.mark.asyncio_cooperative
 async def test_synapse_service_marker_legacy_auth(
     kube_client, helm_client: pyhelm3.Client, ingress_ready, generated_data: ESSData, ssl_context
 ):
-    configmap = await kube_client.get(
-        ConfigMap,
-        namespace=generated_data.ess_namespace,
-        name=f"{generated_data.release_name}-markers",
+    assert await get_deployment_marker(kube_client, generated_data, "MATRIX_STACK_MSC3861") == "legacy_auth"
+    revision, error = await deploy_with_values_patch(
+        generated_data,
+        helm_client,
+        {"matrixAuthenticationService": {"enabled": True, "ingress": {"host": "account.{{ $.Values.serverName }}"}}},
+        timeout="15s",
     )
-    assert configmap.data.get("MATRIX_STACK_MSC3861") == "legacy_auth"
-    revision = await helm_client.get_current_revision(
-        generated_data.release_name, namespace=generated_data.ess_namespace
-    )
-    values = await revision.values()
-    values.setdefault("matrixAuthenticationService", {})["enabled"] = True
-    values.setdefault("matrixAuthenticationService", {}).setdefault("ingress", {})["host"] = (
-        "account.{{ $.Values.serverName }}"
-    )
-    chart = await helm_client.get_chart("charts/matrix-stack")
-    with pytest.raises(pyhelm3.errors.Error):
-        # Install or upgrade a release
-        await helm_client.install_or_upgrade_release(
-            generated_data.release_name,
-            chart,
-            values,
-            namespace=generated_data.ess_namespace,
-            atomic=False,
-            timeout="15s",
-            wait=True,
-        )
-    revision = await helm_client.get_current_revision(
-        generated_data.release_name, namespace=generated_data.ess_namespace
-    )
+    assert error is not None
     assert revision.status == pyhelm3.ReleaseRevisionStatus.FAILED
     assert "pre-upgrade hooks failed" in revision.description
     # Assert that MAS is not enabled

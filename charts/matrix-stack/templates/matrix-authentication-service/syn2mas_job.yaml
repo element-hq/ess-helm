@@ -1,0 +1,270 @@
+{{- /*
+Copyright 2025 New Vector Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+
+{{- with .Values.matrixAuthenticationService -}}
+{{- if and .enabled .syn2mas.enabled $.Values.synapse.enabled -}}
+{{/* dryRun mode runs as a post-upgrade hook, and can use the existing configmaps and secrets */}}
+{{- $isHook := (not .syn2mas.dryRun) -}}
+{{- $synapseContext := (mustMergeOverwrite ($.Values.synapse | deepCopy) (dict "templatesVolume" "plain-syn-config" "containerName" "render-config-syn" "processType" "main" "isHook" $isHook)) -}}
+{{- $masContext := (mustMergeOverwrite ($.Values.matrixAuthenticationService | deepCopy) (dict "templatesVolume" "plain-mas-config" "containerName" "render-config-mas" "isHook" $isHook)) -}}
+{{- with (mustMergeOverwrite ($.Values.matrixAuthenticationService.syn2mas | deepCopy) (dict "isHook" $isHook)) -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+{{- with .annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+  labels:
+    {{- include "element-io.syn2mas.labels" (dict "root" $ "context" .) | nindent 4 }}
+    k8s.element.io/matrix-authentication-service-config-hash: {{ include "element-io.matrix-authentication-service.configmap-data" (dict "root" $ "context" $masContext) | sha1sum }}
+    k8s.element.io/matrix-authentication-service-secret-hash: {{ include "element-io.matrix-authentication-service.secret-data" (dict "root" $ "context" $masContext) | sha1sum }}
+    k8s.element.io/synapse-config-hash: {{ include "element-io.synapse.configmap-data"  (dict "root" $ "context" $synapseContext) | sha1sum }}
+    k8s.element.io/synapse-secret-hash: {{ include "element-io.synapse.secret-data"  (dict "root" $ "context" $synapseContext) | sha1sum }}
+    {{ include "element-io.ess-library.postgres-label" (dict "root" $ "context" (dict
+                                                            "essPassword" "matrixAuthenticationService"
+                                                            "postgresProperty" $masContext.postgres
+                                                            )
+                                        ) }}
+    {{ include "element-io.ess-library.postgres-label" (dict "root" $ "context" (dict
+                                                            "essPassword" "synapse"
+                                                            "postgresProperty" $synapseContext.postgres
+                                                            )
+                                        ) }}
+  annotations:
+{{- if .dryRun }}
+{{- /*
+Hook Weights are
+- -25 : The syn2mas dryRun job, running after MAS pod which initialized its DB
+- 0 : The deployment marker job, we want it not to update any marker if the dryRun is not completed
+*/}}
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "-25"
+{{- else }}
+    "helm.sh/hook": pre-install,pre-upgrade
+{{- /*
+Hook Weights are
+- -10 : The initSecret hook generating secrets used by the syn2mas job
+- -5 : The MAS & synapse secret & configMap for the hook, so that they are created before the job
+- 0 : The job itself, so that it is run after the secrets and configs are created
+*/}}
+    "helm.sh/hook-weight": "0"
+{{- end }}
+  name: {{ $.Release.Name }}-syn2mas
+  namespace: {{ $.Release.Namespace }}
+spec:
+  backoffLimit: 0
+  completionMode: NonIndexed
+  completions: 1
+  manualSelector: false
+  parallelism: 1
+  podReplacementPolicy: TerminatingOrFailed
+  template:
+    metadata:
+      annotations:
+{{- with .annotations }}
+        {{- toYaml . | nindent 8 }}
+{{- end }}
+      labels:
+        {{- include "element-io.syn2mas.labels" (dict "root" $ "context" (dict "image" .image "labels" .labels "withChartVersion" false)) | nindent 8 }}
+        k8s.element.io/matrix-authentication-service-config-hash: {{ include "element-io.matrix-authentication-service.configmap-data" (dict "root" $ "context" $masContext) | sha1sum }}
+        k8s.element.io/matrix-authentication-service-secret-hash: {{ include "element-io.matrix-authentication-service.secret-data" (dict "root" $ "context" $masContext) | sha1sum }}
+        k8s.element.io/synapse-config-hash: {{ include "element-io.synapse.configmap-data"  (dict "root" $ "context" $synapseContext) | sha1sum }}
+        k8s.element.io/synapse-secret-hash: {{ include "element-io.synapse.secret-data"  (dict "root" $ "context" $synapseContext) | sha1sum }}
+        {{ include "element-io.ess-library.postgres-label" (dict "root" $ "context" (dict
+                                                                "essPassword" "matrixAuthenticationService"
+                                                                "postgresProperty" $masContext.postgres
+                                                                )
+                                                ) }}
+        {{ include "element-io.ess-library.postgres-label" (dict "root" $ "context" (dict
+                                                                "essPassword" "synapse"
+                                                                "postgresProperty" $synapseContext.postgres
+                                                                )
+                                                ) }}
+    spec:
+      restartPolicy: Never
+{{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "syn2mas" "deployment" false "usesMatrixTools" true "mountServiceAccountToken" true)) | nindent 6 }}
+      initContainers:
+      - name: copy-mas-cli
+{{- with .image -}}
+{{- if .digest }}
+        image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
+        imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
+{{- else }}
+        image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
+        imagePullPolicy: {{ .pullPolicy | default "Always" }}
+{{- end }}
+{{- end }}
+        command:
+        - sh
+        - -c
+        - cp -v /usr/local/bin/mas-cli /tmp-mas-cli/mas-cli
+{{- with .containersSecurityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+{{- end }}
+{{- with .resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+{{- end }}
+        volumeMounts:
+        - mountPath: /tmp-mas-cli
+          name: tmp-mas-cli
+      {{- include "element-io.matrix-authentication-service.render-config-container" (dict "root" $ "context" $masContext) | nindent 6 }}
+      {{- include "element-io.synapse.render-config-container" (dict "root" $ "context" $synapseContext) | nindent 6 }}
+      - name: db-wait-mas
+{{- with $.Values.matrixTools.image -}}
+{{- if .digest }}
+        image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
+        imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
+{{- else }}
+        image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
+        imagePullPolicy: {{ .pullPolicy | default "Always" }}
+{{- end }}
+{{- end }}
+{{- with .containersSecurityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+{{- end }}
+        command:
+        - "/matrix-tools"
+        - tcpwait
+        - -address
+        - {{ include "element-io.ess-library.postgres-host-port" (dict "root" $ "context" (dict "postgres" $masContext.postgres)) | quote }}
+{{- with .resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+{{- end }}
+      - name: db-wait-syn
+{{- with $.Values.matrixTools.image -}}
+{{- if .digest }}
+        image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
+        imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
+{{- else }}
+        image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
+        imagePullPolicy: {{ .pullPolicy | default "Always" }}
+{{- end }}
+{{- end }}
+{{- with .containersSecurityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+{{- end }}
+        command:
+        - "/matrix-tools"
+        - tcpwait
+        - -address
+        - {{ include "element-io.ess-library.postgres-host-port" (dict "root" $ "context" (dict "postgres" $synapseContext.postgres)) | quote }}
+{{- with .resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+{{- end }}
+      - name: syn2mas-check
+        args: ["syn2mas", "check", "--config", "/conf/config.yaml", "--synapse-config", "/conf/homeserver.yaml"]
+{{- with .image -}}
+{{- if .digest }}
+        image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
+        imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
+{{- else }}
+        image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
+        imagePullPolicy: {{ .pullPolicy | default "Always" }}
+{{- end }}
+{{- end }}
+{{- with .containersSecurityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+{{- end }}
+{{- with .resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+{{- end }}
+        volumeMounts:
+        - mountPath: "/conf"
+          name: rendered-config
+          readOnly: true
+{{- range $secret := include "element-io.matrix-authentication-service.syn2masConfigSecrets" (dict "root" $ "context" (dict "synapseContext" $synapseContext "masContext" $masContext)) | fromJsonArray }}
+{{- with (tpl $secret $) }}
+        - mountPath: /secrets/{{ . }}
+          name: "secret-{{ . | sha256sum | trunc 12 }}"
+          readOnly: true
+{{- end }}
+{{- end }}
+      containers:
+      - name: syn2mas-migrate
+{{- if .dryRun }}
+        args: ["syn2mas", "migrate", "--config", "/conf/config.yaml", "--synapse-config", "/conf/homeserver.yaml", "--dry-run"]
+    {{- with .image -}}
+    {{- if .digest }}
+        image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
+        imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
+    {{- else }}
+        image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
+        imagePullPolicy: {{ .pullPolicy | default "Always" }}
+    {{- end }}
+    {{- end }}
+{{- else }}
+        command: ["/matrix-tools", "syn2mas", "--config", "/conf/config.yaml", "--synapse-config", "/conf/homeserver.yaml"]
+    {{- with $.Values.matrixTools.image -}}
+    {{- if .digest }}
+        image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
+        imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
+    {{- else }}
+        image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
+        imagePullPolicy: {{ .pullPolicy | default "Always" }}
+    {{- end }}
+    {{- end }}
+{{- end }}
+{{- with .containersSecurityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+{{- end }}
+        env:
+        - name: NAMESPACE
+          value: {{ $.Release.Namespace }}
+{{- with .extraEnv }}
+        {{- toYaml . | nindent 8 }}
+{{- end }}
+{{- with .resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+{{- end }}
+        volumeMounts:
+        - mountPath: "/conf"
+          name: rendered-config
+          readOnly: true
+        - mountPath: "/tmp-mas-cli"
+          name: tmp-mas-cli
+          readOnly: true
+{{- range $secret := include "element-io.matrix-authentication-service.syn2masConfigSecrets" (dict "root" $ "context" (dict "synapseContext" $synapseContext "masContext" $masContext)) | fromJsonArray }}
+{{- with (tpl $secret $) }}
+        - mountPath: /secrets/{{ . }}
+          name: "secret-{{ . | sha256sum | trunc 12 }}"
+          readOnly: true
+{{- end }}
+{{- end }}
+      volumes:
+      - name: plain-syn-config
+        configMap:
+          defaultMode: 420
+          name: {{ include "element-io.synapse.configmap-name" (dict "root" $ "context" (dict "isHook" $isHook)) }}
+      - name: plain-mas-config
+        configMap:
+          name: {{ include "element-io.matrix-authentication-service.configmap-name" (dict "root" $ "context" (dict "isHook" $isHook)) }}
+{{- range $_, $secret := include "element-io.matrix-authentication-service.syn2masConfigSecrets" (dict "root" $ "context" (dict "synapseContext" $synapseContext "masContext" $masContext)) | fromJsonArray }}
+{{- with tpl $secret $ }}
+      - secret:
+          secretName: {{ . }}
+        name: "secret-{{ . | sha256sum | trunc 12 }}"
+{{- end }}
+{{- end }}
+      - emptyDir:
+          medium: Memory
+        name: "rendered-config"
+      - emptyDir:
+          medium: Memory
+        name: "tmp-mas-cli"
+{{- end }}
+{{- end }}
+{{- end }}

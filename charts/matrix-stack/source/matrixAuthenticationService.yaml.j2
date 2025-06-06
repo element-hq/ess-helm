@@ -10,12 +10,6 @@ enabled: true
 
 replicas: 1
 
-## Force the authentication to happen with legacy authentication.
-## This can be used to deploy Matrix Authentication Service and keeping auth on Synapse.
-## Once MAS is deployed, you can run the syn2mas tool to migrate the data from Synapse to MAS.
-## This should be set back to false and never switch again after the migration to MAS has been run.
-preMigrationSynapseHandlesAuth: false
-
 {{ sub_schema_values.postgresLibPQ() }}
 
 {{ sub_schema_values.credential("Encryption secret", "encryptionSecret", initIfAbsent=True) }}
@@ -38,6 +32,7 @@ privateKeys:
 {{ sub_schema_values.serviceAccount() }}
 {{ sub_schema_values.nodeSelector() }}
 {{ sub_schema_values.tolerations() }}
+{{ sub_schema_values.hostAliases() }}
 {{ sub_schema_values.topologySpreadConstraints() }}
 {{ sub_schema_values.podSecurityContext(user_id=10005, group_id=10005) }}
 {{ sub_schema_values.containersSecurityContext() }}
@@ -47,3 +42,36 @@ privateKeys:
 {{ sub_schema_values.probe("liveness") }}
 {{ sub_schema_values.probe("readiness") }}
 {{ sub_schema_values.probe("startup", failureThreshold=4) }}
+
+## Enables synapse to Matrix Authentication Service migration
+## The migration process must follow the following steps:
+## 1. Set `matrixAuthenticationService.enabled: true` and `matrixAuthenticationService.syn2mas.enable: true`, run the  helm upgrade command, check the result of the pre-upgrade hook job
+## 2. Set `matrixAuthenticationService.syn2mas.dryRun`: false, run the helm upgrade command, check the result of the pre-upgrade hook job
+## 3. Set `matrixAuthenticationService.syn2mas.enabled: false` to disable syn2mas and allow running `helm upgrade` again.
+##
+## If `deploymentMarkers` are enabled, following the steps above will cause the following `MATRIX_STACK_MSC3861` marker transitions :
+## 1. Stay on `legacy_auth`
+## 2. `legacy_auth` -> `syn2mas_migrated`
+## 3. `syn2mas_migrated` -> `delegated_auth`
+## The marker will effectively prevent :
+## - Running syn2mas migration again after it has run successfully and is in `syn2mas_migrated` state
+## - Downgrading from `syn2mas_migrated`/`delegated_auth` to `legacy_auth`
+syn2mas:
+  enabled: false
+
+  # Syn2Mas relies on the debug image to copy mas-cli to the matrix-tools container
+  {{- sub_schema_values.image(registry='ghcr.io', repository='element-hq/matrix-authentication-service', tag='0.16.0-debug') | indent(2) }}
+  {{- sub_schema_values.labels() | indent(2) -}}
+  {{- sub_schema_values.workloadAnnotations() | indent(2) -}}
+  {{- sub_schema_values.containersSecurityContext() | indent(2) -}}
+  {{- sub_schema_values.nodeSelector() | indent(2) -}}
+  {{- sub_schema_values.podSecurityContext(user_id='10005', group_id='10005') | indent(2) -}}
+  {{- sub_schema_values.resources(requests_memory='50Mi', requests_cpu='50m', limits_memory='350Mi') | indent(2) -}}
+  {{- sub_schema_values.serviceAccount() | indent(2) -}}
+  {{- sub_schema_values.tolerations() | indent(2) }}
+
+  ## Runs the syn2mas process in dryRun mode.
+  ## Force the authentication to happen with legacy authentication.
+  ## This can be used to deploy Matrix Authentication Service and keeping auth on Synapse.
+  ## This must be set to false and never switch again after the migration to MAS has been run or the deployment markers hooks will prevent redeploying.
+  dryRun: true

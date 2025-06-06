@@ -132,7 +132,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- define "element-io.synapse.ingress.additionalPaths" -}}
 {{- $root := .root -}}
 {{- with required "element-io.synapse.ingress.additionalPaths missing context" .context -}}
-{{- if (and $root.Values.matrixAuthenticationService.enabled (not $root.Values.matrixAuthenticationService.preMigrationSynapseHandlesAuth)) }}
+{{- if include "element-io.matrix-authentication-service.readyToHandleAuth" (dict "root" $root) }}
 {{- range $apiVersion := list "api/v1" "r0" "v3" "unstable" }}
 {{- range $apiSubpath := list "login" "refresh" "logout" }}
 - path: "/_matrix/client/{{ $apiVersion }}/{{ $apiSubpath }}"
@@ -236,3 +236,24 @@ path_map_file: |
 path_map_file_get: |
 {{- (tpl ($root.Files.Get "configs/synapse/path_map_file_get.tpl") (dict "root" $root)) | nindent 2 -}}
 {{- end -}}
+
+{{- define "element-io.synapse.render-config-container" -}}
+{{- $root := .root -}}
+{{- with required "element-io.synapse.render-config-container missing context" .context }}
+{{- $processType := required "element-io.synapse.render-config-container context required processType" .processType -}}
+{{- $isHook := required "element-io.synapse.render-config-container context required isHook" .isHook -}}
+{{- include "element-io.ess-library.render-config-container" (dict "root" $root "context"
+            (dict "additionalPath" "synapse.additional"
+                  "nameSuffix" "synapse"
+                  "containerName" (.containerName | default "render-config")
+                  "templatesVolume" (.templatesVolume | default "plain-config")
+                  "underrides" (list "01-homeserver-underrides.yaml")
+                  "overrides" (list "04-homeserver-overrides.yaml"
+                                    (eq $processType "check-config" | ternary "05-main.yaml" (printf "05-%s.yaml" $processType)))
+                  "outputFile" "homeserver.yaml"
+                  "resources" .resources
+                  "containersSecurityContext" .containersSecurityContext
+                  "extraEnv" .extraEnv
+                  "isHook" $isHook)) }}
+{{- end }}
+{{- end }}

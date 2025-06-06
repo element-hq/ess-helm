@@ -56,15 +56,7 @@ spec:
 {{- end }}
 {{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "matrix-authentication-service" "deployment" true "usesMatrixTools" true)) | nindent 6 }}
       initContainers:
-      {{ include "element-io.ess-library.render-config-container" (dict "root" $ "context" (
-        dict "additionalPath" "matrixAuthenticationService.additional"
-              "nameSuffix" "matrix-authentication-service"
-              "overrides" (list "config.yaml")
-              "outputFile" "config.yaml"
-              "resources" .resources
-              "containersSecurityContext" .containersSecurityContext
-              "extraEnv" .extraEnv
-              "isHook" false)) | nindent 6 }}
+      {{ include "element-io.matrix-authentication-service.render-config-container" (dict "root" $ "context" (mustMergeOverwrite . (dict "isHook" false))) | nindent 6 }}
       - name: db-wait
 {{- with $.Values.matrixTools.image -}}
 {{- if .digest }}
@@ -116,7 +108,15 @@ spec:
                   "isHook" false)) | nindent 8 }}
       containers:
       - name: matrix-authentication-service
-        args: ["server", "--no-migrate"]
+        args:
+        - server
+        - --no-migrate
+{{/* When in syn2mas dryRun mode, migration has not run yet
+We don't want background jobs to get failed use up their retries because MAS hasn't been set up yet
+*/}}
+{{ if and .syn2mas.enabled .syn2mas.dryRun }}
+        - --no-worker
+{{- end }}
 {{- with .image -}}
 {{- if .digest }}
         image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"

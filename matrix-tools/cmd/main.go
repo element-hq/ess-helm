@@ -15,6 +15,7 @@ import (
 	"github.com/element-hq/ess-helm/matrix-tools/internal/pkg/marker"
 	"github.com/element-hq/ess-helm/matrix-tools/internal/pkg/renderer"
 	"github.com/element-hq/ess-helm/matrix-tools/internal/pkg/secret"
+	"github.com/element-hq/ess-helm/matrix-tools/internal/pkg/syn2mas"
 	"github.com/element-hq/ess-helm/matrix-tools/internal/pkg/tcpwait"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
@@ -96,6 +97,18 @@ func main() {
 		}
 	case args.TCPWait:
 		tcpwait.WaitForTCP(options.Address)
+	case args.Syn2Mas:
+		clientset, err := getKubernetesClient()
+		if err != nil {
+			fmt.Println("Error getting Kubernetes client: ", err)
+			os.Exit(1)
+		}
+		namespace := os.Getenv("NAMESPACE")
+		if namespace == "" {
+			fmt.Println("Error, $NAMESPACE is not defined")
+			os.Exit(1)
+		}
+		syn2mas.RunSyn2MAS(clientset, namespace, options.SynapseConfig, options.MASConfig)
 	case args.GenerateSecrets:
 		clientset, err := getKubernetesClient()
 		if err != nil {

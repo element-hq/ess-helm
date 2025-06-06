@@ -6,7 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 {{- $root := .root }}
 {{- with required "matrix-authentication-service/config.yaml.tpl missing context" .context }}
-
+{{- $context := . -}}
 http:
   public_base: "https://{{ tpl .ingress.host $root }}"
   listeners:
@@ -59,6 +59,12 @@ matrix:
   homeserver: "{{ tpl $root.Values.serverName $root }}"
   secret: ${SYNAPSE_SHARED_SECRET}
   endpoint: "http://{{ $root.Release.Name }}-synapse-main.{{ $root.Release.Namespace }}.svc.cluster.local:8008"
+{{- /* When in syn2mas dryRun mode, migration has not run yet
+We don't want MAS to change data in Synapse
+*/}}
+{{- if and .syn2mas.enabled .syn2mas.dryRun }}
+  kind: synapse_read_only
+{{- end }}
 {{- end }}
 
 policy:
@@ -88,7 +94,7 @@ secrets:
                       "context" (dict
                         "secretPath" "matrixAuthenticationService.privateKeys.rsa"
                         "initSecretKey" "MAS_RSA_PRIVATE_KEY"
-                        "defaultSecretName" (printf "%s-matrix-authentication-service" $root.Release.Name)
+                        "defaultSecretName" (include "element-io.matrix-authentication-service.secret-name" (dict "root" $root "context" $context))
                         "defaultSecretKey" "RSA_PRIVATE_KEY"
                       )
                     ) }}
@@ -99,7 +105,7 @@ secrets:
                       "context" (dict
                         "secretPath" "matrixAuthenticationService.privateKeys.ecdsaPrime256v1"
                         "initSecretKey" "MAS_ECDSA_PRIME256V1_PRIVATE_KEY"
-                        "defaultSecretName" (printf "%s-matrix-authentication-service" $root.Release.Name)
+                        "defaultSecretName" (include "element-io.matrix-authentication-service.secret-name" (dict "root" $root "context" $context))
                         "defaultSecretKey" "ECDSA_PRIME256V1_PRIVATE_KEY"
                       )
                   ) }}
@@ -110,7 +116,7 @@ secrets:
                         dict "root" $root
                         "context" (dict
                           "secretPath" "matrixAuthenticationService.privateKeys.ecdsaSecp256k1"
-                          "defaultSecretName" (printf "%s-matrix-authentication-service" $root.Release.Name)
+                          "defaultSecretName" (include "element-io.matrix-authentication-service.secret-name" (dict "root" $root "context" $context))
                           "defaultSecretKey" "ECDSA_SECP256K1_PRIVATE_KEY"
                         )
                     ) }}
@@ -122,7 +128,7 @@ secrets:
                         dict "root" $root
                         "context" (dict
                           "secretPath" "matrixAuthenticationService.privateKeys.ecdsaSecp384r1"
-                          "defaultSecretName" (printf "%s-matrix-authentication-service" $root.Release.Name)
+                          "defaultSecretName" (include "element-io.matrix-authentication-service.secret-name" (dict "root" $root "context" $context))
                           "defaultSecretKey" "ECDSA_SECP384R1_PRIVATE_KEY"
                         )
                     ) }}

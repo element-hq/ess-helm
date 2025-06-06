@@ -1,0 +1,18 @@
+# Copyright 2025 New Vector Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+matrixAuthenticationService:
+  syn2mas:
+    enabled: true
+    dryRun: false
+
+  additional:
+    password-scheme.yml:
+      config: |
+        passwords:
+          schemes:
+            - version: 1
+              algorithm: bcrypt
+            - version: 2
+              algorithm: argon2id

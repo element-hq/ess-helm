@@ -1,0 +1,44 @@
+{{- /*
+Copyright 2025 New Vector Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+{{- with .Values.matrixAuthenticationService -}}
+{{- if and .enabled .syn2mas.enabled (not .syn2mas.dryRun) -}}
+{{- with .syn2mas -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $.Release.Name }}-syn2mas
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "element-io.syn2mas.labels" (dict "root" $ "context" .) | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+{{- /*
+Hook Weights are
+- -10 : The initSecret hook generating secrets used by the syn2mas job
+- -5 : The MAS & synapse secret & configMap for the hook, so that they are created before the job
+- 0 : The job itself, so that it is run after the secrets and configs are created
+*/}}
+    "helm.sh/hook-weight": "0"
+rules:
+{{/*
+  https://kubernetes.io/docs/reference/access-authn-authz/rbac/#referring-to-resources
+  You cannot restrict create or deletecollection requests by resourceName.
+  For create, this limitation is because the object name is not known at authorization time.
+*/}}
+- apiGroups: ["apps"]
+  resources: ["statefulsets"]
+  verbs: ["list"]
+- apiGroups: ["apps"]
+  resources: ["statefulsets"]
+  resourceNames:
+{{- $enabledWorkers := (include "element-io.synapse.enabledWorkers" (dict "root" $)) | fromJson }}
+{{- range $processType, $unmergedProcessDetails := mustMergeOverwrite (dict "main" dict) $enabledWorkers }}
+  - "{{ $.Release.Name }}-synapse-{{ include "element-io.synapse.process.workerTypeName" (dict "root" $ "context" $processType) }}"
+{{- end }}
+  verbs: ["get", "update"]
+{{- end -}}
+{{- end -}}
+{{- end -}}

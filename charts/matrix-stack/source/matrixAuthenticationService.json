@@ -7,9 +7,6 @@
       "type": "boolean",
       "description": "Enable the Matrix Authentication Service (MAS) service."
     },
-    "preMigrationSynapseHandlesAuth": {
-      "type": "boolean"
-    },
     "additional": {
       "$ref": "file://common/additional.json"
     },
@@ -46,6 +43,49 @@
     },
     "replicas": {
       "type": "integer"
+    },
+    "syn2mas": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable synapse to Matrix Authentication Service migration."
+        },
+        "image": {
+          "$ref": "file://common/image.json"
+        },
+        "dryRun": {
+          "type": "boolean",
+          "description": "Run the migration job in dry-run mode. Do not actually migrate the data."
+        },
+        "labels": {
+          "$ref": "file://common/labels.json"
+        },
+        "annotations": {
+          "$ref": "file://common/workloadAnnotations.json"
+        },
+        "extraEnv": {
+          "$ref": "file://common/extraEnv.json"
+        },
+        "containersSecurityContext": {
+          "$ref": "file://common/containersSecurityContext.json"
+        },
+        "nodeSelector": {
+          "$ref": "file://common/nodeSelector.json"
+        },
+        "podSecurityContext": {
+          "$ref": "file://common/podSecurityContext.json"
+        },
+        "resources": {
+          "$ref": "file://common/resources.json"
+        },
+        "serviceAccount": {
+          "$ref": "file://common/serviceAccount.json"
+        },
+        "tolerations": {
+          "$ref": "file://common/tolerations.json"
+        }
+      }
     },
     "ingress": {
       "$ref": "file://common/ingress.json"

@@ -1,4 +1,4 @@
-# Copyright 2024 New Vector Ltd
+# Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -121,26 +121,26 @@ async def aiohttp_post_json(url: str, data: dict, headers: dict, ssl_context: SS
             return {}
 
 
+def merge(a: dict, b: dict, path=None):
+    if not path:
+        path = []
+    for key in b:
+        if key in a:
+            if isinstance(a[key], dict) and isinstance(b[key], dict):
+                merge(a[key], b[key], path + [str(key)])
+            elif type(a[key]) is not type(b[key]):
+                raise Exception("Conflict at " + ".".join(path + [str(key)]))
+            else:
+                a[key] = b[key]
+        else:
+            a[key] = b[key]
+    return a
+
+
 def value_file_has(property_path, expected=None):
     """
     Check if a nested property (given as a dot-separated string) is would be true if the chart was installed/templated.
     """
-
-    def merge(a: dict, b: dict, path=None):
-        if not path:
-            path = []
-        for key in b:
-            if key in a:
-                if isinstance(a[key], dict) and isinstance(b[key], dict):
-                    merge(a[key], b[key], path + [str(key)])
-                elif type(a[key]) is not type(b[key]):
-                    raise Exception("Conflict at " + ".".join(path + [str(key)]))
-                else:
-                    a[key] = b[key]
-            else:
-                a[key] = b[key]
-        return a
-
     with (
         open(Path().resolve() / "charts" / "matrix-stack" / "values.yaml") as base_value_file,
         open(os.environ["TEST_VALUES_FILE"]) as test_value_file,

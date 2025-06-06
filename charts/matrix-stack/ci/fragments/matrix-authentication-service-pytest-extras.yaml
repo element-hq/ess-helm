@@ -19,6 +19,11 @@ matrixAuthenticationService:
       configSecret: "{{ $.Release.Name }}-pytest-admin"
       configSecretKey: "admin.yaml"
 
+  syn2mas:
+    extraEnv:
+    - name: DEBUG_RENDERING
+      value: "1"
+
 postgres:
   podSecurityContext:
     runAsGroup: 0

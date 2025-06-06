@@ -1,0 +1,5 @@
+# Copyright 2025 New Vector Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+export TEST_VALUES_FILE=charts/matrix-stack/ci/pytest-matrix-authentication-service-syn2mas-values.yaml

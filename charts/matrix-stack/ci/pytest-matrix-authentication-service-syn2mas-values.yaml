@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 #
-# source_fragments: synapse-minimal.yaml synapse-pytest-base-extras.yaml matrix-authentication-service-minimal.yaml matrix-authentication-service-pytest-extras.yaml init-secrets-minimal.yaml init-secrets-pytest-extras.yaml postgres-minimal.yaml deployment-markers-minimal.yaml deployment-markers-pytest-extras.yaml
+# source_fragments: synapse-minimal.yaml synapse-pytest-base-extras.yaml matrix-authentication-service-pytest-extras.yaml matrix-authentication-service-syn2mas-dryrun.yaml init-secrets-minimal.yaml init-secrets-pytest-extras.yaml postgres-minimal.yaml deployment-markers-pytest-extras.yaml matrix-authentication-service-migrated-password-scheme.yaml
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
 deploymentMarkers:
@@ -25,6 +25,15 @@ matrixAuthenticationService:
     000-pytest-admin:
       configSecret: '{{ $.Release.Name }}-pytest-admin'
       configSecretKey: admin.yaml
+    password-scheme.yml:
+      config: |
+        passwords:
+          schemes:
+            - version: 1
+              algorithm: bcrypt
+            - version: 2
+              algorithm: argon2id
+  enabled: false
   extraEnv:
     - name: DEBUG_RENDERING
       value: "1"
@@ -34,6 +43,8 @@ matrixAuthenticationService:
   podSecurityContext:
     runAsGroup: 0
   syn2mas:
+    dryRun: true
+    enabled: true
     extraEnv:
       - name: DEBUG_RENDERING
         value: "1"

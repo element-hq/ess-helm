@@ -86,8 +86,7 @@ ip_range_blacklist:
 - 'ff00::/8'
 - 'fec0::/10'
 
-{{- $enable_delegated_auth := (and $root.Values.matrixAuthenticationService.enabled (not $root.Values.matrixAuthenticationService.preMigrationSynapseHandlesAuth)) }}
-{{- if or $enable_delegated_auth $root.Values.matrixRTC.enabled }}
+{{- if or (include "element-io.matrix-authentication-service.readyToHandleAuth" (dict "root" $root)) $root.Values.matrixRTC.enabled }}
 experimental_features:
 {{- if $root.Values.matrixRTC.enabled }}
   # MSC3266: Room summary API. Used for knocking over federation
@@ -97,7 +96,7 @@ experimental_features:
   msc4222_enabled: true
 {{- end }}
 
-{{- if $enable_delegated_auth }}
+{{- if (include "element-io.matrix-authentication-service.readyToHandleAuth" (dict "root" $root)) }}
   msc3861:
     enabled: true
 

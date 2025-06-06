@@ -16,6 +16,7 @@ const (
 	RenderConfig CommandType = iota
 	GenerateSecrets
 	DeploymentMarkers
+	Syn2Mas
 	TCPWait
 )
 
@@ -75,6 +76,8 @@ type Options struct {
 	GeneratedSecrets []GeneratedSecret
 	DeploymentMarkers []DeploymentMarker
 	Labels     map[string]string
+	SynapseConfig    string
+	MASConfig        string
 }
 
 func ParseArgs(args []string) (*Options, error) {
@@ -85,6 +88,10 @@ func ParseArgs(args []string) (*Options, error) {
 
 	tcpWaitSet := flag.NewFlagSet("tcpwait", flag.ExitOnError)
 	tcpWait := tcpWaitSet.String("address", "", "Address to listen on for TCP connections")
+
+	syn2MasSet := flag.NewFlagSet("syn2mas", flag.ExitOnError)
+	masConfig := syn2MasSet.String("config", "", "Path to MAS config file")
+	synapseConfig := syn2MasSet.String("synapse-config", "", "Path to Synapse config file")
 
 	generateSecretsSet := flag.NewFlagSet("generate-secrets", flag.ExitOnError)
 	secrets := generateSecretsSet.String("secrets", "", "Comma-separated list of secrets to generate, in the format of `name:key:type`, where `type` is one of: rand32")
@@ -121,6 +128,22 @@ func ParseArgs(args []string) (*Options, error) {
 			options.Address = *tcpWait
 		}
 		options.Command = TCPWait
+	case "syn2mas":
+		err := syn2MasSet.Parse(args[2:])
+		if err != nil {
+			return nil, err
+		}
+		if *masConfig != "" {
+			options.MASConfig = *masConfig
+		} else {
+			return nil, fmt.Errorf("-config <file> is required")
+		}
+		if *synapseConfig != "" {
+			options.SynapseConfig = *synapseConfig
+		} else {
+			return nil, fmt.Errorf("-synapse-config <file> is required")
+		}
+		options.Command = Syn2Mas
 	case "generate-secrets":
 		err := generateSecretsSet.Parse(args[2:])
 		if err != nil {
