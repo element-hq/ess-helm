@@ -27,10 +27,13 @@ jobs:
     outputs:
       envFiles: ${{ steps.data.outputs.envFiles }}
       manifestTests: ${{ steps.data.outputs.manifestTests }}
+      upgradeFrom: ${{ steps.data.outputs.upgradeFrom }}
     steps:
     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
       with:
         ref: ${{ github.event.pull_request.head.sha }}
+        fetch-depth: 0
+        tags: true
     - id: data
       run: |
         echo "envFiles=$(find tests/integration/env -name '*.rc' | sed 's|tests/integration/env/||' | sed 's/.rc$//' | jq -ncR '{envFiles: [inputs]}')" | tee -a "$GITHUB_OUTPUT"
@@ -47,7 +50,7 @@ jobs:
         test-component: ${{ fromJSON(needs.pytest-setup.outputs.envFiles).envFiles }}
         test-upgrade:
         - "charts/matrix-stack"
-        - "oci://ghcr.io/${{ github.repository }}:${{ (needs.pytest-setup.outputs.upgradeFrom }}"
+        - "oci://ghcr.io/${{ github.repository }}:${{ needs.pytest-setup.outputs.upgradeFrom }}"
 
     steps:
     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
