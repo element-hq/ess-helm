@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 
 {{- with .Values.matrixAuthenticationService -}}
-{{- if and .enabled .syn2mas.enabled -}}
+{{- if and .enabled .syn2mas.enabled (not .syn2mas.dryRun) -}}
 {{- $masContext := (mustMergeOverwrite ($.Values.matrixAuthenticationService | deepCopy) (dict "isHook" true)) -}}
 apiVersion: v1
 kind: ConfigMap
