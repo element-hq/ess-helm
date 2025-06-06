@@ -21,7 +21,14 @@ from lightkube.generic_resource import async_load_in_cluster_generic_resources, 
 from lightkube.resources.apiextensions_v1 import CustomResourceDefinition
 from pytest_kubernetes.providers import AClusterManager
 
-retry_options = JitterRetry(attempts=12, statuses=[500, 503], retry_all_server_errors=False)
+retry_options = JitterRetry(
+    attempts=12,
+    statuses={
+        500,
+        503,
+    },
+    retry_all_server_errors=False,
+)
 
 
 @dataclass
@@ -79,6 +86,8 @@ async def aiohttp_get_json(url: str, ssl_context: SSLContext) -> Any:
         Any: the Json dict response
     """
     host = urlparse(url).hostname
+    if not host:
+        raise ValueError(f"{url} does not have a hostname")
 
     async with (
         aiohttp_client(ssl_context) as client,
@@ -107,6 +116,8 @@ async def aiohttp_post_json(url: str, data: dict, headers: dict, ssl_context: SS
         Any: the Json dict response
     """
     host = urlparse(url).hostname
+    if not host:
+        raise ValueError("f{url} does not have a hostname")
 
     async with (
         aiohttp_client(ssl_context) as client,

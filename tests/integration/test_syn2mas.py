@@ -124,6 +124,7 @@ async def test_run_syn2mas_upgrade(
         generated_data, helm_client, {"matrixAuthenticationService": {"syn2mas": {"enabled": True}}}, timeout="15s"
     )
     assert error is not None
+    assert revision.description
     assert revision.status == pyhelm3.ReleaseRevisionStatus.FAILED
     assert "pre-upgrade hooks failed" in revision.description
     # Assert that MAS still works

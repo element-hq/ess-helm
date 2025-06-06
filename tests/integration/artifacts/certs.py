@@ -1,4 +1,4 @@
-# Copyright 2024 New Vector Ltd
+# Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -24,11 +24,11 @@ from platformdirs import user_cache_dir
 
 @dataclass(frozen=True)
 class CertKey:
-    ca: CertKey
+    ca: CertKey | None
     cert: Certificate
     key: RSAPrivateKey
 
-    def cert_bundle_as_pfx(self, password: bytes = None) -> bytes:
+    def cert_bundle_as_pfx(self, password: bytes | None = None) -> bytes:
         if password is None:
             password = b""
 
@@ -72,6 +72,8 @@ def get_ca(name, root_ca=None) -> CertKey:
     if cert_path.exists() and key_path.exists():
         with open(key_path, "rb") as pem_in:
             private_key = load_pem_private_key(pem_in.read(), None, default_backend())
+            if not isinstance(private_key, rsa.RSAPrivateKey):
+                raise ValueError("Expected RSA private key")
         with open(cert_path, "rb") as pem_in:
             cert = x509.load_pem_x509_certificate(pem_in.read(), default_backend())
         if cert.not_valid_after_utc > pytz.UTC.localize(datetime.datetime.now()):

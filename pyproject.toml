@@ -33,6 +33,7 @@ pytest-kubernetes = {git = "https://github.com/Blueshoe/pytest-kubernetes.git", 
 pytest-asyncio-cooperative ="^0.39.0"
 towncrier = "^24.8.0"
 spdx-tools = "^0.8.3"
+types-pytz = "^2025.2.0.20250516"
 mypy = "^1.16.0"
 types-pyyaml = "^6.0.12.20250516"
 semver = "^3.0.4"
@@ -96,5 +97,5 @@ name = "Security"
 name = "Internal"
 
 [[tool.mypy.overrides]]
-module = ["pyhelm3.*"]
+module = ["pyhelm3.*", "pytest_kubernetes.*"]
 follow_untyped_imports = true

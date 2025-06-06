@@ -1,4 +1,4 @@
-# Copyright 2024 New Vector Ltd
+# Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -55,4 +55,4 @@ jobs:
 
     - name: mypy
       run:
-        mypy tests/manifests
+        mypy tests

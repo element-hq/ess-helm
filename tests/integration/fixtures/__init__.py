@@ -1,4 +1,4 @@
-# Copyright 2024 New Vector Ltd
+# Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -10,22 +10,22 @@ from .matrix_tools import build_matrix_tools, loaded_matrix_tools
 from .users import users
 
 __all__ = [
-    build_matrix_tools,
-    ca,
-    cluster,
-    ess_namespace,
-    ESSData,
-    generated_data,
-    helm_client,
-    helm_prerequisites,
-    ingress,
-    ingress_ready,
-    kube_client,
-    loaded_matrix_tools,
-    matrix_stack,
-    prometheus_operator_crds,
-    registry,
-    secrets_generated,
-    ssl_context,
-    users,
+    "build_matrix_tools",
+    "ca",
+    "cluster",
+    "ess_namespace",
+    "ESSData",
+    "generated_data",
+    "helm_client",
+    "helm_prerequisites",
+    "ingress",
+    "ingress_ready",
+    "kube_client",
+    "loaded_matrix_tools",
+    "matrix_stack",
+    "prometheus_operator_crds",
+    "registry",
+    "secrets_generated",
+    "ssl_context",
+    "users",
 ]

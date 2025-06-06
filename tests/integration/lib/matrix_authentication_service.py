@@ -1,4 +1,4 @@
-# Copyright 2024 New Vector Ltd
+# Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -16,6 +16,8 @@ async def get_client_token(mas_fqdn: str, generated_data: ESSData, ssl_context: 
     client_credentials_data = {"grant_type": "client_credentials", "scope": "urn:mas:admin urn:mas:graphql:*"}
     url = f"https://{mas_fqdn}/oauth2/token"
     host = urlparse(url).hostname
+    if not host:
+        raise ValueError(f"{url} does not have a hostname")
 
     async with (
         aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=ssl_context)) as session,

@@ -5,6 +5,7 @@
 import asyncio
 import base64
 import os
+from collections.abc import Awaitable
 
 import pyhelm3
 import pytest
@@ -24,7 +25,7 @@ async def helm_prerequisites(
     kube_client: AsyncClient, helm_client: pyhelm3.Client, ca, ess_namespace: Namespace, generated_data: ESSData
 ):
     resources = []
-    setups = []
+    setups: list[Awaitable] = []
 
     # On CI, public runners need read access to dockerhub.io
     if os.environ.get("CI"):
@@ -220,7 +221,7 @@ def secrets_generated(cluster, kube_client: AsyncClient, matrix_stack, generated
         generated_secret = await kube_client.get(
             Secret, namespace=generated_data.ess_namespace, name=f"{generated_data.release_name}-generated"
         )
-
+        assert generated_secret.data, "Generated secret does not have any data"
         assert secret_key in generated_secret.data
         base64_encoded_secret_value = generated_secret.data[secret_key]
         return base64.standard_b64decode(base64_encoded_secret_value).decode("utf-8")

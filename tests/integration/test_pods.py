@@ -20,4 +20,7 @@ async def test_pods_run_as_gid_0(
     async for pod in kube_client.list(
         Pod, namespace=generated_data.ess_namespace, labels={"app.kubernetes.io/part-of": op.in_(["matrix-stack"])}
     ):
+        assert pod.spec
+        assert pod.spec.securityContext
+        assert pod.metadata
         assert pod.spec.securityContext.runAsGroup == 0, f"{pod.metadata.name} is running with GID != 0"

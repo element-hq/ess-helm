@@ -39,6 +39,7 @@ async def test_matrix_authentication_service_marker_delegated_auth(
         generated_data, helm_client, {"matrixAuthenticationService": {"enabled": False}}, timeout="15s"
     )
     assert error is not None
+    assert revision.description
     assert revision.status == pyhelm3.ReleaseRevisionStatus.FAILED
     assert "pre-upgrade hooks failed" in revision.description
     # Assert that MAS still works
