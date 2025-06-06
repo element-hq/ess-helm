@@ -59,6 +59,19 @@ func scaleDownSynapse(client kubernetes.Interface, namespace string) map[string]
 			break
 		}
 	}
+	podsClient := client.CoreV1().Pods(namespace)
+	pods, err := podsClient.List(ctx, metav1.ListOptions{
+		LabelSelector: "app.kubernetes.io/component=matrix-server",
+	})
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	if len(pods.Items) != 0 {
+		fmt.Println("StatefulSet are down, but pods matching matrix-server component are remaining. Something wrong is happening.")
+		os.Exit(1)
+	}
+
 	return stsReplicas
 }
 
