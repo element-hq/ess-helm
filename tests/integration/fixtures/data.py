@@ -49,10 +49,10 @@ class ESSData:
             ca=CertKey.from_dict(kv["ca"]),
         )
 
-    def __dict__(self) -> dict:
+    def to_json_mapping(self) -> dict:
         return {
             "secrets_random": self.secrets_random,
-            "ca": self.ca.__dict__(),
+            "ca": self.ca.to_json_mapping(),
             "mas_oidc_client_secret": self.mas_oidc_client_secret,
         }
 
@@ -68,5 +68,5 @@ async def generated_data(pytestconfig, ca):
             ca=ca,
             mas_oidc_client_secret=secrets.token_urlsafe(36),
         )
-        pytestconfig.cache.set("ess-helm/generated-data", data.__dict__())
+        pytestconfig.cache.set("ess-helm/generated-data", data.to_json_mapping())
     return data
