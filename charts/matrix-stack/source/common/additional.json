@@ -2,20 +2,28 @@
   "type": "object",
   "additionalProperties": {
     "type": "object",
-    "anyOf": [
-      {
-        "required": []
-      },
+    "oneOf": [
       {
         "required": [
           "config"
-        ]
+        ],
+        "not": {
+          "required": [
+            "configSecret",
+            "configSecretKey"
+          ]
+        }
       },
       {
         "required": [
           "configSecret",
           "configSecretKey"
-        ]
+        ],
+        "not": {
+          "required": [
+            "config"
+          ]
+        }
       }
     ],
     "properties": {

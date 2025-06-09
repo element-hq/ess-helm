@@ -1610,7 +1610,47 @@
               "type": "boolean"
             },
             "additional": {
-              "type": "string"
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "oneOf": [
+                  {
+                    "required": [
+                      "config"
+                    ],
+                    "not": {
+                      "required": [
+                        "configSecret",
+                        "configSecretKey"
+                      ]
+                    }
+                  },
+                  {
+                    "required": [
+                      "configSecret",
+                      "configSecretKey"
+                    ],
+                    "not": {
+                      "required": [
+                        "config"
+                      ]
+                    }
+                  }
+                ],
+                "properties": {
+                  "properties": {
+                    "config": {
+                      "type": "string"
+                    },
+                    "configSecret": {
+                      "type": "string"
+                    },
+                    "configSecretKey": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
             },
             "logging": {
               "type": "object",
@@ -3246,20 +3286,28 @@
           "type": "object",
           "additionalProperties": {
             "type": "object",
-            "anyOf": [
-              {
-                "required": []
-              },
+            "oneOf": [
               {
                 "required": [
                   "config"
-                ]
+                ],
+                "not": {
+                  "required": [
+                    "configSecret",
+                    "configSecretKey"
+                  ]
+                }
               },
               {
                 "required": [
                   "configSecret",
                   "configSecretKey"
-                ]
+                ],
+                "not": {
+                  "required": [
+                    "config"
+                  ]
+                }
               }
             ],
             "properties": {
@@ -5493,20 +5541,28 @@
           "type": "object",
           "additionalProperties": {
             "type": "object",
-            "anyOf": [
-              {
-                "required": []
-              },
+            "oneOf": [
               {
                 "required": [
                   "config"
-                ]
+                ],
+                "not": {
+                  "required": [
+                    "configSecret",
+                    "configSecretKey"
+                  ]
+                }
               },
               {
                 "required": [
                   "configSecret",
                   "configSecretKey"
-                ]
+                ],
+                "not": {
+                  "required": [
+                    "config"
+                  ]
+                }
               }
             ],
             "properties": {

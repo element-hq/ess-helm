@@ -8,6 +8,18 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- with required "matrix-rtc/sfu/config.yaml.tpl missing context" .context -}}
 
 port: 7880
+
+prometheus_port: 6789
+
+# Logging config
+logging:
+  # log level, valid values: debug, info, warn, error
+  level: {{ .logging.level }}
+  # log level for pion, default error
+  pion_level: {{ .logging.pionLevel }}
+  # when set to true, emit json fields
+  json: {{ .logging.json }}
+
 # WebRTC configuration
 rtc:
 {{- with .exposedServices }}
@@ -28,9 +40,6 @@ rtc:
 {{- end }}
 {{- end }}
 {{ end }}
-  use_external_ip: true
-
-prometheus_port: 6789
 
 {{- if (.livekitAuth).keysYaml -}}
 key_file: /secrets/{{ (printf "/secrets/%s"
@@ -44,20 +53,5 @@ key_file: /secrets/{{ (printf "/secrets/%s"
 {{- else }}
 key_file: /conf/keys.yaml
 {{- end }}
-
-# Logging config
-logging:
-  # log level, valid values: debug, info, warn, error
-  level: {{ .logging.level }}
-  # log level for pion, default error
-  pion_level: {{ .logging.pionLevel }}
-  # when set to true, emit json fields
-  json: {{ .logging.json }}
-
-# Signal Relay is enabled by default as of v1.5.3
-
-# turn server
-turn:
-  enabled: false
 
 {{ end }}
