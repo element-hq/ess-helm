@@ -59,19 +59,37 @@ func scaleDownSynapse(client kubernetes.Interface, namespace string) map[string]
 			break
 		}
 	}
-	podsClient := client.CoreV1().Pods(namespace)
-	pods, err := podsClient.List(ctx, metav1.ListOptions{
-		LabelSelector: "app.kubernetes.io/component=matrix-server,app.kubernetes.io/name!=synapse-check-config",
-	})
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+
+	allPodsDown := true
+	retries := 0
+	for {
+		fmt.Println("Waiting for all synapse pods to be gone..." )
+		podsClient := client.CoreV1().Pods(namespace)
+		pods, err := podsClient.List(ctx, metav1.ListOptions{
+			LabelSelector: "app.kubernetes.io/component=matrix-server,app.kubernetes.io/name!=synapse-check-config",
+		})
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		if len(pods.Items) != 0 {
+			fmt.Printf("%d pods remaining. Waiting %d seconds...\n", len(pods.Items), (60-retries))
+			if (retries > 60) {
+				break
+			}
+			time.Sleep(time.Second)
+			allPodsDown = false
+		} else {
+			break
+		}
+		retries = retries + 1
 	}
-	if len(pods.Items) != 0 {
+
+	if (!allPodsDown) {
 		fmt.Println("StatefulSet are down, but pods matching matrix-server component are remaining. Something wrong is happening.")
 		os.Exit(1)
 	}
-
 	return stsReplicas
 }
 
