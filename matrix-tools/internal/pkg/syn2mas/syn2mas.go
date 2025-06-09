@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -61,7 +62,14 @@ func scaleDownSynapse(client kubernetes.Interface, namespace string) map[string]
 	}
 
 	allPodsDown := false
-	retries := 0
+	remainingRetries := 60
+	maxRetriesEnv := os.Getenv("SYN2MAS_SCALE_DOWN_MAX_RETRIES")
+	if len(maxRetriesEnv) != 0 {
+		remainingRetries, err = strconv.Atoi(maxRetriesEnv)
+		if err != nil {
+			remainingRetries = 60
+		}
+	}
 	for {
 		fmt.Println("Waiting for all synapse pods to be gone..." )
 		podsClient := client.CoreV1().Pods(namespace)
@@ -74,8 +82,8 @@ func scaleDownSynapse(client kubernetes.Interface, namespace string) map[string]
 		}
 
 		if len(pods.Items) != 0 {
-			fmt.Printf("%d pods remaining. Waiting %d seconds...\n", len(pods.Items), (60-retries))
-			if (retries >= 60) {
+			fmt.Printf("%d pods remaining. Waiting %d seconds...\n", len(pods.Items), (remainingRetries))
+			if (remainingRetries <= 0) {
 				break
 			}
 			time.Sleep(time.Second)
@@ -83,7 +91,7 @@ func scaleDownSynapse(client kubernetes.Interface, namespace string) map[string]
 			allPodsDown = true
 			break
 		}
-		retries = retries + 1
+		remainingRetries = remainingRetries - 1
 	}
 
 	if (!allPodsDown) {
