@@ -112,6 +112,11 @@ jobs:
       run: |
         git checkout --no-overlay -f HEAD -- charts/matrix-stack tests/integration/env/
 
+    - name: On upgrade, Synapse can restart, expect 429 to occur
+      run: |
+        export PYTEST_EXPECTED_HTTP_STATUS_CODES="429"
+      if: ${{ matrix.test-from-ref != github.event.pull_request.head.sha }}
+
     - name: Test with pytest (upgrade or idempotent setup)
       run: |
         # shellcheck source=/dev/null

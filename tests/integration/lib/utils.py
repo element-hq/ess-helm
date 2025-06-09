@@ -26,7 +26,8 @@ retry_options = JitterRetry(
     statuses={
         500,
         503,
-    },
+    }
+    | set(int(code for code in os.environ.get("PYTEST_EXPECTED_HTTP_STATUS_CODES", "").split(","))),
     retry_all_server_errors=False,
 )
 
