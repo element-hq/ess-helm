@@ -633,8 +633,21 @@ matrixRTC:
 
     ## Additional configuration to provide to all LiveKit processes.
     ## This should be provided as yaml-string and will be merged into the default configuration.
+    ## Each key under additional is an additional config to merge into LiveKit config.yaml
     ## Full details on available configuration options can be found at https://docs.livekit.io/home/self-hosting/deployment/#configuration
-    additional: ""
+    ## This can be provided in-line in the Helm Chart and/or via an existing Secret
+    ## e.g.
+    ## additional:
+    ##   0-customConfig:
+    ##     config: |
+    ##       <any valid configuration>
+    ##   1-customConfig:
+    ##     configSecret: custom-config
+    ##     configSecretKey: shared.yaml
+    ##
+    ## Most settings are configurable but some settings are owned by the chart and can't overwritten
+    additional: {}
+
 
     # Whether to start the SFU in host network mode or not
     hostNetwork: false

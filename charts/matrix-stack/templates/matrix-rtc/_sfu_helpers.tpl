@@ -53,7 +53,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
             "context" (dict
               "secretPath" "matrixRTC.livekitAuth.secret"
               "initSecretKey" "ELEMENT_CALL_LIVEKIT_SECRET"
-              "defaultSecretName" (include "element-io.matrix-rtc-sfu.secret-name" (dict "root" $root))
+              "defaultSecretName" (printf "%s-matrix-rtc-authorisation-service" $root.Release.Name)
               "defaultSecretKey" "LIVEKIT_SECRET"
               )
             )
@@ -66,7 +66,17 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 
 {{- define "element-io.matrix-rtc-sfu.configSecrets" -}}
 {{- $root := .root -}}
-{{- include "element-io.matrix-rtc-authorisation-service.configSecrets" (dict "root" $root "context" .) -}}
+{{- $configSecrets := list (include "element-io.matrix-rtc-sfu.secret-name" (dict "root" $root "context" .)) -}}
+{{- with $root.Values.matrixRTC.sfu.additional -}}
+{{- range $key := (. | keys | uniq | sortAlpha) -}}
+{{- $prop := index $root.Values.matrixRTC.sfu.additional $key }}
+{{- if $prop.configSecret }}
+{{ $configSecrets = append $configSecrets (tpl $prop.configSecret $root) }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- $configSecrets := concat $configSecrets (include "element-io.matrix-rtc-authorisation-service.configSecrets" (dict "root" $root "context" .) | fromJsonArray) -}}
+{{ $configSecrets | uniq | toJson }}
 {{- end }}
 
 {{- define "element-io.matrix-rtc-sfu.configmap-name" -}}
@@ -77,19 +87,34 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 
 {{- define "element-io.matrix-rtc-sfu.secret-name" }}
 {{- $root := .root }}
-{{- $root.Release.Name }}-matrix-rtc-authorisation-service
+{{- $root.Release.Name }}-matrix-rtc-sfu
 {{- end }}
 
 
 {{- define "element-io.matrix-rtc-sfu.configmap-data" }}
 {{- $root := .root -}}
 {{- with required "element-io.matrix-rtc-sfu.config missing context" .context -}}
-{{- $config := (tpl ($root.Files.Get "configs/matrix-rtc/sfu/config.yaml.tpl") (dict "root" $root "context" .)) | fromYaml }}
-config.yaml: |
-{{- toYaml (mustMergeOverwrite $config (.additional | fromYaml)) | nindent 2 }}
+config-underrides.yaml: |
+{{- (tpl ($root.Files.Get "configs/matrix-rtc/sfu/config-underrides.yaml.tpl") (dict "root" $root "context" .)) | nindent 2 }}
+config-overrides.yaml: |
+{{- (tpl ($root.Files.Get "configs/matrix-rtc/sfu/config-overrides.yaml.tpl") (dict "root" $root "context" .)) | nindent 2 }}
 {{- if not ($root.Values.matrixRTC.livekitAuth).keysYaml }}
 keys-template.yaml: |
 {{- (tpl ($root.Files.Get "configs/matrix-rtc/sfu/keys-template.yaml.tpl") dict) | nindent 2 }}
 {{- end -}}
 {{- end -}}
 {{- end -}}
+
+{{- define "element-io.matrix-rtc-sfu.secret-data" }}
+{{- $root := .root -}}
+{{- with required "element-io.matrix-rtc-sfu.secret-data" .context -}}
+{{- with $root.Values.matrixRTC.sfu.additional }}
+{{- range $key := (. | keys | uniq | sortAlpha) }}
+{{- $prop := index $root.Values.matrixRTC.sfu.additional $key }}
+{{- if $prop.config }}
+user-{{ $key }}: {{ $prop.config | b64enc }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

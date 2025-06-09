@@ -37,17 +37,28 @@ spec:
         {{- tpl (toYaml . | nindent 8) $ }}
 {{- end }}
 {{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "matrix-rtc-sfu" "deployment" true "usesMatrixTools" true)) | nindent 6 }}
-{{- if not (.livekitAuth).keysYaml }}
       initContainers:
+{{- if not (.livekitAuth).keysYaml }}
       {{- include "element-io.ess-library.render-config-container" (dict "root" $ "context"
         (dict "nameSuffix" "matrix-rtc-sfu"
               "underrides" list
               "overrides" (list "keys-template.yaml")
+              "contaierName" "render-config-keys-yaml"
               "outputFile" "keys.yaml"
               "resources" .resources
               "containersSecurityContext" .containersSecurityContext
               "extraEnv" .extraEnv)) | nindent 6 }}
 {{- end }}
+      {{- include "element-io.ess-library.render-config-container" (dict "root" $ "context"
+        (dict "nameSuffix" "matrix-rtc-sfu"
+              "additionalPath" "matrixRTC.sfu.additional"
+              "underrides" (list "config-underrides.yaml")
+              "overrides" (list "config-overrides.yaml")
+              "containerName" "render-config-sfu"
+              "outputFile" "config.yaml"
+              "resources" .resources
+              "containersSecurityContext" .containersSecurityContext
+              "extraEnv" .extraEnv)) | nindent 6 }}
       hostNetwork: {{ .hostNetwork }}
       containers:
       - name: sfu
@@ -134,13 +145,15 @@ spec:
         volumeMounts:
         {{- include "element-io.ess-library.render-config-volume-mounts" (dict "root" $ "context"
               (dict "nameSuffix" "matrix-rtc-sfu"
-                    "outputFile" "keys.yaml")) | nindent 8 }}
-        - mountPath: /conf/config.yaml
-          name: plain-config
-          subPath: config.yaml
+                    "outputFile" "config.yaml")) | nindent 8 }}
+{{- if not (.livekitAuth).keysYaml }}
+        - mountPath: /conf/keys.yaml
+          name: rendered-config
+          subPath: keys.yaml
+{{- end }}
       volumes:
       {{- include "element-io.ess-library.render-config-volumes" (dict "root" $ "context"
-              (dict "nameSuffix" "matrix-rtc-sfu")) | nindent 6 }}
+              (dict "nameSuffix" "matrix-rtc-sfu" "additionalPath" "matrixRTC.sfu.additional")) | nindent 6 }}
 {{- end }}
 {{- end }}
 {{- end -}}

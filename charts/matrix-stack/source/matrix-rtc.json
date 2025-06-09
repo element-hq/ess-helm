@@ -120,7 +120,7 @@
           "type": "boolean"
         },
         "additional": {
-          "type": "string"
+          "$ref": "file://common/additional.json"
         },
         "logging": {
           "type": "object",
