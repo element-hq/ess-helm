@@ -42,18 +42,6 @@ spec:
         {{- toYaml . | nindent 8 }}
 {{- end }}
     spec:
-{{- if gt (.replicas | int) 1 }}
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-              - key: app.kubernetes.io/instance
-                operator: In
-                values:
-                - "{{ $.Release.Name }}-matrix-authentication-service"
-            topologyKey: kubernetes.io/hostname
-{{- end }}
 {{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "matrix-authentication-service" "deployment" true "usesMatrixTools" true)) | nindent 6 }}
       initContainers:
       {{ include "element-io.matrix-authentication-service.render-config-container" (dict "root" $ "context" (mustMergeOverwrite . (dict "isHook" false))) | nindent 6 }}

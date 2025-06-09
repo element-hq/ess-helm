@@ -31,20 +31,6 @@ spec:
         {{- toYaml . | nindent 8 }}
 {{- end }}
     spec:
-{{- if gt (.replicas | int) 1 }}
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            podAffinityTerm:
-              labelSelector:
-                matchExpressions:
-                - key: app.kubernetes.io/instance
-                  operator: In
-                  values:
-                  - "{{ $.Release.Name }}-element-web"
-              topologyKey: kubernetes.io/hostname
-{{- end }}
 {{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "element-web" "deployment" true)) | nindent 6 }}
       containers:
       - name: element-web
