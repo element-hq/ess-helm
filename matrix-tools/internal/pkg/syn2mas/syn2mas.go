@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -59,19 +60,44 @@ func scaleDownSynapse(client kubernetes.Interface, namespace string) map[string]
 			break
 		}
 	}
-	podsClient := client.CoreV1().Pods(namespace)
-	pods, err := podsClient.List(ctx, metav1.ListOptions{
-		LabelSelector: "app.kubernetes.io/component=matrix-server,app.kubernetes.io/name!=synapse-check-config",
-	})
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+
+	allPodsDown := false
+	remainingRetries := 60
+	maxRetriesEnv := os.Getenv("SYN2MAS_SCALE_DOWN_MAX_RETRIES")
+	if len(maxRetriesEnv) != 0 {
+		remainingRetries, err = strconv.Atoi(maxRetriesEnv)
+		if err != nil {
+			remainingRetries = 60
+		}
 	}
-	if len(pods.Items) != 0 {
+	for {
+		fmt.Println("Waiting for all synapse pods to be gone..." )
+		podsClient := client.CoreV1().Pods(namespace)
+		pods, err := podsClient.List(ctx, metav1.ListOptions{
+			LabelSelector: "app.kubernetes.io/component=matrix-server,app.kubernetes.io/name!=synapse-check-config",
+		})
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		if len(pods.Items) != 0 {
+			fmt.Printf("%d pods remaining. Waiting %d seconds...\n", len(pods.Items), (remainingRetries))
+			if (remainingRetries <= 0) {
+				break
+			}
+			time.Sleep(time.Second)
+		} else {
+			allPodsDown = true
+			break
+		}
+		remainingRetries = remainingRetries - 1
+	}
+
+	if (!allPodsDown) {
 		fmt.Println("StatefulSet are down, but pods matching matrix-server component are remaining. Something wrong is happening.")
 		os.Exit(1)
 	}
-
 	return stsReplicas
 }
 
