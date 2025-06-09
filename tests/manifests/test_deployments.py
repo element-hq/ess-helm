@@ -52,18 +52,26 @@ def assert_matching_replicas(template, values, release_name):
             f"{template_id(template)} No items in preferredDuringSchedulingIgnoredDuringExecution"
         )
 
-        item = pod_spec["affinity"]["podAntiAffinity"]["preferredDuringSchedulingIgnoredDuringExecution"][0]
-        assert "labelSelector" in item, (
+        preferred_item = pod_spec["affinity"]["podAntiAffinity"]["preferredDuringSchedulingIgnoredDuringExecution"][0]
+        assert "weight" in preferred_item, (
+            f"{template_id(template)} Missing weight in preferredDuringSchedulingIgnoredDuringExecution item"
+        )
+        assert "podAffinityTerm" in preferred_item, (
+            f"{template_id(template)} Missing podAffinityTerm in preferredDuringSchedulingIgnoredDuringExecution item"
+        )
+
+        pod_affinity_term = preferred_item["podAffinityTerm"]
+        assert "labelSelector" in pod_affinity_term, (
             f"{template_id(template)} Missing labelSelector in preferredDuringSchedulingIgnoredDuringExecution item"
         )
-        assert "matchExpressions" in item["labelSelector"], (
+        assert "matchExpressions" in pod_affinity_term["labelSelector"], (
             f"{template_id(template)} Missing matchExpressions in labelSelector"
         )
-        assert len(item["labelSelector"]["matchExpressions"]) >= 1, (
+        assert len(pod_affinity_term["labelSelector"]["matchExpressions"]) >= 1, (
             f"{template_id(template)} No matchExpressions in labelSelector"
         )
 
-        match_expr = item["labelSelector"]["matchExpressions"][0]
+        match_expr = pod_affinity_term["labelSelector"]["matchExpressions"][0]
         assert "key" in match_expr, f"{template_id(template)} Missing key in matchExpression"
         assert "operator" in match_expr, f"{template_id(template)} Missing operator in matchExpression"
         assert "values" in match_expr, f"{template_id(template)} Missing values in matchExpression"
@@ -109,7 +117,7 @@ async def test_all_deployments_can_set_replicas(values, make_templates, release_
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_max_unaivalable_single_replicas(values, make_templates):
+async def test_max_unavailable_single_replicas(values, make_templates):
     iterate_deployables_parts(
         lambda deployable_details: deployable_details.set_helm_values(values, PropertyType.Replicas, 1),
         lambda deployable_details: deployable_details.has_replicas,

@@ -17,13 +17,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 affinity:
   podAntiAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
-    - labelSelector:
-        matchExpressions:
-        - key: app.kubernetes.io/instance
-          operator: In
-          values:
-          - "{{ $root.Release.Name }}-{{ $instanceSuffix }}"
-      topologyKey: kubernetes.io/hostname
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/instance
+            operator: In
+            values:
+            - "{{ $root.Release.Name }}-{{ $instanceSuffix }}"
+        topologyKey: kubernetes.io/hostname
 {{- end }}
 automountServiceAccountToken: {{ $mountServiceAccountToken }}
 serviceAccountName: {{ include "element-io.ess-library.serviceAccountName" (dict "root" $root "context" (dict "serviceAccount" .serviceAccount "nameSuffix" $serviceAccountNameSuffix)) }}
