@@ -9,7 +9,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- with required "element-io.ess-library.render-config-container missing context" .context -}}
 {{- $context := . -}}
 {{- $nameSuffix := required "element-io.ess-library.render-config-container missing context.nameSuffix" .nameSuffix -}}
-{{- $containerName := (.containerName | default "render-config") -}}
+{{- $containerName := required "element-io.ess-library.render-config-container missing context.containerName" .containerName -}}
 {{- $templatesVolume := (.templatesVolume | default "plain-config") -}}
 {{- $additionalPath := .additionalPath -}}
 {{- $additionalProperty := dict -}}

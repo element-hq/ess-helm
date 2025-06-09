@@ -43,7 +43,7 @@ spec:
         (dict "nameSuffix" "matrix-rtc-sfu"
               "underrides" list
               "overrides" (list "keys-template.yaml")
-              "contaierName" "render-config-keys-yaml"
+              "containerName" "render-config-keys-yaml"
               "outputFile" "keys.yaml"
               "resources" .resources
               "containersSecurityContext" .containersSecurityContext
