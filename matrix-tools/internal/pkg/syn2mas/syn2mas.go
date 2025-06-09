@@ -75,7 +75,7 @@ func scaleDownSynapse(client kubernetes.Interface, namespace string) map[string]
 
 		if len(pods.Items) != 0 {
 			fmt.Printf("%d pods remaining. Waiting %d seconds...\n", len(pods.Items), (60-retries))
-			if (retries > 60) {
+			if (retries >= 60) {
 				break
 			}
 			time.Sleep(time.Second)
