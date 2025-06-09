@@ -60,7 +60,7 @@ func scaleDownSynapse(client kubernetes.Interface, namespace string) map[string]
 		}
 	}
 
-	allPodsDown := true
+	allPodsDown := false
 	retries := 0
 	for {
 		fmt.Println("Waiting for all synapse pods to be gone..." )
@@ -79,8 +79,8 @@ func scaleDownSynapse(client kubernetes.Interface, namespace string) map[string]
 				break
 			}
 			time.Sleep(time.Second)
-			allPodsDown = false
 		} else {
+			allPodsDown = true
 			break
 		}
 		retries = retries + 1
