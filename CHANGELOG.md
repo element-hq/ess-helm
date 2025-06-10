@@ -6,6 +6,64 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 25.6.1 (2025-06-10)
+
+### Security
+
+- Upgrade Element Web to v1.11.103 for GHSA-x958-rvg6-956w.
+
+  Resolves GHSA-x958-rvg6-956w
+  * Check the sender of an event matches owner of session, preventing sender spoofing by homeserver owners.
+
+  (#541)
+
+### Added
+
+- Add support for Syn2Mas migration. See `matrixAuthenticationService.syn2mas` documentation in values file for more information. (#454, #527)
+
+### Changed
+
+- Name secrets mounted based on a hash of their names instead of an index. (#519)
+- `matrixRTC.sfu.additional` now uses the same `additional` properties schema as Matrix Authentication Service and Synapse.
+
+  Values can be specified inline:
+  ```yaml
+  matrixRTC:
+    sfu:
+      additional:
+        your-config.yaml: |
+          example: value
+  ```
+
+  Or referencing an existing `Secret` in-cluster:
+  ```yaml
+  matrixRTC:
+    sfu:
+      additional:
+        another-config.yaml:
+          configSecret: "{{ $.Release.Name }}-mrtc-external"
+          configSecretKey: config
+  ```
+
+  Setting `matrixRTC.sfu.additional` to a string value is no longer supported or allowed. (#529, #535)
+- matrix-tools: Update to 0.5.2 to support syn2mas migration command. (#532, #534)
+
+### Internal
+
+- CI: Dont pass `go-version` to golanglint-ci action. (#521)
+- CI: Truncate added files in dyff comment. (#523)
+- CI: Test chart upgrades. (#524)
+- CI: Run mypy against integration tests. (#525)
+- CI: Add a test to assert labels key length. (#528)
+- CI: Expect 429s to happen on chart version upgrade tests. (#530)
+- CI: Fix an internal issue where aiohttp expected errors were not retried. (#531)
+- Rename the templates for Matrix RTC Authorisation Service for clarity. (#533)
+- CI: Test that podAntiAffinity for Deployments is not strict anti-affinity. (#536, #537)
+- CI: Verify podAntiAffinity against kubeconform. (#540)
+- Don't send set changelog entries in the artifacthub metadata. (#542)
+- Reorder changelog sections. (#544)
+
+
 # ESS Community Helm Chart 25.6.0 (2025-06-05)
 
 ### Added
