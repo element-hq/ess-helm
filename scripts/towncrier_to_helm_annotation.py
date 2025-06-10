@@ -12,18 +12,19 @@ import yaml as pyyaml
 
 
 def find_news_fragments(root_dir):
-    new_fragments = []
+    unique_new_fragments = set()
 
     for path in Path(root_dir).glob("*"):
         if path.is_file() and path.name != ".gitkeep":
             kind = path.name.split(".")[1]
             if kind != "internal":
-                new_fragments.append(
-                    {
-                        "description": path.read_text().splitlines()[0].strip(),
-                        "kind": kind,
-                    }
+                unique_new_fragments.add(
+                    (
+                        path.read_text().splitlines()[0].strip(),
+                        kind,
+                    )
                 )
+    new_fragments = list({"description": description, "kind": kind} for description, kind in unique_new_fragments)
     kind_order = ["added", "changed", "deprecated", "removed", "fixed", "security"]
     # We order the list by kind and description alphabetically
     new_fragments.sort(key=lambda x: str(kind_order.index(x["kind"])) + x["description"])

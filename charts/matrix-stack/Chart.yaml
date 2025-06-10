@@ -8,3 +8,15 @@ description: A Helm meta-chart for deploying a Matrix Stack from Element
 type: application
 version: 25.6.1-dev
 dependencies: []
+annotations:
+  artifacthub.io/changes: |
+    - description: Add support for Syn2Mas migration. See `matrixAuthenticationService.syn2mas`
+        documentation in values file for more information.
+      kind: added
+    - description: Name secrets mounted based on a hash of their names instead of an index.
+      kind: changed
+    - description: '`MatrixRTC.sfu.additional` now uses the same `additional` properties
+        schema as Matrix Authentication Service and Synapse.'
+      kind: changed
+    - description: 'matrix-tools: Update to 0.5.2 to support syn2mas migration command.'
+      kind: changed
