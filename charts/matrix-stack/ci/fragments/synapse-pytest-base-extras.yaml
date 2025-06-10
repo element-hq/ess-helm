@@ -26,6 +26,7 @@ synapse:
   - --no-secrets-in-config
 
 haproxy:
+  replicas: 2
   podSecurityContext:
     runAsGroup: 0
 

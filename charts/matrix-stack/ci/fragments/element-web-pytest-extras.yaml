@@ -9,7 +9,7 @@ elementWeb:
     host: element.{{ $.Values.serverName }}
     tlsSecret: "{{ $.Release.Name }}-element-web-tls"
 
-  replicas: 1
+  replicas: 2
 
   annotations:
     has-no-service-monitor: "true"

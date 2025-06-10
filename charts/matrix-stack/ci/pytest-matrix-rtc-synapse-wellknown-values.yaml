@@ -17,6 +17,7 @@ global:
 haproxy:
   podSecurityContext:
     runAsGroup: 0
+  replicas: 2
 ingress:
   controllerType: ingress-nginx
 initSecrets:
@@ -35,6 +36,7 @@ matrixRTC:
     tlsSecret: '{{ $.Release.Name }}-matrix-rtc-tls'
   podSecurityContext:
     runAsGroup: 0
+  replicas: 2
   sfu:
     extraEnv:
       - name: DEBUG_RENDERING
