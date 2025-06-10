@@ -75,26 +75,40 @@ filename = "CHANGELOG.md"
 # See artifacthub changes kinds https://artifacthub.io/docs/topics/annotations/helm/
 # "When using the list of objects option the valid supported kinds are added, changed, deprecated, removed, fixed and security."
 
-[tool.towncrier.fragment.added]
-name = "Added"
-
-[tool.towncrier.fragment.changed]
-name = "Changed"
-
-[tool.towncrier.fragment.deprecated]
-name = "Deprecated"
-
-[tool.towncrier.fragment.removed]
-name = "Removed"
-
-[tool.towncrier.fragment.fixed]
-name = "Fixed"
-
-[tool.towncrier.fragment.security]
+[[tool.towncrier.type]]
+directory = "security"
 name = "Security"
+showcontent = true
 
-[tool.towncrier.fragment.internal]
+[[tool.towncrier.type]]
+directory = "deprecated"
+name = "Deprecated"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "added"
+name = "Added"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "fixed"
+name = "Fixed"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "changed"
+name = "Changed"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "removed"
+name = "Removed"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "internal"
 name = "Internal"
+showcontent = true
 
 [[tool.mypy.overrides]]
 module = ["pyhelm3.*", "pytest_kubernetes.*"]
