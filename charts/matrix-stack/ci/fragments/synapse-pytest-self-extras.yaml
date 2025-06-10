@@ -22,6 +22,7 @@ synapse:
       enabled: true
     # A standard HTTP worker
     sliding-sync:
+      replicas: 2
       enabled: true
     # Media repo is fairly distinct from other workers
     media-repository:

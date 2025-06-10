@@ -15,6 +15,7 @@ elementWeb:
 haproxy:
   podSecurityContext:
     runAsGroup: 0
+  replicas: 2
 initSecrets:
   annotations:
     has-no-service-monitor: "true"
@@ -42,6 +43,7 @@ matrixAuthenticationService:
     tlsSecret: '{{ $.Release.Name }}-mas-web-tls'
   podSecurityContext:
     runAsGroup: 0
+  replicas: 2
   syn2mas:
     dryRun: true
     enabled: true

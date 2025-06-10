@@ -15,6 +15,7 @@ elementWeb:
 haproxy:
   podSecurityContext:
     runAsGroup: 0
+  replicas: 2
 initSecrets:
   annotations:
     has-no-service-monitor: "true"
@@ -66,5 +67,6 @@ synapse:
     # A standard HTTP worker
     sliding-sync:
       enabled: true
+      replicas: 2
 wellKnownDelegation:
   enabled: false

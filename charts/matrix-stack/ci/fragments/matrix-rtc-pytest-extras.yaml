@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 matrixRTC:
+  replicas: 2
   ingress:
     host: mrtc.{{ $.Values.serverName }}
     tlsSecret: "{{ $.Release.Name }}-matrix-rtc-tls"
