@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"time"
 
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -40,7 +41,7 @@ func scaleDownSynapse(client kubernetes.Interface, namespace string) map[string]
 	}
 
 	for {
-		fmt.Println("Waiting for replicas to be 0 on all synapse replicas" )
+		fmt.Println("Waiting for replicas to be 0 on all synapse replicas")
 		sts, err := stsClient.List(ctx, metav1.ListOptions{
 			LabelSelector: "app.kubernetes.io/component=matrix-server",
 		})
@@ -56,7 +57,7 @@ func scaleDownSynapse(client kubernetes.Interface, namespace string) map[string]
 				allStsDown = false
 			}
 		}
-		if (allStsDown) {
+		if allStsDown {
 			break
 		}
 	}
@@ -71,19 +72,24 @@ func scaleDownSynapse(client kubernetes.Interface, namespace string) map[string]
 		}
 	}
 	for {
-		fmt.Println("Waiting for all synapse pods to be gone..." )
+		fmt.Println("Waiting for all synapse pods to be gone...")
 		podsClient := client.CoreV1().Pods(namespace)
 		pods, err := podsClient.List(ctx, metav1.ListOptions{
-			LabelSelector: "app.kubernetes.io/component=matrix-server,app.kubernetes.io/name!=synapse-check-config",
+			LabelSelector: "app.kubernetes.io/component=matrix-server",
 		})
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
-
-		if len(pods.Items) != 0 {
-			fmt.Printf("%d pods remaining. Waiting %d seconds...\n", len(pods.Items), (remainingRetries))
-			if (remainingRetries <= 0) {
+		podsFound := 0
+		for _, pod := range pods.Items {
+			if pod.Status.Phase != corev1.PodSucceeded {
+				podsFound = podsFound + 1
+			}
+		}
+		if podsFound != 0 {
+			fmt.Printf("Pods remaining. Waiting %d seconds...\n", (remainingRetries))
+			if remainingRetries <= 0 {
 				break
 			}
 			time.Sleep(time.Second)
@@ -94,7 +100,7 @@ func scaleDownSynapse(client kubernetes.Interface, namespace string) map[string]
 		remainingRetries = remainingRetries - 1
 	}
 
-	if (!allPodsDown) {
+	if !allPodsDown {
 		fmt.Println("StatefulSet are down, but pods matching matrix-server component are remaining. Something wrong is happening.")
 		os.Exit(1)
 	}
@@ -105,7 +111,7 @@ func scaleBack(client kubernetes.Interface, namespace string, scaledSts map[stri
 	ctx := context.Background()
 	fmt.Println("Scaling back synapse")
 	stsClient := client.AppsV1().StatefulSets(namespace)
-	for stsName, replicas := range scaledSts{
+	for stsName, replicas := range scaledSts {
 		fmt.Printf("Scaling back to %d replicas on %s\n", replicas, stsName)
 		sts, err := stsClient.Get(ctx, stsName, metav1.GetOptions{})
 		if err != nil {
@@ -132,12 +138,12 @@ func RunSyn2MAS(client kubernetes.Interface, namespace string, synapseConfigPath
 	var exitError *exec.ExitError
 	var ok bool
 	if err != nil {
-			// Detailed error handling
-			if exitError, ok = err.(*exec.ExitError); ok {
-					fmt.Printf("Command failed with status: %v\n", exitError.ExitCode())
-			} else {
-				fmt.Println(err)
-			}
+		// Detailed error handling
+		if exitError, ok = err.(*exec.ExitError); ok {
+			fmt.Printf("Command failed with status: %v\n", exitError.ExitCode())
+		} else {
+			fmt.Println(err)
+		}
 	}
 	scaleBack(client, namespace, originStsReplicas)
 	if exitError != nil {
