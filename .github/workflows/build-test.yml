@@ -191,17 +191,40 @@ jobs:
             fi
 
             if [ ! -f "$RUNNER_TEMP/old/$templates_file" ]; then
-              file_content=$(sed -e 's/^/+ /' < "$RUNNER_TEMP/new/$templates_file")
-              comment_templates_body+="<details><summary>$current_file (added)</summary>\n"
-              comment_templates_body+='\n```diff\n'
-              comment_templates_body+="# The full content of the file is available in ${ARTIFACT_URL}\n"
-              comment_templates_body+=$(head -n 5 <<< "$file_content")
-              comment_templates_body+='\n...\n```\n</details>\n\n'
+              api_version=$(yq '.apiVersion' "$RUNNER_TEMP/new/$templates_file")
+              kind=$(yq '.kind' "$RUNNER_TEMP/new/$templates_file")
+              name=$(yq '.metadata.name' "$RUNNER_TEMP/new/$templates_file")
+              namespace=$(yq '.metadata.namespace' "$RUNNER_TEMP/new/$templates_file")
+              metadata=$(yq '.metadata' "$RUNNER_TEMP/new/$templates_file")
+              comment_templates_body+="@@ $current_file @@\n"
+              comment_templates_body+="# $api_version/$kind/$namespace/$name\n"
+              comment_templates_body+="! + one file added - the full content of the file is available in ${ARTIFACT_URL}\n"
+              comment_templates_body+="+ apiVersion: $api_version\n"
+              comment_templates_body+="+ kind: $kind\n"
+              comment_templates_body+="+ metadata:\n"
+              while IFS= read -r line; do
+                comment_templates_body+="+   $line\n"
+              done <<< "$metadata"
+              comment_templates_body+="\n\n"
               continue
             fi
 
             if [ ! -f "$RUNNER_TEMP/new/$templates_file" ]; then
-              comment_templates_body+="**$current_file** (removed)\n\n"
+              api_version=$(yq '.apiVersion' "$RUNNER_TEMP/old/$templates_file" )
+              kind=$(yq '.kind' "$RUNNER_TEMP/old/$templates_file")
+              name=$(yq '.metadata.name' "$RUNNER_TEMP/old/$templates_file")
+              namespace=$(yq '.metadata.namespace' "$RUNNER_TEMP/old/$templates_file")
+              metadata=$(yq '.metadata' "$RUNNER_TEMP/old/$templates_file")
+              comment_templates_body+="@@ $current_file @@\n"
+              comment_templates_body+="# $api_version/$kind/$namespace/$name\n"
+              comment_templates_body+="! - one file removed\n"
+              comment_templates_body+="- apiVersion: $api_version\n"
+              comment_templates_body+="- kind: $kind\n"
+              comment_templates_body+="- metadata:\n"
+              while IFS= read -r line; do
+                comment_templates_body+="-   $line\n"
+              done <<< "$metadata"
+              comment_templates_body+="\n\n"
               continue
             fi
 
@@ -212,17 +235,23 @@ jobs:
                 echo "failed with file $templates_file"
                 exit 1
               fi
-              comment_templates_body+="<details><summary>$current_file (changed)</summary>\n"
-              comment_templates_body+='\n```diff\n'
-              comment_templates_body+=$dyff_detail
-              comment_templates_body+='\n```\n</details>\n\n'
+
+              api_version=$(yq '.apiVersion' "$RUNNER_TEMP/new/$templates_file")
+              kind=$(yq '.kind' "$RUNNER_TEMP/new/$templates_file")
+              name=$(yq '.metadata.name' "$RUNNER_TEMP/new/$templates_file")
+              namespace=$(yq '.metadata.namespace' "$RUNNER_TEMP/new/$templates_file")
+              resource_metadata="# $api_version/$kind/$namespace/$name"
+              comment_templates_body+=$(sed -e "1d" -e "/^@@/a$resource_metadata" <<< "$dyff_detail")
+              comment_templates_body+="\n\n\n"
             fi
           done <<< "$templates_files"
 
           if [[ -n "$comment_templates_body" ]]; then
               comment_body+="<details><summary><b>$values_dir.yaml</b></summary>\n"
+              comment_body+='\n```diff\n'
               comment_body+="$comment_templates_body"
-              comment_body+="---\n</details>\n"
+              comment_body+='```\n'
+              comment_body+="\n</details>\n"
           fi
 
         done <<< "$values_directories"
@@ -231,7 +260,7 @@ jobs:
           comment_body="No changes in rendered templates"
         fi
 
-        echo -e "$header$comment_body" | tee "$RUNNER_TEMP/dyff-output"
+        echo -e "$header$comment_body" | tee "$RUNNER_TEMP/dyff-output.md"
 
     - name: Upload generated manifests
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
@@ -255,5 +284,5 @@ jobs:
       with:
         comment-id: ${{ steps.find-dyff-comment.outputs.comment-id }}
         issue-number: ${{ github.event.pull_request.number }}
-        body-path: ${{ runner.temp }}/dyff-output
+        body-path: ${{ runner.temp }}/dyff-output.md
         edit-mode: replace
