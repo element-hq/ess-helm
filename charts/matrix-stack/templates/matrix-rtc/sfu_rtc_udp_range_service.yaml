@@ -1,5 +1,5 @@
 {{- /*
-Copyright 2024 New Vector Ltd
+Copyright 2024-2025 New Vector Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -8,28 +8,35 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- if .enabled -}}
 {{- with .sfu -}}
 {{- if and .enabled .exposedServices.rtcUdp.enabled (eq .exposedServices.rtcUdp.portType "NodePort") -}}
+{{- $range_start := (.exposedServices.rtcUdp.portRange.startPort | int) -}}
+{{- $range_end := (.exposedServices.rtcUdp.portRange.endPort | int) -}}
+{{- $range_size := sub $range_end $range_start -}}
+{{- $number_of_ranges := ((add ((div $range_size 250) | floor | int) 1) | int) -}}
+{{- range $port_segment := until $number_of_ranges }}
+---
 apiVersion: v1
 kind: Service
 metadata:
   labels:
-    {{- include "element-io.matrix-rtc-sfu-rtc.labels" (dict "root" $ "context" .) | nindent 4 }}
-  name: {{ $.Release.Name }}-matrix-rtc-sfu-udp-range
+    {{- include "element-io.matrix-rtc-sfu-rtc.labels" (dict "root" $ "context" $.Values.matrixRTC.sfu) | nindent 4 }}
+  name: {{ $.Release.Name }}-matrix-rtc-sfu-udp-range-{{ $port_segment }}
   namespace: {{ $.Release.Namespace }}
 spec:
   type: NodePort
   externalTrafficPolicy: Local
   ports:
-{{- with .exposedServices.rtcUdp.portRange }}
-{{- range $port := untilStep (.startPort | int) (.endPort | int) 1 }}
+{{- $segment_start := ((add $range_start (mul 250 $port_segment)) | int) }}
+{{- $segment_end := ((min (add $range_end 1) (add $segment_start 250)) | int) }}
+{{- range $port := untilStep $segment_start $segment_end 1 }}
   - name: rtc-udp-{{ $port }}
     port: {{ $port }}
     targetPort: {{ $port }}
     nodePort: {{ $port }}
     protocol: UDP
 {{- end }}
-{{- end }}
   selector:
     app.kubernetes.io/instance: "{{ $.Release.Name }}-matrix-rtc-sfu"
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}
