@@ -38,7 +38,7 @@ jobs:
       run: |
         echo "envFiles=$(find tests/integration/env -name '*.rc' | sed 's|tests/integration/env/||' | sed 's/.rc$//' | jq -ncR '{envFiles: [inputs]}')" | tee -a "$GITHUB_OUTPUT"
         echo "manifestTests=$(find tests/manifests -name 'test_*.py' | sed 's|tests/manifests/||' | sed 's/.py$//' | jq -ncR '{manifestTests: [inputs]}')" | tee -a "$GITHUB_OUTPUT"
-        LATEST_TAG=$(git tag | grep -E '^([0-9]+)\.([0-9]+)\.([0-9]+)$' | sort -V | tail -n 1)
+        LATEST_TAG=$(git describe --abbrev=0 --tags --match '[0-9]*.[0-9]*.[0-9]*')
         echo "upgradeFrom=$LATEST_TAG" | tee -a "$GITHUB_OUTPUT"
 
   pytest-integration:
