@@ -9,7 +9,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 port: 7880
 
-prometheus_port: 6789
+prometheus:
+  port: 6789
 
 # Logging config
 logging:
