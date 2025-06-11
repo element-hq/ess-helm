@@ -114,6 +114,8 @@ spec:
   {{- if .enabled }}
     {{- $portType := .type -}}
     {{- with .portRange }}
+    {{- /* container.port is metadata. Omit if a large range is provided so that we don't run into document size limits when submitting to the API server */ -}}
+    {{- if le (sub (.endPort | int) (.startPort | int)) 100 }}
     {{- range $port := untilStep (.startPort | int) (.endPort | int) 1 }}
         - containerPort: {{ $port }}
           name: rtc-udp-{{ $port }}
@@ -121,6 +123,7 @@ spec:
       {{ if eq $portType "HostPort" }}
           hostPort: {{ $port }}
       {{- end }}
+    {{- end }}
     {{- end }}
     {{- end }}
   {{- end }}
