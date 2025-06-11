@@ -6,11 +6,11 @@ matrixRTC:
   sfu:
     exposedServices:
       rtcTcp:
-        port: 33000
+        port: 31000
       rtcMuxedUdp:
-        port: 33001
+        port: 31001
       rtcUdp:
         enabled: true
         portRange:
-          startPort: 32500
-          endPort: 32900
+          endPort: 30400
+          startPort: 30000
