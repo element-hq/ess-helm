@@ -23,7 +23,7 @@ async def test_unique_ports_in_containers(templates):
 @pytest.mark.asyncio_cooperative
 async def test_ports_in_containers_are_named(templates):
     for template in templates:
-        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
+        if template["kind"] in ["Deployment", "StatefulSet"]:
             port_names = []
             for container in template["spec"]["template"]["spec"]["containers"]:
                 for port in container.get("ports", []):
@@ -45,3 +45,21 @@ async def test_no_ports_in_jobs(templates):
             for container in template["spec"]["template"]["spec"]["containers"]:
                 ports += [port["containerPort"] for port in container.get("ports", [])]
             assert len(ports) == 0, f"Ports are present in job: {template_id(template)}, {ports}"
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_not_too_many_container_ports(templates):
+    for template in templates:
+        if template["kind"] in ["Deployment", "StatefulSet"]:
+            for container in template["spec"]["template"]["spec"]["containers"]:
+                number_of_ports = len(container.get("ports", []))
+                # This limit is fairly arbitrary. Unlike with Services (which have a limit of 250 ports),
+                # there doesn't appear to be a hard limit of number of ports on a Pod/container. However if
+                # you go wild you hit maximum document size when attempting to put the manifest into the
+                # cluster. 100 is chosen as anything more quickly makes `kubectl {describe,get}` unusable.
+                # Container ports are "just" metadata, albeit one which helps the scheduler if `hostPorts`
+                # are involved
+                assert number_of_ports < 100, (
+                    f"{template_id(template)}/{container['name']} has too many ports ({number_of_ports} >= 100)"
+                )
