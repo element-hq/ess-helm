@@ -116,19 +116,19 @@ imagePullSecrets: []
   repository: {{ repository }}
 
   ## The tag of the container image to use.
-  ## Defaults to the Chart's appVersion if not set
+  ## One of tag or digest must be provided.
 {%- if tag | length > 0 %}
   tag: "{{ tag }}"
 {%- else %}
   # tag:
 {%- endif %}
 
-  ## Container digest to use. Used to pull the image instead of the image tag / Chart appVersion if set
+  ## Container digest to use. Used to pull the image instead of the image tag if set
+  ## The tag will still be set as the app.kubernetes.io/version label
   # digest:
 
   ## Whether the image should be pulled on container startup. Valid values are Always, IfNotPresent and Never
-  ## If this isn't provided it defaults to Always when using the image tag / Chart appVersion or
-  ## IfNotPresent if using a digest
+  ## If this isn't provided it defaults to Always when using the image tag or IfNotPresent if using a digest
   # pullPolicy:
 
   ## A list of pull secrets to use for this image
