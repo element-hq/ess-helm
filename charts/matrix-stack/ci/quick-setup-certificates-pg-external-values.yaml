@@ -41,4 +41,4 @@ synapse:
     user: your-synapse-user
 wellKnownDelegation:
   ingress:
-    tlsSecret: ess-well-knowncertificate
+    tlsSecret: ess-well-known-certificate

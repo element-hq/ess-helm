@@ -1,5 +1,5 @@
 <!--
-Copyright 2024 New Vector Ltd
+Copyright 2024-2025 New Vector Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 -->
@@ -265,7 +265,7 @@ kubectl create secret tls ess-certificate -n ess --cert=path/to/cert/file --key=
 kubectl create secret tls ess-chat-certificate -n ess --cert=path/to/cert/file --key=path/to/key/file
 kubectl create secret tls ess-matrix-certificate -n ess --cert=path/to/cert/file --key=path/to/key/file
 kubectl create secret tls ess-auth-certificate -n ess --cert=path/to/cert/file --key=path/to/key/file
-kubectl create secret tls ess-mtrc-certificate -n ess --cert=path/to/cert/file --key=path/to/key/file
+kubectl create secret tls ess-mrtc-certificate -n ess --cert=path/to/cert/file --key=path/to/key/file
 kubectl create secret tls ess-well-known-certificate -n ess --cert=path/to/cert/file --key=path/to/key/file
 ```
 

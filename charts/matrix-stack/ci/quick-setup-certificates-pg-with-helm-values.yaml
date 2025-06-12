@@ -25,4 +25,4 @@ synapse:
     tlsSecret: ess-matrix-certificate
 wellKnownDelegation:
   ingress:
-    tlsSecret: ess-well-knowncertificate
+    tlsSecret: ess-well-known-certificate
