@@ -395,6 +395,8 @@ matrixRTC:
     ##   secret: existing-secret
     ##   secretKey: key-in-secret
     # secret: {}
+
+  replicas: 1
   ## How this ingress should be constructed
   ingress:
     ## What hostname should be used for this Ingress
@@ -417,14 +419,6 @@ matrixRTC:
     ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
     ## This can be set to `ingress-nginx`.
     # controllerType:
-  ## Defines additional environment variables to be injected onto this workload
-  ## e.g.
-  ## extraEnv:
-  ## - name: FOO
-  ##   value: "bar"
-  extraEnv: []
-
-  replicas: 1
   # Details of the image to be used
   image:
     ## The host and (optional) port of the container image registry for this component.
@@ -478,6 +472,12 @@ matrixRTC:
     ## localhostProfile must only be set set if type Localhost. It indicates the path of the pre-configured profile on the node, relative to the kubelet's configured Seccomp profile location (configured with the --root-dir flag).
     # seccompProfile:
     #  type: RuntimeDefault
+  ## Defines additional environment variables to be injected onto this workload
+  ## e.g.
+  ## extraEnv:
+  ## - name: FOO
+  ##   value: "bar"
+  extraEnv: []
   ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   # nodeSelector: {}
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
@@ -1181,6 +1181,12 @@ haproxy:
     ## localhostProfile must only be set set if type Localhost. It indicates the path of the pre-configured profile on the node, relative to the kubelet's configured Seccomp profile location (configured with the --root-dir flag).
     # seccompProfile:
     #  type: RuntimeDefault
+  ## Defines additional environment variables to be injected onto this workload
+  ## e.g.
+  ## extraEnv:
+  ## - name: FOO
+  ##   value: "bar"
+  extraEnv: []
   ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   # nodeSelector: {}
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
@@ -1883,6 +1889,12 @@ matrixAuthenticationService:
 
       ## Annotations to add to the service account
       annotations: {}
+    ## Defines additional environment variables to be injected onto this workload
+    ## e.g.
+    ## extraEnv:
+    ## - name: FOO
+    ##   value: "bar"
+    extraEnv: []
     ## Workload tolerations allows Pods that are part of this (sub)component to 'tolerate' any taint that matches the triple <key,value,effect> using the matching operator <operator>.
     ##
     ## * effect indicates the taint effect to match. Empty means match all taint effects. When specified, allowed values are NoSchedule, PreferNoSchedule and NoExecute.
@@ -1969,6 +1981,12 @@ postgres:
       ## localhostProfile must only be set set if type Localhost. It indicates the path of the pre-configured profile on the node, relative to the kubelet's configured Seccomp profile location (configured with the --root-dir flag).
       # seccompProfile:
       #  type: RuntimeDefault
+    ## Defines additional environment variables to be injected onto this workload
+    ## e.g.
+    ## extraEnv:
+    ## - name: FOO
+    ##   value: "bar"
+    extraEnv: []
     ## Configuration of the thresholds and frequencies of the livenessProbe
     livenessProbe:
       ## How many consecutive failures for the probe to be considered failed

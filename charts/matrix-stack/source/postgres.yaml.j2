@@ -8,7 +8,8 @@ enabled: true
 postgresExporter:
   {{- sub_schema_values.image(registry='docker.io', repository='prometheuscommunity/postgres-exporter', tag='v0.17.0') | indent(2) }}
   {{- sub_schema_values.resources(requests_memory='10Mi', requests_cpu='10m', limits_memory='500Mi')| indent(2) }}
-  {{- sub_schema_values.containersSecurityContext()| indent(2) }}
+  {{- sub_schema_values.containersSecurityContext() | indent(2) }}
+  {{- sub_schema_values.extraEnv() | indent(2) }}
   {{- sub_schema_values.probe("liveness", periodSeconds=6, timeoutSeconds=2) | indent(2) }}
   {{- sub_schema_values.probe("readiness", periodSeconds=2, successThreshold=2, timeoutSeconds=2) | indent(2) }}
   {{- sub_schema_values.probe("startup", failureThreshold=20, periodSeconds=2) | indent(2) }}
