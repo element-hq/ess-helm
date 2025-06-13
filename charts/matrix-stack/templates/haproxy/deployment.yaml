@@ -63,10 +63,7 @@ spec:
         securityContext:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-{{- with .extraEnv }}
-        env:
-          {{- toYaml . | nindent 10 }}
-{{- end }}
+        {{- include "element-io.ess-library.pods.env" (dict "root" $ "context" (dict "componentValues" . "componentName" "haproxy")) | nindent 8 }}
         ports:
 {{- if $.Values.synapse.enabled }}
         - containerPort: 8008

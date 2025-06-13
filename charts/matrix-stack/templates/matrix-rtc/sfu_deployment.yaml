@@ -78,10 +78,7 @@ spec:
         securityContext:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-{{- with (include "element-io.matrix-rtc-sfu.env" (dict "root" $ "context" .)) }}
-        env:
-          {{- . | nindent 10 }}
-  {{- end }}
+        {{- include "element-io.ess-library.pods.env" (dict "root" $ "context" (dict "componentValues" . "componentName" "matrix-rtc-sfu")) | nindent 8 }}
         ports:
         - containerPort: 6789
           name: metrics

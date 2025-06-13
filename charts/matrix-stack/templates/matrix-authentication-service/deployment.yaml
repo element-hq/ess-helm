@@ -83,8 +83,7 @@ spec:
         securityContext:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-        env:
-        {{- include "element-io.matrix-authentication-service.env" (dict "root" $ "context" .) | nindent 10 }}
+        {{- include "element-io.ess-library.pods.env" (dict "root" $ "context" (dict "componentValues" . "componentName" "matrix-authentication-service")) | nindent 8 }}
 {{- with .resources }}
         resources:
           {{- toYaml . | nindent 10 }}
@@ -118,8 +117,7 @@ We don't want background jobs to get failed use up their retries because MAS has
         securityContext:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-        env:
-        {{- include "element-io.matrix-authentication-service.env" (dict "root" $ "context" .) | nindent 10 }}
+        {{- include "element-io.ess-library.pods.env" (dict "root" $ "context" (dict "componentValues" . "componentName" "matrix-authentication-service")) | nindent 8 }}
         ports:
         - containerPort: 8080
           protocol: TCP

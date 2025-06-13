@@ -50,8 +50,7 @@ spec:
         securityContext:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-        env:
-          {{- include "element-io.matrix-rtc-authorisation-service.env" (dict "root" $ "context" .) | nindent 8 }}
+        {{- include "element-io.ess-library.pods.env" (dict "root" $ "context" (dict "componentValues" . "componentName" "matrix-rtc-authorisation-service")) | nindent 8 }}
         ports:
         - containerPort: 8080
           name: http

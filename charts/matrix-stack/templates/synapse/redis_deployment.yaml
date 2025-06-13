@@ -50,10 +50,7 @@ spec:
         securityContext:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-{{- with .extraEnv }}
-        env:
-          {{- toYaml . | nindent 10 }}
-{{- end }}
+        {{- include "element-io.ess-library.pods.env" (dict "root" $ "context" (dict "componentValues" . "componentName" "synapse-redis")) | nindent 8 }}
         ports:
         - containerPort: 6379
           name: redis

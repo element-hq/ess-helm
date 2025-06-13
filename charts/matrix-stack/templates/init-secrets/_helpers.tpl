@@ -85,19 +85,11 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" $
 {{- end }}
 {{- end }}
 
-{{- define "element-io.init-secrets.env" }}
+{{- define "element-io.init-secrets.overrideEnv" }}
 {{- $root := .root -}}
-{{- with required "element-io.init-secrets.env missing context" .context -}}
-{{- $resultEnv := dict -}}
-{{- range $envEntry := .extraEnv -}}
-{{- $_ := set $resultEnv $envEntry.name $envEntry.value -}}
-{{- end -}}
-{{- $overrideEnv := dict "NAMESPACE" $root.Release.Namespace
--}}
-{{- $resultEnv := mustMergeOverwrite $resultEnv $overrideEnv -}}
-{{- range $key, $value := $resultEnv }}
-- name: {{ $key | quote }}
-  value: {{ $value | quote }}
-{{- end -}}
+{{- with required "element-io.init-secrets.overrideEnv missing context" .context -}}
+env:
+- name: "NAMESPACE"
+  value: {{ $root.Release.Namespace | quote }}
 {{- end -}}
 {{- end -}}

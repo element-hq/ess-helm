@@ -57,8 +57,7 @@ spec:
         resources:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-        env:
-        {{- include "element-io.deployment-markers.env" (dict "root" $ "context" .) | nindent 8 }}
+        {{- include "element-io.ess-library.pods.env" (dict "root" $ "context" (dict "componentValues" . "componentName" "deployment-markers")) | nindent 8 }}
         command:
         - "/matrix-tools"
         - "deployment-markers"

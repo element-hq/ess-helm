@@ -38,25 +38,25 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- end }}
 
 
-{{- define "element-io.matrix-rtc-authorisation-service.env" }}
+{{- define "element-io.matrix-rtc-authorisation-service.overrideEnv" }}
 {{- $root := .root -}}
-{{- with required "element-io.matrix-rtc-authorisation-service.env missing context" .context -}}
-{{- $resultEnv := dict -}}
-{{- range $envEntry := .extraEnv -}}
-{{- $_ := set $resultEnv $envEntry.name $envEntry.value -}}
-{{- end -}}
+{{- with required "element-io.matrix-rtc-authorisation-service.overrideEnv missing context" .context -}}
+env:
 {{- if (.livekitAuth).keysYaml }}
-{{- $_ := set $resultEnv "LIVEKIT_KEY_FILE" (printf "/secrets/%s"
+- name: "LIVEKIT_KEY_FILE"
+  value: {{ printf "/secrets/%s"
       (include "element-io.ess-library.provided-secret-path" (
         dict "root" $root "context" (
           dict "secretPath" "matrixRTC.livekitAuth.keysYaml"
               "defaultSecretName" (printf "%s-matrix-rtc-authorisation-service" $root.Release.Name)
               "defaultSecretKey" "LIVEKIT_KEYS_YAML"
               )
-        ))) }}
+        )) }}
 {{- else }}
-{{- $_ := set $resultEnv "LIVEKIT_KEY" ((.livekitAuth).key | default "matrix-rtc") -}}
-{{- $_ := set $resultEnv "LIVEKIT_SECRET_FROM_FILE" (printf "/secrets/%s"
+- name: "LIVEKIT_KEY"
+  value: {{ (.livekitAuth).key | default "matrix-rtc" }}
+- name: "LIVEKIT_SECRET_FROM_FILE"
+  value: {{ printf "/secrets/%s"
       (include "element-io.ess-library.init-secret-path" (
         dict "root" $root "context" (
           dict "secretPath" "matrixRTC.livekitAuth.secret"
@@ -64,14 +64,11 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
               "defaultSecretName" (printf "%s-matrix-rtc-authorisation-service" $root.Release.Name)
               "defaultSecretKey" "LIVEKIT_SECRET"
               )
-        ))) }}
+        )) }}
 {{- end }}
-{{- if .sfu.enabled -}}
-{{- $_ := set $resultEnv "LIVEKIT_URL" (printf "wss://%s" (tpl .ingress.host $root)) -}}
-{{- end -}}
-{{- range $key, $value := $resultEnv }}
-- name: {{ $key | quote }}
-  value: {{ $value | quote }}
+{{- if .sfu.enabled }}
+- name: "LIVEKIT_URL"
+  value: {{ printf "wss://%s" (tpl .ingress.host $root) }}
 {{- end -}}
 {{- end -}}
 {{- end -}}

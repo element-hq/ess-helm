@@ -53,8 +53,7 @@ spec:
         securityContext:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-        env:
-        {{- include "element-io.postgres.env" (dict "root" $ "context" .) | nindent 8 }}
+        {{- include "element-io.ess-library.pods.env" (dict "root" $ "context" (dict "componentValues" . "componentName" "postgres")) | nindent 8 }}
         args:
         {{ include "element-io.postgres.args" (dict "root" $ "context" .) | nindent 8 }}
 {{- with .resources }}
@@ -126,8 +125,7 @@ spec:
         securityContext:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-        env:
-        {{- include "element-io.postgres.env" (dict "root" $ "context" .) | nindent 8 }}
+        {{- include "element-io.ess-library.pods.env" (dict "root" $ "context" (dict "componentValues" . "componentName" "postgres")) | nindent 8 }}
         args:
         {{ include "element-io.postgres.args" (dict "root" $ "context" .) | nindent 8 }}
 {{- with .resources }}
@@ -189,11 +187,10 @@ spec:
         securityContext:
           {{- toYaml . | nindent 10 }}
 {{- end }}
+        {{- include "element-io.ess-library.pods.env" (dict "root" $ "context" (dict "componentValues" . "componentName" "postgres-exporter")) | nindent 8 }}
         ports:
         - name: metrics
           containerPort: 9187
-        env:
-        {{- include "element-io.postgres.exporter-env" (dict "root" $ "context" .) | nindent 8 }}
         startupProbe: {{- include "element-io.ess-library.pods.probe" .startupProbe | nindent 10 }}
           httpGet:
             path: /metrics

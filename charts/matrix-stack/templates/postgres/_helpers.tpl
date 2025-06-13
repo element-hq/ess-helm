@@ -91,52 +91,41 @@ true
 {{- end -}}
 {{- end -}}
 
-{{- define "element-io.postgres.env" }}
+{{- define "element-io.postgres.overrideEnv" }}
 {{- $root := .root -}}
-{{- with required "element-io.postgres.env missing context" .context -}}
-{{- $resultEnv := dict -}}
-{{- range $envEntry := .extraEnv -}}
-{{- $_ := set $resultEnv $envEntry.name $envEntry.value -}}
-{{- end -}}
-{{- $overrideEnv := dict "POSTGRES_PASSWORD_FILE" (printf "/secrets/%s"
-                            (include "element-io.ess-library.init-secret-path" (
-                              dict "root" $root "context" (
-                                dict "secretPath" "postgres.adminPassword"
-                                     "initSecretKey" "POSTGRES_ADMIN_PASSWORD"
-                                     "defaultSecretName" (include "element-io.postgres.secret-name" (dict "root" $root "context"  (dict "isHook" false)))
-                                     "defaultSecretKey" "ADMIN_PASSWORD"
-                                )
-                              )
-                            )
-                          )
-                        "PGDATA" "/var/lib/postgres/data/pgdata"
-                        "POSTGRES_INITDB_ARGS" "-E UTF8"
-                        "LC_COLLATE" "C"
-                        "LC_CTYPE" "C"
--}}
-{{- $resultEnv := mustMergeOverwrite $resultEnv $overrideEnv -}}
-{{- range $key, $value := $resultEnv }}
-- name: {{ $key | quote }}
-  value: {{ $value | quote }}
-{{- end -}}
+{{- with required "element-io.postgres.overrideEnv missing context" .context -}}
+env:
+- name: "POSTGRES_PASSWORD_FILE"
+  value: {{ printf "/secrets/%s" (
+              include "element-io.ess-library.init-secret-path" (dict
+                "root" $root
+                "context" (dict
+                  "secretPath" "postgres.adminPassword"
+                  "initSecretKey" "POSTGRES_ADMIN_PASSWORD"
+                  "defaultSecretName" (include "element-io.postgres.secret-name" (dict "root" $root "context"  (dict "isHook" false)))
+                  "defaultSecretKey" "ADMIN_PASSWORD"
+                  )
+                )
+              ) }}
+- name: "PGDATA"
+  value: "/var/lib/postgres/data/pgdata"
+- name: "POSTGRES_INITDB_ARGS"
+  value: "-E UTF8"
+- name: "LC_COLLATE"
+  value: "C"
+- name: "LC_CTYPE"
+  value: "C"
 {{- end -}}
 {{- end -}}
 
-{{- define "element-io.postgres.exporter-env" }}
+{{- define "element-io.postgres-exporter.overrideEnv" }}
 {{- $root := .root -}}
-{{- with required "element-io.postgres.exporter-env missing context" .context -}}
-{{- $resultEnv := dict -}}
-{{- range $envEntry := .extraEnv -}}
-{{- $_ := set $resultEnv $envEntry.name $envEntry.value -}}
-{{- end -}}
-{{- $overrideEnv := dict "DATA_SOURCE_URI" "localhost?sslmode=disable"
-                         "DATA_SOURCE_USER" "postgres"
--}}
-{{- $resultEnv := mustMergeOverwrite $resultEnv $overrideEnv -}}
-{{- range $key, $value := $resultEnv }}
-- name: {{ $key | quote }}
-  value: {{ $value | quote }}
-{{- end -}}
+{{- with required "element-io.postgres-exporter.overrideEnv missing context" .context -}}
+env:
+- name: "DATA_SOURCE_URI"
+  value: "localhost?sslmode=disable"
+- name: "DATA_SOURCE_USER"
+  value: "postgres"
 {{- end -}}
 {{- end -}}
 
