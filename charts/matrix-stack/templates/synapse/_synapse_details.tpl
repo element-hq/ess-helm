@@ -371,7 +371,6 @@ responsibleForMedia
 {{- if eq .workerType "push-rules" }}
 {{ $workerPaths = concat $workerPaths (list
   "^/_matrix/client/(api/v1|r0|v3|unstable)/pushrules/"
-  "^/_matrix/client/unstable/org.matrix.msc4140/delayed_events"
 ) }}
 {{- end }}
 
