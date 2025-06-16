@@ -92,20 +92,12 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- end }}
 {{- end }}
 
-{{- define "element-io.matrix-authentication-service.env" }}
+
+{{- define "element-io.matrix-authentication-service.overrideEnv" }}
 {{- $root := .root -}}
-{{- with required "element-io.matrix-authentication-service.env missing context" .context -}}
-{{- $resultEnv := dict -}}
-{{- range $envEntry := .extraEnv -}}
-{{- $_ := set $resultEnv $envEntry.name $envEntry.value -}}
-{{- end -}}
-{{- $overrideEnv := dict "MAS_CONFIG" "/conf/config.yaml" -}}
-{{- $resultEnv := mustMergeOverwrite $resultEnv $overrideEnv -}}
-{{- range $key, $value := $resultEnv }}
-- name: {{ $key | quote }}
-  value: {{ $value | quote }}
-{{- end -}}
-{{- end -}}
+env:
+- name: "MAS_CONFIG"
+  value: "/conf/config.yaml"
 {{- end -}}
 
 {{- /* The filesystem structure is `/secrets`/<< secret name>>/<< secret key >>.
@@ -115,9 +107,10 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
         These could be done as env vars with valueFrom.secretKeyRef, but that triggers CKV_K8S_35.
         Environment variables values found in the config file as ${VARNAME} are parsed through go template engine before being replaced in the target file.
 */}}
-{{- define "element-io.matrix-authentication-service.matrixToolsEnv" }}
+{{- define "element-io.matrix-authentication-service.renderConfigOverrideEnv" }}
 {{- $root := .root -}}
-{{- with required "element-io.matrix-authentication-service.matrixToolsEnv missing context" .context -}}
+{{- with required "element-io.matrix-authentication-service.renderConfigOverrideEnv missing context" .context -}}
+env:
 - name: POSTGRES_PASSWORD
   value: >-
     {{
@@ -343,7 +336,7 @@ true
 
 {{- define "element-io.syn2mas.configSecrets" -}}
 {{- $root := .root -}}
-{{- with required "element-io..matrix-authentication-service.syn2mas.configSecrets missing context" .context -}}
+{{- with required "element-io.syn2mas.configSecrets missing context" .context -}}
 {{- $masSecrets := include "element-io.matrix-authentication-service.configSecrets" (dict "root" $root "context" .masContext) | fromJsonArray }}
 {{- $synapseSecrets := include "element-io.synapse.configSecrets" (dict "root" $root "context" .synapseContext) | fromJsonArray }}
 {{- $syn2masSecrets := concat $masSecrets $synapseSecrets | uniq | sortAlpha }}
@@ -351,3 +344,11 @@ true
 {{- end -}}
 {{- end -}}
 
+{{- define "element-io.syn2mas.overrideEnv" -}}
+{{- $root := .root -}}
+{{- with required "element-io.syn2mas.overrideEnv missing context" .context -}}
+env:
+- name: "NAMESPACE"
+  value: {{ $root.Release.Namespace | quote }}
+{{- end -}}
+{{- end -}}

@@ -85,6 +85,10 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- end }}
 {{- end }}
 
+{{- define "element-io.synapse-redis.overrideEnv" }}
+env: []
+{{- end -}}
+
 {{- define "element-io.synapse.enabledWorkers" -}}
 {{- $root := .root -}}
 {{ $enabledWorkers := dict }}
@@ -107,23 +111,10 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- end }}
 {{- end }}
 
-{{- define "element-io.synapse.env" }}
+{{- define "element-io.synapse-python.overrideEnv" }}
 {{- $root := .root -}}
-{{- with required "element-io.synapse.env missing context" .context -}}
-{{- $resultEnv := dict -}}
-{{- range $envEntry := .extraEnv -}}
-{{- $_ := set $resultEnv $envEntry.name $envEntry.value -}}
-{{- end -}}
-{{- range $key, $value := $resultEnv }}
-- name: {{ $key | quote }}
-  value: {{ $value | quote }}
-{{- end -}}
-{{- end -}}
-{{- end -}}
-
-{{- define "element-io.synapse.pythonEnv" }}
-{{- $root := .root -}}
-{{- with required "element-io.synapse.pythonEnv missing context" .context -}}
+{{- with required "element-io.synapse-python.overrideEnv missing context" .context -}}
+env:
 - name: "LD_PRELOAD"
   value: "libjemalloc.so.2"
 {{- end -}}
@@ -158,10 +149,11 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
         These could be done as env vars with valueFrom.secretKeyRef, but that triggers CKV_K8S_35.
         Environment variables values found in the config file as ${VARNAME} are parsed through go template engine before being replaced in the target file.
 */}}
-{{- define "element-io.synapse.matrixToolsEnv" }}
+{{- define "element-io.synapse.renderConfigOverrideEnv" }}
 {{- $root := .root -}}
-{{- with required "element-io.synapse.matrixToolsEnv missing context" .context -}}
-{{- $isHook := required "element-io.synapse.matrixToolsEnv requires context.isHook" .isHook }}
+{{- with required "element-io.synapse.renderConfigOverrideEnv missing context" .context -}}
+{{- $isHook := required "element-io.synapse.renderConfigOverrideEnv requires context.isHook" .isHook }}
+env:
 - name: SYNAPSE_POSTGRES_PASSWORD
   value: >-
     {{

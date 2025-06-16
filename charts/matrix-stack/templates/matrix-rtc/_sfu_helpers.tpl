@@ -26,23 +26,14 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- end }}
 {{- end }}
 
-{{- define "element-io.matrix-rtc-sfu.env" }}
-{{- $root := .root -}}
-{{- with required "element-io.matrix-rtc-authorisation-service missing context" .context -}}
-{{- $resultEnv := dict -}}
-{{- range $envEntry := .extraEnv -}}
-{{- $_ := set $resultEnv $envEntry.name $envEntry.value -}}
-{{- end -}}
-{{- range $key, $value := $resultEnv }}
-- name: {{ $key | quote }}
-  value: {{ $value | quote }}
-{{- end -}}
-{{- end -}}
+{{- define "element-io.matrix-rtc-sfu.overrideEnv" }}
+env: []
 {{- end -}}
 
-{{- define "element-io.matrix-rtc-sfu.matrixToolsEnv" }}
+{{- define "element-io.matrix-rtc-sfu.renderConfigOverrideEnv" }}
 {{- $root := .root -}}
-{{- with required "element-io.matrix-rtc-sfu.matrixToolsEnv missing context" .context -}}
+{{- with required "element-io.matrix-rtc-sfu.renderConfigOverrideEnv missing context" .context -}}
+env:
 - name: "LIVEKIT_KEY"
   value: "{{ (.livekitAuth).key | default "matrix-rtc" }}"
 - name: LIVEKIT_SECRET

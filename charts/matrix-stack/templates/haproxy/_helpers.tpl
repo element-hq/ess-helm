@@ -1,5 +1,5 @@
 {{- /*
-Copyright 2024 New Vector Ltd
+Copyright 2024-2025 New Vector Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -23,4 +23,8 @@ haproxy.cfg: |
 429.http: |
 {{- (tpl ($root.Files.Get "configs/haproxy/429.http.tpl") dict) | nindent 2 }}
 {{- end -}}
+{{- end -}}
+
+{{- define "element-io.haproxy.overrideEnv" }}
+env: []
 {{- end -}}

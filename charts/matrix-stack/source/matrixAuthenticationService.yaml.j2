@@ -68,6 +68,7 @@ syn2mas:
   {{- sub_schema_values.podSecurityContext(user_id='10005', group_id='10005') | indent(2) -}}
   {{- sub_schema_values.resources(requests_memory='50Mi', requests_cpu='50m', limits_memory='350Mi') | indent(2) -}}
   {{- sub_schema_values.serviceAccount() | indent(2) -}}
+  {{- sub_schema_values.extraEnv() | indent(2) -}}
   {{- sub_schema_values.tolerations() | indent(2) }}
 
   ## Runs the syn2mas process in dryRun mode.

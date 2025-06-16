@@ -53,9 +53,7 @@ SPDX-License-Identifier: AGPL-3.0-only
     {{- range $overrides }}
   - /config-templates/{{ . }}
     {{- end }}
-  env:
-  {{- include (printf "element-io.%s.matrixToolsEnv" $nameSuffix) (dict "root" $root "context" .) | nindent 2 }}
-  {{- include (printf "element-io.%s.env" $nameSuffix) (dict "root" $root "context" .) | nindent 2 }}
+  {{- include "element-io.ess-library.pods.env" (dict "root" $root "context" (dict "componentValues" . "componentName" $nameSuffix "overrideEnvSuffix" "renderConfigOverrideEnv")) | nindent 2 }}
 {{- with .resources }}
   resources:
     {{- toYaml . | nindent 4 }}

@@ -26,24 +26,18 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- end }}
 {{- end }}
 
-{{- define "element-io.element-web.env" -}}
+{{- define "element-io.element-web.overrideEnv" -}}
 {{- $root := .root -}}
-{{- with required "element-io.element-web.env missing context" .context -}}
-{{- $resultEnv := dict -}}
+{{- with required "element-io.element-web.overrideEnv missing context" .context -}}
 {{- /*
 https://github.com/nginxinc/docker-nginx/blob/1.26.1/entrypoint/20-envsubst-on-templates.sh#L31-L45
 If pods run with a GID of 0 this makes $output_dir to appear writable to sh, however
 due to running with a read-only FS the actual writing later fails. We short circuit this by using an
 invalid template directory and so templating as a whole is skipped by the script
 */ -}}
-{{- $_ := set $resultEnv "NGINX_ENVSUBST_TEMPLATE_DIR" "/non-existant-so-that-this-works-with-read-only-root-filesystem" -}}
-{{- range $envEntry := .extraEnv -}}
-{{- $_ := set $resultEnv $envEntry.name $envEntry.value -}}
-{{- end -}}
-{{- range $key, $value := $resultEnv }}
-- name: {{ $key | quote }}
-  value: {{ $value | quote }}
-{{- end -}}
+env:
+- name: "NGINX_ENVSUBST_TEMPLATE_DIR"
+  value: "/non-existant-so-that-this-works-with-read-only-root-filesystem"
 {{- end -}}
 {{- end -}}
 
