@@ -129,7 +129,7 @@ jobs:
         echo "next-version=$next_version" >> "$GITHUB_OUTPUT"
 
     - name: Release
-      uses: softprops/action-gh-release@da05d552573ad5aba039eaac05058a918a7bf631  # v2
+      uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8  # v2
       with:
         draft: true
         body_path: CHANGELOG.latest.md
