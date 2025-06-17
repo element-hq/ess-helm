@@ -1,4 +1,4 @@
-# Copyright 2024 New Vector Ltd
+# Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -41,6 +41,9 @@ nodes:
   - hostPath: ./audit-policy.yml
     containerPath: /etc/kubernetes/policies/audit-policy.yaml
     readOnly: true
+  - hostPath: ./local_mirrors
+    containerPath: /etc/containerd/certs.d
+    readOnly: true
   extraPortMappings:
   - containerPort: 80
     hostPort: 80
@@ -50,5 +53,5 @@ nodes:
     protocol: TCP
 containerdConfigPatches:
 - |-
-  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:5000"]
-    endpoint = ["http://registry:5000"]
+  [plugins."io.containerd.grpc.v1.cri".registry]
+    config_path = "/etc/containerd/certs.d"
