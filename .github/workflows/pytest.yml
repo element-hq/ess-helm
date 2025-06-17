@@ -86,7 +86,7 @@ jobs:
 
     - uses: engineerd/setup-kind@ecfad61750951586a9ef973db567df1d28671bdc  # v0.6.2
       with:
-        version: "v0.27.0"
+        version: "v0.29.0"
         name: "ess-helm"
         skipClusterCreation: "true"
         skipClusterLogsExport: "true"
