@@ -128,21 +128,6 @@ env:
           )
         )
     }}
-- name: ENCRYPTION_SECRET
-  value: >-
-    {{
-      printf "{{ readfile \"/secrets/%s\" | quote }}" (
-          include "element-io.ess-library.init-secret-path" (
-              dict "root" $root
-              "context" (dict
-                "secretPath" "matrixAuthenticationService.encryptionSecret"
-                "initSecretKey" "MAS_ENCRYPTION_SECRET"
-                "defaultSecretName" (include "element-io.matrix-authentication-service.secret-name" (dict "root" $root "context" .))
-                "defaultSecretKey" "ENCRYPTION_SECRET"
-              )
-          )
-        )
-    }}
 {{- /*
   This is the secrets shared between Synapse & MAS
 */ -}}

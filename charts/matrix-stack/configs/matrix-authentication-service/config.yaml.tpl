@@ -83,8 +83,16 @@ clients:
 {{- end }}
 
 secrets:
-  encryption: ${ENCRYPTION_SECRET}
-
+  encryption_file: /secrets/{{
+                include "element-io.ess-library.init-secret-path" (
+                      dict "root" $root
+                      "context" (dict
+                        "secretPath" "matrixAuthenticationService.encryptionSecret"
+                        "initSecretKey" "MAS_ENCRYPTION_SECRET"
+                        "defaultSecretName" (include "element-io.matrix-authentication-service.secret-name" (dict "root" $root "context" .))
+                        "defaultSecretKey" "ENCRYPTION_SECRET"
+                      )
+                    ) }}
   keys:
 {{- with required "privateKeys is required for Matrix Authentication Service" .privateKeys }}
   - kid: rsa
