@@ -6,6 +6,76 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 25.6.2 (2025-06-19)
+
+### Fixed
+
+- matrix-tools: Skip any completed pods when scaling down synapse pods in syn2mas migration. (#546)
+- Fix Matrix RTC's SFU constructing an invalid Service if given too wide a nodePort range. (#549)
+- Fix comments around the image tag and digest in the values file. (#553)
+- Fix certificate name inconsistencies between setup docs and values file fragments. (#555)
+- Fix MatrixRTC RTCSession Error if a `push-rules` Synapse worker is enabled. (#557)
+- Fix `extraEnv` with duplicate keys not being correctly merged. (#559)
+- Document the need for removal of generated secrets & deployment marker configmap when uninstalling. (#567)
+
+### Changed
+
+- Omit the UDP port range metadata for Matrix RTC's SFU if the range is larger than 100 ports. (#549)
+- Remove warning about deprecated `prometheus_port` config value in Matrix RTC SFU. (#550)
+- Upgrade Matrix RTC SFU to v1.9.0.
+
+  Full changelogs:
+  * [v1.8.0](https://github.com/livekit/livekit/releases/tag/v1.8.0)
+  * v1.8.1 - no changelog
+  * v1.8.2 - no changelog
+  * [v1.8.3](https://github.com/livekit/livekit/releases/tag/v1.8.3)
+  * [v1.8.4](https://github.com/livekit/livekit/releases/tag/v1.8.4)
+  * [v1.9.0](https://github.com/livekit/livekit/releases/tag/v1.9.0)
+
+  (#552)
+- Document `extraEnv` in `values.yaml` for every workload. (#559)
+- Consistently handle user provided `extraEnv` versus chart configured `env`.
+
+  Chart configured `env` should win. (#559)
+- Upgrade Matrix Authentication Service to v0.17.1.
+
+  Highlights:
+  * Support Registration Tokens
+
+  Full changelog:
+  * [v0.17.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v0.17.0)
+  * [v0.17.1](https://github.com/element-hq/matrix-authentication-service/releases/tag/v0.17.1)
+
+  (#564)
+- Upgrade Element Web to v1.11.104.
+
+  Highlights:
+  * Implement [MSC4155](https://github.com/matrix-org/matrix-spec-proposals/pull/4155) invite filtering
+  * Add `/share?msg=` endpoint using the forward message dialogue
+
+  Full changelog:
+  * [v1.11.104](https://github.com/element-hq/element-web/releases/tag/v1.11.104)
+
+  (#565)
+- Upgrade Synapse to v1.132.0.
+
+  Highlights:
+  * Implement [MSC4155](https://github.com/matrix-org/matrix-spec-proposals/pull/4155) invite filtering
+  * Successful requests to `/_matrix/app/v1/ping` will now force Synapse to reattempt delivering transactions to appservices.
+
+  Full changelog:
+  * [v1.132.0](https://github.com/element-hq/synapse/releases/tag/v1.132.0)
+
+  (#566)
+
+### Internal
+
+- CI: Test upgrades against the nearest reachable tag and not the most recently created. (#547)
+- CI: Enhance dyff jobs output to print yaml manifests in a single block code. (#548)
+- Ensure example `NodePort` values use ports within `kind`'s `NodePort` range. (#551)
+- Run integration tests with `kind` 0.29.0. (#563)
+
+
 # ESS Community Helm Chart 25.6.1 (2025-06-10)
 
 ### Security
