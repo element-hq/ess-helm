@@ -484,6 +484,8 @@ If you wish to remove ESS Community from your cluster, you can simply run the fo
 
 ```
 helm uninstall ess -n ess
+kubectl delete secrets/ess-generated -n ess # If initSecrets is enabled, you may need to delete this
+kubectl delete configmap/ess-deployment-markers -n ess # If deploymentMarkers is enabled, you may need to delete this
 kubectl delete namespace ess
 ```
 
