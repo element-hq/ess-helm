@@ -468,6 +468,7 @@ all_components_details = [
         name="matrix-rtc",
         values_file_path=ValuesFilePath.read_write("matrixRTC"),
         has_topology_spread_constraints=False,
+        has_service_monitor=False,
         sub_components=(
             SubComponentDetails(
                 name="matrix-rtc-sfu",

@@ -1,5 +1,5 @@
 {{- /*
-Copyright 2024 New Vector Ltd
+Copyright 2024-2025 New Vector Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -20,7 +20,7 @@ metadata:
 spec:
   endpoints:
   - interval: 30s
-    port: http
+    port: metrics
   selector:
     matchLabels:
       app.kubernetes.io/part-of: matrix-stack
