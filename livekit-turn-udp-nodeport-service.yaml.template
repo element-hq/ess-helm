@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: %%HELM_RELEASE_NAME%%-livekit-turn-udp
+  namespace: %%HELM_NAMESPACE%%
+  labels:
+    app.kubernetes.io/name: livekit-turn-udp
+    app.kubernetes.io/instance: %%HELM_RELEASE_NAME%%
+    # Ensure this label helps identify it as part of the ess-helm deployment
+    app.kubernetes.io/managed-by: matrix-deployment-script # Your script/tool name
+    # Match with labels that might be used by the main chart for selection
+    helm.sh/chart: ess-matrix-stack # A pseudo chart name
+    app.kubernetes.io/component: turn-server-udp
+spec:
+  type: NodePort
+  selector:
+    # Selector for LiveKit SFU pods.
+    # From element-hq/ess-helm chart, matrixRTC.sfu pods have labels:
+    # app.kubernetes.io/instance: {{ $root.Release.Name }}-matrix-rtc-sfu
+    # app.kubernetes.io/name: matrix-rtc-sfu
+    # app.kubernetes.io/component: matrix-rtc-sfu (often present)
+    app.kubernetes.io/instance: %%HELM_RELEASE_NAME%%-matrix-rtc-sfu
+    app.kubernetes.io/name: matrix-rtc-sfu
+  ports:
+    - name: turn-udp
+      port: 3478 # LiveKit's internal TURN UDP port
+      targetPort: 3478 # Container port for TURN UDP
+      nodePort: %%INTERNAL_TURN_UDP_PORT%%
+      protocol: UDP

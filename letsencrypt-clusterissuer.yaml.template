@@ -1,0 +1,62 @@
+# letsencrypt-clusterissuer.yaml.template
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-%%CERT_ENVIRONMENT%% # e.g., letsencrypt-staging or letsencrypt-production
+spec:
+  acme:
+    # Let's Encrypt ACME server URL
+    server: "{{ if eq "%%CERT_ENVIRONMENT%%" "staging" }}https://acme-staging-v02.api.letsencrypt.org/directory{{ else }}https://acme-v02.api.letsencrypt.org/directory{{ end }}"
+
+    # Email address used for ACME registration
+    email: "%%CERT_EMAIL%%"
+
+    # Name of a secret used to store the ACME account private key
+    privateKeySecretRef:
+      name: letsencrypt-%%CERT_ENVIRONMENT%%-private-key
+
+    # Enable the DNS-01 challenge provider
+    solvers:
+    - dns01:
+        cloudflare:
+          # Email for Cloudflare account (can be different from ACME email, but often same for simplicity)
+          # For API Token auth, this email field might not be strictly necessary for Cloudflare itself,
+          # but cert-manager might still require it or use it for notifications.
+          email: "%%CERT_EMAIL%%"
+          apiTokenSecretRef:
+            # Reference to the Secret created earlier containing the Cloudflare API token
+            name: cloudflare-api-token-secret
+            key: api-token
+            # Ensure this secret is in the namespace cert-manager expects (usually cert-manager's own namespace)
+
+          # Using dnsZones selector is generally recommended to scope the solver's operation.
+          # This is particularly useful if the API token has permissions for multiple zones.
+          selector:
+            dnsZones:
+              - "%%DOMAIN%%"
+          # If CLOUDFLARE_ZONE_ID is provided and you want to use it directly (older cert-manager versions might prefer this):
+          # {{ if ne "%%CLOUDFLARE_ZONE_ID%%" "" }}
+          # zone: "%%CLOUDFLARE_ZONE_ID%%"
+          # {{ end }}
+          # Note: Modern cert-manager often prefers the selector approach.
+          # If using 'zone', ensure your cert-manager version supports it for the Cloudflare provider.
+          # The 'selector' with 'dnsZones' is generally more robust.
+    # Agree to the ToS from Let's Encrypt
+    # This is implicitly handled by cert-manager's interaction, but some older configurations
+    # or specific needs might require explicit termsOfServiceAgreed: true.
+    # For DNS-01, this is usually not an explicit field in the Issuer.
+    # However, the user requirement mentioned "--no-eff-email", which is a certbot client flag.
+    # For cert-manager, not exposing email publicly is default.
+    # The ACME registration email is for account management and expiry notices.
+    # The "--no-eff-email" equivalent for cert-manager is simply not to use an email that one wishes to keep private from LE.
+    # The user also specified "邮箱条款: 不同意暴露邮箱条款 (`--no-eff-email`)" - this is typically a client-side flag for tools like certbot
+    # to not share the email with EFF. Let's Encrypt itself will still know the registration email.
+    # For cert-manager, this is not a direct setting. We use the provided `acme@${DOMAIN}`.
+    # If the user wants to avoid LE knowing even that, they'd need to use a different ACME CA or method.
+    # The other user requirement "邮箱地址: 使用 `acme@${DOMAIN}` 格式" is met.
+
+    # Adding disableAccountKeyGeneration based on some advanced use cases, usually not needed.
+    # disableAccountKeyGeneration: false
+
+    # Adding preferredChain if specific chain is needed, usually not needed.
+    # preferredChain: ""

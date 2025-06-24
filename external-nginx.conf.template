@@ -1,0 +1,79 @@
+# external-nginx.conf.template
+# Nginx configuration for the external-facing server (%%DOMAIN%%)
+# This server handles .well-known lookups and redirects to the Element client.
+
+# HTTP Server Block: Redirects all HTTP traffic to HTTPS
+server {
+    listen 80;
+    listen [::]:80;
+    server_name %%DOMAIN%%;
+
+    # Used by Certbot for HTTP-01 challenge
+    # Make sure this path is writable by the user running Certbot, or adjust as needed.
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot; # Standard Certbot webroot, ensure this directory exists
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+# HTTPS Server Block: Handles actual traffic for the main domain
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name %%DOMAIN%%;
+
+    # SSL Certificate paths (managed by Certbot)
+    # These paths are standard for Certbot installations.
+    ssl_certificate /etc/letsencrypt/live/%%DOMAIN%%/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/%%DOMAIN%%/privkey.pem;
+
+    # Include recommended SSL settings from Certbot (these files are typically created by Certbot)
+    # Ensure these files exist at the specified paths after running Certbot.
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    # Security Headers (optional but recommended)
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    # add_header X-Content-Type-Options nosniff always; # Usually good, but can sometimes interfere with web apps
+    # add_header X-Frame-Options SAMEORIGIN always; # Good for preventing clickjacking
+    # add_header X-XSS-Protection "1; mode=block" always; # Mostly superseded by CSP
+
+    # .well-known for Matrix client discovery
+    location = /.well-known/matrix/client { # Use exact match for performance
+        default_type application/json;
+        add_header 'Access-Control-Allow-Origin' '*' always; # Allow cross-origin requests for .well-known
+        return 200 '{
+            "m.homeserver": {
+                "base_url": "https://%%FULL_MATRIX_DOMAIN%%:%%HTTPS_PORT%%"
+            },
+            "m.identity_server": {
+                "base_url": "https://%%FULL_ELEMENT_DOMAIN%%:%%HTTPS_PORT%%"
+            }
+            # If Element Call uses MSC3575 for an explicit signalling proxy:
+            # ,"org.matrix.msc3575.proxy": {
+            #     "url": "https://%%FULL_RTC_DOMAIN%%:%%HTTPS_PORT%%"
+            # }
+        }';
+    }
+
+    # .well-known for Matrix server (federation) discovery
+    location = /.well-known/matrix/server { # Use exact match for performance
+        default_type application/json;
+        add_header 'Access-Control-Allow-Origin' '*' always; # Allow cross-origin requests for .well-known
+        return 200 '{
+            "m.server": "%%FULL_MATRIX_DOMAIN%%:%%FEDERATION_PORT%%"
+        }';
+    }
+
+    # Redirect all other traffic on the main domain to the Element Web client
+    location / {
+        return 301 https://%%FULL_ELEMENT_DOMAIN%%:%%HTTPS_PORT%%$request_uri;
+    }
+
+    # Access and error logs (optional, adjust paths as needed)
+    # access_log /var/log/nginx/%%DOMAIN%%.access.log;
+    # error_log /var/log/nginx/%%DOMAIN%%.error.log;
+}

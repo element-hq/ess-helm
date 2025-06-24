@@ -1,0 +1,384 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import os
+import time
+import logging
+import subprocess
+import shlex
+import json
+import sys # For sys.exit
+
+# --- Configuration Loading ---
+# These variables are expected to be set as environment variables before running the script.
+
+# RouterOS Config
+ROUTEROS_IP = os.getenv("ROUTEROS_IP")
+ROUTEROS_USERNAME = os.getenv("ROUTEROS_USERNAME")
+ROUTEROS_PASSWORD = os.getenv("ROUTEROS_PASSWORD")
+WAN_INTERFACE = os.getenv("WAN_INTERFACE", "internet")
+
+# Cloudflare Config
+CLOUDFLARE_API_TOKEN = os.getenv("CLOUDFLARE_API_TOKEN")
+CLOUDFLARE_EMAIL = os.getenv("CLOUDFLARE_EMAIL") # Needed for Cloudflare library instance
+DOMAIN = os.getenv("DOMAIN")
+
+SUBDOMAINS_TO_UPDATE_STR = os.getenv("SUBDOMAINS_TO_UPDATE") # Comma-separated: matrix,chat,rtc,mas,turn
+if SUBDOMAINS_TO_UPDATE_STR:
+    SUBDOMAINS_LIST = [s.strip() for s in SUBDOMAINS_TO_UPDATE_STR.split(',')]
+    FULL_SUBDOMAINS_TO_UPDATE = [f"{sub}.{DOMAIN}" for sub in SUBDOMAINS_LIST if sub and DOMAIN]
+else:
+    FULL_SUBDOMAINS_TO_UPDATE = []
+
+# Kubernetes Config (for LiveKit)
+KUBE_NAMESPACE = os.getenv("HELM_NAMESPACE")
+# Construct LiveKit names based on Helm release name (passed as env var)
+HELM_RELEASE_NAME = os.getenv("HELM_RELEASE_NAME")
+LIVEKIT_CONFIGMAP_NAME = f"{HELM_RELEASE_NAME}-livekit-config" # This is the name used in ess-helm for LiveKit configmap
+LIVEKIT_DEPLOYMENT_NAME = f"{HELM_RELEASE_NAME}-matrix-rtc-sfu" # Deployment for LiveKit SFU
+
+LIVEKIT_CONFIG_DATA_KEY = "config.yaml"
+LIVEKIT_EXTERNAL_IP_YAML_PATH = ["turn", "external_ip"]
+
+# Script Config
+DNS_UPDATE_INTERVAL_STR = os.getenv("DNS_UPDATE_INTERVAL", "60")
+try:
+    DNS_UPDATE_INTERVAL = int(DNS_UPDATE_INTERVAL_STR)
+except ValueError:
+    DNS_UPDATE_INTERVAL = 60
+    logging.warning(f"Invalid DNS_UPDATE_INTERVAL value '{DNS_UPDATE_INTERVAL_STR}', using default 60 seconds.")
+
+INSTALL_DIR = os.getenv("INSTALL_DIR", "/tmp") # For storing the IP file
+IP_FILE = os.path.join(INSTALL_DIR, ".current_wan_ip.txt")
+
+# Logging setup
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', stream=sys.stdout)
+
+# --- Helper Functions ---
+
+def install_libraries():
+    """Installs required Python libraries if not already present."""
+    required_libs = {
+        "routeros_api": "routeros-api",
+        "kubernetes": "kubernetes",
+        "yaml": "PyYAML", # Explicitly add PyYAML as kubernetes client might not enforce its version strictly for all ops
+        "CloudFlare": "cloudflare"
+    }
+    # Try to use python3 -m pip for better isolation if possible
+    pip_executable = [sys.executable, "-m", "pip"]
+    try:
+        subprocess.check_call(pip_executable + ["--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        pip_executable = ["pip3"] # Fallback to pip3 if python3 -m pip is not available
+
+    installed_something = False
+    for import_name, package_name in required_libs.items():
+        try:
+            if import_name == "yaml": # PyYAML is imported as yaml
+                 __import__(import_name)
+            elif import_name == "CloudFlare": # CloudFlare library is imported as CloudFlare
+                 __import__(import_name)
+            else:
+                 __import__(import_name)
+            logging.info(f"'{package_name}' library already installed.")
+        except ImportError:
+            logging.info(f"'{package_name}' library not found. Attempting to install...")
+            try:
+                subprocess.check_call(pip_executable + ["install", package_name])
+                logging.info(f"Successfully installed '{package_name}'.")
+                installed_something = True
+            except subprocess.CalledProcessError as e:
+                logging.error(f"Failed to install '{package_name}': {e}")
+                return False # Fatal if a library can't be installed
+
+    if installed_something:
+        logging.info("One or more libraries were installed. It's recommended to restart the script if it was the first run.")
+        # For simplicity, we'll continue, assuming imports will now work.
+    return True
+
+
+def get_current_wan_ip_from_routeros():
+    import routeros_api # Import here after ensuring it's installed
+    try:
+        logging.info(f"Connecting to RouterOS at {ROUTEROS_IP}...")
+        connection = routeros_api.RouterOsApiPool(
+            ROUTEROS_IP,
+            username=ROUTEROS_USERNAME,
+            password=ROUTEROS_PASSWORD,
+            plaintext_login=True,
+            port=8728 # Default API port, make configurable if needed
+        )
+        api = connection.get_api()
+        logging.info(f"Fetching IP for interface '{WAN_INTERFACE}'...")
+        interface_addresses = api.get_resource('/ip/address').get(interface=WAN_INTERFACE)
+
+        if not interface_addresses:
+            logging.warning(f"No IP addresses found for interface '{WAN_INTERFACE}'.")
+            connection.disconnect()
+            return None
+
+        for addr_info in interface_addresses:
+            address_with_cidr = addr_info.get('address')
+            is_disabled = addr_info.get('disabled') == 'true' # RouterOS returns 'true'/'false' as strings
+
+            if not address_with_cidr or is_disabled:
+                continue
+
+            ip_address = address_with_cidr.split('/')[0]
+            # More robust public IP check (excluding common private ranges)
+            # This is a basic check and might need adjustment for complex network setups or CGNAT.
+            is_private = (ip_address.startswith('10.') or
+                          ip_address.startswith('192.168.') or
+                          (ip_address.startswith('172.') and 16 <= int(ip_address.split('.')[1]) <= 31) or
+                          ip_address.startswith('169.254.') or # Link-local
+                          ip_address.startswith('127.') or # Loopback
+                          "::" in ip_address and not ip_address.lower().startswith('2001:db8:') # Example: exclude documentation IPv6
+                         )
+            if not is_private:
+                logging.info(f"Found potential WAN IP: {ip_address} on interface '{WAN_INTERFACE}'.")
+                connection.disconnect()
+                return ip_address
+
+        logging.warning(f"No suitable public IP found on interface '{WAN_INTERFACE}'. Active IPs found: {[a.get('address') for a in interface_addresses if a.get('disabled') == 'false'] }")
+        connection.disconnect()
+        return None
+    except routeros_api.exceptions.RouterOsApiConnectionError as e:
+        logging.error(f"RouterOS connection error: {e} (Check IP, credentials, API enabled, and port)")
+    except Exception as e:
+        logging.error(f"Error getting WAN IP from RouterOS: {e}")
+    return None
+
+def get_last_known_ip():
+    if os.path.exists(IP_FILE):
+        try:
+            with open(IP_FILE, 'r') as f:
+                return f.read().strip()
+        except IOError as e:
+            logging.error(f"Error reading IP file {IP_FILE}: {e}")
+    return None
+
+def save_current_ip(ip):
+    try:
+        os.makedirs(os.path.dirname(IP_FILE), exist_ok=True)
+        with open(IP_FILE, 'w') as f:
+            f.write(ip)
+        logging.info(f"Saved current IP {ip} to {IP_FILE}")
+    except IOError as e:
+        logging.error(f"Error writing IP file {IP_FILE}: {e}")
+
+
+def update_livekit_configmap(new_ip):
+    from kubernetes import client, config
+    import yaml # PyYAML, imported after install check
+
+    try:
+        try:
+            config.load_incluster_config()
+            logging.info("Loaded in-cluster Kubernetes configuration.")
+        except config.ConfigException:
+            try:
+                config.load_kube_config()
+                logging.info("Loaded local Kubeconfig.")
+            except config.ConfigException:
+                logging.error("Could not load any Kubernetes configuration.")
+                return False
+
+        v1 = client.CoreV1Api()
+        apps_v1 = client.AppsV1Api()
+
+        logging.info(f"Fetching ConfigMap '{LIVEKIT_CONFIGMAP_NAME}' in namespace '{KUBE_NAMESPACE}'...")
+        try:
+            cm = v1.read_namespaced_config_map(LIVEKIT_CONFIGMAP_NAME, KUBE_NAMESPACE)
+        except client.exceptions.ApiException as e:
+            logging.error(f"K8s API error fetching ConfigMap '{LIVEKIT_CONFIGMAP_NAME}': {e.status} - {e.reason}")
+            return False
+
+        if LIVEKIT_CONFIG_DATA_KEY not in cm.data:
+            logging.error(f"Key '{LIVEKIT_CONFIG_DATA_KEY}' not found in ConfigMap '{LIVEKIT_CONFIGMAP_NAME}'. Available keys: {list(cm.data.keys())}")
+            return False
+
+        livekit_config_str = cm.data[LIVEKIT_CONFIG_DATA_KEY]
+        try:
+            livekit_yaml_config = yaml.safe_load(livekit_config_str)
+            if livekit_yaml_config is None: # Handle empty config string
+                livekit_yaml_config = {}
+        except yaml.YAMLError as e:
+            logging.error(f"Failed to parse LiveKit config YAML: {e}. Content was: {livekit_config_str[:200]}...")
+            return False
+
+        # Navigate the YAML path to update the external_ip
+        current_level = livekit_yaml_config
+        for key in LIVEKIT_EXTERNAL_IP_YAML_PATH[:-1]:
+            current_level = current_level.setdefault(key, {}) # Create path if not exists
+
+        final_key = LIVEKIT_EXTERNAL_IP_YAML_PATH[-1]
+        old_ip_in_config = current_level.get(final_key)
+
+        if old_ip_in_config == new_ip:
+            logging.info(f"LiveKit ConfigMap ('{LIVEKIT_CONFIGMAP_NAME}') already has the correct IP: {new_ip} at path '{'.'.join(LIVEKIT_EXTERNAL_IP_YAML_PATH)}'. No update needed.")
+            return True # No restart needed if IP is same
+
+        current_level[final_key] = new_ip
+        cm.data[LIVEKIT_CONFIG_DATA_KEY] = yaml.dump(livekit_yaml_config, sort_keys=False, default_flow_style=False)
+
+        logging.info(f"Updating ConfigMap '{LIVEKIT_CONFIGMAP_NAME}' with new IP: {new_ip} at path '{'.'.join(LIVEKIT_EXTERNAL_IP_YAML_PATH)}'...")
+        v1.replace_namespaced_config_map(LIVEKIT_CONFIGMAP_NAME, KUBE_NAMESPACE, cm)
+        logging.info("ConfigMap updated successfully.")
+
+        logging.info(f"Triggering rollout restart for deployment '{LIVEKIT_DEPLOYMENT_NAME}'...")
+        try:
+            patch_body = {"spec": {"template": {"metadata": {"annotations": {"kubectl.kubernetes.io/restartedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}}}}}
+            apps_v1.patch_namespaced_deployment(LIVEKIT_DEPLOYMENT_NAME, KUBE_NAMESPACE, patch_body)
+            logging.info(f"Deployment '{LIVEKIT_DEPLOYMENT_NAME}' rollout restart triggered.")
+
+            # Basic wait for rollout. A more robust solution would check deployment status.
+            logging.info("Waiting 60s for LiveKit deployment to stabilize after restart...")
+            time.sleep(60)
+            # TODO: Implement a proper health check using kubernetes client to verify deployment rollout status and pod readiness.
+            logging.info("LiveKit deployment assumed stable after 60s.")
+
+        except client.exceptions.ApiException as e:
+            logging.error(f"K8s API error restarting deployment '{LIVEKIT_DEPLOYMENT_NAME}': {e.status} - {e.reason}")
+            return False
+        return True
+
+    except Exception as e:
+        logging.error(f"Error updating LiveKit ConfigMap: {e}", exc_info=True)
+    return False
+
+
+def update_cloudflare_dns(new_ip):
+    import CloudFlare # Import here after ensuring it's installed
+    try:
+        cf = CloudFlare.CloudFlare(email=CLOUDFLARE_EMAIL, token=CLOUDFLARE_API_TOKEN)
+
+        try:
+            zones = cf.zones.get(params={'name': DOMAIN, 'per_page': 1}) # Ensure only one zone is fetched
+        except CloudFlare.exceptions.CloudFlareAPIError as e:
+            logging.error(f"Cloudflare API error getting zone for '{DOMAIN}': {int(e)} {str(e)}")
+            return False
+
+        if not zones:
+            logging.error(f"Domain '{DOMAIN}' not found in Cloudflare account.")
+            return False
+        zone_id = zones[0]['id']
+        logging.info(f"Found Zone ID for '{DOMAIN}': {zone_id}")
+
+        if not FULL_SUBDOMAINS_TO_UPDATE:
+            logging.warning("No subdomains configured for DNS update.")
+            return True # No subdomains to update is not an error in itself
+
+        for full_subdomain_name in FULL_SUBDOMAINS_TO_UPDATE:
+            logging.info(f"Processing DNS for {full_subdomain_name} -> {new_ip}...")
+            try:
+                dns_records = cf.zones.dns_records.get(zone_id, params={'name': full_subdomain_name, 'type': 'A'})
+            except CloudFlare.exceptions.CloudFlareAPIError as e:
+                logging.error(f"Cloudflare API error getting DNS records for {full_subdomain_name}: {int(e)} {str(e)}")
+                continue
+
+            updated_or_created = False
+            if dns_records:
+                for record in dns_records: # Should typically be one A record
+                    record_id = record['id']
+                    current_ip_in_dns = record['content']
+                    if current_ip_in_dns == new_ip:
+                        logging.info(f"DNS record for {full_subdomain_name} is already {new_ip}.")
+                        updated_or_created = True # Count as success
+                        break
+                    else:
+                        logging.info(f"Updating A record for {full_subdomain_name} (ID: {record_id}) from {current_ip_in_dns} to {new_ip}.")
+                        # Ensure 'proxied' is False as per requirement for direct access
+                        dns_record_data = {'name': full_subdomain_name, 'type': 'A', 'content': new_ip, 'proxied': False, 'ttl': 120}
+                        try:
+                            cf.zones.dns_records.put(zone_id, record_id, data=dns_record_data)
+                            logging.info(f"Successfully updated DNS for {full_subdomain_name}.")
+                            updated_or_created = True
+                            break # Assume only one A record per name needs update
+                        except CloudFlare.exceptions.CloudFlareAPIError as e:
+                            logging.error(f"Cloudflare API error updating DNS for {full_subdomain_name}: {int(e)} {str(e)}")
+
+            if not updated_or_created: # If no record existed or update failed and didn't break
+                logging.info(f"No existing A record found for {full_subdomain_name}, or update failed. Creating new record...")
+                dns_record_data = {'name': full_subdomain_name, 'type': 'A', 'content': new_ip, 'proxied': False, 'ttl': 120}
+                try:
+                    cf.zones.dns_records.post(zone_id, data=dns_record_data)
+                    logging.info(f"Successfully created DNS A record for {full_subdomain_name}.")
+                except CloudFlare.exceptions.CloudFlareAPIError as e:
+                    logging.error(f"Cloudflare API error creating DNS for {full_subdomain_name}: {int(e)} {str(e)}")
+        return True # Return true if all attempts were made, errors logged internally
+    except Exception as e:
+        logging.error(f"General error updating Cloudflare DNS: {e}", exc_info=True)
+    return False
+
+
+# --- Main Execution ---
+def main():
+    # Basic check for essential environment variables
+    essential_vars = ["ROUTEROS_IP", "ROUTEROS_USERNAME", "ROUTEROS_PASSWORD",
+                      "CLOUDFLARE_API_TOKEN", "CLOUDFLARE_EMAIL", "DOMAIN",
+                      "SUBDOMAINS_TO_UPDATE", "HELM_NAMESPACE", "HELM_RELEASE_NAME"]
+    missing_vars = [var for var in essential_vars if not os.getenv(var)]
+    if missing_vars:
+        logging.error(f"Missing required environment variables: {', '.join(missing_vars)}. Exiting.")
+        sys.exit(1)
+
+    if not install_libraries():
+        logging.error("Failed to ensure all required Python libraries are installed. Please install them manually and retry. Exiting.")
+        sys.exit(1)
+
+    logging.info("Dynamic IP Update Script started.")
+    logging.info(f"Monitoring WAN interface '{WAN_INTERFACE}' on RouterOS '{ROUTEROS_IP}'.")
+    logging.info(f"Updating DNS for domain '{DOMAIN}' and subdomains: {FULL_SUBDOMAINS_TO_UPDATE}")
+    logging.info(f"LiveKit ConfigMap: '{LIVEKIT_CONFIGMAP_NAME}', Deployment: '{LIVEKIT_DEPLOYMENT_NAME}' in namespace '{KUBE_NAMESPACE}'.")
+    logging.info(f"IP state file: '{IP_FILE}'")
+
+
+    last_ip = get_last_known_ip()
+    if last_ip:
+        logging.info(f"Last known WAN IP: {last_ip}")
+    else:
+        logging.info("No previous WAN IP found. Will fetch current IP.")
+
+    while True:
+        try:
+            current_ip = get_current_wan_ip_from_routeros()
+            if current_ip:
+                if current_ip != last_ip:
+                    logging.info(f"WAN IP CHANGED! Old: {last_ip}, New: {current_ip}")
+
+                    logging.info("===> Phase 1: Updating LiveKit ConfigMap...")
+                    if update_livekit_configmap(current_ip):
+                        logging.info("LiveKit configuration update process successful (restart triggered).")
+
+                        logging.info("===> Phase 2: Updating Cloudflare DNS records...")
+                        if update_cloudflare_dns(current_ip):
+                            logging.info("Cloudflare DNS update process completed successfully.")
+                            save_current_ip(current_ip)
+                            last_ip = current_ip
+                            logging.info(f"Successfully updated all services for new IP: {current_ip}")
+                        else:
+                            logging.error("Failed to update Cloudflare DNS records. IP change not fully effective for DNS.")
+                            # Decide on retry logic or if to proceed with new IP saved locally
+                    else:
+                        logging.error("Failed to update LiveKit configuration. DNS will NOT be updated to avoid inconsistency.")
+                else:
+                    if last_ip is not None : # Avoid logging "not changed" on first run if last_ip was None
+                        logging.info(f"WAN IP ({current_ip}) has not changed from last known IP.")
+                    else: # First successful fetch
+                        logging.info(f"Initial WAN IP fetched: {current_ip}. Saving.")
+                        save_current_ip(current_ip)
+                        last_ip = current_ip
+
+            else: # current_ip is None
+                logging.warning("Could not retrieve current WAN IP from RouterOS. Will retry.")
+
+        except Exception as e:
+            logging.error(f"An unexpected error occurred in the main loop: {e}", exc_info=True)
+
+        logging.debug(f"Sleeping for {DNS_UPDATE_INTERVAL} seconds before next check...")
+        time.sleep(DNS_UPDATE_INTERVAL)
+
+if __name__ == "__main__":
+    # Ensure the script can find its libraries if installed in a venv or user site packages
+    # This is generally handled by how Python environment is set up.
+    main()

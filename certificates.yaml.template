@@ -1,0 +1,30 @@
+# certificates.yaml.template (Revised for single certificate with multiple SANs)
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: matrix-stack-tls-certificate # A single name for the certificate object
+  namespace: %%HELM_NAMESPACE%%
+spec:
+  secretName: matrix-stack-tls-secret # The single secret where the certificate will be stored
+  issuerRef:
+    name: letsencrypt-%%CERT_ENVIRONMENT%%
+    kind: ClusterIssuer
+  commonName: "%%FULL_MATRIX_DOMAIN%%" # Primary common name (e.g., matrix.example.com)
+  dnsNames:
+  - "%%FULL_MATRIX_DOMAIN%%"    # e.g., matrix.example.com
+  - "%%FULL_ELEMENT_DOMAIN%%"   # e.g., chat.example.com
+  - "%%FULL_RTC_DOMAIN%%"       # e.g., rtc.example.com
+  - "%%FULL_MAS_DOMAIN%%"       # e.g., mas.example.com
+  - "%%FULL_TURN_DOMAIN%%"      # e.g., turn.example.com
+  # Additional options, e.g., key encodings, size (defaults are usually fine)
+  # privateKey:
+  #   rotationPolicy: Always # Or OnExpiry
+  #   encoding: PKCS8 # Or PKCS1
+  #   algorithm: ECDSA # Or RSA
+  #   size: 256 # For ECDSA (P-256); For RSA (e.g., 2048, 4096)
+  # subject: # More detailed subject info if needed
+  #   organizations:
+  #     - "My Organization"
+  # renewBefore: 360h # 15 days (default is 30 days / 720h)
+  # duration: 2160h # 90 days (default)
+  # issueTemporaryCertificate: false # For cert-manager experimental feature
