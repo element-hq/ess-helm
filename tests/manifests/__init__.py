@@ -204,6 +204,9 @@ class DeployableDetails(abc.ABC):
 
 @dataclass(unsafe_hash=True)
 class SidecarDetails(DeployableDetails):
+    # We have to be a workload as we're a sidecar
+    has_workloads: bool = True
+
     parent: DeployableDetails = field(default=None, init=False, hash=False)  # type: ignore[assignment]
 
     def __post_init__(self):
@@ -223,11 +226,18 @@ class SidecarDetails(DeployableDetails):
         # Not possible, will come from the parent components
         self.has_topology_spread_constraints = False
 
-        # We have to be a workload as we're a sidecar
-        self.has_workloads = True
-
         # We dont support replicas
         self.has_replicas = False
+
+    def create_ownership_link(self, parent: "ComponentDetails | SubComponentDetails"):
+        self.parent = parent
+
+        # If the sidecar makes outbound requests, the parent will need hostAlias support
+        # even if it itself doesn't make outbound requests
+        if self.makes_outbound_requests:
+            self.parent.makes_outbound_requests = True
+            # As we won't have the properties ourselves
+            self.makes_outbound_requests = False
 
     def owns_manifest_named(self, manifest_name: str) -> bool:
         # Sidecars shouldn't own anything that their parent could possibly own
@@ -248,7 +258,7 @@ class SubComponentDetails(DeployableDetails):
         super().__post_init__()
 
         for sidecar in self.sidecars:
-            sidecar.parent = self
+            sidecar.create_ownership_link(self)
 
     def owns_manifest_named(self, manifest_name: str) -> bool:
         return manifest_name.startswith(self.name)
@@ -285,7 +295,7 @@ class ComponentDetails(DeployableDetails):
         super().__post_init__()
 
         for sidecar in self.sidecars:
-            sidecar.parent = self
+            sidecar.create_ownership_link(self)
 
         if not self.value_file_prefix:
             self.value_file_prefix = self.name
