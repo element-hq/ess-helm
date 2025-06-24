@@ -11,6 +11,7 @@ from typing import Any
 class PropertyType(Enum):
     Enabled = "enabled"
     Env = "extraEnv"
+    HostAliases = "hostAliases"
     Image = "image"
     Ingress = "ingress"
     Labels = "labels"
@@ -99,6 +100,7 @@ class DeployableDetails(abc.ABC):
     has_service_monitor: bool = field(default=None, hash=False)  # type: ignore[assignment]
     has_storage: bool = field(default=False, hash=False)
     has_topology_spread_constraints: bool = field(default=None, hash=False)  # type: ignore[assignment]
+    makes_outbound_requests: bool = field(default=None, hash=False)  # type: ignore[assignment]
     is_synapse_process: bool = field(default=False)
 
     paths_consistency_noqa: tuple[str, ...] = field(default=(), hash=False)
@@ -115,6 +117,8 @@ class DeployableDetails(abc.ABC):
             self.has_topology_spread_constraints = self.has_workloads
         if self.has_replicas is None:
             self.has_replicas = self.has_workloads
+        if self.makes_outbound_requests is None:
+            self.makes_outbound_requests = self.has_workloads
 
     def _get_values_file_path(self, propertyType: PropertyType) -> ValuesFilePath:
         """
@@ -331,6 +335,7 @@ class ComponentDetails(DeployableDetails):
 def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> SubComponentDetails:
     values_file_path_overrides: dict[PropertyType, ValuesFilePath] = {
         PropertyType.Env: ValuesFilePath.read_elsewhere("synapse", "extraEnv"),
+        PropertyType.HostAliases: ValuesFilePath.read_elsewhere("synapse", "hostAliases"),
         PropertyType.Image: ValuesFilePath.read_elsewhere("synapse", "image"),
         PropertyType.Labels: ValuesFilePath.read_elsewhere("synapse", "labels"),
         PropertyType.PodSecurityContext: ValuesFilePath.read_elsewhere("synapse", "podSecurityContext"),
@@ -394,6 +399,7 @@ all_components_details = [
         has_replicas=False,
         has_service_monitor=False,
         has_topology_spread_constraints=False,
+        makes_outbound_requests=False,
         is_shared_component=True,
     ),
     ComponentDetails(
@@ -412,12 +418,14 @@ all_components_details = [
         has_replicas=False,
         has_service_monitor=False,
         has_topology_spread_constraints=False,
+        makes_outbound_requests=False,
         is_shared_component=True,
     ),
     ComponentDetails(
         name="haproxy",
         has_ingress=False,
         is_shared_component=True,
+        makes_outbound_requests=False,
         skip_path_consistency_for_files=("haproxy.cfg", "429.http", "path_map_file", "path_map_file_get"),
     ),
     ComponentDetails(
@@ -435,10 +443,12 @@ all_components_details = [
                 },
                 has_ingress=False,
                 has_service_monitor=False,
+                makes_outbound_requests=False,
             ),
         ),
-        paths_consistency_noqa=("/docker-entrypoint-initdb.d/init-ess-dbs.sh",),
         is_shared_component=True,
+        makes_outbound_requests=False,
+        paths_consistency_noqa=("/docker-entrypoint-initdb.d/init-ess-dbs.sh",),
     ),
     ComponentDetails(
         name="matrix-rtc",
@@ -463,6 +473,7 @@ all_components_details = [
         name="element-web",
         values_file_path=ValuesFilePath.read_write("elementWeb"),
         has_service_monitor=False,
+        makes_outbound_requests=False,
         paths_consistency_noqa=(
             # Explicitly mounted but wildcard included by the base-image
             "/etc/nginx/conf.d/default.conf",
@@ -507,6 +518,7 @@ all_components_details = [
                 has_replicas=False,
                 has_service_monitor=False,
                 has_topology_spread_constraints=False,
+                makes_outbound_requests=False,
             ),
         ),
     ),
@@ -527,12 +539,14 @@ all_components_details = [
                 has_service_monitor=False,
                 has_topology_spread_constraints=False,
                 has_replicas=False,
+                makes_outbound_requests=False,
             ),
             SubComponentDetails(
                 name="synapse-check-config",
                 values_file_path=ValuesFilePath.read_write("synapse", "checkConfigHook"),
                 values_file_path_overrides={
                     PropertyType.Env: ValuesFilePath.read_elsewhere("synapse", "extraEnv"),
+                    PropertyType.HostAliases: ValuesFilePath.read_elsewhere("synapse", "hostAliases"),
                     PropertyType.Image: ValuesFilePath.read_elsewhere("synapse", "image"),
                     # Job so no livenessProbe
                     PropertyType.LivenessProbe: ValuesFilePath.not_supported(),
