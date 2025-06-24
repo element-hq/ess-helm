@@ -4,7 +4,7 @@
 
 import pytest
 
-from . import all_deployables_details, values_files_to_test
+from . import PropertyType, all_deployables_details, values_files_to_test
 from .utils import template_id
 
 
@@ -83,3 +83,31 @@ async def test_manifests_have_namespaces_correctly_set(templates, namespace):
     for template in templates:
         assert "namespace" in template["metadata"], f"{template_id(template)} doesn't specify a namespace"
         assert template["metadata"]["namespace"] == namespace, f"{template_id(template)} has set the wrong namespace"
+
+
+@pytest.mark.asyncio_cooperative
+async def test_default_values_file_sets_stub_values(base_values):
+    # Tests that values.yaml has defaults (and thus almost certainly comments) for various properties
+    # As we set additionalProperties: false almost everywhere this also implicitly asserts that the
+    # field is in the schema.
+
+    # We can't use None as get_helm_values replaces that with {}
+    unset_marker = "XXXX unset XXX"
+    for deployable_details in all_deployables_details:
+        extraEnv = deployable_details.get_helm_values(base_values, PropertyType.Env, default_value=unset_marker)
+        if deployable_details.has_workloads:
+            assert extraEnv == [], f"{deployable_details.name} has default {extraEnv=} rather than []"
+        else:
+            assert extraEnv == unset_marker, (
+                f"{deployable_details.name} has default {extraEnv=} rather than being unset"
+            )
+
+        hostAliases = deployable_details.get_helm_values(
+            base_values, PropertyType.HostAliases, default_value=unset_marker
+        )
+        if deployable_details.makes_outbound_requests:
+            assert hostAliases == [], f"{deployable_details.name} has default {hostAliases=} rather than []"
+        else:
+            assert hostAliases == unset_marker, (
+                f"{deployable_details.name} has default {hostAliases=} rather than being unset"
+            )

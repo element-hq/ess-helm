@@ -23,6 +23,7 @@ replicas: 1
 {{- sub_schema_values.labels() }}
 {{- sub_schema_values.workloadAnnotations() }}
 {{- sub_schema_values.containersSecurityContext() }}
+{{- sub_schema_values.hostAliases() }}
 {{- sub_schema_values.extraEnv() }}
 {{- sub_schema_values.nodeSelector() }}
 {{- sub_schema_values.podSecurityContext(user_id='10033', group_id='10033') }}
