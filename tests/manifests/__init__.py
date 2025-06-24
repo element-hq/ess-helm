@@ -461,6 +461,7 @@ all_components_details = [
                 has_topology_spread_constraints=False,
                 has_ingress=False,
                 has_replicas=False,
+                makes_outbound_requests=False,
             ),
         ),
         shared_component_names=("init-secrets",),

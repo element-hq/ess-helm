@@ -165,9 +165,6 @@
         "containersSecurityContext": {
           "$ref": "file://common/containersSecurityContext.json"
         },
-        "hostAliases": {
-          "$ref": "file://common/hostAliases.json"
-        },
         "nodeSelector": {
           "$ref": "file://common/nodeSelector.json"
         },

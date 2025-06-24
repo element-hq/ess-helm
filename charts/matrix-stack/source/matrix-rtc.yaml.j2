@@ -66,7 +66,6 @@ sfu:
 {{- sub_schema_values.labels() | indent(2) }}
 {{- sub_schema_values.workloadAnnotations() | indent(2) }}
 {{- sub_schema_values.containersSecurityContext() | indent(2) }}
-{{- sub_schema_values.hostAliases() | indent(2) }}
 {{- sub_schema_values.nodeSelector() | indent(2) }}
 {{- sub_schema_values.podSecurityContext(user_id='10030', group_id='10030') | indent(2) }}
 {{- sub_schema_values.resources(requests_memory='150Mi', requests_cpu='100m', limits_memory='4Gi') | indent(2) }}
