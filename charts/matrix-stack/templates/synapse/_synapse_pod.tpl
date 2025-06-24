@@ -48,9 +48,11 @@ template:
                                           "deployment" false
                                           "usesMatrixTools" true)
                                     ) | nindent 4 }}
+{{- if not $isHook }}
 {{- with .hostAliases }}
     hostAliases:
       {{- tpl (toYaml . | nindent 6) $root }}
+{{- end }}
 {{- end }}
 {{- /*
 We have an init container to render & merge the config for several reasons:

@@ -547,7 +547,6 @@ all_components_details = [
                 values_file_path=ValuesFilePath.read_write("synapse", "checkConfigHook"),
                 values_file_path_overrides={
                     PropertyType.Env: ValuesFilePath.read_elsewhere("synapse", "extraEnv"),
-                    PropertyType.HostAliases: ValuesFilePath.read_elsewhere("synapse", "hostAliases"),
                     PropertyType.Image: ValuesFilePath.read_elsewhere("synapse", "image"),
                     # Job so no livenessProbe
                     PropertyType.LivenessProbe: ValuesFilePath.not_supported(),
@@ -566,6 +565,7 @@ all_components_details = [
                 has_ingress=False,
                 has_service_monitor=False,
                 has_replicas=False,
+                makes_outbound_requests=False,
             ),
         ),
         shared_component_names=("deployment-markers", "init-secrets", "haproxy", "postgres"),
