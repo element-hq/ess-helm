@@ -6,15 +6,15 @@
 
 set -euo pipefail
 
-[ "$#" -ne 0 ] && echo "Usage: assemble_ci_values_files_from_fragments.sh" 1>&2 && exit 1
+[ "$#" -gt 1 ] && echo "Usage: assemble_ci_values_files_from_fragments.sh <optional values file prefix to restrict to>" 1>&2 && exit 1
 
 scripts_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 values_file_root=$( cd "$scripts_dir/../charts/matrix-stack/ci" &> /dev/null && pwd )
-
+values_file_prefix="${1:-*}"
 
 [ ! -d "$values_file_root" ] && echo "$values_file_root must be a directory that exists" 1>&2 && exit 1
 
-for values_file in "$values_file_root"/*-values.yaml; do
+for values_file in "$values_file_root"/$values_file_prefix-values.yaml; do
   if ! source_fragments=$(grep -E '#\s+source_fragments:' "$values_file" | sed 's/.*:\s*//'); then
     echo "$values_file doesn't have a source_fragments header comment. Skipping"
     continue
