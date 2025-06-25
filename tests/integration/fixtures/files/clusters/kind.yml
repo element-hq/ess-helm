@@ -51,6 +51,13 @@ nodes:
   - containerPort: 443
     hostPort: 443
     protocol: TCP
+  # Matrix RTC SFU TCP and Muxed UDP
+  - containerPort: 30881
+    hostPort: 30881
+    protocol: TCP
+  - containerPort: 30882
+    hostPort: 30882
+    protocol: UDP
 containerdConfigPatches:
 - |-
   [plugins."io.containerd.grpc.v1.cri".registry]
