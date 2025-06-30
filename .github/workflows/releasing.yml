@@ -4,7 +4,7 @@
 
 name: Helm Chart packaging and releasing
 on:
-  pull_request_target:
+  pull_request:
   push:
     branches:
     - main
@@ -21,8 +21,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
-      with:
-        ref: ${{ github.event.pull_request.head.sha }}
 
     - uses: matrix-org/setup-python-poetry@5bbf6603c5c930615ec8a29f1b5d7d258d905aa4  # v2
       with:
@@ -100,8 +98,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
-      with:
-        ref: ${{ github.event.pull_request.head.sha }}
 
     - name: Grab packaged chart
       uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4

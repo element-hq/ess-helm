@@ -5,7 +5,7 @@
 name: Build matrix-tool Docker Images
 
 on:
-  pull_request_target:
+  pull_request:
   workflow_dispatch:
   push:
     branches:
@@ -26,8 +26,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
-      with:
-        ref: ${{ github.event.pull_request.head.sha }}
 
     - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5  # v5
       with:
@@ -60,8 +58,6 @@ jobs:
 
     - name: Checkout Repository
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
-      with:
-        ref: ${{ github.event.pull_request.head.sha }}
 
     - name: Login to GHCR
       uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772  # v3

@@ -5,7 +5,7 @@
 name: GitHub Actions linting
 
 on:
-  pull_request_target:
+  pull_request:
   push:
     branches:
     - main
@@ -17,8 +17,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
-      with:
-        ref: ${{ github.event.pull_request.head.sha }}
 
     - name: Install action-validator with asdf
       uses: asdf-vm/actions/install@1902764435ca0dd2f3388eea723a4f92a4eb8302  # v4
@@ -36,8 +34,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
-      with:
-        ref: ${{ github.event.pull_request.head.sha }}
 
     - name: Check workflow files
       uses: docker://rhysd/actionlint@sha256:887a259a5a534f3c4f36cb02dca341673c6089431057242cdc931e9f133147e9  # 1.7.7
@@ -49,8 +45,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
-      with:
-        ref: ${{ github.event.pull_request.head.sha }}
 
     - name: Find unpinned actions
       run: |

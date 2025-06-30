@@ -4,7 +4,7 @@
 
 name: Helm Chart Building tests
 on:
-  pull_request_target:
+  pull_request:
   push:
     branches:
     - main
@@ -19,8 +19,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
-      with:
-        ref: ${{ github.event.pull_request.head.sha }}
 
     - uses: matrix-org/setup-python-poetry@5bbf6603c5c930615ec8a29f1b5d7d258d905aa4  # v2
       with:
@@ -51,8 +49,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
-      with:
-        ref: ${{ github.event.pull_request.head.sha }}
 
     - name: Set up chart-testing
       uses: helm/chart-testing-action@0d28d3144d3a25ea2cc349d6e59901c4ff469b3b  # v2.7.0
@@ -105,7 +101,6 @@ jobs:
     - name: Checkout PR
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
       with:
-        ref: ${{ github.event.pull_request.head.sha }}
         fetch-depth: 0
 
     # helm template doesn't reliably order manifests within the same kind, so use yq to do it for us
