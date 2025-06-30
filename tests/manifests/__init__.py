@@ -16,6 +16,7 @@ class PropertyType(Enum):
     Ingress = "ingress"
     Labels = "labels"
     LivenessProbe = "livenessProbe"
+    NodeSelector = "nodeSelector"
     PodSecurityContext = "podSecurityContext"
     Postgres = "postgres"
     Replicas = "replicas"
@@ -215,6 +216,7 @@ class SidecarDetails(DeployableDetails):
 
         sidecar_values_file_path_overrides = {
             # Not possible, will come from the parent component
+            PropertyType.NodeSelector: ValuesFilePath.not_supported(),
             PropertyType.PodSecurityContext: ValuesFilePath.not_supported(),
             PropertyType.ServiceAccount: ValuesFilePath.not_supported(),
             PropertyType.Tolerations: ValuesFilePath.not_supported(),
@@ -349,6 +351,7 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
         PropertyType.HostAliases: ValuesFilePath.read_elsewhere("synapse", "hostAliases"),
         PropertyType.Image: ValuesFilePath.read_elsewhere("synapse", "image"),
         PropertyType.Labels: ValuesFilePath.read_elsewhere("synapse", "labels"),
+        PropertyType.NodeSelector: ValuesFilePath.read_elsewhere("synapse", "nodeSelector"),
         PropertyType.PodSecurityContext: ValuesFilePath.read_elsewhere("synapse", "podSecurityContext"),
         PropertyType.ServiceAccount: ValuesFilePath.read_elsewhere("synapse", "serviceAccount"),
         PropertyType.ServiceMonitor: ValuesFilePath.read_elsewhere("synapse", "serviceMonitor"),
@@ -564,6 +567,7 @@ all_components_details = [
                     PropertyType.Image: ValuesFilePath.read_elsewhere("synapse", "image"),
                     # Job so no livenessProbe
                     PropertyType.LivenessProbe: ValuesFilePath.not_supported(),
+                    PropertyType.NodeSelector: ValuesFilePath.read_elsewhere("synapse", "nodeSelector"),
                     PropertyType.PodSecurityContext: ValuesFilePath.read_elsewhere("synapse", "podSecurityContext"),
                     PropertyType.Resources: ValuesFilePath.read_elsewhere("synapse", "resources"),
                     # Job so no readinessProbe
