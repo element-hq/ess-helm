@@ -10,6 +10,9 @@ on:
     - main
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   # We build from source and commit all generated file changes so that we can see the impact in PRs
   # We want to ensure that the commit of built changes does happen, so fail if building creates changes

@@ -6,6 +6,9 @@ name: Changelog
 on:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   check-newsfile:
     if: ${{ (github.base_ref == 'main'  || contains(github.base_ref, 'release-')) && github.actor != 'dependabot[bot]' && github.actor != 'github-actions[bot]' }}

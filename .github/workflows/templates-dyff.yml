@@ -6,6 +6,9 @@ name: dyff of rendered templates
 on:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   generate-dyff:
     runs-on: ubuntu-latest
