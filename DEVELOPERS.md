@@ -6,6 +6,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 This is a test.
 
+Really, just a test.
+
 # Developing
 
 Requirements for development:
