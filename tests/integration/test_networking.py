@@ -140,9 +140,6 @@ async def test_pods_monitored(
                 service_port_names = [port.name for port in service.spec.ports if port.name]
                 if endpoint["port"] in service_port_names:
                     break
-            # This Service does not have the named port. Potentially there's another Service that covers it
-            else:
-                continue
 
             async for covered_pod in kube_client.list(
                 Pod, namespace=generated_data.ess_namespace, labels=service.spec.selector
@@ -163,7 +160,6 @@ async def test_pods_monitored(
     assert all_monitorable_pods == monitored_pods, (
         f"Some pods are not monitored : {', '.join(list(set(all_monitorable_pods) ^ set(monitored_pods)))}"
     )
-
 
 
 @pytest.mark.skipif(
@@ -203,7 +199,7 @@ async def test_service_monitors_point_to_metrics(
 async def has_actual_metrics_on_endpoint(
     kube_client: AsyncClient, generated_data: ESSData, service: Service, endpoints
 ):
-    assert service.metadataco
+    assert service.metadata
     assert service.spec
     assert service.spec.ports
     found_metrics = False
@@ -215,7 +211,10 @@ async def has_actual_metrics_on_endpoint(
                     generated_data.ess_namespace,
                     "curlimages/curl:latest",
                     "curl",
-                    ["-s", f"http://{service.metadata.name}.{generated_data.ess_namespace}.svc.cluster.local:{port_spec.port}/metrics"],
+                    [
+                        "-s",
+                        f"http://{service.metadata.name}.{generated_data.ess_namespace}.svc.cluster.local:{port_spec.port}/metrics",
+                    ],
                 )
                 for metric_family in text_string_to_metric_families(metrics_data):
                     assert metric_family.name, "Metric family has no name"
