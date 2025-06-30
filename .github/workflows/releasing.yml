@@ -50,6 +50,7 @@ jobs:
         fi
 
     - name: Login to GitHub Container Registry
+      if: ${{ github.event_name != 'pull_request' }}
       uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772  # v3
       with:
         registry: ghcr.io
@@ -75,7 +76,9 @@ jobs:
         cd charts/matrix-stack
         helm package .
 
-        helm push matrix-stack-*.tgz oci://ghcr.io/${{ github.repository }}
+    - name: Helm push
+      if: ${{ github.event_name != 'pull_request' }}
+      run: helm push matrix-stack-*.tgz oci://ghcr.io/${{ github.repository }}
 
     - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
       with:
