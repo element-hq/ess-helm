@@ -4856,7 +4856,7 @@
             "size": {
               "type": "string"
             },
-            "storageClass": {
+            "storageClassName": {
               "type": "string"
             },
             "resourcePolicy": {
@@ -5454,7 +5454,7 @@
                 "size": {
                   "type": "string"
                 },
-                "storageClass": {
+                "storageClassName": {
                   "type": "string"
                 },
                 "resourcePolicy": {

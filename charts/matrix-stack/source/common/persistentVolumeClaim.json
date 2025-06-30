@@ -7,7 +7,7 @@
     "size": {
       "type": "string"
     },
-    "storageClass": {
+    "storageClassName": {
       "type": "string"
     },
     "resourcePolicy": {
