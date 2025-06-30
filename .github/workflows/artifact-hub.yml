@@ -5,7 +5,6 @@
 name: Artifact Hub Metadata
 
 on:
-  pull_request:
   push:
     branches:
     - main
@@ -18,8 +17,6 @@ jobs:
       packages: write
     runs-on: ubuntu-latest
     steps:
-    # This will push the OCI artifact only on merges
-    # As the checkout will push the PR Target commit hash
     - name: Checkout
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
 
