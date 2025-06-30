@@ -37,6 +37,7 @@ types-pytz = "^2025.2.0.20250516"
 mypy = "^1.16.1"
 types-pyyaml = "^6.0.12.20250516"
 semver = "^3.0.4"
+prometheus-client = "^0.22.1"
 
 [build-system]
 requires = ["poetry-core"]
