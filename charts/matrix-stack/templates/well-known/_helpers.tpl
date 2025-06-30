@@ -20,7 +20,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- with required "element-io.well-known-delegation.labels missing context" .context -}}
 {{ include "element-io.ess-library.labels.common" (dict "root" $root "context" (dict "labels" .labels)) }}
 app.kubernetes.io/component: matrix-delegation
-app.kubernetes.io/name: well-known-delegation
+app.kubernetes.io/name: well-known-delegation2
 app.kubernetes.io/instance: {{ $root.Release.Name }}-well-known-delegation
 app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" $root.Values.haproxy.image.tag }}
 {{- end }}
