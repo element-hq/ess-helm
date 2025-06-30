@@ -175,7 +175,7 @@ imagePullSecrets: []
 
 {% macro labels(global=false, key='labels') %}
 ## Labels to add to all manifest {{ 'for all components in this chart' if global else 'for this component' }}
-labels: {}
+{{ key }}: {}
 {%- endmacro %}
 
 {% macro nodeSelector(key='nodeSelector') %}
