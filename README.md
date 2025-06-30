@@ -480,12 +480,23 @@ For maintenance topics like upgrading, backups and restoring from backups, pleas
 
 # Uninstalling
 
-If you wish to remove ESS Community from your cluster, you can simply run the following commands to clean up the installation. Please note deleting the `ess` namespace will remove everything within it, including any resources you may have manually created within it:
+If you wish to remove ESS Community from your cluster, you can simply run the following commands to clean up the installation.
 
-```
+```sh
 helm uninstall ess -n ess
-kubectl delete secrets/ess-generated -n ess # If initSecrets is enabled, you may need to delete this
-kubectl delete configmap/ess-deployment-markers -n ess # If deploymentMarkers is enabled, you may need to delete this
+# If initSecrets is enabled, you may need to delete this
+kubectl delete secrets/ess-generated -n ess
+# If deploymentMarkers is enabled, you may need to delete this
+kubectl delete configmap/ess-deployment-markers -n ess
+# If synapse is enabled, you may need to delete this
+kubectl delete pvc/ess-synapse-media -n ess
+# If postgres is enabled and either synapse or matrixAuthenticationService is enabled, you may need to delete this
+kubectl delete pvc/ess-postgres-data -n ess
+```
+
+Alternatively you can delete the whole `ess` namespace which will remove everything within it, including any resources you may have manually created within it:
+
+```sh
 kubectl delete namespace ess
 ```
 
