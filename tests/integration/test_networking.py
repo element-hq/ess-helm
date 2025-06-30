@@ -176,6 +176,7 @@ async def test_service_monitors_point_to_metrics(
         namespace=generated_data.ess_namespace,
         labels={"app.kubernetes.io/part-of": op.in_(["matrix-stack"])},
     ):
+        found_metrics = False
         async for service in kube_client.list(
             Service, namespace=generated_data.ess_namespace, labels=service_monitor["spec"]["selector"]["matchLabels"]
         ):
@@ -187,12 +188,12 @@ async def test_service_monitors_point_to_metrics(
             for endpoint in service_monitor["spec"]["endpoints"]:
                 service_port_names = [port.name for port in service.spec.ports if port.name]
                 if endpoint["port"] in service_port_names:
-                    break
-            # This Service does not have the named port. Potentially there's another Service that covers it
-            else:
-                continue
-        assert await has_actual_metrics_on_endpoint(
-            kube_client, generated_data, service, service_monitor["spec"]["endpoints"]
+                    assert await has_actual_metrics_on_endpoint(
+                        kube_client, generated_data, service, service_monitor["spec"]["endpoints"]
+                    )
+                    found_metrics = True
+        assert found_metrics, (
+            f"ServiceMonitor {service_monitor['metadata']['name']} does not point to any /metrics endpoint"
         )
 
 
