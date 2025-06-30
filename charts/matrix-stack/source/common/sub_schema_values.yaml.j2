@@ -194,9 +194,10 @@ imagePullSecrets: []
   size: 10Gi
 
   ## The StorageClass to be used by the constructed PersistentVolumeClaim.
-  ## Will use the cluster default if not provided
+  ## Will use the cluster default if not provided.
+  ## If changed after initial usage the PersistentVolumeClaim could be recreated causing data-loss.
   ## Ignored if existingClaim is provided
-  # storageClass:
+  # storageClassName:
 
   ## Whether to instruct Helm to keep or delete the constructed PersistentVolumeClaim when uninstalling the chart
   ## Ignored if existingClaim is provided
