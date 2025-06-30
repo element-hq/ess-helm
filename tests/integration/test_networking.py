@@ -9,9 +9,10 @@ import pytest
 from lightkube import AsyncClient
 from lightkube import operators as op
 from lightkube.resources.core_v1 import Pod, Service
+from prometheus_client.parser import text_string_to_metric_families
 
 from .fixtures.data import ESSData
-from .lib.helpers import wait_for_endpoint_ready
+from .lib.helpers import run_pod_with_args, wait_for_endpoint_ready
 from .lib.utils import read_service_monitor_kind
 
 
@@ -139,9 +140,6 @@ async def test_pods_monitored(
                 service_port_names = [port.name for port in service.spec.ports if port.name]
                 if endpoint["port"] in service_port_names:
                     break
-            # This Service does not have the named port. Potentially there's another Service that covers it
-            else:
-                continue
 
             async for covered_pod in kube_client.list(
                 Pod, namespace=generated_data.ess_namespace, labels=service.spec.selector
@@ -162,3 +160,65 @@ async def test_pods_monitored(
     assert all_monitorable_pods == monitored_pods, (
         f"Some pods are not monitored : {', '.join(list(set(all_monitorable_pods) ^ set(monitored_pods)))}"
     )
+
+
+@pytest.mark.skipif(
+    os.environ.get("SKIP_SERVICE_MONITORS_CRDS", "false") == "true", reason="ServiceMonitors not deployed"
+)
+@pytest.mark.skipif(os.environ.get("MATRIX_TEST_FROM_REF", "") == "25.6.2", reason="This fails against 25.6.2.")
+@pytest.mark.asyncio_cooperative
+@pytest.mark.usefixtures("matrix_stack")
+async def test_service_monitors_point_to_metrics(
+    kube_client: AsyncClient,
+    generated_data: ESSData,
+):
+    async for service_monitor in kube_client.list(
+        await read_service_monitor_kind(kube_client),
+        namespace=generated_data.ess_namespace,
+        labels={"app.kubernetes.io/part-of": op.in_(["matrix-stack"])},
+    ):
+        found_metrics = False
+        async for service in kube_client.list(
+            Service, namespace=generated_data.ess_namespace, labels=service_monitor["spec"]["selector"]["matchLabels"]
+        ):
+            assert service.metadata, f"Encountered a service without metadata : {service}"
+            assert service.spec, f"Encountered a service without spec : {service}"
+            assert service.spec.ports, f"Ecountered a service without port : {service}"
+            assert service.spec.selector, f"Ecountered a service without selectors : {service}"
+
+            for endpoint in service_monitor["spec"]["endpoints"]:
+                service_port_names = [port.name for port in service.spec.ports if port.name]
+                if endpoint["port"] in service_port_names:
+                    assert await has_actual_metrics_on_endpoint(
+                        kube_client, generated_data, service, service_monitor["spec"]["endpoints"]
+                    )
+                    found_metrics = True
+        assert found_metrics, (
+            f"ServiceMonitor {service_monitor['metadata']['name']} does not point to any /metrics endpoint"
+        )
+
+
+async def has_actual_metrics_on_endpoint(
+    kube_client: AsyncClient, generated_data: ESSData, service: Service, endpoints
+):
+    assert service.metadata
+    assert service.spec
+    assert service.spec.ports
+    found_metrics = False
+    for endpoint in endpoints:
+        for port_spec in service.spec.ports:
+            if port_spec.name == endpoint["port"]:
+                metrics_data = await run_pod_with_args(
+                    kube_client,
+                    generated_data.ess_namespace,
+                    "curlimages/curl:latest",
+                    "curl",
+                    [
+                        "-s",
+                        f"http://{service.metadata.name}.{generated_data.ess_namespace}.svc.cluster.local:{port_spec.port}/metrics",
+                    ],
+                )
+                for metric_family in text_string_to_metric_families(metrics_data):
+                    assert metric_family.name, "Metric family has no name"
+                found_metrics = True
+    return found_metrics

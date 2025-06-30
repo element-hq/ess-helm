@@ -6,8 +6,16 @@ import asyncio
 import time
 
 import pyhelm3
+from lightkube import AsyncClient
+from lightkube.models.core_v1 import (
+    Capabilities,
+    Container,
+    PodSpec,
+    SeccompProfile,
+    SecurityContext,
+)
 from lightkube.models.meta_v1 import ObjectMeta
-from lightkube.resources.core_v1 import ConfigMap, Endpoints, Namespace, Secret
+from lightkube.resources.core_v1 import ConfigMap, Endpoints, Namespace, Pod, Secret
 
 from ..artifacts import CertKey, generate_cert
 from .utils import merge
@@ -98,3 +106,63 @@ async def get_deployment_marker(kube_client, generated_data, marker: str):
         name=f"{generated_data.release_name}-markers",
     )
     return configmap.data.get(marker)
+
+
+async def run_pod_with_args(kube_client: AsyncClient, namespace, image_name, pod_name, args):
+    pod = Pod(
+        metadata=ObjectMeta(name=pod_name + "-" + str(int(time.time() * 1000)), namespace=namespace),
+        spec=PodSpec(
+            restartPolicy="Never",
+            containers=[
+                Container(
+                    name="cmd",
+                    image=image_name,
+                    args=args,
+                    securityContext=SecurityContext(
+                        seccompProfile=SeccompProfile(type="RuntimeDefault"),
+                        capabilities=Capabilities(drop=["ALL"]),
+                        readOnlyRootFilesystem=True,
+                        allowPrivilegeEscalation=False,
+                        runAsNonRoot=True,
+                        runAsUser=3000,
+                        runAsGroup=3000,
+                    ),
+                )
+            ],
+        ),
+    )
+    assert pod.metadata
+    assert pod.metadata.name
+    assert pod.metadata.namespace
+    try:
+        await kube_client.create(pod)
+        start_time = time.time()
+        now = time.time()
+        completed = False
+        while start_time + 30 > now and not completed:
+            found_pod = await kube_client.get(Pod, name=pod.metadata.name, namespace=pod.metadata.namespace)
+            if (
+                found_pod.status
+                and found_pod.status.containerStatuses
+                and found_pod.status.containerStatuses[0].lastState
+                and found_pod.status.containerStatuses[0].lastState.terminated
+                and found_pod.status.containerStatuses[0].lastState.terminated.reason == "Completed"
+            ):
+                completed = True
+            else:
+                now = time.time()
+                await asyncio.sleep(1)
+        else:
+            if start_time + 30 > now:
+                raise RuntimeError(
+                    f"Pod {pod.metadata.name} did not start in time "
+                    f"(failed after {time.time() - now} seconds), "
+                    f"pod status: {found_pod.status}"
+                )
+
+        log_lines = ""
+        async for log_line in kube_client.log(pod.metadata.name, namespace=pod.metadata.namespace, container="cmd"):
+            log_lines += log_line
+        return log_lines
+    finally:
+        await kube_client.delete(Pod, name=pod.metadata.name, namespace=namespace)
