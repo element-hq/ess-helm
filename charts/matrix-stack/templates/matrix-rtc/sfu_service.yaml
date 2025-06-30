@@ -1,5 +1,5 @@
 {{- /*
-Copyright 2024 New Vector Ltd
+Copyright 2024-2025 New Vector Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -21,6 +21,9 @@ spec:
   - name: http
     port: 7880
     targetPort: http
+  - name: metrics
+    port: 6789
+    targetPort: metrics
   selector:
     app.kubernetes.io/instance: "{{ $.Release.Name }}-matrix-rtc-sfu"
 {{- end -}}
