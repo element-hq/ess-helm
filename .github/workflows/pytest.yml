@@ -13,7 +13,6 @@ on:
 
 permissions:
   contents: read
-  packages: read
 
 env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -67,13 +66,6 @@ jobs:
     - name: Load poetry path
       run: |
         echo "$(poetry env info -p)/bin" >> "${GITHUB_PATH}"
-
-    - name: Login to GHCR
-      uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772  # v3
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Login to Dockerhub
       uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772  # v3
