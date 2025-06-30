@@ -24,6 +24,7 @@ class PropertyType(Enum):
     StartupProbe = "startupProbe"
     ServiceAccount = "serviceAccount"
     ServiceMonitor = "serviceMonitors"
+    Storage = "storage"
     Tolerations = "tolerations"
     TopologySpreadConstraints = "topologySpreadConstraints"
 
@@ -535,6 +536,9 @@ all_components_details = [
     ),
     ComponentDetails(
         name="synapse",
+        values_file_path_overrides={
+            PropertyType.Storage: ValuesFilePath.read_write("synapse", "media", "storage"),
+        },
         has_db=True,
         has_storage=True,
         has_replicas=False,
