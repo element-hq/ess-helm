@@ -1,5 +1,5 @@
 <!--
-Copyright 2024 New Vector Ltd
+Copyright 2024-2025 New Vector Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 -->
@@ -152,6 +152,9 @@ From the project root: `shellcheck scripts/*.sh`
 Verifies that the deployed workloads behave as expected and integrates well together.
 
 From the project root : `pytest test`
+
+Pytest caches the namespace name and created user tokens between run. To start a run from scratch,
+run `pytest test --cache-clear`.
 
 #### Special env variables
 - `PYTEST_KEEP_CLUSTER=1` : Do not destroy the cluster at the end of the test run.
