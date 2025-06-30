@@ -149,7 +149,7 @@ initSecrets:
   ##   value: "bar"
   extraEnv: []
   ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
-  # nodeSelector: {}
+  nodeSelector: {}
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
   podSecurityContext:
     ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to
@@ -276,7 +276,7 @@ deploymentMarkers:
   ##   value: "bar"
   extraEnv: []
   ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
-  # nodeSelector: {}
+  nodeSelector: {}
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
   podSecurityContext:
     ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to
@@ -491,7 +491,7 @@ matrixRTC:
   ##   value: "bar"
   extraEnv: []
   ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
-  # nodeSelector: {}
+  nodeSelector: {}
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
   podSecurityContext:
     ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to
@@ -743,7 +743,7 @@ matrixRTC:
       # seccompProfile:
       #  type: RuntimeDefault
     ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
-    # nodeSelector: {}
+    nodeSelector: {}
     ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
     podSecurityContext:
       ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to
@@ -977,7 +977,7 @@ elementWeb:
     # seccompProfile:
     #  type: RuntimeDefault
   ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
-  # nodeSelector: {}
+  nodeSelector: {}
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
   podSecurityContext:
     ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to
@@ -1188,7 +1188,7 @@ haproxy:
   ##   value: "bar"
   extraEnv: []
   ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
-  # nodeSelector: {}
+  nodeSelector: {}
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
   podSecurityContext:
     ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to
@@ -1560,7 +1560,7 @@ matrixAuthenticationService:
     annotations: {}
 
   ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
-  # nodeSelector: {}
+  nodeSelector: {}
 
   ## Workload tolerations allows Pods that are part of this (sub)component to 'tolerate' any taint that matches the triple <key,value,effect> using the matching operator <operator>.
   ##
@@ -1818,7 +1818,7 @@ matrixAuthenticationService:
       # seccompProfile:
       #  type: RuntimeDefault
     ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
-    # nodeSelector: {}
+    nodeSelector: {}
     ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
     podSecurityContext:
       ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to
@@ -2083,9 +2083,10 @@ postgres:
     size: 10Gi
 
     ## The StorageClass to be used by the constructed PersistentVolumeClaim.
-    ## Will use the cluster default if not provided
+    ## Will use the cluster default if not provided.
+    ## If changed after initial usage the PersistentVolumeClaim could be recreated causing data-loss.
     ## Ignored if existingClaim is provided
-    # storageClass:
+    # storageClassName:
 
     ## Whether to instruct Helm to keep or delete the constructed PersistentVolumeClaim when uninstalling the chart
     ## Ignored if existingClaim is provided
@@ -2150,7 +2151,7 @@ postgres:
     # seccompProfile:
     #  type: RuntimeDefault
   ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
-  # nodeSelector: {}
+  nodeSelector: {}
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
   podSecurityContext:
     ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to
@@ -2363,9 +2364,10 @@ synapse:
       size: 10Gi
 
       ## The StorageClass to be used by the constructed PersistentVolumeClaim.
-      ## Will use the cluster default if not provided
+      ## Will use the cluster default if not provided.
+      ## If changed after initial usage the PersistentVolumeClaim could be recreated causing data-loss.
       ## Ignored if existingClaim is provided
-      # storageClass:
+      # storageClassName:
 
       ## Whether to instruct Helm to keep or delete the constructed PersistentVolumeClaim when uninstalling the chart
       ## Ignored if existingClaim is provided
@@ -3682,7 +3684,7 @@ synapse:
   ##   - synapse.ess.localhost
   hostAliases: []
   ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
-  # nodeSelector: {}
+  nodeSelector: {}
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
   podSecurityContext:
     ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to
@@ -3899,7 +3901,7 @@ synapse:
     ##   value: "bar"
     extraEnv: []
     ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
-    # nodeSelector: {}
+    nodeSelector: {}
     ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
     podSecurityContext:
       ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to

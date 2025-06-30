@@ -95,11 +95,23 @@ async def test_default_values_file_sets_stub_values(base_values):
     unset_marker = "XXXX unset XXX"
     for deployable_details in all_deployables_details:
         extraEnv = deployable_details.get_helm_values(base_values, PropertyType.Env, default_value=unset_marker)
+        nodeSelector = deployable_details.get_helm_values(
+            base_values, PropertyType.NodeSelector, default_value=unset_marker
+        )
         if deployable_details.has_workloads:
             assert extraEnv == [], f"{deployable_details.name} has default {extraEnv=} rather than []"
+            # Might be None iff a `not_supported` values file path override is set, e.g. for Sidecars
+            # default_value=unset_marker means that an omitted `nodeSelector` in the values file won't
+            # return None here
+            assert nodeSelector == {} or nodeSelector is None, (
+                f"{deployable_details.name} has default {nodeSelector=} rather than {{}}"
+            )
         else:
             assert extraEnv == unset_marker, (
                 f"{deployable_details.name} has default {extraEnv=} rather than being unset"
+            )
+            assert nodeSelector == unset_marker, (
+                f"{deployable_details.name} has default {nodeSelector=} rather than being unset"
             )
 
         hostAliases = deployable_details.get_helm_values(
