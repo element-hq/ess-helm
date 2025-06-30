@@ -27,8 +27,8 @@ async def helm_prerequisites(
     resources = []
     setups: list[Awaitable] = []
 
-    # On CI, public runners need read access to dockerhub.io
-    if os.environ.get("CI"):
+    # On CI, public runners should login to dockerhub.io to avoid rate-limits
+    if os.environ.get("CI") and ("DOCKERHUB_USERNAME" in os.environ) and ("DOCKERHUB_TOKEN" in os.environ):
         resources.append(
             kubernetes_docker_secret(
                 f"{generated_data.release_name}-dockerhub",
