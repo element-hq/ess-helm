@@ -11,6 +11,9 @@ on:
     - main
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   action-validator:
     runs-on: ubuntu-latest
@@ -58,5 +61,23 @@ jobs:
         if [ "$unpinned_actions" != "" ]; then
           echo "There are unpinned actions:"
           echo "$unpinned_actions"
+          exit 1
+        fi
+
+  explicit-permissions:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
+
+    - name: Find workflows that have jobs that rely on the default permissions
+      run: |
+        workflows_with_implicit_permissions=$(
+          find .github/workflows -type f \( -iname \*.yaml -o -iname \*.yml \) -print0 \
+            | xargs -0 -I {} yq '{filename: ([.jobs.* | has("permissions")] | all) or (. | has("permissions"))}' {} \
+            | grep -E 'false$' || true)
+        if [ "$workflows_with_implicit_permissions" != "" ]; then
+          echo "There are workflows that have not set permissions either globally or for all jobs:"
+          echo "$workflows_with_implicit_permissions"
           exit 1
         fi
