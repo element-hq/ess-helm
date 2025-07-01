@@ -9,11 +9,13 @@ on:
     types:
     - completed
 
+permissions:
+  actions: read
+  pull-requests: write
+
 jobs:
   manage-comment:
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
     if: github.event.workflow_run.conclusion == 'success'
     steps:
     - name: Download dyff of templates
