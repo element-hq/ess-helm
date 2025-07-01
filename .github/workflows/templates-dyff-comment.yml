@@ -26,6 +26,7 @@ jobs:
     - name: Unpack artifact
       id: artifacts
       run: |
+        ls -lR
         unzip dyff-templates -d "${{ runner.temp }}"
         # This is already formatted as pr-number=<pr number>
         cat "${{ runner.temp }}/pr-number.txt" >> "$GITHUB_OUTPUT"
