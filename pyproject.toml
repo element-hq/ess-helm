@@ -30,7 +30,7 @@ signedjson = "^1.1.4"
 aiohttp-retry = "^2.9.1"
 ruamel-yaml = "^0.18.14"
 pytest-kubernetes = {git = "https://github.com/Blueshoe/pytest-kubernetes.git", rev = "feature/17_custom-configs"}
-pytest-asyncio-cooperative ="^0.39.0"
+pytest-asyncio-cooperative ="^0.40.0"
 towncrier = "^24.8.0"
 spdx-tools = "^0.8.3"
 types-pytz = "^2025.2.0.20250516"
