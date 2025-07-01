@@ -40,7 +40,7 @@ jobs:
     - name: Create or update comment
       uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043  # v4
       with:
-        comment-id: ${{ steps.pr-number.outputs.pr-number }}
-        issue-number: ${{ github.event.pull_request.number }}
+        comment-id: ${{ steps.find-dyff-comment.outputs.comment-id }}
+        issue-number: ${{ steps.pr-number.outputs.pr-number }}
         body-path: dyff-output.md
         edit-mode: replace
