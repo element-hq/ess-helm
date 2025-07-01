@@ -123,7 +123,7 @@ jobs:
         kind export logs --name ess-helm ./ess-helm-logs
         kind export kubeconfig --name ess-helm
         ns=$(kubectl --context kind-ess-helm get ns -l app.kubernetes.io/managed-by=pytest  -o jsonpath='{.items[].metadata.name}')
-        resources=("pods" "deployments" "statefulsets" "services" "configmaps" "secrets" "ingresses" "persistentvolumes" "persistentvolumeclaims" "endpoints")
+        resources=("pods" "deployments" "statefulsets" "services" "configmaps" "ingresses" "persistentvolumes" "persistentvolumeclaims" "endpoints")
         for i in "${resources[@]}"; do
           kubectl --context kind-ess-helm get "$i" -n "$ns" > "./ess-helm-logs/$i.txt"
           echo "----" >> "./ess-helm-logs/$i.txt"
