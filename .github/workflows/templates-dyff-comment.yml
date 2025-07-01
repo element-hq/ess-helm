@@ -23,26 +23,24 @@ jobs:
         name: dyff-templates
         run-id: ${{ github.event.workflow_run.id }}
 
-    - name: Unpack artifact
-      id: artifacts
+    - name: Load PR number
+      id: pr-number
       run: |
-        ls -lR
-        unzip dyff-templates -d "${{ runner.temp }}"
         # This is already formatted as pr-number=<pr number>
-        cat "${{ runner.temp }}/pr-number.txt" >> "$GITHUB_OUTPUT"
+        cat "pr-number.txt" >> "$GITHUB_OUTPUT"
 
     - name: Find dyff comment
       uses: peter-evans/find-comment@3eae4d37986fb5a8592848f6a574fdf654e61f9e  # v3
       id: find-dyff-comment
       with:
-        issue-number: ${{ steps.artifacts.outputs.pr-number }}
+        issue-number: ${{ steps.pr-number.outputs.pr-number }}
         comment-author: 'github-actions[bot]'
         body-includes: 'dyff of changes in rendered templates'
 
     - name: Create or update comment
       uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043  # v4
       with:
-        comment-id: ${{ steps.artifacts.outputs.pr-number }}
+        comment-id: ${{ steps.pr-number.outputs.pr-number }}
         issue-number: ${{ github.event.pull_request.number }}
-        body-path: ${{ runner.temp }}/dyff-output.md
+        body-path: dyff-output.md
         edit-mode: replace
