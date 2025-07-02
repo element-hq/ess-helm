@@ -57,6 +57,9 @@ async def test_services_have_matching_labels(
                 assert label.replace("k8s.element.io/target-", "app.kubernetes.io/") in pod.metadata.labels
                 assert value.startswith(
                     pod.metadata.labels[label.replace("k8s.element.io/target-", "app.kubernetes.io/")]
+                ), (
+                    f"{pod.metadata.name} does not have the correct label {label}={value} "
+                    f"(pod status phase : {pod.status.phase if pod.status else 'N/A'}"
                 )
 
 
