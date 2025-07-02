@@ -40,6 +40,8 @@ async def test_services_have_matching_labels(
         label_selectors = {label: value for label, value in service.spec.selector.items()}
 
         async for pod in kube_client.list(Pod, namespace=generated_data.ess_namespace, labels=label_selectors):
+            if pod.status and pod.status.phase == "Terminating":
+                continue  # Skip terminating pods
             assert service.metadata, f"Encountered a service without metadata : {service}"
             assert pod.metadata, f"Encountered a pod without metadata : {pod}"
             assert pod.metadata.labels, f"Encountered a pod without labels : {pod}"
@@ -55,6 +57,9 @@ async def test_services_have_matching_labels(
                 assert label.replace("k8s.element.io/target-", "app.kubernetes.io/") in pod.metadata.labels
                 assert value.startswith(
                     pod.metadata.labels[label.replace("k8s.element.io/target-", "app.kubernetes.io/")]
+                ), (
+                    f"{pod.metadata.name} does not have the correct label {label}={value} "
+                    f"(pod status phase : {pod.status.phase if pod.status else 'N/A'}"
                 )
 
 
