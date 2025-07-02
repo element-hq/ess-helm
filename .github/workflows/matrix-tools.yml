@@ -6,12 +6,12 @@ name: Build matrix-tool Docker Images
 
 on:
   pull_request:
-  workflow_dispatch:
   push:
     branches:
     - main
     tags:
     - 'matrix-tools-*'
+  workflow_dispatch:
 
 env:
   REGISTRY_IMAGE: ghcr.io/${{ github.repository }}/matrix-tools

@@ -5,13 +5,17 @@
 name: Changelog
 on:
   pull_request:
+  push:
+    branches:
+    - main
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
   check-newsfile:
-    if: ${{ (github.base_ref == 'main'  || contains(github.base_ref, 'release-')) && github.actor != 'dependabot[bot]' && github.actor != 'github-actions[bot]' }}
+    if: ${{ (github.event_name == 'pull_request') && (github.base_ref == 'main' || contains(github.base_ref, 'release-')) && github.actor != 'dependabot[bot]' && github.actor != 'github-actions[bot]' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
