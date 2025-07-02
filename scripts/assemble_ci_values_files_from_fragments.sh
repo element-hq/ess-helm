@@ -5,16 +5,23 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 set -euo pipefail
+shopt -s nullglob
 
 [ "$#" -gt 1 ] && echo "Usage: assemble_ci_values_files_from_fragments.sh <optional values file prefix to restrict to>" 1>&2 && exit 1
 
 scripts_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 values_file_root=$( cd "$scripts_dir/../charts/matrix-stack/ci" &> /dev/null && pwd )
+user_values_file_root=$( cd "$scripts_dir/../charts/matrix-stack/user_values" &> /dev/null && pwd )
 values_file_prefix="${1:-*}"
 
 [ ! -d "$values_file_root" ] && echo "$values_file_root must be a directory that exists" 1>&2 && exit 1
+[ ! -d "$user_values_file_root" ] && echo "$user_values_file_root must be a directory that exists" 1>&2 && exit 1
 
-for values_file in "$values_file_root"/$values_file_prefix-values.yaml; do
+for values_file in "$values_file_root"/$values_file_prefix-values.yaml "$user_values_file_root"/$values_file_prefix-values.yaml; do
+  if [ "$values_file_prefix" != '*' ] &&  [ ! -e "$values_file" ]; then
+    echo "$values_file_prefix-values.yaml doesn't exist in $(dirname "$values_file"). Skipping"
+    continue
+  fi
   if ! source_fragments=$(grep -E '#\s+source_fragments:' "$values_file" | sed 's/.*:\s*//'); then
     echo "$values_file doesn't have a source_fragments header comment. Skipping"
     continue
