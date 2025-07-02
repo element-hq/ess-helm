@@ -38,6 +38,7 @@ mypy = "^1.16.1"
 types-pyyaml = "^6.0.12.20250516"
 semver = "^3.0.4"
 prometheus-client = "^0.22.1"
+yamllint = "^1.37.1"
 
 [build-system]
 requires = ["poetry-core"]
