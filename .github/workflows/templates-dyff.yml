@@ -13,6 +13,9 @@ jobs:
   generate-dyff:
     runs-on: ubuntu-latest
     steps:
+    # This checks out the merge of the PR branch and the base branch.
+    # If you check this to be just the PR branch then the ref for the subsequent checkout
+    # needs to be changed too or you end up with unexpected changes being shown.
     - name: Checkout PR
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
       with:
@@ -35,18 +38,12 @@ jobs:
         done
         echo "output_dir=$RUNNER_TEMP/new" | tee -a "$GITHUB_OUTPUT"
 
-    # We want the most recent common ancestor between the target & PR branches rather than the target branch itself
-    # There could have been more commits to the target branch since the PR branch was created and we don't want to see
-    # those changes in the dyff, only what this branch is doing.
-    - name: Determine most recent common ancestor of target and PR branches
-      id: merge-base
-      run: |
-        echo "merge-base=$(git merge-base ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})" | tee -a "$GITHUB_OUTPUT"
-
+    # https://github.com/orgs/community/discussions/59677 says that github.event.pull_request.base.sha
+    # is only calculated on creation of the PR, so we reference the target branch by ref.
     - name: Checkout target
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
       with:
-        ref: ${{ steps.merge-base.outputs.merge-base }}
+        ref: ${{ github.event.pull_request.base.ref }}
 
     - name: Generate manifests for base
       run: |
