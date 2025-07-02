@@ -58,8 +58,10 @@ async def test_services_have_matching_labels(
                 assert value.startswith(
                     pod.metadata.labels[label.replace("k8s.element.io/target-", "app.kubernetes.io/")]
                 ), (
-                    f"{value} does not starts with "
-                    f"{pod.metadata.labels[label.replace('k8s.element.io/target-', 'app.kubernetes.io/')]}"
+                    f"Service/{service.metadata.name} has {label=}={value=} "
+                    f"which does not start with the value from the Pod/{pod.metadata.name} "
+                    f"{label.replace('k8s.element.io/target-', 'app.kubernetes.io/')}="
+                    f"{pod.metadata.labels[label.replace('k8s.element.io/target-', 'app.kubernetes.io/')]} "
                     f"(pod status phase : {pod.status.phase if pod.status else 'N/A'}"
                 )
 
