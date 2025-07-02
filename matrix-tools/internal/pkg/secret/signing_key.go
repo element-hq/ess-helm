@@ -11,13 +11,13 @@ import (
 	"math/rand"
 )
 
-type SigningKey struct {
+type SigningKeyData struct {
 	Alg     string
 	Version int
 	Key     []byte
 }
 
-func generateSigningKey(version int) (*SigningKey, error) {
+func generateSigningKey(version int) (*SigningKeyData, error) {
 	_, priv, err := ed25519.GenerateKey(rand.New(rand.NewSource(0)))
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate key: %w", err)
@@ -28,14 +28,14 @@ func generateSigningKey(version int) (*SigningKey, error) {
 	key := make([]byte, 32)
 	copy(key, priv)
 
-	return &SigningKey{
+	return &SigningKeyData{
 		Alg:     "ed25519",
 		Version: version,
 		Key:     key,
 	}, nil
 }
 
-func encodeSigningKeyBase64(key *SigningKey) string {
+func encodeSigningKeyBase64(key *SigningKeyData) string {
 	return base64.StdEncoding.EncodeToString(key.Key)
 }
 

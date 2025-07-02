@@ -12,13 +12,25 @@ import (
 	"crypto/rand"
 	"math/big"
 
-	"github.com/element-hq/ess-helm/matrix-tools/internal/pkg/args"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
 
-func GenerateSecret(client kubernetes.Interface, secretLabels map[string]string, namespace string, name string, key string, secretType args.SecretType) error {
+type SecretType int
+
+const (
+	UnknownSecretType SecretType = iota
+	Rand32
+	SigningKey
+	Hex32
+	RSA
+	EcdsaPrime256v1
+	EcdsaSecp256k1
+	EcdsaSecp384r1
+)
+
+func GenerateSecret(client kubernetes.Interface, secretLabels map[string]string, namespace string, name string, key string, secretType SecretType) error {
 	ctx := context.Background()
 
 	secretsClient := client.CoreV1().Secrets(namespace)
@@ -54,29 +66,29 @@ func GenerateSecret(client kubernetes.Interface, secretLabels map[string]string,
 	}
 	if _, ok := existingSecret.Data[key]; !ok {
 		switch secretType {
-		case args.Rand32:
+		case Rand32:
 			if randomString, err := generateRandomString(32); err == nil {
 				existingSecret.Data[key] = randomString
 			}
-		case args.SigningKey:
+		case SigningKey:
 			if signingKey, err := generateSynapseSigningKey(); err == nil {
 				existingSecret.Data[key] = []byte(signingKey)
 			} else {
 				return fmt.Errorf("failed to generate signing key: %w", err)
 			}
-		case args.Hex32:
+		case Hex32:
 			if hexBytes, err := generateRandomBytesHex(32); err == nil {
 				existingSecret.Data[key] = hexBytes
 			} else {
 				return fmt.Errorf("failed to generate Hex32 : %w", err)
 			}
-		case args.RSA:
+		case RSA:
 			if keyBytes, err := generateRSA(); err == nil {
 				existingSecret.Data[key] = keyBytes
 			} else {
 				return fmt.Errorf("failed to generate RSA key: %w", err)
 			}
-		case args.EcdsaPrime256v1:
+		case EcdsaPrime256v1:
 			if keyBytes, err := generateEcdsaPrime256v1(); err == nil {
 				existingSecret.Data[key] = keyBytes
 			} else {

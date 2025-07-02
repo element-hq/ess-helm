@@ -10,7 +10,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/element-hq/ess-helm/matrix-tools/internal/pkg/args"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	testclient "k8s.io/client-go/kubernetes/fake"
@@ -24,7 +23,7 @@ func TestGenerateSecret(t *testing.T) {
 		secretLabels  map[string]string
 		secretName    string
 		secretKeys    []string
-		secretType    args.SecretType
+		secretType    SecretType
 		secretData    map[string][]byte
 		expectedError bool
 	}{
@@ -35,7 +34,7 @@ func TestGenerateSecret(t *testing.T) {
 			initLabels:    map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-init-secrets", "app.kubernetes.io/name": "create-secret"},
 			secretLabels:  map[string]string{"app.kubernetes.io/name": "test-secret"},
 			secretKeys:    []string{"key"},
-			secretType:    args.Rand32,
+			secretType:    Rand32,
 			secretData:    nil,
 			expectedError: false,
 		},
@@ -46,7 +45,7 @@ func TestGenerateSecret(t *testing.T) {
 			initLabels:    map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-init-secrets", "app.kubernetes.io/name": "create-secret"},
 			secretLabels:  map[string]string{"app.kubernetes.io/name": "test-secret"},
 			secretKeys:    []string{"key"},
-			secretType:    args.SigningKey,
+			secretType:    SigningKey,
 			secretData:    nil,
 			expectedError: false,
 		},
@@ -57,7 +56,7 @@ func TestGenerateSecret(t *testing.T) {
 			secretLabels:  map[string]string{"element.io/name": "secret-exists"},
 			secretName:    "test-secret",
 			secretKeys:    []string{"key2"},
-			secretType:    args.Rand32,
+			secretType:    Rand32,
 			secretData:    map[string][]byte{"key1": []byte("dmFsdWUx")},
 			expectedError: false,
 		},
@@ -68,7 +67,7 @@ func TestGenerateSecret(t *testing.T) {
 			secretLabels:  map[string]string{"test-name": "override-key"},
 			secretName:    "test-secret",
 			secretKeys:    []string{"key2"},
-			secretType:    args.Rand32,
+			secretType:    Rand32,
 			secretData:    map[string][]byte{"key2": []byte("dmFsdWUx")},
 			expectedError: false,
 		},
@@ -79,7 +78,7 @@ func TestGenerateSecret(t *testing.T) {
 			secretLabels:  map[string]string{"test-name": "override-key"},
 			secretName:    "test-secret",
 			secretKeys:    []string{"key2"},
-			secretType:    args.Rand32,
+			secretType:    Rand32,
 			secretData:    map[string][]byte{"key2": []byte("dmFsdWUx")},
 			expectedError: true,
 		},
@@ -90,7 +89,7 @@ func TestGenerateSecret(t *testing.T) {
 			secretLabels:  map[string]string{"test-name": "override-key"},
 			secretName:    "test-secret",
 			secretKeys:    []string{},
-			secretType:    args.Rand32,
+			secretType:    Rand32,
 			secretData:    nil,
 			expectedError: false,
 		},
@@ -141,11 +140,11 @@ func TestGenerateSecret(t *testing.T) {
 						}
 					} else {
 						switch (tc.secretType) {
-						case args.Rand32:
+						case Rand32:
 							if len(string(value)) != 32 {
 								t.Fatalf("Unexpected data in secret: %v", value)
 							}
-						case args.SigningKey:
+						case SigningKey:
 							expectedPattern := "ed25519 0 [a-zA-Z0-9]+"
 							keyString := string(value)
 							if !regexp.MustCompile(expectedPattern).MatchString(keyString) {
