@@ -6,6 +6,83 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 25.7.0 (2025-07-02)
+
+### Changed
+
+- Don't set `hostAliases` on the Synapse config job as it just operates on the config files. (#574)
+- Upgrade Element Web to v1.11.105.
+
+  Highlights:
+  * Improvements to the new room list (in labs)
+  * Support for custom message components via Module API
+
+  Full Changelog:
+  * [v1.11.105](https://github.com/element-hq/element-web/releases/tag/v1.11.105)
+
+  (#575)
+- Upgrade Synapse to v1.133.0.
+
+  Highlights:
+  * Add support for the [MSC4260 user report API](https://github.com/matrix-org/matrix-spec-proposals/pull/4260)
+
+  Full Changelog:
+  * [v1.133.0](https://github.com/element-hq/synapse/releases/tag/v1.133.0)
+
+  (#577)
+- Upgrade Matrix Authentication Service to v0.18.0.
+
+  Full Changelog:
+  * [v0.18.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v0.18.0)
+
+  (#578)
+- Document how to re-run integration tests from scratch. (#579)
+- Better document uninstallation of, and the stores of state managed by the chart. (#585)
+- Don't push chart OCI images for every PR. (#589, #591)
+- Tweak changelog sections ordering. (#600)
+
+### Fixed
+
+- Fix Matrix RTC SFU `ServiceMonitor` not working. (#569)
+- Fix Matrix Authentication Service not using the `hostAliases` set in the values. (#573)
+- Fix Matrix RTC Authoriser not having default `hostAliases` values. (#573)
+- Fix Postgres and Synapse Media `storageClassName` configuration not being respected.
+
+  **Warning** Previously `synapse.media.storage.storageClass` and `postgres.storage.storageClass`
+  were in the values file and associated schema. These values were accidentally silently ignored
+  and all chart-managed `PersistentVolumeClaims` were constructed without `spec.storageClassName`
+  set, using the cluster default `StorageClass`.
+
+  The values file and associated schema have been updated so that the values are now
+  `synapse.media.storage.storageClassName` and `postgres.storage.storageClassName`. The previous
+  values are disallowed by the schema. Setting these values after the initial install could 
+  cause the `PersistentVolumeClaims` to be recreated, with associated data-loss. Only set
+  `synapse.media.storage.storageClassName` or `postgres.storage.storageClassName` on initial
+  installation. (#582, #583)
+
+### Removed
+
+- Remove Matrix RTC Authoriser `ServiceMonitor` as the Authoriser has no metrics endpoint. (#569)
+- Remove `hostAliases` support from Matrix RTC SFU as it doesn't make outbound requests. (#574)
+
+### Internal
+
+- CI: test that the default values includes stub settings (and thus comments) for various properties. (#573)
+- CI: test that `hostAliases` are correctly set for all workloads that make outbound requests. (#573, #574)
+- CI: improve the test cluster setup for Matrix RTC. (#579)
+- CI: improve testing of chart managed `PersistentVolumeClaims`. (#582)
+- CI: test nodeSelectors are appropriately configured. (#583)
+- CI: simplify which commit we checkout. (#586)
+- CI: switch to using `pull_request` triggers. (#586)
+- CI: don't push artifacthub metadata on PRs. (#589)
+- CI: be explicit about what permissions are workflow/job requires. (#589)
+- CI: allow dyff job to work on forks. (#589, #594)
+- Tests: don't check services matching labels against terminating pods. (#595, #598)
+- Add `yamllint` ct dependency to poetry.toml. (#596)
+- Prepare for 25.7.0 release. (#597)
+- CI: run the preview-changelog job on main and manually as well as PRs. (#599)
+
+
 # ESS Community Helm Chart 25.6.2 (2025-06-19)
 
 ### Fixed
