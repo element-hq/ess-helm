@@ -89,7 +89,7 @@ jobs:
             continue
           fi
 
-          templates_files=$(find "$RUNNER_TEMP/old" "$RUNNER_TEMP/new" -maxdepth 2 -name '*.yaml' | grep "$values_dir" | sed -E 's|'"$RUNNER_TEMP"'/(old\|new)/||' | sort | uniq)
+          templates_files=$(find "$RUNNER_TEMP/old" "$RUNNER_TEMP/new" -maxdepth 2 -name '*.yaml' | grep "/$values_dir/" | sed -E 's|'"$RUNNER_TEMP"'/(old\|new)/||' | sort | uniq)
           comment_templates_body=""
           values_file_suffix=""
           on_both_branches="true"
