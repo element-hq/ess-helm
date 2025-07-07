@@ -89,8 +89,17 @@ jobs:
             continue
           fi
 
-          templates_files=$(find "$RUNNER_TEMP/old" "$RUNNER_TEMP/new" -maxdepth 2 -name '*.yaml' | grep "$values_dir" | sed -E 's|'"$RUNNER_TEMP"'/(old\|new)/||' | sort | uniq)
+          templates_files=$(find "$RUNNER_TEMP/old" "$RUNNER_TEMP/new" -maxdepth 2 -name '*.yaml' | grep "/$values_dir/" | sed -E 's|'"$RUNNER_TEMP"'/(old\|new)/||' | sort | uniq)
           comment_templates_body=""
+          values_file_suffix=""
+          on_both_branches="true"
+          if [ ! -d "$RUNNER_TEMP/old/$values_dir" ]; then
+            values_file_suffix=" (added)"
+            on_both_branches="false"
+          elif [ ! -d "$RUNNER_TEMP/new/$values_dir" ]; then
+            values_file_suffix=" (removed)"
+            on_both_branches="false"
+          fi
 
           while read -r templates_file; do
             current_file="$(basename "$templates_file")"
@@ -99,40 +108,34 @@ jobs:
             fi
 
             if [ ! -f "$RUNNER_TEMP/old/$templates_file" ]; then
-              api_version=$(yq '.apiVersion' "$RUNNER_TEMP/new/$templates_file")
               kind=$(yq '.kind' "$RUNNER_TEMP/new/$templates_file")
               name=$(yq '.metadata.name' "$RUNNER_TEMP/new/$templates_file")
               namespace=$(yq '.metadata.namespace' "$RUNNER_TEMP/new/$templates_file")
-              metadata=$(yq '.metadata' "$RUNNER_TEMP/new/$templates_file")
-              comment_templates_body+="@@ $current_file @@\n"
-              comment_templates_body+="# $api_version/$kind/$namespace/$name\n"
-              comment_templates_body+="! + one file added - the full content of the file is available in ${ARTIFACT_URL}\n"
-              comment_templates_body+="+ apiVersion: $api_version\n"
-              comment_templates_body+="+ kind: $kind\n"
-              comment_templates_body+="+ metadata:\n"
-              while IFS= read -r line; do
-                comment_templates_body+="+   $line\n"
-              done <<< "$metadata"
-              comment_templates_body+="\n\n"
+              if [ "$on_both_branches" == "true" ]; then
+                comment_templates_body+="@@ $kind/$namespace/$name @@\n"
+                while IFS= read -r line; do
+                  comment_templates_body+="+ $line\n"
+                done < "$RUNNER_TEMP/new/$templates_file"
+                comment_templates_body+="\n\n"
+              else
+                comment_templates_body+="$kind/$namespace/$name added\n"
+              fi
               continue
             fi
 
             if [ ! -f "$RUNNER_TEMP/new/$templates_file" ]; then
-              api_version=$(yq '.apiVersion' "$RUNNER_TEMP/old/$templates_file" )
               kind=$(yq '.kind' "$RUNNER_TEMP/old/$templates_file")
               name=$(yq '.metadata.name' "$RUNNER_TEMP/old/$templates_file")
               namespace=$(yq '.metadata.namespace' "$RUNNER_TEMP/old/$templates_file")
-              metadata=$(yq '.metadata' "$RUNNER_TEMP/old/$templates_file")
-              comment_templates_body+="@@ $current_file @@\n"
-              comment_templates_body+="# $api_version/$kind/$namespace/$name\n"
-              comment_templates_body+="! - one file removed\n"
-              comment_templates_body+="- apiVersion: $api_version\n"
-              comment_templates_body+="- kind: $kind\n"
-              comment_templates_body+="- metadata:\n"
-              while IFS= read -r line; do
-                comment_templates_body+="-   $line\n"
-              done <<< "$metadata"
-              comment_templates_body+="\n\n"
+              if [ "$on_both_branches" == "true" ]; then
+                comment_templates_body+="@@ $kind/$namespace/$name @@\n"
+                while IFS= read -r line; do
+                  comment_templates_body+="- $line\n"
+                done < "$RUNNER_TEMP/old/$templates_file"
+                comment_templates_body+="\n\n"
+              else
+                comment_templates_body+="$kind/$namespace/$name removed\n"
+              fi
               continue
             fi
 
@@ -144,18 +147,16 @@ jobs:
                 exit 1
               fi
 
-              api_version=$(yq '.apiVersion' "$RUNNER_TEMP/new/$templates_file")
               kind=$(yq '.kind' "$RUNNER_TEMP/new/$templates_file")
               name=$(yq '.metadata.name' "$RUNNER_TEMP/new/$templates_file")
               namespace=$(yq '.metadata.namespace' "$RUNNER_TEMP/new/$templates_file")
-              resource_metadata="# $api_version/$kind/$namespace/$name"
-              comment_templates_body+=$(sed -e "1d" -e "/^@@/a$resource_metadata" <<< "$dyff_detail")
+              comment_templates_body+=$(sed -e '/^!/d' -e "s|^@@\(.*\)@@|@@ $kind/$namespace/$name -\1@@|" <<< "$dyff_detail")
               comment_templates_body+="\n\n\n"
             fi
           done <<< "$templates_files"
 
           if [[ -n "$comment_templates_body" ]]; then
-              comment_body+="<details><summary><b>$values_dir.yaml</b></summary>\n"
+              comment_body+="<details><summary><b>$values_dir.yaml$values_file_suffix</b></summary>\n"
               comment_body+='\n```diff\n'
               comment_body+="$comment_templates_body"
               comment_body+='```\n'
@@ -166,7 +167,10 @@ jobs:
 
         if [ -z "$comment_body" ]; then
           comment_body="No changes in rendered templates"
+        else
+          header+="Full contents of manifests and dyffs are available in ${ARTIFACT_URL}\n\n"
         fi
+
 
         echo -e "$header$comment_body" | tee "$RUNNER_TEMP/dyff-output.md"
         echo "pr-number=$PR_NUMBER" | tee "$RUNNER_TEMP/pr-number.txt"
