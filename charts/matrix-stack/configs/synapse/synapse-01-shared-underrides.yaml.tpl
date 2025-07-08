@@ -9,6 +9,8 @@ report_stats: false
 
 require_auth_for_profile_requests: true
 
+federation_client_minimum_tls_version: '1.2'
+
 {{- if $root.Values.matrixRTC.enabled }}
 # The maximum allowed duration by which sent events can be delayed, as
 # per MSC4140.
