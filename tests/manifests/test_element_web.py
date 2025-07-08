@@ -17,6 +17,7 @@ async def test_config_json_override(values, make_templates):
                 "bug_report_endpoint_url": "https://element.io/bugreports/submit",
                 "default_server_config": {"m.homeserver": {}},
                 "map_style_url": "https://api.maptiler.com/maps/streets/style.json?key=fU3vlMsMn4Jb6dnEIFsx",
+                "mobile_guide_app_variant": "element",
                 "setting_defaults": {},
             }
             break
@@ -27,6 +28,7 @@ async def test_config_json_override(values, make_templates):
         "000-comes-first": json.dumps(
             {
                 "bug_report_endpoint_url": "https://other-url",
+                "mobile_guide_app_variant": "element-classic",
                 "some_key": {"some_subkey": "value"},
                 "other_key": {"other_value": "value_second"},
             }
@@ -43,6 +45,7 @@ async def test_config_json_override(values, make_templates):
                 "bug_report_endpoint_url": "https://other-url",
                 "default_server_config": {"m.homeserver": {}},
                 "map_style_url": "https://api.maptiler.com/maps/streets/style.json?key=fU3vlMsMn4Jb6dnEIFsx",
+                "mobile_guide_app_variant": "element-classic",
                 "setting_defaults": {},
                 "other_key": {"other_value": "value_second"},
                 "some_key": {"some_subkey": "override"},
