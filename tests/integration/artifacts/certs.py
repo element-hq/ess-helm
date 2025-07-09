@@ -80,7 +80,6 @@ def get_ca(name, root_ca=None) -> CertKey:
     ca_filename = Path(user_cache_dir("pytest-ess", "element")) / Path(name.lower().replace(" ", "-"))
     cert_path = ca_filename.with_suffix(".crt")
     key_path = ca_filename.with_suffix(".key")
-    bundle_path = (ca_filename.parent / (ca_filename.name + "-bundle")).with_suffix(".pem")
     if not ca_filename.parent.exists():
         os.makedirs(ca_filename.parent, exist_ok=True)
     certkey = None
@@ -100,8 +99,13 @@ def get_ca(name, root_ca=None) -> CertKey:
             pem_out.write(certkey.key_as_pem().encode("utf-8"))
         with open(cert_path, "wb") as pem_out:
             pem_out.write(certkey.cert_as_pem().encode("utf-8"))
-        with open(bundle_path, "wb") as pem_out:
-            pem_out.write(certkey.cert_bundle_as_pem().encode("utf-8"))
+
+    # Remove unused bundle - given we should only need to trust the root CA, that the tests will construct the
+    # bundle appropriate for ingresses, and that a bundle of CA certs wasn't super useful this file was unneeded
+    bundle_path = (ca_filename.parent / (ca_filename.name + "-bundle")).with_suffix(".pem")
+    if bundle_path.exists():
+        bundle_path.unlink()
+
     return certkey
 
 
