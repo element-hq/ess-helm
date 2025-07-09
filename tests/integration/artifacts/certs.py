@@ -17,7 +17,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
-from cryptography.hazmat.primitives.serialization import load_pem_private_key, pkcs12
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from cryptography.x509 import Certificate
 from cryptography.x509.oid import NameOID
 from platformdirs import user_cache_dir
@@ -33,28 +33,6 @@ class CertKey:
         if self.ca is None:
             return self
         return self.ca.get_root_ca()
-
-    def cert_bundle_as_pfx(self, password: bytes | None = None) -> bytes:
-        if password is None:
-            password = b""
-
-        cas: list[Certificate] = []
-        ca = self.ca
-        while ca is not None:
-            # We only append this CA cert if it isn't the root
-            if ca.ca is not None:
-                cas.append(ca.cert)
-            ca = ca.ca
-
-        return pkcs12.serialize_key_and_certificates(
-            name=b"certificate",
-            key=self.key,
-            cert=self.cert,
-            cas=cas,
-            encryption_algorithm=serialization.BestAvailableEncryption(password)
-            if password
-            else serialization.NoEncryption(),
-        )
 
     def cert_bundle_as_pem(self):
         bundle = []
