@@ -34,13 +34,13 @@ def kubernetes_docker_secret(name: str, namespace: str, docker_config_json: str)
     return secret
 
 
-def kubernetes_tls_secret(name: str, namespace: str, ca: CertKey, dns_names: list[str], bundled=False) -> Secret:
+def kubernetes_tls_secret(name: str, namespace: str, ca: CertKey, dns_names: list[str]) -> Secret:
     certificate = generate_cert(ca, dns_names)
     secret = Secret(
         type="kubernetes.io/tls",
         metadata=ObjectMeta(name=name, namespace=namespace, labels={"app.kubernetes.io/managed-by": "pytest"}),
         stringData={
-            "tls.crt": certificate.cert_bundle_as_pem() if bundled else certificate.cert_as_pem(),
+            "tls.crt": certificate.cert_bundle_as_pem(),
             "tls.key": certificate.key_as_pem(),
         },
     )

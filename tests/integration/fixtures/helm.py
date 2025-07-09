@@ -52,7 +52,6 @@ async def helm_prerequisites(
                 generated_data.ess_namespace,
                 ca,
                 [f"mrtc.{generated_data.server_name}"],
-                bundled=True,
             )
         )
 
@@ -63,7 +62,6 @@ async def helm_prerequisites(
                 generated_data.ess_namespace,
                 ca,
                 [f"element.{generated_data.server_name}"],
-                bundled=True,
             )
         )
 
@@ -78,7 +76,6 @@ async def helm_prerequisites(
                 generated_data.ess_namespace,
                 ca,
                 [f"mas.{generated_data.server_name}"],
-                bundled=True,
             )
         )
         resources.append(
@@ -110,7 +107,6 @@ clients:
                 generated_data.ess_namespace,
                 ca,
                 [f"synapse.{generated_data.server_name}"],
-                bundled=True,
             )
         )
         resources.append(
@@ -136,7 +132,6 @@ retention:
                 generated_data.ess_namespace,
                 ca,
                 [generated_data.server_name],
-                bundled=True,
             )
         )
 
