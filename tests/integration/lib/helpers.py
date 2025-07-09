@@ -41,6 +41,7 @@ def kubernetes_tls_secret(name: str, namespace: str, certificate: CertKey) -> Se
         stringData={
             "tls.crt": certificate.cert_bundle_as_pem(),
             "tls.key": certificate.key_as_pem(),
+            "ca.crt": certificate.get_root_ca().cert_as_pem(),
         },
     )
     return secret

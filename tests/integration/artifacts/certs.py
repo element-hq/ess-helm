@@ -29,15 +29,28 @@ class CertKey:
     cert: Certificate
     key: RSAPrivateKey
 
+    def get_root_ca(self) -> CertKey:
+        if self.ca is None:
+            return self
+        return self.ca.get_root_ca()
+
     def cert_bundle_as_pfx(self, password: bytes | None = None) -> bytes:
         if password is None:
             password = b""
+
+        cas: list[Certificate] = []
+        ca = self.ca
+        while ca is not None:
+            # We only append this CA cert if it isn't the root
+            if ca.ca is not None:
+                cas.append(ca.cert)
+            ca = ca.ca
 
         return pkcs12.serialize_key_and_certificates(
             name=b"certificate",
             key=self.key,
             cert=self.cert,
-            cas=None,
+            cas=cas,
             encryption_algorithm=serialization.BestAvailableEncryption(password)
             if password
             else serialization.NoEncryption(),
@@ -46,8 +59,12 @@ class CertKey:
     def cert_bundle_as_pem(self):
         bundle = []
         bundle.append(self.cert.public_bytes(encoding=serialization.Encoding.PEM).decode("utf-8"))
-        if self.ca is not None:
-            bundle.append(self.ca.cert_bundle_as_pem())
+        ca = self.ca
+        while ca is not None:
+            # We only append this CA cert if it isn't the root
+            if ca.ca is not None:
+                bundle.append(self.ca.cert_as_pem())
+            ca = ca.ca
         return "".join(bundle)
 
     def cert_as_pem(self):
