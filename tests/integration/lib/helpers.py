@@ -17,7 +17,7 @@ from lightkube.models.core_v1 import (
 from lightkube.models.meta_v1 import ObjectMeta
 from lightkube.resources.core_v1 import ConfigMap, Endpoints, Namespace, Pod, Secret
 
-from ..artifacts import CertKey, generate_cert
+from ..artifacts import CertKey
 from .utils import merge
 
 
@@ -34,14 +34,14 @@ def kubernetes_docker_secret(name: str, namespace: str, docker_config_json: str)
     return secret
 
 
-def kubernetes_tls_secret(name: str, namespace: str, ca: CertKey, dns_names: list[str], bundled=False) -> Secret:
-    certificate = generate_cert(ca, dns_names)
+def kubernetes_tls_secret(name: str, namespace: str, certificate: CertKey) -> Secret:
     secret = Secret(
         type="kubernetes.io/tls",
         metadata=ObjectMeta(name=name, namespace=namespace, labels={"app.kubernetes.io/managed-by": "pytest"}),
         stringData={
-            "tls.crt": certificate.cert_bundle_as_pem() if bundled else certificate.cert_as_pem(),
+            "tls.crt": certificate.cert_bundle_as_pem(),
             "tls.key": certificate.key_as_pem(),
+            "ca.crt": certificate.get_root_ca().cert_as_pem(),
         },
     )
     return secret

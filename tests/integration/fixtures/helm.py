@@ -15,6 +15,7 @@ from lightkube.models.meta_v1 import ObjectMeta
 from lightkube.resources.core_v1 import Namespace, Secret, Service
 from lightkube.resources.networking_v1 import Ingress
 
+from ..artifacts.certs import CertKey, generate_cert
 from ..lib.helpers import kubernetes_docker_secret, kubernetes_tls_secret, wait_for_endpoint_ready
 from ..lib.utils import DockerAuth, docker_config_json, value_file_has
 from .data import ESSData
@@ -22,7 +23,11 @@ from .data import ESSData
 
 @pytest.fixture(scope="session")
 async def helm_prerequisites(
-    kube_client: AsyncClient, helm_client: pyhelm3.Client, ca, ess_namespace: Namespace, generated_data: ESSData
+    kube_client: AsyncClient,
+    helm_client: pyhelm3.Client,
+    delegated_ca: CertKey,
+    ess_namespace: Namespace,
+    generated_data: ESSData,
 ):
     resources = []
     setups: list[Awaitable] = []
@@ -50,9 +55,7 @@ async def helm_prerequisites(
             kubernetes_tls_secret(
                 f"{generated_data.release_name}-matrix-rtc-tls",
                 generated_data.ess_namespace,
-                ca,
-                [f"mrtc.{generated_data.server_name}"],
-                bundled=True,
+                generate_cert(delegated_ca, [f"mrtc.{generated_data.server_name}"]),
             )
         )
 
@@ -61,9 +64,7 @@ async def helm_prerequisites(
             kubernetes_tls_secret(
                 f"{generated_data.release_name}-element-web-tls",
                 generated_data.ess_namespace,
-                ca,
-                [f"element.{generated_data.server_name}"],
-                bundled=True,
+                generate_cert(delegated_ca, [f"element.{generated_data.server_name}"]),
             )
         )
 
@@ -76,9 +77,7 @@ async def helm_prerequisites(
             kubernetes_tls_secret(
                 f"{generated_data.release_name}-mas-web-tls",
                 generated_data.ess_namespace,
-                ca,
-                [f"mas.{generated_data.server_name}"],
-                bundled=True,
+                generate_cert(delegated_ca, [f"mas.{generated_data.server_name}"]),
             )
         )
         resources.append(
@@ -108,9 +107,7 @@ clients:
             kubernetes_tls_secret(
                 f"{generated_data.release_name}-synapse-web-tls",
                 generated_data.ess_namespace,
-                ca,
-                [f"synapse.{generated_data.server_name}"],
-                bundled=True,
+                generate_cert(delegated_ca, [f"synapse.{generated_data.server_name}"]),
             )
         )
         resources.append(
@@ -134,9 +131,7 @@ retention:
             kubernetes_tls_secret(
                 f"{generated_data.release_name}-well-known-web-tls",
                 generated_data.ess_namespace,
-                ca,
-                [generated_data.server_name],
-                bundled=True,
+                generate_cert(delegated_ca, [generated_data.server_name]),
             )
         )
 
