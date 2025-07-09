@@ -76,7 +76,7 @@ class CertKey:
         }
 
 
-def get_ca(name, root_ca=None) -> CertKey:
+def get_ca(name, issuing_ca=None) -> CertKey:
     ca_filename = Path(user_cache_dir("pytest-ess", "element")) / Path(name.lower().replace(" ", "-"))
     cert_path = ca_filename.with_suffix(".crt")
     key_path = ca_filename.with_suffix(".key")
@@ -92,9 +92,10 @@ def get_ca(name, root_ca=None) -> CertKey:
         with open(cert_path, "rb") as pem_in:
             cert = x509.load_pem_x509_certificate(pem_in.read(), default_backend())
         if cert.not_valid_after_utc > pytz.UTC.localize(datetime.datetime.now()):
-            certkey = CertKey(ca=root_ca, cert=cert, key=private_key)
+            certkey = CertKey(ca=issuing_ca, cert=cert, key=private_key)
+
     if not certkey:
-        certkey = generate_ca(name, root_ca)
+        certkey = generate_ca(name, issuing_ca)
         with open(key_path, "wb") as pem_out:
             pem_out.write(certkey.key_as_pem().encode("utf-8"))
         with open(cert_path, "wb") as pem_out:
@@ -109,7 +110,7 @@ def get_ca(name, root_ca=None) -> CertKey:
     return certkey
 
 
-def generate_ca(name, root_ca=None) -> CertKey:
+def generate_ca(name, issuing_ca=None) -> CertKey:
     two_days = datetime.timedelta(2, 0, 0)
     three_months = datetime.timedelta(90, 0, 0)
     private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048, backend=default_backend())
@@ -124,8 +125,8 @@ def generate_ca(name, root_ca=None) -> CertKey:
             ]
         )
     )
-    if root_ca:
-        builder = builder.issuer_name(root_ca.cert.subject)
+    if issuing_ca:
+        builder = builder.issuer_name(issuing_ca.cert.subject)
     else:
         builder = builder.issuer_name(
             x509.Name(
@@ -149,12 +150,12 @@ def generate_ca(name, root_ca=None) -> CertKey:
         critical=True,
     )
     builder = builder.add_extension(x509.SubjectKeyIdentifier.from_public_key(public_key), critical=False)
-    if root_ca:
+    if issuing_ca:
         builder = builder.add_extension(
-            x509.AuthorityKeyIdentifier.from_issuer_public_key(root_ca.cert.public_key()), critical=False
+            x509.AuthorityKeyIdentifier.from_issuer_public_key(issuing_ca.cert.public_key()), critical=False
         )
-        certificate = builder.sign(root_ca.key, hashes.SHA256(), default_backend())
-        ca = CertKey(ca=root_ca, cert=certificate, key=private_key)
+        certificate = builder.sign(issuing_ca.key, hashes.SHA256(), default_backend())
+        ca = CertKey(ca=issuing_ca, cert=certificate, key=private_key)
     else:
         builder = builder.add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(public_key), critical=False)
         certificate = builder.sign(private_key, hashes.SHA256(), default_backend())
