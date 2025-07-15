@@ -34,10 +34,10 @@ There are three editions of **Element Server Suite**:
 ## ESS Community
 ESS Community is a cutting-edge Matrix distribution including all the latest features of the Matrix server Synapse and other components. It is freely available under the AGPLv3 license and tailored to small-/mid-scale, non-commercial community use cases. It's designed to easily and quickly set up a Matrix deployment. It comprises the basic components needed to get you running and is a great way to get started.
 
+To get professional support & upgrade to ESS Pro, [contact Element](https://try.element.io/upgrade-ess-community).
+
 ## ESS Pro
 [ESS Pro](https://element.io/server-suite) is the commercial backend distribution from Element. It includes everything in ESS Community plus additional features and services that are tailored to professional environments with more than 100 users up to massive scale in the millions. It is designed to support enterprise requirements in terms of advanced IAM, compliance, scalability, high availability, high density and multi-tenancy. ESS Pro makes use of Synapse Pro to provide infrastructure cost savings and improved user experience under high load. It uses Element’s Secure Border Gateway (SBG) as an application layer firewall to manage federation and to ensure that deployments stay compliant at any time. ESS Pro includes L3 support, Long-term Support (LTS), Advanced Security Advisory and prepares you for the Cyber Resilience Act (CRA).
-
-To get professional support & upgrade to ESS Pro, [contact Element](https://try.element.io/upgrade-ess-community).
 
 ## ESS TI-M
 ESS TI-M is a special version of ESS Pro focused on the requirements of TI-Messenger Pro and ePA as specified by the German National Digital Health Agency Gematik. It complies with a specific Matrix version and does not make use of experimental features.
