@@ -43,6 +43,7 @@ for values_file in "$values_file_root"/$values_file_prefix-values.yaml "$user_va
   # Remove any fields with null values so we have a way of removing things
   yq_command+=" | del(... | select(. == null))"
   # We could remove enabled: true for all default enabled components by setting enabled: null in their minimal values file,
+  yq_command+=" | del(.deploymentMarkers.enabled | select(.))"
   yq_command+=" | del(.matrixRTC.enabled | select(.))"
   yq_command+=" | del(.elementWeb.enabled | select(.))"
   yq_command+=" | del(.initSecrets.enabled | select(.))"
@@ -51,7 +52,7 @@ for values_file in "$values_file_root"/$values_file_prefix-values.yaml "$user_va
   yq_command+=" | del(.synapse.enabled | select(.))"
   yq_command+=" | del(.wellKnownDelegation.enabled | select(.))"
   yq_command+=' | del(.. | select(tag == "!!map" and length == 0))'
-  yq_command+=" | select((. | [\"initSecrets\", \"postgres\", \"wellKnownDelegation\"] - keys) | length > 0) head_comment=([\"initSecrets\", \"postgres\", \"wellKnownDelegation\"] - keys | join(\", \"))  + \" don't have any required properties to be set and defaults to enabled\""
+  yq_command+=" | select((. | [\"deploymentMarkers\", \"initSecrets\", \"postgres\", \"wellKnownDelegation\"] - keys) | length > 0) head_comment=([\"deploymentMarkers\", \"initSecrets\", \"postgres\", \"wellKnownDelegation\"] - keys | join(\", \"))  + \" don't have any required properties to be set and defaults to enabled\""
 
   echo "Generating $values_file from $source_fragments";
   echo "" > "$values_file"
