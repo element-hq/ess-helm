@@ -5,7 +5,7 @@
 # source_fragments: quick-setup-all-enabled.yaml quick-setup-hostnames.yaml quick-setup-external-cert.yaml
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
-# initSecrets, postgres, wellKnownDelegation don't have any required properties to be set and defaults to enabled
+# deploymentMarkers, initSecrets, postgres, wellKnownDelegation don't have any required properties to be set and defaults to enabled
 elementWeb:
   ingress:
     host: chat.your.tld
