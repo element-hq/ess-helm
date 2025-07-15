@@ -40,7 +40,36 @@ To configure your own PostgreSQL Database in your installation, copy the file `c
 
 K3s by default deploys the storage in `/var/lib/rancher/k3s/storage/`. If you want to change the path, you will have to run the K3s setup with the parameter `--default-local-storage-path <your path>`.
 
-# Monitoring
+## Configuring Traefik ingress timeouts when using K3s
+
+If you are experiencing timeouts when uploading large files to ESS, you will want to customize Traefik timeouts creating the file `traefik-config.yaml` in `/var/lib/rancher/k3s/server/manifests`. If the file already exists because you have configured custom ports for Traefik, add the example below to the existing file.
+
+```yml
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    ports:
+      web:
+        transport:
+          respondingTimeouts:
+            readTimeout: "<timeout in seconds>s"
+            writeTimeout: "<timeout in seconds>s"
+            idleTimeout: "<timeout in seconds>s"
+      websecure:
+        transport:
+          respondingTimeouts:
+            readTimeout: "<timeout in seconds>s"
+            writeTimeout: "<timeout in seconds>s"
+            idleTimeout: "<timeout in seconds>s"
+```
+
+The above values correspond to the Traefik installation managed by K3s. If you are installing Traefik by other means, the exact structure of the configuration may differ.
+
+## Monitoring
 
 The chart provides `ServiceMonitor` automatically to monitor the metrics exposed by ESS Community.
 
