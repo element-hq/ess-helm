@@ -26,6 +26,7 @@ for values_file in "$values_file_root"/$values_file_prefix-values.yaml "$user_va
     echo "$values_file doesn't have a source_fragments header comment. Skipping"
     continue
   fi
+  source_fragments=$(echo "$source_fragments" | tr " " "\n" | sort | uniq | tr "\n" " " | sed 's/^\s*//' | sed 's/\s*$//')
 
   yq_command='.'
   for fragment_name in ${source_fragments}; do
@@ -62,7 +63,7 @@ for values_file in "$values_file_root"/$values_file_prefix-values.yaml "$user_va
 
   cat << EOF >> "$values_file"
 #
-# source_fragments: $(echo "$source_fragments" | tr " " "\n" | sort | uniq | tr "\n" " " | sed 's/^\s*//' | sed 's/\s*$//')
+# source_fragments: $source_fragments
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
 EOF
