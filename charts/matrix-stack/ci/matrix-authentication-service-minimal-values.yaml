@@ -2,10 +2,12 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 #
-# source_fragments: matrix-authentication-service-minimal.yaml init-secrets-minimal.yaml postgres-minimal.yaml deployment-markers-minimal.yaml
+# source_fragments: matrix-authentication-service-minimal.yaml init-secrets-minimal.yaml postgres-minimal.yaml
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
-# deploymentMarkers, initSecrets, postgres don't have any required properties to be set and defaults to enabled
+# initSecrets, postgres don't have any required properties to be set and defaults to enabled
+deploymentMarkers:
+  enabled: false
 elementWeb:
   enabled: false
 matrixAuthenticationService:
