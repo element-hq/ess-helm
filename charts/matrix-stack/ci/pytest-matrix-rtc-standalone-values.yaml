@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 #
-# source_fragments: matrix-rtc-minimal.yaml matrix-rtc-pytest-extras.yaml init-secrets-minimal.yaml init-secrets-pytest-extras.yaml
+# source_fragments: init-secrets-minimal.yaml init-secrets-pytest-extras.yaml matrix-rtc-minimal.yaml matrix-rtc-pytest-extras.yaml
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
 # postgres don't have any required properties to be set and defaults to enabled

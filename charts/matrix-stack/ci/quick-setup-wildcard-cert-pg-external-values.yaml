@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 #
-# source_fragments: quick-setup-all-enabled.yaml quick-setup-hostnames.yaml quick-setup-wildcard-cert.yaml quick-setup-postgresql.yaml
+# source_fragments: quick-setup-all-enabled.yaml quick-setup-hostnames.yaml quick-setup-postgresql.yaml quick-setup-wildcard-cert.yaml
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
 # deploymentMarkers, initSecrets, postgres, wellKnownDelegation don't have any required properties to be set and defaults to enabled
