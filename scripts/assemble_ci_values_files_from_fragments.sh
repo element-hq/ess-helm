@@ -62,7 +62,7 @@ for values_file in "$values_file_root"/$values_file_prefix-values.yaml "$user_va
 
   cat << EOF >> "$values_file"
 #
-# source_fragments: $source_fragments
+# source_fragments: $(echo "$source_fragments" | tr " " "\n" | sort | uniq | tr "\n" " " | sed 's/^\s*//' | sed 's/\s*$//')
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
 EOF

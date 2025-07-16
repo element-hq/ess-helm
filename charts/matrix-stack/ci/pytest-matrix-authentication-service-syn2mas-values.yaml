@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 #
-# source_fragments: deployment-markers-minimal.yaml synapse-minimal.yaml synapse-pytest-base-extras.yaml matrix-authentication-service-pytest-extras.yaml matrix-authentication-service-syn2mas-dryrun.yaml init-secrets-minimal.yaml init-secrets-pytest-extras.yaml postgres-minimal.yaml deployment-markers-pytest-extras.yaml matrix-authentication-service-migrated-password-scheme.yaml
+# source_fragments: deployment-markers-minimal.yaml deployment-markers-pytest-extras.yaml init-secrets-minimal.yaml init-secrets-pytest-extras.yaml matrix-authentication-service-migrated-password-scheme.yaml matrix-authentication-service-pytest-extras.yaml matrix-authentication-service-syn2mas-dryrun.yaml postgres-minimal.yaml synapse-minimal.yaml synapse-pytest-base-extras.yaml
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
 deploymentMarkers:

@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 #
-# source_fragments: matrix-authentication-service-minimal.yaml matrix-authentication-service-checkov.yaml init-secrets-minimal.yaml init-secrets-checkov.yaml postgres-minimal.yaml postgres-checkov.yaml
+# source_fragments: init-secrets-checkov.yaml init-secrets-minimal.yaml matrix-authentication-service-checkov.yaml matrix-authentication-service-minimal.yaml postgres-checkov.yaml postgres-minimal.yaml
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
 deploymentMarkers:

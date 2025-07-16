@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 #
-# source_fragments: well-known-minimal.yaml init-secrets-disabled.yaml
+# source_fragments: init-secrets-disabled.yaml well-known-minimal.yaml
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
 # postgres, wellKnownDelegation don't have any required properties to be set and defaults to enabled
