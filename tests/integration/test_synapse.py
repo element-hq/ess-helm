@@ -116,6 +116,7 @@ async def test_rendezvous_cors_headers_are_only_set_with_mas(ingress_ready, gene
         assert ("ETag" in response.headers["Access-Control-Expose-Headers"]) == supports_qr_code_login
 
 
+@pytest.mark.skipif(value_file_has("deploymentMarkers.enabled", False), reason="Deployment Markers not enabled")
 @pytest.mark.skipif(value_file_has("synapse.enabled", False), reason="Synapse not deployed")
 @pytest.mark.skipif(value_file_has("matrixAuthenticationService.enabled", True), reason="MAS is deployed")
 @pytest.mark.skipif(value_file_has("matrixAuthenticationService.syn2mas.enabled", True), reason="Syn2Mas is being run")

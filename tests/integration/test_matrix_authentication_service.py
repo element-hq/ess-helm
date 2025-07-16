@@ -27,6 +27,7 @@ async def test_matrix_authentication_service_graphql_endpoint(ingress_ready, gen
     assert json_content["data"] == {"userByUsername": None}
 
 
+@pytest.mark.skipif(value_file_has("deploymentMarkers.enabled", False), reason="Deployment Markers not enabled")
 @pytest.mark.skipif(value_file_has("matrixAuthenticationService.enabled", False), reason="MAS not deployed")
 @pytest.mark.skipif(value_file_has("matrixAuthenticationService.syn2mas.enabled", True), reason="Syn2Mas is being run")
 @pytest.mark.asyncio_cooperative
