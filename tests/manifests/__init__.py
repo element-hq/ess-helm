@@ -97,6 +97,7 @@ class DeployableDetails(abc.ABC):
     has_db: bool = field(default=False, hash=False)
     has_image: bool = field(default=None, hash=False)  # type: ignore[assignment]
     has_ingress: bool = field(default=True, hash=False)
+    has_automount_service_account_token: bool = field(default=False, hash=False)
     has_workloads: bool = field(default=True, hash=False)
     has_replicas: bool = field(default=None, hash=False)  # type: ignore[assignment]
     has_service_monitor: bool = field(default=None, hash=False)  # type: ignore[assignment]
@@ -410,6 +411,7 @@ all_components_details = [
         },
         has_image=False,
         has_ingress=False,
+        has_automount_service_account_token=True,
         has_replicas=False,
         has_service_monitor=False,
         has_topology_spread_constraints=False,
@@ -429,6 +431,7 @@ all_components_details = [
         },
         has_image=False,
         has_ingress=False,
+        has_automount_service_account_token=True,
         has_replicas=False,
         has_service_monitor=False,
         has_topology_spread_constraints=False,
@@ -531,6 +534,7 @@ all_components_details = [
                     PropertyType.StartupProbe: ValuesFilePath.not_supported(),
                 },
                 has_ingress=False,
+                has_automount_service_account_token=True,
                 has_replicas=False,
                 has_service_monitor=False,
                 has_topology_spread_constraints=False,
