@@ -7,16 +7,18 @@ import copy
 import pytest
 
 from . import DeployableDetails, PropertyType, all_deployables_details, values_files_to_test
-from .utils import iterate_deployables_workload_parts, template_id
+from .utils import iterate_deployables_workload_parts, template_id, template_to_deployable_details
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_dont_automount_serviceaccount_tokens(templates):
+async def test_automount_serviceaccount_tokens_as_appropriate(templates):
     for template in templates:
-        if template["kind"] in ["Deployment", "StatefulSet"]:
-            assert not template["spec"]["template"]["spec"]["automountServiceAccountToken"], (
-                f"ServiceAccount token automounted for {template_id(template)}"
+        deployable_details = template_to_deployable_details(template)
+        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
+            assert (
+                deployable_details.has_automount_service_account_token
+                == template["spec"]["template"]["spec"]["automountServiceAccountToken"]
             )
 
 
