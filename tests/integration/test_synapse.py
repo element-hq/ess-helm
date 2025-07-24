@@ -8,7 +8,7 @@ from pathlib import Path
 import pyhelm3
 import pytest
 
-from .fixtures import ESSData
+from .fixtures import ESSData, User
 from .lib.helpers import deploy_with_values_patch, get_deployment_marker
 from .lib.synapse import assert_downloaded_content, download_media, upload_media
 from .lib.utils import KubeCtl, aiohttp_client, aiohttp_get_json, aiohttp_post_json, value_file_has
@@ -33,10 +33,10 @@ async def test_synapse_can_access_client_api(
 
 
 @pytest.mark.skipif(value_file_has("synapse.enabled", False), reason="Synapse not deployed")
-@pytest.mark.parametrize("users", [("sliding-sync-user",)], indirect=True)
+@pytest.mark.parametrize("users", [(User(name="sliding-sync-user"),)], indirect=True)
 @pytest.mark.asyncio_cooperative
 async def test_simplified_sliding_sync_syncs(ssl_context, users, generated_data: ESSData):
-    access_token = users[0]
+    access_token = users[0].access_token
 
     sync_result = await aiohttp_post_json(
         f"https://synapse.{generated_data.server_name}/_matrix/client/unstable/org.matrix.simplified_msc3575/sync",
@@ -49,7 +49,7 @@ async def test_simplified_sliding_sync_syncs(ssl_context, users, generated_data:
 
 
 @pytest.mark.skipif(value_file_has("synapse.enabled", False), reason="Synapse not deployed")
-@pytest.mark.parametrize("users", [("media-upload-unauth",)], indirect=True)
+@pytest.mark.parametrize("users", [(User(name="media-upload-unauth"),)], indirect=True)
 @pytest.mark.asyncio_cooperative
 async def test_synapse_media_upload_fetch_authenticated(
     cluster,
@@ -57,7 +57,7 @@ async def test_synapse_media_upload_fetch_authenticated(
     users,
     generated_data: ESSData,
 ):
-    user_access_token = users[0]
+    user_access_token = users[0].access_token
 
     filepath = Path(__file__).parent.resolve() / Path("artifacts/files/minimal.png")
     with open(filepath, "rb") as file:

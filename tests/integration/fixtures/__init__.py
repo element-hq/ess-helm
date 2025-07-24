@@ -7,7 +7,7 @@ from .cluster import cluster, ess_namespace, helm_client, ingress, kube_client, 
 from .data import ESSData, generated_data
 from .helm import helm_prerequisites, ingress_ready, matrix_stack, secrets_generated
 from .matrix_tools import build_matrix_tools, loaded_matrix_tools
-from .users import users
+from .users import User, users
 
 __all__ = [
     "build_matrix_tools",
@@ -28,5 +28,6 @@ __all__ = [
     "root_ca",
     "secrets_generated",
     "ssl_context",
+    "User",
     "users",
 ]
