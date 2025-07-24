@@ -8,7 +8,7 @@ import pyhelm3
 import pytest
 from lightkube import AsyncClient
 
-from .fixtures import ESSData
+from .fixtures import ESSData, User
 from .fixtures.users import create_mas_user, get_client_token
 from .lib.helpers import deploy_with_values_patch, get_deployment_marker
 from .lib.utils import aiohttp_get_json, aiohttp_post_json, value_file_has
@@ -21,7 +21,7 @@ from .test_matrix_authentication_service import test_matrix_authentication_servi
     or value_file_has("matrixAuthenticationService.syn2mas.enabled", False),
     reason="Syn2Mas not deployed or the tested chart version does not support syn2mas",
 )
-@pytest.mark.parametrize("users", [("syn2mas-user",)], indirect=True)
+@pytest.mark.parametrize("users", [(User(name="syn2mas-user"),)], indirect=True)
 @pytest.mark.asyncio_cooperative
 async def test_run_syn2mas_upgrade(
     helm_client: pyhelm3.Client,
@@ -32,7 +32,7 @@ async def test_run_syn2mas_upgrade(
     generated_data: ESSData,
     pytestconfig,
 ):
-    access_token = users[0]
+    access_token = users[0].access_token
     await ingress_ready("synapse")
     assert await get_deployment_marker(kube_client, generated_data, "MATRIX_STACK_MSC3861") == "legacy_auth"
     # After the base chart is setup, we enable MAS to run the syn2mas dry run job
