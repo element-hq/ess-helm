@@ -173,10 +173,9 @@ async def test_pods_monitored(
 @pytest.mark.skipif(
     os.environ.get("SKIP_SERVICE_MONITORS_CRDS", "false") == "true", reason="ServiceMonitors not deployed"
 )
-@pytest.mark.skipif(os.environ.get("MATRIX_TEST_FROM_REF", "") == "25.6.2", reason="This fails against 25.6.2.")
 @pytest.mark.asyncio_cooperative
-@pytest.mark.usefixtures("matrix_stack")
 async def test_service_monitors_point_to_metrics(
+    matrix_stack,
     kube_client: AsyncClient,
     generated_data: ESSData,
 ):
