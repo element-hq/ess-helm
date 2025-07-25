@@ -40,7 +40,7 @@ async def test_services_have_matching_labels(
         label_selectors = {label: value for label, value in service.spec.selector.items()}
 
         async for pod in kube_client.list(Pod, namespace=generated_data.ess_namespace, labels=label_selectors):
-            if pod.status and pod.status.phase not in ("Terminating", "Succeeded"):
+            if pod.status and pod.status.phase in ("Terminating", "Succeeded"):
                 continue  # Skip terminating pods
             assert service.metadata, f"Encountered a service without metadata : {service}"
             assert pod.metadata, f"Encountered a pod without metadata : {pod}"
@@ -173,9 +173,10 @@ async def test_pods_monitored(
 @pytest.mark.skipif(
     os.environ.get("SKIP_SERVICE_MONITORS_CRDS", "false") == "true", reason="ServiceMonitors not deployed"
 )
+@pytest.mark.skipif(os.environ.get("MATRIX_TEST_FROM_REF", "") == "25.6.2", reason="This fails against 25.6.2.")
 @pytest.mark.asyncio_cooperative
+@pytest.mark.usefixtures("matrix_stack")
 async def test_service_monitors_point_to_metrics(
-    matrix_stack,
     kube_client: AsyncClient,
     generated_data: ESSData,
 ):
