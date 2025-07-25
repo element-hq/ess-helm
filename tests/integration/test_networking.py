@@ -123,6 +123,8 @@ async def test_pods_monitored(
     ):
         if pod.metadata and pod.metadata.annotations and "has-no-service-monitor" in pod.metadata.annotations:
             continue
+        if pod.status and pod.status.phase in ("Terminating", "Succeeded"):
+            continue  # Skip terminating pods
         elif pod.metadata:
             assert pod.metadata.name, "Encountered a pod without a name"
             all_monitorable_pods.add(pod.metadata.name)
