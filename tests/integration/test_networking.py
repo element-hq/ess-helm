@@ -46,16 +46,16 @@ async def test_services_have_matching_labels(
             # For Pods part of a replicaset we must ignore pods which template-hash do not match
             # the latest replicaset `pod-template-hash`
             if pod.metadata and pod.metadata.labels and pod.metadata.labels.get("pod-template-hash"):
-                async for _ in kube_client.list(
+                async for rs in kube_client.list(
                     ReplicaSet,
                     namespace=generated_data.ess_namespace,
                     labels={"pod-template-hash": op.equal(pod.metadata.labels["pod-template-hash"])},
                 ):
-                    # if any rs matches the pod's template hash,
-                    # the pod is one of the current replicaset and must be checked
-                    break
+                    # we check if the rs desires replicas
+                    if rs.spec and rs.spec.replicas:
+                        break
                 else:
-                    # Skip pods which do not have a ReplicaSet
+                    # Skip pods which do not have a ReplicaSet desiring replicas
                     continue
             assert service.metadata, f"Encountered a service without metadata : {service}"
             assert pod.metadata, f"Encountered a pod without metadata : {pod}"
