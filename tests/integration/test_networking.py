@@ -12,7 +12,7 @@ from lightkube.resources.core_v1 import Pod, Service
 from prometheus_client.parser import text_string_to_metric_families
 
 from .fixtures.data import ESSData
-from .lib.helpers import run_pod_with_args, wait_for_endpoint_ready
+from .lib.helpers import run_pod_with_args, wait_for_all_replicaset_replicas_ready, wait_for_endpoint_ready
 from .lib.utils import read_service_monitor_kind
 
 
@@ -73,6 +73,9 @@ async def test_services_have_endpoints(
     kube_client: AsyncClient,
     generated_data: ESSData,
 ):
+    # Helm will stop waiting when 1 of replicas are ready
+    # We need to wait for all replicas to be ready to check that services all have endpoints
+    await wait_for_all_replicaset_replicas_ready(kube_client, generated_data.ess_namespace)
     endpoints_to_wait = []
     services = {}
     async for service in kube_client.list(
@@ -117,6 +120,9 @@ async def test_pods_monitored(
     kube_client: AsyncClient,
     generated_data: ESSData,
 ):
+    # Helm will stop waiting when 1 of replicas are ready
+    # We need to wait for all replicas to be ready to be able to compute monitorable and monitored pods
+    await wait_for_all_replicaset_replicas_ready(kube_client, generated_data.ess_namespace)
     all_monitorable_pods = set()
     async for pod in kube_client.list(
         Pod, namespace=generated_data.ess_namespace, labels={"app.kubernetes.io/part-of": op.in_(["matrix-stack"])}
