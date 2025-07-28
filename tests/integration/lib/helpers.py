@@ -15,6 +15,7 @@ from lightkube.models.core_v1 import (
     SecurityContext,
 )
 from lightkube.models.meta_v1 import ObjectMeta
+from lightkube.resources.apps_v1 import ReplicaSet
 from lightkube.resources.core_v1 import ConfigMap, Endpoints, Namespace, Pod, Secret
 
 from ..artifacts import CertKey
@@ -166,3 +167,19 @@ async def run_pod_with_args(kube_client: AsyncClient, namespace, image_name, pod
         return log_lines
     finally:
         await kube_client.delete(Pod, name=pod.metadata.name, namespace=namespace)
+
+
+async def wait_for_all_replicaset_replicas_ready(kube_client: AsyncClient, namespace: str):
+    timeout = 30
+    start_time = time.time()
+    now = time.time()
+    while start_time + timeout > now:
+        now = time.time()
+        await asyncio.sleep(0.5)
+        async for rs in kube_client.list(ReplicaSet, namespace=namespace):
+            if not rs.status or not rs.status.readyReplicas:
+                break
+            if rs.status.readyReplicas != rs.status.replicas:
+                break
+        else:
+            return
