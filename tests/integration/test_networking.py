@@ -8,6 +8,7 @@ import os
 import pytest
 from lightkube import AsyncClient
 from lightkube import operators as op
+from lightkube.resources.apps_v1 import ReplicaSet
 from lightkube.resources.core_v1 import Pod, Service
 from prometheus_client.parser import text_string_to_metric_families
 
@@ -42,6 +43,20 @@ async def test_services_have_matching_labels(
         async for pod in kube_client.list(Pod, namespace=generated_data.ess_namespace, labels=label_selectors):
             if pod.status and pod.status.phase in ("Terminating", "Succeeded"):
                 continue  # Skip terminating pods
+            # For Pods part of a replicaset we must ignore pods which template-hash do not match
+            # the latest replicaset `pod-template-hash`
+            if pod.metadata and pod.metadata.labels and pod.metadata.labels.get("pod-template-hash"):
+                async for _ in kube_client.list(
+                    ReplicaSet,
+                    namespace=generated_data.ess_namespace,
+                    labels={"pod-template-hash": op.equal(pod.metadata.labels["pod-template-hash"])},
+                ):
+                    # if any rs matches the pod's template hash,
+                    # the pod is one of the current replicaset and must be checked
+                    break
+                else:
+                    # Skip pods which do not have a ReplicaSet
+                    continue
             assert service.metadata, f"Encountered a service without metadata : {service}"
             assert pod.metadata, f"Encountered a pod without metadata : {pod}"
             assert pod.metadata.labels, f"Encountered a pod without labels : {pod}"
