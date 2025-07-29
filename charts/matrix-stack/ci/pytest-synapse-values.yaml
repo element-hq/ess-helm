@@ -58,6 +58,9 @@ synapse:
     # A non-HTTP worker & a stream writer
     event-persister:
       enabled: true
+    # initial-synchrotron & synchrotron have non-trivial routing behaviour
+    initial-synchrotron:
+      enabled: true
     # Media repo is fairly distinct from other workers
     media-repository:
       enabled: true
@@ -65,5 +68,8 @@ synapse:
     sliding-sync:
       enabled: true
       replicas: 2
+    # initial-synchrotron & synchrotron have non-trivial routing behaviour
+    synchrotron:
+      enabled: true
 wellKnownDelegation:
   enabled: false

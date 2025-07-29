@@ -105,7 +105,7 @@ jobs:
 
     - name: On upgrade, Synapse can restart, expect 429 to occur
       run: |
-        export PYTEST_EXPECTED_HTTP_STATUS_CODES="429"
+        echo "PYTEST_EXPECTED_HTTP_STATUS_CODES=429" >> "$GITHUB_ENV"
       if: ${{ matrix.test-from-ref != github.event.pull_request.head.sha }}
 
     - name: Test with pytest (upgrade or idempotent setup)
@@ -136,7 +136,7 @@ jobs:
       if: ${{ failure() }}
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
       with:
-        name: ess-helm-logs-${{ matrix.test-component }}
+        name: ess-helm-logs-${{ matrix.test-component }}-${{ matrix.test-from-ref }}
         path: ess-helm-logs
         retention-days: 1
 

@@ -29,7 +29,6 @@ retry_options = JitterRetry(
     }
     | set(int(code) for code in os.environ.get("PYTEST_EXPECTED_HTTP_STATUS_CODES", "").split(",") if code),
     retry_all_server_errors=False,
-    exceptions={aiohttp.client_exceptions.ClientResponseError},
 )
 
 

@@ -74,18 +74,18 @@ frontend synapse-http-in
   http-request set-var(req.backend) path,map_reg(/synapse/path_map_file,main) unless { var(req.backend) -m found }
 {{- if dig "initial-synchrotron" "enabled" false .workers }}
 
-  acl is_initial_sync path -m reg ^/_matrix/client/(api/v1|r0|v3)/initialSync$
-  acl is_initial_sync path -m reg ^/_matrix/client/(api/v1|r0|v3)/rooms/[^/]+/initialSync$
-  # https://spec.matrix.org/v1.14/client-server-api/#get_matrixclientv3sync
-  acl is_initial_sync path -m reg ^/_matrix/client/(r0|v3)/sync$ { urlp("full_state") -m str true }
-  acl is_initial_sync path -m reg ^/_matrix/client/(r0|v3)/sync$ !{ urlp("since") -m found }
-  # https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3events
-  acl is_initial_sync path -m reg ^/_matrix/client/(api/v1|r0|v3)/events$ !{ urlp("from") -m found }
+  acl has_available_initial_syncs nbsrv('synapse-initial-synchrotron') ge 1
 
   # Set to the initial-synchrotron backend if it is one of these magic paths AND we have workers in the initial-synchrotron backend
   # This means that we don't update the backend from synchrotron if that's configured but there's no initial-synchrotron servers available
   # And then can it fallback to main if there are no synchrotron servers either
-  http-request set-var(req.backend) str('initial-synchrotron') if is_initial_sync { nbsrv('synapse-initial-synchrotron') ge 1 }
+  http-request set-var(req.backend) str('initial-synchrotron') if has_available_initial_syncs { path -m reg ^/_matrix/client/(api/v1|r0|v3)/initialSync$ }
+  http-request set-var(req.backend) str('initial-synchrotron') if has_available_initial_syncs { path -m reg ^/_matrix/client/(api/v1|r0|v3)/rooms/[^/]+/initialSync$ }
+  # https://spec.matrix.org/v1.14/client-server-api/#get_matrixclientv3sync
+  http-request set-var(req.backend) str('initial-synchrotron') if has_available_initial_syncs { path -m reg ^/_matrix/client/(r0|v3)/sync$ } { urlp("full_state") -m str true }
+  http-request set-var(req.backend) str('initial-synchrotron') if has_available_initial_syncs { path -m reg ^/_matrix/client/(r0|v3)/sync$ } !{ urlp("since") -m found }
+  # https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3events
+  http-request set-var(req.backend) str('initial-synchrotron') if has_available_initial_syncs { path -m reg ^/_matrix/client/(api/v1|r0|v3)/events$ } !{ urlp("from") -m found }
 {{- end }}
 
 {{- if include "element-io.matrix-authentication-service.readyToHandleAuth" (dict "root" $root) }}
