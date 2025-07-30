@@ -163,6 +163,7 @@ async def matrix_stack(
             "ip": ingress,
             "hostnames": [
                 generated_data.server_name,
+                f"mrtc.{generated_data.server_name}",
                 f"synapse.{generated_data.server_name}",
             ],
         }
