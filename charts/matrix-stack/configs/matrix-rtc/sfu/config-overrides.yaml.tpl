@@ -55,4 +55,7 @@ key_file: /secrets/{{ (printf "/secrets/%s"
 key_file: /conf/keys.yaml
 {{- end }}
 
+room:
+  auto_create: false
+
 {{ end }}
