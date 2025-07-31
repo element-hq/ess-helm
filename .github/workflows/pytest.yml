@@ -31,7 +31,7 @@ jobs:
     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
       with:
         fetch-depth: 0
-        tags: true
+        fetch-tags: true
     - id: data
       run: |
         echo "envFiles=$(find tests/integration/env -name '*.rc' | sed 's|tests/integration/env/||' | sed 's/.rc$//' | jq -ncR '{envFiles: [inputs]}')" | tee -a "$GITHUB_OUTPUT"
