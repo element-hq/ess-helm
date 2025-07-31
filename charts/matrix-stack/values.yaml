@@ -367,6 +367,11 @@ deploymentMarkers:
 matrixRTC:
   enabled: true
 
+  # Allows restricting room creation to local users only
+  # Remote federated users can still join the room
+  # Defaults to false for now until clients are upgraded to support the new mechanism
+  restrictRoomCreationToLocalUsers: false
+
   # LiveKit Authentication Configuration
   # This section allows you to configure authentication for the LiveKit SFU.
   # You can either use an existing keys.yaml file or provide a key and secret.
@@ -430,7 +435,7 @@ matrixRTC:
 
     ## The tag of the container image to use.
     ## One of tag or digest must be provided.
-    tag: "0.2.3"
+    tag: "0.3.0"
 
     ## Container digest to use. Used to pull the image instead of the image tag if set
     ## The tag will still be set as the app.kubernetes.io/version label

@@ -7,6 +7,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 {% import 'sub_schema_values.yaml.j2' as sub_schema_values -%}
 enabled: true
 
+# Allows restricting room creation to local users only
+# Remote federated users can still join the room
+# Defaults to false for now until clients are upgraded to support the new mechanism
+restrictRoomCreationToLocalUsers: false
+
 # LiveKit Authentication Configuration
 # This section allows you to configure authentication for the LiveKit SFU.
 # You can either use an existing keys.yaml file or provide a key and secret.
@@ -19,7 +24,7 @@ enabled: true
 
 replicas: 1
 {{- sub_schema_values.ingress() }}
-{{- sub_schema_values.image(registry='ghcr.io', repository='element-hq/lk-jwt-service', tag='0.2.3') }}
+{{- sub_schema_values.image(registry='ghcr.io', repository='element-hq/lk-jwt-service', tag='0.3.0') }}
 {{- sub_schema_values.labels() }}
 {{- sub_schema_values.workloadAnnotations() }}
 {{- sub_schema_values.containersSecurityContext() }}

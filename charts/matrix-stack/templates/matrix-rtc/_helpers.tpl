@@ -69,6 +69,12 @@ env:
 {{- if .sfu.enabled }}
 - name: "LIVEKIT_URL"
   value: {{ printf "wss://%s" (tpl .ingress.host $root) }}
+{{- end }}
+- name: "LIVEKIT_FULL_ACCESS_HOMESERVERS"
+{{- if $root.Values.serverName }}
+  value: {{ (.restrictRoomCreationToLocalUsers | ternary (tpl $root.Values.serverName $root) "*") | quote }}
+{{- else }}
+  value: "*"
 {{- end -}}
 {{- end -}}
 {{- end -}}

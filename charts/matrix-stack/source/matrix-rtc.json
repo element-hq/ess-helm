@@ -6,6 +6,9 @@
     "enabled": {
       "type": "boolean"
     },
+    "restrictRoomCreationToLocalUsers": {
+      "type": "boolean"
+    },
     "livekitAuth": {
       "type": "object",
       "oneOf": [
