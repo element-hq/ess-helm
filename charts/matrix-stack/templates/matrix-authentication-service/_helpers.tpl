@@ -283,7 +283,7 @@ config.yaml: |
               "nameSuffix" "matrix-authentication-service"
               "containerName" (.containerName | default "render-config")
               "templatesVolume" (.templatesVolume | default "plain-config")
-              "overrides" (list "config.yaml")
+              "underrides" (list "config.yaml")
               "outputFile" "config.yaml"
               "resources" .resources
               "containersSecurityContext" .containersSecurityContext
