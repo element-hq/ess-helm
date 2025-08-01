@@ -19,7 +19,6 @@ frontend well-known-in
   acl well-known path /.well-known/matrix/server
   acl well-known path /.well-known/matrix/client
   acl well-known path /.well-known/matrix/support
-  acl well-known path /.well-known/element/element.json
 
 {{ if .baseDomainRedirect.enabled }}
 {{- if $root.Values.elementWeb.enabled }}
@@ -33,6 +32,7 @@ frontend well-known-in
 {{- end }}
 
   use_backend well-known-static if well-known
+  default_backend well-known-no-match
 
 backend well-known-static
   mode http
@@ -50,6 +50,10 @@ backend well-known-static
   http-request return status 200 content-type "application/json" file "/well-known/server" if { path /.well-known/matrix/server }
   http-request return status 200 content-type "application/json" file "/well-known/client" if { path /.well-known/matrix/client }
   http-request return status 200 content-type "application/json" file "/well-known/support" if { path /.well-known/matrix/support }
-  http-request return status 200 content-type "application/json" file "/well-known/element.json" if { path /.well-known/element/element.json }
+
+backend well-known-no-match
+  mode http
+
+  http-request deny status 404
 
 {{- end -}}

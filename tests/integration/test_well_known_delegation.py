@@ -1,4 +1,4 @@
-# Copyright 2024 New Vector Ltd
+# Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -39,11 +39,6 @@ async def test_well_known_files_can_be_accessed(
 
     json_content = await aiohttp_get_json(
         f"https://{generated_data.server_name}/.well-known/matrix/support", ssl_context
-    )
-    assert json_content == {}
-
-    json_content = await aiohttp_get_json(
-        f"https://{generated_data.server_name}/.well-known/element/element.json", ssl_context
     )
     assert json_content == {}
 
