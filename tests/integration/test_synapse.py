@@ -54,6 +54,10 @@ async def test_simplified_sliding_sync_syncs(ingress_ready, ssl_context, users, 
 
 
 @pytest.mark.skipif(value_file_has("synapse.enabled", False), reason="Synapse not deployed")
+@pytest.mark.skipif(
+    value_file_has("matrixAuthenticationService.syn2mas.enabled", True),
+    reason="Syn2Mas is being run and so HAProxy logs may disappear as it restarts",
+)
 @pytest.mark.asyncio_cooperative
 async def test_routes_to_synapse_workers_correctly(
     ingress_ready, kube_client: AsyncClient, ssl_context, generated_data: ESSData
