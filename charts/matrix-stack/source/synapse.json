@@ -184,6 +184,9 @@
     "workers": {
       "type": "object",
       "properties": {
+        "account-data": {
+          "$ref": "file://synapse/single_worker.json"
+        },
         "appservice": {
           "$ref": "file://synapse/single_worker.json"
         },
@@ -226,8 +229,8 @@
         "pusher": {
           "$ref": "file://synapse/scalable_worker.json"
         },
-        "receipts-account": {
-          "$ref": "file://synapse/single_worker.json"
+        "receipts": {
+          "$ref": "file://synapse/scalable_worker.json"
         },
         "sliding-sync": {
           "$ref": "file://synapse/scalable_worker.json"

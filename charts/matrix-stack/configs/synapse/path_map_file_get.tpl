@@ -18,7 +18,7 @@ workers instead if these requests path are under high load.
 # push-rules
 ^/\_matrix/client/(api/v1|r0|v3|unstable)/pushrules/
 
-# receipts-account
+# account-data
 ^/\_matrix/client/(r0|v3|unstable)/._/tags
 ^/\_matrix/client/(r0|v3|unstable)/._/account\_data
 

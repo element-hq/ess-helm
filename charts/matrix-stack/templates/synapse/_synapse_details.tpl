@@ -8,6 +8,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $root := .root -}}
 {{- with required "element-io.synapse.process.hasHttp missing context" .context -}}
 {{ $hasHttp := (list "main"
+                     "account-data"
                      "client-reader"
                      "encryption"
                      "event-creator"
@@ -17,7 +18,7 @@ SPDX-License-Identifier: AGPL-3.0-only
                      "media-repository"
                      "presence-writer"
                      "push-rules"
-                     "receipts-account"
+                     "receipts"
                      "sliding-sync"
                      "sso-login"
                      "synchrotron"
@@ -33,11 +34,12 @@ hasHttp
 {{- $root := .root -}}
 {{- with required "element-io.synapse.process.hasReplication missing context" .context -}}
 {{- $hasReplication := (list "main"
+                             "account-data"
                              "encryption"
                              "event-persister"
                              "push-rules"
                              "presence-writer"
-                             "receipts-account"
+                             "receipts"
                              "typing-persister") }}
 {{- if has . $hasReplication -}}
 hasReplication
@@ -49,13 +51,14 @@ hasReplication
 {{- $root := .root -}}
 {{- with required "element-io.synapse.process.isSingle missing context" .context -}}
 {{ $isSingle := (list "main"
+                      "account-data"
                       "appservice"
                       "background"
                       "encryption"
                       "media-repository"
                       "presence-writer"
                       "push-rules"
-                      "receipts-account"
+                      "receipts"
                       "sso-login"
                       "typing-persister"
                       "user-dir") }}
@@ -92,8 +95,6 @@ initial-sync
 media-repo
 {{- else if eq . "presence-writer" -}}
 presence-write
-{{- else if eq . "receipts-account" -}}
-receipts-accnt
 {{- else if eq . "typing-persister" -}}
 typing
 {{- else -}}
@@ -131,7 +132,9 @@ responsibleForMedia
 {{- define "element-io.synapse.process.streamWriters" -}}
 {{- $root := .root -}}
 {{- with required "element-io.synapse.process.streamWriters missing context" .context -}}
-{{- if eq . "encryption" }}
+{{- if eq . "account-data" }}
+{{ list "account_data" | toJson }}
+{{- else if eq . "encryption" }}
 {{ list "to_device" | toJson }}
 {{- else if eq . "event-persister" }}
 {{ list "events" | toJson }}
@@ -139,8 +142,8 @@ responsibleForMedia
 {{ list "presence" | toJson }}
 {{- else if eq . "push-rules" }}
 {{ list "push_rules" | toJson }}
-{{- else if eq . "receipts-account" }}
-{{ list "account_data" "receipts" | toJson }}
+{{- else if eq . "receipts" }}
+{{ list "receipts" | toJson }}
 {{- else if eq . "typing-persister" }}
 {{ list "typing" | toJson }}
 {{- else -}}
@@ -224,6 +227,13 @@ responsibleForMedia
 {{- $root := .root -}}
 {{- with required "element-io.synapse.process.workerPaths missing context" .context -}}
 {{ $workerPaths := list }}
+
+{{- if eq .workerType "account-data" }}
+{{ $workerPaths = concat $workerPaths (list
+  "^/_matrix/client/(r0|v3|unstable)/.*/tags"
+  "^/_matrix/client/(r0|v3|unstable)/.*/account_data"
+) }}
+{{- end }}
 
 {{- if eq .workerType "client-reader" }}
 {{- /* Client API requests (apart from createRoom which is eventCreator) */}}
@@ -374,10 +384,8 @@ responsibleForMedia
 ) }}
 {{- end }}
 
-{{- if eq .workerType "receipts-account" }}
+{{- if eq .workerType "receipts" }}
 {{ $workerPaths = concat $workerPaths (list
-  "^/_matrix/client/(r0|v3|unstable)/.*/tags"
-  "^/_matrix/client/(r0|v3|unstable)/.*/account_data"
   "^/_matrix/client/(r0|v3|unstable)/rooms/.*/receipt"
   "^/_matrix/client/(r0|v3|unstable)/rooms/.*/read_markers"
 ) }}

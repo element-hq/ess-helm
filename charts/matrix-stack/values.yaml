@@ -2454,6 +2454,61 @@ synapse:
   ##   event-creator:
   ##     enabled: true
   workers:
+    account-data:
+      ## Set to true to deploy this worker
+      enabled: false
+
+      ## Resources for this worker.
+      ## If omitted the global Synapse resources are used
+      # resources: {}
+      ## Configuration of the thresholds and frequencies of the livenessProbe
+      livenessProbe:
+        ## How many consecutive failures for the probe to be considered failed
+        failureThreshold: 8
+
+        ## Number of seconds after the container has started before the probe starts
+        initialDelaySeconds: 0
+
+        ## How often (in seconds) to perform the probe
+        periodSeconds: 6
+
+        ## How many consecutive successes for the probe to be consider successful after having failed
+        successThreshold: 1
+
+        ## Number of seconds after which the probe times out
+        timeoutSeconds: 2
+      ## Configuration of the thresholds and frequencies of the readinessProbe
+      readinessProbe:
+        ## How many consecutive failures for the probe to be considered failed
+        failureThreshold: 8
+
+        ## Number of seconds after the container has started before the probe starts
+        initialDelaySeconds: 0
+
+        ## How often (in seconds) to perform the probe
+        periodSeconds: 2
+
+        ## How many consecutive successes for the probe to be consider successful after having failed
+        successThreshold: 2
+
+        ## Number of seconds after which the probe times out
+        timeoutSeconds: 2
+      ## Configuration of the thresholds and frequencies of the startupProbe
+      startupProbe:
+        ## How many consecutive failures for the probe to be considered failed
+        failureThreshold: 54
+
+        ## Number of seconds after the container has started before the probe starts
+        initialDelaySeconds: 0
+
+        ## How often (in seconds) to perform the probe
+        periodSeconds: 2
+
+        ## How many consecutive successes for the probe to be consider successful after having failed
+        successThreshold: 1
+
+        ## Number of seconds after which the probe times out
+        timeoutSeconds: 1
     appservice:
       ## Set to true to deploy this worker
       enabled: false
@@ -3248,9 +3303,12 @@ synapse:
 
         ## Number of seconds after which the probe times out
         timeoutSeconds: 1
-    receipts-account:
+    receipts:
       ## Set to true to deploy this worker
       enabled: false
+
+      ## The number of replicas of this worker to run
+      replicas: 1
 
       ## Resources for this worker.
       ## If omitted the global Synapse resources are used
@@ -3258,7 +3316,7 @@ synapse:
       ## Configuration of the thresholds and frequencies of the livenessProbe
       livenessProbe:
         ## How many consecutive failures for the probe to be considered failed
-        failureThreshold: 8
+        failureThreshold: 3
 
         ## Number of seconds after the container has started before the probe starts
         initialDelaySeconds: 0
@@ -3274,7 +3332,7 @@ synapse:
       ## Configuration of the thresholds and frequencies of the readinessProbe
       readinessProbe:
         ## How many consecutive failures for the probe to be considered failed
-        failureThreshold: 8
+        failureThreshold: 3
 
         ## Number of seconds after the container has started before the probe starts
         initialDelaySeconds: 0
@@ -3290,7 +3348,7 @@ synapse:
       ## Configuration of the thresholds and frequencies of the startupProbe
       startupProbe:
         ## How many consecutive failures for the probe to be considered failed
-        failureThreshold: 54
+        failureThreshold: 21
 
         ## Number of seconds after the container has started before the probe starts
         initialDelaySeconds: 0

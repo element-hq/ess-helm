@@ -51,6 +51,7 @@ appservices: []
 ##   event-creator:
 ##     enabled: true
 workers:
+{{- synapse_sub_schema_values.single_worker('account-data') | indent(2) }}
 {{- synapse_sub_schema_values.single_worker('appservice') | indent(2) }}
 {{- synapse_sub_schema_values.single_worker('background') | indent(2) }}
 {{- synapse_sub_schema_values.scalable_worker('client-reader') | indent(2) }}
@@ -65,7 +66,7 @@ workers:
 {{- synapse_sub_schema_values.single_worker('presence-writer') | indent(2) }}
 {{- synapse_sub_schema_values.single_worker('push-rules') | indent(2) }}
 {{- synapse_sub_schema_values.scalable_worker('pusher') | indent(2) }}
-{{- synapse_sub_schema_values.single_worker('receipts-account') | indent(2) }}
+{{- synapse_sub_schema_values.scalable_worker('receipts') | indent(2) }}
 {{- synapse_sub_schema_values.scalable_worker('sliding-sync') | indent(2) }}
 {{- synapse_sub_schema_values.single_worker('sso-login') | indent(2) }}
 {{- synapse_sub_schema_values.scalable_worker('synchrotron') | indent(2) }}
