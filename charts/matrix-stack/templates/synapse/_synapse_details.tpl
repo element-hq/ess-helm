@@ -422,7 +422,7 @@ responsibleForMedia
   "^/_synapse/client/saml2/authn_response$"
   "^/_matrix/client/(api/v1|r0|v3|unstable)/login/cas/ticket$"
 ) }}
-{{- if (and $root.Values.matrixAuthenticationService.enabled (not $root.Values.matrixAuthenticationService.preMigrationSynapseHandlesAuth)) }}
+{{- if include "element-io.matrix-authentication-service.readyToHandleAuth" (dict "root" $root) }}
 {{ $workerPaths = concat $workerPaths (list
     "^/_synapse/admin/v2/users/[^/]+$"
     "^/_synapse/admin/v1/username_available$"
