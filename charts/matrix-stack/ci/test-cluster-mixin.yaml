@@ -9,6 +9,9 @@
 certManager:
   clusterIssuer: ess-selfsigned
 
+ingress:
+  controllerType: ingress-nginx
+
 matrixRTC:
   # Because the authoriser service won't trust certificates issued by the above self-signed CA
   extraEnv:
