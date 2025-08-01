@@ -427,6 +427,7 @@ responsibleForMedia
     "^/_synapse/admin/v2/users/[^/]+$"
     "^/_synapse/admin/v1/username_available$"
     "^/_synapse/admin/v1/users/[^/]+/_allow_cross_signing_replacement_without_uia$"
+    "^/_synapse/admin/v1/users/[^/]+/devices$"
 ) }}
 {{- end }}
 {{- end }}
