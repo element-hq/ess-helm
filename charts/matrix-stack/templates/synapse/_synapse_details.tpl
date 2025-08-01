@@ -311,9 +311,9 @@ responsibleForMedia
 {{- end }}
 
 {{- if eq .workerType "encryption" }}
-{{ $workerPaths = append $workerPaths
+{{ $workerPaths = concat $workerPaths (list
   "^/_matrix/client/(r0|v3|unstable)/sendToDevice/"
-}}
+) }}
 {{- end }}
 
 {{- if eq .workerType "event-creator" }}
@@ -386,9 +386,9 @@ responsibleForMedia
 {{- end }}
 
 {{- if eq .workerType "presence-writer" }}
-{{ $workerPaths = append $workerPaths
+{{ $workerPaths = concat $workerPaths (list
   "^/_matrix/client/(api/v1|r0|v3|unstable)/presence/"
-}}
+) }}
 {{- end }}
 
 {{- if eq .workerType "push-rules" }}
@@ -405,9 +405,9 @@ responsibleForMedia
 {{- end }}
 
 {{- if eq .workerType "sliding-sync" }}
-{{ $workerPaths = append $workerPaths
+{{ $workerPaths = concat $workerPaths (list
   "^/_matrix/client/unstable/org.matrix.simplified_msc3575/.*"
-}}
+) }}
 {{- end }}
 
 {{- if eq .workerType "sso-login" }}
@@ -441,15 +441,15 @@ responsibleForMedia
 {{- end }}
 
 {{- if eq .workerType "typing-persister" }}
-{{ $workerPaths = append $workerPaths
+{{ $workerPaths = concat $workerPaths (list
   "^/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/typing"
-}}
+) }}
 {{- end }}
 
 {{- if eq .workerType "user-dir" }}
-{{ $workerPaths = append $workerPaths
+{{ $workerPaths = concat $workerPaths (list
   "^/_matrix/client/(r0|v3|unstable)/user_directory/search$"
-}}
+) }}
 {{- end }}
 {{ $workerPaths | toJson }}
 {{- end }}
