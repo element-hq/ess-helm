@@ -4142,5 +4142,4 @@ wellKnownDelegation:
   additional:
     client: "{}"
     server: "{}"
-    element: "{}"
     support: "{}"

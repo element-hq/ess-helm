@@ -11549,9 +11549,6 @@
             "client": {
               "type": "string"
             },
-            "element": {
-              "type": "string"
-            },
             "server": {
               "type": "string"
             },

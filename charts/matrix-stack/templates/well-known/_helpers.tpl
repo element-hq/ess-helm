@@ -80,15 +80,6 @@ k8s.element.io/target-instance: {{ $root.Release.Name }}-haproxy
 {{- end -}}
 {{- end }}
 
-{{- define "element-io.well-known-delegation.element" }}
-{{- $root := .root -}}
-{{- with required "element-io.well-known-delegation.element missing context" .context -}}
-{{- $config := dict -}}
-{{- $additional := .additional.element | fromJson -}}
-{{- tpl (toPrettyJson (mustMergeOverwrite $additional $config)) $root -}}
-{{- end -}}
-{{- end }}
-
 {{- define "element-io.well-known-delegation.support" }}
 {{- $root := .root -}}
 {{- with required "element-io.well-known-delegation.support missing context" .context -}}
@@ -107,7 +98,5 @@ server: |
   {{- (tpl (include "element-io.well-known-delegation.server" (dict "root" $root "context" .)) $root) | nindent 2 }}
 support: |
   {{- (tpl (include "element-io.well-known-delegation.support" (dict "root" $root "context" .)) $root) | nindent 2 }}
-element.json: |
-  {{- (tpl (include "element-io.well-known-delegation.element" (dict "root" $root "context" .)) $root) | nindent 2 }}
 {{- end -}}
 {{- end -}}

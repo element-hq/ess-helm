@@ -26,14 +26,10 @@ async def assert_well_known_files(
     make_templates,
     expected_client=None,
     expected_server=None,
-    expected_element=None,
     client_config=None,
     server_config=None,
-    element_config=None,
     support_config=None,
 ):
-    if expected_element is None:
-        expected_element = {}
     if expected_server is None:
         expected_server = {}
     if expected_client is None:
@@ -43,14 +39,11 @@ async def assert_well_known_files(
         client_config = {"testclientkey": {"testsubkey": "testvalue"}}
     if server_config is None:
         server_config = {"testserverkey": {"testsubkey": "testvalue"}}
-    if element_config is None:
-        element_config = {"testelementkey": {"testsubkey": "testvalue"}}
     if support_config is None:
         support_config = {"testsupportkey": {"testsubkey": "testvalue"}}
 
     values["wellKnownDelegation"].setdefault("additional", {})["client"] = json.dumps(client_config)
     values["wellKnownDelegation"].setdefault("additional", {})["server"] = json.dumps(server_config)
-    values["wellKnownDelegation"].setdefault("additional", {})["element"] = json.dumps(element_config)
     values["wellKnownDelegation"].setdefault("additional", {})["support"] = json.dumps(support_config)
     for template in await make_templates(values):
         if template["kind"] == "ConfigMap" and template["metadata"]["name"] == f"{release_name}-well-known-haproxy":
@@ -60,11 +53,10 @@ async def assert_well_known_files(
             server_from_json = json.loads(template["data"]["server"])
             assert server_from_json == server_config | expected_server
 
-            element_from_json = json.loads(template["data"]["element.json"])
-            assert element_from_json == element_config | expected_element
-
             support_config_from_json = json.loads(template["data"]["support"])
             assert support_config == support_config_from_json
+
+            assert "element.json" not in template["data"]
 
             break
     else:
