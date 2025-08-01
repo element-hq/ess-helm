@@ -25,6 +25,16 @@ frontend synapse-http-in
   # same as http log, with %Th (handshake time)
   log-format "%ci:%cp [%tr] %ft %b/%s %Th/%TR/%Tw/%Tc/%Tr/%Ta %ST %B %CC %CS %tsc %ac/%fc/%bc/%sc/%rc %sq/%bq %hr %hs %{+Q}r"
 
+  # if we hit the maxconn on a server, and the queue timeout expires, we want
+  # to avoid returning 503, since that will cause cloudflare to mark us down.
+  #
+  # https://cbonte.github.io/haproxy-dconv/1.8/configuration.html#1.3.1 says:
+  #
+  #   503  when no server was available to handle the request, or in response to
+  #        monitoring requests which match the "monitor fail" condition
+  #
+  errorfile 503 /synapse/429.http
+
   capture request header Host len 32
   capture request header Referer len 200
   capture request header User-Agent len 200

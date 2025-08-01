@@ -1,5 +1,5 @@
 {{- /*
-Copyright 2024 New Vector Ltd
+Copyright 2024-2025 New Vector Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -65,16 +65,6 @@ defaults
 
   compression algo gzip
   compression type text/plain text/html text/xml application/json text/css
-
-  # if we hit the maxconn on a server, and the queue timeout expires, we want
-  # to avoid returning 503, since that will cause cloudflare to mark us down.
-  #
-  # https://cbonte.github.io/haproxy-dconv/1.8/configuration.html#1.3.1 says:
-  #
-  #   503  when no server was available to handle the request, or in response to
-  #        monitoring requests which match the "monitor fail" condition
-  #
-  errorfile 503 /usr/local/etc/haproxy/429.http
 
   # Use a consistent hashing scheme so that worker with balancing going down doesn't cause
   # the traffic for all others to be shuffled around.
