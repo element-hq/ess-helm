@@ -373,6 +373,7 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
 synapse_workers_details = tuple(
     make_synapse_worker_sub_component(worker_name, worker_type)
     for worker_name, worker_type in {
+        "account-data": "single",
         "appservice": "single",
         "background": "single",
         "client-reader": "scalable",
@@ -387,7 +388,7 @@ synapse_workers_details = tuple(
         "presence-writer": "single",
         "push-rules": "single",
         "pusher": "scalable",
-        "receipts-account": "single",
+        "receipts": "scalable",
         "sliding-sync": "scalable",
         "sso-login": "single",
         "synchrotron": "scalable",

@@ -19,6 +19,8 @@ synapse:
   ingress:
     host: synapse.ess.localhost
   workers:
+    account-data:
+      enabled: true
     appservice:
       enabled: true
     background:
@@ -49,7 +51,7 @@ synapse:
     pusher:
       enabled: true
       replicas: 2
-    receipts-account:
+    receipts:
       enabled: true
     sliding-sync:
       enabled: true
