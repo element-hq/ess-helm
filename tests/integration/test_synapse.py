@@ -117,6 +117,12 @@ async def test_routes_to_synapse_workers_correctly(
 
         assert len(matching_lines) > 0, f"Requests for {path} did not appear in the HAProxy logs"
         for matching_line in matching_lines:
+            # During the upgrade tests these requests may NOSRV as Synapse processes are down
+            # We eventually succeed, so just ignore the requests that were retried
+            if " 503 " in matching_line and " synapse-main/<NOSRV> " in matching_line:
+                continue
+
+            # We know we end up here at least once as 2xx/401/405 won't match the above check
             assert f"synapse-http-in synapse-{backend}" in matching_line, f"{path} was routed unexpectedly"
 
 
