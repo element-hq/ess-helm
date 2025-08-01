@@ -64,6 +64,9 @@ We don't want MAS to change data in Synapse
 */}}
 {{- if and .syn2mas.enabled .syn2mas.dryRun }}
   kind: synapse_read_only
+{{- else }}
+{{- /* Switch to synapse_modern after a release or 2 so that we're more likely to have a Synapse that supports this API on redeploying MAS. */}}
+  kind: synapse_legacy
 {{- end }}
 {{- end }}
 
