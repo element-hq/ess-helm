@@ -55,6 +55,7 @@ workers:
 {{- synapse_sub_schema_values.single_worker('appservice') | indent(2) }}
 {{- synapse_sub_schema_values.single_worker('background') | indent(2) }}
 {{- synapse_sub_schema_values.scalable_worker('client-reader') | indent(2) }}
+{{- synapse_sub_schema_values.scalable_worker('device-lists') | indent(2) }}
 {{- synapse_sub_schema_values.single_worker('encryption') | indent(2) }}
 {{- synapse_sub_schema_values.scalable_worker('event-creator') | indent(2) }}
 {{- synapse_sub_schema_values.scalable_worker('event-persister') | indent(2) }}
@@ -83,7 +84,7 @@ logging:
   ## levelOverrides:
   ##   synapse.util.caches.lrucache: WARNING
   levelOverrides: {}
-{{- sub_schema_values.image(registry='ghcr.io', repository='element-hq/synapse', tag='v1.134.0') }}
+{{- sub_schema_values.image(registry='ghcr.io', repository='element-hq/synapse', tag='v1.135.0') }}
 {{- sub_schema_values.ingress() }}
 {{- sub_schema_values.labels() }}
 {{- sub_schema_values.workloadAnnotations() }}

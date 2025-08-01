@@ -199,6 +199,9 @@
         "encryption": {
           "$ref": "file://synapse/single_worker.json"
         },
+        "device-lists": {
+          "$ref": "file://synapse/scalable_worker.json"
+        },
         "event-creator": {
           "$ref": "file://synapse/scalable_worker.json"
         },

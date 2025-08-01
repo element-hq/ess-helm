@@ -2677,6 +2677,64 @@ synapse:
 
         ## Number of seconds after which the probe times out
         timeoutSeconds: 1
+    device-lists:
+      ## Set to true to deploy this worker
+      enabled: false
+
+      ## The number of replicas of this worker to run
+      replicas: 1
+
+      ## Resources for this worker.
+      ## If omitted the global Synapse resources are used
+      # resources: {}
+      ## Configuration of the thresholds and frequencies of the livenessProbe
+      livenessProbe:
+        ## How many consecutive failures for the probe to be considered failed
+        failureThreshold: 3
+
+        ## Number of seconds after the container has started before the probe starts
+        initialDelaySeconds: 0
+
+        ## How often (in seconds) to perform the probe
+        periodSeconds: 6
+
+        ## How many consecutive successes for the probe to be consider successful after having failed
+        successThreshold: 1
+
+        ## Number of seconds after which the probe times out
+        timeoutSeconds: 2
+      ## Configuration of the thresholds and frequencies of the readinessProbe
+      readinessProbe:
+        ## How many consecutive failures for the probe to be considered failed
+        failureThreshold: 3
+
+        ## Number of seconds after the container has started before the probe starts
+        initialDelaySeconds: 0
+
+        ## How often (in seconds) to perform the probe
+        periodSeconds: 2
+
+        ## How many consecutive successes for the probe to be consider successful after having failed
+        successThreshold: 2
+
+        ## Number of seconds after which the probe times out
+        timeoutSeconds: 2
+      ## Configuration of the thresholds and frequencies of the startupProbe
+      startupProbe:
+        ## How many consecutive failures for the probe to be considered failed
+        failureThreshold: 21
+
+        ## Number of seconds after the container has started before the probe starts
+        initialDelaySeconds: 0
+
+        ## How often (in seconds) to perform the probe
+        periodSeconds: 2
+
+        ## How many consecutive successes for the probe to be consider successful after having failed
+        successThreshold: 1
+
+        ## Number of seconds after which the probe times out
+        timeoutSeconds: 1
     encryption:
       ## Set to true to deploy this worker
       enabled: false
@@ -3664,7 +3722,7 @@ synapse:
 
     ## The tag of the container image to use.
     ## One of tag or digest must be provided.
-    tag: "v1.134.0"
+    tag: "v1.135.0"
 
     ## Container digest to use. Used to pull the image instead of the image tag if set
     ## The tag will still be set as the app.kubernetes.io/version label

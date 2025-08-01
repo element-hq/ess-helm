@@ -10,6 +10,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{ $hasHttp := (list "main"
                      "account-data"
                      "client-reader"
+                     "device-lists"
                      "encryption"
                      "event-creator"
                      "federation-inbound"
@@ -35,6 +36,7 @@ hasHttp
 {{- with required "element-io.synapse.process.hasReplication missing context" .context -}}
 {{- $hasReplication := (list "main"
                              "account-data"
+                             "device-lists"
                              "encryption"
                              "event-persister"
                              "push-rules"
@@ -134,6 +136,8 @@ responsibleForMedia
 {{- with required "element-io.synapse.process.streamWriters missing context" .context -}}
 {{- if eq . "account-data" }}
 {{ list "account_data" | toJson }}
+{{- else if eq . "device-lists" }}
+{{ list "device_lists" | toJson }}
 {{- else if eq . "encryption" }}
 {{ list "to_device" | toJson }}
 {{- else if eq . "event-persister" }}
@@ -257,6 +261,7 @@ responsibleForMedia
   "^/_matrix/client/unstable/im.nheko.summary/summary/.*$"
   "^/_matrix/client/(r0|v3|unstable)/account/3pid$"
   "^/_matrix/client/(r0|v3|unstable)/account/whoami$"
+  "^/_matrix/client/(r0|v3|unstable)/account/deactivate$"
   "^/_matrix/client/(r0|v3|unstable)/devices$"
   "^/_matrix/client/versions$"
   "^/_matrix/client/(api/v1|r0|v3|unstable)/voip/turnServer$"
@@ -293,14 +298,23 @@ responsibleForMedia
 {{ $workerPaths = concat $workerPaths (list
   "^/_matrix/client/(r0|v3|unstable)/keys/claim$"
   "^/_matrix/client/(r0|v3|unstable)/room_keys/"
+) }}
+{{- end }}
+
+{{- if eq .workerType "device-lists" }}
+{{ $workerPaths = concat $workerPaths (list
+  "^/_matrix/client/(r0|v3)/delete_devices$"
+  "^/_matrix/client/(api/v1|r0|v3|unstable)/devices(/|$)"
   "^/_matrix/client/(r0|v3|unstable)/keys/upload"
+  "^/_matrix/client/(api/v1|r0|v3|unstable)/keys/device_signing/upload$"
+  "^/_matrix/client/(api/v1|r0|v3|unstable)/keys/signatures/upload$"
 ) }}
 {{- end }}
 
 {{- if eq .workerType "encryption" }}
-{{ $workerPaths = append $workerPaths
+{{ $workerPaths = concat $workerPaths (list
   "^/_matrix/client/(r0|v3|unstable)/sendToDevice/"
-}}
+) }}
 {{- end }}
 
 {{- if eq .workerType "event-creator" }}
@@ -373,9 +387,9 @@ responsibleForMedia
 {{- end }}
 
 {{- if eq .workerType "presence-writer" }}
-{{ $workerPaths = append $workerPaths
+{{ $workerPaths = concat $workerPaths (list
   "^/_matrix/client/(api/v1|r0|v3|unstable)/presence/"
-}}
+) }}
 {{- end }}
 
 {{- if eq .workerType "push-rules" }}
@@ -392,9 +406,9 @@ responsibleForMedia
 {{- end }}
 
 {{- if eq .workerType "sliding-sync" }}
-{{ $workerPaths = append $workerPaths
+{{ $workerPaths = concat $workerPaths (list
   "^/_matrix/client/unstable/org.matrix.simplified_msc3575/.*"
-}}
+) }}
 {{- end }}
 
 {{- if eq .workerType "sso-login" }}
@@ -408,11 +422,12 @@ responsibleForMedia
   "^/_synapse/client/saml2/authn_response$"
   "^/_matrix/client/(api/v1|r0|v3|unstable)/login/cas/ticket$"
 ) }}
-{{- if (and $root.Values.matrixAuthenticationService.enabled (not $root.Values.matrixAuthenticationService.preMigrationSynapseHandlesAuth)) }}
+{{- if include "element-io.matrix-authentication-service.readyToHandleAuth" (dict "root" $root) }}
 {{ $workerPaths = concat $workerPaths (list
     "^/_synapse/admin/v2/users/[^/]+$"
     "^/_synapse/admin/v1/username_available$"
     "^/_synapse/admin/v1/users/[^/]+/_allow_cross_signing_replacement_without_uia$"
+    "^/_synapse/admin/v1/users/[^/]+/devices$"
 ) }}
 {{- end }}
 {{- end }}
@@ -428,15 +443,15 @@ responsibleForMedia
 {{- end }}
 
 {{- if eq .workerType "typing-persister" }}
-{{ $workerPaths = append $workerPaths
+{{ $workerPaths = concat $workerPaths (list
   "^/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/typing"
-}}
+) }}
 {{- end }}
 
 {{- if eq .workerType "user-dir" }}
-{{ $workerPaths = append $workerPaths
+{{ $workerPaths = concat $workerPaths (list
   "^/_matrix/client/(r0|v3|unstable)/user_directory/search$"
-}}
+) }}
 {{- end }}
 {{ $workerPaths | toJson }}
 {{- end }}
