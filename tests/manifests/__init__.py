@@ -377,6 +377,7 @@ synapse_workers_details = tuple(
         "appservice": "single",
         "background": "single",
         "client-reader": "scalable",
+        "device-lists": "scalable",
         "encryption": "single",
         "event-creator": "scalable",
         "event-persister": "scalable",

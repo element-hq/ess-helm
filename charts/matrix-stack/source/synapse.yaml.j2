@@ -55,6 +55,7 @@ workers:
 {{- synapse_sub_schema_values.single_worker('appservice') | indent(2) }}
 {{- synapse_sub_schema_values.single_worker('background') | indent(2) }}
 {{- synapse_sub_schema_values.scalable_worker('client-reader') | indent(2) }}
+{{- synapse_sub_schema_values.scalable_worker('device-lists') | indent(2) }}
 {{- synapse_sub_schema_values.single_worker('encryption') | indent(2) }}
 {{- synapse_sub_schema_values.scalable_worker('event-creator') | indent(2) }}
 {{- synapse_sub_schema_values.scalable_worker('event-persister') | indent(2) }}

@@ -27,6 +27,8 @@ synapse:
       enabled: true
     client-reader:
       enabled: true
+    device-lists:
+      enabled: true
     encryption:
       enabled: true
     event-creator:

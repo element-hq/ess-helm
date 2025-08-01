@@ -10,6 +10,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{ $hasHttp := (list "main"
                      "account-data"
                      "client-reader"
+                     "device-lists"
                      "encryption"
                      "event-creator"
                      "federation-inbound"
@@ -35,6 +36,7 @@ hasHttp
 {{- with required "element-io.synapse.process.hasReplication missing context" .context -}}
 {{- $hasReplication := (list "main"
                              "account-data"
+                             "device-lists"
                              "encryption"
                              "event-persister"
                              "push-rules"
@@ -134,6 +136,8 @@ responsibleForMedia
 {{- with required "element-io.synapse.process.streamWriters missing context" .context -}}
 {{- if eq . "account-data" }}
 {{ list "account_data" | toJson }}
+{{- else if eq . "device-lists" }}
+{{ list "device_lists" | toJson }}
 {{- else if eq . "encryption" }}
 {{ list "to_device" | toJson }}
 {{- else if eq . "event-persister" }}
@@ -293,7 +297,16 @@ responsibleForMedia
 {{ $workerPaths = concat $workerPaths (list
   "^/_matrix/client/(r0|v3|unstable)/keys/claim$"
   "^/_matrix/client/(r0|v3|unstable)/room_keys/"
+) }}
+{{- end }}
+
+{{- if eq .workerType "device-lists" }}
+{{ $workerPaths = concat $workerPaths (list
+  "^/_matrix/client/(r0|v3)/delete_devices$"
+  "^/_matrix/client/(api/v1|r0|v3|unstable)/devices(/|$)"
   "^/_matrix/client/(r0|v3|unstable)/keys/upload"
+  "^/_matrix/client/(api/v1|r0|v3|unstable)/keys/device_signing/upload$"
+  "^/_matrix/client/(api/v1|r0|v3|unstable)/keys/signatures/upload$"
 ) }}
 {{- end }}
 
