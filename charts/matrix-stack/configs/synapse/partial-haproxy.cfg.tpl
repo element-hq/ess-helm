@@ -221,7 +221,7 @@ backend synapse-{{ $workerType }}
   timeout queue 5s
 
 {{- end }}
-{{- $maxInstances := ternary 1 20 (not (empty (include "element-io.synapse.process.isSingle" (dict "root" $root "context" $workerType)))) }}
+{{- $maxInstances := ternary 20 1 (hasKey $workerDetails "replicas") }}
 {{- $workerTypeName := include "element-io.synapse.process.workerTypeName" (dict "root" $root "context" $workerType) }}
   # Use DNS SRV service discovery on the headless service
   server-template {{ $workerTypeName }} {{ $maxInstances }} _synapse-http._tcp.{{ $root.Release.Name }}-synapse-{{ $workerTypeName }}.{{ $root.Release.Namespace }}.svc.cluster.local resolvers kubedns init-addr none check
