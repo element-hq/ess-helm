@@ -17,16 +17,7 @@ hasHttp
 {{- define "element-io.synapse.process.hasReplication" -}}
 {{- $root := .root -}}
 {{- with required "element-io.synapse.process.hasReplication missing context" .context -}}
-{{- $hasReplication := (list "main"
-                             "account-data"
-                             "device-lists"
-                             "encryption"
-                             "event-persister"
-                             "push-rules"
-                             "presence-writer"
-                             "receipts"
-                             "typing-persister") }}
-{{- if has . $hasReplication -}}
+{{- if or (eq . "main") (gt (len ((include "element-io.synapse.process.streamWriters" (dict "root" $root "context" .)) | fromJsonArray)) 0) -}}
 hasReplication
 {{- end -}}
 {{- end -}}
