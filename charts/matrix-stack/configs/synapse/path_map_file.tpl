@@ -11,7 +11,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 {{ $enabledWorkerTypes := keys ((include "element-io.synapse.enabledWorkers" (dict "root" $root)) | fromJson) }}
 {{- range $workerType := $enabledWorkerTypes | sortAlpha }}
-{{- $workersPaths := (include "element-io.synapse.process.workerPaths" (dict "root" $root "context" (dict "workerType" $workerType "enabledWorkerTypes" $enabledWorkerTypes))) | fromJsonArray }}
+{{- $workersPaths := (include "element-io.synapse.process.workerPaths" (dict "root" $root "context" $workerType)) | fromJsonArray }}
 {{- if len $workersPaths }}
 # {{ $workerType }}
 {{- range $path := $workersPaths }}

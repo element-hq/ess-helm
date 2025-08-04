@@ -211,14 +211,14 @@ responsibleForMedia
 {{- with required "element-io.synapse.process.workerPaths missing context" .context -}}
 {{ $workerPaths := list }}
 
-{{- if eq .workerType "account-data" }}
+{{- if eq . "account-data" }}
 {{ $workerPaths = concat $workerPaths (list
   "^/_matrix/client/(r0|v3|unstable)/.*/tags"
   "^/_matrix/client/(r0|v3|unstable)/.*/account_data"
 ) }}
 {{- end }}
 
-{{- if eq .workerType "client-reader" }}
+{{- if eq . "client-reader" }}
 {{- /* Client API requests (apart from createRoom which is eventCreator) */}}
 {{ $workerPaths = concat $workerPaths (list
   "^/_matrix/client/(api/v1|r0|v3|unstable)/publicRooms$"
@@ -280,7 +280,7 @@ responsibleForMedia
 ) }}
 {{- end }}
 
-{{- if eq .workerType "device-lists" }}
+{{- if eq . "device-lists" }}
 {{ $workerPaths = concat $workerPaths (list
   "^/_matrix/client/(r0|v3)/delete_devices$"
   "^/_matrix/client/(api/v1|r0|v3|unstable)/devices(/|$)"
@@ -290,13 +290,13 @@ responsibleForMedia
 ) }}
 {{- end }}
 
-{{- if eq .workerType "encryption" }}
+{{- if eq . "encryption" }}
 {{ $workerPaths = concat $workerPaths (list
   "^/_matrix/client/(r0|v3|unstable)/sendToDevice/"
 ) }}
 {{- end }}
 
-{{- if eq .workerType "event-creator" }}
+{{- if eq . "event-creator" }}
 {{ $workerPaths = concat $workerPaths (list
   "^/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/redact"
   "^/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/send"
@@ -309,7 +309,7 @@ responsibleForMedia
 ) }}
 {{- end }}
 
-{{- if eq .workerType "federation-inbound" }}
+{{- if eq . "federation-inbound" }}
 {{- /* Inbound federation transaction request */}}
 {{ $workerPaths = concat $workerPaths (list
   "^/_matrix/federation/v1/send/"
@@ -317,7 +317,7 @@ responsibleForMedia
 }}
 {{- end }}
 
-{{- if eq .workerType "federation-reader" }}
+{{- if eq . "federation-reader" }}
 {{- /* All Federation REST requests for generic_worker */}}
 {{ $workerPaths = concat $workerPaths (list
   "^/_matrix/federation/v1/version$"
@@ -351,7 +351,7 @@ responsibleForMedia
 
 {{- /* initial-synchrotron routing is done in configs/synapse/partial-haproxy.cfg.tpl so that it can fallback -> synchrotron -> main */}}
 
-{{- if eq .workerType "media-repository" }}
+{{- if eq . "media-repository" }}
 {{ $workerPaths = concat $workerPaths (list
   "^/_matrix/media/"
   "^/_matrix/client/v1/media/"
@@ -365,32 +365,32 @@ responsibleForMedia
 ) }}
 {{- end }}
 
-{{- if eq .workerType "presence-writer" }}
+{{- if eq . "presence-writer" }}
 {{ $workerPaths = concat $workerPaths (list
   "^/_matrix/client/(api/v1|r0|v3|unstable)/presence/"
 ) }}
 {{- end }}
 
-{{- if eq .workerType "push-rules" }}
+{{- if eq . "push-rules" }}
 {{ $workerPaths = concat $workerPaths (list
   "^/_matrix/client/(api/v1|r0|v3|unstable)/pushrules/"
 ) }}
 {{- end }}
 
-{{- if eq .workerType "receipts" }}
+{{- if eq . "receipts" }}
 {{ $workerPaths = concat $workerPaths (list
   "^/_matrix/client/(r0|v3|unstable)/rooms/.*/receipt"
   "^/_matrix/client/(r0|v3|unstable)/rooms/.*/read_markers"
 ) }}
 {{- end }}
 
-{{- if eq .workerType "sliding-sync" }}
+{{- if eq . "sliding-sync" }}
 {{ $workerPaths = concat $workerPaths (list
   "^/_matrix/client/unstable/org.matrix.simplified_msc3575/.*"
 ) }}
 {{- end }}
 
-{{- if eq .workerType "sso-login" }}
+{{- if eq . "sso-login" }}
 {{ $workerPaths = concat $workerPaths (list
   "^/_matrix/client/(api/v1|r0|v3|unstable)/login/sso/redirect"
   "^/_synapse/client/pick_idp$"
@@ -411,7 +411,7 @@ responsibleForMedia
 {{- end }}
 {{- end }}
 
-{{- if eq .workerType "synchrotron" }}
+{{- if eq . "synchrotron" }}
 {{- /* Update the initial-synchrotron handling in the haproxy.cfg frontend when updating this */}}
 {{ $workerPaths = concat $workerPaths (list
   "^/_matrix/client/(r0|v3)/sync$"
@@ -421,13 +421,13 @@ responsibleForMedia
 ) }}
 {{- end }}
 
-{{- if eq .workerType "typing-persister" }}
+{{- if eq . "typing-persister" }}
 {{ $workerPaths = concat $workerPaths (list
   "^/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/typing"
 ) }}
 {{- end }}
 
-{{- if eq .workerType "user-dir" }}
+{{- if eq . "user-dir" }}
 {{ $workerPaths = concat $workerPaths (list
   "^/_matrix/client/(r0|v3|unstable)/user_directory/search$"
 ) }}
