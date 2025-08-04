@@ -7,25 +7,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- define "element-io.synapse.process.hasHttp" -}}
 {{- $root := .root -}}
 {{- with required "element-io.synapse.process.hasHttp missing context" .context -}}
-{{ $hasHttp := (list "main"
-                     "account-data"
-                     "client-reader"
-                     "device-lists"
-                     "encryption"
-                     "event-creator"
-                     "federation-inbound"
-                     "federation-reader"
-                     "initial-synchrotron"
-                     "media-repository"
-                     "presence-writer"
-                     "push-rules"
-                     "receipts"
-                     "sliding-sync"
-                     "sso-login"
-                     "synchrotron"
-                     "typing-persister"
-                     "user-dir") }}
-{{- if has . $hasHttp -}}
+{{- /* initial-synchrotron routing is done in configs/synapse/partial-haproxy.cfg.tpl so that it can fallback -> synchrotron -> main */}}
+{{- if or (has . (list "main" "initial-synchrotron")) (gt (len ((include "element-io.synapse.process.workerPaths" (dict "root" $root "context" .)) | fromJsonArray)) 0) -}}
 hasHttp
 {{- end -}}
 {{- end -}}
