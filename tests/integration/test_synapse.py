@@ -64,38 +64,43 @@ async def test_routes_to_synapse_workers_correctly(
 ):
     await ingress_ready("synapse")
 
-    main_backend = "main/main"
+    main_backends = set(["main/main"])
+    main_failover_backend = "main-failover/main"
     if value_file_has("synapse.workers.sliding-sync.enabled", True):
-        sliding_sync_backend = "sliding-sync/sliding-sync"
+        sliding_sync_backends = set(["sliding-sync/sliding-sync", main_failover_backend])
     else:
-        sliding_sync_backend = main_backend
+        sliding_sync_backends = main_backends
 
     if value_file_has("synapse.workers.synchrotron.enabled", True):
-        synchrotron_backend = "synchrotron/synchrotron"
+        synchrotron_backends = set(["synchrotron/synchrotron", main_failover_backend])
     else:
-        synchrotron_backend = main_backend
+        synchrotron_backends = main_backends
 
     if value_file_has("synapse.workers.initial-synchrotron.enabled", True):
-        initial_synchrotron_backend = "initial-synchrotron/initial-sync"
+        initial_synchrotron_backends = set(["initial-synchrotron/initial-sync"])
+        if value_file_has("synapse.workers.synchrotron.enabled", True):
+            initial_synchrotron_backends.update(synchrotron_backends)
+        else:
+            initial_synchrotron_backends.update(main_failover_backend)
     else:
-        initial_synchrotron_backend = synchrotron_backend
+        initial_synchrotron_backends = synchrotron_backends
 
     # We don't care about any of these succeeding, only that the requests are made and HAProxy dispatches correctly
     # So no auth required and parameters can be made up
     paths_to_backends = {
         # initial-synchrotron
-        "/_matrix/client/v3/initialSync": initial_synchrotron_backend,
-        "/_matrix/client/v3/rooms/aroomid/initialSync": initial_synchrotron_backend,
-        "/_matrix/client/v3/sync?full_state=true": initial_synchrotron_backend,
-        "/_matrix/client/v3/sync": initial_synchrotron_backend,
-        "/_matrix/client/v3/events": initial_synchrotron_backend,
+        "/_matrix/client/v3/initialSync": initial_synchrotron_backends,
+        "/_matrix/client/v3/rooms/aroomid/initialSync": initial_synchrotron_backends,
+        "/_matrix/client/v3/sync?full_state=true": initial_synchrotron_backends,
+        "/_matrix/client/v3/sync": initial_synchrotron_backends,
+        "/_matrix/client/v3/events": initial_synchrotron_backends,
         # synchrotron
-        "/_matrix/client/v3/sync?since=recently": synchrotron_backend,
-        "/_matrix/client/v3/events?from=recently": synchrotron_backend,
+        "/_matrix/client/v3/sync?since=recently": synchrotron_backends,
+        "/_matrix/client/v3/events?from=recently": synchrotron_backends,
         # sliding-sync
-        "/_matrix/client/unstable/org.matrix.simplified_msc3575/sync": sliding_sync_backend,
+        "/_matrix/client/unstable/org.matrix.simplified_msc3575/sync": sliding_sync_backends,
         # Would be client-reader but not configured in tests
-        "/_matrix/client/versions": main_backend,
+        "/_matrix/client/versions": main_backends,
     }
 
     for path in paths_to_backends:
@@ -116,7 +121,7 @@ async def test_routes_to_synapse_workers_correctly(
             if "HTTP/1.1" in log_line:
                 http_log_lines.append(log_line)
 
-    for path, backend in paths_to_backends.items():
+    for path, backends in paths_to_backends.items():
         matching_lines = [line for line in http_log_lines if f"GET {path} HTTP/1.1" in line]
 
         assert len(matching_lines) > 0, f"Requests for {path} did not appear in the HAProxy logs"
@@ -127,7 +132,10 @@ async def test_routes_to_synapse_workers_correctly(
                 continue
 
             # We know we end up here at least once as 2xx/401/405 won't match the above check
-            assert f"synapse-http-in synapse-{backend}" in matching_line, f"{path} was routed unexpectedly"
+            assert any([f"synapse-http-in synapse-{backend}" in matching_line for backend in backends]), (
+                f"{path} was routed unexpectedly. "
+                f"Should have been one of {', '.join(backends)} but log line was {matching_line}"
+            )
 
 
 @pytest.mark.skipif(value_file_has("synapse.enabled", False), reason="Synapse not deployed")
