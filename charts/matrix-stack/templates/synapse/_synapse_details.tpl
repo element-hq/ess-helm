@@ -49,27 +49,6 @@ hasReplication
 {{- end -}}
 {{- end }}
 
-{{- define "element-io.synapse.process.isSingle" -}}
-{{- $root := .root -}}
-{{- with required "element-io.synapse.process.isSingle missing context" .context -}}
-{{ $isSingle := (list "main"
-                      "account-data"
-                      "appservice"
-                      "background"
-                      "encryption"
-                      "media-repository"
-                      "presence-writer"
-                      "push-rules"
-                      "receipts"
-                      "sso-login"
-                      "typing-persister"
-                      "user-dir") }}
-{{- if has . $isSingle -}}
-isSingle
-{{- end -}}
-{{- end -}}
-{{- end }}
-
 {{- define "element-io.synapse.process.canFallbackToMain" -}}
 {{- $root := .root -}}
 {{- with required "element-io.synapse.process.canFallbackToMain missing context" .context -}}
