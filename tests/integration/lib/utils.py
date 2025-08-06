@@ -76,11 +76,12 @@ async def aiohttp_client(ssl_context: SSLContext) -> AsyncGenerator[RetryClient]
         yield client
 
 
-async def aiohttp_get_json(url: str, ssl_context: SSLContext) -> Any:
+async def aiohttp_get_json(url: str, headers: dict, ssl_context: SSLContext) -> Any:
     """Do an async HTTP GET against a url, retry exponentially on 429s. It expects a JSON response.
 
     Args:
         url (str): The URL to hit
+        headers (dict): Any headers to add
         ssl_context (SSLContext): The SSL Context with test CA loaded
 
     Returns:
@@ -94,7 +95,7 @@ async def aiohttp_get_json(url: str, ssl_context: SSLContext) -> Any:
         aiohttp_client(ssl_context) as client,
         client.get(
             url.replace(host, "127.0.0.1"),
-            headers={"Host": host},
+            headers=headers | {"Host": host},
             server_hostname=host,
         ) as response,
     ):

@@ -18,7 +18,7 @@ async def test_well_known_files_can_be_accessed(
     await ingress_ready("well-known")
 
     json_content = await aiohttp_get_json(
-        f"https://{generated_data.server_name}/.well-known/matrix/client", ssl_context
+        f"https://{generated_data.server_name}/.well-known/matrix/client", {}, ssl_context
     )
     if value_file_has("synapse.enabled", True):
         assert "m.homeserver" in json_content
@@ -30,7 +30,7 @@ async def test_well_known_files_can_be_accessed(
         assert "org.matrix.msc4143.rtc_foci" not in json_content
 
     json_content = await aiohttp_get_json(
-        f"https://{generated_data.server_name}/.well-known/matrix/server", ssl_context
+        f"https://{generated_data.server_name}/.well-known/matrix/server", {}, ssl_context
     )
     if value_file_has("synapse.enabled", True):
         assert "m.server" in json_content
@@ -38,7 +38,7 @@ async def test_well_known_files_can_be_accessed(
         assert json_content == {}
 
     json_content = await aiohttp_get_json(
-        f"https://{generated_data.server_name}/.well-known/matrix/support", ssl_context
+        f"https://{generated_data.server_name}/.well-known/matrix/support", {}, ssl_context
     )
     assert json_content == {}
 

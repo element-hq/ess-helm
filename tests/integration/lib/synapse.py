@@ -17,7 +17,7 @@ async def get_nonce(synapse_fqdn: str, ssl_context) -> str:
     """
     Call Synapse for a nonce.
     """
-    response = await aiohttp_get_json(f"https://{synapse_fqdn}/_synapse/admin/v1/register", ssl_context)
+    response = await aiohttp_get_json(f"https://{synapse_fqdn}/_synapse/admin/v1/register", {}, ssl_context)
     return response.get("nonce", "")
 
 

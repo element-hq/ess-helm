@@ -27,7 +27,7 @@ async def test_synapse_can_access_client_api(
     await ingress_ready("synapse")
 
     json_content = await aiohttp_get_json(
-        f"https://synapse.{generated_data.server_name}/_matrix/client/versions", ssl_context
+        f"https://synapse.{generated_data.server_name}/_matrix/client/versions", {}, ssl_context
     )
     assert "unstable_features" in json_content
 
