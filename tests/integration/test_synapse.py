@@ -131,18 +131,22 @@ async def test_routes_to_synapse_workers_correctly(
 
             while True:
                 # Given we've made at least one request, we know there should be something here and we can block for it
-                # We might have requests from a previous attempt and so we might not succeed first time
-                log_line = await logs_matching_path.get()
+                # However sometimes it appears that logs aren't emitted from HAProxy so don't block indefinitely
+                try:
+                    log_line = await asyncio.wait_for(logs_matching_path.get(), timeout=1.0)
+                except TimeoutError:
+                    print(f"No HAProxy logs relating to {path} emitted after 1s. Retrying")
+                    break
 
                 # Save off lines from any run we encounter, not just the current one
                 if any([id in log_line for id in attempt_ids]):
                     matching_lines.append(log_line)
 
-                if attempt_id in log_line and f"synapse-http-in synapse-{backend}" in log_line:
-                    return
-
-                if logs_matching_path.empty():
-                    break
+                if attempt_id in log_line:
+                    if f"synapse-http-in synapse-{backend}" in log_line:
+                        return
+                    else:
+                        print(f"Request for {path} routed elsewhere: {log_line}")
 
             attempts += 1
             await asyncio.sleep(1)
