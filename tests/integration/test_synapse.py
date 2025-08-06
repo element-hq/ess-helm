@@ -2,19 +2,28 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
+import asyncio
 import hashlib
+import uuid
 from pathlib import Path
 
+import aiohttp
 import pyhelm3
 import pytest
-from aiohttp.client_exceptions import ClientResponseError
 from lightkube import AsyncClient
-from lightkube.resources.core_v1 import Pod
 
 from .fixtures import ESSData, User
 from .lib.helpers import deploy_with_values_patch, get_deployment_marker
 from .lib.synapse import assert_downloaded_content, download_media, upload_media
-from .lib.utils import KubeCtl, aiohttp_client, aiohttp_get_json, aiohttp_post_json, value_file_has
+from .lib.utils import (
+    KubeCtl,
+    aiohttp_client,
+    aiohttp_get_json,
+    aiohttp_post_json,
+    forward_matching_logs,
+    stream_logs_from_pods_matching_labels,
+    value_file_has,
+)
 
 
 @pytest.mark.skipif(value_file_has("synapse.enabled", False), reason="Synapse not deployed")
@@ -64,78 +73,97 @@ async def test_routes_to_synapse_workers_correctly(
 ):
     await ingress_ready("synapse")
 
-    main_backends = set(["main/main"])
-    main_failover_backend = "main-failover/main"
+    main_backend = "main/main"
     if value_file_has("synapse.workers.sliding-sync.enabled", True):
-        sliding_sync_backends = set(["sliding-sync/sliding-sync", main_failover_backend])
+        sliding_sync_backend = "sliding-sync/sliding-sync"
     else:
-        sliding_sync_backends = main_backends
+        sliding_sync_backend = main_backend
 
     if value_file_has("synapse.workers.synchrotron.enabled", True):
-        synchrotron_backends = set(["synchrotron/synchrotron", main_failover_backend])
+        synchrotron_backend = "synchrotron/synchrotron"
     else:
-        synchrotron_backends = main_backends
+        synchrotron_backend = main_backend
 
     if value_file_has("synapse.workers.initial-synchrotron.enabled", True):
-        initial_synchrotron_backends = set(["initial-synchrotron/initial-sync"])
-        if value_file_has("synapse.workers.synchrotron.enabled", True):
-            initial_synchrotron_backends.update(synchrotron_backends)
-        else:
-            initial_synchrotron_backends.update(main_failover_backend)
+        initial_synchrotron_backend = "initial-synchrotron/initial-sync"
     else:
-        initial_synchrotron_backends = synchrotron_backends
+        initial_synchrotron_backend = synchrotron_backend
 
     # We don't care about any of these succeeding, only that the requests are made and HAProxy dispatches correctly
     # So no auth required and parameters can be made up
     paths_to_backends = {
         # initial-synchrotron
-        "/_matrix/client/v3/initialSync": initial_synchrotron_backends,
-        "/_matrix/client/v3/rooms/aroomid/initialSync": initial_synchrotron_backends,
-        "/_matrix/client/v3/sync?full_state=true": initial_synchrotron_backends,
-        "/_matrix/client/v3/sync": initial_synchrotron_backends,
-        "/_matrix/client/v3/events": initial_synchrotron_backends,
+        "/_matrix/client/v3/initialSync": initial_synchrotron_backend,
+        "/_matrix/client/v3/rooms/aroomid/initialSync": initial_synchrotron_backend,
+        "/_matrix/client/v3/sync?full_state=true": initial_synchrotron_backend,
+        "/_matrix/client/v3/sync": initial_synchrotron_backend,
+        "/_matrix/client/v3/events": initial_synchrotron_backend,
         # synchrotron
-        "/_matrix/client/v3/sync?since=recently": synchrotron_backends,
-        "/_matrix/client/v3/events?from=recently": synchrotron_backends,
+        "/_matrix/client/v3/sync?since=recently": synchrotron_backend,
+        "/_matrix/client/v3/events?from=recently": synchrotron_backend,
         # sliding-sync
-        "/_matrix/client/unstable/org.matrix.simplified_msc3575/sync": sliding_sync_backends,
+        "/_matrix/client/unstable/org.matrix.simplified_msc3575/sync": sliding_sync_backend,
         # Would be client-reader but not configured in tests
-        "/_matrix/client/versions": main_backends,
+        "/_matrix/client/versions": main_backend,
     }
 
-    for path in paths_to_backends:
-        try:
-            await aiohttp_get_json(f"https://synapse.{generated_data.server_name}{path}", ssl_context)
-        except ClientResponseError as e:
-            # We can't use pytest.raises as no exception (200) is valid
-            assert e.status in [401, 405], f"{path} had an unexpected status. {e=}"  # noqa P1017
+    all_haproxy_logs: asyncio.Queue = asyncio.Queue()
+    haproxy_logs_streaming_task = asyncio.create_task(
+        stream_logs_from_pods_matching_labels(
+            kube_client, generated_data.ess_namespace, {"app.kubernetes.io/name": "haproxy"}, all_haproxy_logs
+        )
+    )
 
-    http_log_lines = []
-    async for haproxy_pod in kube_client.list(
-        Pod, namespace=generated_data.ess_namespace, labels={"app.kubernetes.io/name": "haproxy"}
-    ):
-        assert haproxy_pod.metadata
-        assert haproxy_pod.metadata.name
-        assert haproxy_pod.metadata.namespace
-        async for log_line in kube_client.log(haproxy_pod.metadata.name, namespace=haproxy_pod.metadata.namespace):
-            if "HTTP/1.1" in log_line:
-                http_log_lines.append(log_line)
+    async def make_request_and_assert_backend_used(path, backend, ssl_context, logs_matching_path: asyncio.Queue):
+        attempt_ids = []
+        matching_lines = []
+        attempts = 0
+        while attempts < 30:
+            attempt_id = str(uuid.uuid4())
+            attempt_ids.append(attempt_id)
+            try:
+                await aiohttp_get_json(
+                    f"https://synapse.{generated_data.server_name}{path}", {"User-agent": attempt_id}, ssl_context
+                )
+            except aiohttp.ClientResponseError as e:
+                # We can't use pytest.raises as no exception (200) is valid
+                assert e.status in [401, 405], f"{path} had an unexpected status. {e=}"  # noqa P1017
 
-    for path, backends in paths_to_backends.items():
-        matching_lines = [line for line in http_log_lines if f"GET {path} HTTP/1.1" in line]
+            while True:
+                # Given we've made at least one request, we know there should be something here and we can block for it
+                # We might have requests from a previous attempt and so we might not succeed first time
+                log_line = await logs_matching_path.get()
 
-        assert len(matching_lines) > 0, f"Requests for {path} did not appear in the HAProxy logs"
-        for matching_line in matching_lines:
-            # During the upgrade tests these requests may NOSRV as Synapse processes are down
-            # We eventually succeed, so just ignore the requests that were retried
-            if " 503 " in matching_line and " synapse-main/<NOSRV> " in matching_line:
-                continue
+                # Save off lines from any run we encounter, not just the current one
+                if any([id in log_line for id in attempt_ids]):
+                    matching_lines.append(log_line)
 
-            # We know we end up here at least once as 2xx/401/405 won't match the above check
-            assert any([f"synapse-http-in synapse-{backend}" in matching_line for backend in backends]), (
-                f"{path} was routed unexpectedly. "
-                f"Should have been one of {', '.join(backends)} but log line was {matching_line}"
-            )
+                if attempt_id in log_line and f"synapse-http-in synapse-{backend}" in log_line:
+                    return
+
+                if logs_matching_path.empty():
+                    break
+
+            attempts += 1
+            await asyncio.sleep(1)
+        raise AssertionError(
+            f"Requests to {path} did not end up at synapse-{backend} over 30s/attempts. "
+            f"Log lines={'\n*'.join(matching_lines)}"
+        )
+
+    async with asyncio.TaskGroup() as task_group:
+        path_matchers_and_log_queues = []
+        for path, backend in paths_to_backends.items():
+            logs_matching_path: asyncio.Queue = asyncio.Queue()
+            path_matchers_and_log_queues.append((lambda log_line, path=path: path in log_line, logs_matching_path))
+            task_group.create_task(make_request_and_assert_backend_used(path, backend, ssl_context, logs_matching_path))
+
+        forward_matching_logs_task = asyncio.create_task(
+            forward_matching_logs(all_haproxy_logs, path_matchers_and_log_queues)
+        )
+
+    haproxy_logs_streaming_task.cancel()
+    forward_matching_logs_task.cancel()
 
 
 @pytest.mark.skipif(value_file_has("synapse.enabled", False), reason="Synapse not deployed")
