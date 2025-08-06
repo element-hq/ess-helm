@@ -6,6 +6,107 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 25.8.0 (2025-08-06)
+
+### Added
+
+- Document how to configure k3s traefik timeouts. (#617)
+
+### Changed
+
+- Default Synapse to requiring TLS 1.2 or later.
+
+  This can be overridden in additional configuration. (#609)
+- Set Element X as app to be pointed to when accessing Element Web from a mobile browser. (#610)
+- Document in CI values example that `deploymentMarkers` is default enabled. (#620)
+- Upgrade Matrix Authentication Service to v0.20.0.
+
+  Highlights:
+  * Support receiving OpenID Connect Back-Channel Logout notifications
+  * Support linking of upstream accounts to existing users when the localpart matches
+  * Make email address lookups case-insensitive
+  * Improve spec compliance of upstream OAuth 2.0 client auth methods
+
+  Full Changelog:
+  * [v0.19.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v0.19.0)
+  * [v0.20.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v0.20.0)
+
+  (#634)
+- Upgrade `lk-jwt-service` to 0.3.0.
+
+  Highlights:
+  * Support restricting Matrix room creation to local homeserver only.
+    Configure this through `matrixRTC.restrictRoomCreationToLocalUsers`. Default to false for now until clients support this new feature.
+
+  Full Changelog:
+  * [0.3.0](https://github.com/element-hq/lk-jwt-service/releases/tag/v0.3.0)
+
+  (#635)
+- Upgrade Element Web to v1.11.108.
+
+  Highlights:
+  * Allow Element Call to learn the room name
+  * Save image on Ctrl/Cmd + S
+
+  Full Changelog:
+  * [v1.11.106](https://github.com/element-hq/element-web/releases/tag/v1.11.106)
+  * [v1.11.107](https://github.com/element-hq/element-web/releases/tag/v1.11.107)
+  * [v1.11.108](https://github.com/element-hq/element-web/releases/tag/v1.11.108)
+
+  (#638)
+- Introduce a `device-lists` worker for Synapse. (#639)
+- Update worker capable paths for Synapse v1.135.0. (#639)
+- Upgrade Synapse to v1.135.0.
+
+  Highlights:
+  * [MSC4267](https://github.com/matrix-org/matrix-spec-proposals/pull/4267) support - automatically forgetting rooms on leave
+  * Advertise support for Matrix v1.12
+  * Add ability to limit amount of media uploaded by a user in a given time period
+  * Support arbitrary profile fields
+
+  Full Changelog:
+  * [v1.134.0](https://github.com/element-hq/synapse/releases/tag/v1.134.0)
+  * [v1.135.0](https://github.com/element-hq/synapse/releases/tag/v1.135.0)
+
+  (#639)
+- Split the `receipts-account` worker type into `account-data` and `receipts` workers.
+
+  If you've configured `synapse.workers.receipts-account` this is no longer valid and your configuration should be updated to
+  setup `synapse.workers.account-data` and/or `synapse-workers.receipts` as appropriate. (#640)
+- Remove support for `/.well-known/element/element.json`.
+
+  It isn't used by clients of ESS Community.
+
+  If you've set it, please remove `wellKnownDelegation.additional.element` from your values files. (#641)
+- Source whether Synapse workers are single or scalable from the values rather than maintaining a list of single vs scalable workers. (#644)
+- Source whether Synapse workers serve HTTP endpoints or have replication from other configuration to improve consistency of configuration. (#645)
+- Update matrix-tools to 0.5.5. (#652)
+
+### Fixed
+
+- Synapse: fix requests being routed to initial-synchrotron incorrectly. (#632, #642, #643, #646)
+- Fix incorrect routing for Matrix Authentication Service related Synapse Admin API paths during migration. (#639)
+
+### Internal
+
+- Refactor matrix-tools handling of subcommand. (#592)
+- CI: change the comparision branch for the dyff job after the change to the source branch. (#602)
+- Add the ability to regenerate a single file in `charts/matrix-stack/ci`. (#603)
+- Add the ability to generate values files in `charts/matrix-stack/user_values` from `charts/matrix-stack/ci/fragments`. (#605)
+- CI: just list manifests in that dyff that are added/deleted rather than any metadata about them. (#606)
+- CI: improve testing of TLS certificates with intermediates. (#612)
+- CI: handle `deploymentMarkers` not being enabled in various some PyTests. (#621)
+- CI: remove `deploymentMarkers` from `{synapse,matrix-authentication-service}(-checkov)-values.yaml` as no extra values are required if deployment markers aren't enabled. (#621)
+- CI: add `checkov` values file that covers all default enabled components. (#621)
+- CI: sort list of `source_fragments` in CI values files. (#622, #623)
+- CI: check automount service account policy against Job in tests. (#625)
+- CI: refactor test users in integration tests. (#626)
+- CI: fix flaking tests when checking upgrades. (#627)
+- CI: in tests, wait for all replicasets to be ready before checking service endpoints and monitored pods. (#629)
+- CI: in tests for pods to services labels match, skip pods part of a previous-generation replicaset. (#630)
+- CI: fix warnings about wrong checkout action parameters. (#636)
+
+
 # ESS Community Helm Chart 25.7.0 (2025-07-02)
 
 ### Changed
