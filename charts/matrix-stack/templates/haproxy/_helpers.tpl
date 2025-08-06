@@ -20,7 +20,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- with required "element-io.haproxy.configmap-data missing context" .context -}}
 haproxy.cfg: |
 {{- tpl ($root.Files.Get "configs/haproxy/haproxy.cfg.tpl") (dict "root" $root "context" .) | nindent 2 }}
-{{- end -}}
+{{ end -}}
 {{- end -}}
 
 {{- define "element-io.haproxy.overrideEnv" }}
