@@ -17,8 +17,10 @@ from urllib.parse import urlparse
 import aiohttp
 import yaml
 from aiohttp_retry import JitterRetry, RetryClient
+from lightkube import AsyncClient
 from lightkube.generic_resource import async_load_in_cluster_generic_resources, get_generic_resource
 from lightkube.resources.apiextensions_v1 import CustomResourceDefinition
+from lightkube.resources.core_v1 import Pod
 from pytest_kubernetes.providers import AClusterManager
 
 retry_options = JitterRetry(
@@ -76,11 +78,12 @@ async def aiohttp_client(ssl_context: SSLContext) -> AsyncGenerator[RetryClient]
         yield client
 
 
-async def aiohttp_get_json(url: str, ssl_context: SSLContext) -> Any:
+async def aiohttp_get_json(url: str, headers: dict, ssl_context: SSLContext) -> Any:
     """Do an async HTTP GET against a url, retry exponentially on 429s. It expects a JSON response.
 
     Args:
         url (str): The URL to hit
+        headers (dict): Any headers to add
         ssl_context (SSLContext): The SSL Context with test CA loaded
 
     Returns:
@@ -94,7 +97,7 @@ async def aiohttp_get_json(url: str, ssl_context: SSLContext) -> Any:
         aiohttp_client(ssl_context) as client,
         client.get(
             url.replace(host, "127.0.0.1"),
-            headers={"Host": host},
+            headers=headers | {"Host": host},
             server_hostname=host,
         ) as response,
     ):
@@ -177,3 +180,41 @@ async def read_service_monitor_kind(kube_client):
                 generic_resource = get_generic_resource(f"{r.spec.group}/{r.spec.versions[0].name}", r.spec.names.kind)
             return generic_resource
     raise Exception("Could not find ServiceMonitor CRD")
+
+
+async def get_pods_matching_labels(kube_client: AsyncClient, namespace: str, labels: dict):
+    active_pods = set[str]()
+    async for event, pod in kube_client.watch(Pod, namespace=namespace, labels=labels):
+        assert pod
+        assert pod.metadata
+        assert pod.metadata.name
+        assert pod.status
+        assert pod.status.phase
+        pod_name = pod.metadata.name
+        if event in ["ADDED", "MODIFIED"] and pod_name not in active_pods and pod.status.phase == "Running":
+            active_pods.add(pod_name)
+            yield pod_name
+
+        if event in ["MODIFIED", "DELETED"] and pod_name in active_pods and pod.status.phase != "Running":
+            active_pods.remove(pod_name)
+
+
+async def stream_logs_from_pod(kube_client: AsyncClient, namespace: str, pod_name: str, log_queue: asyncio.Queue):
+    async for line in kube_client.log(pod_name, namespace=namespace, follow=True, newlines=False):
+        log_queue.put_nowait(line)
+
+
+async def stream_logs_from_pods_matching_labels(
+    kube_client: AsyncClient, namespace: str, labels: dict[str, str], log_queue: asyncio.Queue
+):
+    async with asyncio.TaskGroup() as task_group:
+        async for pod_name in get_pods_matching_labels(kube_client, namespace, labels):
+            task_group.create_task(stream_logs_from_pod(kube_client, namespace, pod_name, log_queue))
+
+
+async def forward_matching_logs(input_logs_queue: asyncio.Queue, output_matchers_to_logs_queues: list):
+    while True:
+        log_line = await input_logs_queue.get()
+        for matcher, output_logs_queue in output_matchers_to_logs_queues:
+            if matcher(log_line):
+                output_logs_queue.put_nowait(log_line)
