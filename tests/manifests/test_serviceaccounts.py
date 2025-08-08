@@ -104,6 +104,8 @@ async def test_does_not_create_serviceaccounts_if_configured_not_to(values, make
         serviceaccount_names = set()
         covered_serviceaccount_names = set()
         for template in await make_templates(values_to_modify):
+            if template_to_deployable_details(template) != deployable_details:
+                continue
             if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
                 id_suffix = f" (for {deployable_details.name})"
                 workloads_by_id[f"{template_id(template)}{id_suffix}"] = template
@@ -123,6 +125,6 @@ async def test_does_not_create_serviceaccounts_if_configured_not_to(values, make
             else:
                 covered_serviceaccount_names.add(serviceaccount_name)
 
-        assert serviceaccount_names == covered_serviceaccount_names, (
+        assert serviceaccount_names.intersection(covered_serviceaccount_names) == set(), (
             f"{id} created ServiceAccounts that it shouldn't have"
         )
