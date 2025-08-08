@@ -24,6 +24,7 @@ metadata:
 spec:
   type: NodePort
   externalTrafficPolicy: Local
+  ipFamilyPolicy: PreferDualStack
   ports:
 {{- $segment_start := ((add $range_start (mul 250 $port_segment)) | int) }}
 {{- $segment_end := ((min (add $range_end 1) (add $segment_start 250)) | int) }}
