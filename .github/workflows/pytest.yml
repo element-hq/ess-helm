@@ -69,7 +69,7 @@ jobs:
 
     - name: Login to Dockerhub
       uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1  # v3
-      if: ${{ github.repository == 'element-hq/ess-helm' }}
+      if: ${{ github.event.pull_request.head.repo.full_name == 'element-hq/ess-helm' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
       with:
         registry: docker.io
         username: ${{ secrets.DOCKERHUB_USERNAME }}
