@@ -2,12 +2,15 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-import copy
-
 import pytest
 
-from . import DeployableDetails, PropertyType, all_deployables_details, values_files_to_test
-from .utils import iterate_deployables_workload_parts, template_id, template_to_deployable_details
+from . import DeployableDetails, PropertyType, values_files_to_test
+from .utils import (
+    iterate_deployables_parts,
+    iterate_deployables_workload_parts,
+    template_id,
+    template_to_deployable_details,
+)
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -92,39 +95,18 @@ async def test_uses_serviceaccount_named_as_values_if_specified(values, make_tem
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_does_not_create_serviceaccounts_if_configured_not_to(values, make_templates):
-    for deployable_details in all_deployables_details:
-        if not deployable_details.has_workloads:
-            continue
+    def disable_serviceaccount_creation(deployable_details: DeployableDetails):
+        deployable_details.set_helm_values(values, PropertyType.ServiceAccount, {"create": False})
 
-        values_to_modify = copy.deepcopy(values)
-        deployable_details.set_helm_values(values_to_modify, PropertyType.ServiceAccount, {"create": False})
-        deployable_details.set_helm_values(values_to_modify, PropertyType.Labels, {"serviceAccount": "none"})
+    iterate_deployables_parts(
+        disable_serviceaccount_creation, lambda deployable_details: deployable_details.has_workloads
+    )
 
-        workloads_by_id = {}
-        serviceaccount_names = set()
-        covered_serviceaccount_names = set()
-        for template in await make_templates(values_to_modify):
-            if template_to_deployable_details(template) != deployable_details:
-                continue
-            if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-                id_suffix = f" (for {deployable_details.name})"
-                workloads_by_id[f"{template_id(template)}{id_suffix}"] = template
-            elif template["kind"] == "ServiceAccount":
-                serviceaccount_names.add(template["metadata"]["name"])
-
-        for id, template in workloads_by_id.items():
-            assert "serviceAccountName" in template["spec"]["template"]["spec"], (
-                f"{id} does not set an explicit ServiceAccount"
-            )
-
-            serviceaccount_name = template["spec"]["template"]["spec"]["serviceAccountName"]
-            if template["metadata"]["labels"].get("serviceAccount", "some") == "none":
-                assert serviceaccount_name not in serviceaccount_names, (
-                    f"{id} specified an existing ServiceAccount: {serviceaccount_name}"
-                )
-            else:
-                covered_serviceaccount_names.add(serviceaccount_name)
-
-        assert serviceaccount_names.intersection(covered_serviceaccount_names) == set(), (
-            f"{id} created ServiceAccounts that it shouldn't have"
+    for template in await make_templates(values):
+        assert template["kind"] != "ServiceAccount", (
+            f"{template_id(template)} unexpectedly exists when all ServiceAccount should be turned off"
         )
+        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
+            assert "serviceAccountName" in template["spec"]["template"]["spec"], (
+                f"{template_id(template)} does not set an explicit ServiceAccount"
+            )
