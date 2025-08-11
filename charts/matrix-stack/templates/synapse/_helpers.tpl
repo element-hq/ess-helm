@@ -251,3 +251,16 @@ path_map_file_get: |
                   "isHook" $isHook)) }}
 {{- end }}
 {{- end }}
+
+
+{{- define "element-io.synapse.internal-hostport" -}}
+{{- $root := .root -}}
+{{- with required "element-io.synapse.internal-hostport missing context" .context -}}
+{{- $root.Release.Name }}-synapse
+{{- with .targetProcessType -}}
+-{{ . }}
+{{- end -}}
+.{{ $root.Release.Namespace }}.svc.cluster.local:8008
+{{- end -}}
+{{- end -}}
+

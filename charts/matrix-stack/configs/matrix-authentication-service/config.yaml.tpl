@@ -58,7 +58,7 @@ telemetry:
 matrix:
   homeserver: "{{ tpl $root.Values.serverName $root }}"
   secret: ${SYNAPSE_SHARED_SECRET}
-  endpoint: "http://{{ $root.Release.Name }}-synapse-main.{{ $root.Release.Namespace }}.svc.cluster.local:8008"
+  endpoint: "http://{{ include "element-io.synapse.internal-hostport" (dict "root" $root "context" (dict "targetProcessType" "main")) }}"
 {{- /* When in syn2mas dryRun mode, migration has not run yet
 We don't want MAS to change data in Synapse
 */}}
