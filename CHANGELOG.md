@@ -6,6 +6,35 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 25.8.1 (2025-08-11)
+
+### Changed
+
+- Update Element Web to v1.11.109.
+
+  Highlights :
+  - Add support for the new room version 12
+  - Allow /upgraderoom command without developer mode enabled
+  - Support for creator/owner power level
+  - Various icons and visual changes
+
+  (#663)
+- Update Synapse to v1.135.2.
+
+  Highlights :
+  - This is the Synapse portion of the [Matrix coordinated security release](https://matrix.org/blog/2025/07/security-predisclosure/). This release includes support for [room version](https://spec.matrix.org/v1.15/rooms/) 12 which fixes a number of security vulnerabilities, including [CVE-2025-49090](https://www.cve.org/CVERecord?id=CVE-2025-49090).
+  - The default room version is not changed. Not all clients will support room version 12 immediately, and not all users will be using the latest version of their clients. Large, public rooms are advised to wait a few weeks before upgrading to room version 12 to allow users throughout the Matrix ecosystem to update their clients.
+
+  (#664)
+
+### Internal
+
+- CI: remove flakes in `test_routes_to_synapse_workers_correctly` by streaming logs from all HAProxy `Pods`, not just the current ones. (#654, #655)
+- Speed-up the tests asserting the possibility not to create service accounts per components. (#659)
+- CI: Fix external contributors CI runs not running properly. (#661)
+- Add a helper to build synapse internal hostport in helm templates. (#662)
+
+
 # ESS Community Helm Chart 25.8.0 (2025-08-06)
 
 ### Added
