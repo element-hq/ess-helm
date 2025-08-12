@@ -239,7 +239,7 @@ async def has_actual_metrics_on_endpoint(
             if port_spec.name == endpoint["port"]:
                 metrics_data = await run_pod_with_args(
                     kube_client,
-                    generated_data.ess_namespace,
+                    generated_data,
                     "curlimages/curl:latest",
                     "curl",
                     [
