@@ -33,7 +33,7 @@ pytest-kubernetes = {git = "https://github.com/Blueshoe/pytest-kubernetes.git", 
 pytest-asyncio-cooperative ="^0.40.0"
 towncrier = "^24.8.0"
 spdx-tools = "^0.8.3"
-types-pytz = "^2025.2.0.20250516"
+types-pytz = "^2025.2.0.20250809"
 mypy = "^1.17.1"
 types-pyyaml = "^6.0.12.20250516"
 semver = "^3.0.4"
