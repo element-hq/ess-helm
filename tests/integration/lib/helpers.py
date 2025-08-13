@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 import asyncio
+import os
 import time
 
 import pyhelm3
@@ -10,6 +11,7 @@ from lightkube import AsyncClient
 from lightkube.models.core_v1 import (
     Capabilities,
     Container,
+    LocalObjectReference,
     PodSpec,
     SeccompProfile,
     SecurityContext,
@@ -109,11 +111,17 @@ async def get_deployment_marker(kube_client, generated_data, marker: str):
     return configmap.data.get(marker)
 
 
-async def run_pod_with_args(kube_client: AsyncClient, namespace, image_name, pod_name, args):
+async def run_pod_with_args(kube_client: AsyncClient, generated_data, image_name, pod_name, args):
+    pod_pull_secrets = []
+    if os.environ.get("CI") and ("DOCKERHUB_USERNAME" in os.environ) and ("DOCKERHUB_TOKEN" in os.environ):
+        pod_pull_secrets = [
+            LocalObjectReference(name=f"{generated_data.release_name}-dockerhub"),
+        ]
     pod = Pod(
-        metadata=ObjectMeta(name=pod_name + "-" + str(int(time.time() * 1000)), namespace=namespace),
+        metadata=ObjectMeta(name=pod_name + "-" + str(int(time.time() * 1000)), namespace=generated_data.ess_namespace),
         spec=PodSpec(
             restartPolicy="Never",
+            imagePullSecrets=pod_pull_secrets,
             containers=[
                 Container(
                     name="cmd",
@@ -166,7 +174,7 @@ async def run_pod_with_args(kube_client: AsyncClient, namespace, image_name, pod
             log_lines += log_line
         return log_lines
     finally:
-        await kube_client.delete(Pod, name=pod.metadata.name, namespace=namespace)
+        await kube_client.delete(Pod, name=pod.metadata.name, namespace=generated_data.ess_namespace)
 
 
 async def wait_for_all_replicaset_replicas_ready(kube_client: AsyncClient, namespace: str):

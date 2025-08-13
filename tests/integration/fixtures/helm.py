@@ -152,7 +152,7 @@ async def matrix_stack(
 
     values["serverName"] = generated_data.server_name
     values.setdefault("matrixTools", {})
-    if os.environ.get("CI"):
+    if os.environ.get("CI") and ("DOCKERHUB_USERNAME" in os.environ) and ("DOCKERHUB_TOKEN" in os.environ):
         values["imagePullSecrets"] = [
             {"name": f"{generated_data.release_name}-dockerhub"},
         ]
