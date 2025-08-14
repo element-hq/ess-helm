@@ -1,0 +1,9 @@
+Update Matrix Authentication Service to v1.0.0.
+
+Highlights:
+
+* Support for stable Matrix native OIDC scopes.
+* Add `clients.[].client_secret_file` config option.
+* Add `matrix.secret_file` config option.
+
+[Full Changelog](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.0.0).
