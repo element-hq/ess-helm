@@ -19,28 +19,49 @@ SPDX-License-Identifier: AGPL-3.0-only
 </picture>
 </p>
 
-<h1 align="center">Element Server Suite Community Edition</h1>
+<h1 align="center">Element Server Suite Community</h1>
 
 <p align="center">
 <b>The official Matrix stack from Element for non-commercial use</b>
 </p>
 
-Element Server Suite Community Edition (ESS Community) allows you to deploy a Matrix stack using the provided Helm charts and a Kubernetes distribution of your choice, even if you don't have Kubernetes knowledge. It is provided for non-commercial community use cases with quality in mind and aims to be as easy to use as possible. ESS Community allows you to very quickly deploy a solid Matrix stack fully supporting Matrix 2.0 and gives you the flexibility to make it your own. Below you will find a quick setup guide that gives you everything needed to set up a basic system with as few steps as possible.
+Element Server Suite Community Edition (ESS Community) allows you to deploy a Matrix stack using the provided Helm charts and a Kubernetes distribution of your choice, even if you don't have Kubernetes knowledge. It is provided for non-commercial community use cases with quality in mind and aims to be as easy to use as possible. ESS Community enables you to very quickly deploy a solid Matrix stack fully supporting Matrix 2.0 and gives you the flexibility to make it your own. Below you will find a quick setup guide that gives you everything needed to set up a basic system with as few steps as possible.
 
 # Editions
 There are three editions of **Element Server Suite**:
 
 
 ## ESS Community
-ESS Community is a cutting-edge Matrix distribution including all the latest features of the Matrix server Synapse and other components. It is freely available under the AGPLv3 license and tailored to small-/mid-scale, non-commercial community use cases. It's designed to easily and quickly set up a Matrix deployment. It comprises the basic components needed to get you running and is a great way to get started.
+[ESS Community](https://element.io/server-suite/community) is a cutting-edge Matrix distribution including all the latest features of the Matrix server Synapse and other components. It is freely available under the AGPLv3 license and tailored to small-/mid-scale, non-commercial community use cases with up to 100 users. It's designed to easily and quickly set up a Matrix deployment. It comprises the basic components needed to get you running and is a great way to get started.
 
 To get professional support & upgrade to ESS Pro, [contact Element](https://try.element.io/upgrade-ess-community).
 
 ## ESS Pro
-[ESS Pro](https://element.io/server-suite) is the commercial backend distribution from Element. It includes everything in ESS Community plus additional features and services that are tailored to professional environments with more than 100 users up to massive scale in the millions. It is designed to support enterprise requirements in terms of advanced IAM, compliance, scalability, high availability, high density and multi-tenancy. ESS Pro makes use of Synapse Pro to provide infrastructure cost savings and improved user experience under high load. It uses Element’s Secure Border Gateway (SBG) as an application layer firewall to manage federation and to ensure that deployments stay compliant at any time. ESS Pro includes L3 support, Long-term Support (LTS), Advanced Security Advisory and prepares you for the Cyber Resilience Act (CRA).
+[ESS Pro](https://element.io/server-suite/pro) is the commercial backend distribution from Element. It includes everything in ESS Community plus additional features and services that are tailored to professional environments with more than 100 users up to massive scale in the millions. It is designed to support enterprise requirements in terms of advanced IAM, compliance, scalability, high availability and multi-tenancy. ESS Pro makes use of Synapse Pro to provide infrastructure cost savings and improved user experience under high load. It uses Element’s Secure Border Gateway (SBG) as an application layer firewall to manage federation and to ensure that deployments stay compliant at any time. ESS Pro includes L3 support, Long-term Support (LTS), Advanced Security Advisory and prepares you for the Cyber Resilience Act (CRA).
+
+**Additional capabilities with ESS Pro**
+Find below an overview of the most important additional product capabilities for professional use with ESS Pro.
+
+- Synapse Pro
+  - Resource and operational cost savings (up to 90% compared to Community, depending on usage patterns)
+    - Multi-tenancy (for running many small hosts)
+    - More efficient and cloud-native Synapse subsystems (for running individual large hosts)
+  - Dynamic and automatic scaling with adaptation to actual load (horizontal and vertical)
+  - In-cluster high availability (HA)
+  - Improved end-user experience due to better stability under load
+- Application-level firewall with federation controls and more (Secure Border Gateway)
+- User lifecycle management and group access control via LDAP/SCIM (Advanced Identity Management)
+- Malware scanning of media attachments (Content Scanner)
+- Room auditing capabilities (AuditBot)
+- Room moderation and central control (AdminBot)
+- LDAP and SSO support for user authentication
+- S3 support for media storage
+- Distroless/minimal images of all the components
+
+A full comparison between the editions can be found [here](https://element.io/pricing). See the [ESS Pro documentation](https://docs.element.io/latest/element-server-suite-pro/introduction-to-ess-pro/) for more details.
 
 ## ESS TI-M
-ESS TI-M is a special version of ESS Pro focused on the requirements of TI-Messenger Pro and ePA as specified by the German National Digital Health Agency Gematik. It complies with a specific Matrix version and does not make use of experimental features.
+[ESS TI-M](https://element.io/server-suite/ti-messenger) is a special version of ESS Pro focused on the requirements of TI-Messenger Pro and ePA as specified by the German National Digital Health Agency Gematik. It complies with a specific Matrix version and does not make use of experimental features.
 
 # Contents
 
@@ -86,7 +107,7 @@ ESS Community comes with the following components out-of-the box:
 - [Element Web](https://github.com/element-hq/element-web): The Matrix Web Client provided by Element.
 - PostgreSQL: An optional packaged PostgreSQL server that allows you to quickly set up the stack out-of-the-box. For a better long-term experience, please consider using a dedicated PostgreSQL server. See the [advanced setup docs](./docs/advanced.md) for more information.
 - HAProxy: Provides the routing to Synapse processes.
-- .well-known delegation: Required for federation and Matrix clients.
+- .well-known delegation: Required for federation and Matrix clients
 
 It is possible to enable/disable each on a per-component basis. They can also be customized using dedicated values.
 
@@ -105,7 +126,7 @@ If you want to suggest changes to the distribution or contribute them yourself, 
 
 # Getting started
 
-This readme is primarily aimed as a simple walkthrough to setup ESS Community.
+This readme is primarily aimed as a simple walkthrough to set up ESS Community.
 Users experienced with Helm and Kubernetes can refer directly to the chart README at [charts/matrix-stack/README.md](charts/matrix-stack/README.md).
 
 ## Resource requirements
@@ -125,7 +146,7 @@ You first need to choose what your server name is going to be. The server name m
 Setting up a basic environment involves only **6 steps**:
 
 1. [Setting up DNS entries](#dns)
-2. [Setting up K3s](#k3s---kubernetes-single-node-setup) (or use another Kubernetes distribution)
+2. [Setting up K3s](#kubernetes-single-node-setup-with-k3s) (or use another Kubernetes distribution)
 3. [Setting up TLS/certificates](#certificates)
 4. [Installing the stack](#installation)
 5. [Creating an initial user](#creating-an-initial-user)
@@ -137,9 +158,9 @@ The below instructions will guide you through each of the steps.
 
 ### DNS
 
-You need to create DNS entries to set up ESS Community. All of these DNS entries must point to your server's IP.
+You need to create DNS A records to set up ESS Community. All of these DNS entries must point to your server's IP.
 
-- Server name: This DNS entry should point to the installation ingress. It should be the `server-name.tld` you chose above.
+- Server name: This DNS entry must point to the installation ingress. It must be the `server-name.tld` you chose above.
 - Synapse: For example, you could use `matrix.<server-name.tld>`.
 - Matrix Authentication Service: For example, you could use `account.<server-name.tld>`.
 - Matrix RTC Backend: For example, you could use `mrtc.<server-name.tld>`.
@@ -147,19 +168,21 @@ You need to create DNS entries to set up ESS Community. All of these DNS entries
 
 ### Ports
 
-For this simple setup you need to open the following ports :
+For this simple setup you need to open the following ports:
  - TCP 80: This port will be used for the HTTP connections of all services, which will redirect to the HTTPS connection.
  - TCP 443: This port will be used for the HTTPS connections of all services.
  - TCP 30881: This port will be used for the TCP WebRTC connections of Matrix RTC Backend.
  - UDP 30882: This port will be used for the Muxed WebRTC connections of Matrix RTC Backend.
 
-### K3s - Kubernetes single node setup
+These ports will be exposed by default on a running ESS Community deployment. You can change that as needed, for instance if you have another service occupying 80/443. See the [Using an existing reverse proxy](#using-an-existing-reverse-proxy) section below.
 
-This guide suggests using K3s as the Kubernetes node hosting ESS Community. Other options are possible. You can use an existing Kubernetes cluster, or use other clusters like [microk8s](https://microk8s.io/). Any Kubernetes distribution is compatible with Element Community, so choose one according to your needs.
+### Kubernetes single node setup with K3s
+
+This guide suggests using K3s as the Kubernetes node hosting ESS Community. Other options are possible. You can use an existing Kubernetes cluster, or use other clusters like [microk8s](https://microk8s.io/). Any Kubernetes distribution is compatible with ESS Community, so choose one according to your needs.
 
 The following will install K3s on the node, and configure its Traefik proxy automatically. If you want to configure K3s behind an existing reverse proxy on the same node, please see the [dedicated section](#using-an-existing-reverse-proxy).
 
-If you have a firewall running on your server, please follow [k3s official recommandations](https://docs.k3s.io/installation/requirements?os=debian#operating-systems).
+If you have a firewall running on your server, please follow the [K3s official recommendations](https://docs.k3s.io/installation/requirements?os=debian#operating-systems).
 1. Run the following command to install K3s:
 
 ```
@@ -198,7 +221,13 @@ mkdir ~/ess-config-values
 
 ### Certificates
 
-We present here 3 options to set up certificates in Element Server Suite. To configure Element Server Suite behind an existing reverse proxy already serving TLS, you can [jump to the end of this section](#using-an-existing-reverse-proxy).
+We present here 3 options to set up certificates in Element Server Suite. 
+
+1. [Using Let's Encrypt to automatically issue new certificates](#lets-encrypt)
+2. [Using existing certificate files](#certificate-file)
+3. [Using an existing reverse proxy](#using-an-existing-reverse-proxy)
+
+To configure Element Server Suite behind an existing reverse proxy already serving TLS, you can [jump to the end of this section](#using-an-existing-reverse-proxy).
 
 #### Let's Encrypt
 
@@ -221,11 +250,13 @@ helm install \
   --set crds.enabled=true
 ```
 
-3. Configure Cert-Manager to allow ESS Community to request Let’s Encrypt certificates automatically. Create a “ClusterIssuer” resource in your K3s node to do so:
+3. Configure Cert-Manager to allow ESS Community to request Let’s Encrypt certificates automatically. Provide your email address for Let's Encrypt and create a “ClusterIssuer” resource in your K3s node to do so:
 
 ```
 export USER_EMAIL=<your email>
+```
 
+```
 kubectl apply -f - <<EOF
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
@@ -244,7 +275,7 @@ spec:
 EOF
 ```
 
-4. In your ESS configuration values directory, copy the file `charts/matrix-stack/ci/fragments/quick-setup-letsencrypt.yaml` to `tls.yaml`.
+4. In your ESS configuration values directory, copy the file `[charts/matrix-stack/ci/fragments/quick-setup-letsencrypt.yaml](https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-letsencrypt.yaml)` to `tls.yaml`.
 
 #### Certificate File
 
@@ -258,7 +289,7 @@ If your wildcard certificate covers both the server-name and the hosts of your s
 kubectl create secret tls ess-certificate -n ess --cert=path/to/cert/file --key=path/to/key/file
 ```
 
-2. In your ess configuration values directory, copy the file `charts/matrix-stack/ci/fragments/quick-setup-wildcard-cert.yaml` to `tls.yaml`. Adjust the TLS Secret name accordingly if needed.
+2. In your ess configuration values directory, copy the file `[charts/matrix-stack/ci/fragments/quick-setup-wildcard-cert.yaml](https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-wildcard-cert.yaml)` to `tls.yaml`. Adjust the TLS Secret name accordingly if needed.
 
 ##### Individual certificates
 
@@ -271,7 +302,7 @@ kubectl create secret tls ess-mrtc-certificate -n ess --cert=path/to/cert/file -
 kubectl create secret tls ess-well-known-certificate -n ess --cert=path/to/cert/file --key=path/to/key/file
 ```
 
-2. In your ess configuration values directory, copy the file `charts/matrix-stack/ci/fragments/quick-setup-certificates.yaml` to `tls.yaml`. Adjust the TLS Secret name accordingly if needed.
+2. In your ess configuration values directory, copy the file `[charts/matrix-stack/ci/fragments/quick-setup-certificates.yaml](https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-certificates.yaml)` to `tls.yaml`. Adjust the TLS Secret name accordingly if needed.
 
 #### Using an existing reverse proxy
 
@@ -316,7 +347,7 @@ traefik          LoadBalancer   10.43.184.49    172.20.1.60   8080:32100/TCP,844
 
 4. Configure your reverse proxy so that the DNS names you configured are routed to the external IP of traefik on port 8080 (HTTP) and 8443 (HTTPS).
 
-5. If the certificates are handled in your reverse proxy, you can point to port 8080 (HTTP) only and disable TLS in ESS. Copy the file `charts/matrix-stack/ci/fragments/quick-setup-external-cert.yaml` to `tls.yaml`.
+5. If the certificates are handled in your reverse proxy, you can point to port 8080 (HTTP) only and disable TLS in ESS. Copy the file `[charts/matrix-stack/ci/fragments/quick-setup-external-cert.yaml](https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-external-cert.yaml)` to `tls.yaml`.
 
 ##### Example configurations
 To make running ESS Community behind a reverse proxy as easy as possible, you can find below some configuration examples for popular webservers.
@@ -411,7 +442,7 @@ The ESS Community installation is performed using Helm package manager, which re
 
 ### Setting up the stack
 
-For a quick setup using the default settings, copy the file from `charts/matrix-stack/ci/fragments/quick-setup-hostnames.yaml` to `hostnames.yaml` in your ESS configuration values directory and edit the hostnames accordingly.
+For a quick setup using the default settings, copy the file from `[charts/matrix-stack/ci/fragments/quick-setup-hostnames.yaml](https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-hostnames.yaml)` to `hostnames.yaml` in your ESS configuration values directory and edit the hostnames accordingly.
 
 Run the setup using the following helm command. This command supports combining multiple values files depending on your setup. Typically you would pass to the command line a combination of:
 
