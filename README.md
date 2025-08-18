@@ -276,7 +276,7 @@ spec:
 EOF
 ```
 
-4. In your ESS configuration values directory, copy the file `[charts/matrix-stack/ci/fragments/quick-setup-letsencrypt.yaml](https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-letsencrypt.yaml)` to `tls.yaml`.
+4. In your ESS configuration values directory, copy the file '[charts/matrix-stack/ci/fragments/quick-setup-letsencrypt.yaml](https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-letsencrypt.yaml)' to `tls.yaml`.
 
 #### Certificate File
 
@@ -290,7 +290,7 @@ If your wildcard certificate covers both the server-name and the hosts of your s
 kubectl create secret tls ess-certificate -n ess --cert=path/to/cert/file --key=path/to/key/file
 ```
 
-2. In your ess configuration values directory, copy the file `[charts/matrix-stack/ci/fragments/quick-setup-wildcard-cert.yaml](https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-wildcard-cert.yaml)` to `tls.yaml`. Adjust the TLS Secret name accordingly if needed.
+2. In your ess configuration values directory, copy the file '[charts/matrix-stack/ci/fragments/quick-setup-wildcard-cert.yaml](https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-wildcard-cert.yaml)' to `tls.yaml`. Adjust the TLS Secret name accordingly if needed.
 
 ##### Individual certificates
 
@@ -303,7 +303,7 @@ kubectl create secret tls ess-mrtc-certificate -n ess --cert=path/to/cert/file -
 kubectl create secret tls ess-well-known-certificate -n ess --cert=path/to/cert/file --key=path/to/key/file
 ```
 
-2. In your ess configuration values directory, copy the file `[charts/matrix-stack/ci/fragments/quick-setup-certificates.yaml](https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-certificates.yaml)` to `tls.yaml`. Adjust the TLS Secret name accordingly if needed.
+2. In your ess configuration values directory, copy the file '[charts/matrix-stack/ci/fragments/quick-setup-certificates.yaml](https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-certificates.yaml)' to `tls.yaml`. Adjust the TLS Secret name accordingly if needed.
 
 #### Using an existing reverse proxy
 
@@ -348,7 +348,7 @@ traefik          LoadBalancer   10.43.184.49    172.20.1.60   8080:32100/TCP,844
 
 4. Configure your reverse proxy so that the DNS names you configured are routed to the external IP of traefik on port 8080 (HTTP) and 8443 (HTTPS).
 
-5. If the certificates are handled in your reverse proxy, you can point to port 8080 (HTTP) only and disable TLS in ESS. Copy the file `[charts/matrix-stack/ci/fragments/quick-setup-external-cert.yaml](https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-external-cert.yaml)` to `tls.yaml`.
+5. If the certificates are handled in your reverse proxy, you can point to port 8080 (HTTP) only and disable TLS in ESS. Copy the file '[charts/matrix-stack/ci/fragments/quick-setup-external-cert.yaml](https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-external-cert.yaml)' to `tls.yaml`.
 
 ##### Example configurations
 To make running ESS Community behind a reverse proxy as easy as possible, you can find below some configuration examples for popular webservers.
@@ -443,7 +443,7 @@ The ESS Community installation is performed using Helm package manager, which re
 
 ### Setting up the stack
 
-For a quick setup using the default settings, copy the file from `[charts/matrix-stack/ci/fragments/quick-setup-hostnames.yaml](https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-hostnames.yaml)` to `hostnames.yaml` in your ESS configuration values directory and edit the hostnames accordingly.
+For a quick setup using the default settings, copy the file from '[charts/matrix-stack/ci/fragments/quick-setup-hostnames.yaml](https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-hostnames.yaml)' to `hostnames.yaml` in your ESS configuration values directory and edit the hostnames accordingly.
 
 Run the setup using the following helm command. This command supports combining multiple values files depending on your setup. Typically you would pass to the command line a combination of:
 
