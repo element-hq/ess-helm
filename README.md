@@ -40,6 +40,7 @@ To get professional support & upgrade to ESS Pro, [contact Element](https://try.
 [ESS Pro](https://element.io/server-suite/pro) is the commercial backend distribution from Element. It includes everything in ESS Community plus additional features and services that are tailored to professional environments with more than 100 users up to massive scale in the millions. It is designed to support enterprise requirements in terms of advanced IAM, compliance, scalability, high availability and multi-tenancy. ESS Pro makes use of Synapse Pro to provide infrastructure cost savings and improved user experience under high load. It uses Element’s Secure Border Gateway (SBG) as an application layer firewall to manage federation and to ensure that deployments stay compliant at any time. ESS Pro includes L3 support, Long-term Support (LTS), Advanced Security Advisory and prepares you for the Cyber Resilience Act (CRA).
 
 **Additional capabilities with ESS Pro**
+
 Find below an overview of the most important additional product capabilities for professional use with ESS Pro.
 
 - Synapse Pro
