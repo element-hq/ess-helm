@@ -74,7 +74,7 @@ A full comparison between the editions can be found [here](https://element.io/pr
 - [Quick setup](#installation)
   - [Preparing the environment](#preparing-the-environment)
     - [DNS](#dns)
-    - [K3S - Kubernetes single node setup](#k3s---kubernetes-single-node-setup)
+    - [K3S - Kubernetes single node setup](#kubernetes-single-node-setup-with-k3s)
     - [Certificates](#certificates)
         - [Let's Encrypt](#lets-encrypt)
         - [Certificate File](#certificate-file)
@@ -224,9 +224,9 @@ mkdir ~/ess-config-values
 
 We present here 3 options to set up certificates in Element Server Suite. 
 
-1. [Using Let's Encrypt to automatically issue new certificates](#lets-encrypt)
-2. [Using existing certificate files](#certificate-file)
-3. [Using an existing reverse proxy](#using-an-existing-reverse-proxy)
+- Option 1: [Using Let's Encrypt to automatically issue new certificates](#lets-encrypt)
+- Option 2: [Using existing certificate files](#certificate-file)
+- Option 3: [Using an existing reverse proxy](#using-an-existing-reverse-proxy)
 
 To configure Element Server Suite behind an existing reverse proxy already serving TLS, you can [jump to the end of this section](#using-an-existing-reverse-proxy).
 
