@@ -30,7 +30,6 @@ Element Server Suite Community Edition (ESS Community) allows you to deploy a Ma
 # Editions
 There are three editions of **Element Server Suite**:
 
-
 ## ESS Community
 [ESS Community](https://element.io/server-suite/community) is a cutting-edge Matrix distribution including all the latest features of the Matrix server Synapse and other components. It is freely available under the AGPLv3 license and tailored to small-/mid-scale, non-commercial community use cases with up to 100 users. It's designed to easily and quickly set up a Matrix deployment. It comprises the basic components needed to get you running and is a great way to get started.
 
@@ -57,7 +56,7 @@ Find below an overview of the most important additional product capabilities for
 - Room moderation and central control (AdminBot)
 - LDAP and SSO support for user authentication
 - S3 support for media storage
-- Distroless/minimal images of all the components
+- Distroless/minimal images of all relevant core components
 
 A full comparison between the editions can be found [here](https://element.io/pricing). See the [ESS Pro documentation](https://docs.element.io/latest/element-server-suite-pro/introduction-to-ess-pro/) for more details.
 
@@ -278,6 +277,10 @@ EOF
 
 4. In your ESS configuration values directory, copy the file '[charts/matrix-stack/ci/fragments/quick-setup-letsencrypt.yaml](https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-letsencrypt.yaml)' to `tls.yaml`.
 
+```
+curl -L https://raw.githubusercontent.com/element-hq/ess-helm/main/charts/matrix-stack/ci/fragments/quick-setup-letsencrypt.yaml -o ~/ess-config-values/tls.yaml
+```
+
 #### Certificate File
 
 ##### Wildcard certificate
@@ -292,6 +295,10 @@ kubectl create secret tls ess-certificate -n ess --cert=path/to/cert/file --key=
 
 2. In your ess configuration values directory, copy the file '[charts/matrix-stack/ci/fragments/quick-setup-wildcard-cert.yaml](https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-wildcard-cert.yaml)' to `tls.yaml`. Adjust the TLS Secret name accordingly if needed.
 
+```
+curl -L https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-wildcard-cert.yaml -o ~/ess-config-values/tls.yaml
+```
+
 ##### Individual certificates
 
 1. If you have a distinct certificate for each of your DNS names, you will need to import each certificate in your namespace using [kubectl](https://kubernetes.io/docs/reference/kubectl/generated/kubectl_create/kubectl_create_secret_tls/):
@@ -304,6 +311,10 @@ kubectl create secret tls ess-well-known-certificate -n ess --cert=path/to/cert/
 ```
 
 2. In your ess configuration values directory, copy the file '[charts/matrix-stack/ci/fragments/quick-setup-certificates.yaml](https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-certificates.yaml)' to `tls.yaml`. Adjust the TLS Secret name accordingly if needed.
+
+```
+curl -L https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-certificates.yaml -o ~/ess-config-values/tls.yaml
+```
 
 #### Using an existing reverse proxy
 
@@ -349,6 +360,10 @@ traefik          LoadBalancer   10.43.184.49    172.20.1.60   8080:32100/TCP,844
 4. Configure your reverse proxy so that the DNS names you configured are routed to the external IP of traefik on port 8080 (HTTP) and 8443 (HTTPS).
 
 5. If the certificates are handled in your reverse proxy, you can point to port 8080 (HTTP) only and disable TLS in ESS. Copy the file '[charts/matrix-stack/ci/fragments/quick-setup-external-cert.yaml](https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-external-cert.yaml)' to `tls.yaml`.
+
+```
+curl -L https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-external-cert.yaml -o ~/ess-config-values/tls.yaml
+```
 
 ##### Example configurations
 To make running ESS Community behind a reverse proxy as easy as possible, you can find below some configuration examples for popular webservers.
@@ -444,6 +459,10 @@ The ESS Community installation is performed using Helm package manager, which re
 ### Setting up the stack
 
 For a quick setup using the default settings, copy the file from '[charts/matrix-stack/ci/fragments/quick-setup-hostnames.yaml](https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-hostnames.yaml)' to `hostnames.yaml` in your ESS configuration values directory and edit the hostnames accordingly.
+
+```
+curl -L https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-hostnames.yaml -o ~/ess-config-values/hostnames.yaml
+```
 
 Run the setup using the following helm command. This command supports combining multiple values files depending on your setup. Typically you would pass to the command line a combination of:
 
