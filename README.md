@@ -107,7 +107,7 @@ ESS Community comes with the following components out-of-the box:
 - [Element Web](https://github.com/element-hq/element-web): The Matrix Web Client provided by Element.
 - PostgreSQL: An optional packaged PostgreSQL server that allows you to quickly set up the stack out-of-the-box. For a better long-term experience, please consider using a dedicated PostgreSQL server. See the [advanced setup docs](./docs/advanced.md) for more information.
 - HAProxy: Provides the routing to Synapse processes.
-- .well-known delegation: Required for federation and Matrix clients
+- .well-known delegation: Required for federation and Matrix clients.
 
 It is possible to enable/disable each on a per-component basis. They can also be customized using dedicated values.
 
@@ -158,7 +158,7 @@ The below instructions will guide you through each of the steps.
 
 ### DNS
 
-You need to create DNS A records to set up ESS Community. All of these DNS entries must point to your server's IP.
+You need to create DNS records (A or CNAME, for example) to set up ESS Community. All of these DNS entries must point to your server's IP.
 
 - Server name: This DNS entry must point to the installation ingress. It must be the `server-name.tld` you chose above.
 - Synapse: For example, you could use `matrix.<server-name.tld>`.
