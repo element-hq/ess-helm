@@ -57,7 +57,16 @@ telemetry:
 {{- if $root.Values.synapse.enabled }}
 matrix:
   homeserver: "{{ tpl $root.Values.serverName $root }}"
-  secret: ${SYNAPSE_SHARED_SECRET}
+  secret_file: /secrets/{{
+                include "element-io.ess-library.init-secret-path" (
+                      dict "root" $root
+                      "context" (dict
+                        "secretPath" "matrixAuthenticationService.synapseSharedSecret"
+                        "initSecretKey" "MAS_SYNAPSE_SHARED_SECRET"
+                        "defaultSecretName" (include "element-io.matrix-authentication-service.secret-name" (dict "root" $root "context" .))
+                        "defaultSecretKey" "SYNAPSE_SHARED_SECRET"
+                      )
+                  ) }}
   endpoint: "http://{{ include "element-io.synapse.internal-hostport" (dict "root" $root "context" (dict "targetProcessType" "main")) }}"
 {{- /* When in syn2mas dryRun mode, migration has not run yet
 We don't want MAS to change data in Synapse
