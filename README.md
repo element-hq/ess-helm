@@ -450,7 +450,7 @@ server {
 
 ### Configuring the database
 
-You can either use the database provided with ESS Community or you use a dedicated PostgreSQL Server. We recommend [using a PostgreSQL server](./docs/advanced.md#using-a-dedicated-postgresql-database) installed with your own distribution packages. For a quick set up, feel free to use the internal PostgreSQL database. The chart will configure it automatically for you by default.
+You can either use the database provided with ESS Community or you use a dedicated PostgreSQL Server. We recommend [using a PostgreSQL server](./docs/advanced.md#using-a-dedicated-postgresql-database) installed with your own distribution packages. For a quick set up, feel free to use the internal PostgreSQL database, which the chart will configure automatically for you by default with no required configuration.
 
 ## Installation
 
@@ -466,8 +466,9 @@ curl -L https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/
 
 Run the setup using the following helm command. This command supports combining multiple values files depending on your setup. Typically you would pass to the command line a combination of:
 
-- If using Lets Encrypt or Certificate Files : `-f ~/ess-config-values/tls.yaml`
-- If using your own PostgreSQL server : `-f ~/ess-config-values/postgresql.yaml`
+- If using Lets Encrypt or Certificate Files: `-f ~/ess-config-values/tls.yaml`
+- If using your own, external PostgreSQL server: `-f ~/ess-config-values/postgresql.yaml`
+  - If you wish to use the PostgresSQL server installed and managed by the chart, no additional values file or configuration is required
 
 **Each optional additional values file used needs to be prefixed with `-f `**
 
