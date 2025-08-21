@@ -125,26 +125,6 @@ env:
           )
         )
     }}
-{{- /*
-  This is the secrets shared between Synapse & MAS
-*/ -}}
-{{- if $root.Values.synapse.enabled }}
-- name: SYNAPSE_SHARED_SECRET
-  value: >-
-    {{
-      printf "{{ readfile \"/secrets/%s\" | quote }}" (
-          include "element-io.ess-library.init-secret-path" (
-              dict "root" $root
-              "context" (dict
-                "secretPath" "matrixAuthenticationService.synapseSharedSecret"
-                "initSecretKey" "MAS_SYNAPSE_SHARED_SECRET"
-                "defaultSecretName" (include "element-io.matrix-authentication-service.secret-name" (dict "root" $root "context" .))
-                "defaultSecretKey" "SYNAPSE_SHARED_SECRET"
-              )
-          )
-        )
-    }}
-{{- end }}
 {{- end }}
 {{- end }}
 
