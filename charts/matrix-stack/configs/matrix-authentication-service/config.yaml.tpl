@@ -78,13 +78,6 @@ policy:
       allow_host_mismatch: false
       allow_insecure_uris: false
 
-{{- if $root.Values.synapse.enabled }}
-clients:
-- client_id: "0000000000000000000SYNAPSE"
-  client_auth_method: client_secret_basic
-  client_secret: ${SYNAPSE_OIDC_CLIENT_SECRET}
-{{- end }}
-
 secrets:
   encryption_file: /secrets/{{
                 include "element-io.ess-library.init-secret-path" (

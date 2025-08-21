@@ -73,9 +73,6 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- with .synapseSharedSecret.secret -}}
 {{ $configSecrets = append $configSecrets (tpl . $root) }}
 {{- end -}}
-{{- with .synapseOIDCClientSecret.secret -}}
-{{ $configSecrets = append $configSecrets (tpl . $root) }}
-{{- end -}}
 {{- with .encryptionSecret.secret -}}
 {{ $configSecrets = append $configSecrets (tpl . $root) }}
 {{- end -}}
@@ -147,21 +144,6 @@ env:
           )
         )
     }}
-- name: SYNAPSE_OIDC_CLIENT_SECRET
-  value: >-
-    {{
-      printf "{{ readfile \"/secrets/%s\" | quote }}" (
-          include "element-io.ess-library.init-secret-path" (
-              dict "root" $root
-              "context" (dict
-                "secretPath" "matrixAuthenticationService.synapseOIDCClientSecret"
-                "initSecretKey" "MAS_SYNAPSE_OIDC_CLIENT_SECRET"
-                "defaultSecretName" (include "element-io.matrix-authentication-service.secret-name" (dict "root" $root "context" .))
-                "defaultSecretKey" "SYNAPSE_OIDC_CLIENT_SECRET"
-              )
-          )
-        )
-    }}
 {{- end }}
 {{- end }}
 {{- end }}
@@ -200,10 +182,6 @@ env:
 {{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "matrixAuthenticationService.synapseSharedSecret" "initIfAbsent" true)) }}
 {{- with .synapseSharedSecret.value }}
 SYNAPSE_SHARED_SECRET: {{ . | b64enc }}
-{{- end }}
-{{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "matrixAuthenticationService.synapseOIDCClientSecret" "initIfAbsent" true)) }}
-{{- with .synapseOIDCClientSecret.value }}
-SYNAPSE_OIDC_CLIENT_SECRET: {{ . | b64enc }}
 {{- end }}
 {{- end -}}
 {{- end -}}

@@ -86,6 +86,22 @@ ip_range_blacklist:
 - 'ff00::/8'
 - 'fec0::/10'
 
+{{- if (include "element-io.matrix-authentication-service.readyToHandleAuth" (dict "root" $root)) }}
+matrix_authentication_service:
+  enabled: true
+  secret_path: /secrets/{{
+                include "element-io.ess-library.init-secret-path" (
+                      dict "root" $root
+                      "context" (dict
+                        "secretPath" "matrixAuthenticationService.synapseSharedSecret"
+                        "initSecretKey" "MAS_SYNAPSE_SHARED_SECRET"
+                        "defaultSecretName" (include "element-io.matrix-authentication-service.secret-name" (dict "root" $root "context" .))
+                        "defaultSecretKey" "SYNAPSE_SHARED_SECRET"
+                      )
+                  ) }}
+  endpoint: http://{{ $root.Release.Name }}-matrix-authentication-service.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:8080/
+{{- end }}
+
 {{- if or (include "element-io.matrix-authentication-service.readyToHandleAuth" (dict "root" $root)) $root.Values.matrixRTC.enabled }}
 experimental_features:
 {{- if $root.Values.matrixRTC.enabled }}
@@ -97,34 +113,6 @@ experimental_features:
 {{- end }}
 
 {{- if (include "element-io.matrix-authentication-service.readyToHandleAuth" (dict "root" $root)) }}
-  msc3861:
-    enabled: true
-
-    issuer: http://{{ $root.Release.Name }}-matrix-authentication-service.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:8080/
-    client_id: 0000000000000000000SYNAPSE
-    client_auth_method: client_secret_basic
-    # client.<client_id> in the MAS secret
-    client_secret_path: /secrets/{{
-      include "element-io.ess-library.init-secret-path" (
-        dict "root" $root "context" (dict
-          "secretPath" "matrixAuthenticationService.synapseOIDCClientSecret"
-          "initSecretKey" "MAS_SYNAPSE_OIDC_CLIENT_SECRET"
-          "defaultSecretName" (include "element-io.matrix-authentication-service.secret-name" (dict "root" $root "context" (dict "isHook" $isHook)))
-          "defaultSecretKey" "SYNAPSE_OIDC_CLIENT_SECRET"
-        )
-      ) }}
-    # serverSecret in the MAS secret
-    admin_token_path: /secrets/{{
-      include "element-io.ess-library.init-secret-path" (
-        dict "root" $root "context" (dict
-          "secretPath" "matrixAuthenticationService.synapseSharedSecret"
-          "initSecretKey" "MAS_SYNAPSE_SHARED_SECRET"
-          "defaultSecretName" (include "element-io.matrix-authentication-service.secret-name" (dict "root" $root "context" (dict "isHook" $isHook)))
-          "defaultSecretKey" "SYNAPSE_SHARED_SECRET"
-          )
-      ) }}
-    introspection_endpoint: "http://{{ $root.Release.Name }}-matrix-authentication-service.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:8080/oauth2/introspect"
-
   # QR Code Login. Requires MAS
   msc4108_enabled: true
 password_config:

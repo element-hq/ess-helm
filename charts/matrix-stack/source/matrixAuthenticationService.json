@@ -16,9 +16,6 @@
     "synapseSharedSecret": {
       "$ref": "file://common/credential.json"
     },
-    "synapseOIDCClientSecret": {
-      "$ref": "file://common/credential.json"
-    },
     "postgres": {
       "$ref": "file://common/postgres-libpq.json"
     },
