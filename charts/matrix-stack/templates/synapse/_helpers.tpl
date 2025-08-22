@@ -260,7 +260,6 @@ path_map_file_get: |
 {{- with .targetProcessType -}}
 -{{ . }}
 {{- end -}}
-.{{ $root.Release.Namespace }}.svc.cluster.local:8008
+.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:8008
 {{- end -}}
 {{- end -}}
-

@@ -3,8 +3,9 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 import pytest
+import yaml
 
-from . import services_values_files_to_test
+from . import services_values_files_to_test, values_files_to_test
 from .utils import template_id
 
 
@@ -32,3 +33,26 @@ async def test_not_too_many_ports_in_services(templates):
             number_of_ports = len(template["spec"]["ports"])
             assert number_of_ports > 0, f"{template_id(template)} does not include any ports"
             assert number_of_ports <= 250, f"{template_id(template)} has more than 250 ports"
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_references_to_services_are_anchored_by_the_cluster_domain(values, make_templates):
+    for template in await make_templates(values):
+        template_as_yaml = yaml.dump(template)
+        for line in template_as_yaml.splitlines():
+            if ".svc" in line:
+                assert ".svc.cluster.local." in line, (
+                    f"{template_id(template)} has {line=} which has a reference to a Service that isn't "
+                    "anchored with the default cluster domain"
+                )
+
+    values["clusterDomain"] = "k8s.example.com."
+    for template in await make_templates(values):
+        template_as_yaml = yaml.dump(template)
+        for line in template_as_yaml.splitlines():
+            if ".svc" in line:
+                assert ".svc.k8s.example.com." in line, (
+                    f"{template_id(template)} has {line=} which has a reference to a Service that isn't "
+                    "anchored with the configured cluster domain"
+                )

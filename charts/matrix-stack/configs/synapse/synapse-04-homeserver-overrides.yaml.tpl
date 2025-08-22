@@ -53,7 +53,7 @@ database:
     user: "synapse_user"
     password: ${SYNAPSE_POSTGRES_PASSWORD}
     database: "synapse"
-    host: "{{ $root.Release.Name }}-postgres.{{ $root.Release.Namespace }}.svc.cluster.local"
+    host: "{{ $root.Release.Name }}-postgres.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}"
     port: 5432
     sslmode: prefer
 {{ end }}
@@ -100,7 +100,7 @@ experimental_features:
   msc3861:
     enabled: true
 
-    issuer: http://{{ $root.Release.Name }}-matrix-authentication-service.{{ $root.Release.Namespace }}.svc.cluster.local:8080/
+    issuer: http://{{ $root.Release.Name }}-matrix-authentication-service.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:8080/
     client_id: 0000000000000000000SYNAPSE
     client_auth_method: client_secret_basic
     # client.<client_id> in the MAS secret
@@ -123,7 +123,7 @@ experimental_features:
           "defaultSecretKey" "SYNAPSE_SHARED_SECRET"
           )
       ) }}
-    introspection_endpoint: "http://{{ $root.Release.Name }}-matrix-authentication-service.{{ $root.Release.Namespace }}.svc.cluster.local:8080/oauth2/introspect"
+    introspection_endpoint: "http://{{ $root.Release.Name }}-matrix-authentication-service.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:8080/oauth2/introspect"
 
   # QR Code Login. Requires MAS
   msc4108_enabled: true
@@ -193,14 +193,14 @@ update_user_directory_from_worker: {{ $root.Release.Name }}-synapse-{{- include 
 
 instance_map:
   main:
-    host: {{ $root.Release.Name }}-synapse-main.{{ $root.Release.Namespace }}.svc.cluster.local.
+    host: {{ $root.Release.Name }}-synapse-main.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}
     port: 9093
 {{- range $workerType, $workerDetails := $enabledWorkers }}
 {{- if include "element-io.synapse.process.hasReplication" (dict "root" $root "context" $workerType) }}
 {{- $workerTypeName := include "element-io.synapse.process.workerTypeName" (dict "root" $root "context" $workerType) }}
 {{- range $index := untilStep 0 ($workerDetails.replicas | int | default 1) 1 }}
   {{ $root.Release.Name }}-synapse-{{ $workerTypeName }}-{{ $index }}:
-    host: {{ $root.Release.Name }}-synapse-{{ $workerTypeName }}-{{ $index }}.{{ $root.Release.Name }}-synapse-{{ $workerTypeName }}.{{ $root.Release.Namespace }}.svc.cluster.local.
+    host: {{ $root.Release.Name }}-synapse-{{ $workerTypeName }}-{{ $index }}.{{ $root.Release.Name }}-synapse-{{ $workerTypeName }}.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}
     port: 9093
 {{- end }}
 {{- end }}
@@ -210,7 +210,7 @@ instance_map:
 
 redis:
   enabled: true
-  host: "{{ $root.Release.Name }}-synapse-redis.{{ $root.Release.Namespace }}.svc.cluster.local"
+  host: "{{ $root.Release.Name }}-synapse-redis.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}"
 {{- if include "element-io.synapse.streamWriterWorkers" (dict "root" $root) | fromJsonArray }}
 
 stream_writers:

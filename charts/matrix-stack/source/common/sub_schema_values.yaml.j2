@@ -36,6 +36,11 @@ certManager: {}
 imagePullSecrets: []
 {{ tolerations(global=true) }}
 {{ topologySpreadConstraints(global=true) }}
+
+## The cluster's domain name which will be appended to URLs of internal Services (<name>.<namespace>.svc.<clusterDomain>).
+## It is unusual to need to change this but if you do need to change it,
+## strongly consider having a trailing dot to prevent multiple search domains being queried.
+clusterDomain: "cluster.local."
 {%- endmacro %}
 
 {% macro containersSecurityContext(key='containersSecurityContext') %}
