@@ -41,7 +41,7 @@ database:
   uri: "postgresql://{{ .user }}:${POSTGRES_PASSWORD}@{{ tpl .host $root }}:{{ .port }}/{{ .database }}?{{ with .sslMode }}sslmode={{ . }}&{{ end }}application_name=matrix-authentication-service"
 {{- end }}
 {{- else if $root.Values.postgres.enabled }}
-  uri: "postgresql://matrixauthenticationservice_user:${POSTGRES_PASSWORD}@{{ $root.Release.Name }}-postgres.{{ $root.Release.Namespace }}.svc.cluster.local:5432/matrixauthenticationservice?sslmode=prefer&application_name=matrix-authentication-service"
+  uri: "postgresql://matrixauthenticationservice_user:${POSTGRES_PASSWORD}@{{ $root.Release.Name }}-postgres.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:5432/matrixauthenticationservice?sslmode=prefer&application_name=matrix-authentication-service"
 {{ end }}
 
 telemetry:

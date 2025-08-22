@@ -38,7 +38,7 @@ async def test_haproxy_server_templates_reference_valid_services(templates):
 
         server_template = re.search(
             r"server-template [a-z-]+ \d+ _(?P<port>.*?)\._tcp\.(?P<service>.*?)\.(?P<namespace>.*?)"
-            r"\.svc\.cluster\.local ",
+            r"\.svc\.cluster\.local\. ",
             line,
         )
         assert server_template, (
