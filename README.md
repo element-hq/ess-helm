@@ -4,6 +4,7 @@ Copyright 2024-2025 New Vector Ltd
 SPDX-License-Identifier: AGPL-3.0-only
 -->
 
+<!-- cSpell:disable -->
 <p align="center">
 <img src="https://img.shields.io/github/check-runs/element-hq/ess-helm/main">
 <img alt="GitHub License" src="https://img.shields.io/github/license/element-hq/ess-helm">
@@ -18,6 +19,7 @@ SPDX-License-Identifier: AGPL-3.0-only
   <img alt="Element Server Suite Community" width="544">
 </picture>
 </p>
+<!-- cSpell:enable -->
 
 <h1 align="center">Element Server Suite Community</h1>
 
@@ -91,6 +93,7 @@ A full comparison between the editions can be found [here](https://element.io/pr
 
 # Architecture and components
 
+<!-- cSpell:disable -->
 <p align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./docs/assets/images/ESS-Community-architecture--dark.png">
@@ -98,6 +101,7 @@ A full comparison between the editions can be found [here](https://element.io/pr
   <img alt="ESS Community Diagram" width="676">
 </picture>
 </p>
+<!-- cSpell:enable -->
 
 ESS Community comes with the following components out-of-the box:
 
@@ -178,7 +182,7 @@ These ports will be exposed by default on a running ESS Community deployment. Yo
 
 ### Kubernetes single node setup with K3s
 
-This guide suggests using K3s as the Kubernetes node hosting ESS Community. Other options are possible. You can use an existing Kubernetes cluster, or use other clusters like [microk8s](https://microk8s.io/). Any Kubernetes distribution is compatible with ESS Community, so choose one according to your needs.
+This guide suggests using K3s as the Kubernetes node hosting ESS Community. Other options are possible. You can use an existing Kubernetes cluster, or use other clusters like [`microk8s`](https://microk8s.io/). Any Kubernetes distribution is compatible with ESS Community, so choose one according to your needs.
 
 The following will install K3s on the node, and configure its Traefik proxy automatically. If you want to configure K3s behind an existing reverse proxy on the same node, please see the [dedicated section](#using-an-existing-reverse-proxy).
 
@@ -189,7 +193,7 @@ If you have a firewall running on your server, please follow the [K3s official r
 curl -sfL https://get.k3s.io | sh -
 ```
 
-2. Once K3s is set up, copy its kubeconfig to your home directory to get access to it:
+2. Once K3s is set up, copy its `kubeconfig` to your home directory to get access to it:
 
 ```
 mkdir ~/.kube
@@ -275,7 +279,7 @@ spec:
 EOF
 ```
 
-4. In your ESS configuration values directory, copy the file '[charts/matrix-stack/ci/fragments/quick-setup-letsencrypt.yaml](https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-letsencrypt.yaml)' to `tls.yaml`.
+4. In your ESS configuration values directory, copy the file [`charts/matrix-stack/ci/fragments/quick-setup-letsencrypt.yaml`](https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-letsencrypt.yaml) to `tls.yaml`.
 
 ```
 curl -L https://raw.githubusercontent.com/element-hq/ess-helm/main/charts/matrix-stack/ci/fragments/quick-setup-letsencrypt.yaml -o ~/ess-config-values/tls.yaml
@@ -357,7 +361,7 @@ kubectl get svc -n kube-system | grep traefik
 traefik          LoadBalancer   10.43.184.49    172.20.1.60   8080:32100/TCP,8443:30129/TCP   5d18h
 ```
 
-4. Configure your reverse proxy so that the DNS names you configured are routed to the external IP of traefik on port 8080 (HTTP) and 8443 (HTTPS).
+4. Configure your reverse proxy so that the DNS names you configured are routed to the external IP of Traefik on port 8080 (HTTP) and 8443 (HTTPS).
 
 5. If the certificates are handled in your reverse proxy, you can point to port 8080 (HTTP) only and disable TLS in ESS. Copy the file '[charts/matrix-stack/ci/fragments/quick-setup-external-cert.yaml](https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-external-cert.yaml)' to `tls.yaml`.
 
@@ -366,7 +370,7 @@ curl -L https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/
 ```
 
 ##### Example configurations
-To make running ESS Community behind a reverse proxy as easy as possible, you can find below some configuration examples for popular webservers.
+To make running ESS Community behind a reverse proxy as easy as possible, you can find below some configuration examples for popular web servers.
 
 <details><summary>Apache2</summary>
 

@@ -1,0 +1,30 @@
+# Copyright 2025 New Vector Ltd
+# 
+# SPDX-License-Identifier: AGPL-3.0-only
+
+version: "0.2"
+
+language: en-GB
+
+languageSettings:
+  - languageId: markdown
+    ignoreRegExpList:
+      - /```[\s\S]*?```/g # Ignore Markdown Code Blocks
+      - /syt_[^\s]+/g # Ignore Matrix Access Tokens
+      - /`[^`]*`/g # Ignore Inline Code
+      - /attrs:\s*?{.*?}/g # Ignore Attributes
+
+files:
+  - DEVELOPERS.md
+  - README.md
+  - newsfragments/*.md
+  - docs/**/*.md
+
+dictionaryDefinitions:
+  - name: element-docs-words
+    path: ./.github/element-docs-words.txt
+
+dictionaries:
+  - element-docs-words
+
+caseSensitive: true

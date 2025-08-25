@@ -5,7 +5,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <!-- towncrier release notes start -->
-
 # ESS Community Helm Chart 25.8.2 (2025-08-21)
 
 ### Fixed

@@ -17,7 +17,7 @@ The syn2mas migration will run in a couple of minutes. It involves **three key s
 | Step | Action | Result |
 |------|--------|--------|
 | 1 | Setup Matrix Authentication Service and enable `syn2mas` in dryRun mode | System remains in `legacy_auth`. Matrix Authentication Service is deployed in `read-only` mode. It initializes the database. Users are still able to login using the legacy authentication. |
-| 2 | Run migration (dry run disabled) | System transitions to `syn2mas_migrated`. Users now login using the delegated authentication. Rollback to legacy authentication is not possible anymore.  syn2mas cannot be run anymore. |
+| 2 | Run migration (dry run disabled) | System transitions to `syn2mas_migrated`. Users now login using the delegated authentication. Rollback to legacy authentication is not possible any more.  syn2mas cannot be run any more. |
 | 3 | Disable syn2mas | System finalizes to `delegated_auth`. |
 
 ## Important Notes
@@ -71,7 +71,7 @@ helm upgrade --namespace "ess" ess oci://ghcr.io/element-hq/ess-helm/matrix-stac
    - Matrix Authentication Service restarts and is ready to serve the delegated authentication
    - The `MATRIX_STACK_MSC3861` marker is updated to reflect the `syn2mas_migrated` state.
 
-Your users are now able to login using the delegated authentication. It is not possible to rollback to `legacy_auth` anymore, nor to run the syn2mas migration again.
+Your users are now able to login using the delegated authentication. It is not possible to rollback to `legacy_auth` any more, nor to run the syn2mas migration again.
 
 
 ### Step 3: Disable syn2mas
@@ -86,7 +86,7 @@ helm upgrade --install --namespace "ess" ess oci://ghcr.io/element-hq/ess-helm/m
 
 3. This step will deploy the following resources :
    - No change happens on Synapse and Matrix Authentication Service workloads.
-   - The `MATRIX_STACK_MSC3861` marker is updated to reflect the `delegated_auth` state. It is not possible to run `syn2mas` anymore, nor to rollback to `legacy_auth`.
+   - The `MATRIX_STACK_MSC3861` marker is updated to reflect the `delegated_auth` state. It is not possible to run `syn2mas` any more, nor to rollback to `legacy_auth`.
 
 ## Marker Transitions
 

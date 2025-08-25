@@ -9,17 +9,17 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 Requirements for development:
 * Python 3.11, 3.12 or 3.13
-  * [poetry](https://python-poetry.org/)
-* [Helm](https://helm.sh/docs/intro/install/)
-* [yq](https://github.com/mikefarah/yq)
+  * [`poetry`](https://python-poetry.org/)
+* [`helm`](https://helm.sh/docs/intro/install/)
+* [`yq`](https://github.com/mikefarah/yq)
 
 Optional Tools:
-* [chart-testing](https://github.com/helm/chart-testing) for Helm linting
-* [kubeconform](https://github.com/yannh/kubeconform) for Kubernetes manifest validation
-* [shellcheck](https://www.shellcheck.net/)
+* [`chart-testing`](https://github.com/helm/chart-testing) for Helm linting
+* [`kubeconform`](https://github.com/yannh/kubeconform) for Kubernetes manifest validation
+* [`shellcheck`](https://www.shellcheck.net/)
 * Managed via Poetry and so should be available after `poetry install`
-  * [checkov](https://www.checkov.io/)
-  * [reuse](https://reuse.software/)
+  * [`checkov`](https://www.checkov.io/)
+  * [`reuse`](https://reuse.software/)
 
 Changes to the chart templates are directly made to `charts/matrix-stack/templates`.
 
@@ -53,7 +53,7 @@ For each component there must be a values file named
   required to get a working instance of the component. Any credentials should be
   generated if possible
 * `<component>-checkov-values.yaml` - this should contain the minimal values to get
-  checkov to pass on a working instance of the component
+  `checkov` to pass on a working instance of the component
 * If the component has credentials the following values are also required:
   * `<component>-secrets-in-helm-values.yaml` - where any credentials are provided in
     the values file itself. The credential values themselves are not important
@@ -94,7 +94,7 @@ The test cluster can be taken down by running `./scripts/destroy_test_cluster.sh
 The chart has a Git ignored folder at `charts/matrix-stack/user_values`. Any `.yaml` placed in
 this directory will not be committed to Git.
 
-### Inspecting temlates
+### Inspecting templates
 
 Often you wish to see what a template looks like whilst developing. From the chart directory:
 `helm template -f ci/<values file> . -s <path to template in question>`
@@ -182,7 +182,7 @@ We are not going to expose every single application configuration option.
 
 ## Changelog
 
-The chart changelog is built using towncrier. Every PR requires a newsfragment created using : `towncrier create`. The fragment number should match the PR number.
+The chart changelog is built using `towncrier`. Every PR requires a newsfragment created using : `towncrier create`. The fragment number should match the PR number.
 
 Each newsfragment accepts on type of ArtifactHub kind changes : `added`, `changed`, `removed`, `fixed`, `security`. The `internal` type
 is accepted but will not be shown in ArtifactHub.
@@ -200,11 +200,11 @@ notes containing all the PR titles since the last release. Finally the workflow
 will then create a version bump the PR; the new version number will increment
 only the patch version vs the tag and suffix with `-dev`.
 
-The draft release can then be editted to adjust the release notes before being
+The draft release can then be edited to adjust the release notes before being
 published.
 
 The tarball artifact will be attached to the release. The OCI artifact will be
-available at `oci://ghrc.io/element-hq/ess-helm:<tag>`
+available at `oci://ghcr.io/element-hq/ess-helm:<tag>`
 
 ### Matrix tools
 
