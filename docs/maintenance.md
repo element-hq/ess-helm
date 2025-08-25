@@ -82,19 +82,19 @@ This is to enable a quick, easy and self-contained way of deploying the stack, w
 
 The chart will construct a `PersistentVolumeClaim` to persist the Postgres databases.
 By default, this `PersistentVolumeClaim` will not be deleted on `helm uninstall`.
-This is to prevent dataloss.
+This is to prevent data loss.
 This behaviour can be changed by setting `postgres.storage.resourcePolicy: delete` rather than `keep`.
 
 Alternatively, an existing `PersistentVolumeClaim` that is not managed by the chart, can be used by specifying `postgres.storage.existingClaim`.
 
 Finally, the recommended approach is to use a Postgres instance that is not managed by the chart.
-This can be done by setting `postgres.enabled: false` and configurating Synapse and Matrix Authentication Service with details of these Postgres instance(s).
+This can be done by setting `postgres.enabled: false` and configuring Synapse and Matrix Authentication Service with details of these Postgres instance(s).
 
 ### Synapse Media
 
 If Synapse is enabled, the chart will default to constructing a `PersistentVolumeClaim` to persist uploaded media.
 By default, this `PersistentVolumeClaim` will not be deleted on `helm uninstall`.
-This is to prevent dataloss.
+This is to prevent data loss.
 This behaviour can be changed by setting `synapse.media.storage.resourcePolicy: delete` rather than `keep`.
 
 Alternatively, an existing `PersistentVolumeClaim`, that is not managed by the chart, can be used by specifying `synapse.media.storage.existingClaim`.
@@ -107,7 +107,7 @@ The chart will create appropriate `Role` and `RoleBindings` in the installation 
 
 The generated `Secret` will have label `app.kubernetes.io/managed-by=matrix-tools-init-secrets`.
 As it is generated & managed with pre-install / pre-upgrade Hooks and no post-uninstall Hook is configured, this `Secret` will not be removed on `helm uninstall`.
-This is to prevent dataloss, as some of the generated credentials (e.g. Synapse's signing key) have impact if they are changed without additional configuration.
+This is to prevent data loss, as some of the generated credentials (e.g. Synapse's signing key) have impact if they are changed without additional configuration.
 
 Each credential can be manually specified either directly in the Helm values or by referencing an existing `Secret` and associated key.
 
