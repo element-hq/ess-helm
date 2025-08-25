@@ -204,7 +204,7 @@ The draft release can then be editted to adjust the release notes before being
 published.
 
 The tarball artifact will be attached to the release. The OCI artifact will be
-available at `oci://ghrc.io/element-hq/ess-helm:<tag>`
+available at `oci://ghcr.io/element-hq/ess-helm:<tag>`
 
 ### Matrix tools
 
