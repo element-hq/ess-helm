@@ -57,7 +57,16 @@ telemetry:
 {{- if $root.Values.synapse.enabled }}
 matrix:
   homeserver: "{{ tpl $root.Values.serverName $root }}"
-  secret: ${SYNAPSE_SHARED_SECRET}
+  secret_file: /secrets/{{
+                include "element-io.ess-library.init-secret-path" (
+                      dict "root" $root
+                      "context" (dict
+                        "secretPath" "matrixAuthenticationService.synapseSharedSecret"
+                        "initSecretKey" "MAS_SYNAPSE_SHARED_SECRET"
+                        "defaultSecretName" (include "element-io.matrix-authentication-service.secret-name" (dict "root" $root "context" .))
+                        "defaultSecretKey" "SYNAPSE_SHARED_SECRET"
+                      )
+                  ) }}
   endpoint: "http://{{ include "element-io.synapse.internal-hostport" (dict "root" $root "context" (dict "targetProcessType" "main")) }}"
 {{- /* When in syn2mas dryRun mode, migration has not run yet
 We don't want MAS to change data in Synapse
@@ -65,8 +74,7 @@ We don't want MAS to change data in Synapse
 {{- if and .syn2mas.enabled .syn2mas.dryRun }}
   kind: synapse_read_only
 {{- else }}
-{{- /* Switch to synapse_modern after a release or 2 so that we're more likely to have a Synapse that supports this API on redeploying MAS. */}}
-  kind: synapse_legacy
+  kind: synapse_modern
 {{- end }}
 {{- end }}
 
@@ -77,13 +85,6 @@ policy:
     client_registration:
       allow_host_mismatch: false
       allow_insecure_uris: false
-
-{{- if $root.Values.synapse.enabled }}
-clients:
-- client_id: "0000000000000000000SYNAPSE"
-  client_auth_method: client_secret_basic
-  client_secret: ${SYNAPSE_OIDC_CLIENT_SECRET}
-{{- end }}
 
 secrets:
   encryption_file: /secrets/{{

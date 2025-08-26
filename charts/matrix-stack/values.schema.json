@@ -3343,21 +3343,6 @@
           },
           "additionalProperties": false
         },
-        "synapseOIDCClientSecret": {
-          "type": "object",
-          "properties": {
-            "value": {
-              "type": "string"
-            },
-            "secret": {
-              "type": "string"
-            },
-            "secretKey": {
-              "type": "string"
-            }
-          },
-          "additionalProperties": false
-        },
         "postgres": {
           "type": "object",
           "required": [
