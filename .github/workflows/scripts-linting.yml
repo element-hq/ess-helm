@@ -56,7 +56,7 @@ jobs:
       run:
         mypy tests
 
-  cpsell:
+  cspell:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
