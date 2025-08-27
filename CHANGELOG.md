@@ -5,6 +5,64 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <!-- towncrier release notes start -->
+
+# ESS Community Helm Chart 25.8.3 (2025-08-27)
+
+### Changed
+
+- Improvements to the ESS Community README. (#678)
+- Improved the documentation around the values file required for external vs internal PostgreSQL servers. (#688)
+- Update Matrix Authentication Service to v1.1.0.
+
+  Highlights:
+
+  * Support for stable Matrix native OIDC scopes
+
+  Full Changelogs:
+  * [v1.0.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.0.0)
+  * [v1.1.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.1.0)
+
+  (#689)
+- Switch to stabilised Matrix Authentication Service <-> Synapse configuration.
+
+  `matrixAuthenticationService.synapseOIDCClientSecret` has been removed from the values
+  schema and must be removed from your values files if set. (#689)
+- Upgrade Synapse to v1.137.0.
+
+  Highlights:
+  * Stabilise support for delegating authentication to Matrix Authentication Service
+  * Add support for [MSC4293](https://github.com/matrix-org/matrix-spec-proposals/pull/4293) - Redact on Kick/Ban
+
+  Full Changelogs:
+  * [v1.136.0](https://github.com/element-hq/synapse/releases/tag/v1.136.0)
+  * [v1.137.0](https://github.com/element-hq/synapse/releases/tag/v1.137.0)
+
+  (#689)
+- Update Element Web to v1.11.110.
+
+  Highlights:
+
+  * Show a blue lock for unencrypted rooms and hide the grey shield for encrypted rooms
+  * Fix matrix.to links not being handled in the app
+
+  Full Changelogs:
+  * [v1.11.110](https://github.com/element-hq/element-web/releases/tag/v1.11.110)
+
+  (#690)
+- Support configuring a different cluster domain for internal Service references. (#692)
+- Documentation: Email is not required any more to set up Let's Encrypt. (#704)
+
+### Fixed
+
+- Fix incorrectly routing unsupported room admin API requests to workers. (#685)
+- Ensure Matrix RTC authoriser can contact itself in the test cluster. (#687)
+
+### Internal
+
+- Add dockerhub secrets to curl pods used in pytest. (#669)
+- CI: Add Spell Checks in markdown documentation. (#696)
+
+
 # ESS Community Helm Chart 25.8.2 (2025-08-21)
 
 ### Fixed
