@@ -254,11 +254,7 @@ helm install \
   --set crds.enabled=true
 ```
 
-3. Configure Cert-Manager to allow ESS Community to request Let’s Encrypt certificates automatically. Provide your email address for Let's Encrypt and create a “ClusterIssuer” resource in your K3s node to do so:
-
-```
-export USER_EMAIL=<your email>
-```
+3. Configure Cert-Manager to allow ESS Community to request Let’s Encrypt certificates automatically. Create a `ClusterIssuer` resource in your K3s node to do so:
 
 ```
 kubectl apply -f - <<EOF
@@ -269,7 +265,6 @@ metadata:
 spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory
-    email: $USER_EMAIL
     privateKeySecretRef:
       name: letsencrypt-prod-private-key
     solvers:
