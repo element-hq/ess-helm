@@ -16,9 +16,11 @@ from .utils import iterate_deployables_parts, template_id, template_to_deployabl
 async def test_pvcs_only_present_if_expected(templates):
     deployable_details_to_seen_pvcs = {}
     for template in templates:
-        deployable_details = template_to_deployable_details(template)
-        deployable_details_to_seen_pvcs.setdefault(deployable_details, False)
+        if template["kind"] in ["Deployment", "StatefulSet"]:
+            deployable_details = template_to_deployable_details(template)
+            deployable_details_to_seen_pvcs.setdefault(deployable_details, False)
         if template["kind"] == "PersistentVolumeClaim":
+            deployable_details = template_to_deployable_details(template)
             deployable_details_to_seen_pvcs[deployable_details] = True
 
     for deployable_details, seen_pvcs in deployable_details_to_seen_pvcs.items():
