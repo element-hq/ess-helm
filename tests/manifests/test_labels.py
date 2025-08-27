@@ -147,3 +147,12 @@ async def test_workloads_selector_matches_labels(templates):
                     template["spec"]["template"]["metadata"]["labels"][label]
                     == template["spec"]["selector"]["matchLabels"][label]
                 )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_labels_values_are_valid(templates):
+    label_regex = re.compile(r"^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$")
+    for template in templates:
+        for label_value in template["metadata"]["labels"].values():
+            assert label_regex.match(label_value), f"{template_id(template)} : {label_value} is not a valid label"
