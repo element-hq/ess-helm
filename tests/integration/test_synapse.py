@@ -10,6 +10,7 @@ from pathlib import Path
 import aiohttp
 import pyhelm3
 import pytest
+import semver
 from lightkube import AsyncClient
 
 from .fixtures import ESSData, User
@@ -32,6 +33,7 @@ async def test_synapse_can_access_client_api(
     ingress_ready,
     ssl_context,
     generated_data: ESSData,
+    helm_client: pyhelm3.Client,
 ):
     await ingress_ready("synapse")
 
@@ -42,6 +44,18 @@ async def test_synapse_can_access_client_api(
 
     supports_qr_code_login = value_file_has("matrixAuthenticationService.enabled", True)
     assert supports_qr_code_login == json_content["unstable_features"]["org.matrix.msc4108"]
+
+    # TODO: Dropme sometime in the future when we do not care about testing against 25.8.3 any more
+    revision = await helm_client.get_current_revision(
+        generated_data.release_name, namespace=generated_data.ess_namespace
+    )
+    metadata = await revision.chart_metadata()
+    if (
+        not semver.Version.is_valid(metadata.version)
+        or semver.VersionInfo.parse(metadata.version).compare("25.8.3") > 0
+    ):
+        # Push notifications for encrypted messages
+        assert json_content["unstable_features"]["org.matrix.msc4028"]
 
 
 @pytest.mark.skipif(value_file_has("synapse.enabled", False), reason="Synapse not deployed")
