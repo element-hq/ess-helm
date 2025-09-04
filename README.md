@@ -295,7 +295,7 @@ kubectl create secret tls ess-certificate -n ess --cert=path/to/cert/file --key=
 2. In your ess configuration values directory, copy the file '[charts/matrix-stack/ci/fragments/quick-setup-wildcard-cert.yaml](https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-wildcard-cert.yaml)' to `tls.yaml`. Adjust the TLS Secret name accordingly if needed.
 
 ```
-curl -L https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-wildcard-cert.yaml -o ~/ess-config-values/tls.yaml
+curl -L https://raw.githubusercontent.com/element-hq/ess-helm/refs/heads/main/charts/matrix-stack/ci/fragments/quick-setup-wildcard-cert.yaml -o ~/ess-config-values/tls.yaml
 ```
 
 ##### Individual certificates
@@ -312,7 +312,7 @@ kubectl create secret tls ess-well-known-certificate -n ess --cert=path/to/cert/
 2. In your ess configuration values directory, copy the file '[charts/matrix-stack/ci/fragments/quick-setup-certificates.yaml](https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-certificates.yaml)' to `tls.yaml`. Adjust the TLS Secret name accordingly if needed.
 
 ```
-curl -L https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-certificates.yaml -o ~/ess-config-values/tls.yaml
+curl -L https://raw.githubusercontent.com/element-hq/ess-helm/refs/heads/main/charts/matrix-stack/ci/fragments/quick-setup-certificates.yaml -o ~/ess-config-values/tls.yaml
 ```
 
 #### Using an existing reverse proxy
@@ -459,7 +459,7 @@ The ESS Community installation is performed using Helm package manager, which re
 For a quick setup using the default settings, copy the file from '[charts/matrix-stack/ci/fragments/quick-setup-hostnames.yaml](https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-hostnames.yaml)' to `hostnames.yaml` in your ESS configuration values directory and edit the hostnames accordingly.
 
 ```
-curl -L https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-hostnames.yaml -o ~/ess-config-values/hostnames.yaml
+curl -L https://raw.githubusercontent.com/element-hq/ess-helm/refs/heads/main/charts/matrix-stack/ci/fragments/quick-setup-hostnames.yaml -o ~/ess-config-values/hostnames.yaml
 ```
 
 Run the setup using the following helm command. This command supports combining multiple values files depending on your setup. Typically you would pass to the command line a combination of:
