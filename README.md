@@ -361,7 +361,8 @@ traefik          LoadBalancer   10.43.184.49    172.20.1.60   8080:32100/TCP,844
 5. If the certificates are handled in your reverse proxy, you can point to port 8080 (HTTP) only and disable TLS in ESS. Copy the file '[charts/matrix-stack/ci/fragments/quick-setup-external-cert.yaml](https://github.com/element-hq/ess-helm/blob/main/charts/matrix-stack/ci/fragments/quick-setup-external-cert.yaml)' to `tls.yaml`.
 
 ```
-curl -L https://raw.githubusercontent.com/element-hq/ess-helm/refs/heads/main/charts/matrix-stack/ci/fragments/quick-setup-external-cert.yaml -o ~/ess-config-values/tls.yaml```
+curl -L https://raw.githubusercontent.com/element-hq/ess-helm/refs/heads/main/charts/matrix-stack/ci/fragments/quick-setup-external-cert.yaml -o ~/ess-config-values/tls.yaml
+```
 
 ##### Example configurations
 To make running ESS Community behind a reverse proxy as easy as possible, you can find below some configuration examples for popular web servers.
