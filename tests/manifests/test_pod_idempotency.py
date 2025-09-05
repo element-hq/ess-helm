@@ -42,6 +42,26 @@ async def test_values_file_renders_idempotent_pods(release_name, namespace, valu
         )
         first_render[id]["metadata"]["labels"].pop("helm.sh/chart")
         second_render[id]["metadata"]["labels"].pop("helm.sh/chart")
+
+        # This will always vary even when we have a sidecar process to send a reload signal to HAProxy
+        if id == f"ConfigMap/{release_name}-synapse-haproxy":
+            first_render[id]["data"].pop("ess-version.json")
+            second_render[id]["data"].pop("ess-version.json")
+        # We can either remove this label as a whole or remove `ess-version.json` for the calculation for this label
+        # when we have a sidecar process to send a reload signal to HAProxy. If we have that sidecar process the
+        # rationale for the hash label disappears.
+        # The HAProxy doesn't neccessarily have the label either if it is only being deployed for the well-knowns
+        elif (
+            id == f"Deployment/{release_name}-haproxy"
+            and "k8s.element.io/synapse-haproxy-config-hash" in first_render[id]["metadata"]["labels"]
+        ):
+            first_render[id]["metadata"]["labels"].pop("k8s.element.io/synapse-haproxy-config-hash")
+            second_render[id]["metadata"]["labels"].pop("k8s.element.io/synapse-haproxy-config-hash")
+            first_render[id]["spec"]["template"]["metadata"]["labels"].pop("k8s.element.io/synapse-haproxy-config-hash")
+            second_render[id]["spec"]["template"]["metadata"]["labels"].pop(
+                "k8s.element.io/synapse-haproxy-config-hash"
+            )
+
         assert first_render[id] == second_render[id], (
             f"Error with {template_id(first_render[id])} : "
             "Templates should be the same after removing the chart version label as it should be the only difference"
