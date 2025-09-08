@@ -1,5 +1,7 @@
 ansible
 Ansible
+appservice
+appservices
 Artifacthub
 checkov
 Distroless
