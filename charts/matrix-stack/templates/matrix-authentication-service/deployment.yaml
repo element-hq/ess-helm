@@ -95,7 +95,7 @@ spec:
         volumeMounts:
         {{- include "element-io.ess-library.render-config-volume-mounts" (dict "root" $ "context"
             (dict "nameSuffix" "matrix-authentication-service"
-                  "outputFile" "config.yaml"
+                  "outputFile" "mas-config.yaml"
                   "isHook" false)) | nindent 8 }}
       containers:
       - name: matrix-authentication-service
@@ -151,7 +151,7 @@ We don't want background jobs to get failed use up their retries because MAS has
         volumeMounts:
         {{- include "element-io.ess-library.render-config-volume-mounts" (dict "root" $ "context"
             (dict "nameSuffix" "matrix-authentication-service"
-                  "outputFile" "config.yaml"
+                  "outputFile" "mas-config.yaml"
                   "isHook" false)) | nindent 8 }}
       volumes:
       {{- include "element-io.ess-library.render-config-volumes" (dict "root" $ "context"

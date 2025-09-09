@@ -22,7 +22,7 @@ async def test_log_level_overrides(values, make_templates):
             assert tcp_port == 30881
             break
     else:
-        raise RuntimeError("Could not find config.yaml")
+        raise RuntimeError("Could not find config-overrides.yaml")
 
 
 @pytest.mark.parametrize("values_file", ["matrix-rtc-minimal-values.yaml"])
@@ -40,7 +40,7 @@ async def test_external_ip_underrides(values, make_templates):
             assert use_external_ip
             break
     else:
-        raise RuntimeError("Could not find config.yaml")
+        raise RuntimeError("Could not find config-underrides.yaml")
 
 
 async def get_sfu_udp_port_range_services(start_port, end_point, values, make_templates):

@@ -162,7 +162,7 @@ spec:
           {{- toYaml . | nindent 10 }}
 {{- end }}
       - name: syn2mas-check
-        args: ["syn2mas", "check", "--config", "/conf/config.yaml", "--synapse-config", "/conf/homeserver.yaml"]
+        args: ["syn2mas", "check", "--config", "/conf/mas-config.yaml", "--synapse-config", "/conf/homeserver.yaml"]
 {{- with .image -}}
 {{- if .digest }}
         image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
@@ -194,7 +194,7 @@ spec:
       containers:
       - name: syn2mas-migrate
 {{- if .dryRun }}
-        args: ["syn2mas", "migrate", "--config", "/conf/config.yaml", "--synapse-config", "/conf/homeserver.yaml", "--dry-run"]
+        args: ["syn2mas", "migrate", "--config", "/conf/mas-config.yaml", "--synapse-config", "/conf/homeserver.yaml", "--dry-run"]
     {{- with .image -}}
     {{- if .digest }}
         image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
@@ -205,7 +205,7 @@ spec:
     {{- end }}
     {{- end }}
 {{- else }}
-        command: ["/matrix-tools", "syn2mas", "--config", "/conf/config.yaml", "--synapse-config", "/conf/homeserver.yaml"]
+        command: ["/matrix-tools", "syn2mas", "--config", "/conf/mas-config.yaml", "--synapse-config", "/conf/homeserver.yaml"]
     {{- with $.Values.matrixTools.image -}}
     {{- if .digest }}
         image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
