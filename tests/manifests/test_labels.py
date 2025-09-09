@@ -152,6 +152,8 @@ async def test_workloads_selector_matches_labels(templates):
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_labels_values_are_valid(templates):
+    # regex according to IsValidLabelValue function
+    # see: https://github.com/kubernetes/kubernetes/blob/master/staging/src/k8s.io/apimachinery/pkg/util/validation/validation.go#L165
     label_regex = re.compile(r"^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$")
     for template in templates:
         for label_value in template["metadata"]["labels"].values():
