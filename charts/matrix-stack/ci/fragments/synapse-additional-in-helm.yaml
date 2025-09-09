@@ -7,4 +7,4 @@ synapse:
     00-userconfig.yaml:
       config: |
         push:
-          jitter_dalay: 10
+          jitter_delay: 10
