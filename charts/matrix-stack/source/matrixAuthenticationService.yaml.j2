@@ -16,7 +16,7 @@ replicas: 1
 {{ sub_schema_values.credential("Synapse - MAS Shared Secret", "synapseSharedSecret", initIfAbsent=True) }}
 
 ## Additional configuration to provide to Matrix Authentication Service.
-## Each key under additional is an additional config to merge into Matrix Authentication Service config.yaml
+## Each key under additional is an additional config to merge into Matrix Authentication Service mas-config.yaml
 ## Full details on available configuration options can be found at https://element-hq.github.io/matrix-authentication-service/reference/configuration.html
 {{- sub_schema_values.additionalConfig() }}
 privateKeys:

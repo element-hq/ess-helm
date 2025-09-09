@@ -94,7 +94,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- $root := .root -}}
 env:
 - name: "MAS_CONFIG"
-  value: "/conf/config.yaml"
+  value: "/conf/mas-config.yaml"
 {{- end -}}
 
 {{- /* The filesystem structure is `/secrets`/<< secret name>>/<< secret key >>.
@@ -171,7 +171,7 @@ SYNAPSE_SHARED_SECRET: {{ . | b64enc }}
 {{- define "element-io.matrix-authentication-service.configmap-data" }}
 {{- $root := .root -}}
 {{- with required "element-io.matrix-authentication-service.configmap-data" .context -}}
-config.yaml: |
+mas-config.yaml: |
   {{- include "element-io.matrix-authentication-service.config" (dict "root" $root "context" .) | nindent 2 }}
 {{- end -}}
 {{- end -}}
@@ -242,7 +242,7 @@ config.yaml: |
               "containerName" (.containerName | default "render-config")
               "templatesVolume" (.templatesVolume | default "plain-config")
               "overrides" (list "config.yaml")
-              "outputFile" "config.yaml"
+              "outputFile" "mas-config.yaml"
               "resources" .resources
               "containersSecurityContext" .containersSecurityContext
               "extraEnv" .extraEnv
