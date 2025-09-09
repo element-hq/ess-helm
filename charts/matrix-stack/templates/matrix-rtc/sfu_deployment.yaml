@@ -55,7 +55,7 @@ spec:
               "underrides" (list "config-underrides.yaml")
               "overrides" (list "config-overrides.yaml")
               "containerName" "render-config-sfu"
-              "outputFile" "config.yaml"
+              "outputFile" "sfu-config.yaml"
               "resources" .resources
               "containersSecurityContext" .containersSecurityContext
               "extraEnv" .extraEnv)) | nindent 6 }}
@@ -64,7 +64,7 @@ spec:
       - name: sfu
         args:
         - --config
-        - /conf/config.yaml
+        - /conf/sfu-config.yaml
 {{- with .image -}}
 {{- if .digest }}
         image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
@@ -145,7 +145,7 @@ spec:
         volumeMounts:
         {{- include "element-io.ess-library.render-config-volume-mounts" (dict "root" $ "context"
               (dict "nameSuffix" "matrix-rtc-sfu"
-                    "outputFile" "config.yaml")) | nindent 8 }}
+                    "outputFile" "sfu-config.yaml")) | nindent 8 }}
 {{- if not (.livekitAuth).keysYaml }}
         - mountPath: /conf/keys.yaml
           name: rendered-config

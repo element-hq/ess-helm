@@ -54,7 +54,7 @@ sfu:
 
   ## Additional configuration to provide to all LiveKit processes.
   ## This should be provided as yaml-string and will be merged into the default configuration.
-  ## Each key under additional is an additional config to merge into LiveKit config.yaml
+  ## Each key under additional is an additional config to merge into LiveKit sfu-config.yaml
   ## Full details on available configuration options can be found at https://docs.livekit.io/home/self-hosting/deployment/#configuration
   {{- sub_schema_values.additionalConfig() | indent(2) }}
 
