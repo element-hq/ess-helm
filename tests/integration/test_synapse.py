@@ -29,6 +29,40 @@ from .lib.utils import (
 
 @pytest.mark.skipif(value_file_has("synapse.enabled", False), reason="Synapse not deployed")
 @pytest.mark.asyncio_cooperative
+async def test_synapse_exposes_chart_version_edition(
+    ingress_ready,
+    ssl_context,
+    generated_data: ESSData,
+    helm_client: pyhelm3.Client,
+):
+    await ingress_ready("synapse")
+
+    revision = await helm_client.get_current_revision(
+        generated_data.release_name, namespace=generated_data.ess_namespace
+    )
+    metadata = await revision.chart_metadata()
+
+    # TODO: Dropme sometime in the future when we do not care about testing against 25.8.3 any more
+    if semver.Version.is_valid(metadata.version) and semver.VersionInfo.parse(metadata.version).compare("25.8.3") <= 0:
+        with pytest.raises(aiohttp.client_exceptions.ClientResponseError) as execinfo:
+            await aiohttp_get_json(
+                f"https://synapse.{generated_data.server_name}/_synapse/ess/version", {}, ssl_context
+            )
+        assert execinfo.value.status == 404
+        return
+
+    json_content = await aiohttp_get_json(
+        f"https://synapse.{generated_data.server_name}/_synapse/ess/version", {}, ssl_context
+    )
+    assert "edition" in json_content
+    assert json_content["edition"] == "community"
+
+    assert "version" in json_content
+    assert json_content["version"] == metadata.version
+
+
+@pytest.mark.skipif(value_file_has("synapse.enabled", False), reason="Synapse not deployed")
+@pytest.mark.asyncio_cooperative
 async def test_synapse_can_access_client_api(
     ingress_ready,
     ssl_context,

@@ -125,11 +125,30 @@ frontend synapse-http-in
 
   acl backend_unavailable str(),concat('synapse-',req.backend),nbsrv lt 1
 
+  acl ess_version path /_synapse/ess/version
+  use_backend ess-version-static if ess_version
+
 {{- if $hasFailoverBackend }}
   use_backend synapse-main-failover if has_failover backend_unavailable
 {{- end }}
 
   use_backend synapse-%[var(req.backend)]
+
+backend ess-version-static
+  mode http
+
+  # Set all the same headers as the well-knowns
+  http-after-response set-header X-Frame-Options SAMEORIGIN
+  http-after-response set-header X-Content-Type-Options nosniff
+  http-after-response set-header X-XSS-Protection "1; mode=block"
+  http-after-response set-header Content-Security-Policy "frame-ancestors 'self'"
+  http-after-response set-header X-Robots-Tag "noindex, nofollow, noarchive, noimageindex"
+
+  http-after-response set-header Access-Control-Allow-Origin *
+  http-after-response set-header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+  http-after-response set-header Access-Control-Allow-Headers "X-Requested-With, Content-Type, Authorization"
+
+  http-request return status 200 content-type "application/json" file /synapse/ess-version.json
 
 backend synapse-main
   default-server maxconn 250
