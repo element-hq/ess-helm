@@ -1,4 +1,4 @@
-# Copyright 2024 New Vector Ltd
+# Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -7,3 +7,5 @@ matrix-stack-*.tgz
 source/
 sub_schemas/
 user_values/
+[._]*.sw[a-p]
+[._]*.s[a-v][a-z]
