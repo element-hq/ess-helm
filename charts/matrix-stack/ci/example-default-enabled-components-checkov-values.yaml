@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 #
-# source_fragments: deployment-markers-checkov.yaml deployment-markers-minimal.yaml element-web-checkov.yaml element-web-minimal.yaml haproxy-checkov.yaml init-secrets-checkov.yaml init-secrets-minimal.yaml matrix-authentication-service-checkov.yaml matrix-authentication-service-minimal.yaml postgres-checkov.yaml postgres-minimal.yaml synapse-checkov.yaml synapse-minimal.yaml well-known-minimal.yaml
+# source_fragments: deployment-markers-checkov.yaml deployment-markers-minimal.yaml element-web-checkov.yaml element-web-minimal.yaml haproxy-checkov.yaml init-secrets-checkov.yaml init-secrets-minimal.yaml matrix-authentication-service-checkov.yaml matrix-authentication-service-minimal.yaml matrix-rtc-checkov.yaml matrix-rtc-minimal.yaml postgres-checkov.yaml postgres-minimal.yaml synapse-checkov.yaml synapse-minimal.yaml well-known-minimal.yaml
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
 # wellKnownDelegation don't have any required properties to be set and defaults to enabled
@@ -38,7 +38,17 @@ matrixAuthenticationService:
   ingress:
     host: mas.ess.localhost
 matrixRTC:
-  enabled: false
+  annotations:
+    checkov.io/skip1: CKV_K8S_11=We deliberately don't set CPU limits. Pod is BestEffort not Guaranteed
+    checkov.io/skip2: CKV_K8S_43=No digests
+    checkov.io/skip3: CKV2_K8S_6=No network policy yet
+  ingress:
+    host: mrtc.ess.localhost
+  sfu:
+    annotations:
+      checkov.io/skip1: CKV_K8S_11=We deliberately don't set CPU limits. Pod is BestEffort not Guaranteed
+      checkov.io/skip2: CKV_K8S_43=No digests
+      checkov.io/skip3: CKV2_K8S_6=No network policy yet
 postgres:
   annotations:
     checkov.io/skip1: CKV_K8S_11=We deliberately don't set CPU limits. Pod is BestEffort not Guaranteed
