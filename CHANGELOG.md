@@ -6,6 +6,53 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 25.9.0 (2025-09-10)
+
+## Added
+
+- Add `/_synapse/ess/version` to the Synapse ingress exposing the chart version and edition. (#715)
+
+## Changed
+
+- Turn on push notifications for encrypted messages (MSC4028) support by default. (#712)
+- Update Element Web to v1.11.111.
+
+  Highlights:
+
+  * Remember whether sidebar is shown for calls when switching rooms
+  * Fix room joining over federation not specifying `via`'s or using aliases
+
+  Full Changelogs:
+  * [v1.11.111](https://github.com/element-hq/element-web/releases/tag/v1.11.111)
+
+  (#716)
+- Upgrade Synapse to v1.138.0.
+
+  Highlights:
+  * Support for the stable endpoint and scopes of [MSC3861](https://github.com/matrix-org/matrix-spec-proposals/pull/3861) & co.
+
+  Full Changelogs:
+  * [v1.138.0](https://github.com/element-hq/synapse/releases/tag/v1.138.0)
+
+  (#717)
+- Update Matrix Authentication Service to v1.2.0.
+
+  Highlights:
+  * Translation updates
+
+  Full Changelogs:
+  * [v1.2.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.2.0)
+
+  (#718)
+- Use unique names for component configuration files, to prevent them from clashing against identically-named files in pods that deploy those components. (#723)
+
+## Internal
+
+- CI: Check labels values against validation regex. (#705)
+- CI: Check PVC presence only for existing workloads. (#705)
+- Fix typo in "jitter_delay" config keys used in CI tests. (#722)
+
+
 # ESS Community Helm Chart 25.8.3 (2025-08-27)
 
 ### Changed
