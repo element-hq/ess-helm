@@ -37,6 +37,8 @@ async def test_sets_extra_env(values, make_templates):
                 )
 
                 for env in container.get("env", []):
+                    if "valueFrom" in env:
+                        continue
                     assert type(env["value"]) is str, (
                         f"{template_id(template)} has container {container['name']} "
                         f"which has an non-string value: {env}"
@@ -96,6 +98,8 @@ async def test_built_in_env_cant_be_overwritten(values, make_templates):
                     # containers each setting different env vars. We'll have provided a 'from-user' env var override
                     # for all of those env vars and so 'from-user' will legitimately be present on some containers
                     if env_var["name"] in env_keys_from_chart:
+                        if "valueFrom" in env_var:
+                            continue
                         assert env_var["value"] != "from-user", (
                             f"{template_id(template)}/{container['name']} allowed env var "
                             f"{env_var['name']} to be overwritten"

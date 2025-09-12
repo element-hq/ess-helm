@@ -1,0 +1,7 @@
+# Copyright 2025 New Vector Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+matrixRTC:
+  sfu:
+    manualIP: 198.51.100.2

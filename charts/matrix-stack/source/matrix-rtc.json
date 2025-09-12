@@ -122,6 +122,12 @@
         "hostNetwork": {
           "type": "boolean"
         },
+        "useStunToDiscoverPublicIP": {
+          "type": "boolean"
+        },
+        "manualIP": {
+          "type": "string"
+        },
         "additional": {
           "$ref": "file://common/additional.json"
         },
