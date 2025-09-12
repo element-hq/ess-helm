@@ -162,10 +162,10 @@ async def run_pod_with_args(kube_client: AsyncClient, generated_data, image_name
                 now = time.time()
                 await asyncio.sleep(1)
         else:
-            if start_time + 30 > now:
+            if start_time + 30 <= now:
                 raise RuntimeError(
                     f"Pod {pod.metadata.name} did not start in time "
-                    f"(failed after {time.time() - now} seconds), "
+                    f"(failed after {start_time - now} seconds), "
                     f"pod status: {found_pod.status}"
                 )
 
