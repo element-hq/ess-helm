@@ -148,24 +148,24 @@ async def run_pod_with_args(kube_client: AsyncClient, generated_data, image_name
         start_time = time.time()
         now = time.time()
         completed = False
-        while start_time + 30 > now and not completed:
+        while start_time + 60 > now and not completed:
             found_pod = await kube_client.get(Pod, name=pod.metadata.name, namespace=pod.metadata.namespace)
             if (
                 found_pod.status
                 and found_pod.status.containerStatuses
-                and found_pod.status.containerStatuses[0].lastState
-                and found_pod.status.containerStatuses[0].lastState.terminated
-                and found_pod.status.containerStatuses[0].lastState.terminated.reason == "Completed"
+                and found_pod.status.containerStatuses[0].state
+                and found_pod.status.containerStatuses[0].state.terminated
+                and found_pod.status.containerStatuses[0].state.terminated.reason == "Completed"
             ):
                 completed = True
             else:
                 now = time.time()
                 await asyncio.sleep(1)
         else:
-            if start_time + 30 > now:
+            if start_time + 60 <= now:
                 raise RuntimeError(
                     f"Pod {pod.metadata.name} did not start in time "
-                    f"(failed after {time.time() - now} seconds), "
+                    f"(failed after {now - start_time} seconds), "
                     f"pod status: {found_pod.status}"
                 )
 
