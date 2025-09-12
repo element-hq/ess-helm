@@ -26,7 +26,7 @@ async def helm_prerequisites(
     kube_client: AsyncClient,
     helm_client: pyhelm3.Client,
     delegated_ca: CertKey,
-    ess_namespace: Namespace,
+    ess_namespace,
     generated_data: ESSData,
 ):
     resources = []
@@ -135,7 +135,9 @@ retention:
             )
         )
 
-    return asyncio.gather(*setups, *[kube_client.create(resource) for resource in resources])
+    return await asyncio.gather(
+        *setups, *[kube_client.apply(resource, field_manager="pytest") for resource in resources]
+    )
 
 
 @pytest.fixture(autouse=True, scope="session")
