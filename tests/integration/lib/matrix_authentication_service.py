@@ -44,7 +44,7 @@ async def create_mas_user(
     pytestconfig: pytest.Config,
 ) -> str:
     """
-    Create the user and return their user id
+    Create the user and return their access token
     """
     cached_user_token = pytestconfig.cache.get(f"ess-helm/cached-tokens/{username}", None)
     if cached_user_token:
@@ -101,6 +101,8 @@ async def create_mas_user(
     scopes = [
         "urn:matrix:org.matrix.msc2967.client:api:*",
     ]
+    if admin:
+        scopes.append("urn:synapse:admin:*")
     add_access_token_data = {
         "query": create_session_mutation,
         "variables": {"userId": graphql_user_id, "scope": " ".join(scopes)},
