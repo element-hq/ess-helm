@@ -153,9 +153,9 @@ async def run_pod_with_args(kube_client: AsyncClient, generated_data, image_name
             if (
                 found_pod.status
                 and found_pod.status.containerStatuses
-                and found_pod.status.containerStatuses[0].lastState
-                and found_pod.status.containerStatuses[0].lastState.terminated
-                and found_pod.status.containerStatuses[0].lastState.terminated.reason == "Completed"
+                and found_pod.status.containerStatuses[0].state
+                and found_pod.status.containerStatuses[0].state.terminated
+                and found_pod.status.containerStatuses[0].state.terminated.reason == "Completed"
             ):
                 completed = True
             else:
@@ -165,7 +165,7 @@ async def run_pod_with_args(kube_client: AsyncClient, generated_data, image_name
             if start_time + 60 <= now:
                 raise RuntimeError(
                     f"Pod {pod.metadata.name} did not start in time "
-                    f"(failed after {start_time - now} seconds), "
+                    f"(failed after {now - start_time} seconds), "
                     f"pod status: {found_pod.status}"
                 )
 
