@@ -4,9 +4,7 @@
 
 import asyncio
 import os
-from collections.abc import AsyncGenerator
 from pathlib import Path
-from typing import Any
 
 import pyhelm3
 import pytest
@@ -175,14 +173,12 @@ async def prometheus_operator_crds(helm_client):
 
 
 @pytest.fixture(scope="session")
-async def ess_namespace(
-    cluster: PotentiallyExistingKindCluster, kube_client: AsyncClient, generated_data: ESSData
-) -> AsyncGenerator[Namespace, Any]:
+async def ess_namespace(cluster: PotentiallyExistingKindCluster, kube_client: AsyncClient, generated_data: ESSData):
     (major_version, minor_version) = cluster.version()
     try:
-        namespace = await kube_client.get(Namespace, name=generated_data.ess_namespace)
+        await kube_client.get(Namespace, name=generated_data.ess_namespace)
     except ApiError:
-        namespace = await kube_client.create(
+        await kube_client.create(
             Namespace(
                 metadata=ObjectMeta(
                     name=generated_data.ess_namespace,
@@ -202,7 +198,7 @@ async def ess_namespace(
             )
         )
 
-    yield namespace
+    yield
 
     if os.environ.get("PYTEST_KEEP_CLUSTER", "") != "1":
         await kube_client.delete(Namespace, name=generated_data.ess_namespace)
