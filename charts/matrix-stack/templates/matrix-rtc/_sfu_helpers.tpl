@@ -34,8 +34,18 @@ env: []
 {{- $root := .root -}}
 {{- with required "element-io.matrix-rtc-sfu.renderConfigOverrideEnv missing context" .context -}}
 env:
+{{- with $root.Values.matrixRTC.sfu.manualIP }}
+- name: NODE_IP
+  value: "{{ . }}"
+{{- end }}
+{{- if and (not $root.Values.matrixRTC.sfu.useStunToDiscoverPublicIP) (not $root.Values.matrixRTC.sfu.manualIP) }}
+- name: NODE_IP
+  valueFrom:
+    fieldRef:
+      fieldPath: status.hostIP
+{{- end }}
 - name: "LIVEKIT_KEY"
-  value: "{{ (.livekitAuth).key | default "matrix-rtc" }}"
+  value: "{{ ($root.Values.matrixRTC.livekitAuth).key | default "matrix-rtc" }}"
 - name: LIVEKIT_SECRET
   value: >-
     {{ (printf "{{ readfile \"/secrets/%s\" }}" (

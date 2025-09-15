@@ -644,6 +644,12 @@ matrixRTC:
   sfu:
     enabled: true
 
+    # Use STUN to resolve the server public IP
+    useStunToDiscoverPublicIP: true
+
+    # Specify a manual IP address for the server public IP
+    manualIP: ""
+
     # LiveKit Logging level
     logging:
       # log level, valid values: debug, info, warn, error

@@ -1615,6 +1615,12 @@
             "hostNetwork": {
               "type": "boolean"
             },
+            "useStunToDiscoverPublicIP": {
+              "type": "boolean"
+            },
+            "manualIP": {
+              "type": "string"
+            },
             "additional": {
               "type": "object",
               "additionalProperties": {

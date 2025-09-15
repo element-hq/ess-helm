@@ -87,7 +87,7 @@ Element Web configuration is written in JSON. The documentation can be found in 
 
 To configure Element Web, create a values file with the JSON config to inject as a string under “additional”:
 
-```
+```yml
 elementWeb:
   additional:
     user-config.json: |
@@ -100,7 +100,7 @@ elementWeb:
 
 Synapse configuration is written in YAML. The documentation can be found [here](https://element-hq.github.io/synapse/latest/usage/configuration/config_documentation.html).
 
-```
+```yml
 synapse:
   additional:
     user-config.yaml:
@@ -113,11 +113,46 @@ synapse:
 
 Matrix Authentication Service configuration is written in YAML. The documentation can be found [here](https://element-hq.github.io/matrix-authentication-service/reference/configuration.html).
 
-```
+```yml
 matrixAuthenticationService:
   additional:
     user-config.yaml:
       config: |
         # Add your settings below, taking care of the spacing indentation
         some: settings
+```
+
+### Configuring Matrix RTC
+
+Matrix RTC SFU configuration is written in YAML. The documentation can be found [here](https://docs.livekit.io/home/self-hosting/deployment/).
+
+```yml
+matrixRTC:
+  sfu:
+    additional:
+      user-config.yaml:
+        config: |
+          # Add your settings below, taking care of the spacing indentation
+          some: settings
+```
+
+#### Networking
+
+Matrix RTC SFU will by default advertise the IP resolved after a STUN Request to the Google STUN Servers.
+
+If you want to disable this behaviour, set `useStunToDiscoverPublicIP` to `false` :
+
+```yml
+matrixRTC:
+  sfu:
+    useStunToDiscoverPublicIP: false
+```
+
+Without STUN, Matrix RTC will advertise the Host IP as the publicly reachable IP. If your host is behind NAT,
+you can configured a manual IP address for the server public IP by setting `manualIP`:
+
+```yml
+matrixRTC:
+  sfu:
+    manualIP: "<your node public IP>"
 ```

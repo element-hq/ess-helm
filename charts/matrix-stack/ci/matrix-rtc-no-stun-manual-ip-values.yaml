@@ -1,0 +1,32 @@
+# Copyright 2024-2025 New Vector Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# source_fragments: matrix-rtc-host-mode.yaml matrix-rtc-manual-ip.yaml matrix-rtc-minimal.yaml
+# DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
+
+# initSecrets, postgres don't have any required properties to be set and defaults to enabled
+deploymentMarkers:
+  enabled: false
+elementWeb:
+  enabled: false
+matrixAuthenticationService:
+  enabled: false
+matrixRTC:
+  ingress:
+    host: mrtc.ess.localhost
+  sfu:
+    exposedServices:
+      rtcMuxedUdp:
+        portType: HostPort
+      rtcTcp:
+        portType: HostPort
+      rtcUdp:
+        enabled: true
+        portType: HostPort
+    hostNetwork: true
+    manualIP: 198.51.100.2
+synapse:
+  enabled: false
+wellKnownDelegation:
+  enabled: false
