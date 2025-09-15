@@ -23,16 +23,6 @@ logging:
 
 # WebRTC configuration
 rtc:
-  use_external_ip: {{ .useStunToDiscoverPublicIP }}
-{{- if .manualIP }}
-  # To workaround https://github.com/livekit/livekit/issues/2088
-  # Any IP address is acceptable, it doesn't need to be a correct one,
-  # it just needs to be present to get LiveKit to skip checking all local interfaces
-  # We assign here a TEST-NET IP which is
-  # overridden by the NODE_IP env var at runtime
-  node_ip: 198.51.100.1
-{{- end }}
-
 {{- with .exposedServices }}
 {{- with .rtcTcp }}
 {{- if .enabled }}
