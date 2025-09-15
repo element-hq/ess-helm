@@ -10,7 +10,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- /* TODO: Move me to overrides after 25.10 is out. */ -}}
 rtc:
   use_external_ip: {{ .useStunToDiscoverPublicIP }}
-{{- if .manualIP }}
+{{ if .manualIP }}
   # To workaround https://github.com/livekit/livekit/issues/2088
   # Any IP address is acceptable, it doesn't need to be a correct one,
   # it just needs to be present to get LiveKit to skip checking all local interfaces
