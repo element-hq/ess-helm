@@ -20,8 +20,8 @@ from .data import ESSData
 
 
 class PotentiallyExistingKindCluster(KindManager):
-    def __init__(self, cluster_name, cluster_config=None):
-        super().__init__(cluster_name, cluster_config)
+    def __init__(self, cluster_name, provider_config=None):
+        super().__init__(cluster_name, provider_config)
 
         # Remove the pytest- prefix
         self.cluster_name = cluster_name
@@ -67,7 +67,7 @@ class PotentiallyExistingKindCluster(KindManager):
 async def cluster():
     # This name must match what `setup_test_cluster.sh` would create
     this_cluster = PotentiallyExistingKindCluster("ess-helm")
-    this_cluster.create(ClusterOptions(cluster_config="kind.yml"))
+    this_cluster.create(ClusterOptions(provider_config=Path(__file__).parent / Path("files/clusters/kind.yml")))
 
     yield this_cluster
 
