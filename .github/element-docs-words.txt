@@ -5,6 +5,7 @@ checkov
 Distroless
 dockerhub
 Gematik
+GHSA
 homeserver
 Homeserver
 Jetstack
