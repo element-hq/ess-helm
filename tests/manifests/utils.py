@@ -100,12 +100,7 @@ def generated_secrets(release_name: str, values: dict[str, Any], helm_generated_
             # We don't have an init-secrets job
             return
 
-        container = (
-            init_secrets_job.get("spec", {})
-            .get("template", {})
-            .get("spec", {})
-            .get("containers", [{}])[0]
-        )
+        container = init_secrets_job.get("spec", {}).get("template", {}).get("spec", {}).get("containers", [{}])[0]
         args: list[str] = container.get("args") or container["command"][1:]
         assert len(args) == 5, "Unexpected args in the init-secrets job"
         assert args[1] == "-secrets", "Can't find the secrets args for the init-secrets job"
