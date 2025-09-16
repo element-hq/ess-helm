@@ -110,9 +110,10 @@ def get_keys_from_render_config(template):
     keys = []
     for container in template["spec"]["template"]["spec"]["initContainers"]:
         if container["name"].startswith("render-config"):
-            for idx, cmd in enumerate(container["command"]):
+            args = container.get("args") or container["command"][1:]
+            for idx, cmd in enumerate(args):
                 if cmd == "-output":
-                    keys.append(container["command"][idx + 1].split("/")[-1])
+                    keys.append(args[idx + 1].split("/")[-1])
     if keys:
         return keys
     raise AssertionError(
@@ -179,7 +180,8 @@ def get_virtual_config_map_from_render_config(template, templates):
                     else:
                         for key in current_config_map["data"]:
                             paths_to_keys[volume_mount["mountPath"] + "/" + key] = current_config_map["data"][key]
-            source_files = container["command"][4:]
+            args = container.get("args") or container["command"][1:]
+            source_files = args[3:]
             for p, k in paths_to_keys.items():
                 if p in source_files:
                     data[p] = k
