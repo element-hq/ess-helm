@@ -58,8 +58,7 @@ spec:
           {{- toYaml . | nindent 10 }}
 {{- end }}
         {{- include "element-io.ess-library.pods.env" (dict "root" $ "context" (dict "componentValues" . "componentName" "deployment-markers")) | nindent 8 }}
-        command:
-        - "/matrix-tools"
+        args:
         - "deployment-markers"
         - "-step"
         - {{ $step | quote }}

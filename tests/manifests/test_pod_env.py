@@ -44,10 +44,11 @@ async def test_sets_extra_env(values, make_templates):
                         f"which has an non-string value: {env}"
                     )
 
-                command = " ".join(container.get("command", []))
                 # We only provide extraEnv to specific matrix-tools init containers
-                if command.startswith("/matrix-tools") and container["command"][1] not in ["render-config", "syn2mas"]:
-                    continue
+                if "/matrix-tools:" in container["image"]:
+                    args = container.get("args") or container["command"][1:]
+                    if args[0] not in ["render-config", "syn2mas"]:
+                        continue
                 if container["name"] in ["copy-mas-cli", "syn2mas-check"]:
                     continue
 
