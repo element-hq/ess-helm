@@ -63,8 +63,7 @@ spec:
         securityContext:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-        command:
-        - "/matrix-tools"
+        args:
         - tcpwait
         - -address
         - {{ include "element-io.ess-library.postgres-host-port" (dict "root" $ "context" (dict "postgres" .postgres)) | quote }}
