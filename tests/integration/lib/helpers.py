@@ -111,7 +111,9 @@ async def get_deployment_marker(kube_client, generated_data, marker: str):
     return configmap.data.get(marker)
 
 
-async def run_pod_with_args(kube_client: AsyncClient, generated_data, image_name, pod_name, args):
+async def run_pod_with_args(
+    kube_client: AsyncClient, generated_data, image_name, pod_name, args, restart_policy="Never"
+):
     pod_pull_secrets = []
     if os.environ.get("CI") and ("DOCKERHUB_USERNAME" in os.environ) and ("DOCKERHUB_TOKEN" in os.environ):
         pod_pull_secrets = [
@@ -120,7 +122,7 @@ async def run_pod_with_args(kube_client: AsyncClient, generated_data, image_name
     pod = Pod(
         metadata=ObjectMeta(name=pod_name + "-" + str(int(time.time() * 1000)), namespace=generated_data.ess_namespace),
         spec=PodSpec(
-            restartPolicy="Never",
+            restartPolicy=restart_policy,
             imagePullSecrets=pod_pull_secrets,
             containers=[
                 Container(
