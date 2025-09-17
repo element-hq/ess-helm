@@ -8,6 +8,9 @@ deploymentMarkers:
 matrixRTC:
   enabled: false
 
+elementAdmin:
+  enabled: false
+
 elementWeb:
   enabled: false
 

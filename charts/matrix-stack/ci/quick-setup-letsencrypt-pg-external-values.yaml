@@ -8,6 +8,8 @@
 # deploymentMarkers, initSecrets, postgres, wellKnownDelegation don't have any required properties to be set and defaults to enabled
 certManager:
   clusterIssuer: letsencrypt-prod
+elementAdmin:
+  enabled: false
 elementWeb:
   ingress:
     host: chat.your.tld
