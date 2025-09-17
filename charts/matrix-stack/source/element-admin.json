@@ -6,12 +6,6 @@
     "enabled": {
       "type": "boolean"
     },
-    "additional": {
-      "type": "object",
-      "additionalProperties": {
-        "type": "string"
-      }
-    },
     "replicas": {
       "minimum": 1,
       "type": "integer"

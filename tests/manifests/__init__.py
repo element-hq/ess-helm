@@ -491,6 +491,12 @@ all_components_details = [
         ),
     ),
     ComponentDetails(
+        name="element-admin",
+        values_file_path=ValuesFilePath.read_write("elementAdmin"),
+        has_service_monitor=False,
+        makes_outbound_requests=False,
+    ),
+    ComponentDetails(
         name="element-web",
         values_file_path=ValuesFilePath.read_write("elementWeb"),
         has_service_monitor=False,

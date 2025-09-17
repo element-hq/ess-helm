@@ -64,7 +64,7 @@
       "$ref": "file://matrix-rtc.json"
     },
     "elementAdmin": {
-      "$ref": "file://deployment-markers.json"
+      "$ref": "file://element-admin.json"
     },
     "elementWeb": {
       "$ref": "file://element-web.json"

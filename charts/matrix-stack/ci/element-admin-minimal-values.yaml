@@ -18,6 +18,7 @@ matrixAuthenticationService:
   enabled: false
 matrixRTC:
   enabled: false
+serverName: ess.localhost
 synapse:
   enabled: false
 wellKnownDelegation:

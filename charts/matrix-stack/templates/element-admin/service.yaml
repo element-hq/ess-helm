@@ -1,0 +1,24 @@
+{{- /*
+Copyright 2025 New Vector Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+{{- with .Values.elementAdmin -}}
+{{- if .enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    {{- include "element-io.element-admin.labels" (dict "root" $ "context" .) | nindent 4 }}
+  name: {{ $.Release.Name }}-element-admin
+  namespace: {{ $.Release.Namespace }}
+spec:
+  type: {{ .ingress.service.type | default $.Values.ingress.service.type }}
+  ports:
+  - port: 8080
+    targetPort: http
+    name: http
+  selector:
+    app.kubernetes.io/instance: {{ $.Release.Name }}-element-admin
+{{- end }}
+{{- end }}

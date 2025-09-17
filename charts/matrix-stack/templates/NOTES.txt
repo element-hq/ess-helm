@@ -11,10 +11,19 @@ You are using ESS Community which is tailored to small-/mid-scale, non-commercia
 ESS Pro provides Long-Term Support releases, automatic scaling (horizontal and vertical) of Synapse Workers, Advanced Identity Management to manage users and spaces permissions, and more.
 
 Feel free to join our matrix room to discuss at https://matrix.to/#/#ess-community:element.io.
+
+{{- if $.Values.elementAdmin.enabled }}
+Your admin console is available at: https://{{ $.Values.elementAdmin.ingress.host }}
+{{- if not $.Values.matrixAuthenticationService.enabled }}
+WARNING: You have enabled the element-admin component, but have disabled the matrix-authentication-service.
+         You will not be able to login to the element admin console to manage your users.
+{{- end }}
+{{- else }}
 {{- if $.Values.matrixAuthenticationService.enabled }}
 
 To create your first user, please run the following command:
 kubectl exec -n {{ $.Release.Namespace }} -it deployment/{{ $.Release.Name }}-matrix-authentication-service -- mas-cli manage register-user
+{{- end }}
 {{- end }}
 {{- if and $.Values.elementWeb.enabled $.Values.elementWeb.ingress.host }}
 
