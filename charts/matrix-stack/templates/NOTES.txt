@@ -18,13 +18,14 @@ Your admin console is available at: https://{{ $.Values.elementAdmin.ingress.hos
 WARNING: You have enabled the element-admin component, but have disabled the matrix-authentication-service.
          You will not be able to login to the element admin console to manage your users.
 {{- end }}
-{{- else }}
+{{- end }}
+
 {{- if $.Values.matrixAuthenticationService.enabled }}
 
 To create your first user, please run the following command:
 kubectl exec -n {{ $.Release.Namespace }} -it deployment/{{ $.Release.Name }}-matrix-authentication-service -- mas-cli manage register-user
 {{- end }}
-{{- end }}
+
 {{- if and $.Values.elementWeb.enabled $.Values.elementWeb.ingress.host }}
 
 Your chat client is available at: https://{{ $.Values.elementWeb.ingress.host }}

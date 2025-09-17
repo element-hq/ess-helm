@@ -902,7 +902,7 @@ matrixRTC:
 elementAdmin:
   enabled: true
 
-  # Number of Element Web replicas to start up
+  # Number of Element Admin replicas to start up
   replicas: 1
   # Details of the image to be used
   image:
@@ -911,11 +911,11 @@ elementAdmin:
     registry: ghcr.io
 
     ## The path in the registry where the container image is located
-    repository: element-hq/element-web
+    repository: element-hq/element-admin-console
 
     ## The tag of the container image to use.
     ## One of tag or digest must be provided.
-    tag: "v1.11.112"
+    tag: "sha-136d812"
 
     ## Container digest to use. Used to pull the image instead of the image tag if set
     ## The tag will still be set as the app.kubernetes.io/version label
@@ -996,7 +996,7 @@ elementAdmin:
     ## 2. The setgid bit is set (new files created in the volume will be owned by FSGroup)## 3. The permission bits are OR'd with rw-rw----
     ##
     ## If unset, the Kubelet will not modify the ownership and permissions of any volume.
-    fsGroup: 10004
+    fsGroup: 10104
 
     ## fsGroupChangePolicy defines behavior of changing ownership and permission of the volume before being exposed inside Pod.
     ## This field will only apply to volume types which support fsGroup based ownership(and permissions).
@@ -1004,13 +1004,13 @@ elementAdmin:
     # fsGroupChangePolicy:
 
     ## The GID to run the entrypoint of the container process. Uses runtime default if unset.
-    runAsGroup: 10004
+    runAsGroup: 10104
 
     ## Indicates that the container must run as a non-root user. If true, the Kubelet will validate the image at runtime to ensure that it does not run as UID 0 (root) and fail to start the container if it does. If unset or false, no such validation will be performed.
     runAsNonRoot: true
 
     ## The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified.
-    runAsUser: 10004
+    runAsUser: 10104
 
     ## SELinuxOptions are the labels to be applied to all the pod containers
     # seLinuxOptions:
