@@ -5,6 +5,9 @@
 deploymentMarkers:
   enabled: true
 
+elementAdmin:
+  enabled: true
+
 elementWeb:
   enabled: true
 

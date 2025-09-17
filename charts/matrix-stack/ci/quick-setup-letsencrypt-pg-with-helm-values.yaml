@@ -9,7 +9,8 @@
 certManager:
   clusterIssuer: letsencrypt-prod
 elementAdmin:
-  enabled: false
+  ingress:
+    host: admin.your.tld
 elementWeb:
   ingress:
     host: chat.your.tld
