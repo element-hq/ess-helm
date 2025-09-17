@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
+serverName: ess.localhost
+
 elementAdmin:
   enabled: true
   ingress:

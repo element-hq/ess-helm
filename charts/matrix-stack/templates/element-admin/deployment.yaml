@@ -1,0 +1,79 @@
+{{- /*
+Copyright 2025 New Vector Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+{{- with .Values.elementAdmin -}}
+{{- if .enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+{{- with .annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+  labels:
+    {{- include "element-io.element-admin.labels" (dict "root" $ "context" .) | nindent 4 }}
+  name: {{ $.Release.Name }}-element-admin
+  namespace: {{ $.Release.Namespace }}
+spec:
+  {{ include "element-io.ess-library.deployments.commonSpec" (dict "root" $ "context" (dict "replicas" .replicas "nameSuffix" "element-admin")) | nindent 2 }}
+  template:
+    metadata:
+      labels:
+        {{- include "element-io.element-admin.labels" (dict "root" $ "context" (dict "image" .image "labels" .labels "withChartVersion" false)) | nindent 8 }}
+{{- with .annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+{{- end }}
+    spec:
+{{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "element-admin" "deployment" true)) | nindent 6 }}
+      containers:
+      - name: element-admin
+{{- with .image -}}
+{{- if .digest }}
+        image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
+        imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
+{{- else }}
+        image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
+        imagePullPolicy: {{ .pullPolicy | default "Always" }}
+{{- end }}
+{{- end }}
+        {{- include "element-io.ess-library.pods.env" (dict "root" $ "context" (dict "componentValues" . "componentName" "element-admin")) | nindent 8 }}
+{{- with .containersSecurityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+{{- end }}
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        livenessProbe: {{- include "element-io.ess-library.pods.probe" .livenessProbe | nindent 10 }}
+          httpGet:
+            path: /health
+            port: http
+            scheme: HTTP
+        readinessProbe: {{- include "element-io.ess-library.pods.probe" .readinessProbe | nindent 10 }}
+          httpGet:
+            path: /health
+            port: http
+            scheme: HTTP
+        startupProbe: {{- include "element-io.ess-library.pods.probe" .startupProbe | nindent 10 }}
+          httpGet:
+            path: /health
+            port: http
+            scheme: HTTP
+{{- with .resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+{{- end }}
+        volumeMounts:
+        - mountPath: /tmp
+          name: nginx-tmp
+      restartPolicy: Always
+      volumes:
+      - emptyDir:
+          medium: Memory
+        name: nginx-tmp
+{{- end }}
+{{- end }}
