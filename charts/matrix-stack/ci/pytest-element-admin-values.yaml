@@ -1,0 +1,31 @@
+# Copyright 2024-2025 New Vector Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# source_fragments: element-admin-minimal.yaml element-admin-pytest-extras.yaml
+# DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
+
+# initSecrets, postgres don't have any required properties to be set and defaults to enabled
+deploymentMarkers:
+  enabled: false
+elementAdmin:
+  annotations:
+    has-no-service-monitor: "true"
+  enabled: true
+  ingress:
+    host: admin.{{ $.Values.serverName }}
+    tlsSecret: '{{ $.Release.Name }}-element-admin-tls'
+  podSecurityContext:
+    runAsGroup: 0
+  replicas: 2
+elementWeb:
+  enabled: false
+matrixAuthenticationService:
+  enabled: false
+matrixRTC:
+  enabled: false
+serverName: ess.localhost
+synapse:
+  enabled: false
+wellKnownDelegation:
+  enabled: false
