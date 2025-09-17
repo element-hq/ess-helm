@@ -11,7 +11,6 @@ deploymentMarkers:
 elementAdmin:
   annotations:
     has-no-service-monitor: "true"
-  enabled: true
   ingress:
     host: admin.{{ $.Values.serverName }}
     tlsSecret: '{{ $.Release.Name }}-element-admin-tls'

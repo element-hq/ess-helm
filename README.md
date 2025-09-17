@@ -302,6 +302,7 @@ curl -L https://raw.githubusercontent.com/element-hq/ess-helm/refs/heads/main/ch
 
 1. If you have a distinct certificate for each of your DNS names, you will need to import each certificate in your namespace using [kubectl](https://kubernetes.io/docs/reference/kubectl/generated/kubectl_create/kubectl_create_secret_tls/):
 ```
+kubectl create secret tls ess-admin-certificate -n ess --cert=path/to/cert/file --key=path/to/key/file
 kubectl create secret tls ess-chat-certificate -n ess --cert=path/to/cert/file --key=path/to/key/file
 kubectl create secret tls ess-matrix-certificate -n ess --cert=path/to/cert/file --key=path/to/key/file
 kubectl create secret tls ess-auth-certificate -n ess --cert=path/to/cert/file --key=path/to/key/file

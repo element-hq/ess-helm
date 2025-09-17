@@ -9,7 +9,6 @@
 deploymentMarkers:
   enabled: false
 elementAdmin:
-  enabled: true
   ingress:
     host: admin.ess.localhost
 elementWeb:
@@ -18,7 +17,6 @@ matrixAuthenticationService:
   enabled: false
 matrixRTC:
   enabled: false
-serverName: ess.localhost
 synapse:
   enabled: false
 wellKnownDelegation:

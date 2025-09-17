@@ -43,8 +43,12 @@ security_headers.conf: |-
 {{- define "element-io.element-admin.overrideEnv" -}}
 {{- $root := .root -}}
 {{- with required "element-io.element-admin.overrideEnv missing context" .context -}}
+{{- if $root.Values.serverName }}
 env:
 - name: "SERVER_NAME"
   value: {{ (tpl $root.Values.serverName $root) | quote }}
+{{- else -}}
+env: []
+{{- end -}}
 {{- end -}}
 {{- end -}}
