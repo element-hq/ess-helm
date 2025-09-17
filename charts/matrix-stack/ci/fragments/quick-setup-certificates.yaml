@@ -2,6 +2,10 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
+elementAdmin:
+  ingress:
+    tlsSecret: ess-admin-certificate
+
 elementWeb:
   ingress:
     tlsSecret: ess-chat-certificate
