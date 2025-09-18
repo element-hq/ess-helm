@@ -62,6 +62,7 @@ def values(values_file) -> dict[str, Any]:
     if values_file not in values_cache:
         v = yaml.safe_load((Path("charts/matrix-stack/ci") / values_file).read_text("utf-8"))
         for default_enabled_component in [
+            "elementAdmin",
             "elementWeb",
             "initSecrets",
             "postgres",
