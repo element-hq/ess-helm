@@ -2,17 +2,17 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 #
-# source_fragments: element-admin-minimal.yaml
+# source_fragments: element-web-minimal.yaml
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
 # initSecrets, postgres don't have any required properties to be set and defaults to enabled
 deploymentMarkers:
   enabled: false
 elementAdmin:
-  ingress:
-    host: admin.ess.localhost
-elementWeb:
   enabled: false
+elementWeb:
+  ingress:
+    host: element.ess.localhost
 matrixAuthenticationService:
   enabled: false
 matrixRTC:
