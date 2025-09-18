@@ -14,7 +14,7 @@ Feel free to join our matrix room to discuss at https://matrix.to/#/#ess-communi
 
 {{- if $.Values.elementAdmin.enabled }}
 Your admin console is available at: https://{{ tpl $.Values.elementAdmin.ingress.host $ }}
-{{- if not $.Values.matrixAuthenticationService.enabled }}
+{{- if and $.Values.serverName (not $.Values.matrixAuthenticationService.enabled) }}
 WARNING: You have enabled the element-admin component, but have disabled the matrix-authentication-service.
          You will not be able to login to the element admin console to manage your users.
          Please consider migrating to Matrix Authentication Service using the syn2mas documentation
