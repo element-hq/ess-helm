@@ -146,7 +146,5 @@ secrets:
                     ) }}
 {{- end }}
 {{- end }}
-experimental:
-  access_token_ttl: 86400  # 1 day, up from 5 mins, until EX can better handle refresh tokens
 
 {{- end -}}
