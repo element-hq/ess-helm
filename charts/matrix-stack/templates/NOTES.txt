@@ -17,6 +17,8 @@ Your admin console is available at: https://{{ tpl $.Values.elementAdmin.ingress
 {{- if not $.Values.matrixAuthenticationService.enabled }}
 WARNING: You have enabled the element-admin component, but have disabled the matrix-authentication-service.
          You will not be able to login to the element admin console to manage your users.
+         Please consider migrating to Matrix Authentication Service using the syn2mas documentation
+         in https://github.com/element-hq/ess-helm/blob/main/docs/syn2mas.md.
 {{- end }}
 {{- end }}
 
