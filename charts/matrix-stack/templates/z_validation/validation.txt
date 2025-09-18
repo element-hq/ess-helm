@@ -6,6 +6,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 {{ $messages := list }}
 
+{{- with $.Values.elementAdmin }}
+{{- if .enabled }}
+{{- $messages = concat $messages (include "element-io.element-admin.validations" (dict "root" $ "context" .) | fromJsonArray) }}
+{{- end }}
+{{- end }}
+
 {{- with $.Values.elementWeb }}
 {{- if .enabled }}
 {{- $messages = concat $messages (include "element-io.element-web.validations" (dict "root" $ "context" .) | fromJsonArray) }}
