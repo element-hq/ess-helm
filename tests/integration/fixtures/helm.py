@@ -61,11 +61,11 @@ async def helm_prerequisites(
                                 registry="ghcr.io",
                                 username=os.environ["GHCR_USERNAME"],
                                 password=os.environ["GHCR_TOKEN"],
-                                )
-                            ]
-                        ),
+                            )
+                        ]
                     ),
-                )
+                ),
+            )
 
     if value_file_has("matrixRTC.enabled", True):
         resources.append(
