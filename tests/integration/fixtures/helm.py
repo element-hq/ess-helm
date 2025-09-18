@@ -33,22 +33,39 @@ async def helm_prerequisites(
     setups: list[Awaitable] = []
 
     # On CI, public runners should login to dockerhub.io to avoid rate-limits
-    if os.environ.get("CI") and ("DOCKERHUB_USERNAME" in os.environ) and ("DOCKERHUB_TOKEN" in os.environ):
-        resources.append(
-            kubernetes_docker_secret(
-                f"{generated_data.release_name}-dockerhub",
-                namespace=generated_data.ess_namespace,
-                docker_config_json=docker_config_json(
-                    [
-                        DockerAuth(
-                            registry="docker.io",
-                            username=os.environ["DOCKERHUB_USERNAME"],
-                            password=os.environ["DOCKERHUB_TOKEN"],
-                        )
-                    ]
+    if os.environ.get("CI"):
+        if "DOCKERHUB_USERNAME" in os.environ and "DOCKERHUB_TOKEN" in os.environ:
+            resources.append(
+                kubernetes_docker_secret(
+                    f"{generated_data.release_name}-dockerhub",
+                    namespace=generated_data.ess_namespace,
+                    docker_config_json=docker_config_json(
+                        [
+                            DockerAuth(
+                                registry="docker.io",
+                                username=os.environ["DOCKERHUB_USERNAME"],
+                                password=os.environ["DOCKERHUB_TOKEN"],
+                            )
+                        ]
+                    ),
                 ),
-            ),
-        )
+            )
+        if "GHCR_USERNAME" in os.environ and "GHCR_TOKEN" in os.environ:
+            resources.append(
+                kubernetes_docker_secret(
+                    f"{generated_data.release_name}-ghcr",
+                    namespace=generated_data.ess_namespace,
+                    docker_config_json=docker_config_json(
+                        [
+                            DockerAuth(
+                                registry="ghcr.io",
+                                username=os.environ["GHCR_USERNAME"],
+                                password=os.environ["GHCR_TOKEN"],
+                                )
+                            ]
+                        ),
+                    ),
+                )
 
     if value_file_has("matrixRTC.enabled", True):
         resources.append(
@@ -163,10 +180,15 @@ async def matrix_stack(
 
     values["serverName"] = generated_data.server_name
     values.setdefault("matrixTools", {})
-    if os.environ.get("CI") and ("DOCKERHUB_USERNAME" in os.environ) and ("DOCKERHUB_TOKEN" in os.environ):
-        values["imagePullSecrets"] = [
-            {"name": f"{generated_data.release_name}-dockerhub"},
-        ]
+    if os.environ.get("CI"):
+        if "DOCKERHUB_USERNAME" in os.environ and "DOCKERHUB_TOKEN" in os.environ:
+            values.setdefault("imagePullSecrets", []).append(
+                {"name": f"{generated_data.release_name}-dockerhub"},
+            )
+        if "GHCR_USERNAME" in os.environ and ("GHCR_TOKEN" in os.environ):
+            values.setdefault("imagePullSecrets", []).append(
+                {"name": f"{generated_data.release_name}-ghcr"},
+            )
     values["matrixTools"].setdefault("image", {})
     values["matrixTools"]["image"] = loaded_matrix_tools
     values["matrixRTC"]["hostAliases"] = [
