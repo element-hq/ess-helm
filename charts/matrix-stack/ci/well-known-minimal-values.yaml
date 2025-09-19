@@ -8,6 +8,8 @@
 # postgres, wellKnownDelegation don't have any required properties to be set and defaults to enabled
 deploymentMarkers:
   enabled: false
+elementAdmin:
+  enabled: false
 elementWeb:
   enabled: false
 initSecrets:
