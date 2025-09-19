@@ -40,14 +40,6 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- end }}
 {{- end }}
 
-
-{{- define "element-io.matrix-authentication-service.config" }}
-{{- $root := .root -}}
-{{- with required "element-io.matrix-authentication-service.config missing context" .context -}}
-{{- (tpl ($root.Files.Get "configs/matrix-authentication-service/config.yaml.tpl") (dict "root" $root "context" .)) }}
-{{- end }}
-{{- end }}
-
 {{- define "element-io.matrix-authentication-service.configSecrets" -}}
 {{- $root := .root -}}
 {{- with required "element-io.matrix-authentication-service.configSecrets missing context" .context -}}
@@ -171,8 +163,10 @@ SYNAPSE_SHARED_SECRET: {{ . | b64enc }}
 {{- define "element-io.matrix-authentication-service.configmap-data" }}
 {{- $root := .root -}}
 {{- with required "element-io.matrix-authentication-service.configmap-data" .context -}}
-mas-config.yaml: |
-  {{- include "element-io.matrix-authentication-service.config" (dict "root" $root "context" .) | nindent 2 }}
+mas-config-underrides.yaml: |
+{{- (tpl ($root.Files.Get "configs/matrix-authentication-service/config-underrides.yaml.tpl") (dict "root" $root "context" .)) | nindent 2 }}
+mas-config-overrides.yaml: |
+{{- (tpl ($root.Files.Get "configs/matrix-authentication-service/config-overrides.yaml.tpl") (dict "root" $root "context" .)) | nindent 2 }}
 {{- end -}}
 {{- end -}}
 
@@ -241,7 +235,8 @@ mas-config.yaml: |
               "nameSuffix" "matrix-authentication-service"
               "containerName" (.containerName | default "render-config")
               "templatesVolume" (.templatesVolume | default "plain-config")
-              "overrides" (list "mas-config.yaml")
+              "underrides" (list "mas-config-underrides.yaml")
+              "overrides" (list "mas-config-overrides.yaml")
               "outputFile" "mas-config.yaml"
               "resources" .resources
               "containersSecurityContext" .containersSecurityContext
