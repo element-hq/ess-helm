@@ -58,10 +58,17 @@ helm upgrade --install --namespace "ess" ess oci://ghcr.io/element-hq/ess-helm/m
 
 ### Step 2: Execute the syn2mas Migration
 
-1. Run the helm upgrade command with `--reuse-values` and `--set matrixAuthenticationService.syn2mas.dryRun=false` :
+1. Run the helm upgrade command with `--reuse-values` and `--set matrixAuthenticationService.syn2mas.dryRun=false`
 
 ```bash
 helm upgrade --namespace "ess" ess oci://ghcr.io/element-hq/ess-helm/matrix-stack --reuse-values --wait --set matrixAuthenticationService.syn2mas.dryRun=false
+```
+
+When an OAuth Provider was used with synapse already, the config check hook will throw an error "SSO cannot be enabled when OAuth delegation is enabled".
+To proceed also add `--set synapse.checkConfigHook.enabled=false`. This will cause the synapse service to not start after the migration.
+
+```bash
+helm upgrade --namespace "ess" ess oci://ghcr.io/element-hq/ess-helm/matrix-stack --reuse-values --wait --set matrixAuthenticationService.syn2mas.dryRun=false --set synapse.checkConfigHook.enabled=false
 ```
 
 2. This step will deploy the following resources :
@@ -79,6 +86,8 @@ Your users are now able to login using the delegated authentication. It is not p
 When in `syn2mas_migrated` state, running `helm upgrade` will prevent any deployment until `syn2mas` is disabled and the state becomes `delegated_auth`.
 
 2. Run the helm upgrade command without syn2mas arguments:
+
+Remember to remove any `synapse.additional` configuration referencing an OAuth Provider.
 
 ```bash
 helm upgrade --install --namespace "ess" ess oci://ghcr.io/element-hq/ess-helm/matrix-stack -f ~/ess-config-values/hostnames.yaml <optional additional values files to pass> --wait

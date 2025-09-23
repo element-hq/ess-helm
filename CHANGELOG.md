@@ -6,6 +6,38 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 25.9.1 (2025-09-17)
+
+## Added
+
+- MatrixRTC: Add `sfu.useStunToDiscoverPublicIP` and `sfu.manualIP` values to simplify networking configuration.
+
+  **Warning:** In version 25.10, these values will override any manually set `rtc.external_ip` and `rtc.node_ip`
+  configured through `sfu.additional` additional configuration. (#733)
+
+## Changed
+
+- Update Element Web to v1.11.112.
+
+  Highlights:
+
+  * Fix [CVE-2025-59161](https://www.cve.org/CVERecord?id=CVE-2025-59161) / [GHSA-m6c8-98f4-75rr](https://github.com/element-hq/element-web/security/advisories/GHSA-m6c8-98f4-75rr)
+
+  Full Changelogs:
+  * [v1.11.112](https://github.com/element-hq/element-web/releases/tag/v1.11.112)
+
+  (#739)
+
+## Internal
+
+- Update the `matrix-stack` chart's `.helmignore` file to ignore Vim swap files. (#724)
+- Update tests to grant MAS users with access to the Synapse admin API when requested. (#728)
+- CI: Make sure tests fixtures errors are not silenced. (#729)
+- CI: Raise an error if the pod is not ready when we want to run it. (#730)
+- CI: Do not delete failed curl pods during metrics endpoints tests. (#732)
+- Restart curl pods on failure when fetching metrics. (#737)
+
+
 # ESS Community Helm Chart 25.9.0 (2025-09-10)
 
 ## Added

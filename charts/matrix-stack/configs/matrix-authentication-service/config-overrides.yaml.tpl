@@ -78,14 +78,6 @@ We don't want MAS to change data in Synapse
 {{- end }}
 {{- end }}
 
-policy:
-  data:
-    admin_clients: []
-    admin_users: []
-    client_registration:
-      allow_host_mismatch: false
-      allow_insecure_uris: false
-
 secrets:
   encryption_file: /secrets/{{
                 include "element-io.ess-library.init-secret-path" (
@@ -146,7 +138,5 @@ secrets:
                     ) }}
 {{- end }}
 {{- end }}
-experimental:
-  access_token_ttl: 86400  # 1 day, up from 5 mins, until EX can better handle refresh tokens
 
 {{- end -}}
