@@ -33,8 +33,7 @@ SPDX-License-Identifier: AGPL-3.0-only
   securityContext:
     {{- toYaml . | nindent 4 }}
 {{- end }}
-  command:
-  - "/matrix-tools"
+  args:
   - render-config
   - -output
   - /conf/{{ $outputFile }}

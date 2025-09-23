@@ -100,19 +100,14 @@ def generated_secrets(release_name: str, values: dict[str, Any], helm_generated_
             # We don't have an init-secrets job
             return
 
-        command_line: list[str] = (
-            init_secrets_job.get("spec", {})
-            .get("template", {})
-            .get("spec", {})
-            .get("containers", [{}])[0]
-            .get("command", {})
-        )
-        assert len(command_line) == 6, "Unexpected command line in the init-secrets job"
-        assert command_line[2] == "-secrets", "Can't find the secrets args for the init-secrets job"
-        assert command_line[4] == "-labels", "Can't find the labels args for the init-secrets job"
+        container = init_secrets_job.get("spec", {}).get("template", {}).get("spec", {}).get("containers", [{}])[0]
+        args: list[str] = container.get("args") or container["command"][1:]
+        assert len(args) == 5, "Unexpected args in the init-secrets job"
+        assert args[1] == "-secrets", "Can't find the secrets args for the init-secrets job"
+        assert args[3] == "-labels", "Can't find the labels args for the init-secrets job"
 
-        requested_secrets = command_line[3].split(",")
-        requested_labels = {label.split("=")[0]: label.split("=")[1] for label in command_line[5].split(",")}
+        requested_secrets = args[2].split(",")
+        requested_labels = {label.split("=")[0]: label.split("=")[1] for label in args[4].split(",")}
         generated_secrets_to_keys: dict[str, list[str]] = {}
         for requested_secret in requested_secrets:
             secret_parts = requested_secret.split(":")

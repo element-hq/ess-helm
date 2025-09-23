@@ -58,8 +58,7 @@ spec:
           {{- toYaml . | nindent 10 }}
 {{- end }}
         {{- include "element-io.ess-library.pods.env" (dict "root" $ "context" (dict "componentValues" . "componentName" "init-secrets")) | nindent 8 }}
-        command:
-        - "/matrix-tools"
+        args:
         - "generate-secrets"
         - "-secrets"
         - {{ include "element-io.init-secrets.generated-secrets" (dict "root" $ "context" .) | fromYamlArray | join "," | quote }}

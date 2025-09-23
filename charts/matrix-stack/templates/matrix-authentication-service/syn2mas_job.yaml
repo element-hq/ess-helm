@@ -129,8 +129,7 @@ spec:
         securityContext:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-        command:
-        - "/matrix-tools"
+        args:
         - tcpwait
         - -address
         - {{ include "element-io.ess-library.postgres-host-port" (dict "root" $ "context" (dict "postgres" $masContext.postgres)) | quote }}
@@ -152,8 +151,7 @@ spec:
         securityContext:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-        command:
-        - "/matrix-tools"
+        args:
         - tcpwait
         - -address
         - {{ include "element-io.ess-library.postgres-host-port" (dict "root" $ "context" (dict "postgres" $synapseContext.postgres)) | quote }}
@@ -205,7 +203,7 @@ spec:
     {{- end }}
     {{- end }}
 {{- else }}
-        command: ["/matrix-tools", "syn2mas", "--config", "/conf/mas-config.yaml", "--synapse-config", "/conf/homeserver.yaml"]
+        args: ["syn2mas", "--config", "/conf/mas-config.yaml", "--synapse-config", "/conf/homeserver.yaml"]
     {{- with $.Values.matrixTools.image -}}
     {{- if .digest }}
         image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
