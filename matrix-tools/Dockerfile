@@ -7,10 +7,12 @@ FROM --platform=${BUILDPLATFORM} golang:1.24 AS buildstage
 WORKDIR /app
 COPY . /app
 
-RUN go mod download
+RUN --mount=type=cache,target=/go/pkg/mod \
+  go mod download
 
 ARG TARGETOS TARGETARCH
-RUN GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=0 go build -o /app/matrix-tools cmd/main.go
+RUN --mount=type=cache,target=/go/pkg/mod \
+  GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=0 go build -o /app/matrix-tools cmd/main.go
 
 FROM gcr.io/distroless/cc-debian12
 WORKDIR /
