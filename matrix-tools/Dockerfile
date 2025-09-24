@@ -7,10 +7,16 @@ FROM --platform=${BUILDPLATFORM} golang:1.24 AS buildstage
 WORKDIR /app
 COPY . /app
 
-RUN go mod download
+RUN go env -w GOCACHE=/go-cache
+RUN go env -w GOMODCACHE=/gomod-cache
+
+RUN --mount=type=cache,target=/gomod-cache \
+  go mod download
 
 ARG TARGETOS TARGETARCH
-RUN GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=0 go build -o /app/matrix-tools cmd/main.go
+RUN --mount=type=cache,target=/gomod-cache \
+    --mount=type=cache,target=/go-cache \
+  GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=0 go build -o /app/matrix-tools cmd/main.go
 
 FROM gcr.io/distroless/cc-debian12
 WORKDIR /
