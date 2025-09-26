@@ -10,6 +10,8 @@ deploymentMarkers:
     has-no-service-monitor: "true"
   podSecurityContext:
     runAsGroup: 0
+elementAdmin:
+  enabled: false
 elementWeb:
   enabled: false
 haproxy:

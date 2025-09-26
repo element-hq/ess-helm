@@ -1,0 +1,59 @@
+{
+  "$id": "file://element-admin",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "enabled": {
+      "type": "boolean"
+    },
+    "replicas": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "image": {
+      "$ref": "file://common/image.json"
+    },
+    "ingress": {
+      "$ref": "file://common/ingress.json"
+    },
+    "labels": {
+      "$ref": "file://common/labels.json"
+    },
+    "annotations": {
+      "$ref": "file://common/workloadAnnotations.json"
+    },
+    "extraEnv": {
+      "$ref": "file://common/extraEnv.json"
+    },
+    "containersSecurityContext": {
+      "$ref": "file://common/containersSecurityContext.json"
+    },
+    "nodeSelector": {
+      "$ref": "file://common/nodeSelector.json"
+    },
+    "podSecurityContext": {
+      "$ref": "file://common/podSecurityContext.json"
+    },
+    "resources": {
+      "$ref": "file://common/resources.json"
+    },
+    "serviceAccount": {
+      "$ref": "file://common/serviceAccount.json"
+    },
+    "tolerations": {
+      "$ref": "file://common/tolerations.json"
+    },
+    "topologySpreadConstraints": {
+      "$ref": "file://common/topologySpreadConstraints.json"
+    },
+    "livenessProbe": {
+      "$ref": "file://common/probe.json"
+    },
+    "readinessProbe": {
+      "$ref": "file://common/probe.json"
+    },
+    "startupProbe": {
+      "$ref": "file://common/probe.json"
+    }
+  }
+}

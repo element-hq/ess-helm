@@ -46,6 +46,7 @@ for values_file in "$values_file_root"/$values_file_prefix-values.yaml "$user_va
   # We could remove enabled: true for all default enabled components by setting enabled: null in their minimal values file,
   yq_command+=" | del(.deploymentMarkers.enabled | select(.))"
   yq_command+=" | del(.matrixRTC.enabled | select(.))"
+  yq_command+=" | del(.elementAdmin.enabled | select(.))"
   yq_command+=" | del(.elementWeb.enabled | select(.))"
   yq_command+=" | del(.initSecrets.enabled | select(.))"
   yq_command+=" | del(.postgres.enabled | select(.))"

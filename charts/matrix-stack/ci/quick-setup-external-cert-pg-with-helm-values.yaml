@@ -6,6 +6,9 @@
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
 # deploymentMarkers, initSecrets, postgres, wellKnownDelegation don't have any required properties to be set and defaults to enabled
+elementAdmin:
+  ingress:
+    host: admin.your.tld
 elementWeb:
   ingress:
     host: chat.your.tld
