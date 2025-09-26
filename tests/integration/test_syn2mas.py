@@ -47,7 +47,7 @@ async def test_run_syn2mas_upgrade(
     # Auth metadata endpoint should not be reachable
     with pytest.raises(aiohttp.ClientResponseError):
         await aiohttp_get_json(
-            f"https://synapse.{generated_data.server_name}/_matrix/client/unstable/org.matrix.msc2965/auth_metadata",
+            f"https://synapse.{generated_data.server_name}/_matrix/client/v1/auth_metadata",
             {},
             ssl_context,
         )
@@ -75,7 +75,7 @@ async def test_run_syn2mas_upgrade(
 
     # Auth metadata endpoint should be reachable
     response = await aiohttp_get_json(
-        f"https://synapse.{generated_data.server_name}/_matrix/client/unstable/org.matrix.msc2965/auth_metadata",
+        f"https://synapse.{generated_data.server_name}/_matrix/client/v1/auth_metadata",
         {},
         ssl_context,
     )
