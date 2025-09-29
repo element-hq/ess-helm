@@ -12,6 +12,7 @@ Jetstack
 kubeconform
 kubernetes
 linters
+LiveKit
 Muxed
 newsfragment
 newsfragments

@@ -710,7 +710,7 @@ matrixRTC:
 
       ## The tag of the container image to use.
       ## One of tag or digest must be provided.
-      tag: "v1.9.0"
+      tag: "v1.9.1"
 
       ## Container digest to use. Used to pull the image instead of the image tag if set
       ## The tag will still be set as the app.kubernetes.io/version label

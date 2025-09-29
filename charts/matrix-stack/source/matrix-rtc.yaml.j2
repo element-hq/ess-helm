@@ -72,7 +72,7 @@ sfu:
     {{- sub_schema_values.exposedServicePortRange('rtcUdp', 31000, 32000, 'NodePort') | indent(4) }}
 
 
-{{- sub_schema_values.image(registry='docker.io', repository='livekit/livekit-server', tag='v1.9.0') | indent(2) }}
+{{- sub_schema_values.image(registry='docker.io', repository='livekit/livekit-server', tag='v1.9.1') | indent(2) }}
 {{- sub_schema_values.extraEnv() | indent(2) }}
 {{- sub_schema_values.labels() | indent(2) }}
 {{- sub_schema_values.workloadAnnotations() | indent(2) }}
