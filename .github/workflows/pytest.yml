@@ -68,7 +68,7 @@ jobs:
         echo "$(poetry env info -p)/bin" >> "${GITHUB_PATH}"
 
     - name: Login to Dockerhub
-      uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1  # v3
+      uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef  # v3
       if: ${{ github.event.pull_request.head.repo.full_name == 'element-hq/ess-helm' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
       with:
         registry: docker.io
