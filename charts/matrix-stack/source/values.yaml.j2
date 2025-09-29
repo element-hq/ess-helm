@@ -21,6 +21,10 @@ matrixRTC:
   {% macro matrixRTCValues() %}{% include 'matrix-rtc.yaml.j2'%}{% endmacro %}
   {{- matrixRTCValues() | trim | indent(2) }}
 
+elementAdmin:
+  {% macro elementAdminValues() %}{% include 'element-admin.yaml.j2'%}{% endmacro %}
+  {{- elementAdminValues() | trim | indent(2) }}
+
 elementWeb:
   {% macro elementWebValues() %}{% include 'element-web.yaml.j2'%}{% endmacro %}
   {{- elementWebValues() | trim | indent(2) }}

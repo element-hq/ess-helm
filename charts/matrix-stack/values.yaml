@@ -899,6 +899,242 @@ matrixRTC:
       ## Number of seconds after which the probe times out
       timeoutSeconds: 1
 
+elementAdmin:
+  enabled: true
+
+  # Number of Element Admin replicas to start up
+  replicas: 1
+  # Details of the image to be used
+  image:
+    ## The host and (optional) port of the container image registry for this component.
+    ## If not specified Docker Hub is implied
+    registry: oci.element.io
+
+    ## The path in the registry where the container image is located
+    repository: element-admin
+
+    ## The tag of the container image to use.
+    ## One of tag or digest must be provided.
+    tag: "0.1.1"
+
+    ## Container digest to use. Used to pull the image instead of the image tag if set
+    ## The tag will still be set as the app.kubernetes.io/version label
+    # digest:
+
+    ## Whether the image should be pulled on container startup. Valid values are Always, IfNotPresent and Never
+    ## If this isn't provided it defaults to Always when using the image tag or IfNotPresent if using a digest
+    # pullPolicy:
+
+    ## A list of pull secrets to use for this image
+    ## e.g.
+    ## pullSecrets:
+    ## - name: dockerhub
+    pullSecrets: []
+  ## How this ingress should be constructed
+  ingress:
+    ## What hostname should be used for this Ingress
+    # host:
+
+    ## Annotations to be added to this Ingress
+    annotations: {}
+
+    ## What Ingress Class Name that should be used for this Ingress
+    # className:
+
+    ## Disable TLS configuration by setting it to false
+    tlsEnabled: true
+
+    ## The name of the Secret containing the TLS certificate and the key that should be used for this Ingress
+    # tlsSecret:
+
+    ## How the Service behind this Ingress is constructed
+    service: {}
+    ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
+    ## This can be set to `ingress-nginx`.
+    # controllerType:
+  ## Labels to add to all manifest for this component
+  labels: {}
+  ## Defines the annotations to add to the workload
+  # annotations: {}
+  ## Defines additional environment variables to be injected onto this workload
+  ## e.g.
+  ## extraEnv:
+  ## - name: FOO
+  ##   value: "bar"
+  extraEnv: []
+  ## A subset of SecurityContext. ContainersSecurityContext holds pod-level security attributes and common container settings
+  containersSecurityContext:
+    ## Controls whether a process can gain more privileges than its parent process.
+    ## This bool directly controls whether the no_new_privs flag gets set on the container process.
+    ## allowPrivilegeEscalation is always true when the container is run as privileged, or has CAP_SYS_ADMIN
+    allowPrivilegeEscalation: false
+
+    ## Give a process some privileges, but not all the privileges of the root user.
+    capabilities:
+      ## Privileges to add.
+      # add: []
+      ## Privileges to drop.
+      drop:
+      - ALL
+
+    ## Mounts the container's root filesystem as read-only.
+    readOnlyRootFilesystem: true
+
+    ## To set the Seccomp profile for a Container, include the seccompProfile field in the securityContext section of your Pod or Container manifest.
+    ## The seccompProfile field is a SeccompProfile object consisting of type and localhostProfile. Valid options for type include RuntimeDefault, Unconfined, and Localhost.
+    ## localhostProfile must only be set set if type Localhost. It indicates the path of the pre-configured profile on the node, relative to the kubelet's configured Seccomp profile location (configured with the --root-dir flag).
+    # seccompProfile:
+    #  type: RuntimeDefault
+  ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  nodeSelector: {}
+  ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
+  podSecurityContext:
+    ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to
+    ## change the ownership of that volume to be owned by the pod:
+    ##
+    ## 1. The owning GID will be the FSGroup
+    ## 2. The setgid bit is set (new files created in the volume will be owned by FSGroup)## 3. The permission bits are OR'd with rw-rw----
+    ##
+    ## If unset, the Kubelet will not modify the ownership and permissions of any volume.
+    fsGroup: 10104
+
+    ## fsGroupChangePolicy defines behavior of changing ownership and permission of the volume before being exposed inside Pod.
+    ## This field will only apply to volume types which support fsGroup based ownership(and permissions).
+    ## It will have no effect on ephemeral volume types such as: secret, configmaps and emptydir. Valid values are "OnRootMismatch" and "Always". If not specified, "Always" is used.
+    # fsGroupChangePolicy:
+
+    ## The GID to run the entrypoint of the container process. Uses runtime default if unset.
+    runAsGroup: 10104
+
+    ## Indicates that the container must run as a non-root user. If true, the Kubelet will validate the image at runtime to ensure that it does not run as UID 0 (root) and fail to start the container if it does. If unset or false, no such validation will be performed.
+    runAsNonRoot: true
+
+    ## The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified.
+    runAsUser: 10104
+
+    ## SELinuxOptions are the labels to be applied to all the pod containers
+    # seLinuxOptions:
+      ## Level is SELinux level label that applies to the container.
+      # level:
+
+      ## Role is a SELinux role label that applies to the container.
+      # role:
+
+      ## Type is a SELinux type label that applies to the container.
+      # type:
+
+      ## User is a SELinux user label that applies to the container.
+      # user:
+
+    ## "To set the Seccomp profile for a Container, include the seccompProfile field in the securityContext section of your Pod or Container manifest.
+    ## The seccompProfile field is a SeccompProfile object consisting of type and localhostProfile.
+    ## Valid options for type include RuntimeDefault, Unconfined, and Localhost. localhostProfile must only be set set if type Localhost.
+    ## It indicates the path of the pre-configured profile on the node, relative to the kubelet's configured Seccomp profile location (configured with the --root-dir flag).
+    seccompProfile:
+      # localhostProfile:
+      type: RuntimeDefault
+
+    ## A list of groups applied to the first process run in each container, in addition to the container's primary GID.
+    ## If unspecified, no groups will be added to any container.
+    supplementalGroups: []
+  ## Kubernetes resources to allocate to each instance.
+  resources:
+    ## Requests describes the minimum amount of compute resources required. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+    requests:
+      memory: 50Mi
+      cpu: 50m
+
+    ## Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+    limits:
+      memory: 200Mi
+  ## Controls configuration of the ServiceAccount for this component
+  serviceAccount:
+    ## Whether a ServiceAccount should be created by the chart or not
+    create: true
+
+    ## What name to give the ServiceAccount. If not provided the chart will provide the name automatically
+    name: ""
+
+    ## Annotations to add to the service account
+    annotations: {}
+  ## Workload tolerations allows Pods that are part of this (sub)component to 'tolerate' any taint that matches the triple <key,value,effect> using the matching operator <operator>.
+  ##
+  ## * effect indicates the taint effect to match. Empty means match all taint effects. When specified, allowed values are NoSchedule, PreferNoSchedule and NoExecute.
+  ## * key is the taint key that the toleration applies to. Empty means match all taint keys. If the key is empty, operator must be Exists; this combination means to match all values and all keys.
+  ## * operator represents a key's relationship to the value. Valid operators are Exists and Equal. Defaults to Equal. Exists is equivalent to wildcard for value, so that a pod can tolerate all taints of a particular category.
+  ## * value is the taint value the toleration matches to. If the operator is Exists, the value should be empty, otherwise just a regular string.
+  ##
+  ## * tolerationSeconds represents the period of time the toleration (which must be of effect NoExecute, otherwise this field is ignored) tolerates the taint. By default, it is not set, which means tolerate the taint forever (do not evict). Zero and negative values will be treated as 0 (evict immediately) by the system.
+  ## e.g.
+  ## tolerations:
+  ## - effect:
+  ##   key:
+  ##   operator:
+  ##   value:
+
+  tolerations: []
+  ## TopologySpreadConstraints describes how Pods for this component should be spread between nodes.
+  ## https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/ for in-depth details
+  ## labelSelector can be omitted and the chart will populate a sensible value for this component.
+  ## Similarly `pod-template-hash` will be aded to `matchLabelKeys` if appropriate for this component.
+  ## If any TopologySpreadConstraints are provided for a component any global TopologySpreadConstraints are ignored for that component.
+  ## e.g.
+  ## topologySpreadConstraints:
+  ## - maxSkew: 1
+  ##   topologyKey: topology.kubernetes.io/zone
+  ##   # nodeAffinityPolicy: Honor/Ignore
+  ##   # nodeTaintsPolicy: Honor/Ignore
+  ##   # whenUnsatisfiable: DoNotSchedule/ScheduleAnyway
+  topologySpreadConstraints: []
+  ## Configuration of the thresholds and frequencies of the livenessProbe
+  livenessProbe:
+    ## How many consecutive failures for the probe to be considered failed
+    failureThreshold: 3
+
+    ## Number of seconds after the container has started before the probe starts
+    initialDelaySeconds: 0
+
+    ## How often (in seconds) to perform the probe
+    periodSeconds: 10
+
+    ## How many consecutive successes for the probe to be consider successful after having failed
+    successThreshold: 1
+
+    ## Number of seconds after which the probe times out
+    timeoutSeconds: 1
+  ## Configuration of the thresholds and frequencies of the readinessProbe
+  readinessProbe:
+    ## How many consecutive failures for the probe to be considered failed
+    failureThreshold: 3
+
+    ## Number of seconds after the container has started before the probe starts
+    initialDelaySeconds: 0
+
+    ## How often (in seconds) to perform the probe
+    periodSeconds: 10
+
+    ## How many consecutive successes for the probe to be consider successful after having failed
+    successThreshold: 1
+
+    ## Number of seconds after which the probe times out
+    timeoutSeconds: 1
+  ## Configuration of the thresholds and frequencies of the startupProbe
+  startupProbe:
+    ## How many consecutive failures for the probe to be considered failed
+    failureThreshold: 3
+
+    ## Number of seconds after the container has started before the probe starts
+    initialDelaySeconds: 0
+
+    ## How often (in seconds) to perform the probe
+    periodSeconds: 10
+
+    ## How many consecutive successes for the probe to be consider successful after having failed
+    successThreshold: 1
+
+    ## Number of seconds after which the probe times out
+    timeoutSeconds: 1
+
 elementWeb:
   enabled: true
 

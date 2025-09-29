@@ -63,6 +63,9 @@
     "matrixRTC": {
       "$ref": "file://matrix-rtc.json"
     },
+    "elementAdmin": {
+      "$ref": "file://element-admin.json"
+    },
     "elementWeb": {
       "$ref": "file://element-web.json"
     },

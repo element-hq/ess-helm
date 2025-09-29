@@ -109,6 +109,7 @@ ESS Community comes with the following components out-of-the box:
 - [Matrix Authentication Service](https://github.com/element-hq/matrix-authentication-service): Manages users and handles user authentication.
 - [Element Call's Matrix RTC Backend](https://github.com/element-hq/element-call/tree/livekit): Allows to use Element Call from Element X and Element Web apps.
 - [Element Web](https://github.com/element-hq/element-web): The Matrix Web Client provided by Element.
+- [Element Admin](https://github.com/element-hq/element-admin): The Admin Console provided by Element.
 - PostgreSQL: An optional packaged PostgreSQL server that allows you to quickly set up the stack out-of-the-box. For a better long-term experience, please consider using a dedicated PostgreSQL server. See the [advanced setup docs](./docs/advanced.md) for more information.
 - HAProxy: Provides the routing to Synapse processes.
 - .well-known delegation: Required for federation and Matrix clients.
@@ -169,6 +170,7 @@ You need to create DNS records (A or CNAME, for example) to set up ESS Community
 - Matrix Authentication Service: For example, you could use `account.<server-name.tld>`.
 - Matrix RTC Backend: For example, you could use `mrtc.<server-name.tld>`.
 - Element Web: This will be the address of the chat client of your server. For example, you could use `chat.<server-name.tld>`.
+- Element Admin: This will be the address of the admin client of your server. For example, you could use `admin.<server-name.tld>`.
 
 ### Ports
 
@@ -302,6 +304,7 @@ curl -L https://raw.githubusercontent.com/element-hq/ess-helm/refs/heads/main/ch
 
 1. If you have a distinct certificate for each of your DNS names, you will need to import each certificate in your namespace using [kubectl](https://kubernetes.io/docs/reference/kubectl/generated/kubectl_create/kubectl_create_secret_tls/):
 ```
+kubectl create secret tls ess-admin-certificate -n ess --cert=path/to/cert/file --key=path/to/key/file
 kubectl create secret tls ess-chat-certificate -n ess --cert=path/to/cert/file --key=path/to/key/file
 kubectl create secret tls ess-matrix-certificate -n ess --cert=path/to/cert/file --key=path/to/key/file
 kubectl create secret tls ess-auth-certificate -n ess --cert=path/to/cert/file --key=path/to/key/file

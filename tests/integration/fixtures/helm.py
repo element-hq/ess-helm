@@ -59,6 +59,15 @@ async def helm_prerequisites(
             )
         )
 
+    if value_file_has("elementAdmin.enabled", True):
+        resources.append(
+            kubernetes_tls_secret(
+                f"{generated_data.release_name}-element-admin-tls",
+                generated_data.ess_namespace,
+                generate_cert(delegated_ca, [f"admin.{generated_data.server_name}"]),
+            )
+        )
+
     if value_file_has("elementWeb.enabled", True):
         resources.append(
             kubernetes_tls_secret(

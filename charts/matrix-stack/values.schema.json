@@ -2108,6 +2108,603 @@
       },
       "additionalProperties": false
     },
+    "elementAdmin": {
+      "$id": "file://element-admin",
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "replicas": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "image": {
+          "type": "object",
+          "required": [
+            "repository"
+          ],
+          "oneOf": [
+            {
+              "required": [
+                "tag",
+                "digest"
+              ]
+            },
+            {
+              "required": [
+                "digest"
+              ],
+              "not": {
+                "required": [
+                  "tag"
+                ]
+              }
+            },
+            {
+              "required": [
+                "tag"
+              ],
+              "not": {
+                "required": [
+                  "digest"
+                ]
+              }
+            }
+          ],
+          "properties": {
+            "registry": {
+              "type": "string"
+            },
+            "repository": {
+              "type": "string"
+            },
+            "tag": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "digest": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "pullPolicy": {
+              "type": "string",
+              "enum": [
+                "Always",
+                "IfNotPresent",
+                "Never"
+              ]
+            },
+            "pullSecrets": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "ingress": {
+          "type": "object",
+          "properties": {
+            "annotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "host": {
+              "type": "string"
+            },
+            "className": {
+              "type": "string"
+            },
+            "tlsEnabled": {
+              "type": "boolean"
+            },
+            "tlsSecret": {
+              "type": "string"
+            },
+            "controllerType": {
+              "type": "string",
+              "enum": [
+                "ingress-nginx"
+              ]
+            },
+            "service": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "ClusterIP",
+                    "NodePort",
+                    "LoadBalancer"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "extraEnv": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "value"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "containersSecurityContext": {
+          "properties": {
+            "allowPrivilegeEscalation": {
+              "type": "boolean"
+            },
+            "capabilities": {
+              "properties": {
+                "add": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "drop": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object",
+              "additionalProperties": false
+            },
+            "readOnlyRootFilesystem": {
+              "type": "boolean"
+            },
+            "seccompProfile": {
+              "properties": {
+                "localhostProfile": {
+                  "type": "string"
+                },
+                "type": {
+                  "enum": [
+                    "RuntimeDefault",
+                    "Unconfined",
+                    "Localhost"
+                  ],
+                  "type": "string"
+                }
+              },
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "type": "object",
+          "additionalProperties": false
+        },
+        "nodeSelector": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "podSecurityContext": {
+          "properties": {
+            "fsGroup": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "fsGroupChangePolicy": {
+              "type": "string"
+            },
+            "runAsGroup": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "runAsNonRoot": {
+              "type": "boolean"
+            },
+            "runAsUser": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "seLinuxOptions": {
+              "properties": {
+                "level": {
+                  "type": "string"
+                },
+                "role": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "user": {
+                  "type": "string"
+                }
+              },
+              "type": "object",
+              "additionalProperties": false
+            },
+            "seccompProfile": {
+              "properties": {
+                "localhostProfile": {
+                  "type": "string"
+                },
+                "type": {
+                  "enum": [
+                    "RuntimeDefault",
+                    "Unconfined",
+                    "Localhost"
+                  ],
+                  "type": "string"
+                }
+              },
+              "type": "object",
+              "additionalProperties": false
+            },
+            "supplementalGroups": {
+              "items": {
+                "format": "int64",
+                "type": "integer"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object",
+          "additionalProperties": false
+        },
+        "resources": {
+          "properties": {
+            "limits": {
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "pattern": "^(\\+|-)?(([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\\+|-)?(([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))))?$"
+              },
+              "type": "object"
+            },
+            "requests": {
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "pattern": "^(\\+|-)?(([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\\+|-)?(([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))))?$"
+              },
+              "type": "object"
+            }
+          },
+          "type": "object",
+          "additionalProperties": false
+        },
+        "serviceAccount": {
+          "type": "object",
+          "properties": {
+            "create": {
+              "type": "boolean"
+            },
+            "name": {
+              "type": "string"
+            },
+            "annotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "tolerations": {
+          "type": "array",
+          "items": {
+            "properties": {
+              "effect": {
+                "type": "string",
+                "enum": [
+                  "NoSchedule",
+                  "PreferNoSchedule",
+                  "NoExecute"
+                ]
+              },
+              "key": {
+                "type": "string"
+              },
+              "operator": {
+                "type": "string"
+              },
+              "tolerationSeconds": {
+                "type": "number"
+              },
+              "value": {
+                "type": "string"
+              }
+            },
+            "type": "object",
+            "additionalProperties": false
+          }
+        },
+        "topologySpreadConstraints": {
+          "type": "array",
+          "items": {
+            "required": [
+              "maxSkew",
+              "topologyKey"
+            ],
+            "properties": {
+              "labelSelector": {
+                "type": "object",
+                "properties": {
+                  "matchExpressions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "key",
+                        "operator"
+                      ],
+                      "properties": {
+                        "key": {
+                          "type": "string"
+                        },
+                        "operator": {
+                          "type": "string",
+                          "enum": [
+                            "In",
+                            "NotIn",
+                            "Exists",
+                            "DoesNotExist"
+                          ]
+                        },
+                        "values": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "matchLabels": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "additionalProperties": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                },
+                "additionalProperties": false
+              },
+              "matchLabelKeys": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "string"
+                }
+              },
+              "maxSkew": {
+                "type": "integer",
+                "minium": 1
+              },
+              "minDomains": {
+                "type": "integer",
+                "minium": 0
+              },
+              "nodeAffinityPolicy": {
+                "type": "string",
+                "enum": [
+                  "Honor",
+                  "Ignore"
+                ]
+              },
+              "nodeTaintsPolicy": {
+                "type": "string",
+                "enum": [
+                  "Honor",
+                  "Ignore"
+                ]
+              },
+              "topologyKey": {
+                "type": "string"
+              },
+              "whenUnsatisfiable": {
+                "type": "string",
+                "enum": [
+                  "DoNotSchedule",
+                  "ScheduleAnyway"
+                ]
+              }
+            },
+            "type": "object",
+            "additionalProperties": false
+          }
+        },
+        "livenessProbe": {
+          "type": "object",
+          "properties": {
+            "failureThreshold": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "initialDelaySeconds": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "periodSeconds": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "successThreshold": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "timeoutSeconds": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "readinessProbe": {
+          "type": "object",
+          "properties": {
+            "failureThreshold": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "initialDelaySeconds": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "periodSeconds": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "successThreshold": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "timeoutSeconds": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "startupProbe": {
+          "type": "object",
+          "properties": {
+            "failureThreshold": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "initialDelaySeconds": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "periodSeconds": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "successThreshold": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "timeoutSeconds": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
     "elementWeb": {
       "$id": "file://element-web",
       "$schema": "https://json-schema.org/draft/2020-12/schema",
