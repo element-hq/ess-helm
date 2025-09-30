@@ -18,6 +18,7 @@ metadata:
 spec:
   type: NodePort
   externalTrafficPolicy: Local
+  ipFamilyPolicy: PreferDualStack
   ports:
   - name: "rtc-tcp"
     protocol: "TCP"
