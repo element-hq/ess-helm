@@ -6,6 +6,69 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 25.9.2 (2025-09-30)
+
+## Added
+
+- Introducing Element Admin, a user-friendly interface to manage your ESS deployment. This is default enabled, and you need to configure `elementAdmin.ingress.host` on upgrade, as well as create its DNS and TLS.
+
+  ![Element Admin Screenshot](https://github.com/user-attachments/assets/ee37deb6-d7e4-422d-8026-af948fcb251d) (#743, #759, #762)
+
+## Changed
+
+- Define "matrix-tools" containers with "args" set instead of "command". (#738)
+- Update Element Web to v1.12.0.
+
+  Highlights:
+
+  * Use the new room list by default
+  * Automatically adjust history visibility when making a room private
+  * Stop ringing and remove toast if another device answers a RTC call.
+
+  Full Changelogs:
+  * [v1.12.0](https://github.com/element-hq/element-web/releases/tag/v1.12.0)
+
+  (#744)
+- Allow overriding of the Matrix Authentication Service policy configuration via additional configuration. (#745)
+- Remove `experimental.access_token_ttl` from the Matrix Authentication Service config as the need for it has gone. (#745)
+- Upgrade Synapse to v1.139.0.
+
+  Highlights:
+  * Fix a performance regression related to the experimental Delayed Events ([MSC4140](https://github.com/matrix-org/matrix-spec-proposals/pull/4140)) feature.
+  * Add experimental support for [MSC4308: Thread Subscriptions extension to Sliding Sync](https://github.com/matrix-org/matrix-spec-proposals/pull/4308) when [MSC4306: Thread Subscriptions](https://github.com/matrix-org/matrix-spec-proposals/pull/4306) and [MSC4186: Simplified Sliding Sync](https://github.com/matrix-org/matrix-spec-proposals/pull/4186) are enabled.
+  * Update [MSC4190](https://github.com/matrix-org/matrix-spec-proposals/pull/4190) support to return correct errors and allow appservices to reset cross-signing keys without user-interactive authentication.
+  * Fix bug where we did not send invite revocations over federation.
+
+  Full Changelogs:
+  * [v1.138.2](https://github.com/element-hq/synapse/releases/tag/v1.138.2)
+  * [v1.139.0](https://github.com/element-hq/synapse/releases/tag/v1.139.0)
+
+  (#752, #755)
+- Update Matrix Authentication Service to v1.3.0.
+
+  Highlights:
+  * Add Admin API filter to search users by username.
+  * Add Admin API to list upstream OAuth 2.0 providers.
+
+  Full Changelogs:
+  * [v1.3.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.3.0)
+
+  (#753)
+- Upgrade Matrix RTC SFU (LiveKit) to v1.9.1.
+
+  Full Changelogs:
+  * [v1.9.1](https://github.com/livekit/livekit/releases/tag/v1.9.1)
+
+  (#758)
+
+## Internal
+
+- CI: disable initSecrets for test values files that are to use secrets defined in Helm or external secrets. (#748)
+- CI: cover testing in-Helm secrets for MAS. (#751)
+- CI: Add go cache while building matrix-tools. (#754)
+- CI: use stable URL for auth_metadata check. (#756)
+
+
 # ESS Community Helm Chart 25.9.1 (2025-09-17)
 
 ## Added
