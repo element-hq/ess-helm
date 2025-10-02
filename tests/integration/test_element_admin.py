@@ -2,21 +2,14 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-import os
 
 import pytest
-import semver
 
 from .fixtures import ESSData
 from .lib.utils import aiohttp_client, value_file_has
 
 
 @pytest.mark.skipif(value_file_has("elementAdmin.enabled", False), reason="elementAdmin not deployed")
-@pytest.mark.skipif(
-    semver.Version.is_valid(os.environ.get("MATRIX_TEST_FROM_REF", ""))
-    and semver.VersionInfo.parse(os.environ.get("MATRIX_TEST_FROM_REF", "")).compare("25.9.1") <= 0,
-    reason="25.9.1 does not expose the chart version in tenant mode.",
-)
 @pytest.mark.asyncio_cooperative
 async def test_element_admin_can_access_root(ingress_ready, generated_data: ESSData, ssl_context):
     await ingress_ready("element-admin")
