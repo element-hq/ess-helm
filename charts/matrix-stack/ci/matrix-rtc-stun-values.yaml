@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 #
-# source_fragments: matrix-rtc-host-mode.yaml matrix-rtc-manual-ip.yaml matrix-rtc-minimal.yaml
+# source_fragments: matrix-rtc-host-mode.yaml matrix-rtc-minimal.yaml matrix-rtc-stun.yaml
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
 # initSecrets, postgres don't have any required properties to be set and defaults to enabled
@@ -27,8 +27,7 @@ matrixRTC:
         enabled: true
         portType: HostPort
     hostNetwork: true
-    manualIP: 198.51.100.2
-    useStunToDiscoverPublicIP: false
+    useStunToDiscoverPublicIP: true
 synapse:
   enabled: false
 wellKnownDelegation:

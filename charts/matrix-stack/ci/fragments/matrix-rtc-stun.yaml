@@ -4,5 +4,4 @@
 
 matrixRTC:
   sfu:
-    useStunToDiscoverPublicIP: false
-    manualIP: 198.51.100.2
+    useStunToDiscoverPublicIP: true
