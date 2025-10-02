@@ -6,6 +6,17 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 25.9.3 (2025-10-02)
+
+## Fixed
+
+- Fix Matrix RTC SFU manualIP setting so that it correctly propagates through. (#765)
+
+## Internal
+
+- CI: update Matrix RTC values files to cover STUN, Manual IP, and Node IP cases correctly. (#765)
+
+
 # ESS Community Helm Chart 25.9.2 (2025-09-30)
 
 ## Added
