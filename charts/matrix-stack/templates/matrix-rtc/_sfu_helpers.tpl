@@ -34,11 +34,10 @@ env: []
 {{- $root := .root -}}
 {{- with required "element-io.matrix-rtc-sfu.renderConfigOverrideEnv missing context" .context -}}
 env:
-{{- with $root.Values.matrixRTC.sfu.manualIP }}
+{{- if $root.Values.matrixRTC.sfu.manualIP }}
 - name: NODE_IP
-  value: "{{ . }}"
-{{- end }}
-{{- if and (not $root.Values.matrixRTC.sfu.useStunToDiscoverPublicIP) (not $root.Values.matrixRTC.sfu.manualIP) }}
+  value: "{{ $root.Values.matrixRTC.sfu.manualIP }}"
+{{- else if not $root.Values.matrixRTC.sfu.useStunToDiscoverPublicIP }}
 - name: NODE_IP
   valueFrom:
     fieldRef:
