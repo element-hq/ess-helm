@@ -89,6 +89,8 @@ A full comparison between the editions can be found [here](https://element.io/pr
     - [Creating an initial user](#creating-an-initial-user)
     - [Verifying the setup](#verifying-the-setup)
 - [Advanced setup](#advanced-setup)
+- [Troubleshooting](#troubleshooting)
+- [Maintenance](#maintenance)
 - [Uninstalling](#uninstalling)
 
 # Architecture and components
@@ -529,6 +531,10 @@ To verify the setup, you can:
 # Advanced setup
 
 For advanced setup instructions, please refer to the [Advanced setup](docs/advanced.md) guide.
+
+# Troubleshooting
+
+For common troubleshooting queries, please refer to the [Troubleshooting](docs/troubleshooting.md) guide.
 
 # Maintenance
 

@@ -108,6 +108,11 @@ name = "Removed"
 showcontent = true
 
 [[tool.towncrier.type]]
+directory = "doc"
+name = "Documentation"
+showcontent = true
+
+[[tool.towncrier.type]]
 directory = "internal"
 name = "Internal"
 showcontent = true
