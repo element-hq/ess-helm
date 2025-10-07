@@ -396,21 +396,6 @@ html5lib = ["html5lib"]
 lxml = ["lxml"]
 
 [[package]]
-name = "binaryornot"
-version = "0.4.4"
-description = "Ultra-lightweight pure Python package to check if a file is binary or text."
-optional = false
-python-versions = "*"
-groups = ["dev"]
-files = [
-    {file = "binaryornot-0.4.4-py2.py3-none-any.whl", hash = "sha256:b8b71173c917bddcd2c16070412e369c3ed7f0528926f70cac18a6c97fd563e4"},
-    {file = "binaryornot-0.4.4.tar.gz", hash = "sha256:359501dfc9d40632edc9fac890e19542db1a287bbcfa58175b66658392018061"},
-]
-
-[package.dependencies]
-chardet = ">=3.0.2"
-
-[[package]]
 name = "boolean-py"
 version = "5.0"
 description = "Define boolean algebras, create and parse boolean expressions and create custom boolean DSL."
@@ -612,18 +597,6 @@ files = [
 
 [package.dependencies]
 pycparser = {version = "*", markers = "implementation_name != \"PyPy\""}
-
-[[package]]
-name = "chardet"
-version = "5.2.0"
-description = "Universal encoding detector for Python 3"
-optional = false
-python-versions = ">=3.7"
-groups = ["dev"]
-files = [
-    {file = "chardet-5.2.0-py3-none-any.whl", hash = "sha256:e1cf59446890a00105fe7b7912492ea04b6e6f06d4b742b2c788469e34c82970"},
-    {file = "chardet-5.2.0.tar.gz", hash = "sha256:1b3b6ff479a8c414bc3fa2c0852995695c4a026dcd6d0633b2dd092ca39c1cf7"},
-]
 
 [[package]]
 name = "charset-normalizer"
@@ -2678,6 +2651,18 @@ charset-normalizer = "*"
 test = ["pytest", "pytest-cov"]
 
 [[package]]
+name = "python-magic"
+version = "0.4.27"
+description = "File type identification using libmagic"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+groups = ["dev"]
+files = [
+    {file = "python-magic-0.4.27.tar.gz", hash = "sha256:c1ba14b08e4a5f5c31a302b7721239695b2f0f058d125bd5ce1ee36b9d9d3c3b"},
+    {file = "python_magic-0.4.27-py2.py3-none-any.whl", hash = "sha256:c212960ad306f700aa0d01e5d7a325d20548ff97eb9920dcd29513174f0294d3"},
+]
+
+[[package]]
 name = "python-on-whales"
 version = "0.78.0"
 description = "A Docker client for Python, designed to be fun and intuitive!"
@@ -2959,25 +2944,28 @@ use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
 name = "reuse"
-version = "5.1.1"
+version = "6.0.0"
 description = "reuse is a tool for compliance with the REUSE recommendations."
 optional = false
-python-versions = "<4.0,>=3.9"
+python-versions = ">=3.10"
 groups = ["dev"]
 files = [
-    {file = "reuse-5.1.1-cp313-cp313-manylinux_2_41_x86_64.whl", hash = "sha256:15a68341949b7ddb3630d8d3a49d9537bbc143ee235dca77cc3f4047237c8299"},
-    {file = "reuse-5.1.1.tar.gz", hash = "sha256:a13914ed8b66b8e5956e96c63203c63d72b55280d348849ccc0eb314c73248cb"},
+    {file = "reuse-6.0.0-cp310-cp310-manylinux_2_41_x86_64.whl", hash = "sha256:d7a4f8b8663384bd325b93c0964b0586c85e2d7cbcfa4bdffa6009f2a7b12adf"},
+    {file = "reuse-6.0.0.tar.gz", hash = "sha256:a2cfc8a5f843e5a682ecef4adf67d10c9b7793241cd5232bcbd9fc301a487a1b"},
 ]
 
 [package.dependencies]
-attrs = ">=21.3"
-binaryornot = ">=0.4.4"
-"boolean.py" = ">=3.8"
-click = ">=8.0"
+attrs = ">=23.2"
+click = ">=8.1"
 Jinja2 = ">=3.0.0"
-license-expression = ">=1.0"
-python-debian = ">=0.1.34,<0.1.45 || >0.1.45,<0.1.46 || >0.1.46,<0.1.47 || >0.1.47"
+license-expression = ">=21.6.14"
+python-debian = ">=0.1.48"
+python-magic = ">=0.4.12"
 tomlkit = ">=0.8"
+
+[package.extras]
+chardet = ["chardet (>=3.0.2)"]
+charset-normalizer = ["charset-normalizer (>=2.0.5)"]
 
 [[package]]
 name = "rich"
@@ -3888,4 +3876,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0"
-content-hash = "2125ef3082fb89b549bed61a83ffde23cc6f51389ec4ba99c4f246653ed14ae0"
+content-hash = "b8740d964ded82ed439327ef89dccd917236379d867a8e046b3051fe5703be3a"
