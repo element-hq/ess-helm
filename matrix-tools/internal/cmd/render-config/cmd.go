@@ -31,8 +31,12 @@ func readFiles(paths []string) ([]io.Reader, []func() error, error) {
 func Run(options *RenderConfigOptions) {
 	// If output file already exists, exit 0
 	if _, err := os.Stat(options.Output); err == nil {
-		fmt.Printf("Output file %s already exists, exiting\n", options.Output)
-		os.Exit(0)
+		fmt.Printf("Output file %s already exists, deleting\n", options.Output)
+		err := os.Remove(options.Output)
+		if err != nil {
+			fmt.Println("Error deleting file:", err)
+			os.Exit(1)
+		}
 	}
 
 	fileReaders, closeFiles, err := readFiles(options.Files)
