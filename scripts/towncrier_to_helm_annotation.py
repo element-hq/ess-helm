@@ -17,7 +17,7 @@ def find_news_fragments(root_dir):
     for path in Path(root_dir).glob("*"):
         if path.is_file() and path.name != ".gitkeep":
             kind = path.name.split(".")[1]
-            if kind != "internal":
+            if kind not in ["internal", "doc"]:
                 unique_new_fragments.add(
                     (
                         path.read_text().splitlines()[0].strip(),
@@ -25,7 +25,7 @@ def find_news_fragments(root_dir):
                     )
                 )
     new_fragments = list({"description": description, "kind": kind} for description, kind in unique_new_fragments)
-    kind_order = ["security", "deprecated", "added", "changed", "fixed", "removed", "doc"]
+    kind_order = ["security", "deprecated", "added", "changed", "fixed", "removed"]
     # We order the list by kind and description alphabetically
     new_fragments.sort(key=lambda x: str(kind_order.index(x["kind"])) + x["description"])
     return new_fragments
