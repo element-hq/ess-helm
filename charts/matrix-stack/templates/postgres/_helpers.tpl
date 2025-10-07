@@ -4,6 +4,30 @@ Copyright 2025 New Vector Ltd
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 
+{{- define "element-io.postgres.validations" }}
+{{- $root := .root -}}
+{{- with required "element-io.postgres.validations missing context" .context -}}
+{{- $messages := list -}}
+{{- $postgresUrls := dict -}}
+  {{- range $component, $compValues := $root.Values -}}
+    {{- if and (eq (kindOf $compValues) "map") (hasKey $compValues "postgres") ($compValues.enabled) ($compValues.postgres) -}}
+      {{- $postgresValues := (index $root.Values $component).postgres -}}
+      {{- $_ := set $postgresUrls $component (printf "%s:%s/%s" $postgresValues.host $postgresValues.port $postgresValues.database) -}}
+    {{- end -}}
+  {{- end -}}
+{{- if ne (len ($postgresUrls | values)) (len (($postgresUrls | values) | uniq | sortAlpha)) -}}
+  {{- range $compA, $pgUrlA := $postgresUrls -}}
+    {{- range $compB, $pgUrlB := $postgresUrls -}}
+      {{- if and (ne $compA $compB) (eq $pgUrlA $pgUrlB) -}}
+{{ $messages = append $messages (printf "%s.postgres is using the same database as %s.postgres" $compA $compB) }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end -}}
+{{ $messages | toJson }}
+{{- end }}
+{{- end }}
+
 {{- define "element-io.postgres.labels" -}}
 {{- $root := .root -}}
 

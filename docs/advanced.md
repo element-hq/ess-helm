@@ -28,6 +28,8 @@ Configuration samples are available [in the GitHub repository](https://github.co
 
 ### Using a dedicated PostgreSQL database
 
+Each of these databases can be on independent instances or separate databases on the same PostgreSQL instance. They must not be in the same database in the same PostgreSQL instance.
+
 You need to create 2 databases:
 
 - For Synapse [https://element-hq.github.io/synapse/latest/postgres.html](https://element-hq.github.io/synapse/latest/postgres.html#set-up-database)
