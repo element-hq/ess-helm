@@ -1,7 +1,7 @@
 # Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
-#
+
 # source_fragments: quick-setup-all-enabled.yaml quick-setup-hostnames.yaml quick-setup-postgresql.yaml quick-setup-wildcard-cert.yaml
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
