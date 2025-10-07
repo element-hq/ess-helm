@@ -8,6 +8,7 @@ dockerhub
 Gematik
 GHSA
 homeserver
+homeservers
 Homeserver
 Jetstack
 kubeconform
