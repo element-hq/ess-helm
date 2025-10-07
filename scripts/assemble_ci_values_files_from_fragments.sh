@@ -57,16 +57,14 @@ for values_file in "$values_file_root"/$values_file_prefix-values.yaml "$user_va
   yq_command+=" | select((. | [\"deploymentMarkers\", \"initSecrets\", \"postgres\", \"wellKnownDelegation\"] - keys) | length > 0) head_comment=([\"deploymentMarkers\", \"initSecrets\", \"postgres\", \"wellKnownDelegation\"] - keys | join(\", \"))  + \" don't have any required properties to be set and defaults to enabled\""
 
   echo "Generating $values_file from $source_fragments";
-  echo "" > "$values_file"
-  # REUSE-IgnoreStart
-  reuse annotate --copyright="Copyright 2024-$(date +%Y) New Vector Ltd" --license "AGPL-3.0-only" "$values_file"
-  # REUSE-IgnoreEnd
-
-  cat << EOF >> "$values_file"
-#
+  cat << EOF > "$values_file"
 # source_fragments: $source_fragments
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
 EOF
   yq -P "$yq_command" "$values_file_root/nothing-enabled-values.yaml" >> "$values_file"
+
+  # REUSE-IgnoreStart
+  reuse annotate --copyright-prefix=string --year "2024-$(date +%Y)" --copyright="New Vector Ltd" --license "AGPL-3.0-only" "$values_file"
+  # REUSE-IgnoreEnd
 done

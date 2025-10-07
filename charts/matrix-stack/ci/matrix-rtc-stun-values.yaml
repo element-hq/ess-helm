@@ -1,7 +1,7 @@
 # Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
-#
+
 # source_fragments: matrix-rtc-host-mode.yaml matrix-rtc-minimal.yaml matrix-rtc-stun.yaml
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
