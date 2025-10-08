@@ -8,15 +8,6 @@ global:
 # To check that templating works against the ingress
 serverName: "{{ $.Values.global.baseDomain }}"
 
-ingress:
-  controllerType: ingress-nginx
-
 wellKnownDelegation:
-  ingress:
-    tlsSecret: "{{ $.Release.Name }}-well-known-web-tls"
   baseDomainRedirect:
    url: "https://redirect.localhost/path"
-
-haproxy:
-  podSecurityContext:
-    runAsGroup: 0

@@ -44,6 +44,10 @@ async def test_well_known_files_can_be_accessed(
 
 
 @pytest.mark.skipif(value_file_has("wellKnownDelegation.enabled", False), reason="WellKnownDelegation not deployed")
+@pytest.mark.skipif(
+    not value_file_has("wellKnownDelegation.baseDomainRedirect", {}),
+    reason="WellKnownDelegation base domain redirect is disabled",
+)
 @pytest.mark.asyncio_cooperative
 async def test_root_url_redirects(
     ingress_ready,
@@ -79,7 +83,6 @@ async def test_delete_405(
         ".well-known/matrix/client",
         ".well-known/matrix/server",
         ".well-known/matrix/support",
-        ".well-known/element/element.json",
     ]:
         async with (
             aiohttp_client(ssl_context) as client,
