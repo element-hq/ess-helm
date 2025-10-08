@@ -6,6 +6,51 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 25.10.0 (2025-10-08)
+
+## Added
+
+- Add a validation check to make sure no component is sharing any postgres database. (#778)
+
+## Changed
+
+- Update Element Web to v1.12.1.
+
+  Highlights:
+
+  * Update Message Sound for Element
+  * New Room List: Don't clear filters on space change
+  * Rich Text Editor: Add emoji suggestion support
+
+  Full Changelogs:
+  * [v1.12.1](https://github.com/element-hq/element-web/releases/tag/v1.12.1)
+
+  (#779)
+- Upgrade Synapse to v1.139.2.
+
+  Highlights:
+  * Fix [`CVE-2025-61672`](https://www.cve.org/CVERecord?id=CVE-2025-61672) / [`GHSA-fh66-fcv5-jjfr`](https://github.com/element-hq/synapse/security/advisories/GHSA-fh66-fcv5-jjfr). Lack of validation for device keys in Synapse before 1.139.1 allows an attacker registered on the victim homeserver to degrade federation functionality, unpredictably breaking outbound federation to other homeservers.
+
+  Full Changelogs:
+  * [v1.139.1](https://github.com/element-hq/synapse/releases/tag/v1.139.1)
+  * [v1.139.2](https://github.com/element-hq/synapse/releases/tag/v1.139.2)
+
+  (#780, #783)
+
+## Fixed
+
+- Fix an issue where matrix-tools would fail to render configuration on containers restarts not causing a new pod cycle. (#771, #782)
+
+## Documentation
+
+- Add initial troubleshooting guide around `MISSING_MATRIX_RTC_FOCUS`. (#768)
+
+## Internal
+
+- CI: remove test exclusions relating to versions 25.9.1 or older. (#767)
+- Add a documentation type to the changelog. (#768, #781)
+
+
 # ESS Community Helm Chart 25.9.3 (2025-10-02)
 
 ## Fixed
