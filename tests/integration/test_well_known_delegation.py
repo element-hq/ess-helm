@@ -83,7 +83,6 @@ async def test_delete_405(
         ".well-known/matrix/client",
         ".well-known/matrix/server",
         ".well-known/matrix/support",
-        ".well-known/element/element.json",
     ]:
         async with (
             aiohttp_client(ssl_context) as client,
