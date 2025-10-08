@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# source_fragments: init-secrets-minimal.yaml init-secrets-pytest-extras.yaml matrix-rtc-minimal.yaml matrix-rtc-pytest-extras.yaml postgres-minimal.yaml synapse-minimal.yaml synapse-pytest-base-extras.yaml well-known-minimal.yaml well-known-pytest-extras.yaml
+# source_fragments: init-secrets-minimal.yaml init-secrets-pytest-extras.yaml matrix-rtc-minimal.yaml matrix-rtc-pytest-extras.yaml postgres-minimal.yaml synapse-minimal.yaml synapse-pytest-base-extras.yaml well-known-minimal.yaml well-known-pytest-base-extras.yaml
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
 deploymentMarkers:
@@ -11,8 +11,6 @@ elementAdmin:
   enabled: false
 elementWeb:
   enabled: false
-global:
-  baseDomain: ess.localhost
 haproxy:
   podSecurityContext:
     runAsGroup: 0
@@ -47,8 +45,7 @@ matrixRTC:
 postgres:
   podSecurityContext:
     runAsGroup: 0
-# To check that templating works against the ingress
-serverName: '{{ $.Values.global.baseDomain }}'
+serverName: ess.localhost
 synapse:
   checkConfigHook:
     annotations:
@@ -67,7 +64,5 @@ synapse:
     podSecurityContext:
       runAsGroup: 0
 wellKnownDelegation:
-  baseDomainRedirect:
-    url: https://redirect.localhost/path
   ingress:
     tlsSecret: '{{ $.Release.Name }}-well-known-web-tls'
