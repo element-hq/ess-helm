@@ -29,7 +29,7 @@ func readFiles(paths []string) ([]io.Reader, []func() error, error) {
 }
 
 func Run(options *RenderConfigOptions) {
-	// If output file already exists, exit 0
+	// If output file already exists, delete it to avoid a permission error on writes
 	if _, err := os.Stat(options.Output); err == nil {
 		fmt.Printf("Output file %s already exists, deleting\n", options.Output)
 		err := os.Remove(options.Output)
