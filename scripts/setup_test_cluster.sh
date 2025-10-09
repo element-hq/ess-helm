@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright 2024 New Vector Ltd
+# Copyright 2024-2025 New Vector Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -108,7 +108,7 @@ fi
 
 for namespace in $ess_namespaces; do
   echo "Constructing ESS dependencies in $namespace"
-  server_version=$(kubectl version | grep Server | sed 's/.*v/v/' | awk -F. '{print $1"."$2}')
+  server_version=$(kubectl --context $kind_context_name version | grep Server | sed 's/.*v/v/' | awk -F. '{print $1"."$2}')
   # We don't turn on enforce here as people may be experimenting but we do turn on warn so people see the warnings when helm install/upgrade
   cat <<EOF | kubectl --context $kind_context_name apply -f -
 apiVersion: v1
