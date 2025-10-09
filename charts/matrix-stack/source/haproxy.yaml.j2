@@ -7,7 +7,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {% import 'sub_schema_values.yaml.j2' as sub_schema_values -%}
 
 replicas: 1
-{{- sub_schema_values.image(registry='docker.io', repository='library/haproxy', tag='3.1-alpine') }}
+{{- sub_schema_values.image(registry='docker.io', repository='library/haproxy', tag='3.2-alpine') }}
 {{- sub_schema_values.labels() }}
 {{- sub_schema_values.workloadAnnotations() }}
 {{- sub_schema_values.containersSecurityContext() }}
