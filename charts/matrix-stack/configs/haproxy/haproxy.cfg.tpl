@@ -26,6 +26,14 @@ defaults
 
   log global
 
+  # The Ingress Controller should appropriately set an X-Forwarded-For header
+  # We leave it alone if it has, but add in the source address in cases where it hasn't
+  # or the request hasn't come from the ingress controller (i.e. in-cluster)
+  option forwardfor if-none
+
+  # Set the RFC7239 `Forwarded` header
+  option forwarded
+
   # wait for 5s when connecting to a server
   timeout connect 5s
 
@@ -88,9 +96,9 @@ frontend http-blackhole
   # same as http log, with %Th (handshake time)
   log-format "%ci:%cp [%tr] %ft %b/%s %Th/%TR/%Tw/%Tc/%Tr/%Ta %ST %B %CC %CS %tsc %ac/%fc/%bc/%sc/%rc %sq/%bq %hr %hs %{+Q}r"
 
-  capture request header Host len 32
-  capture request header Referer len 200
-  capture request header User-Agent len 200
+  http-request capture hdr(host) len 32
+  http-request capture req.fhdr(x-forwarded-for) len 64
+  http-request capture req.fhdr(user-agent) len 200
 
   http-request deny content-type application/json string '{"errcode": "M_FORBIDDEN", "error": "Blocked"}'
 

@@ -8,8 +8,8 @@ dockerhub
 Gematik
 GHSA
 homeserver
-homeservers
 Homeserver
+homeservers
 Jetstack
 kubeconform
 kubernetes
@@ -22,6 +22,7 @@ postgres
 PostgreSQL
 pytest
 Pytest
+Referer
 SCIM
 shellcheck
 templatable

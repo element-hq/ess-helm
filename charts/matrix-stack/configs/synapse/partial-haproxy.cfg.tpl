@@ -22,9 +22,6 @@ frontend startup
 frontend synapse-http-in
   bind *:8008
 
-  # same as http log, with %Th (handshake time)
-  log-format "%ci:%cp [%tr] %ft %b/%s %Th/%TR/%Tw/%Tc/%Tr/%Ta %ST %B %CC %CS %tsc %ac/%fc/%bc/%sc/%rc %sq/%bq %hr %hs %{+Q}r"
-
   # if we hit the maxconn on a server, and the queue timeout expires, we want
   # to avoid returning 503, since that will cause cloudflare to mark us down.
   #
@@ -35,24 +32,12 @@ frontend synapse-http-in
   #
   errorfile 503 /synapse/429.http
 
-  capture request header Host len 32
-  capture request header Referer len 200
-  capture request header User-Agent len 200
+  # same as http log, with %Th (handshake time)
+  log-format "%ci:%cp [%tr] %ft %b/%s %Th/%TR/%Tw/%Tc/%Tr/%Ta %ST %B %CC %CS %tsc %ac/%fc/%bc/%sc/%rc %sq/%bq %hr %hs %{+Q}r"
 
-  # before we change the 'src', stash it in a session variable
-  http-request set-var(sess.orig_src) src if !{ var(sess.orig_src) -m found }
-
-  # in case this is not the first request on the connection, restore the
-  # 'src' to the original, in case we fail to parse the x-f-f header.
-  http-request set-src var(sess.orig_src)
-
-  # Traditionally do this only for traffic from some limited IP addreses
-  # but the incoming router being what it is, means we have no fixed IP here.
-  http-request set-src hdr(x-forwarded-for)
-
-  # We always add a X-Forwarded-For header (clobbering any existing
-  # headers).
-  http-request set-header X-Forwarded-For %[src]
+  http-request capture hdr(host) len 32
+  http-request capture req.fhdr(x-forwarded-for) len 64
+  http-request capture req.fhdr(user-agent) len 200
 
   # Ingresses by definition run on both 80 & 443 and there's no customising of that
   # It is up to the ingress controller and any annotations provided to it whether
