@@ -28,12 +28,22 @@ certManager: {}
 {{ labels(global=true) }}
 {{ ingress(global=true) }}
 
+## DEPRECATED. image.pullSecrets should be used instead. This will be removed in 25.11
 ## A list of Secrets in this namespace to use as pull Secrets.
 ## Ignored if a given component specifies its own pull Secrets.
 ## e.g.
 ## imagePullSecrets:
 ## - name: ess-pull-secret
 imagePullSecrets: []
+
+## Common image properties that are applied as defaults to all components.
+image:
+  ## A list of Secrets in this namespace to use as pull Secrets.
+  ## If a given component specifies its own pull Secrets the 2 lists are merged.
+  ## e.g.
+  ## pullSecrets:
+  ## - name: ess-pull-secret
+  pullSecrets: []
 {{ tolerations(global=true) }}
 {{ topologySpreadConstraints(global=true) }}
 

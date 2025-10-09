@@ -42,6 +42,22 @@
         }
       }
     },
+    "image": {
+      "type": "object",
+      "properties": {
+        "pullSecrets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
     "ingress": {
       "$ref": "file://common/ingress_global.json"
     },

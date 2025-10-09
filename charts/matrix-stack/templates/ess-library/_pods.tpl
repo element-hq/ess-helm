@@ -48,7 +48,7 @@ nodeSelector:
 {{- $root := .root -}}
 {{- with required "element-io.ess-library.pods.pullSecrets missing context" .context -}}
 {{- $pullSecrets := list }}
-{{- $pullSecrets = concat .pullSecrets $root.Values.imagePullSecrets }}
+{{- $pullSecrets = concat .pullSecrets $root.Values.image.pullSecrets $root.Values.imagePullSecrets }}
 {{- if .usesMatrixTools -}}
 {{- $pullSecrets = concat $pullSecrets $root.Values.matrixTools.image.pullSecrets }}
 {{- end }}
