@@ -39,21 +39,6 @@ frontend synapse-http-in
   http-request capture req.fhdr(x-forwarded-for) len 64
   http-request capture req.fhdr(user-agent) len 200
 
-  # before we change the 'src', stash it in a session variable
-  http-request set-var(sess.orig_src) src if !{ var(sess.orig_src) -m found }
-
-  # in case this is not the first request on the connection, restore the
-  # 'src' to the original, in case we fail to parse the x-f-f header.
-  http-request set-src var(sess.orig_src)
-
-  # Traditionally do this only for traffic from some limited IP addreses
-  # but the incoming router being what it is, means we have no fixed IP here.
-  http-request set-src hdr(x-forwarded-for)
-
-  # We always add a X-Forwarded-For header (clobbering any existing
-  # headers).
-  http-request set-header X-Forwarded-For %[src]
-
   # Ingresses by definition run on both 80 & 443 and there's no customising of that
   # It is up to the ingress controller and any annotations provided to it whether
   # it sets any additional headers or not or whether it redirects http -> https

@@ -26,6 +26,14 @@ defaults
 
   log global
 
+  # The Ingress Controller should appropriately set an X-Forwarded-For header
+  # We leave it alone if it has, but add in the source address in cases where it hasn't
+  # or the request hasn't come from the ingress controller (i.e. in-cluster)
+  option forwardfor if-none
+
+  # Set the RFC7239 `Forwarded` header
+  option forwarded
+
   # wait for 5s when connecting to a server
   timeout connect 5s
 
