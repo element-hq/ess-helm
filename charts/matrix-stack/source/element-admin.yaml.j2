@@ -11,7 +11,7 @@ enabled: true
 
 # Number of Element Admin replicas to start up
 replicas: 1
-{{- sub_schema_values.image(registry='oci.element.io', repository='element-admin', tag='0.1.3') -}}
+{{- sub_schema_values.image(registry='oci.element.io', repository='element-admin', tag='0.1.4') -}}
 {{- sub_schema_values.ingress() -}}
 {{- sub_schema_values.labels() -}}
 {{- sub_schema_values.workloadAnnotations() -}}
