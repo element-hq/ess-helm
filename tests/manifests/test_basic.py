@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 import pytest
+import yaml
 
 from . import PropertyType, all_deployables_details, values_files_to_test
 from .utils import template_id
@@ -122,4 +123,16 @@ async def test_default_values_file_sets_stub_values(base_values):
         else:
             assert hostAliases == unset_marker, (
                 f"{deployable_details.name} has default {hostAliases=} rather than being unset"
+            )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_doesnt_contain_any_unrendered_helm_templates(templates):
+    # This test does not cover `NOTES.txt` as https://github.com/helm/helm/issues/6901
+    for template in templates:
+        for idx, line in enumerate(yaml.safe_dump(template).splitlines()):
+            assert ".Values." not in line, (
+                f"{template_id(template)} contains what looks like an un-rendered Helm template "
+                f"on line number {idx + 1}"
             )
