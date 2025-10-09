@@ -30,13 +30,13 @@ kubectl exec -n {{ $.Release.Namespace }} -it deployment/{{ $.Release.Name }}-ma
 
 {{- if and $.Values.elementWeb.enabled $.Values.elementWeb.ingress.host }}
 
-Your chat client is available at: https://{{ $.Values.elementWeb.ingress.host }}
+Your chat client is available at: https://{{ tpl $.Values.elementWeb.ingress.host $ }}
 {{- end }}
 {{- if and $.Values.matrixAuthenticationService.enabled $.Values.matrixAuthenticationService.ingress.host }}
 
-You can manage your account at: https://{{ $.Values.matrixAuthenticationService.ingress.host }}
+You can manage your account at: https://{{ tpl $.Values.matrixAuthenticationService.ingress.host $ }}
 {{- end }}
 {{- if $.Values.wellKnownDelegation.enabled }}
 
-To successfully federate, make sure that the Well-Known Delegation works properly using the matrix-federation-tester: https://federationtester.matrix.org/#{{ $.Values.serverName }}
+To successfully federate, make sure that the Well-Known Delegation works properly using the matrix-federation-tester: https://federationtester.matrix.org/#{{ tpl $.Values.serverName $ }}
 {{- end }}
