@@ -18,14 +18,14 @@ const (
 
 type GenerateSecretsOptions struct {
 	GeneratedSecrets []GeneratedSecret
-	Labels     map[string]string
+	Labels           map[string]string
 }
 
 type GeneratedSecret struct {
-	ArgValue      string
-	Name          string
-	Key           string
-	Type          secret.SecretType
+	ArgValue string
+	Name     string
+	Key      string
+	Type     secret.SecretType
 }
 
 func parseSecretType(value string) (secret.SecretType, error) {
@@ -46,7 +46,6 @@ func parseSecretType(value string) (secret.SecretType, error) {
 		return secret.UnknownSecretType, fmt.Errorf("unknown secret type: %s", value)
 	}
 }
-
 
 func ParseArgs(args []string) (*GenerateSecretsOptions, error) {
 	var options GenerateSecretsOptions

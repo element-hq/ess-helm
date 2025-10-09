@@ -12,10 +12,10 @@ import (
 
 func TestGenerateSigningKey(t *testing.T) {
 	testCases := []struct {
-		name          string
+		name string
 	}{
 		{
-				name: "Create signing key",
+			name: "Create signing key",
 		},
 	}
 

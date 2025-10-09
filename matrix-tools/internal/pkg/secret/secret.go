@@ -7,9 +7,9 @@ package secret
 
 import (
 	"context"
-	"fmt"
-	"encoding/hex"
 	"crypto/rand"
+	"encoding/hex"
+	"fmt"
 	"math/big"
 
 	corev1 "k8s.io/api/core/v1"

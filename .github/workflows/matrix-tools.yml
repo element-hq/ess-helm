@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-name: Build matrix-tool Docker Images
+name: matrix-tools linting and building
 
 on:
   pull_request:
@@ -18,6 +18,27 @@ env:
   GO_VERSION: "1.24"
 
 jobs:
+  gofmt:
+    permissions:
+      contents: read
+      packages: read
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5
+
+    - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00  # v6
+      with:
+        go-version: "${{ env.GO_VERSION }}"
+
+    - name: gofmt check
+      run: |
+        unformatted_files="$(gofmt -l matrix-tools)"
+        if [ "$unformatted_files" != "" ]; then
+          echo "There are .go files that aren't formatted correctly:"
+          echo "$unformatted_files"
+          exit 1
+        fi
+
   tests:
     permissions:
       contents: read

@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/element-hq/ess-helm/matrix-tools/internal/pkg/util"
 	executor "github.com/element-hq/ess-helm/matrix-tools/internal/pkg/syn2mas"
+	"github.com/element-hq/ess-helm/matrix-tools/internal/pkg/util"
 )
 
 func Run(options *Syn2MasOptions) {

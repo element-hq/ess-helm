@@ -16,7 +16,6 @@ import (
 	"github.com/element-hq/ess-helm/matrix-tools/internal/pkg/args"
 )
 
-
 func main() {
 	options, err := args.ParseArgs(os.Args)
 	if err != nil {

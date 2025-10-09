@@ -30,7 +30,7 @@ func TestScaleDown(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "synapse",
 			Namespace: namespace,
-			Labels:    map[string]string{
+			Labels: map[string]string{
 				"app.kubernetes.io/component": "matrix-server",
 			},
 		},

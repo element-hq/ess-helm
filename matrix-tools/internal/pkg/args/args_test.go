@@ -5,14 +5,14 @@
 package args
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 
 	deploymentmarkers "github.com/element-hq/ess-helm/matrix-tools/internal/cmd/deployment-markers"
 	generatesecrets "github.com/element-hq/ess-helm/matrix-tools/internal/cmd/generate-secrets"
 	renderconfig "github.com/element-hq/ess-helm/matrix-tools/internal/cmd/render-config"
 	"github.com/element-hq/ess-helm/matrix-tools/internal/cmd/syn2mas"
-  "github.com/element-hq/ess-helm/matrix-tools/internal/cmd/tcpwait"
+	"github.com/element-hq/ess-helm/matrix-tools/internal/cmd/tcpwait"
 	"github.com/element-hq/ess-helm/matrix-tools/internal/pkg/secret"
 )
 
@@ -33,7 +33,7 @@ func TestParseArgs(t *testing.T) {
 			name: "Missing --output flag",
 			args: []string{"cmd", "render-config", "file1"},
 			expected: &Options{
-					RenderConfig: &renderconfig.RenderConfigOptions{
+				RenderConfig: &renderconfig.RenderConfigOptions{
 					Files: []string{"file1"},
 				},
 			},
@@ -50,7 +50,7 @@ func TestParseArgs(t *testing.T) {
 			args: []string{"cmd", "render-config", "-output", "outputFile", "file1", "file2"},
 			expected: &Options{
 				RenderConfig: &renderconfig.RenderConfigOptions{
-					Files: []string{"file1", "file2"},
+					Files:  []string{"file1", "file2"},
 					Output: "outputFile",
 				},
 			},
@@ -61,7 +61,7 @@ func TestParseArgs(t *testing.T) {
 			args: []string{"cmd", "render-config", "-output", "outputFile", "file1", "file2"},
 			expected: &Options{
 				RenderConfig: &renderconfig.RenderConfigOptions{
-					Files: []string{"file1", "file2"},
+					Files:  []string{"file1", "file2"},
 					Output: "outputFile",
 				},
 				Command: RenderConfig,
@@ -86,9 +86,9 @@ func TestParseArgs(t *testing.T) {
 				GenerateSecrets: &generatesecrets.GenerateSecretsOptions{
 					GeneratedSecrets: []generatesecrets.GeneratedSecret{
 						{ArgValue: "secret1:value1:rand32", Name: "secret1", Key: "value1", Type: secret.Rand32},
-						},
-					Labels: map[string]string{"app.kubernetes.io/managed-by":"matrix-tools-init-secrets", "mykey":"myval"},
 					},
+					Labels: map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-init-secrets", "mykey": "myval"},
+				},
 				Command: GenerateSecrets,
 			},
 			err: false,
@@ -103,7 +103,7 @@ func TestParseArgs(t *testing.T) {
 						{ArgValue: "secret1:value1:rand32", Name: "secret1", Key: "value1", Type: secret.Rand32},
 						{ArgValue: "secret2:value2:signingkey", Name: "secret2", Key: "value2", Type: secret.SigningKey},
 					},
-					Labels: map[string]string{"app.kubernetes.io/managed-by":"matrix-tools-init-secrets"},
+					Labels: map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-init-secrets"},
 				},
 				Command: GenerateSecrets,
 			},
@@ -132,7 +132,7 @@ func TestParseArgs(t *testing.T) {
 						{Name: "cm1", Key: "key1", Step: "pre", NewValue: "value1", AllowedValues: []string{"value1"}},
 						{Name: "cm1", Key: "key2", Step: "pre", NewValue: "value2", AllowedValues: []string{"value1", "value2"}},
 					},
-					Labels: map[string]string{"app.kubernetes.io/managed-by":"matrix-tools-deployment-markers"},
+					Labels: map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-deployment-markers"},
 				},
 				Command: DeploymentMarkers,
 			},
@@ -147,13 +147,12 @@ func TestParseArgs(t *testing.T) {
 						{Name: "cm1", Key: "key1", Step: "post", NewValue: "value1", AllowedValues: []string{"value1"}},
 						{Name: "cm1", Key: "key2", Step: "post", NewValue: "value2", AllowedValues: []string{"value1", "value2"}},
 					},
-					Labels: map[string]string{"app.kubernetes.io/managed-by":"matrix-tools-deployment-markers"},
+					Labels: map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-deployment-markers"},
 				},
 				Command: DeploymentMarkers,
 			},
 			err: false,
 		},
-
 
 		{
 			name:     "Invalid secret type",
@@ -170,30 +169,30 @@ func TestParseArgs(t *testing.T) {
 		},
 
 		{
-			name:     "Proper syntax of syn2mas",
-			args:     []string{"cmd", "syn2mas", "-config", "file1", "-synapse-config", "file2"},
+			name: "Proper syntax of syn2mas",
+			args: []string{"cmd", "syn2mas", "-config", "file1", "-synapse-config", "file2"},
 			expected: &Options{
 				Syn2Mas: &syn2mas.Syn2MasOptions{
-					MASConfig: "file1",
+					MASConfig:     "file1",
 					SynapseConfig: "file2",
 				},
 				Command: Syn2Mas,
 			},
-			err:      false,
+			err: false,
 		},
 		{
-			name:     "Wrong syntax of syn2mas",
-			args:     []string{"cmd", "syn2mas"},
+			name: "Wrong syntax of syn2mas",
+			args: []string{"cmd", "syn2mas"},
 			expected: &Options{
 				Command: Syn2Mas,
 			},
-			err:      true,
+			err: true,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			options, err := ParseArgs(tc.args);
+			options, err := ParseArgs(tc.args)
 			if tc.err {
 				assert.Error(t, err)
 				assert.Nil(t, options)

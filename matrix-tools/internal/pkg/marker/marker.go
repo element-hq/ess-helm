@@ -52,28 +52,28 @@ func GenerateConfigMap(client kubernetes.Interface, labels map[string]string, na
 
 	currentValueIsAllowed := false
 	switch step {
-		case "pre":
-			// During pre-install, we check if the current value is in the allowed values
-			// If it is not, it means the state of the deployment will not support the helm upgrade
-			// and the upgrade will fail
-			if _, ok := existingConfigMap.Data[key]; ok {
-				for _, allowed := range allowedValues {
-					if string(existingConfigMap.Data[key]) == allowed {
-						fmt.Printf("Existing value: %s", string(existingConfigMap.Data[key]))
-						currentValueIsAllowed = true
-						break
-					}
-				}
-				if !currentValueIsAllowed {
-					return fmt.Errorf("%s marker prevented transitioning to value %s from value %s because it is not in the allowed values : %s", key, newValue, string(existingConfigMap.Data[key]), strings.Join(allowedValues, ", "))
+	case "pre":
+		// During pre-install, we check if the current value is in the allowed values
+		// If it is not, it means the state of the deployment will not support the helm upgrade
+		// and the upgrade will fail
+		if _, ok := existingConfigMap.Data[key]; ok {
+			for _, allowed := range allowedValues {
+				if string(existingConfigMap.Data[key]) == allowed {
+					fmt.Printf("Existing value: %s", string(existingConfigMap.Data[key]))
+					currentValueIsAllowed = true
+					break
 				}
 			}
-		case "post":
-			// During post-install, we update the configmap with the new value as the upgrade succeeded
-			existingConfigMap.Data[key] = newValue
-		default:
-			return fmt.Errorf("unknown step: %s", step)
+			if !currentValueIsAllowed {
+				return fmt.Errorf("%s marker prevented transitioning to value %s from value %s because it is not in the allowed values : %s", key, newValue, string(existingConfigMap.Data[key]), strings.Join(allowedValues, ", "))
+			}
 		}
+	case "post":
+		// During post-install, we update the configmap with the new value as the upgrade succeeded
+		existingConfigMap.Data[key] = newValue
+	default:
+		return fmt.Errorf("unknown step: %s", step)
+	}
 
 	_, err = configMapsClient.Update(ctx, existingConfigMap, metav1.UpdateOptions{})
 	if err != nil {

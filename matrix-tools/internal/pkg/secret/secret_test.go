@@ -139,7 +139,7 @@ func TestGenerateSecret(t *testing.T) {
 							t.Fatalf("The secret has been updated with the new value but it should not overwrite: %s", string(value))
 						}
 					} else {
-						switch (tc.secretType) {
+						switch tc.secretType {
 						case Rand32:
 							if len(string(value)) != 32 {
 								t.Fatalf("Unexpected data in secret: %v", value)
