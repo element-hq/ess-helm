@@ -22,9 +22,6 @@ frontend startup
 frontend synapse-http-in
   bind *:8008
 
-  # same as http log, with %Th (handshake time)
-  log-format "%ci:%cp [%tr] %ft %b/%s %Th/%TR/%Tw/%Tc/%Tr/%Ta %ST %B %CC %CS %tsc %ac/%fc/%bc/%sc/%rc %sq/%bq %hr %hs %{+Q}r"
-
   # if we hit the maxconn on a server, and the queue timeout expires, we want
   # to avoid returning 503, since that will cause cloudflare to mark us down.
   #
@@ -34,6 +31,9 @@ frontend synapse-http-in
   #        monitoring requests which match the "monitor fail" condition
   #
   errorfile 503 /synapse/429.http
+
+  # same as http log, with %Th (handshake time)
+  log-format "%ci:%cp [%tr] %ft %b/%s %Th/%TR/%Tw/%Tc/%Tr/%Ta %ST %B %CC %CS %tsc %ac/%fc/%bc/%sc/%rc %sq/%bq %hr %hs %{+Q}r"
 
   capture request header Host len 32
   capture request header Referer len 200
