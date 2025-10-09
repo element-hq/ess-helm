@@ -10,14 +10,13 @@ import (
 	"strings"
 )
 
-
 const (
-		FlagSetName = "render-config"
+	FlagSetName = "render-config"
 )
 
 type RenderConfigOptions struct {
-	Files            []string
-	Output           string
+	Files  []string
+	Output string
 }
 
 func ParseArgs(args []string) (*RenderConfigOptions, error) {

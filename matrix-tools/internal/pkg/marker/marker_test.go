@@ -16,81 +16,81 @@ import (
 
 func TestGenerateConfigMap(t *testing.T) {
 	testCases := []struct {
-		name                string
-		namespace           string
-		initLabels          map[string]string
-		labels        			map[string]string
-		configMapName          string
-		configMapKeys          []string
-		configMapData          map[string]string
-		step                string
-		newValue            string
-		allowedValues      []string
-		expectedError       bool
+		name          string
+		namespace     string
+		initLabels    map[string]string
+		labels        map[string]string
+		configMapName string
+		configMapKeys []string
+		configMapData map[string]string
+		step          string
+		newValue      string
+		allowedValues []string
+		expectedError bool
 	}{
 		{
-			name:                "Create a new marker (pre)",
-			namespace:           "create-marker",
-			configMapName:          "test-marker-key",
-			initLabels:          map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-deployment-markers", "app.kubernetes.io/name": "create-configMap"},
+			name:          "Create a new marker (pre)",
+			namespace:     "create-marker",
+			configMapName: "test-marker-key",
+			initLabels:    map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-deployment-markers", "app.kubernetes.io/name": "create-configMap"},
 			labels:        map[string]string{"app.kubernetes.io/name": "test-configMap"},
-			configMapKeys:          []string{"key"},
-			configMapData:          nil,
-			step:                "pre",
-			newValue:            "valueA",
-			allowedValues:      []string{"valueA", "valueB"},
-			expectedError:       false,
+			configMapKeys: []string{"key"},
+			configMapData: nil,
+			step:          "pre",
+			newValue:      "valueA",
+			allowedValues: []string{"valueA", "valueB"},
+			expectedError: false,
 		},
 		{
-			name:                "Create a new marker (post)",
-			namespace:           "create-marker",
-			configMapName:          "test-marker-key",
-			initLabels:          map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-deployment-markers", "app.kubernetes.io/name": "create-configMap"},
+			name:          "Create a new marker (post)",
+			namespace:     "create-marker",
+			configMapName: "test-marker-key",
+			initLabels:    map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-deployment-markers", "app.kubernetes.io/name": "create-configMap"},
 			labels:        map[string]string{"app.kubernetes.io/name": "test-configmap"},
-			configMapKeys:          []string{"key"},
-			configMapData:          nil,
-			step:                "post",
-			newValue:            "valueB",
-			allowedValues:      []string{"valueA", "valueB"},
-			expectedError:       false,
+			configMapKeys: []string{"key"},
+			configMapData: nil,
+			step:          "post",
+			newValue:      "valueB",
+			allowedValues: []string{"valueA", "valueB"},
+			expectedError: false,
 		},
 		{
-			name:                "Marker exists with invalid current value",
-			namespace:           "marker-exists-invalid",
-			initLabels:          map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-deployment-markers", "app.kubernetes.io/name": "create-configMap"},
+			name:          "Marker exists with invalid current value",
+			namespace:     "marker-exists-invalid",
+			initLabels:    map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-deployment-markers", "app.kubernetes.io/name": "create-configMap"},
 			labels:        map[string]string{"element.io/name": "configmap-exists"},
-			configMapName:          "test-marker",
-			configMapKeys:          []string{"markerA"},
-			configMapData:          map[string]string{"markerA": "rawDeployment"},
-			step:                "pre",
-			newValue:            "additionalComponentEnabled",
-			allowedValues:      []string{"additionalComponentEnabled", "migrateFirst"},
-			expectedError:       true,
+			configMapName: "test-marker",
+			configMapKeys: []string{"markerA"},
+			configMapData: map[string]string{"markerA": "rawDeployment"},
+			step:          "pre",
+			newValue:      "additionalComponentEnabled",
+			allowedValues: []string{"additionalComponentEnabled", "migrateFirst"},
+			expectedError: true,
 		},
 		{
-			name:                "Marker exists with valid current value (pre)",
-			namespace:           "marker-exists-valid",
-			initLabels:          map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-deployment-markers", "app.kubernetes.io/name": "create-configMap"},
+			name:          "Marker exists with valid current value (pre)",
+			namespace:     "marker-exists-valid",
+			initLabels:    map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-deployment-markers", "app.kubernetes.io/name": "create-configMap"},
 			labels:        map[string]string{"element.io/name": "configmap-exists"},
-			configMapName:          "test-marker",
-			configMapKeys:          []string{"markerA"},
-			configMapData:          map[string]string{"markerA": "migrateFirst"},
-			step:                "post",
-			newValue: "additionalComponentEnabled",
-			allowedValues:      []string{"additionalComponentEnabled", "migrateFirst"},
-			expectedError:       false,
+			configMapName: "test-marker",
+			configMapKeys: []string{"markerA"},
+			configMapData: map[string]string{"markerA": "migrateFirst"},
+			step:          "post",
+			newValue:      "additionalComponentEnabled",
+			allowedValues: []string{"additionalComponentEnabled", "migrateFirst"},
+			expectedError: false,
 		},
 		{
-			name:                "Marker exists with valid current value (post)",
-			namespace:           "marker-exists-valid",
-			initLabels:          map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-deployment-markers", "app.kubernetes.io/name": "create-configMap"},
+			name:          "Marker exists with valid current value (post)",
+			namespace:     "marker-exists-valid",
+			initLabels:    map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-deployment-markers", "app.kubernetes.io/name": "create-configMap"},
 			labels:        map[string]string{"element.io/name": "configmap-exists"},
-			configMapName:          "test-marker",
-			configMapKeys:          []string{"markerA"},
-			configMapData:          map[string]string{"markerA": "migrateFirst"},
-			step:                "post",
-			newValue: "additionalComponentEnabled",
-			expectedError:       false,
+			configMapName: "test-marker",
+			configMapKeys: []string{"markerA"},
+			configMapData: map[string]string{"markerA": "migrateFirst"},
+			step:          "post",
+			newValue:      "additionalComponentEnabled",
+			expectedError: false,
 		},
 	}
 

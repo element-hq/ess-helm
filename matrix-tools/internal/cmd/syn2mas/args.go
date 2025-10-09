@@ -13,10 +13,9 @@ const (
 	FlagSetName = "syn2mas"
 )
 
-
 type Syn2MasOptions struct {
-	SynapseConfig    string
-	MASConfig        string
+	SynapseConfig string
+	MASConfig     string
 }
 
 func ParseArgs(args []string) (*Syn2MasOptions, error) {

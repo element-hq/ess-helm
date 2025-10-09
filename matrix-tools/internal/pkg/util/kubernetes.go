@@ -9,7 +9,6 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-
 func GetKubernetesClient() (kubernetes.Interface, error) {
 	config, err := rest.InClusterConfig()
 	if err != nil {

@@ -11,14 +11,13 @@ import (
 )
 
 const (
-		FlagSetName = "deployment-markers"
+	FlagSetName = "deployment-markers"
 )
 
 type DeploymentMarkersOptions struct {
-	Labels     map[string]string
+	Labels            map[string]string
 	DeploymentMarkers []DeploymentMarker
 }
-
 
 type DeploymentMarker struct {
 	Name          string

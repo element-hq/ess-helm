@@ -24,14 +24,13 @@ const (
 	TCPWait
 )
 
-
 type Options struct {
-	Command             CommandType
-	RenderConfig        *renderconfig.RenderConfigOptions
-	GenerateSecrets     *generatesecrets.GenerateSecretsOptions
-	DeploymentMarkers     *deploymentmarkers.DeploymentMarkersOptions
-	Syn2Mas             *syn2mas.Syn2MasOptions
-	TcpWait             *tcpwait.TcpWaitOptions
+	Command           CommandType
+	RenderConfig      *renderconfig.RenderConfigOptions
+	GenerateSecrets   *generatesecrets.GenerateSecretsOptions
+	DeploymentMarkers *deploymentmarkers.DeploymentMarkersOptions
+	Syn2Mas           *syn2mas.Syn2MasOptions
+	TcpWait           *tcpwait.TcpWaitOptions
 }
 
 func ParseArgs(args []string) (*Options, error) {
