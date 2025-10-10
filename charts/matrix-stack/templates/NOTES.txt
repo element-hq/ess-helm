@@ -40,3 +40,4 @@ You can manage your account at: https://{{ tpl $.Values.matrixAuthenticationServ
 
 To successfully federate, make sure that the Well-Known Delegation works properly using the matrix-federation-tester: https://federationtester.matrix.org/#{{ tpl $.Values.serverName $ }}
 {{- end }}
+{{- include "element-io.deprecations" (dict "root" $) }}
