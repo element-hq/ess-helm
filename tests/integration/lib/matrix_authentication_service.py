@@ -75,13 +75,17 @@ async def create_mas_user(
         )
     user_id = response["data"]["id"]
 
-    set_password_data = {"password": password, "skip_password_check": True}
-    response = await aiohttp_post_json(
-        f"https://{mas_fqdn}/api/admin/v1/users/{user_id}/set-password",
-        headers=headers,
-        data=set_password_data,
-        ssl_context=ssl_context,
+    response = await aiohttp_get_json(
+        f"https://{mas_fqdn}/api/admin/v1/site-config", headers=headers, ssl_context=ssl_context
     )
+    if response["password_login_enabled"]:
+        set_password_data = {"password": password, "skip_password_check": True}
+        response = await aiohttp_post_json(
+            f"https://{mas_fqdn}/api/admin/v1/users/{user_id}/set-password",
+            headers=headers,
+            data=set_password_data,
+            ssl_context=ssl_context,
+        )
 
     set_admin_data = {"admin": admin}
     response = await aiohttp_post_json(
