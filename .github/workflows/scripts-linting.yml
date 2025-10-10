@@ -32,7 +32,6 @@ jobs:
 
     - uses: matrix-org/setup-python-poetry@5bbf6603c5c930615ec8a29f1b5d7d258d905aa4  # v2
       with:
-        poetry-version: "2.x"
         python-version: "3.x"
 
     - name: Load poetry path
