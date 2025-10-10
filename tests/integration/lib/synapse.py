@@ -69,6 +69,10 @@ async def create_synapse_user(
             pass
 
         pytestconfig.cache.set(f"ess-helm/cached-tokens/{username}", None)
+        # The below is going to fail if this is a subsequent run against the same DB (as the user ID will exist) but
+        # the access token wasn't valid/for the correct user. Unsure how we could ever get into this state, but at
+        # least now we're succeeding in the case that this is a run against a new DB. `pytest --cache-clear` would
+        # be helpful in this scenario.
 
     nonce = await get_nonce(synapse_fqdn, ssl_context)
     mac = generate_mac(username, password, admin, registration_shared_secret, nonce)

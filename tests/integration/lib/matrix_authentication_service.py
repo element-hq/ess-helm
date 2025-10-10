@@ -63,15 +63,19 @@ async def create_mas_user(
 
         pytestconfig.cache.set(f"ess-helm/cached-tokens/{username}", None)
 
-    create_user_data = {"username": username}
     headers = {"Authorization": f"Bearer {bearer_token}"}
-    response = await aiohttp_post_json(
-        f"https://{mas_fqdn}/api/admin/v1/users", headers=headers, data=create_user_data, ssl_context=ssl_context
-    )
+    try:
+        response = await aiohttp_get_json(
+            f"https://{mas_fqdn}/api/admin/v1/users/by-username/{username}", headers=headers, ssl_context=ssl_context
+        )
+    except aiohttp.ClientResponseError:
+        create_user_data = {"username": username}
+        response = await aiohttp_post_json(
+            f"https://{mas_fqdn}/api/admin/v1/users", headers=headers, data=create_user_data, ssl_context=ssl_context
+        )
     user_id = response["data"]["id"]
 
     set_password_data = {"password": password, "skip_password_check": True}
-
     response = await aiohttp_post_json(
         f"https://{mas_fqdn}/api/admin/v1/users/{user_id}/set-password",
         headers=headers,
@@ -80,7 +84,6 @@ async def create_mas_user(
     )
 
     set_admin_data = {"admin": admin}
-
     response = await aiohttp_post_json(
         f"https://{mas_fqdn}/api/admin/v1/users/{user_id}/set-admin",
         headers=headers,
@@ -96,9 +99,6 @@ async def create_mas_user(
         }
     """
     check_user_data = {"query": check_user_query, "variables": {"username": username}}
-
-    headers = {"Authorization": f"Bearer {bearer_token}"}
-
     response = await aiohttp_post_json(
         f"https://{mas_fqdn}/graphql", headers=headers, data=check_user_data, ssl_context=ssl_context
     )
