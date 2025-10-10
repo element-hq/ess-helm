@@ -44,11 +44,24 @@ nodeSelector:
 {{- end }}
 {{- end }}
 
+{{- define "element-io.ess-library.pods.image" -}}
+{{- $root := .root -}}
+{{- with required "element-io.ess-library.pods.image missing context" .context -}}
+{{- if .digest }}
+image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
+imagePullPolicy: {{ coalesce .pullPolicy  $root.Values.image.pullPolicy "IfNotPresent" }}
+{{- else }}
+image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
+imagePullPolicy: {{ coalesce .pullPolicy  $root.Values.image.pullPolicy "Always" }}
+{{- end }}
+{{- end }}
+{{- end }}
+
 {{- define "element-io.ess-library.pods.pullSecrets" -}}
 {{- $root := .root -}}
 {{- with required "element-io.ess-library.pods.pullSecrets missing context" .context -}}
 {{- $pullSecrets := list }}
-{{- $pullSecrets = concat .pullSecrets $root.Values.imagePullSecrets }}
+{{- $pullSecrets = concat .pullSecrets $root.Values.image.pullSecrets $root.Values.imagePullSecrets }}
 {{- if .usesMatrixTools -}}
 {{- $pullSecrets = concat $pullSecrets $root.Values.matrixTools.image.pullSecrets }}
 {{- end }}

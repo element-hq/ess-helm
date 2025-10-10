@@ -124,6 +124,32 @@
         "additionalProperties": false
       }
     },
+    "image": {
+      "type": "object",
+      "properties": {
+        "pullPolicy": {
+          "type": "string",
+          "enum": [
+            "Always",
+            "IfNotPresent",
+            "Never"
+          ]
+        },
+        "pullSecrets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "ingress": {
       "type": "object",
       "properties": {

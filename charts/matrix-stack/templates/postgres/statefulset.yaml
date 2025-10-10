@@ -40,15 +40,7 @@ spec:
 {{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "postgres" "deployment" false)) | nindent 6 }}
       containers:
       - name: postgres
-{{- with .image -}}
-{{- if .digest }}
-        image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
-        imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
-{{- else }}
-        image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
-        imagePullPolicy: {{ .pullPolicy | default "Always" }}
-{{- end }}
-{{- end }}
+        {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" .image) | nindent 8 }}
 {{- with .containersSecurityContext }}
         securityContext:
           {{- toYaml . | nindent 10 }}
@@ -102,15 +94,7 @@ spec:
         - name: var-run
           mountPath: /var/run
       - name: postgres-ess-updater
-{{- with .image -}}
-{{- if .digest }}
-        image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
-        imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
-{{- else }}
-        image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
-        imagePullPolicy: {{ .pullPolicy | default "Always" }}
-{{- end }}
-{{- end }}
+        {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" .image) | nindent 8 }}
         command:
         - /bin/sh
         - -c
@@ -174,15 +158,7 @@ spec:
           mountPath: /var/run
 {{- with .postgresExporter }}
       - name: postgres-exporter
-{{- with .image -}}
-{{- if .digest }}
-        image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
-        imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
-{{- else }}
-        image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
-        imagePullPolicy: {{ .pullPolicy | default "Always" }}
-{{- end }}
-{{- end }}
+        {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" .image) | nindent 8 }}
 {{- with .containersSecurityContext }}
         securityContext:
           {{- toYaml . | nindent 10 }}

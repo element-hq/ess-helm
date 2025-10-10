@@ -26,6 +26,10 @@ SPDX-License-Identifier: AGPL-3.0-only
   {{- end }}
 {{- end }}
 
+{{- with $root.Values.imagePullSecrets }}
+  {{ $deprecations = append $deprecations "imagePullSecrets has entries. Please move to image.pullSecrets instead.\n  imagePullSecrets will be removed in 25.11 or later and cause schema validation failures" }}
+{{- end }}
+
 {{- if gt (len $deprecations) 0 }}
 DEPRECATIONS. Please read me and update
 {{- printf "\n- %s" ($deprecations | join "\n- " ) }}

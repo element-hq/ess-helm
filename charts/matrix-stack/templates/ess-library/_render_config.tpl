@@ -20,15 +20,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $underrides := .underrides | default list -}}
 {{- $overrides := required "element-io.ess-library.render-config-container missing context.overrides" .overrides -}}
 - name: {{ $containerName }}
-{{- with $root.Values.matrixTools.image -}}
-{{- if .digest }}
-  image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
-  imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
-{{- else }}
-  image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
-  imagePullPolicy: {{ .pullPolicy | default "Always" }}
-{{- end }}
-{{- end }}
+  {{- include "element-io.ess-library.pods.image" (dict "root" $root "context" $root.Values.matrixTools.image) | nindent 2 }}
 {{- with .containersSecurityContext }}
   securityContext:
     {{- toYaml . | nindent 4 }}
