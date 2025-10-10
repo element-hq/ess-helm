@@ -166,3 +166,40 @@ async def test_pods_with_digest_and_no_tags(release_name, values, make_templates
                     f"{template_id(template)} has container {container['name']} "
                     "which doesn't have the expected image pull policy"
                 )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_global_pullPolicy_overrides_templateDefaults(values, make_templates):
+    # We use `Never` as it isn't used as a default pullPolicy for tags or digests
+    values.setdefault("image", {})["pullPolicy"] = "Never"
+    for template in await make_templates(values):
+        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
+            pod_template = template["spec"]["template"]
+            for container in pod_template["spec"].get("initContainers", []) + pod_template["spec"]["containers"]:
+                assert container["imagePullPolicy"] == "Never", (
+                    f"{template_id(template)} has container {container['name']} "
+                    "which doesn't have the expected image pull policy"
+                )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_specific_image_pullPolicy_overrides_global_pullPolicy(values, make_templates):
+    values.setdefault("image", {})["pullPolicy"] = "Always"
+
+    # We use `Never` as it isn't used as a default pullPolicy for tags or digests
+    values.setdefault("matrixTools", {}).setdefault("image", {})["pullPolicy"] = "Never"
+
+    def set_pull_policy(deployable_details: DeployableDetails):
+        deployable_details.set_helm_values(values, PropertyType.Image, {"pullPolicy": "Never"})
+
+    iterate_deployables_parts(set_pull_policy, lambda deployable_details: deployable_details.has_image)
+    for template in await make_templates(values):
+        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
+            pod_template = template["spec"]["template"]
+            for container in pod_template["spec"].get("initContainers", []) + pod_template["spec"]["containers"]:
+                assert container["imagePullPolicy"] == "Never", (
+                    f"{template_id(template)} has container {container['name']} "
+                    "which doesn't have the expected image pull policy"
+                )

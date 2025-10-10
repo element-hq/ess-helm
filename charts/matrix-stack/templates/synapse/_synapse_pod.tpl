@@ -65,15 +65,7 @@ We have an init container to render & merge the config for several reasons:
     {{- include "element-io.synapse.render-config-container" (dict "root" $root "context" .) | nindent 4 }}
 {{- if not $isHook }}
     - name: db-wait
-{{- with $root.Values.matrixTools.image -}}
-{{- if .digest }}
-      image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
-      imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
-{{- else }}
-      image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
-      imagePullPolicy: {{ .pullPolicy | default "Always" }}
-{{- end }}
-{{- end }}
+      {{- include "element-io.ess-library.pods.image" (dict "root" $root "context" $root.Values.matrixTools.image) | nindent 6 }}
 {{- with .containersSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
@@ -89,15 +81,7 @@ We have an init container to render & merge the config for several reasons:
 {{- end }}
     containers:
     - name: synapse
-{{- with .image -}}
-{{- if .digest }}
-      image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
-      imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
-{{- else }}
-      image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
-      imagePullPolicy: {{ .pullPolicy | default "Always" }}
-{{- end }}
-{{- end }}
+      {{- include "element-io.ess-library.pods.image" (dict "root" $root "context" .image) | nindent 6 }}
 {{- with .containersSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}

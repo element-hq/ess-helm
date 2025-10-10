@@ -81,6 +81,11 @@ imagePullSecrets: []
 
 ## Common image properties that are applied as defaults to all components.
 image:
+  ## The pullPolicy to use for all images. This overrides the pullPolicy used by the templates
+  ## that varies based on whether the image is referenced by tag (uses `Always`) or by digest (uses `IfNotPresent`).
+  ## Can be overriden by a specific `pullPolicy` on each image.
+  # pullPolicy: IfNotPresent
+
   ## A list of Secrets in this namespace to use as pull Secrets.
   ## If a given component specifies its own pull Secrets the 2 lists are merged.
   ## e.g.

@@ -45,6 +45,14 @@
     "image": {
       "type": "object",
       "properties": {
+        "pullPolicy": {
+          "type": "string",
+          "enum": [
+            "Always",
+            "IfNotPresent",
+            "Never"
+          ]
+        },
         "pullSecrets": {
           "type": "array",
           "items": {

@@ -37,15 +37,7 @@ spec:
       - name: redis
         args:
         - "/config/redis.conf"
-{{- with .image -}}
-{{- if .digest }}
-        image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
-        imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
-{{- else }}
-        image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
-        imagePullPolicy: {{ .pullPolicy | default "Always" }}
-{{- end }}
-{{- end }}
+        {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" .image) | nindent 8 }}
 {{- with .containersSecurityContext }}
         securityContext:
           {{- toYaml . | nindent 10 }}

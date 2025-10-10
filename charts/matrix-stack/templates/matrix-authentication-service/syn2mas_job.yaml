@@ -89,15 +89,7 @@ spec:
 {{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "syn2mas" "deployment" false "usesMatrixTools" true "mountServiceAccountToken" true)) | nindent 6 }}
       initContainers:
       - name: copy-mas-cli
-{{- with .image -}}
-{{- if .digest }}
-        image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
-        imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
-{{- else }}
-        image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
-        imagePullPolicy: {{ .pullPolicy | default "Always" }}
-{{- end }}
-{{- end }}
+        {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" .image) | nindent 8 }}
         command:
         - sh
         - -c
@@ -116,15 +108,7 @@ spec:
       {{- include "element-io.matrix-authentication-service.render-config-container" (dict "root" $ "context" $masContext) | nindent 6 }}
       {{- include "element-io.synapse.render-config-container" (dict "root" $ "context" $synapseContext) | nindent 6 }}
       - name: db-wait-mas
-{{- with $.Values.matrixTools.image -}}
-{{- if .digest }}
-        image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
-        imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
-{{- else }}
-        image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
-        imagePullPolicy: {{ .pullPolicy | default "Always" }}
-{{- end }}
-{{- end }}
+        {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" $.Values.matrixTools.image) | nindent 8 }}
 {{- with .containersSecurityContext }}
         securityContext:
           {{- toYaml . | nindent 10 }}
@@ -138,15 +122,7 @@ spec:
           {{- toYaml . | nindent 10 }}
 {{- end }}
       - name: db-wait-syn
-{{- with $.Values.matrixTools.image -}}
-{{- if .digest }}
-        image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
-        imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
-{{- else }}
-        image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
-        imagePullPolicy: {{ .pullPolicy | default "Always" }}
-{{- end }}
-{{- end }}
+        {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" $.Values.matrixTools.image) | nindent 8 }}
 {{- with .containersSecurityContext }}
         securityContext:
           {{- toYaml . | nindent 10 }}
@@ -161,15 +137,7 @@ spec:
 {{- end }}
       - name: syn2mas-check
         args: ["syn2mas", "check", "--config", "/conf/mas-config.yaml", "--synapse-config", "/conf/homeserver.yaml"]
-{{- with .image -}}
-{{- if .digest }}
-        image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
-        imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
-{{- else }}
-        image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
-        imagePullPolicy: {{ .pullPolicy | default "Always" }}
-{{- end }}
-{{- end }}
+        {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" .image) | nindent 8 }}
 {{- with .containersSecurityContext }}
         securityContext:
           {{- toYaml . | nindent 10 }}
@@ -193,26 +161,10 @@ spec:
       - name: syn2mas-migrate
 {{- if .dryRun }}
         args: ["syn2mas", "migrate", "--config", "/conf/mas-config.yaml", "--synapse-config", "/conf/homeserver.yaml", "--dry-run"]
-    {{- with .image -}}
-    {{- if .digest }}
-        image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
-        imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
-    {{- else }}
-        image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
-        imagePullPolicy: {{ .pullPolicy | default "Always" }}
-    {{- end }}
-    {{- end }}
+        {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" .image) | nindent 8 }}
 {{- else }}
         args: ["syn2mas", "--config", "/conf/mas-config.yaml", "--synapse-config", "/conf/homeserver.yaml"]
-    {{- with $.Values.matrixTools.image -}}
-    {{- if .digest }}
-        image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
-        imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
-    {{- else }}
-        image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
-        imagePullPolicy: {{ .pullPolicy | default "Always" }}
-    {{- end }}
-    {{- end }}
+        {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" $.Values.matrixTools.image) | nindent 8 }}
 {{- end }}
 {{- with .containersSecurityContext }}
         securityContext:

@@ -66,13 +66,7 @@ spec:
         - --config
         - /conf/sfu-config.yaml
 {{- with .image -}}
-{{- if .digest }}
-        image: "{{ .registry }}/{{ .repository }}@{{ .digest }}"
-        imagePullPolicy: {{ .pullPolicy | default "IfNotPresent" }}
-{{- else }}
-        image: "{{ .registry }}/{{ .repository }}:{{ .tag }}"
-        imagePullPolicy: {{ .pullPolicy | default "Always" }}
-{{- end }}
+        {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" .) | nindent 8 }}
 {{- end }}
 {{- with .containersSecurityContext }}
         securityContext:
