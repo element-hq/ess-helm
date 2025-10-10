@@ -10,7 +10,7 @@ import pytest
 from aiohttp_retry import RetryClient
 
 from ..fixtures import ESSData
-from .utils import aiohttp_post_json, retry_options
+from .utils import aiohttp_get_json, aiohttp_post_json, retry_options
 
 
 async def get_client_token(mas_fqdn: str, generated_data: ESSData, ssl_context: SSLContext) -> str:
@@ -36,6 +36,7 @@ async def get_client_token(mas_fqdn: str, generated_data: ESSData, ssl_context: 
 
 async def create_mas_user(
     mas_fqdn: str,
+    synapse_fqdn: str,
     username: str,
     password: str,
     admin: bool,
@@ -48,7 +49,19 @@ async def create_mas_user(
     """
     cached_user_token = pytestconfig.cache.get(f"ess-helm/cached-tokens/{username}", None)
     if cached_user_token:
-        return cached_user_token
+        # Locally the cached token may be from a previous run but we don't know whether it is with the same DB or not
+        # We still want the caching in-case we request this for the same user multiple times in the same run
+        try:
+            headers = {"Authorization": f"Bearer {cached_user_token}"}
+            response = await aiohttp_get_json(
+                f"https://{synapse_fqdn}/_matrix/client/v3/account/whoami", headers=headers, ssl_context=ssl_context
+            )
+            if response["user_id"].split(":")[0] == f"@{username}":
+                return cached_user_token
+        except aiohttp.ClientResponseError:
+            pass
+
+        pytestconfig.cache.set(f"ess-helm/cached-tokens/{username}", None)
 
     create_user_data = {"username": username}
     headers = {"Authorization": f"Bearer {bearer_token}"}

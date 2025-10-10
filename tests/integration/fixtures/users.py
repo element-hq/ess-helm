@@ -42,6 +42,7 @@ async def users(
             wait_for_users.append(
                 create_mas_user(
                     f"mas.{generated_data.server_name}",
+                    f"synapse.{generated_data.server_name}",
                     user.name,
                     generated_data.secrets_random,
                     user.admin,
