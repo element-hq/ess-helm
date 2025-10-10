@@ -8,6 +8,7 @@ import mimetypes
 from pathlib import Path
 from ssl import SSLContext
 
+import aiohttp
 import pytest
 
 from .utils import KubeCtl, aiohttp_client, aiohttp_get_json, aiohttp_post_json
@@ -55,7 +56,23 @@ async def create_synapse_user(
     """
     cached_user_token = pytestconfig.cache.get(f"ess-helm/cached-tokens/{username}", None)
     if cached_user_token:
-        return cached_user_token
+        # Locally the cached token may be from a previous run but we don't know whether it is with the same DB or not
+        # We still want the caching in-case we request this for the same user multiple times in the same run
+        try:
+            headers = {"Authorization": f"Bearer {cached_user_token}"}
+            response = await aiohttp_get_json(
+                f"https://{synapse_fqdn}/_matrix/client/v3/account/whoami", headers=headers, ssl_context=ssl_context
+            )
+            if response["user_id"].split(":")[0] == f"@{username}":
+                return cached_user_token
+        except aiohttp.ClientResponseError:
+            pass
+
+        pytestconfig.cache.set(f"ess-helm/cached-tokens/{username}", None)
+        # The below is going to fail if this is a subsequent run against the same DB (as the user ID will exist) but
+        # the access token wasn't valid/for the correct user. Unsure how we could ever get into this state, but at
+        # least now we're succeeding in the case that this is a run against a new DB. `pytest --cache-clear` would
+        # be helpful in this scenario.
 
     nonce = await get_nonce(synapse_fqdn, ssl_context)
     mac = generate_mac(username, password, admin, registration_shared_secret, nonce)

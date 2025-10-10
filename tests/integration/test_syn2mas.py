@@ -110,6 +110,7 @@ async def test_run_syn2mas_upgrade(
     admin_token = await get_client_token(f"mas.{generated_data.server_name}", generated_data, ssl_context)
     mas_created_user = await create_mas_user(
         f"mas.{generated_data.server_name}",
+        f"synapse.{generated_data.server_name}",
         "after-syn2mas",
         generated_data.secrets_random,
         False,

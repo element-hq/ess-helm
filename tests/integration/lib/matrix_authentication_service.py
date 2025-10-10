@@ -10,7 +10,7 @@ import pytest
 from aiohttp_retry import RetryClient
 
 from ..fixtures import ESSData
-from .utils import aiohttp_post_json, retry_options
+from .utils import aiohttp_get_json, aiohttp_post_json, retry_options
 
 
 async def get_client_token(mas_fqdn: str, generated_data: ESSData, ssl_context: SSLContext) -> str:
@@ -36,6 +36,7 @@ async def get_client_token(mas_fqdn: str, generated_data: ESSData, ssl_context: 
 
 async def create_mas_user(
     mas_fqdn: str,
+    synapse_fqdn: str,
     username: str,
     password: str,
     admin: bool,
@@ -48,26 +49,45 @@ async def create_mas_user(
     """
     cached_user_token = pytestconfig.cache.get(f"ess-helm/cached-tokens/{username}", None)
     if cached_user_token:
-        return cached_user_token
+        # Locally the cached token may be from a previous run but we don't know whether it is with the same DB or not
+        # We still want the caching in-case we request this for the same user multiple times in the same run
+        try:
+            headers = {"Authorization": f"Bearer {cached_user_token}"}
+            response = await aiohttp_get_json(
+                f"https://{synapse_fqdn}/_matrix/client/v3/account/whoami", headers=headers, ssl_context=ssl_context
+            )
+            if response["user_id"].split(":")[0] == f"@{username}":
+                return cached_user_token
+        except aiohttp.ClientResponseError:
+            pass
 
-    create_user_data = {"username": username}
+        pytestconfig.cache.set(f"ess-helm/cached-tokens/{username}", None)
+
     headers = {"Authorization": f"Bearer {bearer_token}"}
-    response = await aiohttp_post_json(
-        f"https://{mas_fqdn}/api/admin/v1/users", headers=headers, data=create_user_data, ssl_context=ssl_context
-    )
+    try:
+        response = await aiohttp_get_json(
+            f"https://{mas_fqdn}/api/admin/v1/users/by-username/{username}", headers=headers, ssl_context=ssl_context
+        )
+    except aiohttp.ClientResponseError:
+        create_user_data = {"username": username}
+        response = await aiohttp_post_json(
+            f"https://{mas_fqdn}/api/admin/v1/users", headers=headers, data=create_user_data, ssl_context=ssl_context
+        )
     user_id = response["data"]["id"]
 
-    set_password_data = {"password": password, "skip_password_check": True}
-
-    response = await aiohttp_post_json(
-        f"https://{mas_fqdn}/api/admin/v1/users/{user_id}/set-password",
-        headers=headers,
-        data=set_password_data,
-        ssl_context=ssl_context,
+    response = await aiohttp_get_json(
+        f"https://{mas_fqdn}/api/admin/v1/site-config", headers=headers, ssl_context=ssl_context
     )
+    if response["password_login_enabled"]:
+        set_password_data = {"password": password, "skip_password_check": True}
+        response = await aiohttp_post_json(
+            f"https://{mas_fqdn}/api/admin/v1/users/{user_id}/set-password",
+            headers=headers,
+            data=set_password_data,
+            ssl_context=ssl_context,
+        )
 
     set_admin_data = {"admin": admin}
-
     response = await aiohttp_post_json(
         f"https://{mas_fqdn}/api/admin/v1/users/{user_id}/set-admin",
         headers=headers,
@@ -83,9 +103,6 @@ async def create_mas_user(
         }
     """
     check_user_data = {"query": check_user_query, "variables": {"username": username}}
-
-    headers = {"Authorization": f"Bearer {bearer_token}"}
-
     response = await aiohttp_post_json(
         f"https://{mas_fqdn}/graphql", headers=headers, data=check_user_data, ssl_context=ssl_context
     )
