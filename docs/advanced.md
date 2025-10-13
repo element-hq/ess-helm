@@ -124,6 +124,22 @@ matrixAuthenticationService:
         some: settings
 ```
 
+While Matrix Authentication Service supports registration tokens, by default they still require users to validate an email address as part of the registration flow. To remove this requirement you can do:
+
+```yml
+matrixAuthenticationService:
+  additional:
+    auth.yaml:
+      config: |
+        account:
+          password_registration_enabled: true
+          registration_token_required: true
+          password_registration_email_required: false
+          password_change_allowed: true
+```
+
+`account.password_registration_email_required` must **never** be set to `false` on a publicly federating deployment without restrictions like `registration_token_required: true` or your deployment will be abused and become a source of spam.
+
 ### Configuring Matrix RTC
 
 Matrix RTC SFU configuration is written in YAML. The documentation can be found [here](https://docs.livekit.io/home/self-hosting/deployment/).
