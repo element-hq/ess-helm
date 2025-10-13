@@ -110,8 +110,6 @@ experimental_features:
   # MSC4222 needed for syncv2 state_after. This allow clients to
   # correctly track the state of the room.
   msc4222_enabled: true
-  # MSC4140 (delayed events) needs to be enabled for call membership to work.
-  msc4140_enabled: true
 {{- end }}
 
 {{- if (include "element-io.matrix-authentication-service.readyToHandleAuth" (dict "root" $root)) }}
