@@ -41,7 +41,7 @@ prometheus-client = "^0.23.1"
 yamllint = "^1.37.1"
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=2.1.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
