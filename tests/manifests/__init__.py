@@ -9,6 +9,7 @@ from typing import Any
 
 
 class PropertyType(Enum):
+    AdditionalConfig = "additional"
     Enabled = "enabled"
     Env = "extraEnv"
     HostAliases = "hostAliases"
@@ -94,6 +95,7 @@ class DeployableDetails(abc.ABC):
     # that should be used for that specific PropertyType.
     values_file_path_overrides: dict[PropertyType, ValuesFilePath] | None = field(default=None, hash=False)
 
+    has_additional_config: bool = field(default=None, hash=False)  # type: ignore[assignment]
     has_db: bool = field(default=False, hash=False)
     has_image: bool = field(default=None, hash=False)  # type: ignore[assignment]
     has_ingress: bool = field(default=True, hash=False)
@@ -112,6 +114,8 @@ class DeployableDetails(abc.ABC):
     def __post_init__(self):
         if self.values_file_path is None:
             self.values_file_path = ValuesFilePath.read_write(self.name)
+        if self.has_additional_config is None:
+            self.has_additional_config = self.has_workloads
         if self.has_image is None:
             self.has_image = self.has_workloads
         if self.has_service_monitor is None:
@@ -348,6 +352,7 @@ class ComponentDetails(DeployableDetails):
 
 def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> SubComponentDetails:
     values_file_path_overrides: dict[PropertyType, ValuesFilePath] = {
+        PropertyType.AdditionalConfig: ValuesFilePath.read_elsewhere("synapse", "additional"),
         PropertyType.Env: ValuesFilePath.read_elsewhere("synapse", "extraEnv"),
         PropertyType.HostAliases: ValuesFilePath.read_elsewhere("synapse", "hostAliases"),
         PropertyType.Image: ValuesFilePath.read_elsewhere("synapse", "image"),
@@ -411,6 +416,7 @@ all_components_details = [
             # Job so no startupProbe
             PropertyType.StartupProbe: ValuesFilePath.not_supported(),
         },
+        has_additional_config=False,
         has_image=False,
         has_ingress=False,
         has_automount_service_account_token=True,
@@ -431,6 +437,7 @@ all_components_details = [
             # Job so no startupProbe
             PropertyType.StartupProbe: ValuesFilePath.not_supported(),
         },
+        has_additional_config=False,
         has_image=False,
         has_ingress=False,
         has_automount_service_account_token=True,
@@ -442,6 +449,7 @@ all_components_details = [
     ),
     ComponentDetails(
         name="haproxy",
+        has_additional_config=False,
         has_ingress=False,
         is_shared_component=True,
         makes_outbound_requests=False,
@@ -449,6 +457,7 @@ all_components_details = [
     ),
     ComponentDetails(
         name="postgres",
+        has_additional_config=False,
         has_ingress=False,
         has_storage=True,
         has_replicas=False,
@@ -460,6 +469,7 @@ all_components_details = [
                     # No manifests of its own, so no labels to set
                     PropertyType.Labels: ValuesFilePath.not_supported(),
                 },
+                has_additional_config=False,
                 has_ingress=False,
                 has_service_monitor=False,
                 makes_outbound_requests=False,
@@ -472,6 +482,7 @@ all_components_details = [
     ComponentDetails(
         name="matrix-rtc",
         values_file_path=ValuesFilePath.read_write("matrixRTC"),
+        has_additional_config=False,
         has_topology_spread_constraints=False,
         has_service_monitor=False,
         sub_components=(
@@ -493,6 +504,7 @@ all_components_details = [
     ComponentDetails(
         name="element-admin",
         values_file_path=ValuesFilePath.read_write("elementAdmin"),
+        has_additional_config=False,
         has_service_monitor=False,
         makes_outbound_requests=False,
     ),
@@ -534,6 +546,9 @@ all_components_details = [
                     "/usr/local/bin/mas-cli",
                 ),
                 values_file_path_overrides={
+                    PropertyType.AdditionalConfig: ValuesFilePath.read_elsewhere(
+                        "matrixAuthenticationService", "additional"
+                    ),
                     # Job so no livenessProbe
                     PropertyType.LivenessProbe: ValuesFilePath.not_supported(),
                     # Job so no readinessProbe
@@ -566,6 +581,7 @@ all_components_details = [
             SubComponentDetails(
                 name="synapse-redis",
                 values_file_path=ValuesFilePath.read_write("synapse", "redis"),
+                has_additional_config=False,
                 has_ingress=False,
                 has_service_monitor=False,
                 has_topology_spread_constraints=False,
@@ -576,6 +592,7 @@ all_components_details = [
                 name="synapse-check-config",
                 values_file_path=ValuesFilePath.read_write("synapse", "checkConfigHook"),
                 values_file_path_overrides={
+                    PropertyType.AdditionalConfig: ValuesFilePath.read_elsewhere("synapse", "additional"),
                     PropertyType.Env: ValuesFilePath.read_elsewhere("synapse", "extraEnv"),
                     PropertyType.Image: ValuesFilePath.read_elsewhere("synapse", "image"),
                     # Job so no livenessProbe
@@ -604,6 +621,7 @@ all_components_details = [
     ComponentDetails(
         name="well-known",
         values_file_path=ValuesFilePath.read_write("wellKnownDelegation"),
+        has_additional_config=True,
         has_workloads=False,
         shared_component_names=("haproxy",),
     ),
