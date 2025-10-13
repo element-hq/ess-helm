@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# source_fragments: deployment-markers-checkov.yaml deployment-markers-minimal.yaml element-admin-checkov.yaml element-admin-minimal.yaml element-web-checkov.yaml element-web-minimal.yaml haproxy-checkov.yaml init-secrets-checkov.yaml init-secrets-minimal.yaml matrix-authentication-service-checkov.yaml matrix-authentication-service-minimal.yaml postgres-checkov.yaml postgres-minimal.yaml synapse-checkov.yaml synapse-minimal.yaml well-known-minimal.yaml
+# source_fragments: deployment-markers-checkov.yaml deployment-markers-minimal.yaml element-admin-checkov.yaml element-admin-minimal.yaml element-web-checkov.yaml element-web-minimal.yaml haproxy-checkov.yaml init-secrets-checkov.yaml init-secrets-minimal.yaml matrix-authentication-service-checkov.yaml matrix-authentication-service-minimal.yaml postgres-checkov.yaml postgres-minimal.yaml server-name.yaml synapse-checkov.yaml synapse-minimal.yaml well-known-minimal.yaml
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
 # wellKnownDelegation don't have any required properties to be set and defaults to enabled

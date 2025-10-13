@@ -6,7 +6,6 @@
 # Postgres details are also required but this fragment will be combined with
 # synapse-postgres-values.yaml or synapse-pytest-extra-values.yaml
 
-serverName: ess.localhost
 
 synapse:
   enabled: true
