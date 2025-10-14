@@ -8,9 +8,9 @@ import random
 import shutil
 import string
 import tempfile
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import pyhelm3
 import pytest
