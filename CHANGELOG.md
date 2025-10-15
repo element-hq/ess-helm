@@ -6,6 +6,90 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 25.10.1 (2025-10-15)
+
+## Added
+
+- List deprecations in `NOTES.txt` when running `helm install`/`helm upgrade`. (#796)
+- Support overriding the default `imagePullPolicy` for every component by setting `image.pullPolicy`.
+
+  Per-image overrides can be set by setting `<path.to>.image.pullPolicy` as before.
+
+  If `image.pullPolicy` or per-image overrides aren't set `IfNotPresent` is used by default for images
+  referenced by digest and `Always` is used by default images referenced by tag as previously. (#798)
+
+## Changed
+
+- Update Matrix Authentication Service to v1.4.0.
+
+  Highlights:
+  * Make it possible to allow password registration without email verification.
+  * Add Admin API to finish individual sessions.
+
+  Full Changelogs:
+  * [v1.4.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.4.0)
+
+  (#787)
+- Ensure consistent captured headers in HAProxy log lines, between all HTTP request processing HAProxy frontends. (#788)
+- Correct the handling of multiple X-Forwarded-For headers to Synapse.
+
+  This may have exhibit itself as requests being incorrectly rate-limited by Synapse.
+
+  The source IP logged by HAProxy is now always the IP connecting to HAProxy rather than
+  a value extracted from the X-Forwarded-For header (if present). This is usually an IP
+  for the ingress controller. (#788)
+- Log the X-Forwarded-For header and stop logging the Referer header in HAProxy. (#788)
+- Upgrade HAProxy to 3.2.
+
+  Release notes:
+  - [3.2](https://www.haproxy.com/blog/announcing-haproxy-3-2)
+
+  (#790)
+- Upgrade Element Admin to v0.1.4.
+
+  Highlights:
+  - Use authenticated media endpoints for thumbnails
+  - Keep selected item when changing filters
+
+  Full Changelogs:
+  - [v0.1.4](https://github.com/element-hq/element-admin/releases/tag/v0.1.4)
+
+  (#793)
+- Inform chart users of the deprecations around `rtc.{use_external_ip,node_ip}` that happened in 25.9.1. (#796)
+- Move the top-level `imagePullSecrets` list to `image.pullSecrets`.
+
+  Anyone setting `imagePullSecrets` in their values files will see
+  schema errors if they don't restructure this setting. (#798)
+- Upgrade Synapse to v1.140.0.
+
+  Highlights:
+  - Add a new [Media Query by ID Admin API](https://element-hq.github.io/synapse/v1.140/admin_api/media_admin_api.html#query-a-piece-of-media-by-id) that allows server admins to query and investigate the metadata of local or cached remote media via the origin/media_id identifier found in a Matrix Content URI
+  - Add experimental implementation of the `GET /_matrix/client/v1/rtc/transports` endpoint for the latest draft of [MSC4143: MatrixRTC](https://github.com/matrix-org/matrix-spec-proposals/pull/4143)
+
+  Full Changelogs:
+  - [v1.140.0](https://github.com/element-hq/synapse/releases/tag/v1.140.0)
+
+  (#799)
+
+## Fixed
+
+- Fix templated `<component>.ingress.host` values not being rendered correctly in `NOTES.txt`. (#791)
+- Fix the Matrix RTC SFU not restarting when user-provided configuration is set via `matrixRTC.sfu.additional.<name>.config`. (#805)
+
+## Internal
+
+- CI: simplify MatrixRTC PyTest with Synapse + Well-Knowns. (#785)
+- Ensure all `kubectl` commands in `scripts/setup_test_cluster.sh` specify the context. (#789)
+- CI: add a test that we don't have anything that looks like a template string in the rendered files. (#791)
+- CI: check that all go files are formatted correctly as per `gofmt`. (#792)
+- Run `gofmt` over `matrix-tools`. (#792)
+- CI: Use poetry 2.x. (#794)
+- CI: handle a user already existing in MAS across subsequent test runs. (#795)
+- CI: recreate cached user access tokens when they're not valid (from a previous test run). (#795)
+- CI: don't attempt to manage MAS user passwords if password login is disabled. (#795)
+- CI: check that user-provided inline configuration changes a hash label on some workloads and thus restarts `Pods`. (#805)
+
+
 # ESS Community Helm Chart 25.10.0 (2025-10-08)
 
 ## Added
