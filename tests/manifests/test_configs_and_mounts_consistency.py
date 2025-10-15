@@ -38,7 +38,7 @@ def get_secret(templates, other_secrets, secret_name):
     raise ValueError(f"Secret {secret_name} not found")
 
 
-def get_volume_from_mount(template, volume_mount):
+def get_volume_from_mount(workload_spec, volume_mount):
     """
     Get a specific volume mount from a given template.
     :param template: The template to search within.
@@ -46,13 +46,30 @@ def get_volume_from_mount(template, volume_mount):
     :return: A dictionary representing the volume mount
     """
     # Find the corresponding secret volume that matches the volume mount name
-    for v in template["spec"]["template"]["spec"].get("volumes", []):
+    for v in workload_spec.get("volumes", []):
         if volume_mount["name"] == v["name"]:
             return v
     raise ValueError(
         f"No matching volume found for mount path {volume_mount['mountPath']} in "
-        f"[{','.join([v['name'] for v in template['spec']['template']['spec'].get('volumes', [])])}]"
+        f"[{','.join([v['name'] for v in workload_spec['template']['spec'].get('volumes', [])])}]"
     )
+
+
+def match_path_in_content(content):
+    paths_found = []
+    for match_in in content.split("\n"):
+        for exclude in ["://", "/bin/sh", "helm.sh/"]:
+            if exclude in match_in:
+                break
+        else:
+            # The negative lookahead prevents matching subnets like "192.168.0.0/16", "fe80::/10"
+            # And also things that do not start with / like "text/xml"
+            # The pattern [^\s\n\")`:%;,/]+[^\s\n\")`:%;,]+ is a regex that will find paths like /path/to/file
+            # It expects to find absolute paths only
+            # It is possible to add noqa in the content to ignore this path
+            for match in re.findall(r"((?<![0-9a-zA-Z:])/[^\s\n\")`:'%;,/]+[^\s\n\")`:'%;,]+(?!.*noqa))", match_in):
+                paths_found.append(match)
+    return paths_found
 
 
 def find_paths_in_contents(container, mounted_config_maps, deployable_details):
@@ -65,19 +82,7 @@ def find_paths_in_contents(container, mounted_config_maps, deployable_details):
                 content_to_match += content.split("\n")
 
     for content in content_to_match:
-        assert type(content) is str, f"Content must be a string: {content}"
-        for match_in in content.split("\n"):
-            for exclude in ["://", "/bin/sh", "helm.sh/"]:
-                if exclude in match_in:
-                    break
-            else:
-                # The negative lookahead prevents matching subnets like "192.168.0.0/16", "fe80::/10"
-                # And also things that do not start with / like "text/xml"
-                # The pattern [^\s\n\")`:%;,/]+[^\s\n\")`:%;,]+ is a regex that will find paths like /path/to/file
-                # It expects to find absolute paths only
-                # It is possible to add noqa in the content to ignore this path
-                for match in re.findall(r"((?<![0-9a-zA-Z:])/[^\s\n\")`:'%;,/]+[^\s\n\")`:'%;,]+(?!.*noqa))", match_in):
-                    paths_found.append(match)
+        paths_found += match_path_in_content(content)
 
     return paths_found
 
@@ -145,7 +150,8 @@ def filter_mounted_path_only(template, container, mounted_config_maps):
         related_volume_mounts = [
             v
             for v in container["volumeMounts"]
-            if get_volume_from_mount(template, v).get("configMap", {}).get("name", "") == configmap["metadata"]["name"]
+            if get_volume_from_mount(template["spec"], v).get("configMap", {}).get("name", "")
+            == configmap["metadata"]["name"]
         ]
         for volume_mount in related_volume_mounts:
             if "subPath" not in volume_mount:
@@ -170,7 +176,7 @@ def get_virtual_config_map_from_render_config(template, templates):
         if container["name"].startswith("render-config"):
             paths_to_keys = {}
             for volume_mount in container["volumeMounts"]:
-                current_volume = get_volume_from_mount(template, volume_mount)
+                current_volume = get_volume_from_mount(template["spec"], volume_mount)
                 if "configMap" in current_volume:
                     current_config_map = get_configmap(templates, current_volume["configMap"]["name"])
                     if volume_mount.get("subPath"):
@@ -196,7 +202,7 @@ def get_keys_from_container_using_rendered_config(template, templates, other_sec
         assert "volumeMounts" in container, f"{container} does not have a 'volumeMounts' field"
         if "rendered-config" in [v["name"] for v in container["volumeMounts"]]:
             for volume_mount in container["volumeMounts"]:
-                current_volume = get_volume_from_mount(template, volume_mount)
+                current_volume = get_volume_from_mount(template["spec"], volume_mount)
                 if "secret" in current_volume:
                     # Extract the paths where this volume's secrets are mounted
                     secret = get_secret(templates, other_secrets, current_volume["secret"]["secretName"])
@@ -217,7 +223,7 @@ def get_pvcs_and_empty_dirs_mount_paths(template):
     mounted_keys = []
     for container in template["spec"]["template"]["spec"]["containers"]:
         for volume_mount in container.get("volumeMounts", []):
-            current_volume = get_volume_from_mount(template, volume_mount)
+            current_volume = get_volume_from_mount(template["spec"], volume_mount)
             if "emptyDir" in current_volume or "persistentVolumeClaim" in current_volume:
                 mounted_keys.append(volume_mount["mountPath"])
     return mounted_keys
@@ -270,7 +276,7 @@ async def test_secrets_consistency(templates, other_secrets):
             uses_rendered_config = False
 
             for volume_mount in container.get("volumeMounts", []):
-                current_volume = get_volume_from_mount(template, volume_mount)
+                current_volume = get_volume_from_mount(template["spec"], volume_mount)
                 if "secret" in current_volume:
                     # Extract the paths where this volume's secrets are mounted
                     secret = get_secret(templates, other_secrets, current_volume["secret"]["secretName"])
