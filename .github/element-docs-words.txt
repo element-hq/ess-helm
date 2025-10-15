@@ -3,6 +3,7 @@ Ansible
 appservices
 Artifacthub
 checkov
+dialog
 Distroless
 dockerhub
 Gematik
