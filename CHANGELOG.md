@@ -6,6 +6,30 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 25.10.2 (2025-10-16)
+
+## Security
+
+- Update Matrix Authentication Service to v1.4.1.
+
+  This is a security release which includes a fix for [CVE-2025-62425](https://nvd.nist.gov/vuln/detail/CVE-2025-62425) / [GHSA-6wfp-jq3r-j9xh](https://github.com/element-hq/matrix-authentication-service/security/advisories/GHSA-6wfp-jq3r-j9xh), which affects servers using the local password database, starting MAS 0.20.0 and later. See the advisory for details.
+
+  Full Changelogs:
+  * [v1.4.1](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.4.1)
+
+  (#813)
+
+## Changed
+
+- Upgrade Postgres Exporter to 0.18.1.
+
+  Full Changelogs:
+  - [0.18.0](https://github.com/prometheus-community/postgres_exporter/releases/tag/v0.18.0)
+  - [0.18.1](https://github.com/prometheus-community/postgres_exporter/releases/tag/v0.18.1)
+
+  (#812)
+
+
 # ESS Community Helm Chart 25.10.1 (2025-10-15)
 
 ## Added
