@@ -2,5 +2,4 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-wellKnownDelegation:
-  enabled: true
+serverName: ess.localhost
