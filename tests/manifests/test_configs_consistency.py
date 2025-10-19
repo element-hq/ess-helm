@@ -22,6 +22,7 @@ from .test_configs_and_mounts_consistency import (
 from .utils import template_to_deployable_details
 
 
+## Gets all mounted files in a given container from the ConfigMaps referenced by the volume mounts
 def get_all_mounted_files(workload_spec, container_name, templates):
     found_files = {}
     for container_spec in workload_spec["containers"] + workload_spec.get("initContainers", {}):
@@ -39,26 +40,30 @@ def get_all_mounted_files(workload_spec, container_name, templates):
     return found_files
 
 
+# A parent mount is the parent directory of a mounted file
 @dataclass(frozen=True)
 class ParentMount:
     path: str = field(default_factory=str, hash=True)
 
 
+# A mount node is a file in a mounted directory
 @dataclass(frozen=True)
 class MountNode:
     node_name: str = field(default_factory=str, hash=True)
     node_data: str = field(default_factory=str)
 
 
+# Source of a mounted path can be anything mounted in a container
 @dataclass(frozen=True)
-class SourceOfMountedPath(abc.ABC):
+class SourceOfMountedPaths(abc.ABC):
     @abc.abstractmethod
     def get_mounted_paths(self) -> list[tuple[ParentMount, MountNode]]:
         pass
 
 
+# A mounted secret will be the source of a mounted path for each secret key
 @dataclass(frozen=True)
-class MountedSecret(SourceOfMountedPath):
+class MountedSecret(SourceOfMountedPaths):
     data: dict[str, str] = field(default_factory=dict)
     mount_point: str = field(default_factory=str)
 
@@ -81,8 +86,9 @@ class MountedSecret(SourceOfMountedPath):
         ]
 
 
+# A mounted configmap will be the source of a mounted path for each configmap key
 @dataclass(frozen=True)
-class MountedConfigMap(SourceOfMountedPath):
+class MountedConfigMap(SourceOfMountedPaths):
     data: dict[str, str] = field(default_factory=dict)
     mount_point: str = field(default_factory=str)
 
@@ -103,8 +109,10 @@ class MountedConfigMap(SourceOfMountedPath):
         return [(ParentMount(self.mount_point), MountNode(k, v)) for k, v in self.data.items()]
 
 
+# A mounted rendered configmap will be the source of a mounted path
+# For each render-config-* container output
 @dataclass(frozen=True)
-class MountedRenderedConfigEmptyDir(SourceOfMountedPath):
+class MountedRenderedConfigEmptyDir(SourceOfMountedPaths):
     render_config_outputs: set[str] = field(default_factory=set)
     mount_point: str = field(default_factory=str)
 
@@ -132,8 +140,9 @@ class MountedRenderedConfigEmptyDir(SourceOfMountedPath):
         return [(ParentMount(self.mount_point), MountNode(o, "")) for o in self.render_config_outputs]
 
 
+# A mounted persistent volume is the source of a mounted path only for the mount point
 @dataclass(frozen=True)
-class MountedPersistentVolume(SourceOfMountedPath):
+class MountedPersistentVolume(SourceOfMountedPaths):
     mount_point: str = field(default_factory=str)
 
     @classmethod
@@ -144,8 +153,9 @@ class MountedPersistentVolume(SourceOfMountedPath):
         return [(ParentMount(self.mount_point), MountNode("", ""))]
 
 
+# A mounted empty dir is the source of a mounted path only for the mount point
 @dataclass(frozen=True)
-class MountedEmptyDir(SourceOfMountedPath):
+class MountedEmptyDir(SourceOfMountedPaths):
     mount_point: str = field(default_factory=str)
 
     @classmethod
@@ -156,7 +166,7 @@ class MountedEmptyDir(SourceOfMountedPath):
         return [(ParentMount(self.mount_point), MountNode("", ""))]
 
 
-# This is something consuming paths that should through mount points
+# This is something consuming paths that should be available through mount points
 @dataclass(frozen=True)
 class PathConsumer(abc.ABC):
     # Look in the consumer configuration and return strings that look like a ParentMount
@@ -172,6 +182,7 @@ class PathConsumer(abc.ABC):
         pass
 
 
+# A consumer which uses as input the files rendered by render-config containers
 @dataclass(frozen=True)
 class RenderedConfigPathConsumer(PathConsumer):
     inputs_files: dict[str, str] = field(default_factory=dict)
@@ -209,6 +220,7 @@ class RenderedConfigPathConsumer(PathConsumer):
         return cls(inputs_files=inputs_files)
 
 
+# A consumer which uses as input the files contained in the mounted configmaps
 @dataclass(frozen=True)
 class ConfigMapPathConsumer(PathConsumer):
     data: dict[str, str] = field(default_factory=dict)
@@ -236,7 +248,7 @@ class ConfigMapPathConsumer(PathConsumer):
             paths += match_path_in_content(content)
         return paths
 
-
+# A consumer which refers to files through input env values and args/command of the container
 @dataclass(frozen=True)
 class GenericContainerSpecPathConsumer(PathConsumer):
     env: dict[str, str] = field(default_factory=dict)
@@ -269,6 +281,7 @@ class GenericContainerSpecPathConsumer(PathConsumer):
         return paths
 
 
+# A consumer which render-config, so will consume only files prefixed by "readfile " + the render-config input files
 @dataclass(frozen=True)
 class RenderConfigContainerPathConsumer(PathConsumer):
     inputs_files: dict[str, str] = field(default_factory=dict)
@@ -309,7 +322,7 @@ class RenderConfigContainerPathConsumer(PathConsumer):
 class ValidatedContainerConfig:
     name: str
     paths_consumers: list[PathConsumer] = field(default_factory=list)
-    sources_of_mounted_paths: list[SourceOfMountedPath] = field(default_factory=list)
+    sources_of_mounted_paths: list[SourceOfMountedPaths] = field(default_factory=list)
 
     @classmethod
     def from_workload_spec(cls, name, workload_spec, weight, deployable_details, templates, other_secrets):
