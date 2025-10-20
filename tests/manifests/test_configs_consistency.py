@@ -317,10 +317,25 @@ class RenderConfigContainerPathConsumer(PathConsumer):
         return paths
 
 
+@dataclass
+class ValidatedConfig(abc.ABC):
+    @abc.abstractmethod
+    def check_paths_used_in_content(self, paths_consistency_noqa):
+        pass
+
+    @abc.abstractmethod
+    def check_paths_lookalikes_matchs_source_of_mounted_paths(self, paths_consistency_noqa):
+        pass
+
+    @abc.abstractmethod
+    def check_all_paths_matches_an_actual_mount(self, skip_path_consistency_for_files):
+        pass
+
+
 # A validated configuration for a given container has a list of sources of mounted paths
 # and a list of paths consumers. The test makes sure that those two are consistent
 @dataclass
-class ValidatedContainerConfig:
+class ValidatedContainerConfig(ValidatedConfig):
     name: str
     paths_consumers: list[PathConsumer] = field(default_factory=list)
     sources_of_mounted_paths: list[SourceOfMountedPaths] = field(default_factory=list)
