@@ -124,9 +124,9 @@ class MountedRenderedConfigEmptyDir(SourceOfMountedPaths):
     mount_point: str = field(default_factory=str)
 
     @classmethod
-    def from_workload_spec(cls, workload_spec, volume_mount):
+    def from_workload_spec(cls, workload_spec, before_index, volume_mount):
         outputs = []
-        for container_spec in workload_spec["containers"] + workload_spec["initContainers"]:
+        for container_spec in workload_spec["initContainers"][:before_index]:
             if "render-config" in container_spec["name"]:
                 args = container_spec.get("args") or container_spec["command"][1:]
                 for idx, cmd in enumerate(args):
@@ -226,10 +226,10 @@ class RenderedConfigPathConsumer(PathConsumer):
         return lookalikes
 
     @classmethod
-    def from_workload_spec(cls, workload_spec, templates):
+    def from_workload_spec(cls, workload_spec, before_index, templates):
         potential_input_files = {}
         inputs_files = {}
-        for container_spec in workload_spec["containers"] + workload_spec["initContainers"]:
+        for container_spec in  workload_spec["initContainers"][:before_index]:
             if container_spec["name"].startswith("render-config"):
                 potential_input_files = get_all_mounted_files(workload_spec, container_spec["name"], templates)
                 args = container_spec.get("args") or container_spec["command"][1:]
@@ -372,7 +372,9 @@ class ValidatedContainerConfig(ValidatedConfig):
     @classmethod
     def from_workload_spec(cls, template_id, name, workload_spec, weight, deployable_details, templates, other_secrets):
         validated_config = cls(template_id=template_id, name=name)
-        for container_spec in workload_spec["containers"] + workload_spec.get("initContainers", []):
+        for container_index, container_spec in enumerate(
+            workload_spec.get("initContainers", []) + workload_spec["containers"]
+        ):
             if container_spec["name"] != name:
                 continue
             # Determine which secrets are mounted by this container
@@ -403,7 +405,9 @@ class ValidatedContainerConfig(ValidatedConfig):
                     ):
                         has_rendered_config = True
                         validated_config.sources_of_mounted_paths.append(
-                            MountedRenderedConfigEmptyDir.from_workload_spec(workload_spec, volume_mount)
+                            MountedRenderedConfigEmptyDir.from_workload_spec(
+                                workload_spec, container_index, volume_mount
+                            )
                         )
                     else:
                         validated_config.sources_of_mounted_paths.append(
@@ -432,7 +436,7 @@ class ValidatedContainerConfig(ValidatedConfig):
                 )
             elif has_rendered_config:
                 validated_config.paths_consumers.append(
-                    RenderedConfigPathConsumer.from_workload_spec(workload_spec, templates)
+                    RenderedConfigPathConsumer.from_workload_spec(workload_spec, container_index, templates)
                 )
             else:
                 validated_config.paths_consumers.append(
