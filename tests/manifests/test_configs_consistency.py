@@ -64,7 +64,7 @@ class MountNode:
 @dataclass(frozen=True)
 class SourceOfMountedPaths(abc.ABC):
     @abc.abstractmethod
-    def get_mounted_paths(self) -> list[tuple[ParentMount, MountNode]]:
+    def get_mounted_paths(self) -> list[tuple[ParentMount, MountNode | None]]:
         pass
 
 
@@ -87,7 +87,7 @@ class MountedSecret(SourceOfMountedPaths):
         else:
             return cls(data=template_data, mount_point=volume_mount["mountPath"])
 
-    def get_mounted_paths(self) -> list[tuple[ParentMount, MountNode]]:
+    def get_mounted_paths(self) -> list[tuple[ParentMount, MountNode | None]]:
         return [
             (ParentMount(self.mount_point), MountNode(k, b64decode(v).decode("utf-8"))) for k, v in self.data.items()
         ]
@@ -112,7 +112,7 @@ class MountedConfigMap(SourceOfMountedPaths):
         else:
             return cls(data=template_data, mount_point=volume_mount["mountPath"])
 
-    def get_mounted_paths(self) -> list[tuple[ParentMount, MountNode]]:
+    def get_mounted_paths(self) -> list[tuple[ParentMount, MountNode | None]]:
         return [(ParentMount(self.mount_point), MountNode(k, v)) for k, v in self.data.items()]
 
 
@@ -143,7 +143,7 @@ class MountedRenderedConfigEmptyDir(SourceOfMountedPaths):
         else:
             return cls(mount_point=volume_mount["mountPath"], render_config_outputs=set(outputs))
 
-    def get_mounted_paths(self) -> list[tuple[ParentMount, MountNode]]:
+    def get_mounted_paths(self) -> list[tuple[ParentMount, MountNode | None]]:
         return [(ParentMount(self.mount_point), MountNode(o, "")) for o in self.render_config_outputs]
 
 
@@ -159,8 +159,10 @@ class MountedPersistentVolume(SourceOfMountedPaths):
             mount_point=mount_point["mountPath"], subcontent=content_volumes_mapping.get(mount_point["mountPath"], ())
         )
 
-    def get_mounted_paths(self) -> list[tuple[ParentMount, MountNode]]:
-        return [(ParentMount(self.mount_point), MountNode(node_name, "")) for node_name in self.subcontent]
+    def get_mounted_paths(self) -> list[tuple[ParentMount, MountNode | None]]:
+        return [(ParentMount(self.mount_point), None)] + [
+            (ParentMount(self.mount_point), MountNode(node_name, "")) for node_name in self.subcontent
+        ]
 
 
 # A mounted empty dir is the source of a mounted path only for the mount point
@@ -175,8 +177,10 @@ class MountedEmptyDir(SourceOfMountedPaths):
             mount_point=mount_point["mountPath"], subcontent=content_volumes_mapping.get(mount_point["mountPath"], ())
         )
 
-    def get_mounted_paths(self) -> list[tuple[ParentMount, MountNode]]:
-        return [(ParentMount(self.mount_point), MountNode(node_name, "")) for node_name in self.subcontent]
+    def get_mounted_paths(self) -> list[tuple[ParentMount, MountNode | None]]:
+        return [(ParentMount(self.mount_point), None)] + [
+            (ParentMount(self.mount_point), MountNode(node_name, "")) for node_name in self.subcontent
+        ]
 
 
 # This is something consuming paths that should be available through mount points
