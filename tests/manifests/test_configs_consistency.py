@@ -348,6 +348,7 @@ class ValidatedContainerConfig(ValidatedConfig):
                 continue
             # Determine which secrets are mounted by this container
             mounted_files = []
+            has_rendered_config = False
 
             for volume_mount in container_spec.get("volumeMounts", []):
                 current_volume = get_volume_from_mount(workload_spec, volume_mount)
@@ -372,6 +373,7 @@ class ValidatedContainerConfig(ValidatedConfig):
                     and current_volume["name"] == "rendered-config"
                     and not container_spec["name"].startswith("render-config")
                 ):
+                    has_rendered_config = True
                     validated_config.sources_of_mounted_paths.append(
                         MountedRenderedConfigEmptyDir.from_workload_spec(workload_spec, volume_mount)
                     )
@@ -386,7 +388,7 @@ class ValidatedContainerConfig(ValidatedConfig):
                 f"Mounted files are not unique in {name}: {validated_config.sources_of_mounted_paths}"
             )
             if container_spec["name"] == name:
-                if container_spec["name"].startswith("render-config"):
+                if has_rendered_config:
                     validated_config.paths_consumers.append(
                         RenderedConfigPathConsumer.from_workload_spec(workload_spec, templates)
                     )
