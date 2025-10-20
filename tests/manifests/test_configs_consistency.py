@@ -126,6 +126,7 @@ class MountedRenderedConfigEmptyDir(SourceOfMountedPaths):
     @classmethod
     def from_workload_spec(cls, workload_spec, before_index, volume_mount):
         outputs = []
+        # We look for render-config containers which ran before the current container
         for container_spec in workload_spec["initContainers"][:before_index]:
             if "render-config" in container_spec["name"]:
                 args = container_spec.get("args") or container_spec["command"][1:]
@@ -229,6 +230,7 @@ class RenderedConfigPathConsumer(PathConsumer):
     def from_workload_spec(cls, workload_spec, before_index, templates):
         potential_input_files = {}
         inputs_files = {}
+        # We look for render-config containers which ran before the current container
         for container_spec in workload_spec["initContainers"][:before_index]:
             if container_spec["name"].startswith("render-config"):
                 potential_input_files = get_all_mounted_files(workload_spec, container_spec["name"], templates)
