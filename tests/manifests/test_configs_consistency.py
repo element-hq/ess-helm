@@ -207,16 +207,17 @@ class RenderedConfigPathConsumer(PathConsumer):
         return lookalikes
 
     @classmethod
-    def from_workload_spec(cls, workload_spec, templates, other_secrets):
+    def from_workload_spec(cls, workload_spec, templates):
         potential_input_files = {}
         inputs_files = {}
         for container_spec in workload_spec["containers"] + workload_spec["initContainers"]:
-            potential_input_files = get_all_mounted_files(workload_spec, container_spec["name"], templates)
-            args = container_spec.get("args") or container_spec["command"][1:]
-            source_files = args[3:]
-            for p, k in potential_input_files.items():
-                if p in source_files:
-                    inputs_files[p] = k
+            if container_spec["name"].startswith("render-config"):
+                potential_input_files = get_all_mounted_files(workload_spec, container_spec["name"], templates)
+                args = container_spec.get("args") or container_spec["command"][1:]
+                source_files = args[3:]
+                for p, k in potential_input_files.items():
+                    if p in source_files:
+                        inputs_files[p] = k
         return cls(inputs_files=inputs_files)
 
 
@@ -332,10 +333,6 @@ class ValidatedContainerConfig:
                 continue
             # Determine which secrets are mounted by this container
             mounted_files = []
-            if container_spec["name"].startswith("render-config"):
-                validated_config.paths_consumers.append(
-                    RenderedConfigPathConsumer.from_workload_spec(workload_spec, templates, other_secrets)
-                )
 
             for volume_mount in container_spec.get("volumeMounts", []):
                 current_volume = get_volume_from_mount(workload_spec, volume_mount)
@@ -376,7 +373,7 @@ class ValidatedContainerConfig:
             if container_spec["name"] == name:
                 if container_spec["name"].startswith("render-config"):
                     validated_config.paths_consumers.append(
-                        RenderedConfigPathConsumer.from_workload_spec(workload_spec, templates, other_secrets)
+                        RenderedConfigPathConsumer.from_workload_spec(workload_spec, templates)
                     )
                 else:
                     validated_config.paths_consumers.append(
