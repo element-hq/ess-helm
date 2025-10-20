@@ -4,7 +4,28 @@
 
 apiVersion: v2
 name: matrix-stack
-description: A Helm meta-chart for deploying a Matrix Stack from Element
-type: application
 version: 25.10.3-dev
+kubeVersion: '>= 1.22.0'
+description: A Helm chart for deploying a Matrix Stack from Element
+type: application
+keywords:
+  - ESS
+  - Element
+  - Matrix
+  - Synapse
+  - ElementWeb
+  - MAS
+  - MatrixAuthenticationService
+  - ElementAdmin
+  - MatrixRTC
+home: https://element.io/server-suite
+sources:
+  - https://github.com/element-hq/ess-helm
+  - https://github.com/element-hq/synapse
+  - https://github.com/element-hq/element-web
+  - https://github.com/element-hq/matrix-authentication-service
+  - https://github.com/element-hq/element-admin
+  - https://github.com/element-hq/lk-jwt-service
 dependencies: []
+maintainers:
+  - name: Element - Server Products Team
