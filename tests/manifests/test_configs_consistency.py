@@ -312,7 +312,7 @@ class RenderConfigContainerPathConsumer(PathConsumer):
 
     def get_all_paths_in_content(self, skip_path_consistency_for_files):
         paths = []
-        for content in list(self.env.values()) + self.args:
+        for content in self.inputs_files.values():
             paths += match_path_in_content(content)
         return paths
 
@@ -387,15 +387,17 @@ class ValidatedContainerConfig(ValidatedConfig):
             assert len(mounted_files) == len(set(mounted_files)), (
                 f"Mounted files are not unique in {name}: {validated_config.sources_of_mounted_paths}"
             )
-            if container_spec["name"] == name:
-                if has_rendered_config:
+            if container_spec["name"].startswith("render-config"):
+                validated_config.paths_consumers.append(
+                    RenderConfigContainerPathConsumer.from_container_spec(container_spec, workload_spec, templates)
+                )
+            elif has_rendered_config:
                     validated_config.paths_consumers.append(
                         RenderedConfigPathConsumer.from_workload_spec(workload_spec, templates)
                     )
-                else:
-                    validated_config.paths_consumers.append(
-                        GenericContainerSpecPathConsumer.from_container_spec(container_spec)
-                    )
+            validated_config.paths_consumers.append(
+                GenericContainerSpecPathConsumer.from_container_spec(container_spec)
+            )
         return validated_config
 
     def check_paths_used_in_content(self, paths_consistency_noqa):
