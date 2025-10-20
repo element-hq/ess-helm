@@ -81,7 +81,7 @@ class MountedSecret(SourceOfMountedPaths):
         template_data = get_or_empty(template, "data")
         if "subPath" in volume_mount:
             return cls(
-                data={volume_mount["subPath"]: template_data[volume_mount["subPath"]]},
+                data={volume_mount["mountPath"].split("/")[-1]: template_data[volume_mount["subPath"]]},
                 mount_point="/".join(volume_mount["mountPath"].split("/")[:-1]),
             )
         else:
@@ -229,7 +229,7 @@ class RenderedConfigPathConsumer(PathConsumer):
     def from_workload_spec(cls, workload_spec, before_index, templates):
         potential_input_files = {}
         inputs_files = {}
-        for container_spec in  workload_spec["initContainers"][:before_index]:
+        for container_spec in workload_spec["initContainers"][:before_index]:
             if container_spec["name"].startswith("render-config"):
                 potential_input_files = get_all_mounted_files(workload_spec, container_spec["name"], templates)
                 args = container_spec.get("args") or container_spec["command"][1:]
