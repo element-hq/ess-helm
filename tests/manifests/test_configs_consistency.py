@@ -19,7 +19,7 @@ from .test_configs_and_mounts_consistency import (
     get_volume_from_mount,
     match_path_in_content,
 )
-from .utils import template_to_deployable_details
+from .utils import template_id, template_to_deployable_details
 
 
 ## Gets all mounted files in a given container from the ConfigMaps referenced by the volume mounts
@@ -40,20 +40,27 @@ def get_all_mounted_files(workload_spec, container_name, templates):
     return found_files
 
 
-# A parent mount is the parent directory of a mounted file
+def node_path(parent_mount, mount_node):
+    if mount_node:
+        return f"{parent_mount.path}/{mount_node.node_name}"
+    else:
+        return parent_mount.path
+
+
+# A parent mount is the parent directory of a mounted file
 @dataclass(frozen=True)
 class ParentMount:
     path: str = field(default_factory=str, hash=True)
 
 
-# A mount node is a file in a mounted directory
+# A mount node is a file in a mounted directory
 @dataclass(frozen=True)
 class MountNode:
     node_name: str = field(default_factory=str, hash=True)
     node_data: str = field(default_factory=str)
 
 
-# Source of a mounted path can be anything mounted in a container
+# Source of a mounted path can be anything mounted in a container
 @dataclass(frozen=True)
 class SourceOfMountedPaths(abc.ABC):
     @abc.abstractmethod
@@ -61,7 +68,7 @@ class SourceOfMountedPaths(abc.ABC):
         pass
 
 
-# A mounted secret will be the source of a mounted path for each secret key
+# A mounted secret will be the source of a mounted path for each secret key
 @dataclass(frozen=True)
 class MountedSecret(SourceOfMountedPaths):
     data: dict[str, str] = field(default_factory=dict)
@@ -86,7 +93,7 @@ class MountedSecret(SourceOfMountedPaths):
         ]
 
 
-# A mounted configmap will be the source of a mounted path for each configmap key
+# A mounted configmap will be the source of a mounted path for each configmap key
 @dataclass(frozen=True)
 class MountedConfigMap(SourceOfMountedPaths):
     data: dict[str, str] = field(default_factory=dict)
@@ -109,8 +116,8 @@ class MountedConfigMap(SourceOfMountedPaths):
         return [(ParentMount(self.mount_point), MountNode(k, v)) for k, v in self.data.items()]
 
 
-# A mounted rendered configmap will be the source of a mounted path
-# For each render-config-* container output
+# A mounted rendered configmap will be the source of a mounted path
+# For each render-config-* container output
 @dataclass(frozen=True)
 class MountedRenderedConfigEmptyDir(SourceOfMountedPaths):
     render_config_outputs: set[str] = field(default_factory=set)
@@ -144,26 +151,32 @@ class MountedRenderedConfigEmptyDir(SourceOfMountedPaths):
 @dataclass(frozen=True)
 class MountedPersistentVolume(SourceOfMountedPaths):
     mount_point: str = field(default_factory=str)
+    subcontent: tuple[str] = field(default_factory=tuple)
 
     @classmethod
-    def from_template(cls, template, mount_point):
-        return cls(mount_point=mount_point)
+    def from_template(cls, template, mount_point, content_volumes_mapping):
+        return cls(
+            mount_point=mount_point["mountPath"], subcontent=content_volumes_mapping.get(mount_point["mountPath"], ())
+        )
 
     def get_mounted_paths(self) -> list[tuple[ParentMount, MountNode]]:
-        return [(ParentMount(self.mount_point), MountNode("", ""))]
+        return [(ParentMount(self.mount_point), MountNode(node_name, "")) for node_name in self.subcontent]
 
 
-# A mounted empty dir is the source of a mounted path only for the mount point
+# A mounted empty dir is the source of a mounted path only for the mount point
 @dataclass(frozen=True)
 class MountedEmptyDir(SourceOfMountedPaths):
     mount_point: str = field(default_factory=str)
+    subcontent: tuple[str] = field(default_factory=tuple)
 
     @classmethod
-    def from_template(cls, template, mount_point):
-        return cls(mount_point=mount_point)
+    def from_template(cls, template, mount_point, content_volumes_mapping):
+        return cls(
+            mount_point=mount_point["mountPath"], subcontent=content_volumes_mapping.get(mount_point["mountPath"], ())
+        )
 
     def get_mounted_paths(self) -> list[tuple[ParentMount, MountNode]]:
-        return [(ParentMount(self.mount_point), MountNode("", ""))]
+        return [(ParentMount(self.mount_point), MountNode(node_name, "")) for node_name in self.subcontent]
 
 
 # This is something consuming paths that should be available through mount points
@@ -182,7 +195,7 @@ class PathConsumer(abc.ABC):
         pass
 
 
-# A consumer which uses as input the files rendered by render-config containers
+# A consumer which uses as input the files rendered by render-config containers
 @dataclass(frozen=True)
 class RenderedConfigPathConsumer(PathConsumer):
     inputs_files: dict[str, str] = field(default_factory=dict)
@@ -192,7 +205,9 @@ class RenderedConfigPathConsumer(PathConsumer):
 
     def get_all_paths_in_content(self, skip_path_consistency_for_files):
         paths = []
-        for content in self.inputs_files.values():
+        for key, content in self.inputs_files.items():
+            if key in skip_path_consistency_for_files:
+                continue
             paths += match_path_in_content(content)
         return paths
 
@@ -245,9 +260,12 @@ class ConfigMapPathConsumer(PathConsumer):
 
     def get_all_paths_in_content(self, skip_path_consistency_for_files):
         paths = []
-        for content in self.data.values():
+        for key, content in self.data.items():
+            if key in skip_path_consistency_for_files:
+                continue
             paths += match_path_in_content(content)
         return paths
+
 
 # A consumer which refers to files through input env values and args/command of the container
 @dataclass(frozen=True)
@@ -282,17 +300,19 @@ class GenericContainerSpecPathConsumer(PathConsumer):
         return paths
 
 
-# A consumer which render-config, so will consume only files prefixed by "readfile " + the render-config input files
+# A consumer which render-config, so will consume only files prefixed by "readfile " + the render-config input files
 @dataclass(frozen=True)
 class RenderConfigContainerPathConsumer(PathConsumer):
     inputs_files: dict[str, str] = field(default_factory=dict)
+    env: dict[str, str] = field(default_factory=dict)
 
     @classmethod
     def from_container_spec(cls, container_spec, workload_spec, templates):
         args = container_spec.get("args") or container_spec["command"][1:]
         all_mounted_files = get_all_mounted_files(workload_spec, container_spec["name"], templates)
         return cls(
-            inputs_files={f: c for f, c in all_mounted_files.items() for input_file in args[3:] if f in input_file}
+            inputs_files={f: c for f, c in all_mounted_files.items() for input_file in args[3:] if f in input_file},
+            env={e["name"]: e["value"] for e in container_spec.get("env", [])},
         )
 
     def path_is_used_in_content(self, path) -> bool:
@@ -301,7 +321,7 @@ class RenderConfigContainerPathConsumer(PathConsumer):
     def get_parent_mount_lookalikes(self, paths_consistency_noqa, parent_mount: ParentMount) -> list[str]:
         lookalikes = []
 
-        for match_in in [v for v in self.inputs_files.values()]:
+        for match_in in list(self.env.values()) + list(self.inputs_files.values()):
             for match in re.findall(
                 rf"(?:readfile\s+)(?:^|\s|\"){parent_mount.path}/([^\s\n\")`;,]+(?!.*noqa))", match_in
             ):
@@ -312,8 +332,12 @@ class RenderConfigContainerPathConsumer(PathConsumer):
 
     def get_all_paths_in_content(self, skip_path_consistency_for_files):
         paths = []
-        for content in self.inputs_files.values():
-            paths += match_path_in_content(content)
+        for key, content in self.inputs_files.items():
+            if key in skip_path_consistency_for_files:
+                continue
+            paths += match_path_in_content("\n".join([line for line in content.splitlines() if "readfile" in line]))
+        for value in self.env.values():
+            paths += match_path_in_content(value)
         return paths
 
 
@@ -328,7 +352,7 @@ class ValidatedConfig(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def check_all_paths_matches_an_actual_mount(self, skip_path_consistency_for_files):
+    def check_all_paths_matches_an_actual_mount(self, skip_path_consistency_for_files, paths_consistency_noqa):
         pass
 
 
@@ -336,13 +360,14 @@ class ValidatedConfig(abc.ABC):
 # and a list of paths consumers. The test makes sure that those two are consistent
 @dataclass
 class ValidatedContainerConfig(ValidatedConfig):
+    template_id: str
     name: str
     paths_consumers: list[PathConsumer] = field(default_factory=list)
     sources_of_mounted_paths: list[SourceOfMountedPaths] = field(default_factory=list)
 
     @classmethod
-    def from_workload_spec(cls, name, workload_spec, weight, deployable_details, templates, other_secrets):
-        validated_config = cls(name=name)
+    def from_workload_spec(cls, template_id, name, workload_spec, weight, deployable_details, templates, other_secrets):
+        validated_config = cls(template_id=template_id, name=name)
         for container_spec in workload_spec["containers"] + workload_spec.get("initContainers", []):
             if container_spec["name"] != name:
                 continue
@@ -367,23 +392,33 @@ class ValidatedContainerConfig(ValidatedConfig):
                         validated_config.sources_of_mounted_paths.append(
                             MountedConfigMap.from_template(configmap, volume_mount)
                         )
-                    validated_config.paths_consumers.append(ConfigMapPathConsumer.from_configmap(configmap))
-                elif (
-                    "emptyDir" in current_volume
-                    and current_volume["name"] == "rendered-config"
-                    and not container_spec["name"].startswith("render-config")
-                ):
-                    has_rendered_config = True
+                        validated_config.paths_consumers.append(ConfigMapPathConsumer.from_configmap(configmap))
+                elif "emptyDir" in current_volume:
+                    if current_volume["name"] == "rendered-config" and not container_spec["name"].startswith(
+                        "render-config"
+                    ):
+                        has_rendered_config = True
+                        validated_config.sources_of_mounted_paths.append(
+                            MountedRenderedConfigEmptyDir.from_workload_spec(workload_spec, volume_mount)
+                        )
+                    else:
+                        validated_config.sources_of_mounted_paths.append(
+                            MountedEmptyDir.from_template(
+                                current_volume, volume_mount, deployable_details.content_volumes_mapping
+                            )
+                        )
+                elif "persistentVolumeClaim" in current_volume:
                     validated_config.sources_of_mounted_paths.append(
-                        MountedRenderedConfigEmptyDir.from_workload_spec(workload_spec, volume_mount)
+                        MountedPersistentVolume.from_template(
+                            current_volume, volume_mount, deployable_details.content_volumes_mapping
+                        )
                     )
 
             mounted_files = [
-                parent_mount.path + "/" + mount_node.node_name
+                node_path(parent_mount, mount_node)
                 for source in validated_config.sources_of_mounted_paths
                 for parent_mount, mount_node in source.get_mounted_paths()
             ]
-
             assert len(mounted_files) == len(set(mounted_files)), (
                 f"Mounted files are not unique in {name}: {validated_config.sources_of_mounted_paths}"
             )
@@ -392,12 +427,13 @@ class ValidatedContainerConfig(ValidatedConfig):
                     RenderConfigContainerPathConsumer.from_container_spec(container_spec, workload_spec, templates)
                 )
             elif has_rendered_config:
-                    validated_config.paths_consumers.append(
-                        RenderedConfigPathConsumer.from_workload_spec(workload_spec, templates)
-                    )
-            validated_config.paths_consumers.append(
-                GenericContainerSpecPathConsumer.from_container_spec(container_spec)
-            )
+                validated_config.paths_consumers.append(
+                    RenderedConfigPathConsumer.from_workload_spec(workload_spec, templates)
+                )
+            else:
+                validated_config.paths_consumers.append(
+                    GenericContainerSpecPathConsumer.from_container_spec(container_spec)
+                )
         return validated_config
 
     def check_paths_used_in_content(self, paths_consistency_noqa):
@@ -406,14 +442,14 @@ class ValidatedContainerConfig(ValidatedConfig):
                 if parent_mount in paths_consistency_noqa:
                     continue
                 for path_consumer in self.paths_consumers:
-                    if path_consumer.path_is_used_in_content(f"{parent_mount.path}/{mount_node.node_name}"):
+                    if path_consumer.path_is_used_in_content(node_path(parent_mount, mount_node)):
                         return True
 
     def check_paths_lookalikes_matchs_source_of_mounted_paths(self, paths_consistency_noqa):
         mounted_paths = []
         for source in self.sources_of_mounted_paths:
             for parent_mount, mount_node in source.get_mounted_paths():
-                mounted_paths.append(f"{parent_mount.path}/{mount_node.node_name}")
+                mounted_paths.append(node_path(parent_mount, mount_node))
         for source in self.sources_of_mounted_paths:
             for parent_mount, _ in source.get_mounted_paths():
                 if parent_mount in paths_consistency_noqa:
@@ -424,15 +460,25 @@ class ValidatedContainerConfig(ValidatedConfig):
                             f"{self.name} : Found path consumer mismatch in {path_consumer}"
                         )
 
-    def check_all_paths_matches_an_actual_mount(self, skip_path_consistency_for_files):
-        all_paths_matches = True
+    def check_all_paths_matches_an_actual_mount(self, skip_path_consistency_for_files, paths_consistency_noqa):
+        paths_which_do_not_match = []
         for path_consumer in self.paths_consumers:
             for path in path_consumer.get_all_paths_in_content(skip_path_consistency_for_files):
-                for mounted_path in self.sources_of_mounted_paths:
-                    for parent_mount, mount_node in mounted_path.get_mounted_paths():
-                        if path.startswith(parent_mount.path + "/" + mount_node.node_name):
-                            all_paths_matches = False
-        return all_paths_matches
+                for parent_mount, mount_node in (
+                    mounted
+                    for mounted_path in self.sources_of_mounted_paths
+                    for mounted in mounted_path.get_mounted_paths()
+                ):
+                    if path.startswith(node_path(parent_mount, mount_node)):
+                        break
+                else:
+                    if path not in paths_consistency_noqa:
+                        paths_which_do_not_match.append(path)
+        assert paths_which_do_not_match == [], (
+            f"Paths which do not match in {self.template_id}/{self.name}: {paths_which_do_not_match}. "
+            f"Skipped {skip_path_consistency_for_files}\n"
+            f"Looked in {self.sources_of_mounted_paths}\n"
+        )
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test | secret_values_files_to_test)
@@ -451,6 +497,7 @@ async def test_secrets_consistency(templates, other_secrets):
 
         for container_spec in containers:
             validated_container_config = ValidatedContainerConfig.from_workload_spec(
+                template_id(template),
                 container_spec["name"],
                 template["spec"]["template"]["spec"],
                 weight,
@@ -463,5 +510,5 @@ async def test_secrets_consistency(templates, other_secrets):
                 deployable_details.paths_consistency_noqa
             )
             validated_container_config.check_all_paths_matches_an_actual_mount(
-                deployable_details.paths_consistency_noqa
+                deployable_details.skip_path_consistency_for_files, deployable_details.paths_consistency_noqa
             )

@@ -110,6 +110,7 @@ class DeployableDetails(abc.ABC):
 
     paths_consistency_noqa: tuple[str, ...] = field(default=(), hash=False)
     skip_path_consistency_for_files: tuple[str, ...] = field(default=(), hash=False)
+    content_volumes_mapping: dict[str, tuple[str, ...]] = field(default_factory=dict, hash=False)
 
     def __post_init__(self):
         if self.values_file_path is None:
@@ -372,6 +373,9 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
         has_ingress=False,
         is_synapse_process=True,
         has_replicas=(worker_type == "scalable"),
+        content_volumes_mapping={
+            "/media": ("media_store",),
+        },
     )
 
 
@@ -478,6 +482,9 @@ all_components_details = [
         ),
         is_shared_component=True,
         makes_outbound_requests=False,
+        content_volumes_mapping={
+            "/var/lib/postgres/data": ("pgdata",),
+        },
         paths_consistency_noqa=("/docker-entrypoint-initdb.d/init-ess-dbs.sh",),
     ),
     ComponentDetails(
@@ -529,6 +536,7 @@ all_components_details = [
             "/modules",
             "/version",
         ),
+        content_volumes_mapping={"/tmp": ("element-web-config",)},
     ),
     ComponentDetails(
         name="matrix-authentication-service",
@@ -541,11 +549,11 @@ all_components_details = [
                 values_file_path=ValuesFilePath.read_write("matrixAuthenticationService", "syn2mas"),
                 paths_consistency_noqa=(
                     "/conf/log_config.yaml",
-                    "/media_store",
-                    "/media/media_store",
                     "/as/0/bridge_registration.yaml",
                     "/usr/local/bin/mas-cli",
+                    "/media/media_store",
                 ),
+                content_volumes_mapping={"/tmp-mas-cli": ("mas-cli",)},
                 values_file_path_overrides={
                     PropertyType.AdditionalConfig: ValuesFilePath.read_elsewhere(
                         "matrixAuthenticationService", "additional"
@@ -577,6 +585,9 @@ all_components_details = [
         is_synapse_process=True,
         additional_values_files=("synapse-worker-example-values.yaml",),
         skip_path_consistency_for_files=("path_map_file", "path_map_file_get"),
+        content_volumes_mapping={
+            "/media": ("media_store",),
+        },
         sub_components=synapse_workers_details
         + (
             SubComponentDetails(
@@ -615,6 +626,9 @@ all_components_details = [
                 has_service_monitor=False,
                 has_replicas=False,
                 makes_outbound_requests=False,
+                content_volumes_mapping={
+                    "/media": ("media_store",),
+                },
             ),
         ),
         shared_component_names=("deployment-markers", "init-secrets", "haproxy", "postgres"),

@@ -150,7 +150,7 @@ def filter_mounted_path_only(template, container, mounted_config_maps):
         related_volume_mounts = [
             v
             for v in container["volumeMounts"]
-            if get_volume_from_mount(template["spec"], v).get("configMap", {}).get("name", "")
+            if get_volume_from_mount(template["spec"]["template"]["spec"], v).get("configMap", {}).get("name", "")
             == configmap["metadata"]["name"]
         ]
         for volume_mount in related_volume_mounts:
@@ -176,7 +176,7 @@ def get_virtual_config_map_from_render_config(template, templates):
         if container["name"].startswith("render-config"):
             paths_to_keys = {}
             for volume_mount in container["volumeMounts"]:
-                current_volume = get_volume_from_mount(template["spec"], volume_mount)
+                current_volume = get_volume_from_mount(template["spec"]["template"]["spec"], volume_mount)
                 if "configMap" in current_volume:
                     current_config_map = get_configmap(templates, current_volume["configMap"]["name"])
                     if volume_mount.get("subPath"):
@@ -202,7 +202,7 @@ def get_keys_from_container_using_rendered_config(template, templates, other_sec
         assert "volumeMounts" in container, f"{container} does not have a 'volumeMounts' field"
         if "rendered-config" in [v["name"] for v in container["volumeMounts"]]:
             for volume_mount in container["volumeMounts"]:
-                current_volume = get_volume_from_mount(template["spec"], volume_mount)
+                current_volume = get_volume_from_mount(template["spec"]["template"]["spec"], volume_mount)
                 if "secret" in current_volume:
                     # Extract the paths where this volume's secrets are mounted
                     secret = get_secret(templates, other_secrets, current_volume["secret"]["secretName"])
@@ -223,7 +223,7 @@ def get_pvcs_and_empty_dirs_mount_paths(template):
     mounted_keys = []
     for container in template["spec"]["template"]["spec"]["containers"]:
         for volume_mount in container.get("volumeMounts", []):
-            current_volume = get_volume_from_mount(template["spec"], volume_mount)
+            current_volume = get_volume_from_mount(template["spec"]["template"]["spec"], volume_mount)
             if "emptyDir" in current_volume or "persistentVolumeClaim" in current_volume:
                 mounted_keys.append(volume_mount["mountPath"])
     return mounted_keys
@@ -276,7 +276,7 @@ async def test_secrets_consistency(templates, other_secrets):
             uses_rendered_config = False
 
             for volume_mount in container.get("volumeMounts", []):
-                current_volume = get_volume_from_mount(template["spec"], volume_mount)
+                current_volume = get_volume_from_mount(template["spec"]["template"]["spec"], volume_mount)
                 if "secret" in current_volume:
                     # Extract the paths where this volume's secrets are mounted
                     secret = get_secret(templates, other_secrets, current_volume["secret"]["secretName"])

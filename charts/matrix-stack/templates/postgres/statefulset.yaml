@@ -109,7 +109,7 @@ spec:
         securityContext:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-        {{- include "element-io.ess-library.pods.env" (dict "root" $ "context" (dict "componentValues" . "componentName" "postgres")) | nindent 8 }}
+        {{- include "element-io.ess-library.pods.env" (dict "root" $ "context" (dict "componentValues" . "componentName" "postgres-password-updater")) | nindent 8 }}
         args:
         {{ include "element-io.postgres.args" (dict "root" $ "context" .) | nindent 8 }}
 {{- with .resources }}
