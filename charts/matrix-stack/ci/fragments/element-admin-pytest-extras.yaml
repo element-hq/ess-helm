@@ -2,8 +2,6 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-serverName: ess.localhost
-
 elementAdmin:
   ingress:
     host: admin.{{ $.Values.serverName }}
