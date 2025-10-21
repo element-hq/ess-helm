@@ -52,3 +52,15 @@ matrixRTC:
   - name: LIVEKIT_INSECURE_SKIP_VERIFY_TLS
     value: YES_I_KNOW_WHAT_I_AM_DOING
 ```
+
+### Matrix RTC SFU is stuck in `CrashLoopBackOff` without any log
+
+This typically means that the SFU is attempting to perform a STUN request to resolve its advertised IP address, and it is failing.
+
+By default, the SFU tries to connect to Google's STUN servers. You can try the following:
+
+- Ensure that the SFU can reach the Google STUN servers.
+- Change the STUN servers configured in the Matrix RTC SFU.
+- Force the SFU to use a manual IP address instead of relying on STUN to resolve the advertised IP.
+
+For more information about the SFU networking, see [Matrix RTC Networking](./advanced.md#networking).
