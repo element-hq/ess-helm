@@ -22,21 +22,37 @@ from .test_configs_and_mounts_consistency import (
 from .utils import template_id, template_to_deployable_details
 
 
-## Gets all mounted files in a given container from the ConfigMaps referenced by the volume mounts
-def get_all_mounted_files(workload_spec, container_name, templates):
+## Gets all mounted files in a given container
+def get_all_mounted_files(workload_spec, container_name, templates, other_secrets):
+    def _get_content(content, kind):
+        if kind == "ConfigMap":
+            return content
+        else:
+            return b64decode(content).decode("utf-8")
+
     found_files = {}
-    for container_spec in workload_spec["containers"] + workload_spec.get("initContainers", {}):
+    for container_spec in workload_spec.get("initContainers", []) + workload_spec["containers"]:
+        if container_name != container_spec["name"]:
+            continue
         for volume_mount in container_spec.get("volumeMounts", []):
             current_volume = get_volume_from_mount(workload_spec, volume_mount)
             if "configMap" in current_volume:
-                current_config_map = get_configmap(templates, current_volume["configMap"]["name"])
-                if volume_mount.get("subPath"):
-                    found_files[volume_mount["mountPath"] + "/" + volume_mount["subPath"]] = current_config_map["data"][
-                        volume_mount["subPath"]
-                    ]
-                else:
-                    for key in current_config_map["data"]:
-                        found_files[volume_mount["mountPath"] + "/" + key] = current_config_map["data"][key]
+                current_res = get_configmap(templates, current_volume["configMap"]["name"])
+            elif "secret" in current_volume:
+                current_res = get_secret(templates, other_secrets, current_volume["secret"]["secretName"])
+            else:
+                continue
+            if volume_mount.get("subPath"):
+                found_files[volume_mount["mountPath"]] = _get_content(
+                    current_res["data"][volume_mount["subPath"]], current_res["kind"]
+                )
+            else:
+                for key in get_or_empty(current_res, "data"):
+                    if current_res["kind"] == "ConfigMap":
+                        found_files[volume_mount["mountPath"] + "/" + key] = _get_content(
+                            current_res["data"][key], current_res["kind"]
+                        )
+
     return found_files
 
 
@@ -49,6 +65,7 @@ def node_path(parent_mount, mount_node):
 
 def is_matrix_tools_command(container_spec: dict, subcommand: str) -> bool:
     return "/matrix-tools:" in container_spec["image"] and container_spec["args"][0] == subcommand
+
 
 # A parent mount is the parent directory of a mounted file
 @dataclass(frozen=True)
@@ -230,14 +247,14 @@ class RenderedConfigPathConsumer(PathConsumer):
         return lookalikes
 
     @classmethod
-    def from_workload_spec(cls, workload_spec, before_index, templates):
+    def from_workload_spec(cls, workload_spec, before_index, templates, other_secrets):
         potential_input_files = {}
         inputs_files = {}
         # We look for render-config containers which ran before the current container
         for container_spec in workload_spec["initContainers"][:before_index]:
             # We only provide extraEnv to specific matrix-tools init containers
             if is_matrix_tools_command(container_spec, "render-config"):
-                potential_input_files = get_all_mounted_files(workload_spec, container_spec["name"], templates)
+                potential_input_files = get_all_mounted_files(workload_spec, container_spec["name"], templates, other_secrets)
                 source_files = container_spec["args"][3:]
                 for p, k in potential_input_files.items():
                     if p in source_files:
@@ -316,10 +333,15 @@ class RenderConfigContainerPathConsumer(PathConsumer):
     env: dict[str, str] = field(default_factory=dict)
 
     @classmethod
-    def from_container_spec(cls, container_spec, workload_spec, templates):
-        all_mounted_files = get_all_mounted_files(workload_spec, container_spec["name"], templates)
+    def from_container_spec(cls, container_spec, workload_spec, templates, other_secrets):
+        all_mounted_files = get_all_mounted_files(workload_spec, container_spec["name"], templates, other_secrets)
         return cls(
-            inputs_files={f: c for f, c in all_mounted_files.items() for input_file in container_spec["args"][3:] if f in input_file},
+            inputs_files={
+                f: c
+                for f, c in all_mounted_files.items()
+                for input_file in container_spec["args"][3:]
+                if f in input_file
+            },
             env={e["name"]: e["value"] for e in container_spec.get("env", [])},
         )
 
@@ -404,7 +426,9 @@ class ValidatedContainerConfig(ValidatedConfig):
                         )
                         validated_config.paths_consumers.append(ConfigMapPathConsumer.from_configmap(configmap))
                 elif "emptyDir" in current_volume:
-                    if current_volume["name"] == "rendered-config" and not is_matrix_tools_command(container_spec, "render-config"):
+                    if current_volume["name"] == "rendered-config" and not is_matrix_tools_command(
+                        container_spec, "render-config"
+                    ):
                         has_rendered_config = True
                         validated_config.sources_of_mounted_paths.append(
                             MountedRenderedConfigEmptyDir.from_workload_spec(
@@ -434,11 +458,11 @@ class ValidatedContainerConfig(ValidatedConfig):
             )
             if is_matrix_tools_command(container_spec, "render-config"):
                 validated_config.paths_consumers.append(
-                    RenderConfigContainerPathConsumer.from_container_spec(container_spec, workload_spec, templates)
+                    RenderConfigContainerPathConsumer.from_container_spec(container_spec, workload_spec, templates, other_secrets)
                 )
             elif has_rendered_config:
                 validated_config.paths_consumers.append(
-                    RenderedConfigPathConsumer.from_workload_spec(workload_spec, container_index, templates)
+                    RenderedConfigPathConsumer.from_workload_spec(workload_spec, container_index, templates, other_secrets)
                 )
             else:
                 validated_config.paths_consumers.append(
