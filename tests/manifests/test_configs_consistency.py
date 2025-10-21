@@ -47,6 +47,9 @@ def node_path(parent_mount, mount_node):
         return parent_mount.path
 
 
+def is_matrix_tools_command(container_spec: dict, subcommand: str) -> bool:
+    return "/matrix-tools:" in container_spec["image"] and container_spec["args"][0] == subcommand
+
 # A parent mount is the parent directory of a mounted file
 @dataclass(frozen=True)
 class ParentMount:
@@ -128,8 +131,8 @@ class MountedRenderedConfigEmptyDir(SourceOfMountedPaths):
         outputs = []
         # We look for render-config containers which ran before the current container
         for container_spec in workload_spec["initContainers"][:before_index]:
-            if "render-config" in container_spec["name"]:
-                args = container_spec.get("args") or container_spec["command"][1:]
+            if is_matrix_tools_command(container_spec, "render-config"):
+                args = container_spec["args"]
                 for idx, cmd in enumerate(args):
                     if cmd == "-output":
                         outputs.append(args[idx + 1].split("/")[-1])
@@ -152,7 +155,7 @@ class MountedRenderedConfigEmptyDir(SourceOfMountedPaths):
 @dataclass(frozen=True)
 class MountedPersistentVolume(SourceOfMountedPaths):
     mount_point: str = field(default_factory=str)
-    subcontent: tuple[str] = field(default_factory=tuple)
+    subcontent: tuple[str, ...] = field(default_factory=tuple)
 
     @classmethod
     def from_template(cls, template, mount_point, content_volumes_mapping):
@@ -170,7 +173,7 @@ class MountedPersistentVolume(SourceOfMountedPaths):
 @dataclass(frozen=True)
 class MountedEmptyDir(SourceOfMountedPaths):
     mount_point: str = field(default_factory=str)
-    subcontent: tuple[str] = field(default_factory=tuple)
+    subcontent: tuple[str, ...] = field(default_factory=tuple)
 
     @classmethod
     def from_template(cls, template, mount_point, content_volumes_mapping):
@@ -232,10 +235,10 @@ class RenderedConfigPathConsumer(PathConsumer):
         inputs_files = {}
         # We look for render-config containers which ran before the current container
         for container_spec in workload_spec["initContainers"][:before_index]:
-            if container_spec["name"].startswith("render-config"):
+            # We only provide extraEnv to specific matrix-tools init containers
+            if is_matrix_tools_command(container_spec, "render-config"):
                 potential_input_files = get_all_mounted_files(workload_spec, container_spec["name"], templates)
-                args = container_spec.get("args") or container_spec["command"][1:]
-                source_files = args[3:]
+                source_files = container_spec["args"][3:]
                 for p, k in potential_input_files.items():
                     if p in source_files:
                         inputs_files[p] = k
@@ -283,7 +286,7 @@ class GenericContainerSpecPathConsumer(PathConsumer):
     def from_container_spec(cls, container_spec):
         return cls(
             env={e["name"]: e["value"] for e in container_spec.get("env", [])},
-            args=container_spec.get("command", []) + container_spec.get("args", []),
+            args=container_spec.get("args", []),
         )
 
     def path_is_used_in_content(self, path) -> bool:
@@ -314,10 +317,9 @@ class RenderConfigContainerPathConsumer(PathConsumer):
 
     @classmethod
     def from_container_spec(cls, container_spec, workload_spec, templates):
-        args = container_spec.get("args") or container_spec["command"][1:]
         all_mounted_files = get_all_mounted_files(workload_spec, container_spec["name"], templates)
         return cls(
-            inputs_files={f: c for f, c in all_mounted_files.items() for input_file in args[3:] if f in input_file},
+            inputs_files={f: c for f, c in all_mounted_files.items() for input_file in container_spec["args"][3:] if f in input_file},
             env={e["name"]: e["value"] for e in container_spec.get("env", [])},
         )
 
@@ -396,15 +398,13 @@ class ValidatedContainerConfig(ValidatedConfig):
                     assert_exists_according_to_hook_weight(configmap, weight, name)
                     # We do not consume ConfigMaps in render-config, their configuration
                     # will actually be consumed later by the container using the rendered-config
-                    if not container_spec["name"].startswith("render-config"):
+                    if not is_matrix_tools_command(container_spec, "render-config"):
                         validated_config.sources_of_mounted_paths.append(
                             MountedConfigMap.from_template(configmap, volume_mount)
                         )
                         validated_config.paths_consumers.append(ConfigMapPathConsumer.from_configmap(configmap))
                 elif "emptyDir" in current_volume:
-                    if current_volume["name"] == "rendered-config" and not container_spec["name"].startswith(
-                        "render-config"
-                    ):
+                    if current_volume["name"] == "rendered-config" and not is_matrix_tools_command(container_spec, "render-config"):
                         has_rendered_config = True
                         validated_config.sources_of_mounted_paths.append(
                             MountedRenderedConfigEmptyDir.from_workload_spec(
@@ -432,7 +432,7 @@ class ValidatedContainerConfig(ValidatedConfig):
             assert len(mounted_files) == len(set(mounted_files)), (
                 f"Mounted files are not unique in {name}: {validated_config.sources_of_mounted_paths}"
             )
-            if container_spec["name"].startswith("render-config"):
+            if is_matrix_tools_command(container_spec, "render-config"):
                 validated_config.paths_consumers.append(
                     RenderConfigContainerPathConsumer.from_container_spec(container_spec, workload_spec, templates)
                 )
