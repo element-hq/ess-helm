@@ -15,6 +15,8 @@ SPDX-License-Identifier: AGPL-3.0-only
    - [Configuring Element Web](#configuring-element-web)
    - [Configuring Synapse](#configuring-synapse)
    - [Configuring Matrix Authentication Service](#configuring-matrix-authentication-service)
+   - [Configuring Matrix RTC](#configuring-matrix-rtc)
+     - [Networking](#networking)
 
 ## Values documentation
 
