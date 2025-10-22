@@ -309,10 +309,9 @@ def get_all_mounted_files(
                 )
             else:
                 for key in get_or_empty(current_res, "data"):
-                    if current_res["kind"] == "ConfigMap":
-                        found_files[volume_mount["mountPath"] + "/" + key] = _get_content(
-                            current_res["data"][key], current_res["kind"]
-                        )
+                    found_files[volume_mount["mountPath"] + "/" + key] = _get_content(
+                        current_res["data"][key], current_res["kind"]
+                    )
 
     return found_files
 
