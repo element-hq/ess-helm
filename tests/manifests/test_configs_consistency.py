@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 
 import pytest
 
-from . import DeployableDetails, secret_values_files_to_test, values_files_to_test
+from . import secret_values_files_to_test, values_files_to_test
 from .utils import get_or_empty, template_id, template_to_deployable_details
 
 
@@ -467,11 +467,15 @@ class ValidatedConfig(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def check_paths_used_in_content(self, skip_path_consistency_for_files, paths_consistency_noqa):
+    def check_paths_used_in_content(
+        self, skip_path_consistency_for_files, ignore_unreferenced_mounts, ignore_paths_mismatches
+    ):
         pass
 
     @abc.abstractmethod
-    def check_all_paths_matches_an_actual_mount(self, skip_path_consistency_for_files, paths_consistency_noqa):
+    def check_all_paths_matches_an_actual_mount(
+        self, skip_path_consistency_for_files, ignore_unreferenced_mounts, ignore_paths_mismatches
+    ):
         pass
 
 
@@ -561,7 +565,9 @@ class ValidatedContainerConfig(ValidatedConfig):
             )
         return validated_config
 
-    def check_mounted_files_unique(self, skip_path_consistency_for_files, paths_consistency_noqa):
+    def check_mounted_files_unique(
+        self, skip_path_consistency_for_files, ignore_unreferenced_mounts, ignore_paths_mismatches
+    ):
         mounted_files = [
             node_path(parent_mount, mount_node)
             for source in self.sources_of_mounted_paths
@@ -573,13 +579,15 @@ class ValidatedContainerConfig(ValidatedConfig):
             f"From Mounted Sources : {self.sources_of_mounted_paths}"
         )
 
-    def check_paths_used_in_content(self, skip_path_consistency_for_files, paths_consistency_noqa):
+    def check_paths_used_in_content(
+        self, skip_path_consistency_for_files, ignore_unreferenced_mounts, ignore_paths_mismatches
+    ):
         paths_not_found = []
         skipped_paths = []
         for source in self.sources_of_mounted_paths:
             for parent_mount, mount_node in source.get_mounted_paths():
                 if (
-                    node_path(parent_mount, mount_node) in paths_consistency_noqa
+                    node_path(parent_mount, mount_node) in ignore_unreferenced_mounts
                     or parent_mount.path.startswith("/secrets")
                     or (mount_node and mount_node.node_name in skip_path_consistency_for_files)
                 ):
@@ -601,7 +609,9 @@ class ValidatedContainerConfig(ValidatedConfig):
             f"Skipped paths: {skipped_paths}"
         )
 
-    def check_all_paths_matches_an_actual_mount(self, skip_path_consistency_for_files, paths_consistency_noqa):
+    def check_all_paths_matches_an_actual_mount(
+        self, skip_path_consistency_for_files, ignore_unreferenced_mounts, ignore_paths_mismatches
+    ):
         paths_which_do_not_match = []
         for path_consumer in self.paths_consumers:
             for path in path_consumer.get_all_paths_in_content(skip_path_consistency_for_files):
@@ -613,7 +623,7 @@ class ValidatedContainerConfig(ValidatedConfig):
                     if path.startswith(node_path(parent_mount, mount_node)):
                         break
                 else:
-                    if path not in paths_consistency_noqa:
+                    if path not in ignore_paths_mismatches:
                         paths_which_do_not_match.append(path)
         assert paths_which_do_not_match == [], (
             f"Paths which do not match in {self.template_id}/{self.name}: {paths_which_do_not_match}. "
@@ -657,7 +667,8 @@ def traverse_containers_and_run_consistency_check(
             consistency_check(
                 validated_container_config,
                 deployable_details.skip_path_consistency_for_files,
-                deployable_details.paths_consistency_noqa,
+                deployable_details.ignore_unreferenced_mounts,
+                deployable_details.ignore_paths_mismatches,
             )
             validated_container_config.mutate_empty_dirs(container_spec, workload_spec)
             for name, empty_dir in validated_container_config.mutable_empty_dirs.items():

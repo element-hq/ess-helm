@@ -110,6 +110,12 @@ class DeployableDetails(abc.ABC):
 
     # Use this to noqa given paths that are found by the consistency checks
     paths_consistency_noqa: tuple[str, ...] = field(default=(), hash=False)
+    # Use this to skip mounts point we expect not to be referenced in commands, configs, etc
+    # The format is expected to be `container_name: <list of mounts to ignore>`
+    ignore_unreferenced_mounts: dict[str, tuple[str, ...]] = field(default_factory=dict, hash=False)
+    # Use this to ignore paths found in configuration which do not match an actual mount point
+    # The format is expected to be `container_name: <list of paths to ignore>`
+    ignore_paths_mismatches: dict[str, tuple[str, ...]] = field(default_factory=dict, hash=False)
     # Use this to skip any configuration consistency checks for given filenames
     # For example, haproxy.cfg has dozens of HTTP Paths but they are not filepaths
     # Instead of noqa-ing all the paths found, we skip the whole file
@@ -379,7 +385,7 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
         has_ingress=False,
         is_synapse_process=True,
         has_replicas=(worker_type == "scalable"),
-        paths_consistency_noqa=("/tmp",),
+        ignore_unreferenced_mounts={"synapse": ("/tmp",)},
         content_volumes_mapping={
             "/media": ("media_store",),
         },
