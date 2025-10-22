@@ -623,7 +623,9 @@ class ValidatedContainerConfig(ValidatedConfig):
             f"Skipped paths: {skipped_paths}"
         )
 
-    def check_paths_lookalikes_matchs_source_of_mounted_paths(self, paths_consistency_noqa):
+    def check_paths_lookalikes_matchs_source_of_mounted_paths(
+        self, skip_path_consistency_for_files, paths_consistency_noqa
+    ):
         mounted_paths = []
         for source in self.sources_of_mounted_paths:
             for parent_mount, mount_node in source.get_mounted_paths():
@@ -659,9 +661,9 @@ class ValidatedContainerConfig(ValidatedConfig):
         )
 
 
-@pytest.mark.parametrize("values_file", values_files_to_test | secret_values_files_to_test)
-@pytest.mark.asyncio_cooperative
-async def test_secrets_consistency(templates, other_secrets):
+def traverse_containers_and_run_consistency_check(
+    templates, other_secrets, validated_container_class, consistency_check
+):
     workloads = [t for t in templates if t["kind"] in ("Deployment", "StatefulSet", "Job")]
     for template in workloads:
         # A list of empty dirs that will be updated as we traverse containers
@@ -677,7 +679,7 @@ async def test_secrets_consistency(templates, other_secrets):
 
         for container_spec in containers:
             deployable_details = template_to_deployable_details(template, container_spec["name"])
-            validated_container_config = ValidatedContainerConfig.from_container_spec(
+            validated_container_config = validated_container_class.from_container_spec(
                 template_id(template),
                 workload_spec,
                 container_spec,
@@ -687,14 +689,10 @@ async def test_secrets_consistency(templates, other_secrets):
                 other_secrets,
                 all_workload_empty_dirs,
             )
-            validated_container_config.check_paths_used_in_content(
-                deployable_details.skip_path_consistency_for_files, deployable_details.paths_consistency_noqa
-            )
-            validated_container_config.check_paths_lookalikes_matchs_source_of_mounted_paths(
-                deployable_details.paths_consistency_noqa
-            )
-            validated_container_config.check_all_paths_matches_an_actual_mount(
-                deployable_details.skip_path_consistency_for_files, deployable_details.paths_consistency_noqa
+            consistency_check(
+                validated_container_config,
+                deployable_details.skip_path_consistency_for_files,
+                deployable_details.paths_consistency_noqa,
             )
             for name, empty_dir in validated_container_config.mutable_empty_dirs.items():
                 # In the all workloads empty dirs, we copy the new render config outputs to the existing dict
@@ -704,3 +702,33 @@ async def test_secrets_consistency(templates, other_secrets):
                         render_config_outputs=empty_dir.render_config_outputs,
                         subcontent=empty_dir.subcontent,
                     )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test | secret_values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_any_mounted_path_is_used_in_content(templates, other_secrets):
+    traverse_containers_and_run_consistency_check(
+        templates, other_secrets, ValidatedContainerConfig, ValidatedContainerConfig.check_paths_used_in_content
+    )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test | secret_values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_make_sure_no_typo_in_file_under_known_parent_mounts(templates, other_secrets):
+    traverse_containers_and_run_consistency_check(
+        templates,
+        other_secrets,
+        ValidatedContainerConfig,
+        ValidatedContainerConfig.check_paths_lookalikes_matchs_source_of_mounted_paths,
+    )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test | secret_values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_any_path_found_matches_an_actual_mount(templates, other_secrets):
+    traverse_containers_and_run_consistency_check(
+        templates,
+        other_secrets,
+        ValidatedContainerConfig,
+        ValidatedContainerConfig.check_all_paths_matches_an_actual_mount,
+    )
