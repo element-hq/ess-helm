@@ -13,7 +13,10 @@ from . import DeployableDetails, PropertyType, secret_values_files_to_test, valu
 from .utils import iterate_deployables_parts, template_id, template_to_deployable_details
 
 
-@pytest.mark.parametrize("values_file", secret_values_files_to_test)
+@pytest.mark.parametrize(
+    "values_file",
+    values_files_to_test | secret_values_files_to_test,
+)
 @pytest.mark.asyncio_cooperative
 async def test_configs_are_valid(templates):
     for template in templates:
@@ -24,7 +27,13 @@ async def test_configs_are_valid(templates):
             continue
         for key, value in template["data"].items():
             if template["kind"] == "Secret":
-                value = base64.b64decode(value)
+                value = base64.b64decode(value).decode("utf-8")
+
+            assert len(value.strip()) > 0, f"{template_id(template)} has {key=} which is empty/only contains whitespace"
+            if "\n" in value:
+                assert value.endswith("\n"), (
+                    f"{template_id(template)} has {key=} with a multi-line value that doesn't have a trailing newline"
+                )
 
             if key.endswith(".yaml") or key.endswith(".yml"):
                 assert yaml.safe_load(value) is not None

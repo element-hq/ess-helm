@@ -231,7 +231,7 @@ path_map_file_get: |
 {{- (tpl ($root.Files.Get "configs/synapse/path_map_file_get.tpl") (dict "root" $root)) | nindent 2 -}}
 {{- /* We accept this means that the ConfigMap & all hash labels using this helper changes on every chart version upgrade and the HAProxy will restart as a result.
 When we have a process to watch for file changes and send a reload signal to HAProxy this can move out of this helper and into the `ConfigMap` proper. */}}
-ess-version.json: |-
+ess-version.json: |
   {"version": "{{ $root.Chart.Version }}", "edition": "community"}
 {{- end -}}
 
