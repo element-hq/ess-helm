@@ -368,7 +368,7 @@ class RenderConfigContainerPathConsumer(PathConsumer):
 @dataclass
 class ValidatedConfig(abc.ABC):
     @abc.abstractmethod
-    def check_paths_used_in_content(self, paths_consistency_noqa):
+    def check_paths_used_in_content(self, skip_path_consistency_for_files, paths_consistency_noqa):
         pass
 
     @abc.abstractmethod
@@ -476,14 +476,25 @@ class ValidatedContainerConfig(ValidatedConfig):
             )
         return validated_config
 
-    def check_paths_used_in_content(self, paths_consistency_noqa):
+    def check_paths_used_in_content(self, skip_path_consistency_for_files, paths_consistency_noqa):
+        paths_not_found = []
+        skipped_paths = []
         for source in self.sources_of_mounted_paths:
             for parent_mount, mount_node in source.get_mounted_paths():
-                if parent_mount in paths_consistency_noqa:
+                if (
+                    node_path(parent_mount, mount_node) in paths_consistency_noqa
+                    or mount_node and mount_node.node_name in skip_path_consistency_for_files
+                ):
+                    skipped_paths.append(node_path(parent_mount, mount_node))
                     continue
                 for path_consumer in self.paths_consumers:
                     if path_consumer.path_is_used_in_content(node_path(parent_mount, mount_node)):
-                        return True
+                        break
+                else:
+                    paths_not_found.append(node_path(parent_mount, mount_node))
+        assert paths_not_found == [], (f"{self.name} : "
+                                        f"No consumer found for paths {paths_not_found}. "
+                                        f"Skipped paths: {skipped_paths}")
 
     def check_paths_lookalikes_matchs_source_of_mounted_paths(self, paths_consistency_noqa):
         mounted_paths = []
@@ -548,7 +559,9 @@ async def test_secrets_consistency(templates, other_secrets):
                 other_secrets,
                 all_workload_empty_dirs,
             )
-            validated_container_config.check_paths_used_in_content(deployable_details.paths_consistency_noqa)
+            validated_container_config.check_paths_used_in_content(
+                deployable_details.skip_path_consistency_for_files, deployable_details.paths_consistency_noqa
+            )
             validated_container_config.check_paths_lookalikes_matchs_source_of_mounted_paths(
                 deployable_details.paths_consistency_noqa
             )
