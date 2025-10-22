@@ -668,7 +668,8 @@ async def test_secrets_consistency(templates, other_secrets):
         # A list of empty dirs that will be updated as we traverse containers
         all_workload_empty_dirs = {}
         # Gather all containers and initContainers from the template spec
-        containers = template["spec"]["template"]["spec"].get("initContainers", []) + template["spec"]["template"][
+        workload_spec = template["spec"]["template"]["spec"]
+        containers = workload_spec.get("initContainers", []) + template["spec"]["template"][
             "spec"
         ].get("containers", [])
         weight = None
@@ -679,7 +680,7 @@ async def test_secrets_consistency(templates, other_secrets):
             deployable_details = template_to_deployable_details(template, container_spec["name"])
             validated_container_config = ValidatedContainerConfig.from_container_spec(
                 template_id(template),
-                template["spec"]["template"]["spec"],
+                workload_spec,
                 container_spec,
                 weight,
                 deployable_details,
