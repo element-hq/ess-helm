@@ -356,6 +356,13 @@ class GenericContainerSpecPathConsumer(PathConsumer):
     args: list[str] = field(default_factory=list)
     mounted_empty_dirs: dict[str, MountedEmptyDir] = field(default_factory=dict)
 
+    def _empty_dir_rendered_content(self):
+        return [
+            rendered_content
+            for empty_dir in self.mounted_empty_dirs.values()
+            for file, rendered_content in empty_dir.render_config_outputs.items()
+        ]
+
     @classmethod
     def from_container_spec(cls, workload_spec, container_spec, previously_mounted_empty_dirs):
         mounted_empty_dirs = {}
@@ -374,25 +381,17 @@ class GenericContainerSpecPathConsumer(PathConsumer):
             path,
             list(self.env.values())
             + self.args
-            + [
-                rendered_content
-                for empty_dir in self.mounted_empty_dirs.values()
-                for file, rendered_content in empty_dir.render_config_outputs.items()
-            ],
+            + self._empty_dir_rendered_content()
         )
 
     def get_parent_mount_lookalikes(self, paths_consistency_noqa, parent_mount: ParentMount) -> list[str]:
         lookalikes = []
 
         for match_in in [
-            v
-            for v in list(self.env.values())
+            list(self.env.values())
             + self.args
-            + [
-                rendered_content
-                for empty_dir in self.mounted_empty_dirs.values()
-                for file, rendered_content in empty_dir.render_config_outputs.items()
-            ]
+            + self._empty_dir_rendered_content()
+
         ]:
             for match in re.findall(rf"(?:^|\s|\"){parent_mount.path}/([^\s\n\")`;,]+(?!.*noqa))", match_in):
                 if f"{parent_mount.path}/{match}" in paths_consistency_noqa:
@@ -405,11 +404,8 @@ class GenericContainerSpecPathConsumer(PathConsumer):
         for content in (
             list(self.env.values())
             + self.args
-            + [
-                rendered_content
-                for empty_dir in self.mounted_empty_dirs.values()
-                for file, rendered_content in empty_dir.render_config_outputs.items()
-            ]
+            + self._empty_dir_rendered_content()
+
         ):
             paths += match_path_in_content(content)
         return paths
