@@ -486,7 +486,7 @@ all_components_details = [
         content_volumes_mapping={
             "/var/lib/postgres/data": ("pgdata",),
         },
-        paths_consistency_noqa=("/docker-entrypoint-initdb.d/init-ess-dbs.sh",),
+        paths_consistency_noqa=("/tmp", "/docker-entrypoint-initdb.d/init-ess-dbs.sh",),
     ),
     ComponentDetails(
         name="matrix-rtc",

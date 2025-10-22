@@ -115,7 +115,6 @@ true
 {{- end -}}
 {{- end -}}
 
-
 {{- define "element-io.postgres-password-updater.overrideEnv" }}
 {{- $root := .root -}}
 {{- with required "element-io.postgres.password-change-env missing context" .context -}}
@@ -132,10 +131,12 @@ env:
                 )
               )
             ) }}
+- name: "PGHOST"
+  value: "/var/run/postgresql"
 {{- end -}}
 {{- end -}}
 
-  
+
 {{- define "element-io.postgres.overrideEnv" }}
 {{- $root := .root -}}
 {{- with required "element-io.postgres.overrideEnv missing context" .context -}}

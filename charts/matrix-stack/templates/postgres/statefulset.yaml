@@ -89,6 +89,8 @@ spec:
           subPath: configure-dbs.sh
         - name: database
           mountPath: /var/lib/postgres/data
+        - name: temp
+          mountPath: /tmp
         - name: var-run
           mountPath: /var/run/postgresql
       - name: postgres-ess-updater
@@ -97,7 +99,7 @@ spec:
         - /bin/sh
         - -c
         - >
-          while ! pg_isready -d postgres -U postgres -h /var/run/postgresql; do echo "Postgres not yet ready"; sleep 1; done;
+          while ! pg_isready -d postgres -U postgres -h localhost; do echo "Postgres not yet ready"; sleep 1; done;
           echo "Postgres now ready, so changing password";
           /bin/sh /var/run/configure-ess-dbs.sh;
           echo "Done";
@@ -183,6 +185,8 @@ spec:
 {{- end }}
       terminationGracePeriodSeconds: 60
       volumes:
+      - emptyDir: {}
+        name: temp
       - emptyDir: {}
         name: var-run
 {{- if and $.Values.initSecrets.enabled (include "element-io.init-secrets.postgres-generated-secrets" (dict "root" $)) }}
