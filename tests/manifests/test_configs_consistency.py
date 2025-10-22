@@ -504,6 +504,10 @@ class RenderConfigContainerPathConsumer(PathConsumer):
 @dataclass
 class ValidatedConfig(abc.ABC):
     @abc.abstractmethod
+    def check_mounted_files_unique(self):
+        pass
+
+    @abc.abstractmethod
     def check_paths_used_in_content(self, skip_path_consistency_for_files, paths_consistency_noqa):
         pass
 
@@ -541,8 +545,6 @@ class ValidatedContainerConfig(ValidatedConfig):
         previously_mounted_empty_dirs: dict[str, MountedEmptyDir],
     ):
         validated_config = cls(template_id=template_id, name=container_spec["name"])
-        # Determine which secrets are mounted by this container
-        mounted_files = []
 
         for volume_mount in container_spec.get("volumeMounts", []):
             current_volume = get_volume_from_mount(workload_spec, volume_mount)
@@ -587,16 +589,6 @@ class ValidatedContainerConfig(ValidatedConfig):
             else:
                 validated_config.sources_of_mounted_paths.append(current_source_of_mount)
 
-        mounted_files = [
-            node_path(parent_mount, mount_node)
-            for source in validated_config.sources_of_mounted_paths
-            for parent_mount, mount_node in source.get_mounted_paths()
-        ]
-        assert len(mounted_files) == len(set(mounted_files)), (
-            f"Mounted files are not unique in {container_spec['name']}\n"
-            f"Duplicated files : { {item for item, count in Counter(mounted_files).items() if count > 1} }\n"
-            f"From Mounted Sources : {validated_config.sources_of_mounted_paths}"
-        )
         if is_matrix_tools_command(container_spec, "render-config"):
             render_config_consumer = RenderConfigContainerPathConsumer.from_container_spec(
                 container_spec,
@@ -613,6 +605,18 @@ class ValidatedContainerConfig(ValidatedConfig):
                 )
             )
         return validated_config
+
+    def check_mounted_files_unique(self, skip_path_consistency_for_files, paths_consistency_noqa):
+        mounted_files = [
+            node_path(parent_mount, mount_node)
+            for source in self.sources_of_mounted_paths
+            for parent_mount, mount_node in source.get_mounted_paths()
+        ]
+        assert len(mounted_files) == len(set(mounted_files)), (
+            f"Mounted files are not unique in {self.name}\n"
+            f"Duplicated files : { {item for item, count in Counter(mounted_files).items() if count > 1} }\n"
+            f"From Mounted Sources : {self.sources_of_mounted_paths}"
+        )
 
     def check_paths_used_in_content(self, skip_path_consistency_for_files, paths_consistency_noqa):
         paths_not_found = []
@@ -726,6 +730,14 @@ def traverse_containers_and_run_consistency_check(
                         render_config_outputs=empty_dir.render_config_outputs,
                         subcontent=empty_dir.subcontent,
                     )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test | secret_values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_mounted_files_unique(templates, other_secrets):
+    traverse_containers_and_run_consistency_check(
+        templates, other_secrets, ValidatedContainerConfig, ValidatedContainerConfig.check_mounted_files_unique
+    )
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test | secret_values_files_to_test)
