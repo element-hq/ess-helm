@@ -174,6 +174,21 @@ class MountedPersistentVolume(SourceOfMountedPaths):
         return f"PersistentVolume {self.pvc_name}"
 
 
+@dataclass(frozen=True)
+class SubPathMount(SourceOfMountedPaths):
+    sub_path: str = field(default_factory=str)
+    source: SourceOfMountedPaths = field(default_factory=SourceOfMountedPaths)
+
+    def get_mounted_paths(self) -> list[tuple[ParentMount, MountNode | None]]:
+        filtered = []
+        for mounted in self.source.get_mounted_paths():
+            if mounted[1] and mounted[1].node_name == self.sub_path:
+                filtered.append(mounted)
+        return filtered
+
+    def name(self) -> str:
+        return f"SubPathMount({self.source.name()})"
+
 # This is something consuming paths that should be available through mount points
 @dataclass(frozen=True)
 class PathConsumer(abc.ABC):
@@ -361,6 +376,7 @@ class RenderConfigContainerPathConsumer(PathConsumer):
         for volume_mount in container_spec.get("volumeMounts", []):
             volume = get_volume_from_mount(workload_spec, volume_mount)
             if "emptyDir" in volume and volume_mount["mountPath"] == output[0].path:
+                assert "subPath" not in volume_mount, "render-config should not target a file mounted using `subPath`"
                 mutable_empty_dirs[volume["name"]].render_config_outputs[output[1].node_name] = "\n".join(
                     [
                         re.sub(r"{{\s+(?:readfile\s+)(?:^|\s|\".+)\s*}}", "", content)
@@ -440,7 +456,6 @@ class ValidatedContainerConfig(ValidatedConfig):
         validated_config = cls(template_id=template_id, name=deployable_details.name)
         # Determine which secrets are mounted by this container
         mounted_files = []
-        current_container_empty_dirs: dict[str, MountedEmptyDir] = {}
 
         for volume_mount in container_spec.get("volumeMounts", []):
             current_volume = get_volume_from_mount(workload_spec, volume_mount)
@@ -448,54 +463,41 @@ class ValidatedContainerConfig(ValidatedConfig):
                 # Extract the paths where this volume's secrets are mounted
                 secret = get_secret(templates, other_secrets, current_volume["secret"]["secretName"])
                 assert_exists_according_to_hook_weight(secret, weight, validated_config.name)
-                validated_config.sources_of_mounted_paths.append(MountedSecret.from_template(secret, volume_mount))
+                current_source_of_mount = MountedSecret.from_template(secret, volume_mount)
             elif "configMap" in current_volume:
                 # Parse config map content
                 configmap = get_configmap(templates, current_volume["configMap"]["name"])
                 assert_exists_according_to_hook_weight(configmap, weight, validated_config.name)
                 # We do not consume ConfigMaps in render-config, their configuration
                 # will actually be consumed later by the container using the rendered-config
+                current_source_of_mount = MountedConfigMap.from_template(configmap, volume_mount)
                 if not is_matrix_tools_command(container_spec, "render-config"):
-                    validated_config.sources_of_mounted_paths.append(
-                        MountedConfigMap.from_template(configmap, volume_mount)
-                    )
                     validated_config.paths_consumers.append(ConfigMapPathConsumer.from_configmap(configmap))
             elif "emptyDir" in current_volume:
                 # An empty dir can be mounted multiple times on a container if using subPath
                 # So we need to keep track of them, create them without any rendered output
                 # We fill up the rendered output available to this container on the next step
-                if current_volume["name"] in current_container_empty_dirs:
-                    current_empty_dir = current_container_empty_dirs[current_volume["name"]]
+                if current_volume["name"] in previously_mounted_empty_dirs:
+                    current_source_of_mount = previously_mounted_empty_dirs[current_volume["name"]]
+                    if "subPath" in volume_mount:
+                        current_source_of_mount.mount_point = "/".join(volume_mount["mountPath"].split("/")[:-1])
+                    else:
+                        current_source_of_mount.mount_point = volume_mount["mountPath"]
                 else:
-                    current_empty_dir = MountedEmptyDir.from_template(
+                    current_source_of_mount = MountedEmptyDir.from_template(
                         current_volume["name"], volume_mount, deployable_details.content_volumes_mapping
                     )
-                    validated_config.sources_of_mounted_paths.append(current_empty_dir)
-                    current_container_empty_dirs[current_volume["name"]] = current_empty_dir
-
-                # We fill up rendered output available to this container
-                # If we have a subPath we only add the file with the same name in the rendered output
-                if "subPath" in volume_mount:
-                    if current_volume["name"] in previously_mounted_empty_dirs:
-                        current_empty_dir.render_config_outputs |= {
-                            file: content
-                            for file, content in previously_mounted_empty_dirs[
-                                current_volume["name"]
-                            ].render_config_outputs.items()
-                            if file == volume_mount["subPath"]
-                        }
-                else:
-                    if current_volume["name"] in previously_mounted_empty_dirs:
-                        current_empty_dir.render_config_outputs = previously_mounted_empty_dirs[
-                            current_volume["name"]
-                        ].render_config_outputs
-                    validated_config.mutable_empty_dirs[current_volume["name"]] = current_empty_dir
+                validated_config.mutable_empty_dirs[current_volume["name"]] = current_source_of_mount
             elif "persistentVolumeClaim" in current_volume:
-                validated_config.sources_of_mounted_paths.append(
-                    MountedPersistentVolume.from_template(
+                current_source_of_mount = MountedPersistentVolume.from_template(
                         current_volume, volume_mount, deployable_details.content_volumes_mapping
                     )
-                )
+            # If we have a subPath we filter the files using a SubPathMount
+            if "subPath" in volume_mount:
+                validated_config.sources_of_mounted_paths.append(SubPathMount(volume_mount["subPath"],
+                                                                            current_source_of_mount))
+            else:
+                validated_config.sources_of_mounted_paths.append(current_source_of_mount)
 
         mounted_files = [
             node_path(parent_mount, mount_node)
@@ -532,8 +534,8 @@ class ValidatedContainerConfig(ValidatedConfig):
                 if (
                     node_path(parent_mount, mount_node) in paths_consistency_noqa
                     or parent_mount.path.startswith("/secrets")
-                    or mount_node
-                    and (mount_node.node_name in skip_path_consistency_for_files)
+                    or (mount_node
+                    and mount_node.node_name in skip_path_consistency_for_files)
                 ):
                     skipped_paths.append(node_path(parent_mount, mount_node))
                     continue
@@ -627,9 +629,7 @@ async def test_secrets_consistency(templates, other_secrets):
             )
             for name, empty_dir in validated_container_config.mutable_empty_dirs.items():
                 # In the all workloads empty dirs, we copy the new render config outputs to the existing dict
-                if name in all_workload_empty_dirs:
-                    all_workload_empty_dirs[name].render_config_outputs |= empty_dir.render_config_outputs
-                else:
+                if name not in all_workload_empty_dirs:
                     all_workload_empty_dirs[name] = MountedEmptyDir(
                         mount_point=None,
                         render_config_outputs=empty_dir.render_config_outputs,
