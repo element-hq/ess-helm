@@ -21,6 +21,7 @@ from .utils import get_or_empty, template_id, template_to_deployable_details
 ## TODO: Drop this test file after `test_configs_consistency.py` has been verified to be working in the context
 # of adding a new component and finding at least the same issues as this one
 
+
 def find_paths_in_contents(container, mounted_config_maps, deployable_details):
     paths_found = []
     content_to_match = [e.get("value", "") for e in container.get("env", [])]

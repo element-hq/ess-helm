@@ -87,6 +87,7 @@ def match_path_in_content(content):
                 paths_found.append(match)
     return paths_found
 
+
 def find_keys_mounts_in_content(mounted_key, matches_in):
     for match_in in matches_in:
         for match in re.findall(rf"(?:^|\s|\"){re.escape(mounted_key)}(?:[^\s\n\")`;,]*)", match_in):
@@ -261,6 +262,7 @@ class SubPathMount(SourceOfMountedPaths):
     def name(self) -> str:
         return f"SubPathMount({self.source.name()})"
 
+
 # This is something consuming paths that should be available through mount points
 @dataclass(frozen=True)
 class PathConsumer(abc.ABC):
@@ -434,10 +436,7 @@ class RenderConfigContainerPathConsumer(PathConsumer):
                 break
 
         render_config_container = cls(
-            inputs_files={
-                input_file: all_mounted_files[input_file]
-                for input_file in container_spec["args"][3:]
-            },
+            inputs_files={input_file: all_mounted_files[input_file] for input_file in container_spec["args"][3:]},
             env={e["name"]: e["value"] for e in container_spec.get("env", [])},
         )
 
@@ -559,12 +558,13 @@ class ValidatedContainerConfig(ValidatedConfig):
                 validated_config.mutable_empty_dirs[current_volume["name"]] = current_source_of_mount
             elif "persistentVolumeClaim" in current_volume:
                 current_source_of_mount = MountedPersistentVolume.from_template(
-                        current_volume, volume_mount, deployable_details.content_volumes_mapping
-                    )
+                    current_volume, volume_mount, deployable_details.content_volumes_mapping
+                )
             # If we have a subPath we filter the files using a SubPathMount
             if "subPath" in volume_mount:
-                validated_config.sources_of_mounted_paths.append(SubPathMount(volume_mount["subPath"],
-                                                                            current_source_of_mount))
+                validated_config.sources_of_mounted_paths.append(
+                    SubPathMount(volume_mount["subPath"], current_source_of_mount)
+                )
             else:
                 validated_config.sources_of_mounted_paths.append(current_source_of_mount)
 
@@ -603,8 +603,7 @@ class ValidatedContainerConfig(ValidatedConfig):
                 if (
                     node_path(parent_mount, mount_node) in paths_consistency_noqa
                     or parent_mount.path.startswith("/secrets")
-                    or (mount_node
-                    and mount_node.node_name in skip_path_consistency_for_files)
+                    or (mount_node and mount_node.node_name in skip_path_consistency_for_files)
                 ):
                     skipped_paths.append(node_path(parent_mount, mount_node))
                     continue
@@ -669,9 +668,9 @@ async def test_secrets_consistency(templates, other_secrets):
         all_workload_empty_dirs = {}
         # Gather all containers and initContainers from the template spec
         workload_spec = template["spec"]["template"]["spec"]
-        containers = workload_spec.get("initContainers", []) + template["spec"]["template"][
-            "spec"
-        ].get("containers", [])
+        containers = workload_spec.get("initContainers", []) + template["spec"]["template"]["spec"].get(
+            "containers", []
+        )
         weight = None
         if "pre-install,pre-upgrade" in template["metadata"].get("annotations", {}).get("helm.sh/hook", ""):
             weight = int(template["metadata"]["annotations"].get("helm.sh/hook-weight", 0))
