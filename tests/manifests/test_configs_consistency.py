@@ -440,6 +440,7 @@ class ValidatedContainerConfig(ValidatedConfig):
         validated_config = cls(template_id=template_id, name=deployable_details.name)
         # Determine which secrets are mounted by this container
         mounted_files = []
+        current_container_empty_dirs: dict[str, MountedEmptyDir] = {}
 
         for volume_mount in container_spec.get("volumeMounts", []):
             current_volume = get_volume_from_mount(workload_spec, volume_mount)
@@ -460,23 +461,35 @@ class ValidatedContainerConfig(ValidatedConfig):
                     )
                     validated_config.paths_consumers.append(ConfigMapPathConsumer.from_configmap(configmap))
             elif "emptyDir" in current_volume:
-                empty_dir = MountedEmptyDir.from_template(
-                    current_volume["name"], volume_mount, deployable_details.content_volumes_mapping
-                )
-                if current_volume["name"] in previously_mounted_empty_dirs:
-                    existing_empty_dir = previously_mounted_empty_dirs[current_volume["name"]]
-                    if "subPath" in volume_mount:
-                        empty_dir.render_config_outputs |= {
+                # An empty dir can be mounted multiple times on a container if using subPath
+                # So we need to keep track of them, create them without any rendered output
+                # We fill up the rendered output available to this container on the next step
+                if current_volume["name"] in current_container_empty_dirs:
+                    current_empty_dir = current_container_empty_dirs[current_volume["name"]]
+                else:
+                    current_empty_dir = MountedEmptyDir.from_template(
+                        current_volume["name"], volume_mount, deployable_details.content_volumes_mapping
+                    )
+                    validated_config.sources_of_mounted_paths.append(current_empty_dir)
+                    current_container_empty_dirs[current_volume["name"]] = current_empty_dir
+
+                # We fill up rendered output available to this container
+                # If we have a subPath we only add the file with the same name in the rendered output
+                if "subPath" in volume_mount:
+                    if current_volume["name"] in previously_mounted_empty_dirs:
+                        current_empty_dir.render_config_outputs |= {
                             file: content
-                            for file, content in existing_empty_dir.render_config_outputs.items()
+                            for file, content in previously_mounted_empty_dirs[
+                                current_volume["name"]
+                            ].render_config_outputs.items()
                             if file == volume_mount["subPath"]
                         }
-                    else:
-                        empty_dir.render_config_outputs |= existing_empty_dir.render_config_outputs
-
-                if "subPath" not in volume_mount:
-                    validated_config.mutable_empty_dirs[current_volume["name"]] = empty_dir
-                validated_config.sources_of_mounted_paths.append(empty_dir)
+                else:
+                    if current_volume["name"] in previously_mounted_empty_dirs:
+                        current_empty_dir.render_config_outputs = previously_mounted_empty_dirs[
+                            current_volume["name"]
+                        ].render_config_outputs
+                    validated_config.mutable_empty_dirs[current_volume["name"]] = current_empty_dir
             elif "persistentVolumeClaim" in current_volume:
                 validated_config.sources_of_mounted_paths.append(
                     MountedPersistentVolume.from_template(
@@ -518,8 +531,9 @@ class ValidatedContainerConfig(ValidatedConfig):
             for parent_mount, mount_node in source.get_mounted_paths():
                 if (
                     node_path(parent_mount, mount_node) in paths_consistency_noqa
+                    or parent_mount.path.startswith("/secrets")
                     or mount_node
-                    and mount_node.node_name in skip_path_consistency_for_files
+                    and (mount_node.node_name in skip_path_consistency_for_files)
                 ):
                     skipped_paths.append(node_path(parent_mount, mount_node))
                     continue

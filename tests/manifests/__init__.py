@@ -554,6 +554,9 @@ all_components_details = [
                     "/as/0/bridge_registration.yaml",
                     "/usr/local/bin/mas-cli",
                     "/media/media_store",
+                    # Those are internal to the syn2mas subcommand
+                    "/tmp-mas-cli",
+                    "/tmp-mas-cli/mas-cli",
                 ),
                 content_volumes_mapping={"/tmp-mas-cli": ("mas-cli",)},
                 values_file_path_overrides={
@@ -629,6 +632,7 @@ all_components_details = [
                 has_service_monitor=False,
                 has_replicas=False,
                 makes_outbound_requests=False,
+                paths_consistency_noqa=("/tmp",),
                 content_volumes_mapping={
                     "/media": ("media_store",),
                 },
