@@ -266,13 +266,6 @@ class SubPathMount(SourceOfMountedPaths):
 # This is something consuming paths that should be available through mount points
 @dataclass(frozen=True)
 class PathConsumer(abc.ABC):
-    # Look in the consumer configuration and return strings that look like a ParentMount
-    @abc.abstractmethod
-    def get_parent_mount_lookalikes(
-        self, deployable_details: DeployableDetails, parent_mount: ParentMount
-    ) -> list[str]:
-        pass
-
     # Look for all potential paths
     @abc.abstractmethod
     def get_all_paths_in_content(self, skip_path_consistency_for_files) -> list[str]:
@@ -335,16 +328,6 @@ class ConfigMapPathConsumer(PathConsumer):
     def path_is_used_in_content(self, path) -> bool:
         return any(find_keys_mounts_in_content(path, [content]) for _, content in self.data.items())
 
-    def get_parent_mount_lookalikes(self, paths_consistency_noqa, parent_mount: ParentMount) -> list[str]:
-        lookalikes = []
-
-        for match_in in [v for v in self.data.values()]:
-            for match in re.findall(rf"(?:^|\s|\"){parent_mount.path}/([^\s\n\")`;,]+(?!.*noqa))", match_in):
-                if f"{parent_mount.path}/{match}" in paths_consistency_noqa:
-                    continue
-                lookalikes.append(f"{parent_mount.path}/{match}")
-        return lookalikes
-
     def get_all_paths_in_content(self, skip_path_consistency_for_files):
         paths = []
         for key, content in self.data.items():
@@ -395,18 +378,6 @@ class GenericContainerSpecPathConsumer(PathConsumer):
             path,
             list(self.env.values()) + self.args + self._empty_dir_rendered_content() + list(self.exec_probes.values()),
         )
-
-    def get_parent_mount_lookalikes(self, paths_consistency_noqa, parent_mount: ParentMount) -> list[str]:
-        lookalikes = []
-
-        for match_in in (
-            list(self.env.values()) + list(self.exec_probes.values()) + self.args + self._empty_dir_rendered_content()
-        ):
-            for match in re.findall(rf"(?:^|\s|\"){parent_mount.path}/([^\s\n\")`;,]+(?!.*noqa))", match_in):
-                if f"{parent_mount.path}/{match}" in paths_consistency_noqa:
-                    continue
-                lookalikes.append(f"{parent_mount.path}/{match}")
-        return lookalikes
 
     def get_all_paths_in_content(self, skip_path_consistency_for_files):
         paths = []
@@ -478,18 +449,6 @@ class RenderConfigContainerPathConsumer(PathConsumer):
             or path.startswith(self.output[0].path)
         )
 
-    def get_parent_mount_lookalikes(self, paths_consistency_noqa, parent_mount: ParentMount) -> list[str]:
-        lookalikes = []
-
-        for match_in in list(self.env.values()) + list(self.inputs_files.values()):
-            for match in re.findall(
-                rf"(?:readfile\s+)(?:^|\s|\"){parent_mount.path}/([^\s\n\")`;,]+(?!.*noqa))", match_in
-            ):
-                if f"{parent_mount.path}/{match}" in paths_consistency_noqa:
-                    continue
-                lookalikes.append(f"{parent_mount.path}/{match}")
-        return lookalikes
-
     def get_all_paths_in_content(self, skip_path_consistency_for_files):
         paths = []
         for key, content in self.inputs_files.items():
@@ -509,10 +468,6 @@ class ValidatedConfig(abc.ABC):
 
     @abc.abstractmethod
     def check_paths_used_in_content(self, skip_path_consistency_for_files, paths_consistency_noqa):
-        pass
-
-    @abc.abstractmethod
-    def check_paths_lookalikes_matchs_source_of_mounted_paths(self, paths_consistency_noqa):
         pass
 
     @abc.abstractmethod
@@ -646,23 +601,6 @@ class ValidatedContainerConfig(ValidatedConfig):
             f"Skipped paths: {skipped_paths}"
         )
 
-    def check_paths_lookalikes_matchs_source_of_mounted_paths(
-        self, skip_path_consistency_for_files, paths_consistency_noqa
-    ):
-        mounted_paths = []
-        for source in self.sources_of_mounted_paths:
-            for parent_mount, mount_node in source.get_mounted_paths():
-                mounted_paths.append(node_path(parent_mount, mount_node))
-        for source in self.sources_of_mounted_paths:
-            for parent_mount, _ in source.get_mounted_paths():
-                if parent_mount in paths_consistency_noqa:
-                    continue
-                for path_consumer in self.paths_consumers:
-                    for lookalikes in path_consumer.get_parent_mount_lookalikes(paths_consistency_noqa, parent_mount):
-                        assert lookalikes in mounted_paths, (
-                            f"{self.name} : Found path consumer mismatch in {path_consumer}"
-                        )
-
     def check_all_paths_matches_an_actual_mount(self, skip_path_consistency_for_files, paths_consistency_noqa):
         paths_which_do_not_match = []
         for path_consumer in self.paths_consumers:
@@ -745,17 +683,6 @@ async def test_mounted_files_unique(templates, other_secrets):
 async def test_any_mounted_path_is_used_in_content(templates, other_secrets):
     traverse_containers_and_run_consistency_check(
         templates, other_secrets, ValidatedContainerConfig, ValidatedContainerConfig.check_paths_used_in_content
-    )
-
-
-@pytest.mark.parametrize("values_file", values_files_to_test | secret_values_files_to_test)
-@pytest.mark.asyncio_cooperative
-async def test_make_sure_no_typo_in_file_under_known_parent_mounts(templates, other_secrets):
-    traverse_containers_and_run_consistency_check(
-        templates,
-        other_secrets,
-        ValidatedContainerConfig,
-        ValidatedContainerConfig.check_paths_lookalikes_matchs_source_of_mounted_paths,
     )
 
 
