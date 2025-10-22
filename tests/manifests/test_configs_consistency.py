@@ -88,9 +88,9 @@ def match_path_in_content(content):
     return paths_found
 
 
-def find_keys_mounts_in_content(mounted_key, matches_in):
+def find_keys_mounts_in_content(path, matches_in: list[str]):
     for match_in in matches_in:
-        for match in re.findall(rf"(?:^|\s|\"){re.escape(mounted_key)}(?:[^\s\n\")`;,]*)", match_in):
+        for match in re.findall(rf"(?:^|\s|\"){re.escape(path)}(?:[^\s\n\")`;,]*)", match_in):
             if match:
                 return True
     return False
@@ -278,6 +278,11 @@ class PathConsumer(abc.ABC):
     def get_all_paths_in_content(self, skip_path_consistency_for_files) -> list[str]:
         pass
 
+    # Mutate empty dirs after the container has been consistency-checked
+    @abc.abstractmethod
+    def mutate_empty_dirs(self, container_spec, workload_spec, mutable_empty_dirs: dict[str, MountedEmptyDir]):
+        pass
+
 
 ## Gets all mounted files in a given container
 def get_all_mounted_files(
@@ -348,6 +353,10 @@ class ConfigMapPathConsumer(PathConsumer):
             paths += match_path_in_content(content)
         return paths
 
+    def mutate_empty_dirs(self, container_spec, workload_spec, mutable_empty_dirs: dict[str, MountedEmptyDir]):
+        pass
+
+
 
 # A consumer which refers to files through input env values and args/command of the container
 @dataclass(frozen=True)
@@ -387,12 +396,9 @@ class GenericContainerSpecPathConsumer(PathConsumer):
     def get_parent_mount_lookalikes(self, paths_consistency_noqa, parent_mount: ParentMount) -> list[str]:
         lookalikes = []
 
-        for match_in in [
-            list(self.env.values())
-            + self.args
-            + self._empty_dir_rendered_content()
-
-        ]:
+        for match_in in (list(self.env.values())
+                            + self.args
+                            + self._empty_dir_rendered_content()):
             for match in re.findall(rf"(?:^|\s|\"){parent_mount.path}/([^\s\n\")`;,]+(?!.*noqa))", match_in):
                 if f"{parent_mount.path}/{match}" in paths_consistency_noqa:
                     continue
@@ -411,11 +417,16 @@ class GenericContainerSpecPathConsumer(PathConsumer):
         return paths
 
 
+    def mutate_empty_dirs(self, container_spec, workload_spec, mutable_empty_dirs: dict[str, MountedEmptyDir]):
+        pass
+
+
 # A consumer which render-config, so will consume only files prefixed by "readfile " + the render-config input files
 @dataclass(frozen=True)
 class RenderConfigContainerPathConsumer(PathConsumer):
     inputs_files: dict[str, str] = field(default_factory=dict)
     env: dict[str, str] = field(default_factory=dict)
+    output: tuple = field(default_factory=tuple)
 
     @classmethod
     def from_container_spec(
@@ -434,26 +445,36 @@ class RenderConfigContainerPathConsumer(PathConsumer):
         render_config_container = cls(
             inputs_files={input_file: all_mounted_files[input_file] for input_file in container_spec["args"][3:]},
             env={e["name"]: e["value"] for e in container_spec.get("env", [])},
+            output=output,
         )
-
-        # We trim readfile calls from the rendered content
-        for volume_mount in container_spec.get("volumeMounts", []):
-            volume = get_volume_from_mount(workload_spec, volume_mount)
-            if "emptyDir" in volume and volume_mount["mountPath"] == output[0].path:
-                assert "subPath" not in volume_mount, "render-config should not target a file mounted using `subPath`"
-                mutable_empty_dirs[volume["name"]].render_config_outputs[output[1].node_name] = "\n".join(
-                    [
-                        re.sub(r"{{\s+(?:readfile\s+)(?:^|\s|\".+)\s*}}", "", content)
-                        for content in render_config_container.inputs_files.values()
-                    ]
-                )
 
         return render_config_container
 
-    # noqa: we do not check if path is used in content against render-config containers
-    # as they mount all secrets that *might* be useful
+    def mutate_empty_dirs(self, container_spec, workload_spec, mutable_empty_dirs: dict[str, MountedEmptyDir]):
+        # We trim readfile calls from the rendered content
+        for volume_mount in container_spec.get("volumeMounts", []):
+            volume = get_volume_from_mount(workload_spec, volume_mount)
+            if "emptyDir" in volume and volume_mount["mountPath"] == self.output[0].path:
+                assert "subPath" not in volume_mount, "render-config should not target a file mounted using `subPath`"
+                mutable_empty_dirs[volume["name"]].render_config_outputs[self.output[1].node_name] = "\n".join(
+                    [
+                        re.sub(r"{{\s+(?:readfile\s+)(?:^|\s|\".+)\s*}}", "", content)
+                        for content in self.inputs_files.values()
+                    ]
+                )
+
     def path_is_used_in_content(self, path) -> bool:
-        return True
+        return (find_keys_mounts_in_content(
+            path,
+            [node_path(*self.output)]
+            + list(self.env.values())
+            + list(self.inputs_files.keys())
+            + list(self.inputs_files.values()))
+            # for now we deliberately mount too many files in config-templates
+            or path.startswith("/conf")
+            # we also deliberately ignore files which are in the same directory as our output
+            # as we are most certainly cumulating files here
+            or path.startswith(self.output[0].path))
 
     def get_parent_mount_lookalikes(self, paths_consistency_noqa, parent_mount: ParentMount) -> list[str]:
         lookalikes = []
@@ -517,7 +538,7 @@ class ValidatedContainerConfig(ValidatedConfig):
         other_secrets,
         previously_mounted_empty_dirs: dict[str, MountedEmptyDir],
     ):
-        validated_config = cls(template_id=template_id, name=deployable_details.name)
+        validated_config = cls(template_id=template_id, name=container_spec["name"])
         # Determine which secrets are mounted by this container
         mounted_files = []
 
@@ -656,6 +677,12 @@ class ValidatedContainerConfig(ValidatedConfig):
             f"Looked in {self.sources_of_mounted_paths}\n"
         )
 
+    def mutate_empty_dirs(self, container_spec, workload_spec):
+        for consumer in self.paths_consumers:
+            consumer.mutate_empty_dirs(
+                container_spec, workload_spec, self.mutable_empty_dirs
+            )
+
 
 def traverse_containers_and_run_consistency_check(
     templates, other_secrets, validated_container_class, consistency_check
@@ -689,6 +716,9 @@ def traverse_containers_and_run_consistency_check(
                 validated_container_config,
                 deployable_details.skip_path_consistency_for_files,
                 deployable_details.paths_consistency_noqa,
+            )
+            validated_container_config.mutate_empty_dirs(
+                container_spec, workload_spec
             )
             for name, empty_dir in validated_container_config.mutable_empty_dirs.items():
                 # In the all workloads empty dirs, we copy the new render config outputs to the existing dict
