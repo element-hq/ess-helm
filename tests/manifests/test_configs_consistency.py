@@ -357,13 +357,13 @@ class ConfigMapPathConsumer(PathConsumer):
         pass
 
 
-
 # A consumer which refers to files through input env values and args/command of the container
 @dataclass(frozen=True)
 class GenericContainerSpecPathConsumer(PathConsumer):
     env: dict[str, str] = field(default_factory=dict)
     args: list[str] = field(default_factory=list)
     mounted_empty_dirs: dict[str, MountedEmptyDir] = field(default_factory=dict)
+    exec_probes: dict[str, str] = field(default_factory=dict)
 
     def _empty_dir_rendered_content(self):
         return [
@@ -382,23 +382,26 @@ class GenericContainerSpecPathConsumer(PathConsumer):
         return cls(
             env={e["name"]: e["value"] for e in container_spec.get("env", [])},
             args=container_spec.get("command") or container_spec.get("args", []),
+            exec_probes={
+                p: "\n".join(container_spec[p]["exec"]["command"])
+                for p in ("startupProbe", "livenessProbe", "readinessProbe")
+                if container_spec.get(p, {}).get("exec", {})
+            },
             mounted_empty_dirs=mounted_empty_dirs,
         )
 
     def path_is_used_in_content(self, path) -> bool:
         return find_keys_mounts_in_content(
             path,
-            list(self.env.values())
-            + self.args
-            + self._empty_dir_rendered_content()
+            list(self.env.values()) + self.args + self._empty_dir_rendered_content() + list(self.exec_probes.values()),
         )
 
     def get_parent_mount_lookalikes(self, paths_consistency_noqa, parent_mount: ParentMount) -> list[str]:
         lookalikes = []
 
-        for match_in in (list(self.env.values())
-                            + self.args
-                            + self._empty_dir_rendered_content()):
+        for match_in in (
+            list(self.env.values()) + list(self.exec_probes.values()) + self.args + self._empty_dir_rendered_content()
+        ):
             for match in re.findall(rf"(?:^|\s|\"){parent_mount.path}/([^\s\n\")`;,]+(?!.*noqa))", match_in):
                 if f"{parent_mount.path}/{match}" in paths_consistency_noqa:
                     continue
@@ -408,14 +411,10 @@ class GenericContainerSpecPathConsumer(PathConsumer):
     def get_all_paths_in_content(self, skip_path_consistency_for_files):
         paths = []
         for content in (
-            list(self.env.values())
-            + self.args
-            + self._empty_dir_rendered_content()
-
+            list(self.env.values()) + list(self.exec_probes.values()) + self.args + self._empty_dir_rendered_content()
         ):
             paths += match_path_in_content(content)
         return paths
-
 
     def mutate_empty_dirs(self, container_spec, workload_spec, mutable_empty_dirs: dict[str, MountedEmptyDir]):
         pass
@@ -464,17 +463,20 @@ class RenderConfigContainerPathConsumer(PathConsumer):
                 )
 
     def path_is_used_in_content(self, path) -> bool:
-        return (find_keys_mounts_in_content(
-            path,
-            [node_path(*self.output)]
-            + list(self.env.values())
-            + list(self.inputs_files.keys())
-            + list(self.inputs_files.values()))
+        return (
+            find_keys_mounts_in_content(
+                path,
+                [node_path(*self.output)]
+                + list(self.env.values())
+                + list(self.inputs_files.keys())
+                + list(self.inputs_files.values()),
+            )
             # for now we deliberately mount too many files in config-templates
             or path.startswith("/conf")
             # we also deliberately ignore files which are in the same directory as our output
-            # as we are most certainly cumulating files here
-            or path.startswith(self.output[0].path))
+            # as we are most certainly cumulating files here
+            or path.startswith(self.output[0].path)
+        )
 
     def get_parent_mount_lookalikes(self, paths_consistency_noqa, parent_mount: ParentMount) -> list[str]:
         lookalikes = []
@@ -679,9 +681,7 @@ class ValidatedContainerConfig(ValidatedConfig):
 
     def mutate_empty_dirs(self, container_spec, workload_spec):
         for consumer in self.paths_consumers:
-            consumer.mutate_empty_dirs(
-                container_spec, workload_spec, self.mutable_empty_dirs
-            )
+            consumer.mutate_empty_dirs(container_spec, workload_spec, self.mutable_empty_dirs)
 
 
 def traverse_containers_and_run_consistency_check(
@@ -717,9 +717,7 @@ def traverse_containers_and_run_consistency_check(
                 deployable_details.skip_path_consistency_for_files,
                 deployable_details.paths_consistency_noqa,
             )
-            validated_container_config.mutate_empty_dirs(
-                container_spec, workload_spec
-            )
+            validated_container_config.mutate_empty_dirs(container_spec, workload_spec)
             for name, empty_dir in validated_container_config.mutable_empty_dirs.items():
                 # In the all workloads empty dirs, we copy the new render config outputs to the existing dict
                 if name not in all_workload_empty_dirs:

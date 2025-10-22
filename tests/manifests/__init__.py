@@ -112,7 +112,7 @@ class DeployableDetails(abc.ABC):
     paths_consistency_noqa: tuple[str, ...] = field(default=(), hash=False)
     # Use this to skip any configuration consistency checks for given filenames
     # For example, haproxy.cfg has dozens of HTTP Paths but they are not filepaths
-    # Instead of noqa-ing all the paths found, we skip the whole file
+    # Instead of noqa-ing all the paths found, we skip the whole file
     skip_path_consistency_for_files: tuple[str, ...] = field(default=(), hash=False)
     # Use this property to add files that we know to be present in PVC/EmptyDirs
     # even if they're not being created by the chart templates
