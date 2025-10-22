@@ -557,10 +557,10 @@ class ValidatedContainerConfig(ValidatedConfig):
                 # Parse config map content
                 configmap = get_configmap(templates, current_volume["configMap"]["name"])
                 assert_exists_according_to_hook_weight(configmap, weight, validated_config.name)
-                # We do not consume ConfigMaps in render-config, their configuration
-                # will actually be consumed later by the container using the rendered-config
                 current_source_of_mount = MountedConfigMap.from_template(configmap, volume_mount)
                 if not is_matrix_tools_command(container_spec, "render-config"):
+                    # We only consume ConfigMaps in render-config
+                    # We do not need a SecretPathConsumer as we do not have configuration stored in secrets
                     validated_config.paths_consumers.append(ConfigMapPathConsumer.from_configmap(configmap))
             elif "emptyDir" in current_volume:
                 # An empty dir can be mounted multiple times on a container if using subPath
