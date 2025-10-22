@@ -11,10 +11,20 @@ from dataclasses import dataclass, field
 import pytest
 
 from . import DeployableDetails, secret_values_files_to_test, values_files_to_test
-from .test_configs_and_mounts_consistency import (
-    assert_exists_according_to_hook_weight,
-)
 from .utils import get_or_empty, template_id, template_to_deployable_details
+
+
+def assert_exists_according_to_hook_weight(template, hook_weight, used_by):
+    # We skip any template which hook weight is higher than the current template using it
+    if hook_weight is not None:
+        assert "helm.sh/hook-weight" in template["metadata"].get("annotations", {}), (
+            f"template {template['metadata']['name']} used by {used_by} has no hook weight"
+        )
+        assert int(template["metadata"]["annotations"]["helm.sh/hook-weight"]) < hook_weight, (
+            f"template {template['metadata']['name']} has the same or "
+            f"higher hook weight ({template['metadata']['annotations']['helm.sh/hook-weight']}) "
+            f"than the current one used by {used_by} ({hook_weight})"
+        )
 
 
 def get_configmap(templates, configmap_name):
@@ -426,10 +436,8 @@ class RenderConfigContainerPathConsumer(PathConsumer):
 
         render_config_container = cls(
             inputs_files={
-                f: c
-                for f, c in all_mounted_files.items()
+                input_file: all_mounted_files[input_file]
                 for input_file in container_spec["args"][3:]
-                if f in input_file
             },
             env={e["name"]: e["value"] for e in container_spec.get("env", [])},
         )

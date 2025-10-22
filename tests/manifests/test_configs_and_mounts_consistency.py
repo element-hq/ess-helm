@@ -9,6 +9,7 @@ import pytest
 
 from . import secret_values_files_to_test, values_files_to_test
 from .test_configs_consistency import (
+    assert_exists_according_to_hook_weight,
     find_keys_mounts_in_content,
     get_configmap,
     get_secret,
@@ -167,19 +168,6 @@ def get_pvcs_and_empty_dirs_mount_paths(template):
             if "emptyDir" in current_volume or "persistentVolumeClaim" in current_volume:
                 mounted_keys.append(volume_mount["mountPath"])
     return mounted_keys
-
-
-def assert_exists_according_to_hook_weight(template, hook_weight, used_by):
-    # We skip any template which hook weight is higher than the current template using it
-    if hook_weight is not None:
-        assert "helm.sh/hook-weight" in template["metadata"].get("annotations", {}), (
-            f"template {template['metadata']['name']} used by {used_by} has no hook weight"
-        )
-        assert int(template["metadata"]["annotations"]["helm.sh/hook-weight"]) < hook_weight, (
-            f"template {template['metadata']['name']} has the same or "
-            f"higher hook weight ({template['metadata']['annotations']['helm.sh/hook-weight']}) "
-            f"than the current one used by {used_by} ({hook_weight})"
-        )
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test | secret_values_files_to_test)
