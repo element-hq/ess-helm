@@ -83,6 +83,11 @@ name = "Security"
 showcontent = true
 
 [[tool.towncrier.type]]
+directory = "removed"
+name = "Removed / Breaking Changes"
+showcontent = true
+
+[[tool.towncrier.type]]
 directory = "deprecated"
 name = "Deprecated"
 showcontent = true
@@ -100,11 +105,6 @@ showcontent = true
 [[tool.towncrier.type]]
 directory = "fixed"
 name = "Fixed"
-showcontent = true
-
-[[tool.towncrier.type]]
-directory = "removed"
-name = "Removed"
 showcontent = true
 
 [[tool.towncrier.type]]
