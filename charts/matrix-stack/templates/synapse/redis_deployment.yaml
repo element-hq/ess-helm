@@ -67,18 +67,12 @@ spec:
           name: config
           readOnly: true
           subPath: redis.conf
-        - mountPath: /data
-          name: data
-          readOnly: false
       restartPolicy: Always
       volumes:
       - configMap:
           name: "{{ $.Release.Name }}-synapse-redis"
           defaultMode: 420
         name: config
-      - emptyDir:
-          medium: Memory
-        name: data
 {{- end }}
 {{- end }}
 {{- end -}}

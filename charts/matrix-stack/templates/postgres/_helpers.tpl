@@ -154,6 +154,8 @@ env:
               ) }}
 - name: "PGDATA"
   value: "/var/lib/postgres/data/pgdata"
+- name: "PGHOST"
+  value: "/var/run/postgresql"
 - name: "POSTGRES_INITDB_ARGS"
   value: "-E UTF8"
 - name: "LC_COLLATE"

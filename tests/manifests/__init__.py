@@ -373,6 +373,7 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
         has_ingress=False,
         is_synapse_process=True,
         has_replicas=(worker_type == "scalable"),
+        paths_consistency_noqa=("/tmp", ),
         content_volumes_mapping={
             "/media": ("media_store",),
         },
@@ -515,6 +516,7 @@ all_components_details = [
         has_additional_config=False,
         has_service_monitor=False,
         makes_outbound_requests=False,
+        paths_consistency_noqa=("/tmp",),
     ),
     ComponentDetails(
         name="element-web",
@@ -585,6 +587,7 @@ all_components_details = [
         is_synapse_process=True,
         additional_values_files=("synapse-worker-example-values.yaml",),
         skip_path_consistency_for_files=("path_map_file", "path_map_file_get"),
+        paths_consistency_noqa=("/tmp", ),
         content_volumes_mapping={
             "/media": ("media_store",),
         },

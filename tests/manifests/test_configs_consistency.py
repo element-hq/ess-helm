@@ -112,7 +112,7 @@ class MountedEmptyDir(SourceOfMountedPaths):
     @classmethod
     def from_template(cls, mount_point, content_volumes_mapping):
         return cls(
-            mount_point=mount_point["mountPath"],
+            mount_point=mount_point["mountPath"] if "subPath" not in mount_point else "/".join(mount_point["mountPath"].split("/")[:-1]),
             subcontent=content_volumes_mapping.get(mount_point["mountPath"], ()),
         )
 
@@ -246,20 +246,20 @@ class GenericContainerSpecPathConsumer(PathConsumer):
                 mounted_empty_dirs[volume["name"]] = previously_mounted_empty_dirs[volume["name"]]
         return cls(
             env={e["name"]: e["value"] for e in container_spec.get("env", [])},
-            args=container_spec.get("args", []),
+            args=container_spec.get("command") or container_spec.get("args", []),
             mounted_empty_dirs=mounted_empty_dirs,
         )
 
     def path_is_used_in_content(self, path) -> bool:
-        return any(
-            find_keys_mounts_in_content(path, [content])
-            for content in list(self.env.values())
+        return find_keys_mounts_in_content(
+            path,
+            list(self.env.values())
             + self.args
             + [
                 rendered_content
                 for empty_dir in self.mounted_empty_dirs.values()
                 for file, rendered_content in empty_dir.render_config_outputs.items()
-            ]
+            ],
         )
 
     def get_parent_mount_lookalikes(self, paths_consistency_noqa, parent_mount: ParentMount) -> list[str]:
@@ -339,8 +339,10 @@ class RenderConfigContainerPathConsumer(PathConsumer):
 
         return render_config_container
 
+    # noqa: we do not check if path is used in content against render-config containers
+    # as they mount all secrets that *might* be useful
     def path_is_used_in_content(self, path) -> bool:
-        return any(find_keys_mounts_in_content(path, [content]) for content in list(self.inputs_files.values()))
+        return True
 
     def get_parent_mount_lookalikes(self, paths_consistency_noqa, parent_mount: ParentMount) -> list[str]:
         lookalikes = []
@@ -404,7 +406,7 @@ class ValidatedContainerConfig(ValidatedConfig):
         other_secrets,
         previously_mounted_empty_dirs: dict[str, MountedEmptyDir],
     ):
-        validated_config = cls(template_id=template_id, name=container_spec["name"])
+        validated_config = cls(template_id=template_id, name=deployable_details.name)
         # Determine which secrets are mounted by this container
         mounted_files = []
 
@@ -483,7 +485,8 @@ class ValidatedContainerConfig(ValidatedConfig):
             for parent_mount, mount_node in source.get_mounted_paths():
                 if (
                     node_path(parent_mount, mount_node) in paths_consistency_noqa
-                    or mount_node and mount_node.node_name in skip_path_consistency_for_files
+                    or mount_node
+                    and mount_node.node_name in skip_path_consistency_for_files
                 ):
                     skipped_paths.append(node_path(parent_mount, mount_node))
                     continue
@@ -492,9 +495,11 @@ class ValidatedContainerConfig(ValidatedConfig):
                         break
                 else:
                     paths_not_found.append(node_path(parent_mount, mount_node))
-        assert paths_not_found == [], (f"{self.name} : "
-                                        f"No consumer found for paths {paths_not_found}. "
-                                        f"Skipped paths: {skipped_paths}")
+        assert paths_not_found == [], (
+            f"{self.name} : "
+            f"No consumer found for paths {paths_not_found}. "
+            f"Skipped paths: {skipped_paths}"
+        )
 
     def check_paths_lookalikes_matchs_source_of_mounted_paths(self, paths_consistency_noqa):
         mounted_paths = []
@@ -537,7 +542,6 @@ class ValidatedContainerConfig(ValidatedConfig):
 async def test_secrets_consistency(templates, other_secrets):
     workloads = [t for t in templates if t["kind"] in ("Deployment", "StatefulSet", "Job")]
     for template in workloads:
-        deployable_details = template_to_deployable_details(template)
         # A list of empty dirs that will be updated as we traverse containers
         all_workload_empty_dirs = {}
         # Gather all containers and initContainers from the template spec
@@ -549,6 +553,7 @@ async def test_secrets_consistency(templates, other_secrets):
             weight = int(template["metadata"]["annotations"].get("helm.sh/hook-weight", 0))
 
         for container_spec in containers:
+            deployable_details = template_to_deployable_details(template, container_spec["name"])
             validated_container_config = ValidatedContainerConfig.from_container_spec(
                 template_id(template),
                 template["spec"]["template"]["spec"],
