@@ -13,14 +13,76 @@ import pytest
 from . import DeployableDetails, secret_values_files_to_test, values_files_to_test
 from .test_configs_and_mounts_consistency import (
     assert_exists_according_to_hook_weight,
-    find_keys_mounts_in_content,
-    get_configmap,
-    get_or_empty,
-    get_secret,
-    get_volume_from_mount,
-    match_path_in_content,
 )
-from .utils import template_id, template_to_deployable_details
+from .utils import get_or_empty, template_id, template_to_deployable_details
+
+
+def get_configmap(templates, configmap_name):
+    """
+    Get the content of a ConfigMap with the given name.
+    :param configmap_name: The name of the ConfigMap to retrieve.
+    :return: A string containing the content of the ConfigMap, or an empty string if not found.
+    """
+    for t in templates:
+        if t["kind"] == "ConfigMap" and t["metadata"]["name"] == configmap_name:
+            return t
+    raise ValueError(f"ConfigMap {configmap_name} not found")
+
+
+def get_secret(templates, other_secrets, secret_name):
+    """
+    Get the content of a Secret with the given name.
+    :param secret_name: The name of the Secret to retrieve.
+    :return: A string containing the content of the Secret, or an empty string if not found.
+    """
+    for t in templates:
+        if t["kind"] == "Secret" and t["metadata"]["name"] == secret_name:
+            return t
+    for s in other_secrets:
+        if s["metadata"]["name"] == secret_name:
+            return s
+    raise ValueError(f"Secret {secret_name} not found")
+
+
+def get_volume_from_mount(workload_spec, volume_mount):
+    """
+    Get a specific volume mount from a given template.
+    :param template: The template to search within.
+    :param volume_name: The name of the volume to retrieve.
+    :return: A dictionary representing the volume mount
+    """
+    # Find the corresponding secret volume that matches the volume mount name
+    for v in workload_spec.get("volumes", []):
+        if volume_mount["name"] == v["name"]:
+            return v
+    raise ValueError(
+        f"No matching volume found for mount path {volume_mount['mountPath']} in "
+        f"[{','.join([v['name'] for v in workload_spec['template']['spec'].get('volumes', [])])}]"
+    )
+
+
+def match_path_in_content(content):
+    paths_found = []
+    for match_in in content.split("\n"):
+        for exclude in ["://", "/bin/sh", "helm.sh/"]:
+            if exclude in match_in:
+                break
+        else:
+            # The negative lookahead prevents matching subnets like "192.168.0.0/16", "fe80::/10"
+            # And also things that do not start with / like "text/xml"
+            # The pattern [^\s\n\")`:%;,/]+[^\s\n\")`:%;,]+ is a regex that will find paths like /path/to/file
+            # It expects to find absolute paths only
+            # It is possible to add noqa in the content to ignore this path
+            for match in re.findall(r"((?<![0-9a-zA-Z:])/[^\s\n\")`:'%;,/]+[^\s\n\")`:'%;,]+(?!.*noqa))", match_in):
+                paths_found.append(match)
+    return paths_found
+
+def find_keys_mounts_in_content(mounted_key, matches_in):
+    for match_in in matches_in:
+        for match in re.findall(rf"(?:^|\s|\"){re.escape(mounted_key)}(?:[^\s\n\")`;,]*)", match_in):
+            if match:
+                return True
+    return False
 
 
 def node_path(parent_mount, mount_node):
