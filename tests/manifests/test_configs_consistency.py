@@ -173,7 +173,7 @@ class MountedConfigMap(SourceOfMountedPaths):
     @classmethod
     def from_template(cls, template, volume_mount):
         assert template["kind"] == "ConfigMap"
-        # When secret data is empty, `data:` is None, so use `get_or_empty`
+        # When configmap data is empty, `data:` is None, so use `get_or_empty`
         template_data = get_or_empty(template, "data")
         if "subPath" in volume_mount:
             return cls(
