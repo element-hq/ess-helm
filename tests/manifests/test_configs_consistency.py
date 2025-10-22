@@ -53,12 +53,17 @@ class SourceOfMountedPaths(abc.ABC):
     def get_mounted_paths(self) -> list[tuple[ParentMount, MountNode | None]]:
         pass
 
+    @abc.abstractmethod
+    def name(self) -> str:
+        return ""
+
 
 # A mounted secret will be the source of a mounted path for each secret key
 @dataclass(frozen=True)
 class MountedSecret(SourceOfMountedPaths):
     data: dict[str, str] = field(default_factory=dict)
     mount_point: str = field(default_factory=str)
+    secret_name: str = field(default_factory=str)
 
     @classmethod
     def from_template(cls, template, volume_mount):
@@ -67,16 +72,22 @@ class MountedSecret(SourceOfMountedPaths):
         template_data = get_or_empty(template, "data")
         if "subPath" in volume_mount:
             return cls(
+                secret_name=template["metadata"]["name"],
                 data={volume_mount["mountPath"].split("/")[-1]: template_data[volume_mount["subPath"]]},
                 mount_point="/".join(volume_mount["mountPath"].split("/")[:-1]),
             )
         else:
-            return cls(data=template_data, mount_point=volume_mount["mountPath"])
+            return cls(
+                secret_name=template["metadata"]["name"], data=template_data, mount_point=volume_mount["mountPath"]
+            )
 
     def get_mounted_paths(self) -> list[tuple[ParentMount, MountNode | None]]:
         return [
             (ParentMount(self.mount_point), MountNode(k, b64decode(v).decode("utf-8"))) for k, v in self.data.items()
         ]
+
+    def name(self) -> str:
+        return f"Secret {self.secret_name}"
 
 
 # A mounted configmap will be the source of a mounted path for each configmap key
@@ -84,6 +95,7 @@ class MountedSecret(SourceOfMountedPaths):
 class MountedConfigMap(SourceOfMountedPaths):
     data: dict[str, str] = field(default_factory=dict)
     mount_point: str = field(default_factory=str)
+    config_map_name: str = field(default_factory=str)
 
     @classmethod
     def from_template(cls, template, volume_mount):
@@ -92,14 +104,20 @@ class MountedConfigMap(SourceOfMountedPaths):
         template_data = get_or_empty(template, "data")
         if "subPath" in volume_mount:
             return cls(
+                config_map_name=template["metadata"]["name"],
                 data={volume_mount["mountPath"].split("/")[-1]: template_data[volume_mount["subPath"]]},
                 mount_point="/".join(volume_mount["mountPath"].split("/")[:-1]),
             )
         else:
-            return cls(data=template_data, mount_point=volume_mount["mountPath"])
+            return cls(
+                config_map_name=template["metadata"]["name"], data=template_data, mount_point=volume_mount["mountPath"]
+            )
 
     def get_mounted_paths(self) -> list[tuple[ParentMount, MountNode | None]]:
         return [(ParentMount(self.mount_point), MountNode(k, v)) for k, v in self.data.items()]
+
+    def name(self) -> str:
+        return f"ConfigMap {self.config_map_name}"
 
 
 # A mounted empty dir is a mutable instance of an empty dir that will be updated as we traverse containers
@@ -108,11 +126,15 @@ class MountedEmptyDir(SourceOfMountedPaths):
     render_config_outputs: dict[str, str] = field(default_factory=dict)
     subcontent: tuple[str, ...] = field(default_factory=tuple)
     mount_point: str = field(default_factory=str)
+    empty_dir_name: str = field(default_factory=str)
 
     @classmethod
-    def from_template(cls, mount_point, content_volumes_mapping):
+    def from_template(cls, name, mount_point, content_volumes_mapping):
         return cls(
-            mount_point=mount_point["mountPath"] if "subPath" not in mount_point else "/".join(mount_point["mountPath"].split("/")[:-1]),
+            empty_dir_name=name,
+            mount_point=mount_point["mountPath"]
+            if "subPath" not in mount_point
+            else "/".join(mount_point["mountPath"].split("/")[:-1]),
             subcontent=content_volumes_mapping.get(mount_point["mountPath"], ()),
         )
 
@@ -124,23 +146,32 @@ class MountedEmptyDir(SourceOfMountedPaths):
             mounted.append((ParentMount(self.mount_point), MountNode(node_name, "")))
         return mounted
 
+    def name(self) -> str:
+        return f"EmptyDir {self.empty_dir_name}"
+
 
 # A mounted persistent volume is the source of a mounted path only for the mount point
 @dataclass(frozen=True)
 class MountedPersistentVolume(SourceOfMountedPaths):
     mount_point: str = field(default_factory=str)
     subcontent: tuple[str, ...] = field(default_factory=tuple)
+    pvc_name: str = field(default_factory=str)
 
     @classmethod
-    def from_template(cls, template, mount_point, content_volumes_mapping):
+    def from_template(cls, volume, mount_point, content_volumes_mapping):
         return cls(
-            mount_point=mount_point["mountPath"], subcontent=content_volumes_mapping.get(mount_point["mountPath"], ())
+            pvc_name=volume["name"],
+            mount_point=mount_point["mountPath"],
+            subcontent=content_volumes_mapping.get(mount_point["mountPath"], ()),
         )
 
     def get_mounted_paths(self) -> list[tuple[ParentMount, MountNode | None]]:
         return [(ParentMount(self.mount_point), None)] + [
             (ParentMount(self.mount_point), MountNode(node_name, "")) for node_name in self.subcontent
         ]
+
+    def name(self) -> str:
+        return f"PersistentVolume {self.pvc_name}"
 
 
 # This is something consuming paths that should be available through mount points
@@ -429,7 +460,9 @@ class ValidatedContainerConfig(ValidatedConfig):
                     )
                     validated_config.paths_consumers.append(ConfigMapPathConsumer.from_configmap(configmap))
             elif "emptyDir" in current_volume:
-                empty_dir = MountedEmptyDir.from_template(volume_mount, deployable_details.content_volumes_mapping)
+                empty_dir = MountedEmptyDir.from_template(
+                    current_volume["name"], volume_mount, deployable_details.content_volumes_mapping
+                )
                 if current_volume["name"] in previously_mounted_empty_dirs:
                     existing_empty_dir = previously_mounted_empty_dirs[current_volume["name"]]
                     if "subPath" in volume_mount:
@@ -494,10 +527,15 @@ class ValidatedContainerConfig(ValidatedConfig):
                     if path_consumer.path_is_used_in_content(node_path(parent_mount, mount_node)):
                         break
                 else:
-                    paths_not_found.append(node_path(parent_mount, mount_node))
+                    paths_not_found.append((node_path(parent_mount, mount_node), source))
         assert paths_not_found == [], (
             f"{self.name} : "
-            f"No consumer found for paths {paths_not_found}. "
+            f"No consumer found for paths: \n- "
+            f"{
+                '\n- '.join(
+                    [f'{path_and_source[0]} ({path_and_source[1].name()})' for path_and_source in paths_not_found]
+                )
+            }\n"
             f"Skipped paths: {skipped_paths}"
         )
 
