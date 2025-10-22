@@ -224,7 +224,7 @@ redis.conf: |
 {{- define "element-io.synapse-haproxy.configmap-data" -}}
 {{- $root := .root -}}
 429.http: |
-{{- (tpl ($root.Files.Get "configs/haproxy/429.http.tpl") dict) | nindent 2 }}
+{{- (tpl ($root.Files.Get "configs/synapse/429.http.tpl") dict) | nindent 2 }}
 path_map_file: |
 {{- (tpl ($root.Files.Get "configs/synapse/path_map_file.tpl") (dict "root" $root)) | nindent 2 }}
 path_map_file_get: |
