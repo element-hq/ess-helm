@@ -599,6 +599,7 @@ class ValidatedContainerConfig(ValidatedConfig):
                 if (
                     node_path(parent_mount, mount_node)
                     in self.deployable_details.ignore_unreferenced_mounts.get(self.name, [])
+                    # for now we deliberately mount too many secrets in /secrets
                     or parent_mount.path.startswith("/secrets")
                     or (mount_node and mount_node.node_name in self.deployable_details.skip_path_consistency_for_files)
                 ):
