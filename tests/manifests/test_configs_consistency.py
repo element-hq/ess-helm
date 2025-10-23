@@ -364,11 +364,12 @@ class GenericContainerSpecPathConsumer(PathConsumer):
         ]
 
     def _all_container_content(self) -> list[str]:
-        return (list(self.env.values())
-                + list(self.exec_properties.values())
-                + self.args
-                + self._empty_dir_rendered_content()
-            )
+        return (
+            list(self.env.values())
+            + list(self.exec_properties.values())
+            + self.args
+            + self._empty_dir_rendered_content()
+        )
 
     @classmethod
     def from_container_spec(cls, workload_spec, container_spec, previously_mounted_empty_dirs):
