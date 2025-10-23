@@ -459,7 +459,7 @@ class RenderConfigContainerPathConsumer(PathConsumer):
             # for now we deliberately mount too many files in config-templates
             or path.startswith("/conf")
             # we also deliberately ignore files which are in the same directory as our output
-            # as we are most certainly cumulating files here
+            # as we are most certainly accumulating files here
             or path.startswith(self.output[0].path)
         )
 
