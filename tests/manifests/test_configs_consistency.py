@@ -647,7 +647,8 @@ class ValidatedContainerConfig(ValidatedConfig):
                         paths_which_do_not_match.append(path)
         assert paths_which_do_not_match == [], (
             f"Paths which do not match an actual file in {self.template_id}/{self.name}: {paths_which_do_not_match}. "
-            f"Skipped {self.deployable_details.skip_path_consistency_for_files}\n"
+            "Skipped"
+            f"{[] if not self.deployable_details else self.deployable_details.skip_path_consistency_for_files}\n"
             f"Looked in {self.sources_of_mounted_paths}\n"
         )
 
