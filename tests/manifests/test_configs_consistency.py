@@ -627,7 +627,7 @@ class ValidatedContainerConfig(ValidatedConfig):
                     if path not in ignore_paths_mismatches.get(self.name, []):
                         paths_which_do_not_match.append(path)
         assert paths_which_do_not_match == [], (
-            f"Paths which do not match in {self.template_id}/{self.name}: {paths_which_do_not_match}. "
+            f"Paths which do not match an actual file in {self.template_id}/{self.name}: {paths_which_do_not_match}. "
             f"Skipped {skip_path_consistency_for_files}\n"
             f"Looked in {self.sources_of_mounted_paths}\n"
         )
