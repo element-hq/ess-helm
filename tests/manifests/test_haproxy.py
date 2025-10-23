@@ -55,3 +55,26 @@ async def test_haproxy_server_templates_reference_valid_services(templates):
                 break
         else:
             raise AssertionError(f"{service_name} did not have a port named {desired_port} referenced in {line}")
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_haproxy_config_ends_in_2_newlines(templates):
+    seen_haproxy = False
+    haproxy_configmap = None
+    for template in templates:
+        if template_to_deployable_details(template).name != "haproxy":
+            continue
+        seen_haproxy = True
+
+        if template["kind"] == "ConfigMap":
+            haproxy_configmap = template
+
+    if not seen_haproxy:
+        return
+
+    assert haproxy_configmap, "No HAProxy ConfigMap found"
+    assert "haproxy.cfg" in haproxy_configmap["data"], f"{template_id(haproxy_configmap)} didn't contain haproxy.cfg"
+    assert haproxy_configmap["data"]["haproxy.cfg"].endswith("\n\n"), (
+        f"{template_id(haproxy_configmap)}/haproxy.cfg should end with at least 2 \\n"
+    )

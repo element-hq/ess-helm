@@ -18,8 +18,9 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- define "element-io.haproxy.configmap-data" }}
 {{- $root := .root -}}
 {{- with required "element-io.haproxy.configmap-data missing context" .context -}}
-haproxy.cfg: |
+haproxy.cfg: |+
 {{- tpl ($root.Files.Get "configs/haproxy/haproxy.cfg.tpl") (dict "root" $root "context" .) | nindent 2 }}
+placeholder: Ensure there's something after haproxy.cfg for https://github.com/element-hq/ess-helm/issues/821
 {{- end -}}
 {{- end -}}
 

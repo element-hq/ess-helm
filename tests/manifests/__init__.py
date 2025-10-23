@@ -453,6 +453,7 @@ all_components_details = [
         has_ingress=False,
         is_shared_component=True,
         makes_outbound_requests=False,
+        paths_consistency_noqa=("/usr/local/etc/haproxy/placeholder",),
         skip_path_consistency_for_files=("haproxy.cfg", "429.http", "path_map_file", "path_map_file_get"),
     ),
     ComponentDetails(

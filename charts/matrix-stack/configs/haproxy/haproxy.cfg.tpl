@@ -110,7 +110,7 @@ frontend http-blackhole
 {{ tpl ($root.Files.Get "configs/well-known/partial-haproxy.cfg.tpl") (dict "root" $root "context" $root.Values.wellKnownDelegation) }}
 {{ end }}
 
-{{- end -}}
+{{- end }}
 
 # a fake backend which fonxes every request with a 500. Useful for
 # handling overloads etc.
