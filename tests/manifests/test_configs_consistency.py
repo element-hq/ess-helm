@@ -611,11 +611,16 @@ class ValidatedContainerConfig(ValidatedConfig):
         for source in self.sources_of_mounted_paths:
             for parent_mount, mount_node in source.get_mounted_paths():
                 if (
-                    str(MountPath(parent_mount, mount_node))
+                    self.deployable_details
+                    and str(MountPath(parent_mount, mount_node))
                     in self.deployable_details.ignore_unreferenced_mounts.get(self.name, [])
                     # for now we deliberately mount too many secrets in /secrets
                     or parent_mount.path.startswith("/secrets")
-                    or (mount_node and mount_node.node_name in self.deployable_details.skip_path_consistency_for_files)
+                    or (
+                        mount_node
+                        and self.deployable_details
+                        and mount_node.node_name in self.deployable_details.skip_path_consistency_for_files
+                    )
                 ):
                     skipped_paths.append(str(MountPath(parent_mount, mount_node)))
                     continue
@@ -647,7 +652,9 @@ class ValidatedContainerConfig(ValidatedConfig):
                     if path.startswith(str(MountPath(parent_mount, mount_node))):
                         break
                 else:
-                    if path not in self.deployable_details.ignore_paths_mismatches.get(self.name, []):
+                    if not self.deployable_details or path not in self.deployable_details.ignore_paths_mismatches.get(
+                        self.name, []
+                    ):
                         paths_which_do_not_match.append(path)
         assert paths_which_do_not_match == [], (
             f"Paths which do not match an actual file in {self.template_id}/{self.name}: {paths_which_do_not_match}. "
