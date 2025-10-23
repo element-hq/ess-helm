@@ -97,13 +97,6 @@ def find_keys_mounts_in_content(path, matches_in: list[str]):
     return False
 
 
-def node_path(parent_mount, mount_node):
-    if mount_node:
-        return f"{parent_mount.path}/{mount_node.node_name}"
-    else:
-        return parent_mount.path
-
-
 def is_matrix_tools_command(container_spec: dict, subcommand: str) -> bool:
     return "/matrix-tools:" in container_spec["image"] and container_spec["args"][0] == subcommand
 
@@ -119,6 +112,18 @@ class ParentMount:
 class MountNode:
     node_name: str = field(default_factory=str, hash=True)
     node_data: str = field(default_factory=str)
+
+
+@dataclass(frozen=True)
+class MountPath:
+    parent_mount: ParentMount = field(default_factory=ParentMount)
+    mount_node: MountNode | None = field(default_factory=MountNode)
+
+    def __str__(self):
+        if self.mount_node:
+            return f"{self.parent_mount.path}/{self.mount_node.node_name}"
+        else:
+            return self.parent_mount.path
 
 
 # Source of a mounted path can be anything mounted in a container
@@ -410,7 +415,7 @@ class GenericContainerSpecPathConsumer(PathConsumer):
 class RenderConfigContainerPathConsumer(PathConsumer):
     inputs_files: dict[str, str] = field(default_factory=dict)
     env: dict[str, str] = field(default_factory=dict)
-    output: tuple = field(default_factory=tuple)
+    output: MountPath = field(default_factory=MountPath)
 
     @classmethod
     def from_container_spec(
@@ -423,7 +428,7 @@ class RenderConfigContainerPathConsumer(PathConsumer):
         for idx, cmd in enumerate(args):
             if cmd == "-output":
                 target = args[idx + 1]
-                output = ParentMount("/".join(target.split("/")[:-1])), MountNode(target.split("/")[-1])
+                output = MountPath(ParentMount("/".join(target.split("/")[:-1])), MountNode(target.split("/")[-1]))
                 break
 
         render_config_container = cls(
@@ -438,9 +443,10 @@ class RenderConfigContainerPathConsumer(PathConsumer):
         # We trim readfile calls from the rendered content
         for volume_mount in container_spec.get("volumeMounts", []):
             volume = get_volume_from_mount(workload_spec, volume_mount)
-            if "emptyDir" in volume and volume_mount["mountPath"] == self.output[0].path:
+            if "emptyDir" in volume and volume_mount["mountPath"] == self.output.parent_mount.path:
                 assert "subPath" not in volume_mount, "render-config should not target a file mounted using `subPath`"
-                mutable_empty_dirs[volume["name"]].render_config_outputs[self.output[1].node_name] = "\n".join(
+                assert self.output.mount_node is not None
+                mutable_empty_dirs[volume["name"]].render_config_outputs[self.output.mount_node.node_name] = "\n".join(
                     [
                         re.sub(r"{{\s+(?:readfile\s+)(?:^|\s|\".+)\s*}}", "", content)
                         for content in self.inputs_files.values()
@@ -451,7 +457,7 @@ class RenderConfigContainerPathConsumer(PathConsumer):
         return (
             find_keys_mounts_in_content(
                 path,
-                [node_path(*self.output)]
+                [str(self.output)]
                 + list(self.env.values())
                 + list(self.inputs_files.keys())
                 + list(self.inputs_files.values()),
@@ -460,7 +466,7 @@ class RenderConfigContainerPathConsumer(PathConsumer):
             or path.startswith("/conf")
             # we also deliberately ignore files which are in the same directory as our output
             # as we are most certainly accumulating files here
-            or path.startswith(self.output[0].path)
+            or path.startswith(self.output.parent_mount.path)
         )
 
     def get_all_paths_in_content(self, deployable_details: DeployableDetails):
@@ -580,7 +586,7 @@ class ValidatedContainerConfig(ValidatedConfig):
 
     def check_mounted_files_unique(self):
         mounted_files = [
-            node_path(parent_mount, mount_node)
+            str(MountPath(parent_mount, mount_node))
             for source in self.sources_of_mounted_paths
             for parent_mount, mount_node in source.get_mounted_paths()
         ]
@@ -597,19 +603,19 @@ class ValidatedContainerConfig(ValidatedConfig):
         for source in self.sources_of_mounted_paths:
             for parent_mount, mount_node in source.get_mounted_paths():
                 if (
-                    node_path(parent_mount, mount_node)
+                    str(MountPath(parent_mount, mount_node))
                     in self.deployable_details.ignore_unreferenced_mounts.get(self.name, [])
                     # for now we deliberately mount too many secrets in /secrets
                     or parent_mount.path.startswith("/secrets")
                     or (mount_node and mount_node.node_name in self.deployable_details.skip_path_consistency_for_files)
                 ):
-                    skipped_paths.append(node_path(parent_mount, mount_node))
+                    skipped_paths.append(str(MountPath(parent_mount, mount_node)))
                     continue
                 for path_consumer in self.paths_consumers:
-                    if path_consumer.path_is_used_in_content(node_path(parent_mount, mount_node)):
+                    if path_consumer.path_is_used_in_content(str(MountPath(parent_mount, mount_node))):
                         break
                 else:
-                    paths_not_found.append((node_path(parent_mount, mount_node), source))
+                    paths_not_found.append((str(MountPath(parent_mount, mount_node)), source))
         assert paths_not_found == [], (
             f"{self.template_id}/{self.name} : "
             f"No consumer found for paths: \n- "
@@ -630,7 +636,7 @@ class ValidatedContainerConfig(ValidatedConfig):
                     for mounted_path in self.sources_of_mounted_paths
                     for mounted in mounted_path.get_mounted_paths()
                 ):
-                    if path.startswith(node_path(parent_mount, mount_node)):
+                    if path.startswith(str(MountPath(parent_mount, mount_node))):
                         break
                 else:
                     if path not in self.deployable_details.ignore_paths_mismatches.get(self.name, []):
