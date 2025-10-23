@@ -574,7 +574,8 @@ class ValidatedContainerConfig(ValidatedConfig):
             for parent_mount, mount_node in source.get_mounted_paths()
         ]
         assert len(mounted_files) == len(set(mounted_files)), (
-            f"Mounted files are not unique in {self.name}\n"
+            f"{self.template_id}/{self.name} : "
+            f"Mounted files are not unique \n"
             f"Duplicated files : { {item for item, count in Counter(mounted_files).items() if count > 1} }\n"
             f"From Mounted Sources : {self.sources_of_mounted_paths}"
         )
@@ -587,7 +588,7 @@ class ValidatedContainerConfig(ValidatedConfig):
         for source in self.sources_of_mounted_paths:
             for parent_mount, mount_node in source.get_mounted_paths():
                 if (
-                    node_path(parent_mount, mount_node) in ignore_unreferenced_mounts
+                    node_path(parent_mount, mount_node) in ignore_unreferenced_mounts.get(self.name, [])
                     or parent_mount.path.startswith("/secrets")
                     or (mount_node and mount_node.node_name in skip_path_consistency_for_files)
                 ):
@@ -599,7 +600,7 @@ class ValidatedContainerConfig(ValidatedConfig):
                 else:
                     paths_not_found.append((node_path(parent_mount, mount_node), source))
         assert paths_not_found == [], (
-            f"{self.name} : "
+            f"{self.template_id}/{self.name} : "
             f"No consumer found for paths: \n- "
             f"{
                 '\n- '.join(
@@ -623,7 +624,7 @@ class ValidatedContainerConfig(ValidatedConfig):
                     if path.startswith(node_path(parent_mount, mount_node)):
                         break
                 else:
-                    if path not in ignore_paths_mismatches:
+                    if path not in ignore_paths_mismatches.get(self.name, []):
                         paths_which_do_not_match.append(path)
         assert paths_which_do_not_match == [], (
             f"Paths which do not match in {self.template_id}/{self.name}: {paths_which_do_not_match}. "
