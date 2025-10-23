@@ -6,6 +6,7 @@ import abc
 import re
 from base64 import b64decode
 from collections import Counter
+from collections.abc import Generator
 from dataclasses import dataclass, field
 
 import pytest
@@ -488,6 +489,7 @@ class ValidatedContainerConfig(ValidatedConfig):
     # The list of empty directories that will be muted accross the containers traversed
     # Only emptyDirs which are not using subPath can be modified
     mutable_empty_dirs: dict[str, MountedEmptyDir] = field(default_factory=dict)
+    deployable_details: DeployableDetails = field(default=None)  # type: ignore[assignment]
 
     @classmethod
     def from_container_spec(
@@ -501,7 +503,9 @@ class ValidatedContainerConfig(ValidatedConfig):
         other_secrets,
         previously_mounted_empty_dirs: dict[str, MountedEmptyDir],
     ):
-        validated_config = cls(template_id=template_id, name=container_spec["name"])
+        validated_config = cls(
+            template_id=template_id, name=container_spec["name"], deployable_details=deployable_details
+        )
 
         for volume_mount in container_spec.get("volumeMounts", []):
             current_volume = get_volume_from_mount(workload_spec, volume_mount)
@@ -563,7 +567,7 @@ class ValidatedContainerConfig(ValidatedConfig):
             )
         return validated_config
 
-    def check_mounted_files_unique(self, deployable_details: DeployableDetails):
+    def check_mounted_files_unique(self):
         mounted_files = [
             node_path(parent_mount, mount_node)
             for source in self.sources_of_mounted_paths
@@ -576,16 +580,16 @@ class ValidatedContainerConfig(ValidatedConfig):
             f"From Mounted Sources : {self.sources_of_mounted_paths}"
         )
 
-    def check_paths_used_in_content(self, deployable_details: DeployableDetails):
+    def check_paths_used_in_content(self):
         paths_not_found = []
         skipped_paths = []
         for source in self.sources_of_mounted_paths:
             for parent_mount, mount_node in source.get_mounted_paths():
                 if (
                     node_path(parent_mount, mount_node)
-                    in deployable_details.ignore_unreferenced_mounts.get(self.name, [])
+                    in self.deployable_details.ignore_unreferenced_mounts.get(self.name, [])
                     or parent_mount.path.startswith("/secrets")
-                    or (mount_node and mount_node.node_name in deployable_details.skip_path_consistency_for_files)
+                    or (mount_node and mount_node.node_name in self.deployable_details.skip_path_consistency_for_files)
                 ):
                     skipped_paths.append(node_path(parent_mount, mount_node))
                     continue
@@ -605,10 +609,10 @@ class ValidatedContainerConfig(ValidatedConfig):
             f"Skipped paths: {skipped_paths}"
         )
 
-    def check_all_paths_matches_an_actual_mount(self, deployable_details: DeployableDetails):
+    def check_all_paths_matches_an_actual_mount(self):
         paths_which_do_not_match = []
         for path_consumer in self.paths_consumers:
-            for path in path_consumer.get_all_paths_in_content(deployable_details):
+            for path in path_consumer.get_all_paths_in_content(self.deployable_details):
                 for parent_mount, mount_node in (
                     mounted
                     for mounted_path in self.sources_of_mounted_paths
@@ -617,11 +621,11 @@ class ValidatedContainerConfig(ValidatedConfig):
                     if path.startswith(node_path(parent_mount, mount_node)):
                         break
                 else:
-                    if path not in deployable_details.ignore_paths_mismatches.get(self.name, []):
+                    if path not in self.deployable_details.ignore_paths_mismatches.get(self.name, []):
                         paths_which_do_not_match.append(path)
         assert paths_which_do_not_match == [], (
             f"Paths which do not match an actual file in {self.template_id}/{self.name}: {paths_which_do_not_match}. "
-            f"Skipped {deployable_details.skip_path_consistency_for_files}\n"
+            f"Skipped {self.deployable_details.skip_path_consistency_for_files}\n"
             f"Looked in {self.sources_of_mounted_paths}\n"
         )
 
@@ -630,13 +634,10 @@ class ValidatedContainerConfig(ValidatedConfig):
             consumer.mutate_empty_dirs(container_spec, workload_spec, self.mutable_empty_dirs)
 
 
-def traverse_containers_and_run_consistency_check(
-    templates, other_secrets, validated_container_class, consistency_check
-):
+def traverse_containers(templates, other_secrets) -> Generator[ValidatedContainerConfig]:
     workloads = [t for t in templates if t["kind"] in ("Deployment", "StatefulSet", "Job")]
     for template in workloads:
-        # A list of empty dirs that will be updated as we traverse containers
-        all_workload_empty_dirs = {}
+        all_workload_empty_dirs: dict[str, MountedEmptyDir] = {}
         # Gather all containers and initContainers from the template spec
         workload_spec = template["spec"]["template"]["spec"]
         containers = workload_spec.get("initContainers", []) + template["spec"]["template"]["spec"].get(
@@ -648,7 +649,7 @@ def traverse_containers_and_run_consistency_check(
 
         for container_spec in containers:
             deployable_details = template_to_deployable_details(template, container_spec["name"])
-            validated_container_config = validated_container_class.from_container_spec(
+            validated_container_config = ValidatedContainerConfig.from_container_spec(
                 template_id(template),
                 workload_spec,
                 container_spec,
@@ -658,16 +659,12 @@ def traverse_containers_and_run_consistency_check(
                 other_secrets,
                 all_workload_empty_dirs,
             )
-            consistency_check(
-                validated_container_config,
-                deployable_details
-            )
+            yield validated_container_config
             validated_container_config.mutate_empty_dirs(container_spec, workload_spec)
             for name, empty_dir in validated_container_config.mutable_empty_dirs.items():
                 # In the all workloads empty dirs, we copy the new render config outputs to the existing dict
                 if name not in all_workload_empty_dirs:
                     all_workload_empty_dirs[name] = MountedEmptyDir(
-                        mount_point=None,
                         render_config_outputs=empty_dir.render_config_outputs,
                         subcontent=empty_dir.subcontent,
                     )
@@ -676,25 +673,20 @@ def traverse_containers_and_run_consistency_check(
 @pytest.mark.parametrize("values_file", values_files_to_test | secret_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_mounted_files_unique(templates, other_secrets):
-    traverse_containers_and_run_consistency_check(
-        templates, other_secrets, ValidatedContainerConfig, ValidatedContainerConfig.check_mounted_files_unique
-    )
+    # A list of empty dirs that will be updated as we traverse containers
+    for validated_container_config in traverse_containers(templates, other_secrets):
+        validated_container_config.check_mounted_files_unique()
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test | secret_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_any_mounted_path_is_used_in_content(templates, other_secrets):
-    traverse_containers_and_run_consistency_check(
-        templates, other_secrets, ValidatedContainerConfig, ValidatedContainerConfig.check_paths_used_in_content
-    )
+    for validated_container_config in traverse_containers(templates, other_secrets):
+        validated_container_config.check_paths_used_in_content()
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test | secret_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_any_path_found_matches_an_actual_mount(templates, other_secrets):
-    traverse_containers_and_run_consistency_check(
-        templates,
-        other_secrets,
-        ValidatedContainerConfig,
-        ValidatedContainerConfig.check_all_paths_matches_an_actual_mount,
-    )
+    for validated_container_config in traverse_containers(templates, other_secrets):
+        validated_container_config.check_all_paths_matches_an_actual_mount()
