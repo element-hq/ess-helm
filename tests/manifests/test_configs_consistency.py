@@ -72,7 +72,7 @@ def get_volume_from_mount(workload_spec, volume_mount):
     )
 
 
-def match_path_in_content(content):
+def match_path_in_content(content: str) -> list[str]:
     paths_found = []
     for match_in in content.split("\n"):
         for exclude in ["://", "/bin/sh", "helm.sh/"]:
