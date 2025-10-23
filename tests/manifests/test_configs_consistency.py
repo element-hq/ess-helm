@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 
 import pytest
 
-from . import secret_values_files_to_test, values_files_to_test
+from . import DeployableDetails, secret_values_files_to_test, values_files_to_test
 from .utils import get_or_empty, template_id, template_to_deployable_details
 
 
@@ -268,12 +268,17 @@ class SubPathMount(SourceOfMountedPaths):
 class PathConsumer(abc.ABC):
     # Look for all potential paths
     @abc.abstractmethod
-    def get_all_paths_in_content(self, skip_path_consistency_for_files) -> list[str]:
+    def get_all_paths_in_content(self, deployable_details: DeployableDetails) -> list[str]:
         pass
 
     # Mutate empty dirs after the container has been consistency-checked
     @abc.abstractmethod
     def mutate_empty_dirs(self, container_spec, workload_spec, mutable_empty_dirs: dict[str, MountedEmptyDir]):
+        pass
+
+    # Check if the path is used in the container
+    @abc.abstractmethod
+    def path_is_used_in_content(self, path) -> bool:
         pass
 
 
@@ -325,10 +330,10 @@ class ConfigMapPathConsumer(PathConsumer):
     def path_is_used_in_content(self, path) -> bool:
         return any(find_keys_mounts_in_content(path, [content]) for _, content in self.data.items())
 
-    def get_all_paths_in_content(self, skip_path_consistency_for_files):
+    def get_all_paths_in_content(self, deployable_details: DeployableDetails) -> list[str]:
         paths = []
         for key, content in self.data.items():
-            if key in skip_path_consistency_for_files:
+            if key in deployable_details.skip_path_consistency_for_files:
                 continue
             paths += match_path_in_content(content)
         return paths
@@ -376,7 +381,7 @@ class GenericContainerSpecPathConsumer(PathConsumer):
             list(self.env.values()) + self.args + self._empty_dir_rendered_content() + list(self.exec_probes.values()),
         )
 
-    def get_all_paths_in_content(self, skip_path_consistency_for_files):
+    def get_all_paths_in_content(self, deployable_details: DeployableDetails):
         paths = []
         for content in (
             list(self.env.values()) + list(self.exec_probes.values()) + self.args + self._empty_dir_rendered_content()
@@ -446,10 +451,10 @@ class RenderConfigContainerPathConsumer(PathConsumer):
             or path.startswith(self.output[0].path)
         )
 
-    def get_all_paths_in_content(self, skip_path_consistency_for_files):
+    def get_all_paths_in_content(self, deployable_details: DeployableDetails):
         paths = []
         for key, content in self.inputs_files.items():
-            if key in skip_path_consistency_for_files:
+            if key in deployable_details.skip_path_consistency_for_files:
                 continue
             paths += match_path_in_content("\n".join([line for line in content.splitlines() if "readfile" in line]))
         for value in self.env.values():
@@ -460,19 +465,15 @@ class RenderConfigContainerPathConsumer(PathConsumer):
 @dataclass
 class ValidatedConfig(abc.ABC):
     @abc.abstractmethod
-    def check_mounted_files_unique(self):
+    def check_mounted_files_unique(self, deployable_details: DeployableDetails):
         pass
 
     @abc.abstractmethod
-    def check_paths_used_in_content(
-        self, skip_path_consistency_for_files, ignore_unreferenced_mounts, ignore_paths_mismatches
-    ):
+    def check_paths_used_in_content(self, deployable_details: DeployableDetails):
         pass
 
     @abc.abstractmethod
-    def check_all_paths_matches_an_actual_mount(
-        self, skip_path_consistency_for_files, ignore_unreferenced_mounts, ignore_paths_mismatches
-    ):
+    def check_all_paths_matches_an_actual_mount(self, deployable_details: DeployableDetails):
         pass
 
 
@@ -562,9 +563,7 @@ class ValidatedContainerConfig(ValidatedConfig):
             )
         return validated_config
 
-    def check_mounted_files_unique(
-        self, skip_path_consistency_for_files, ignore_unreferenced_mounts, ignore_paths_mismatches
-    ):
+    def check_mounted_files_unique(self, deployable_details: DeployableDetails):
         mounted_files = [
             node_path(parent_mount, mount_node)
             for source in self.sources_of_mounted_paths
@@ -577,17 +576,16 @@ class ValidatedContainerConfig(ValidatedConfig):
             f"From Mounted Sources : {self.sources_of_mounted_paths}"
         )
 
-    def check_paths_used_in_content(
-        self, skip_path_consistency_for_files, ignore_unreferenced_mounts, ignore_paths_mismatches
-    ):
+    def check_paths_used_in_content(self, deployable_details: DeployableDetails):
         paths_not_found = []
         skipped_paths = []
         for source in self.sources_of_mounted_paths:
             for parent_mount, mount_node in source.get_mounted_paths():
                 if (
-                    node_path(parent_mount, mount_node) in ignore_unreferenced_mounts.get(self.name, [])
+                    node_path(parent_mount, mount_node)
+                    in deployable_details.ignore_unreferenced_mounts.get(self.name, [])
                     or parent_mount.path.startswith("/secrets")
-                    or (mount_node and mount_node.node_name in skip_path_consistency_for_files)
+                    or (mount_node and mount_node.node_name in deployable_details.skip_path_consistency_for_files)
                 ):
                     skipped_paths.append(node_path(parent_mount, mount_node))
                     continue
@@ -607,12 +605,10 @@ class ValidatedContainerConfig(ValidatedConfig):
             f"Skipped paths: {skipped_paths}"
         )
 
-    def check_all_paths_matches_an_actual_mount(
-        self, skip_path_consistency_for_files, ignore_unreferenced_mounts, ignore_paths_mismatches
-    ):
+    def check_all_paths_matches_an_actual_mount(self, deployable_details: DeployableDetails):
         paths_which_do_not_match = []
         for path_consumer in self.paths_consumers:
-            for path in path_consumer.get_all_paths_in_content(skip_path_consistency_for_files):
+            for path in path_consumer.get_all_paths_in_content(deployable_details):
                 for parent_mount, mount_node in (
                     mounted
                     for mounted_path in self.sources_of_mounted_paths
@@ -621,11 +617,11 @@ class ValidatedContainerConfig(ValidatedConfig):
                     if path.startswith(node_path(parent_mount, mount_node)):
                         break
                 else:
-                    if path not in ignore_paths_mismatches.get(self.name, []):
+                    if path not in deployable_details.ignore_paths_mismatches.get(self.name, []):
                         paths_which_do_not_match.append(path)
         assert paths_which_do_not_match == [], (
             f"Paths which do not match an actual file in {self.template_id}/{self.name}: {paths_which_do_not_match}. "
-            f"Skipped {skip_path_consistency_for_files}\n"
+            f"Skipped {deployable_details.skip_path_consistency_for_files}\n"
             f"Looked in {self.sources_of_mounted_paths}\n"
         )
 
@@ -664,9 +660,7 @@ def traverse_containers_and_run_consistency_check(
             )
             consistency_check(
                 validated_container_config,
-                deployable_details.skip_path_consistency_for_files,
-                deployable_details.ignore_unreferenced_mounts,
-                deployable_details.ignore_paths_mismatches,
+                deployable_details
             )
             validated_container_config.mutate_empty_dirs(container_spec, workload_spec)
             for name, empty_dir in validated_container_config.mutable_empty_dirs.items():
