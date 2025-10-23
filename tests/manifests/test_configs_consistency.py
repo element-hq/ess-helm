@@ -349,7 +349,7 @@ class GenericContainerSpecPathConsumer(PathConsumer):
     env: dict[str, str] = field(default_factory=dict)
     args: list[str] = field(default_factory=list)
     mounted_empty_dirs: dict[str, MountedEmptyDir] = field(default_factory=dict)
-    exec_probes: dict[str, str] = field(default_factory=dict)
+    exec_properties: dict[str, str] = field(default_factory=dict)
 
     def _empty_dir_rendered_content(self):
         return [
@@ -368,10 +368,15 @@ class GenericContainerSpecPathConsumer(PathConsumer):
         return cls(
             env={e["name"]: e["value"] for e in container_spec.get("env", [])},
             args=container_spec.get("command") or container_spec.get("args", []),
-            exec_probes={
+            exec_properties={
                 p: "\n".join(container_spec[p]["exec"]["command"])
                 for p in ("startupProbe", "livenessProbe", "readinessProbe")
                 if container_spec.get(p, {}).get("exec", {})
+            }
+            | {
+                p: "\n".join(container_spec["lifecycle"][p]["exec"]["command"])
+                for p in ("postStart", "preStop")
+                if container_spec.get("lifecycle", {}).get(p, {}).get("exec", {})
             },
             mounted_empty_dirs=mounted_empty_dirs,
         )
@@ -379,13 +384,19 @@ class GenericContainerSpecPathConsumer(PathConsumer):
     def path_is_used_in_content(self, path) -> bool:
         return find_keys_mounts_in_content(
             path,
-            list(self.env.values()) + self.args + self._empty_dir_rendered_content() + list(self.exec_probes.values()),
+            list(self.env.values())
+            + self.args
+            + self._empty_dir_rendered_content()
+            + list(self.exec_properties.values()),
         )
 
     def get_all_paths_in_content(self, deployable_details: DeployableDetails):
         paths = []
         for content in (
-            list(self.env.values()) + list(self.exec_probes.values()) + self.args + self._empty_dir_rendered_content()
+            list(self.env.values())
+            + list(self.exec_properties.values())
+            + self.args
+            + self._empty_dir_rendered_content()
         ):
             paths += match_path_in_content(content)
         return paths

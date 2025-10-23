@@ -153,6 +153,8 @@ spec:
         - name: config
           mountPath: /var/run/configure-ess-dbs.sh
           subPath: configure-dbs.sh
+        - name: database
+          mountPath: /var/lib/postgres/data
         - name: var-run
           mountPath: /var/run/postgresql
 {{- with .postgresExporter }}
