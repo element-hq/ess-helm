@@ -496,9 +496,7 @@ all_components_details = [
         content_volumes_mapping={
             "/var/lib/postgres/data": ("pgdata",),
         },
-        ignore_unreferenced_mounts={
-            "postgres": ("/tmp",)
-        },
+        ignore_unreferenced_mounts={"postgres": ("/tmp",)},
     ),
     ComponentDetails(
         name="matrix-rtc",
@@ -528,7 +526,9 @@ all_components_details = [
         has_additional_config=False,
         has_service_monitor=False,
         makes_outbound_requests=False,
-        ignore_unreferenced_mounts={"element-admin": ("/tmp",),}
+        ignore_unreferenced_mounts={
+            "element-admin": ("/tmp",),
+        },
     ),
     ComponentDetails(
         name="element-web",
@@ -569,7 +569,8 @@ all_components_details = [
                 ignore_unreferenced_mounts={
                     "syn2mas-migrate": (
                         # Those are internal to the syn2mas subcommand
-                        "/tmp-mas-cli", "/tmp-mas-cli/mas-cli",
+                        "/tmp-mas-cli",
+                        "/tmp-mas-cli/mas-cli",
                     ),
                 },
                 ignore_paths_mismatches={
@@ -577,8 +578,14 @@ all_components_details = [
                     "copy-mas-cli": ("/usr/local/bin/mas-cli",),
                     # syn2mas has the homeserver.yaml which contains the media store path
                     # it is actually not mounted in syn2mas
-                    "syn2mas-check": ("/as/0/bridge_registration.yaml", "/media/media_store",),
-                    "syn2mas-migrate": ("/as/0/bridge_registration.yaml", "/media/media_store",),
+                    "syn2mas-check": (
+                        "/as/0/bridge_registration.yaml",
+                        "/media/media_store",
+                    ),
+                    "syn2mas-migrate": (
+                        "/as/0/bridge_registration.yaml",
+                        "/media/media_store",
+                    ),
                 },
                 content_volumes_mapping={"/tmp-mas-cli": ("mas-cli",)},
                 values_file_path_overrides={
@@ -612,9 +619,7 @@ all_components_details = [
         is_synapse_process=True,
         additional_values_files=("synapse-worker-example-values.yaml",),
         skip_path_consistency_for_files=("path_map_file", "path_map_file_get"),
-        ignore_unreferenced_mounts={
-            "synapse": ("/tmp",)
-        },
+        ignore_unreferenced_mounts={"synapse": ("/tmp",)},
         content_volumes_mapping={
             "/media": ("media_store",),
         },
@@ -656,9 +661,7 @@ all_components_details = [
                 has_service_monitor=False,
                 has_replicas=False,
                 makes_outbound_requests=False,
-                ignore_unreferenced_mounts={
-                    "synapse": ("/tmp",)
-                },
+                ignore_unreferenced_mounts={"synapse": ("/tmp",)},
                 content_volumes_mapping={
                     "/media": ("media_store",),
                 },

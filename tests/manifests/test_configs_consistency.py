@@ -277,9 +277,9 @@ class PathConsumer(abc.ABC):
         pass
 
 
-## Gets all mounted files in a given container
+## Gets all mounted files in a render-config container
 def get_all_mounted_files(
-    workload_spec, container_name, templates, other_secrets, mounted_empty_dirs: dict[str, MountedEmptyDir]
+    workload_spec, container_spec, templates, other_secrets, mounted_empty_dirs: dict[str, MountedEmptyDir]
 ):
     def _get_content(content, kind):
         if kind in ["EmptyDir", "ConfigMap"]:
@@ -288,30 +288,27 @@ def get_all_mounted_files(
             return b64decode(content).decode("utf-8")
 
     found_files = {}
-    for container_spec in workload_spec.get("initContainers", []) + workload_spec["containers"]:
-        if container_name != container_spec["name"]:
-            continue
-        for volume_mount in container_spec.get("volumeMounts", []):
-            current_volume = get_volume_from_mount(workload_spec, volume_mount)
-            if "configMap" in current_volume:
-                current_res = get_configmap(templates, current_volume["configMap"]["name"])
-            elif "secret" in current_volume:
-                current_res = get_secret(templates, other_secrets, current_volume["secret"]["secretName"])
-            elif "emptyDir" in current_volume:
-                # We create a fake resource locally to this function to find the content of the empty dir
-                current_res = {
-                    "kind": "EmptyDir",
-                    "data": mounted_empty_dirs[current_volume["name"]].render_config_outputs,
-                }
-            if volume_mount.get("subPath"):
-                found_files[volume_mount["mountPath"]] = _get_content(
-                    current_res["data"][volume_mount["subPath"]], current_res["kind"]
+    for volume_mount in container_spec.get("volumeMounts", []):
+        current_volume = get_volume_from_mount(workload_spec, volume_mount)
+        if "configMap" in current_volume:
+            current_res = get_configmap(templates, current_volume["configMap"]["name"])
+        elif "secret" in current_volume:
+            current_res = get_secret(templates, other_secrets, current_volume["secret"]["secretName"])
+        elif "emptyDir" in current_volume:
+            # We create a fake resource locally to this function to find the content of the empty dir
+            current_res = {
+                "kind": "EmptyDir",
+                "data": mounted_empty_dirs[current_volume["name"]].render_config_outputs,
+            }
+        if volume_mount.get("subPath"):
+            found_files[volume_mount["mountPath"]] = _get_content(
+                current_res["data"][volume_mount["subPath"]], current_res["kind"]
+            )
+        else:
+            for key in get_or_empty(current_res, "data"):
+                found_files[volume_mount["mountPath"] + "/" + key] = _get_content(
+                    current_res["data"][key], current_res["kind"]
                 )
-            else:
-                for key in get_or_empty(current_res, "data"):
-                    found_files[volume_mount["mountPath"] + "/" + key] = _get_content(
-                        current_res["data"][key], current_res["kind"]
-                    )
 
     return found_files
 
@@ -403,7 +400,7 @@ class RenderConfigContainerPathConsumer(PathConsumer):
         cls, container_spec, workload_spec, templates, other_secrets, mutable_empty_dirs: dict[str, MountedEmptyDir]
     ):
         all_mounted_files = get_all_mounted_files(
-            workload_spec, container_spec["name"], templates, other_secrets, mutable_empty_dirs
+            workload_spec, container_spec, templates, other_secrets, mutable_empty_dirs
         )
         args = container_spec["args"]
         for idx, cmd in enumerate(args):
