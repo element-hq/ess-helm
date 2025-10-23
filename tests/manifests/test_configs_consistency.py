@@ -395,22 +395,11 @@ class GenericContainerSpecPathConsumer(PathConsumer):
         )
 
     def path_is_used_in_content(self, path) -> bool:
-        return find_path_in_content(
-            path,
-            list(self.env.values())
-            + self.args
-            + self._empty_dir_rendered_content()
-            + list(self.exec_properties.values()),
-        )
+        return find_path_in_content(path, self._all_container_content())
 
     def get_all_paths_in_content(self, deployable_details: DeployableDetails):
         paths = []
-        for content in (
-            list(self.env.values())
-            + list(self.exec_properties.values())
-            + self.args
-            + self._empty_dir_rendered_content()
-        ):
+        for content in self._all_container_content():
             paths += match_path_in_content(content)
         return paths
 
