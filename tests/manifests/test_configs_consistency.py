@@ -89,9 +89,9 @@ def match_path_in_content(content):
     return paths_found
 
 
-def find_keys_mounts_in_content(path, matches_in: list[str]):
+def find_path_in_content(path, matches_in: list[str]):
     for match_in in matches_in:
-        for match in re.findall(rf"(?:^|\s|\"){re.escape(path)}(?:[^\s\n\")`;,]*)", match_in):
+        for match in re.findall(re.escape(path), match_in):
             if match:
                 return True
     return False
@@ -334,7 +334,7 @@ class ConfigMapPathConsumer(PathConsumer):
         return cls(data=get_or_empty(configmap, "data"))
 
     def path_is_used_in_content(self, path) -> bool:
-        return any(find_keys_mounts_in_content(path, [content]) for _, content in self.data.items())
+        return any(find_path_in_content(path, [content]) for _, content in self.data.items())
 
     def get_all_paths_in_content(self, deployable_details: DeployableDetails) -> list[str]:
         paths = []
@@ -356,12 +356,19 @@ class GenericContainerSpecPathConsumer(PathConsumer):
     mounted_empty_dirs: dict[str, MountedEmptyDir] = field(default_factory=dict)
     exec_properties: dict[str, str] = field(default_factory=dict)
 
-    def _empty_dir_rendered_content(self):
+    def _empty_dir_rendered_content(self) -> list[str]:
         return [
             rendered_content
             for empty_dir in self.mounted_empty_dirs.values()
-            for file, rendered_content in empty_dir.render_config_outputs.items()
+            for rendered_content in empty_dir.render_config_outputs.values()
         ]
+
+    def _all_container_content(self) -> list[str]:
+        return (list(self.env.values())
+                + list(self.exec_properties.values())
+                + self.args
+                + self._empty_dir_rendered_content()
+            )
 
     @classmethod
     def from_container_spec(cls, workload_spec, container_spec, previously_mounted_empty_dirs):
@@ -387,7 +394,7 @@ class GenericContainerSpecPathConsumer(PathConsumer):
         )
 
     def path_is_used_in_content(self, path) -> bool:
-        return find_keys_mounts_in_content(
+        return find_path_in_content(
             path,
             list(self.env.values())
             + self.args
@@ -455,7 +462,7 @@ class RenderConfigContainerPathConsumer(PathConsumer):
 
     def path_is_used_in_content(self, path) -> bool:
         return (
-            find_keys_mounts_in_content(
+            find_path_in_content(
                 path,
                 [str(self.output)]
                 + list(self.env.values())
