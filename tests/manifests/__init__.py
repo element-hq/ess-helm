@@ -108,8 +108,19 @@ class DeployableDetails(abc.ABC):
     makes_outbound_requests: bool = field(default=None, hash=False)  # type: ignore[assignment]
     is_synapse_process: bool = field(default=False)
 
-    paths_consistency_noqa: tuple[str, ...] = field(default=(), hash=False)
+    # Use this to skip mounts point we expect not to be referenced in commands, configs, etc
+    # The format is expected to be `container_name: <list of mounts to ignore>`
+    ignore_unreferenced_mounts: dict[str, tuple[str, ...]] = field(default_factory=dict, hash=False)
+    # Use this to ignore paths found in configuration which do not match an actual mount point
+    # The format is expected to be `container_name: <list of paths to ignore>`
+    ignore_paths_mismatches: dict[str, tuple[str, ...]] = field(default_factory=dict, hash=False)
+    # Use this to skip any configuration consistency checks for given filenames
+    # For example, haproxy.cfg has dozens of HTTP Paths but they are not filepaths
+    # Instead of noqa-ing all the paths found, we skip the whole file
     skip_path_consistency_for_files: tuple[str, ...] = field(default=(), hash=False)
+    # Use this property to add files that we know to be present in PVC/EmptyDirs
+    # even if they're not being created by the chart templates
+    content_volumes_mapping: dict[str, tuple[str, ...]] = field(default_factory=dict, hash=False)
 
     def __post_init__(self):
         if self.values_file_path is None:
@@ -372,6 +383,10 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
         has_ingress=False,
         is_synapse_process=True,
         has_replicas=(worker_type == "scalable"),
+        ignore_unreferenced_mounts={"synapse": ("/tmp",)},
+        content_volumes_mapping={
+            "/media": ("media_store",),
+        },
     )
 
 
@@ -453,7 +468,9 @@ all_components_details = [
         has_ingress=False,
         is_shared_component=True,
         makes_outbound_requests=False,
-        paths_consistency_noqa=("/usr/local/etc/haproxy/placeholder",),
+        ignore_unreferenced_mounts={
+            "haproxy": ("/usr/local/etc/haproxy/placeholder",),
+        },
         skip_path_consistency_for_files=("haproxy.cfg", "429.http", "path_map_file", "path_map_file_get"),
     ),
     ComponentDetails(
@@ -478,7 +495,10 @@ all_components_details = [
         ),
         is_shared_component=True,
         makes_outbound_requests=False,
-        paths_consistency_noqa=("/docker-entrypoint-initdb.d/init-ess-dbs.sh",),
+        content_volumes_mapping={
+            "/var/lib/postgres/data": ("pgdata",),
+        },
+        ignore_unreferenced_mounts={"postgres": ("/tmp",)},
     ),
     ComponentDetails(
         name="matrix-rtc",
@@ -508,27 +528,36 @@ all_components_details = [
         has_additional_config=False,
         has_service_monitor=False,
         makes_outbound_requests=False,
+        ignore_unreferenced_mounts={
+            "element-admin": ("/tmp",),
+        },
     ),
     ComponentDetails(
         name="element-web",
         values_file_path=ValuesFilePath.read_write("elementWeb"),
         has_service_monitor=False,
         makes_outbound_requests=False,
-        paths_consistency_noqa=(
-            # Explicitly mounted but wildcard included by the base-image
-            "/etc/nginx/conf.d/default.conf",
-            "/etc/nginx/conf.d/http_customisations.conf",
-            # Env var we set to a deliberately non-existant path
-            "/non-existant-so-that-this-works-with-read-only-root-filesystem",
-            # Various paths / path prefixes in the nginx config for adjusting headers.
-            # Files provided by the base image
-            "/50x.html",
-            "/config",
-            "/health",
-            "/index.html",
-            "/modules",
-            "/version",
-        ),
+        ignore_paths_mismatches={
+            "element-web": (
+                # Various paths / path prefixes in the nginx config for adjusting headers.
+                # Files provided by the base image
+                "/50x.html",
+                "/config",
+                "/health",
+                "/index.html",
+                "/modules",
+                "/version",
+                "/non-existant-so-that-this-works-with-read-only-root-filesystem",
+            )
+        },
+        ignore_unreferenced_mounts={
+            "element-web": (
+                # Explicitly mounted but wildcard included by the base-image
+                "/etc/nginx/conf.d/default.conf",
+                "/etc/nginx/conf.d/http_customisations.conf",
+            )
+        },
+        content_volumes_mapping={"/tmp": ("element-web-config",)},
     ),
     ComponentDetails(
         name="matrix-authentication-service",
@@ -539,13 +568,28 @@ all_components_details = [
             SubComponentDetails(
                 name="syn2mas",
                 values_file_path=ValuesFilePath.read_write("matrixAuthenticationService", "syn2mas"),
-                paths_consistency_noqa=(
-                    "/conf/log_config.yaml",
-                    "/media_store",
-                    "/media/media_store",
-                    "/as/0/bridge_registration.yaml",
-                    "/usr/local/bin/mas-cli",
-                ),
+                ignore_unreferenced_mounts={
+                    "syn2mas-migrate": (
+                        # Those are internal to the syn2mas subcommand
+                        "/tmp-mas-cli",
+                        "/tmp-mas-cli/mas-cli",
+                    ),
+                },
+                ignore_paths_mismatches={
+                    # We do not parse the cp bash command
+                    "copy-mas-cli": ("/usr/local/bin/mas-cli",),
+                    # syn2mas has the homeserver.yaml which contains the media store path
+                    # it is actually not mounted in syn2mas
+                    "syn2mas-check": (
+                        "/as/0/bridge_registration.yaml",
+                        "/media/media_store",
+                    ),
+                    "syn2mas-migrate": (
+                        "/as/0/bridge_registration.yaml",
+                        "/media/media_store",
+                    ),
+                },
+                content_volumes_mapping={"/tmp-mas-cli": ("mas-cli",)},
                 values_file_path_overrides={
                     PropertyType.AdditionalConfig: ValuesFilePath.read_elsewhere(
                         "matrixAuthenticationService", "additional"
@@ -577,6 +621,10 @@ all_components_details = [
         is_synapse_process=True,
         additional_values_files=("synapse-worker-example-values.yaml",),
         skip_path_consistency_for_files=("path_map_file", "path_map_file_get"),
+        ignore_unreferenced_mounts={"synapse": ("/tmp",)},
+        content_volumes_mapping={
+            "/media": ("media_store",),
+        },
         sub_components=synapse_workers_details
         + (
             SubComponentDetails(
@@ -615,6 +663,10 @@ all_components_details = [
                 has_service_monitor=False,
                 has_replicas=False,
                 makes_outbound_requests=False,
+                ignore_unreferenced_mounts={"synapse": ("/tmp",)},
+                content_volumes_mapping={
+                    "/media": ("media_store",),
+                },
             ),
         ),
         shared_component_names=("deployment-markers", "init-secrets", "haproxy", "postgres"),

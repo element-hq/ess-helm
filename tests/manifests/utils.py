@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
+import base64
 import copy
 import json
 import random
@@ -129,7 +130,10 @@ def generated_secrets(release_name: str, values: dict[str, Any], helm_generated_
                     },
                 },
                 "data": {
-                    secret_key: "".join(random.choices(string.ascii_lowercase, k=10)) for secret_key in secret_keys
+                    secret_key: base64.b64encode(
+                        "".join(random.choices(string.ascii_lowercase, k=10)).encode("utf-8")
+                    ).decode("utf-8")
+                    for secret_key in secret_keys
                 },
             }
 
@@ -170,7 +174,12 @@ def external_secrets(release_name, values):
                     "helm.sh/hook-weight": "-100"
                 },
             },
-            "data": {secret_key: "".join(random.choices(string.ascii_lowercase, k=10)) for secret_key in secret_keys},
+            "data": {
+                secret_key: base64.b64encode(
+                    "".join(random.choices(string.ascii_lowercase, k=10)).encode("utf-8")
+                ).decode("utf-8")
+                for secret_key in secret_keys
+            },
         }
 
 

@@ -92,7 +92,7 @@ spec:
         - name: temp
           mountPath: /tmp
         - name: var-run
-          mountPath: /var/run
+          mountPath: /var/run/postgresql
       - name: postgres-ess-updater
         {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" .image) | nindent 8 }}
         command:
@@ -101,7 +101,6 @@ spec:
         - >
           while ! pg_isready -d postgres -U postgres -h localhost; do echo "Postgres not yet ready"; sleep 1; done;
           echo "Postgres now ready, so changing password";
-          export PGHOST=localhost;
           /bin/sh /var/run/configure-ess-dbs.sh;
           echo "Done";
           trap : TERM INT; sleep infinity & wait
@@ -109,7 +108,7 @@ spec:
         securityContext:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-        {{- include "element-io.ess-library.pods.env" (dict "root" $ "context" (dict "componentValues" . "componentName" "postgres")) | nindent 8 }}
+        {{- include "element-io.ess-library.pods.env" (dict "root" $ "context" (dict "componentValues" . "componentName" "postgres-password-updater")) | nindent 8 }}
         args:
         {{ include "element-io.postgres.args" (dict "root" $ "context" .) | nindent 8 }}
 {{- with .resources }}
@@ -154,8 +153,10 @@ spec:
         - name: config
           mountPath: /var/run/configure-ess-dbs.sh
           subPath: configure-dbs.sh
+        - name: database
+          mountPath: /var/lib/postgres/data
         - name: var-run
-          mountPath: /var/run
+          mountPath: /var/run/postgresql
 {{- with .postgresExporter }}
       - name: postgres-exporter
         {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" .image) | nindent 8 }}

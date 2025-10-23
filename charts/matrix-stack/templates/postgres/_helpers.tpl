@@ -115,6 +115,30 @@ true
 {{- end -}}
 {{- end -}}
 
+{{- define "element-io.postgres-password-updater.overrideEnv" }}
+{{- $root := .root -}}
+{{- with required "element-io.postgres.password-change-env missing context" .context -}}
+env:
+- name: "POSTGRES_PASSWORD_FILE"
+  value: {{ printf "/secrets/%s" (
+              include "element-io.ess-library.init-secret-path" (dict
+                "root" $root
+                "context" (dict
+                  "secretPath" "postgres.adminPassword"
+                  "initSecretKey" "POSTGRES_ADMIN_PASSWORD"
+                  "defaultSecretName" (include "element-io.postgres.secret-name" (dict "root" $root "context"  (dict "isHook" false)))
+                  "defaultSecretKey" "ADMIN_PASSWORD"
+                )
+              )
+            ) }}
+- name: "PGHOST"
+  value: "/var/run/postgresql"
+- name: "PGDATA"
+  value: "/var/lib/postgres/data/pgdata"
+{{- end -}}
+{{- end -}}
+
+
 {{- define "element-io.postgres.overrideEnv" }}
 {{- $root := .root -}}
 {{- with required "element-io.postgres.overrideEnv missing context" .context -}}
@@ -131,6 +155,8 @@ env:
                   )
                 )
               ) }}
+- name: "PGHOST"
+  value: "/var/run/postgresql"
 - name: "PGDATA"
   value: "/var/lib/postgres/data/pgdata"
 - name: "POSTGRES_INITDB_ARGS"
