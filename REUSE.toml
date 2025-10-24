@@ -22,8 +22,9 @@ SPDX-License-Identifier = "AGPL-3.0-only"
 
 [[annotations]]
 path = "newsfragments/*.md"
-SPDX-FileCopyrightText = "Copyright 2025 New Vector Ltd"
+SPDX-FileCopyrightText = ["Copyright 2025 New Vector Ltd", "Copyright 2025 Element Creations Ltd"]
 SPDX-License-Identifier = "AGPL-3.0-only"
+precedence = "aggregate"
 
 [[annotations]]
 path = "docs/assets/images/*.png"
