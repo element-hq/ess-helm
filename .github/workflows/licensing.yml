@@ -1,4 +1,5 @@
 # Copyright 2024-2025 New Vector Ltd
+# Copyright 2025 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -35,11 +36,15 @@ jobs:
         reuse --version
         reuse lint
 
-    - name: SPDX checks
+    - name: Generate SPDX
       run: |
         git config --global --add safe.directory "$GITHUB_WORKSPACE"
         reuse --version
-        reuse spdx | ./scripts/spdx_checks.py
+        reuse spdx > "$RUNNER_TEMP/reuse.spdx"
+
+    - name: SPDX checks
+      run: |
+        ./scripts/spdx_check_all_files.py "$RUNNER_TEMP/reuse.spdx"
 
   copyright-dates:
     runs-on: ubuntu-latest
