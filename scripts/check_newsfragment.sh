@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 # Copyright 2025 New Vector Ltd
+# Copyright 2025 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
