@@ -23,7 +23,8 @@ copyright_pattern = re.compile(r"^Copyright (?P<from>20\d{2})(-(?P<to>20\d{2}))?
 def do_changed_files_have_correct_copyright_header(
     spdx_file: Annotated[typer.FileText, typer.Argument()], changed_filenames: list[str]
 ):
-    assert len(changed_filenames) > 0
+    assert changed_filenames, "Some file names must be marked as changed in spdx_check_changed_files.py"
+    assert len(changed_filenames) > 0, "Some file names must be marked as changed in spdx_check_changed_files.py"
 
     parser = Parser()
 

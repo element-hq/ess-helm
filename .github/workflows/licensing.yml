@@ -49,6 +49,7 @@ jobs:
         ./scripts/spdx_check_all_files.py "$RUNNER_TEMP/reuse.spdx"
 
     - name: Copyright dates
+      if: ${{ github.event_name == 'pull_request' }}
       env:
         BASE_REF: ${{ github.event.pull_request.base.sha }}
         HEAD_REF: ${{ github.event.pull_request.head.sha }}
