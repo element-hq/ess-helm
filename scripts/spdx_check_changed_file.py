@@ -39,6 +39,9 @@ def do_changed_files_have_correct_copyright_header(
         # REUSE.toml isn't included in the SPDX
         if changed_filename == "REUSE.toml":
             continue
+        # .license files won't be in the SPDX because they're metadata about other files
+        if changed_filename.endswith(".license"):
+            continue
 
         if not Path(changed_filename).exists():
             print(f"{changed_filename} is being skipped as it doesn't exist")
