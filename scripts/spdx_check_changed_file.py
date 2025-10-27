@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-# Copyright 2025 Element Creations Ltd
 # Copyright 2025 New Vector Ltd
+# Copyright 2025 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -23,7 +23,8 @@ copyright_pattern = re.compile(r"^Copyright (?P<from>20\d{2})(-(?P<to>20\d{2}))?
 def do_changed_files_have_correct_copyright_header(
     spdx_file: Annotated[typer.FileText, typer.Argument()], changed_filenames: list[str]
 ):
-    assert len(changed_filenames) > 0
+    assert changed_filenames, "Some file names must be marked as changed in spdx_check_changed_files.py"
+    assert len(changed_filenames) > 0, "Some file names must be marked as changed in spdx_check_changed_files.py"
 
     parser = Parser()
 
@@ -37,6 +38,9 @@ def do_changed_files_have_correct_copyright_header(
     for changed_filename in changed_filenames:
         # REUSE.toml isn't included in the SPDX
         if changed_filename == "REUSE.toml":
+            continue
+        # .license files won't be in the SPDX because they're metadata about other files
+        if changed_filename.endswith(".license"):
             continue
 
         if not Path(changed_filename).exists():

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-# Copyright 2025 Element Creations Ltd
 # Copyright 2025 New Vector Ltd
+# Copyright 2025 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -46,7 +46,7 @@ def run_spdx_checks(input_file: Annotated[typer.FileText, typer.Argument()]):
             to_year = int(to_year) if to_year else from_year
 
             entity = copyright_details.group("entity")
-            if entity in ["New Vector Ltd", "Element Creations Ltd"]:
+            if entity in ["Element Creations Ltd"]:
                 has_element_copyright = True
 
             # REUSE-IgnoreStart
