@@ -48,6 +48,12 @@ jobs:
       run: |
         ./scripts/spdx_check_all_files.py "$RUNNER_TEMP/reuse.spdx"
 
+        # `reuse spdx` will coalesce multiple identical copyright headerts
+        if grep -Pzlr '(?s)Copyright \d{4}(-\d{4})? Element Creations Ltd\n.*Copyright \d{4}(-\d{4})? Element Creations Ltd' .; then
+          echo "Some files had more than 1 Element Creations Ltd header"
+          exit 1
+        fi
+
     - name: Copyright dates
       if: ${{ github.event_name == 'pull_request' }}
       env:
