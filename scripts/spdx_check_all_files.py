@@ -46,7 +46,7 @@ def run_spdx_checks(input_file: Annotated[typer.FileText, typer.Argument()]):
             to_year = int(to_year) if to_year else from_year
 
             entity = copyright_details.group("entity")
-            if entity in ["New Vector Ltd", "Element Creations Ltd"]:
+            if entity in ["Element Creations Ltd"]:
                 has_element_copyright = True
 
             # REUSE-IgnoreStart
