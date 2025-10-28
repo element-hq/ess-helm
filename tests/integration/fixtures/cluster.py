@@ -14,21 +14,18 @@ from lightkube import ApiError, AsyncClient, KubeConfig
 from lightkube.models.meta_v1 import ObjectMeta
 from lightkube.resources.core_v1 import Namespace, Service
 from pytest_kubernetes.options import ClusterOptions
-from pytest_kubernetes.providers import KindManager
+from pytest_kubernetes.providers import KindManagerBase
 from python_on_whales import docker
 
 from .data import ESSData
 
 
-class PotentiallyExistingKindCluster(KindManager):
+class PotentiallyExistingKindCluster(KindManagerBase):
     def __init__(self, cluster_name, provider_config=None):
         super().__init__(cluster_name, provider_config)
 
-        # Remove the pytest- prefix
-        self.cluster_name = cluster_name
-
         clusters = self._exec(["get", "clusters"])
-        if self.cluster_name in clusters.stdout.decode("utf-8").split("\n"):
+        if cluster_name in clusters.stdout.decode("utf-8").split("\n"):
             self.existing_cluster = True
         else:
             self.existing_cluster = False
@@ -66,9 +63,11 @@ class PotentiallyExistingKindCluster(KindManager):
 
 @pytest.fixture(autouse=True, scope="session")
 async def cluster():
-    # This name must match what `setup_test_cluster.sh` would create
+    # Both these names must match what `setup_test_cluster.sh` would create
     this_cluster = PotentiallyExistingKindCluster("ess-helm")
-    this_cluster.create(ClusterOptions(provider_config=Path(__file__).parent / Path("files/clusters/kind.yml")))
+    this_cluster.create(
+        ClusterOptions(cluster_name="ess-helm", provider_config=Path(__file__).parent / Path("files/clusters/kind.yml"))
+    )
 
     yield this_cluster
 
