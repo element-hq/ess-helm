@@ -7,6 +7,84 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 25.10.3 (2025-10-31)
+
+## Changed
+
+- Update `example-default-enabled-components-values.yaml` to include MatrixRTC as it is enabled by default. (#516)
+- Upgrade Element Web to v1.12.2.
+
+  Highlights:
+  - Improve handling of animated images.
+  - Fix duration of voice message in timeline.
+  - Improve keyboard navigation on invite dialog.
+
+  Full Changelogs:
+  - [v1.12.2](https://github.com/element-hq/element-web/releases/tag/v1.12.2)
+
+  (#809)
+- Update Element Admin to v0.1.8.
+
+  Highlights:
+  * Allow admins to generate personal access tokens for users
+  * Fix the ESS version not loading after a refresh
+
+  Full Changelogs:
+  * [v0.1.5](https://github.com/element-hq/element-admin/releases/tag/v0.1.5)
+  * [v0.1.6](https://github.com/element-hq/element-admin/releases/tag/v0.1.6)
+  * [v0.1.7](https://github.com/element-hq/element-admin/releases/tag/v0.1.7)
+  * [v0.1.8](https://github.com/element-hq/element-admin/releases/tag/v0.1.8)
+
+  (#816, #843, #844)
+- Update Chart metadata to enhance tooling like `renovate` and `artifacthub.io`. (#818)
+- Update Synapse to v1.141.0.
+
+  Highlights:
+  * Update docker image to use Debian trixie as the base and thus Python 3.13
+  * Allow using [MSC4190](https://github.com/matrix-org/matrix-spec-proposals/pull/4190) behaviour without the opt-in registration flag
+  * Stabilize support for [MSC4326](https://github.com/matrix-org/matrix-spec-proposals/pull/4326): Device masquerading for appservices
+
+  Full Changelogs:
+  * [v1.141.0](https://github.com/element-hq/synapse/releases/tag/v1.141.0)
+
+  (#826)
+- Ensure there's at least 2 newlines at the end of the `haproxy.cfg` file. (#829)
+- Upgrade Matrix Authentication Service to v1.5.0.
+
+  Highlights:
+  - Initial support for admins managing Personal Access Tokens for users using the Admin APIs.
+
+  Full Changelogs:
+  - [v1.5.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.5.0)
+
+  (#830)
+- Add 'Element Creations Ltd' copyright to every file. (#835)
+
+## Fixed
+
+- Postgres: Fix the ess-updater container do not have access to the local data directory. (#817)
+- Prioritize `wellKnownDelegation.baseDomainRedirect.url` over `elementWeb.ingress.host`.
+
+  Previously, whenever elementWeb was enabled, the url property was silently ignored instead of, as expected, taking precedence. (#819)
+- Fix a Matrix compatible JSON response not being correctly sent when a Synapse backend is down. (#829)
+
+## Documentation
+
+- Values Fragments: Make `serverName` unique to 1 fragment. (#806)
+- Matrix RTC: Document the SFU `CrashLoopBackOff` issue. (#825)
+
+## Internal
+
+- CI: New implementation of the configuration consistency checks. (#817, #831, #832, #833)
+- CI: check that `matrix-tools` containers only ever set `args` and not `command`. (#820)
+- CI: check that all changed files have copyright notices for the new Element legal entity. (#822)
+- Update SPDX check script to handle multiple Copyright headers. (#822, #835)
+- Allow cloning of the source repository on Windows. (#827)
+- Rename `Removed` changelog sections to `Removed / Breaking Changes` and make more prominent. (#828)
+- CI: test that all multi-line config files end up in cluster with a trailing newline. (#829)
+- CI: adapt integration test cluster creation for latest pytest-kubernetes. (#841)
+
+
 # ESS Community Helm Chart 25.10.2 (2025-10-16)
 
 ## Security
