@@ -13,7 +13,8 @@ package-mode = false
 python = ">=3.12,<4.0"
 
 [tool.poetry.group.dev.dependencies]
-pyhelm3 = "^0.4.0"
+# For https://github.com/azimuth-cloud/pyhelm3/pull/36 & https://github.com/azimuth-cloud/pyhelm3/pull/37
+pyhelm3 = {git = "https://github.com/element-hq/pyhelm3.git", rev = "788ac4c1f"}
 lightkube = "^0.17.2"
 pytz = "^2025.2"
 cryptography = "^46.0.3"
