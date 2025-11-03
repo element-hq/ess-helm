@@ -2651,18 +2651,22 @@ windows-terminal = ["colorama (>=0.4.6)"]
 [[package]]
 name = "pyhelm3"
 version = "0.4.0"
-description = "Python library for managing Helm releases using Helm 3."
+description = "Python library for managing Helm releases using Helm 3 (i.e. Tiller-less Helm)."
 optional = false
-python-versions = "*"
+python-versions = ">=3.9"
 groups = ["dev"]
-files = [
-    {file = "pyhelm3-0.4.0-py3-none-any.whl", hash = "sha256:6f608891fbe8db9b8015b839f29524dccd6eade0da879820690d71de9c3f2f8d"},
-    {file = "pyhelm3-0.4.0.tar.gz", hash = "sha256:7ce688cab8e12df5240641774c36acfd3cad6d9a6325781bc7b5a354e522c594"},
-]
+files = []
+develop = false
 
 [package.dependencies]
-pydantic = "*"
-pyyaml = "*"
+pydantic = "^2.10.6"
+pyyaml = "^6.0.2"
+
+[package.source]
+type = "git"
+url = "https://github.com/element-hq/pyhelm3.git"
+reference = "788ac4c1f"
+resolved_reference = "788ac4c1ff5c72bdb7763c59256aabd0c795feb3"
 
 [[package]]
 name = "pynacl"
@@ -4071,4 +4075,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0"
-content-hash = "70f34cf22117be2e09e80a5a77829b838565c9414d99bb19162a642885375b64"
+content-hash = "7eadbb7927650b515feed53f6f8923d8a03aa7ac111d979840e9de9523201d01"
