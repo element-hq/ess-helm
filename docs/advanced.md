@@ -181,7 +181,11 @@ Optionally, if you don't want to use Google's STUN servers you can override this
 
 ```yml
 matrixRTC:
-  rtc:
-    stun_servers:
-      - "example.com:3478"
+  sfu:
+    additional:
+      stun.yaml:
+        config: |
+          rtc:
+            stun_servers:
+            - "example.com:3478"
 ```
