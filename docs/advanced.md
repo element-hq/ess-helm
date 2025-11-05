@@ -177,3 +177,15 @@ matrixRTC:
   sfu:
     manualIP: "<your node public IP>"
 ```
+Optionally, if you don't want to use Google's STUN servers you can override this with `stun_servers`:
+
+```yml
+matrixRTC:
+  sfu:
+    additional:
+      stun.yaml:
+        config: |
+          rtc:
+            stun_servers:
+            - "example.com:3478"
+```
