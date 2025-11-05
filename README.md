@@ -53,10 +53,10 @@ Find below an overview of the most important additional product capabilities for
   - In-cluster high availability (HA)
   - Improved end-user experience due to better stability under load
 - Application-level firewall with federation controls and more (Secure Border Gateway)
-- User lifecycle management and group access control via LDAP/SCIM (Advanced Identity Management)
+- User lifecycle management and group access control via LDAP/SCIM (Advanced IAM)
 - Malware scanning of media attachments (Content Scanner)
-- Room auditing capabilities (AuditBot)
-- Room moderation and central control (AdminBot)
+- Auditing capabilities (AuditBot)
+- Moderation and central control (AdminBot)
 - LDAP and SSO support for user authentication
 - S3 support for media storage
 - Distroless/minimal images of all relevant core components
