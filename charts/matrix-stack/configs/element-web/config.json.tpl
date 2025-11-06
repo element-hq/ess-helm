@@ -34,7 +34,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $_ := set $config "setting_defaults" $settingDefaults -}}
 {{- $defaultServerConfig := dict "m.homeserver" $mHomeserver -}}
 {{- $_ := set $config "default_server_config" $defaultServerConfig -}}
-{{- $_ := set $config "bug_report_endpoint_url" "https://element.io/bugreports/submit" -}}
+{{- $_ := set $config "bug_report_endpoint_url" "https://rageshakes.element.io/api/submit" -}}
 {{- $_ := set $config "map_style_url" "https://api.maptiler.com/maps/streets/style.json?key=fU3vlMsMn4Jb6dnEIFsx" -}}
 {{- $_ := set $config "mobile_guide_app_variant" "element" -}}
 {{- with .additional }}

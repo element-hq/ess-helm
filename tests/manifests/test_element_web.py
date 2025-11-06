@@ -15,7 +15,7 @@ async def test_config_json_override(values, make_templates):
         if template["kind"] == "ConfigMap" and "element-web" in template["metadata"]["name"]:
             config_json = json.loads(template["data"]["config.json"])
             assert config_json == {
-                "bug_report_endpoint_url": "https://element.io/bugreports/submit",
+                "bug_report_endpoint_url": "https://rageshakes.element.io/api/submit",
                 "default_server_config": {"m.homeserver": {}},
                 "map_style_url": "https://api.maptiler.com/maps/streets/style.json?key=fU3vlMsMn4Jb6dnEIFsx",
                 "mobile_guide_app_variant": "element",
