@@ -108,6 +108,8 @@ experimental_features:
 {{- if $root.Values.matrixRTC.enabled }}
   # MSC3266: Room summary API. Used for knocking over federation
   msc3266_enabled: true
+  # MSC4143: Matrix RTC Transport using Livekit Backend. This enables a client-server API for discovery of Matrix RTC backends
+  msc4143_enabled: true
   # MSC4222 needed for syncv2 state_after. This allow clients to
   # correctly track the state of the room.
   msc4222_enabled: true
@@ -120,6 +122,13 @@ password_config:
   localdb_enabled: false
   enabled: false
 {{- end }}
+{{- end }}
+{{- if $root.Values.matrixRTC.enabled }}
+
+matrix_rtc:
+  transports:
+  - type: livekit
+    livekit_service_url: {{ (printf "https://%s" $root.Values.matrixRTC.ingress.host) }}
 {{- end }}
 
 {{- if dig "appservice" "enabled" false .workers }}
