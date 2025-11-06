@@ -7,6 +7,40 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 25.11.0 (2025-11-06)
+
+## Changed
+
+- Upgrade Element Web to v1.12.3.
+
+  Highlights:
+  - Fix sort order in space hierarchy.
+  - New Room list: don't display message preview of thread.
+
+  Full Changelogs:
+  - [v1.12.3](https://github.com/element-hq/element-web/releases/tag/v1.12.3)
+
+  (#842)
+- Re-add the chart's icon. (#848)
+- Update README. (#854)
+- Configure experimental MSC4143 advertisement in Synapse when MatrixRTC is enabled.
+
+  This is in addition to the MSC4143 advertisement on the client well-known endpoint for now, but it is expected to replace it in time. (#855)
+- Update Element Web's default bug report URL to use the dedicated subdomain for bug reporting. (#856)
+
+## Fixed
+
+- Fix an issue where the chart could not be deployed against clusters returning an experimental build. (#850)
+
+## Documentation
+
+- Document setting alternative STUN servers for MatrixRTC. (#851)
+
+## Internal
+
+- CI: Use Element customised `pyhelm3` dependency for running tests. (#848)
+
+
 # ESS Community Helm Chart 25.10.3 (2025-10-31)
 
 ## Changed
