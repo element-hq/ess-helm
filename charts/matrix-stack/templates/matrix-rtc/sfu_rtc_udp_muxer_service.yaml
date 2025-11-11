@@ -19,6 +19,7 @@ metadata:
 spec:
   type: NodePort
   externalTrafficPolicy: Local
+  ipFamilyPolicy: PreferDualStack
   ports:
   - name: "rtc-muxed-udp"
     protocol: "UDP"
