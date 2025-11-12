@@ -5,33 +5,12 @@
 
 import pytest
 
-from . import DeployableDetails, PropertyType, values_files_to_test
+from . import PropertyType, values_files_to_test
+from .test_pod_replicas import set_replicas_details
 from .utils import iterate_deployables_parts, template_id, template_to_deployable_details
 
 
-@pytest.mark.parametrize("values_file", values_files_to_test)
-@pytest.mark.asyncio_cooperative
-async def test_all_deployments_set_replicas(templates):
-    for template in templates:
-        if template["kind"] in ["Deployment"]:
-            assert "replicas" in template["spec"], f"{template_id(template)} does not specify replicas"
-
-
-def set_replicas_details(values):
-    # We have a counter that increments for each replicas field for each deployable details
-    # That way we can assert a) the correct value is going into the correct field and
-    # b) that the correct part of the values file is being used
-    counter = 100
-
-    def set_replicas_details(deployable_details: DeployableDetails):
-        nonlocal counter
-        counter += 1
-        deployable_details.set_helm_values(values, PropertyType.Replicas, counter)
-
-    iterate_deployables_parts(set_replicas_details, lambda deployable_details: deployable_details.has_replicas)
-
-
-def assert_matching_replicas(template, values, release_name):
+def assert_matching_replicas(template, values):
     deployable_details = template_to_deployable_details(template)
     replicas = template["spec"]["replicas"]
     max_unavailable = template["spec"]["strategy"]["rollingUpdate"]["maxUnavailable"]
@@ -109,11 +88,13 @@ def assert_matching_replicas(template, values, release_name):
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_all_deployments_can_set_replicas(values, make_templates, release_name):
+async def test_all_deployments_can_set_replicas(values, make_templates):
+    # This overlaps an awful lot with test_pod_replicas.test_deployments_statefulsets_respect_replicas
+    # However we don't do podAntiAffinity yet for StatefulSets (why not?) so leaving this here
     set_replicas_details(values)
     for template in await make_templates(values):
         if template["kind"] in ["Deployment"]:
-            assert_matching_replicas(template, values, release_name)
+            assert_matching_replicas(template, values)
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
