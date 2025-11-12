@@ -412,7 +412,14 @@ clusterDomain: "cluster.local."
 ##   # nodeAffinityPolicy: Honor/Ignore
 ##   # nodeTaintsPolicy: Honor/Ignore
 ##   # whenUnsatisfiable: DoNotSchedule/ScheduleAnyway
+{%- if global %}
+{{ key }}:
+- maxSkew: 1
+  topologyKey: kubernetes.io/hostname
+  whenUnsatisfiable: ScheduleAnyway
+{%- else %}
 {{ key }}: []
+{%- endif %}
 {%- endmacro %}
 
 {% macro workloadAnnotations(key='annotations') %}
