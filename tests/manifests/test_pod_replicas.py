@@ -17,10 +17,29 @@ async def test_deployments_statefulsets_have_replicas_by_default(values, templat
             continue
 
         assert "replicas" in template["spec"], f"{template_id(template)} does not specify replicas"
+        # This is here as we used to set podAntiAffinity based on the value of replicas
+        # Until we allow for configurable affinity, we'll assert it here
+        assert "affinity" not in template["spec"]["template"]["spec"], (
+            f"{template_id(template)} has affinity where we don't allow configuration of affinity"
+        )
 
         deployable_details = template_to_deployable_details(template)
-        value = deployable_details.get_helm_values(values, PropertyType.Replicas, 1)
-        assert template["spec"]["replicas"] == value, f"{template_id(template)} has incorrect replicas value"
+        # Because some values files set replicas to >1
+        expected_replicas = deployable_details.get_helm_values(values, PropertyType.Replicas, 1)
+        assert template["spec"]["replicas"] == expected_replicas, (
+            f"{template_id(template)} has incorrect replicas value"
+        )
+
+        if template["kind"] == "Deployment":
+            max_unavailable = template["spec"]["strategy"]["rollingUpdate"]["maxUnavailable"]
+            if expected_replicas > 1:
+                assert max_unavailable == 1, (
+                    f"{template_id(template)} has {max_unavailable=} when it should be 1 with more than 1 replica"
+                )
+            else:
+                assert max_unavailable == 0, (
+                    f"{template_id(template)} has {max_unavailable=} when it should be 0 with no replicas"
+                )
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -31,12 +50,32 @@ async def test_deployments_statefulsets_respect_replicas(values, make_templates)
         if template["kind"] not in ["Deployment", "StatefulSet"]:
             continue
 
+        assert "replicas" in template["spec"], f"{template_id(template)} does not specify replicas"
+        # This is here as we used to set podAntiAffinity based on the value of replicas
+        # Until we allow for configurable affinity, we'll assert it here
+        assert "affinity" not in template["spec"]["template"]["spec"], (
+            f"{template_id(template)} has affinity where we don't allow configuration of affinity"
+        )
+
         deployable_details = template_to_deployable_details(template)
         if deployable_details.has_replicas:
-            value = deployable_details.get_helm_values(values, PropertyType.Replicas)
-            assert value == template["spec"]["replicas"], f"{template_id(template)} has incorrect replicas value"
+            expected_replicas = deployable_details.get_helm_values(values, PropertyType.Replicas)
+            assert expected_replicas == template["spec"]["replicas"], (
+                f"{template_id(template)} has incorrect replicas value"
+            )
         else:
             assert template["spec"]["replicas"] == 1, f"{template_id(template)} has incorrect replicas value"
+
+        if template["kind"] == "Deployment":
+            max_unavailable = template["spec"]["strategy"]["rollingUpdate"]["maxUnavailable"]
+            if deployable_details.has_replicas:
+                assert max_unavailable == 1, (
+                    f"{template_id(template)} has {max_unavailable=} when it should be 1 with more than 1 replica"
+                )
+            else:
+                assert max_unavailable == 0, (
+                    f"{template_id(template)} has {max_unavailable=} when it should be 0 with no replicas"
+                )
 
 
 def set_replicas_details(values):
