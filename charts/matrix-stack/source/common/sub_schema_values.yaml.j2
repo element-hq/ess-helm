@@ -402,7 +402,7 @@ clusterDomain: "cluster.local."
 {% macro topologySpreadConstraints(global=false, key='topologySpreadConstraints') %}
 ## TopologySpreadConstraints describes how Pods for {{ 'a' if global else 'this' }} component should be spread between nodes.
 ## https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/ for in-depth details
-## labelSelector can be omitted and the chart will populate a sensible value for {{ 'each' if global else 'this' }} component.
+## labelSelector & whenUnsatisfiable can be omitted and the chart will populate a sensible value for {{ 'each' if global else 'this' }} component.
 ## Similarly `pod-template-hash` will be aded to `matchLabelKeys` if appropriate for {{ 'each' if global else 'this' }} component.
 ## If any TopologySpreadConstraints are provided for a component any global TopologySpreadConstraints are ignored for that component.
 ## e.g.

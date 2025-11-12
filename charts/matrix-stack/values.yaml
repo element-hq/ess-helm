@@ -113,7 +113,7 @@ tolerations: []
 
 ## TopologySpreadConstraints describes how Pods for a component should be spread between nodes.
 ## https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/ for in-depth details
-## labelSelector can be omitted and the chart will populate a sensible value for each component.
+## labelSelector & whenUnsatisfiable can be omitted and the chart will populate a sensible value for each component.
 ## Similarly `pod-template-hash` will be aded to `matchLabelKeys` if appropriate for each component.
 ## If any TopologySpreadConstraints are provided for a component any global TopologySpreadConstraints are ignored for that component.
 ## e.g.
@@ -259,7 +259,7 @@ initSecrets:
   tolerations: []
   ## TopologySpreadConstraints describes how Pods for this component should be spread between nodes.
   ## https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/ for in-depth details
-  ## labelSelector can be omitted and the chart will populate a sensible value for this component.
+  ## labelSelector & whenUnsatisfiable can be omitted and the chart will populate a sensible value for this component.
   ## Similarly `pod-template-hash` will be aded to `matchLabelKeys` if appropriate for this component.
   ## If any TopologySpreadConstraints are provided for a component any global TopologySpreadConstraints are ignored for that component.
   ## e.g.
@@ -399,7 +399,7 @@ deploymentMarkers:
   tolerations: []
   ## TopologySpreadConstraints describes how Pods for this component should be spread between nodes.
   ## https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/ for in-depth details
-  ## labelSelector can be omitted and the chart will populate a sensible value for this component.
+  ## labelSelector & whenUnsatisfiable can be omitted and the chart will populate a sensible value for this component.
   ## Similarly `pod-template-hash` will be aded to `matchLabelKeys` if appropriate for this component.
   ## If any TopologySpreadConstraints are provided for a component any global TopologySpreadConstraints are ignored for that component.
   ## e.g.
@@ -636,7 +636,7 @@ matrixRTC:
   tolerations: []
   ## TopologySpreadConstraints describes how Pods for this component should be spread between nodes.
   ## https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/ for in-depth details
-  ## labelSelector can be omitted and the chart will populate a sensible value for this component.
+  ## labelSelector & whenUnsatisfiable can be omitted and the chart will populate a sensible value for this component.
   ## Similarly `pod-template-hash` will be aded to `matchLabelKeys` if appropriate for this component.
   ## If any TopologySpreadConstraints are provided for a component any global TopologySpreadConstraints are ignored for that component.
   ## e.g.
@@ -907,7 +907,7 @@ matrixRTC:
     tolerations: []
     ## TopologySpreadConstraints describes how Pods for this component should be spread between nodes.
     ## https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/ for in-depth details
-    ## labelSelector can be omitted and the chart will populate a sensible value for this component.
+    ## labelSelector & whenUnsatisfiable can be omitted and the chart will populate a sensible value for this component.
     ## Similarly `pod-template-hash` will be aded to `matchLabelKeys` if appropriate for this component.
     ## If any TopologySpreadConstraints are provided for a component any global TopologySpreadConstraints are ignored for that component.
     ## e.g.
@@ -1143,7 +1143,7 @@ elementAdmin:
   tolerations: []
   ## TopologySpreadConstraints describes how Pods for this component should be spread between nodes.
   ## https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/ for in-depth details
-  ## labelSelector can be omitted and the chart will populate a sensible value for this component.
+  ## labelSelector & whenUnsatisfiable can be omitted and the chart will populate a sensible value for this component.
   ## Similarly `pod-template-hash` will be aded to `matchLabelKeys` if appropriate for this component.
   ## If any TopologySpreadConstraints are provided for a component any global TopologySpreadConstraints are ignored for that component.
   ## e.g.
@@ -1386,7 +1386,7 @@ elementWeb:
   tolerations: []
   ## TopologySpreadConstraints describes how Pods for this component should be spread between nodes.
   ## https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/ for in-depth details
-  ## labelSelector can be omitted and the chart will populate a sensible value for this component.
+  ## labelSelector & whenUnsatisfiable can be omitted and the chart will populate a sensible value for this component.
   ## Similarly `pod-template-hash` will be aded to `matchLabelKeys` if appropriate for this component.
   ## If any TopologySpreadConstraints are provided for a component any global TopologySpreadConstraints are ignored for that component.
   ## e.g.
@@ -1601,7 +1601,7 @@ haproxy:
   tolerations: []
   ## TopologySpreadConstraints describes how Pods for this component should be spread between nodes.
   ## https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/ for in-depth details
-  ## labelSelector can be omitted and the chart will populate a sensible value for this component.
+  ## labelSelector & whenUnsatisfiable can be omitted and the chart will populate a sensible value for this component.
   ## Similarly `pod-template-hash` will be aded to `matchLabelKeys` if appropriate for this component.
   ## If any TopologySpreadConstraints are provided for a component any global TopologySpreadConstraints are ignored for that component.
   ## e.g.
@@ -1901,7 +1901,7 @@ matrixAuthenticationService:
 
   ## TopologySpreadConstraints describes how Pods for this component should be spread between nodes.
   ## https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/ for in-depth details
-  ## labelSelector can be omitted and the chart will populate a sensible value for this component.
+  ## labelSelector & whenUnsatisfiable can be omitted and the chart will populate a sensible value for this component.
   ## Similarly `pod-template-hash` will be aded to `matchLabelKeys` if appropriate for this component.
   ## If any TopologySpreadConstraints are provided for a component any global TopologySpreadConstraints are ignored for that component.
   ## e.g.
@@ -2220,7 +2220,7 @@ matrixAuthenticationService:
     tolerations: []
     ## TopologySpreadConstraints describes how Pods for this component should be spread between nodes.
     ## https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/ for in-depth details
-    ## labelSelector can be omitted and the chart will populate a sensible value for this component.
+    ## labelSelector & whenUnsatisfiable can be omitted and the chart will populate a sensible value for this component.
     ## Similarly `pod-template-hash` will be aded to `matchLabelKeys` if appropriate for this component.
     ## If any TopologySpreadConstraints are provided for a component any global TopologySpreadConstraints are ignored for that component.
     ## e.g.
@@ -2564,7 +2564,7 @@ postgres:
   tolerations: []
   ## TopologySpreadConstraints describes how Pods for this component should be spread between nodes.
   ## https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/ for in-depth details
-  ## labelSelector can be omitted and the chart will populate a sensible value for this component.
+  ## labelSelector & whenUnsatisfiable can be omitted and the chart will populate a sensible value for this component.
   ## Similarly `pod-template-hash` will be aded to `matchLabelKeys` if appropriate for this component.
   ## If any TopologySpreadConstraints are provided for a component any global TopologySpreadConstraints are ignored for that component.
   ## e.g.
@@ -4213,7 +4213,7 @@ synapse:
   tolerations: []
   ## TopologySpreadConstraints describes how Pods for this component should be spread between nodes.
   ## https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/ for in-depth details
-  ## labelSelector can be omitted and the chart will populate a sensible value for this component.
+  ## labelSelector & whenUnsatisfiable can be omitted and the chart will populate a sensible value for this component.
   ## Similarly `pod-template-hash` will be aded to `matchLabelKeys` if appropriate for this component.
   ## If any TopologySpreadConstraints are provided for a component any global TopologySpreadConstraints are ignored for that component.
   ## e.g.
@@ -4426,7 +4426,7 @@ synapse:
     tolerations: []
     ## TopologySpreadConstraints describes how Pods for this component should be spread between nodes.
     ## https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/ for in-depth details
-    ## labelSelector can be omitted and the chart will populate a sensible value for this component.
+    ## labelSelector & whenUnsatisfiable can be omitted and the chart will populate a sensible value for this component.
     ## Similarly `pod-template-hash` will be aded to `matchLabelKeys` if appropriate for this component.
     ## If any TopologySpreadConstraints are provided for a component any global TopologySpreadConstraints are ignored for that component.
     ## e.g.

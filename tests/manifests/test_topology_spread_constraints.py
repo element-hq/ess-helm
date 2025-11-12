@@ -30,7 +30,6 @@ async def test_topology_spread_constraint_has_default(values, make_templates):
                 {
                     "maxSkew": 1,
                     "topologyKey": "kubernetes.io/hostname",
-                    "whenUnsatisfiable": "DoNotSchedule",
                 }
             ],
         )
