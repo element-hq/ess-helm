@@ -70,6 +70,7 @@ syn2mas:
   {{- sub_schema_values.serviceAccount() | indent(2) -}}
   {{- sub_schema_values.extraEnv() | indent(2) -}}
   {{- sub_schema_values.tolerations() | indent(2) }}
+  {{- sub_schema_values.topologySpreadConstraints() | indent(2) }}
 
   ## Runs the syn2mas process in dryRun mode.
   ## Force the authentication to happen with legacy authentication.

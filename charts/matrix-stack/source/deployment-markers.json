@@ -40,6 +40,9 @@
     },
     "tolerations": {
       "$ref": "file://common/tolerations.json"
+    },
+    "topologySpreadConstraints": {
+      "$ref": "file://common/topologySpreadConstraints.json"
     }
   }
 }

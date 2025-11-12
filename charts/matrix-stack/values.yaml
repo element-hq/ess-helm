@@ -257,6 +257,19 @@ initSecrets:
   ##   value:
 
   tolerations: []
+  ## TopologySpreadConstraints describes how Pods for this component should be spread between nodes.
+  ## https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/ for in-depth details
+  ## labelSelector can be omitted and the chart will populate a sensible value for this component.
+  ## Similarly `pod-template-hash` will be aded to `matchLabelKeys` if appropriate for this component.
+  ## If any TopologySpreadConstraints are provided for a component any global TopologySpreadConstraints are ignored for that component.
+  ## e.g.
+  ## topologySpreadConstraints:
+  ## - maxSkew: 1
+  ##   topologyKey: topology.kubernetes.io/zone
+  ##   # nodeAffinityPolicy: Honor/Ignore
+  ##   # nodeTaintsPolicy: Honor/Ignore
+  ##   # whenUnsatisfiable: DoNotSchedule/ScheduleAnyway
+  topologySpreadConstraints: []
 
 deploymentMarkers:
   enabled: true
@@ -384,6 +397,19 @@ deploymentMarkers:
   ##   value:
 
   tolerations: []
+  ## TopologySpreadConstraints describes how Pods for this component should be spread between nodes.
+  ## https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/ for in-depth details
+  ## labelSelector can be omitted and the chart will populate a sensible value for this component.
+  ## Similarly `pod-template-hash` will be aded to `matchLabelKeys` if appropriate for this component.
+  ## If any TopologySpreadConstraints are provided for a component any global TopologySpreadConstraints are ignored for that component.
+  ## e.g.
+  ## topologySpreadConstraints:
+  ## - maxSkew: 1
+  ##   topologyKey: topology.kubernetes.io/zone
+  ##   # nodeAffinityPolicy: Honor/Ignore
+  ##   # nodeTaintsPolicy: Honor/Ignore
+  ##   # whenUnsatisfiable: DoNotSchedule/ScheduleAnyway
+  topologySpreadConstraints: []
 
 matrixRTC:
   enabled: true
@@ -608,6 +634,19 @@ matrixRTC:
   ##   value:
 
   tolerations: []
+  ## TopologySpreadConstraints describes how Pods for this component should be spread between nodes.
+  ## https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/ for in-depth details
+  ## labelSelector can be omitted and the chart will populate a sensible value for this component.
+  ## Similarly `pod-template-hash` will be aded to `matchLabelKeys` if appropriate for this component.
+  ## If any TopologySpreadConstraints are provided for a component any global TopologySpreadConstraints are ignored for that component.
+  ## e.g.
+  ## topologySpreadConstraints:
+  ## - maxSkew: 1
+  ##   topologyKey: topology.kubernetes.io/zone
+  ##   # nodeAffinityPolicy: Honor/Ignore
+  ##   # nodeTaintsPolicy: Honor/Ignore
+  ##   # whenUnsatisfiable: DoNotSchedule/ScheduleAnyway
+  topologySpreadConstraints: []
   ## Configuration of the thresholds and frequencies of the livenessProbe
   livenessProbe:
     ## How many consecutive failures for the probe to be considered failed
@@ -866,6 +905,19 @@ matrixRTC:
     ##   value:
 
     tolerations: []
+    ## TopologySpreadConstraints describes how Pods for this component should be spread between nodes.
+    ## https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/ for in-depth details
+    ## labelSelector can be omitted and the chart will populate a sensible value for this component.
+    ## Similarly `pod-template-hash` will be aded to `matchLabelKeys` if appropriate for this component.
+    ## If any TopologySpreadConstraints are provided for a component any global TopologySpreadConstraints are ignored for that component.
+    ## e.g.
+    ## topologySpreadConstraints:
+    ## - maxSkew: 1
+    ##   topologyKey: topology.kubernetes.io/zone
+    ##   # nodeAffinityPolicy: Honor/Ignore
+    ##   # nodeTaintsPolicy: Honor/Ignore
+    ##   # whenUnsatisfiable: DoNotSchedule/ScheduleAnyway
+    topologySpreadConstraints: []
     ## Configuration of the thresholds and frequencies of the livenessProbe
     livenessProbe:
       ## How many consecutive failures for the probe to be considered failed
@@ -2166,6 +2218,19 @@ matrixAuthenticationService:
     ##   value:
 
     tolerations: []
+    ## TopologySpreadConstraints describes how Pods for this component should be spread between nodes.
+    ## https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/ for in-depth details
+    ## labelSelector can be omitted and the chart will populate a sensible value for this component.
+    ## Similarly `pod-template-hash` will be aded to `matchLabelKeys` if appropriate for this component.
+    ## If any TopologySpreadConstraints are provided for a component any global TopologySpreadConstraints are ignored for that component.
+    ## e.g.
+    ## topologySpreadConstraints:
+    ## - maxSkew: 1
+    ##   topologyKey: topology.kubernetes.io/zone
+    ##   # nodeAffinityPolicy: Honor/Ignore
+    ##   # nodeTaintsPolicy: Honor/Ignore
+    ##   # whenUnsatisfiable: DoNotSchedule/ScheduleAnyway
+    topologySpreadConstraints: []
 
     ## Runs the syn2mas process in dryRun mode.
     ## Force the authentication to happen with legacy authentication.
@@ -4359,6 +4424,19 @@ synapse:
     ##   value:
 
     tolerations: []
+    ## TopologySpreadConstraints describes how Pods for this component should be spread between nodes.
+    ## https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/ for in-depth details
+    ## labelSelector can be omitted and the chart will populate a sensible value for this component.
+    ## Similarly `pod-template-hash` will be aded to `matchLabelKeys` if appropriate for this component.
+    ## If any TopologySpreadConstraints are provided for a component any global TopologySpreadConstraints are ignored for that component.
+    ## e.g.
+    ## topologySpreadConstraints:
+    ## - maxSkew: 1
+    ##   topologyKey: topology.kubernetes.io/zone
+    ##   # nodeAffinityPolicy: Honor/Ignore
+    ##   # nodeTaintsPolicy: Honor/Ignore
+    ##   # whenUnsatisfiable: DoNotSchedule/ScheduleAnyway
+    topologySpreadConstraints: []
     ## Configuration of the thresholds and frequencies of the livenessProbe
     livenessProbe:
       ## How many consecutive failures for the probe to be considered failed
