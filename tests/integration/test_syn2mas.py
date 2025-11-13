@@ -40,7 +40,7 @@ async def test_run_syn2mas_upgrade(
     revision, error = await deploy_with_values_patch(
         generated_data, helm_client, {"matrixAuthenticationService": {"enabled": True}}
     )
-    assert error is None
+    assert error is None, error
     assert revision.status == pyhelm3.ReleaseRevisionStatus.DEPLOYED
     # We should still be able to reach synapse ingress
     await ingress_ready("synapse")
@@ -63,7 +63,7 @@ async def test_run_syn2mas_upgrade(
     revision, error = await deploy_with_values_patch(
         generated_data, helm_client, {"matrixAuthenticationService": {"syn2mas": {"dryRun": False}}}
     )
-    assert error is None
+    assert error is None, error
     assert revision.status == pyhelm3.ReleaseRevisionStatus.DEPLOYED
 
     # Syn2Mas is running in migrate mode, so the state must have changed
@@ -71,7 +71,7 @@ async def test_run_syn2mas_upgrade(
 
     # Assert we cant run syn2mas again
     revision, error = await deploy_with_values_patch(generated_data, helm_client, {}, timeout="15s")
-    assert error is not None
+    assert error is not None, "There was no error"
     assert revision.status == pyhelm3.ReleaseRevisionStatus.FAILED
 
     # Auth metadata endpoint should be reachable
@@ -99,7 +99,7 @@ async def test_run_syn2mas_upgrade(
     revision, error = await deploy_with_values_patch(
         generated_data, helm_client, {"matrixAuthenticationService": {"syn2mas": {"enabled": False}}}
     )
-    assert error is None
+    assert error is None, error
     assert revision.status == pyhelm3.ReleaseRevisionStatus.DEPLOYED
 
     # MAS should be available
@@ -133,7 +133,7 @@ async def test_run_syn2mas_upgrade(
     revision, error = await deploy_with_values_patch(
         generated_data, helm_client, {"matrixAuthenticationService": {"syn2mas": {"enabled": True}}}, timeout="15s"
     )
-    assert error is not None
+    assert error is not None, "There was no error"
     assert revision.description
     assert revision.status == pyhelm3.ReleaseRevisionStatus.FAILED
     assert "pre-upgrade hooks failed" in revision.description
