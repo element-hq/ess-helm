@@ -7,6 +7,35 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 25.11.1 (2025-11-14)
+
+## Changed
+
+- Upgrade Matrix Authentication Service to v1.6.0.
+
+  Highlights:
+  - Be strict about undefined variables in templates
+
+  Full Changelogs:
+  - [v1.6.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.6.0)
+
+  (#852)
+- Upgrade Synapse to v1.142.0.
+
+  Highlights:
+  - Add an Admin API to allow an admin to fetch the space/room hierarchy for a given space.
+
+  Full Changelogs:
+  - [v1.142.0](https://github.com/element-hq/synapse/releases/tag/v1.142.0)
+
+  (#853)
+
+## Internal
+
+- CI: validate that images are AMD64 & ARM64. (#859)
+- CI: unify manifest tests around `Pod` replicas. (#866)
+
+
 # ESS Community Helm Chart 25.11.0 (2025-11-06)
 
 ## Changed
