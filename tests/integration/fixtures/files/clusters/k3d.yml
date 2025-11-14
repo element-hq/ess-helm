@@ -1,0 +1,57 @@
+# Copyright 2024-2025 New Vector Ltd
+# Copyright 2025 Element Creations Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: ess-helm
+# Until k3d comes with a recent k8s/k3s version
+image: rancher/k3s:v1.34.2-k3s1
+agents: 0
+servers: 1
+ports:
+- port: 127.0.0.1:80:80
+  nodeFilters: [loadbalancer]
+- port: 127.0.0.1:443:443
+  nodeFilters: [loadbalancer]
+  # Matrix RTC SFU TCP and Muxed UDP
+- port: 127.0.0.1:30881:30881
+  nodeFilters: [loadbalancer]
+- port: 127.0.0.1:30882:30882/UDP
+  nodeFilters: [loadbalancer]
+options:
+  k3d:
+    wait: true
+  k3s:
+    extraArgs:
+    - arg: "--kubelet-arg=container-log-max-size=100Mi"
+      nodeFilters: [servers:*]
+    - arg: "--kubelet-arg=container-log-max-files=10"
+      nodeFilters: [servers:*]
+    - arg: "--kube-apiserver-arg=audit-log-path=/var/log/kubernetes/kube-apiserver-audit.log"
+      nodeFilters: [servers:*]
+    - arg: "--kube-apiserver-arg=audit-policy-file=/etc/kubernetes/policies/audit-policy.yaml"
+      nodeFilters: [servers:*]
+  runtime:
+    ulimits:
+    - name: nofile
+      soft: 100000
+      hard: 100000
+files:
+- source: audit-policy.yml
+  destination: /etc/kubernetes/policies/audit-policy.yaml
+  nodeFilters: [servers:*]
+registries:
+  create:
+    name: k3d-ess-helm-registry
+    host: 127.0.0.1
+    hostPort: "5000"
+  # The k3d created registry will be available at localhost:5000 externally and so that's what we'll tag imges with
+  # The below makes it available internally at the same address
+  config: |
+    mirrors:
+      "localhost:5000":
+        endpoint:
+          - http://k3d-ess-helm-registry:5000

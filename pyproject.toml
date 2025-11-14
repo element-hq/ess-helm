@@ -42,6 +42,7 @@ types-pyyaml = "^6.0.12.20250915"
 semver = "^3.0.4"
 prometheus-client = "^0.23.1"
 yamllint = "^1.37.1"
+httpx-retries = "^0.4.5"
 
 [build-system]
 requires = ["poetry-core>=2.1.0"]

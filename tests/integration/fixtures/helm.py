@@ -7,6 +7,7 @@ import asyncio
 import base64
 import os
 from collections.abc import Awaitable
+from ssl import SSLCertVerificationError, SSLContext
 
 import pyhelm3
 import pytest
@@ -155,6 +156,7 @@ async def matrix_stack(
     helm_client: pyhelm3.Client,
     ingress,
     helm_prerequisites,
+    prometheus_operator_crds,
     ess_namespace: Namespace,
     generated_data: ESSData,
     loaded_matrix_tools: dict,
@@ -197,7 +199,7 @@ async def matrix_stack(
 
 
 @pytest.fixture(scope="session")
-def ingress_ready(cluster, kube_client: AsyncClient, matrix_stack, generated_data: ESSData):
+def ingress_ready(cluster, kube_client: AsyncClient, matrix_stack, generated_data: ESSData, ssl_context: SSLContext):
     async def _ingress_ready(ingress_suffix):
         await asyncio.to_thread(
             cluster.wait,
@@ -214,6 +216,27 @@ def ingress_ready(cluster, kube_client: AsyncClient, matrix_stack, generated_dat
                     Service, path.backend.service.name, namespace=generated_data.ess_namespace
                 )
                 await wait_for_endpoint_ready(service.metadata.name, generated_data.ess_namespace, cluster, kube_client)
+
+            if rule.host:
+                attempt = 0
+                while attempt < 20:
+                    try:
+                        # Wait for the port and certificate to be available
+                        _, writer = await asyncio.wait_for(
+                            asyncio.open_connection("127.0.0.1", 443, ssl=ssl_context, server_hostname=rule.host),
+                            timeout=1,
+                        )
+                        writer.close()
+                        await writer.wait_closed()
+                        break
+                    except (ConnectionResetError, ConnectionRefusedError, SSLCertVerificationError, TimeoutError):
+                        await asyncio.sleep(1)
+                        attempt += 1
+                else:
+                    raise Exception(
+                        f"Unable to connect to Ingress/{generated_data.release_name}-{ingress_suffix}"
+                        " externally after 20s"
+                    )
 
     return _ingress_ready
 
