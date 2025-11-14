@@ -6,6 +6,7 @@
 import pytest
 
 from . import values_files_to_test
+from .utils import template_id
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -33,3 +34,19 @@ async def test_statefulsets_have_headless_services(templates):
 
         assert "clusterIP" in service["spec"], f"Service/{service_name} for {id} does not specify clusterIP"
         assert service["spec"]["clusterIP"] == "None", f"Service/{service_name} for {id} is not headless"
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_statefulsets_must_use_podManagementPolicy_parallel(templates):
+    for template in templates:
+        if template["kind"] != "StatefulSet":
+            continue
+
+        assert "podManagementPolicy" in template["spec"], (
+            f"{template_id(template)} does not set spec.podManagementPolicy"
+        )
+        assert template["spec"]["podManagementPolicy"] == "Parallel", (
+            f"{template_id(template)} does not set spec.podManagementPolicy to Parallel. "
+            "It must do our Pod crashes will block updates to the StatefulSet being rolled out"
+        )
