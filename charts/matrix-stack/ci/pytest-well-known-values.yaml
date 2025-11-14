@@ -18,8 +18,6 @@ global:
 haproxy:
   podSecurityContext:
     runAsGroup: 0
-ingress:
-  controllerType: ingress-nginx
 matrixAuthenticationService:
   enabled: false
 matrixRTC:

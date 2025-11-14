@@ -10,9 +10,6 @@
 certManager:
   clusterIssuer: ess-selfsigned
 
-ingress:
-  controllerType: ingress-nginx
-
 matrixRTC:
   # Because the authoriser service won't trust certificates issued by the above self-signed CA
   extraEnv:
@@ -24,4 +21,4 @@ matrixRTC:
     - ess.localhost
     - mrtc.ess.localhost
     - synapse.ess.localhost
-    ip: '{{ ( (lookup "v1" "Service" "ingress-nginx" "ingress-nginx-controller") | default (dict "spec" (dict "clusterIP" "127.0.0.1")) ).spec.clusterIP }}'
+    ip: '{{ ( (lookup "v1" "Service" "kube-system" "traefik") | default (dict "spec" (dict "clusterIP" "127.0.0.1")) ).spec.clusterIP }}'
