@@ -117,6 +117,7 @@ redis:
 {{- sub_schema_values.resources(requests_memory='50Mi', requests_cpu='50m', limits_memory='50Mi') | indent(2) }}
 {{- sub_schema_values.serviceAccount() | indent(2) }}
 {{- sub_schema_values.tolerations() | indent(2) }}
+{{- sub_schema_values.topologySpreadConstraints() | indent(2) }}
 {{- sub_schema_values.probe("liveness") | indent(2) }}
 {{- sub_schema_values.probe("readiness") | indent(2) }}
 {{- sub_schema_values.probe("startup", failureThreshold=5) | indent(2) }}
