@@ -27,6 +27,8 @@ spec:
       app.kubernetes.io/instance: {{ $.Release.Name }}-postgres
   updateStrategy:
     type: RollingUpdate
+  # Without this CrashLoopBackoffs due to config failures block pod recreation
+  podManagementPolicy: Parallel
   template:
     metadata:
       labels:
