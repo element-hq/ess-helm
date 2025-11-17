@@ -14,20 +14,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $mountServiceAccountToken := .mountServiceAccountToken | default false -}}
 {{- $deployment := required "element-io.ess-library.pods.commonSpec missing context.deployment" .deployment -}}
 {{- with required "element-io.ess-library.pods.commonSpec missing context.componentValues" .componentValues -}}
-{{- if and $deployment (gt (.replicas | int) 1) }}
-affinity:
-  podAntiAffinity:
-    preferredDuringSchedulingIgnoredDuringExecution:
-    - weight: 100
-      podAffinityTerm:
-        labelSelector:
-          matchExpressions:
-          - key: app.kubernetes.io/instance
-            operator: In
-            values:
-            - "{{ $root.Release.Name }}-{{ $instanceSuffix }}"
-        topologyKey: kubernetes.io/hostname
-{{- end }}
 automountServiceAccountToken: {{ $mountServiceAccountToken }}
 serviceAccountName: {{ include "element-io.ess-library.serviceAccountName" (dict "root" $root "context" (dict "serviceAccount" .serviceAccount "nameSuffix" $serviceAccountNameSuffix)) }}
 {{- include "element-io.ess-library.pods.pullSecrets" (dict "root" $root "context" (dict "pullSecrets" ((.image).pullSecrets | default list) "usesMatrixTools" $usesMatrixTools)) }}

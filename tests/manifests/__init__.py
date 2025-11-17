@@ -105,7 +105,6 @@ class DeployableDetails(abc.ABC):
     has_replicas: bool = field(default=None, hash=False)  # type: ignore[assignment]
     has_service_monitor: bool = field(default=None, hash=False)  # type: ignore[assignment]
     has_storage: bool = field(default=False, hash=False)
-    has_topology_spread_constraints: bool = field(default=None, hash=False)  # type: ignore[assignment]
     makes_outbound_requests: bool = field(default=None, hash=False)  # type: ignore[assignment]
     is_synapse_process: bool = field(default=False)
 
@@ -132,8 +131,6 @@ class DeployableDetails(abc.ABC):
             self.has_image = self.has_workloads
         if self.has_service_monitor is None:
             self.has_service_monitor = self.has_workloads
-        if self.has_topology_spread_constraints is None:
-            self.has_topology_spread_constraints = self.has_workloads
         if self.has_replicas is None:
             self.has_replicas = self.has_workloads
         if self.makes_outbound_requests is None:
@@ -242,9 +239,6 @@ class SidecarDetails(DeployableDetails):
         if self.values_file_path_overrides is None:
             self.values_file_path_overrides = {}
         self.values_file_path_overrides |= sidecar_values_file_path_overrides
-
-        # Not possible, will come from the parent components
-        self.has_topology_spread_constraints = False
 
         # We dont support replicas
         self.has_replicas = False
@@ -438,7 +432,6 @@ all_components_details = [
         has_automount_service_account_token=True,
         has_replicas=False,
         has_service_monitor=False,
-        has_topology_spread_constraints=False,
         makes_outbound_requests=False,
         is_shared_component=True,
     ),
@@ -459,7 +452,6 @@ all_components_details = [
         has_automount_service_account_token=True,
         has_replicas=False,
         has_service_monitor=False,
-        has_topology_spread_constraints=False,
         makes_outbound_requests=False,
         is_shared_component=True,
     ),
@@ -505,13 +497,11 @@ all_components_details = [
         name="matrix-rtc",
         values_file_path=ValuesFilePath.read_write("matrixRTC"),
         has_additional_config=False,
-        has_topology_spread_constraints=False,
         has_service_monitor=False,
         sub_components=(
             SubComponentDetails(
                 name="matrix-rtc-sfu",
                 values_file_path=ValuesFilePath.read_write("matrixRTC", "sfu"),
-                has_topology_spread_constraints=False,
                 has_ingress=False,
                 has_replicas=False,
                 makes_outbound_requests=False,
@@ -606,7 +596,6 @@ all_components_details = [
                 has_automount_service_account_token=True,
                 has_replicas=False,
                 has_service_monitor=False,
-                has_topology_spread_constraints=False,
                 makes_outbound_requests=False,
             ),
         ),
@@ -634,7 +623,6 @@ all_components_details = [
                 has_additional_config=False,
                 has_ingress=False,
                 has_service_monitor=False,
-                has_topology_spread_constraints=False,
                 has_replicas=False,
                 makes_outbound_requests=False,
             ),
