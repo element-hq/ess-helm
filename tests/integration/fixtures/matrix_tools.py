@@ -25,7 +25,7 @@ async def build_matrix_tools():
 
 
 @pytest.fixture(autouse=True, scope="session")
-async def loaded_matrix_tools(registry, build_matrix_tools: Image):
+async def loaded_matrix_tools(cluster, build_matrix_tools: Image):
     # Until the image is made publicly available
     # In local runs we always have to build it
     if os.environ.get("BUILD_MATRIX_TOOLS"):
