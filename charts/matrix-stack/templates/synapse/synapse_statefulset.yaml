@@ -37,15 +37,7 @@ metadata:
   name: {{ $.Release.Name }}-synapse-{{ $workerTypeName }}
   namespace: {{ $.Release.Namespace }}
 spec:
-  serviceName: {{ $.Release.Name }}-synapse-{{ $workerTypeName }}
-  replicas: {{ .replicas | default 1 }}
-  selector:
-    matchLabels:
-      app.kubernetes.io/instance: {{ $.Release.Name }}-synapse-{{ $processType }}
-  updateStrategy:
-    type: RollingUpdate
-  # Without this CrashLoopBackoffs due to config failures block pod recreation
-  podManagementPolicy: Parallel
+  {{ include "element-io.ess-library.workloads.commonSpec" (dict "root" $ "context" (dict "nameSuffix" (printf "synapse-%s" $processType) "serviceNameSuffix" (printf "synapse-%s" $workerTypeName) "kind" "StatefulSet" "componentValues" .)) | nindent 2 }}
   {{- include "element-io.synapse.pod-template" (dict "root" $ "context" .) | nindent 2 }}
 ---
 {{- end }}

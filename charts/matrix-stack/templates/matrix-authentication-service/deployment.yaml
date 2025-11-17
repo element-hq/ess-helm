@@ -26,7 +26,7 @@ metadata:
   name: {{ $.Release.Name }}-matrix-authentication-service
   namespace: {{ $.Release.Namespace }}
 spec:
-  {{ include "element-io.ess-library.deployments.commonSpec" (dict "root" $ "context" (dict "replicas" .replicas "nameSuffix" "matrix-authentication-service")) | nindent 2 }}
+  {{ include "element-io.ess-library.workloads.commonSpec" (dict "root" $ "context" (dict "nameSuffix" "matrix-authentication-service" "kind" "Deployment" "componentValues" .)) | nindent 2 }}
   template:
     metadata:
       labels:
