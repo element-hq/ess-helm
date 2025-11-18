@@ -18,7 +18,7 @@ jobs:
     # If you check this to be just the PR branch then the ref for the subsequent checkout
     # needs to be changed too or you end up with unexpected changes being shown.
     - name: Checkout PR
-      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5
+      uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
       with:
         fetch-depth: 0
 
@@ -42,7 +42,7 @@ jobs:
     # https://github.com/orgs/community/discussions/59677 says that github.event.pull_request.base.sha
     # is only calculated on creation of the PR, so we reference the target branch by ref.
     - name: Checkout target
-      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5
+      uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
       with:
         ref: ${{ github.event.pull_request.base.ref }}
 
@@ -61,7 +61,7 @@ jobs:
         done
 
     - name: Install dyff with asdf
-      uses: asdf-vm/actions/install@1902764435ca0dd2f3388eea723a4f92a4eb8302  # v4
+      uses: asdf-vm/actions/install@b7bcd026f18772e44fe1026d729e1611cc435d47  # v4
       with:
         tool_versions: |
           dyff 1.10.1
