@@ -18,7 +18,7 @@ metadata:
   name: {{ $.Release.Name }}-element-admin
   namespace: {{ $.Release.Namespace }}
 spec:
-  {{ include "element-io.ess-library.deployments.commonSpec" (dict "root" $ "context" (dict "replicas" .replicas "nameSuffix" "element-admin")) | nindent 2 }}
+  {{ include "element-io.ess-library.workloads.commonSpec" (dict "root" $ "context" (dict "nameSuffix" "element-admin" "kind" "Deployment" "componentValues" .)) | nindent 2 }}
   template:
     metadata:
       labels:

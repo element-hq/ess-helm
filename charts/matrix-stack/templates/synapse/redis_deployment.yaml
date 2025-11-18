@@ -22,7 +22,7 @@ metadata:
   name: {{ $.Release.Name }}-synapse-redis
   namespace: {{ $.Release.Namespace }}
 spec:
-  {{ include "element-io.ess-library.deployments.commonSpec" (dict "root" $ "context" (dict "nameSuffix" "synapse-redis")) | nindent 2 }}
+  {{ include "element-io.ess-library.workloads.commonSpec" (dict "root" $ "context" (dict "nameSuffix" "synapse-redis" "kind" "Deployment" "componentValues" .)) | nindent 2 }}
   template:
     metadata:
       labels:

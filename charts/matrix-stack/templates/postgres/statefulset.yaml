@@ -20,13 +20,7 @@ metadata:
     {{- toYaml . | nindent 4 }}
 {{- end }}
 spec:
-  serviceName: {{ $.Release.Name }}-postgres
-  replicas: 1
-  selector:
-    matchLabels:
-      app.kubernetes.io/instance: {{ $.Release.Name }}-postgres
-  updateStrategy:
-    type: RollingUpdate
+  {{ include "element-io.ess-library.workloads.commonSpec" (dict "root" $ "context" (dict "nameSuffix" "postgres" "kind" "StatefulSet" "componentValues" .)) | nindent 2 }}
   template:
     metadata:
       labels:
