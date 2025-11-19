@@ -289,20 +289,19 @@ class ComponentDetails(DeployableDetails):
     sub_components: tuple[SubComponentDetails, ...] = field(default=(), hash=False)
     sidecars: tuple[SidecarDetails, ...] = field(default=(), hash=False)
 
-    active_component_names: tuple[str, ...] = field(init=False, hash=False)
     values_files: tuple[str, ...] = field(init=False, hash=False)
     secret_values_files: tuple[str, ...] = field(init=False, hash=False)
 
     # Not available after construction
     is_shared_component: InitVar[bool] = field(default=False, hash=False)
-    shared_component_names: InitVar[tuple[str, ...]] = field(default=(), hash=False)
+    has_credentials: InitVar[bool] = field(default=True, hash=False)
     additional_values_files: InitVar[tuple[str, ...]] = field(default=(), hash=False)
     additional_secret_values_files: InitVar[tuple[str, ...]] = field(default=(), hash=False)
 
     def __post_init__(
         self,
         is_shared_component: bool,
-        shared_component_names: tuple[str, ...],
+        has_credentials: bool,
         additional_values_files: tuple[str, ...],
         additional_secret_values_files: tuple[str, ...],
     ):
@@ -315,23 +314,19 @@ class ComponentDetails(DeployableDetails):
             self.value_file_prefix = self.name
         # Shared components don't have a <component>-minimal-values.yaml
         if is_shared_component:
-            self.active_component_names = (self.name,)
             self.values_files = ()
             self.secret_values_files = ()
             return
 
-        assert self.has_db == ("postgres" in shared_component_names)
-
-        self.active_component_names = tuple([self.name] + list(shared_component_names))
         self.values_files = tuple([f"{self.value_file_prefix}-minimal-values.yaml"] + list(additional_values_files))
 
         secret_values_files = list(additional_secret_values_files)
-        if "init-secrets" in shared_component_names:
+        if has_credentials:
             secret_values_files += [
                 f"{self.value_file_prefix}-secrets-in-helm-values.yaml",
                 f"{self.value_file_prefix}-secrets-externally-values.yaml",
             ]
-        if "postgres" in shared_component_names:
+        if self.has_db:
             secret_values_files += [
                 f"{self.value_file_prefix}-postgres-secrets-in-helm-values.yaml",
                 f"{self.value_file_prefix}-postgres-secrets-externally-values.yaml",
@@ -427,6 +422,7 @@ all_components_details = [
             PropertyType.StartupProbe: ValuesFilePath.not_supported(),
         },
         has_additional_config=False,
+        has_credentials=False,
         has_image=False,
         has_ingress=False,
         has_automount_service_account_token=True,
@@ -458,6 +454,7 @@ all_components_details = [
     ComponentDetails(
         name="haproxy",
         has_additional_config=False,
+        has_credentials=False,
         has_ingress=False,
         is_shared_component=True,
         makes_outbound_requests=False,
@@ -507,7 +504,6 @@ all_components_details = [
                 makes_outbound_requests=False,
             ),
         ),
-        shared_component_names=("init-secrets",),
         additional_secret_values_files=(
             "matrix-rtc-external-livekit-secrets-in-helm-values.yaml",
             "matrix-rtc-external-livekit-secrets-externally-values.yaml",
@@ -517,6 +513,7 @@ all_components_details = [
         name="element-admin",
         values_file_path=ValuesFilePath.read_write("elementAdmin"),
         has_additional_config=False,
+        has_credentials=False,
         has_service_monitor=False,
         makes_outbound_requests=False,
         ignore_unreferenced_mounts={
@@ -526,6 +523,7 @@ all_components_details = [
     ComponentDetails(
         name="element-web",
         values_file_path=ValuesFilePath.read_write("elementWeb"),
+        has_credentials=False,
         has_service_monitor=False,
         makes_outbound_requests=False,
         ignore_paths_mismatches={
@@ -554,7 +552,6 @@ all_components_details = [
         name="matrix-authentication-service",
         values_file_path=ValuesFilePath.read_write("matrixAuthenticationService"),
         has_db=True,
-        shared_component_names=("deployment-markers", "init-secrets", "postgres"),
         sub_components=(
             SubComponentDetails(
                 name="syn2mas",
@@ -658,14 +655,13 @@ all_components_details = [
                 },
             ),
         ),
-        shared_component_names=("deployment-markers", "init-secrets", "haproxy", "postgres"),
     ),
     ComponentDetails(
         name="well-known",
         values_file_path=ValuesFilePath.read_write("wellKnownDelegation"),
         has_additional_config=True,
+        has_credentials=False,
         has_workloads=False,
-        shared_component_names=("haproxy",),
     ),
 ]
 
