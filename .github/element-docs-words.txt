@@ -3,6 +3,7 @@ Ansible
 appservices
 Artifacthub
 checkov
+deployables
 dialog
 Distroless
 dockerhub

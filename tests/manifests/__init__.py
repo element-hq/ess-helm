@@ -289,7 +289,6 @@ class ComponentDetails(DeployableDetails):
     sub_components: tuple[SubComponentDetails, ...] = field(default=(), hash=False)
     sidecars: tuple[SidecarDetails, ...] = field(default=(), hash=False)
 
-    active_component_names: tuple[str, ...] = field(init=False, hash=False)
     values_files: tuple[str, ...] = field(init=False, hash=False)
     secret_values_files: tuple[str, ...] = field(init=False, hash=False)
 
@@ -315,14 +314,12 @@ class ComponentDetails(DeployableDetails):
             self.value_file_prefix = self.name
         # Shared components don't have a <component>-minimal-values.yaml
         if is_shared_component:
-            self.active_component_names = (self.name,)
             self.values_files = ()
             self.secret_values_files = ()
             return
 
         assert self.has_db == ("postgres" in shared_component_names)
 
-        self.active_component_names = tuple([self.name] + list(shared_component_names))
         self.values_files = tuple([f"{self.value_file_prefix}-minimal-values.yaml"] + list(additional_values_files))
 
         secret_values_files = list(additional_secret_values_files)
