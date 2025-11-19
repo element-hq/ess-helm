@@ -34,7 +34,7 @@ async def test_postgres_on_its_own_renders_nothing(values, make_templates):
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_values_file_renders_only_itself(release_name, templates):
+async def test_all_manifests_have_names_linked_to_deployables(release_name, templates):
     assert len(templates) > 0
 
     allowed_starts_with = []
