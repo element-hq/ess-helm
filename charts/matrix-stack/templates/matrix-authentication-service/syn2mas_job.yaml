@@ -37,23 +37,11 @@ metadata:
                                         ) }}
   annotations:
 {{- if .dryRun }}
-{{- /*
-Hook Weights are
-- -25 : The syn2mas dryRun job, running after MAS pod which initialized its DB
-- 0 : The deployment marker job, we want it not to update any marker if the dryRun is not completed
-*/}}
     "helm.sh/hook": post-install,post-upgrade
-    "helm.sh/hook-weight": "-25"
 {{- else }}
     "helm.sh/hook": pre-install,pre-upgrade
-{{- /*
-Hook Weights are
-- -10 : The initSecret hook generating secrets used by the syn2mas job
-- -5 : The MAS & synapse secret & configMap for the hook, so that they are created before the job
-- 0 : The job itself, so that it is run after the secrets and configs are created
-*/}}
-    "helm.sh/hook-weight": "0"
 {{- end }}
+    "helm.sh/hook-weight": "0"
   name: {{ $.Release.Name }}-syn2mas
   namespace: {{ $.Release.Namespace }}
 spec:

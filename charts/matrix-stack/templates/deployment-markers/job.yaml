@@ -15,7 +15,7 @@ metadata:
   namespace: {{ $.Release.Namespace }}
   annotations:
     "helm.sh/hook": {{ $step }}-install,{{ $step }}-upgrade
-    "helm.sh/hook-weight": "-20"
+    "helm.sh/hook-weight": "{{ (eq $step "pre") | ternary -10 10 }}"
 {{- with .annotations }}
     {{- toYaml . | nindent 4 }}
 {{- end }}

@@ -126,7 +126,7 @@ def generated_secrets(release_name: str, values: dict[str, Any], helm_generated_
                         # We simulate the fact that it exists after initSecret
                         # using the hook weight.
                         # Actually it does not have any
-                        # but this is necessary for tests/manifests/test_configs_and_mounts_consistency.py
+                        # but this is necessary for tests/manifests/test_configs_consistency.py
                         "helm.sh/hook-weight": "-9"
                     },
                 },
@@ -171,7 +171,7 @@ def external_secrets(release_name, values):
                     # We simulate the fact that it exists before the chart deployment
                     # using the hook weight.
                     # Actually it does not have any
-                    # but this is necessary for tests/manifests/test_configs_and_mounts_consistency.py
+                    # but this is necessary for tests/manifests/test_configs_consistency.py
                     "helm.sh/hook-weight": "-100"
                 },
             },
