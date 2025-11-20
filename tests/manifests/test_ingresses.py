@@ -7,7 +7,7 @@
 import pytest
 
 from . import DeployableDetails, PropertyType, all_deployables_details, values_files_to_test
-from .utils import iterate_deployables_ingress_parts, template_to_deployable_details
+from .utils import iterate_deployables_ingress_parts, template_id, template_to_deployable_details
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -317,17 +317,13 @@ async def test_ingress_services(templates):
                     f"known services: {list(services_by_name.keys())}"
                 )
                 found_service = services_by_name[backend_service["name"]]
-                if backend_service["port"].get("name"):
-                    port_names = [port["name"] for port in found_service["spec"]["ports"]]
-                    assert backend_service["port"]["name"] in port_names, (
-                        f"Port name {backend_service['port']['name']} not found in service {backend_service['name']}"
-                    )
-                else:
-                    port_numbers = [port["port"] for port in found_service["spec"]["ports"]]
-                    assert backend_service["port"]["number"] in port_numbers, (
-                        f"Port number {backend_service['port']['number']} "
-                        f"not found in service {backend_service['name']}"
-                    )
+                assert "name" in backend_service["port"], (
+                    f"{template_id(ingress)} : Backend service {backend_service['name']} is not targetting a port name"
+                )
+                port_names = [port["name"] for port in found_service["spec"]["ports"]]
+                assert backend_service["port"]["name"] in port_names, (
+                    f"Port name {backend_service['port']['name']} not found in service {backend_service['name']}"
+                )
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)

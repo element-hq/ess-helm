@@ -43,7 +43,7 @@ spec:
           service:
             name: "{{ $.Release.Name }}-matrix-rtc-sfu"
             port:
-              number: 7880
+              name: http
 {{- end }}
 {{- end }}
 {{- end }}
