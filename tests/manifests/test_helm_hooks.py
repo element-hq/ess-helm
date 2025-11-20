@@ -7,12 +7,13 @@
 import pytest
 
 from . import values_files_to_test
-from .utils import template_id
+from .utils import template_id, template_to_deployable_details
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_hook_weight_is_specified_if_manifest_is_hook(templates):
+    hook_weight_by_deployable_hook = {}
     for template in templates:
         annotations = template["metadata"].get("annotations", {})
 
@@ -21,6 +22,14 @@ async def test_hook_weight_is_specified_if_manifest_is_hook(templates):
             assert "helm.sh/hook-weight" in annotations, (
                 f"{template_id(template)} is a hook ({annotations['helm.sh/hook']}) but doesn't set a hook weight"
             )
+            deployable_details = template_to_deployable_details(template)
+            hook_id = f"{deployable_details.name}-{annotations['helm.sh/hook']}"
+            if hook_id in hook_weight_by_deployable_hook:
+                assert hook_weight_by_deployable_hook[hook_id] == int(annotations["helm.sh/hook-weight"]), (
+                    f"{template_id(template)} has a different hook weight than other manifests for the same deployable"
+                )
+            else:
+                hook_weight_by_deployable_hook[hook_id] = int(annotations["helm.sh/hook-weight"])
         else:
             assert "helm.sh/hook-weight" not in annotations, (
                 f"{template_id(template)} is not a hook but has set a hook weight"
@@ -40,7 +49,7 @@ async def test_sets_both_install_upgrade_hooks(templates):
             continue
 
         hooks = annotations["helm.sh/hook"].split(",")
-        assert len(hooks) == 2, f"{template_id(template)} set an unexpected number of hooks {','.join(hooks)}"
+        assert len(hooks) == 2, f"{template_id(template)} set an unexpected number of hooks: {','.join(hooks)}"
         assert ("pre-install" in hooks and "pre-upgrade" in hooks) or (
             "post-install" in hooks and "post-upgrade" in hooks
-        ), f"{template_id(template)} didn't set both the install and upgrade hooks"
+        ), f"{template_id(template)} didn't set both the install and upgrade hook: {','.join(hooks)}"
