@@ -17,7 +17,7 @@ metadata:
     {{- include "element-io.deployment-markers.labels" (dict "root" $ "context" (mustMergeOverwrite (dict "step" $step) .)) | nindent 4 }}
   annotations:
     "helm.sh/hook": {{ $step }}-install,{{ $step }}-upgrade
-    "helm.sh/hook-weight": "-20"
+    "helm.sh/hook-weight": "{{ (eq $step "pre") | ternary -11 9 }}"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role

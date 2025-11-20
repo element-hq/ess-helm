@@ -17,13 +17,7 @@ metadata:
     {{- include "element-io.syn2mas.labels" (dict "root" $ "context" .) | nindent 4 }}
   annotations:
     "helm.sh/hook": pre-install,pre-upgrade
-{{- /*
-Hook Weights are
-- -10 : The initSecret hook generating secrets used by the syn2mas job
-- -5 : The MAS & synapse secret & configMap for the hook, so that they are created before the job
-- 0 : The job itself, so that it is run after the secrets and configs are created
-*/}}
-    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-weight": "-1"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
