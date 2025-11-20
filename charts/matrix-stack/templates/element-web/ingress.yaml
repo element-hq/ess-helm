@@ -27,6 +27,6 @@ spec:
           service:
             name: {{ $.Release.Name }}-element-web
             port:
-              number: 80
+              name: web
 {{- end }}
 {{- end }}
