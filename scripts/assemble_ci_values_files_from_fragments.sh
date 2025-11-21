@@ -27,6 +27,7 @@ for values_file in "$values_file_root"/$values_file_prefix-values.yaml "$user_va
     echo "$values_file doesn't have a source_fragments header comment. Skipping"
     continue
   fi
+  has_new_vector_ltd_copyright=$(grep -E '#\s+Copyright [0-9-]+ New Vector Ltd' "$values_file" || echo -n "")
   source_fragments=$(echo "$source_fragments" | tr " " "\n" | sort | uniq | tr "\n" " " | sed 's/^\s*//' | sed 's/\s*$//')
 
   yq_command='.'
@@ -68,6 +69,8 @@ EOF
   # REUSE-IgnoreStart
   # Needs `-$(date +%Y)` on 2026
   reuse annotate --copyright-prefix=string --year "2025" --copyright="Element Creations Ltd" --license "AGPL-3.0-only" "$values_file"
+  if [ -n "$has_new_vector_ltd_copyright" ]; then
   reuse annotate --copyright-prefix=string --year "2024-2025" --copyright="New Vector Ltd" --license "AGPL-3.0-only" "$values_file"
+  fi
   # REUSE-IgnoreEnd
 done
