@@ -122,6 +122,7 @@ async def test_our_labels_are_named_consistently(templates):
     acceptable_matches = [
         "k8s.element.io/as-registration-[0-9]+-hash",
         "k8s.element.io/([a-z0-9-]+)-(config|secret)-hash",
+        "k8s.element.io/hook-for",
         "k8s.element.io/postgres-password-([a-z]+)-hash",
         "k8s.element.io/synapse-instance",
         "k8s.element.io/target-(instance|name)",
