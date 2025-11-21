@@ -106,7 +106,8 @@ class DeployableDetails(abc.ABC):
     has_service_monitor: bool = field(default=None, hash=False)  # type: ignore[assignment]
     has_storage: bool = field(default=False, hash=False)
     makes_outbound_requests: bool = field(default=None, hash=False)  # type: ignore[assignment]
-    is_synapse_process: bool = field(default=False)
+    is_hook: bool = field(default=False, hash=False)
+    is_synapse_process: bool = field(default=False, hash=False)
 
     # Use this to skip mounts point we expect not to be referenced in commands, configs, etc
     # The format is expected to be `container_name: <list of mounts to ignore>`
@@ -429,6 +430,7 @@ all_components_details = [
         has_replicas=False,
         has_service_monitor=False,
         makes_outbound_requests=False,
+        is_hook=True,
         is_shared_component=True,
     ),
     ComponentDetails(
@@ -449,6 +451,7 @@ all_components_details = [
         has_replicas=False,
         has_service_monitor=False,
         makes_outbound_requests=False,
+        is_hook=True,
         is_shared_component=True,
     ),
     ComponentDetails(
@@ -593,6 +596,7 @@ all_components_details = [
                 has_automount_service_account_token=True,
                 has_replicas=False,
                 has_service_monitor=False,
+                is_hook=True,
                 makes_outbound_requests=False,
             ),
         ),
@@ -648,6 +652,7 @@ all_components_details = [
                 has_ingress=False,
                 has_service_monitor=False,
                 has_replicas=False,
+                is_hook=True,
                 makes_outbound_requests=False,
                 ignore_unreferenced_mounts={"synapse": ("/tmp",)},
                 content_volumes_mapping={

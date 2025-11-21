@@ -16,12 +16,19 @@ async def test_hook_weight_is_specified_if_manifest_is_hook(templates):
     for template in templates:
         annotations = template["metadata"].get("annotations", {})
 
-        if "helm.sh/hook" in annotations:
+        deployable_details = template_to_deployable_details(template)
+        if deployable_details.is_hook or "k8s.element.io/hook-for" in template["metadata"]["labels"]:
+            assert "helm.sh/hook" in annotations, (
+                f"{template_id(template)} is a hook but it missing the Hook annotation"
+            )
             # If you want to use hook-weight of 0 (the default), it should be explicit
             assert "helm.sh/hook-weight" in annotations, (
                 f"{template_id(template)} is a hook ({annotations['helm.sh/hook']}) but doesn't set a hook weight"
             )
         else:
+            assert "helm.sh/hook" not in annotations, (
+                f"{template_id(template)} is not a hook but has the hook annotation"
+            )
             assert "helm.sh/hook-weight" not in annotations, (
                 f"{template_id(template)} is not a hook but has set a hook weight"
             )
