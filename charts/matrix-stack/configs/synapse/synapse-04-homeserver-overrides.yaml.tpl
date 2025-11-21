@@ -43,7 +43,7 @@ registration_shared_secret_path: /secrets/{{
 database:
   name: psycopg2
   args:
-{{- /* We don't attempt to use passfile and mount the Secret directly due to 
+{{- /* We don't attempt to use passfile and mount the Secret directly due to
 https://github.com/kubernetes/kubernetes/issues/129043 / https://github.com/kubernetes/kubernetes/issues/81089 */}}
 {{- if .postgres }}
     user: {{ .postgres.user }}
