@@ -228,6 +228,7 @@ responsibleForMedia
   "^/_matrix/client/(api/v1|r0|v3|unstable)/directory/room/.*$"
   "^/_matrix/client/(r0|v3|unstable)/capabilities$"
   "^/_matrix/client/(r0|v3|unstable)/notifications$"
+  "^/_matrix/client/unstable/org.matrix.msc4140/delayed_events$"
   "^/_synapse/admin/v1/rooms/[^/]+$"
 ) }}
 
