@@ -182,9 +182,11 @@ spec:
 {{- end }}
       terminationGracePeriodSeconds: 60
       volumes:
-      - emptyDir: {}
+      - emptyDir:
+          medium: Memory
         name: temp
-      - emptyDir: {}
+      - emptyDir:
+          medium: Memory
         name: var-run
 {{- if and $.Values.initSecrets.enabled (include "element-io.init-secrets.postgres-generated-secrets" (dict "root" $)) }}
       - secret:
