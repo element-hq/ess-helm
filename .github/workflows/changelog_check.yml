@@ -19,7 +19,7 @@ jobs:
     if: ${{ (github.event_name == 'pull_request') && (github.base_ref == 'main' || contains(github.base_ref, 'release-')) && github.actor != 'dependabot[bot]' && github.actor != 'github-actions[bot]' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3  # v5
         with:
           fetch-depth: 0
 
@@ -42,7 +42,7 @@ jobs:
   preview-changelog:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3  # v5
 
       - uses: matrix-org/setup-python-poetry@5bbf6603c5c930615ec8a29f1b5d7d258d905aa4  # v2
         with:
