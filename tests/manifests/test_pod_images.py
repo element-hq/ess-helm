@@ -6,7 +6,7 @@
 import pytest
 
 from . import DeployableDetails, PropertyType, values_files_to_test
-from .utils import iterate_deployables_parts, template_id, template_to_deployable_details
+from .utils import iterate_deployables_parts, template_id, template_to_deployable_details, workload_spec_containers
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -40,7 +40,7 @@ async def test_pods_with_tags_and_no_digests(release_name, values, make_template
                 f"{template_id(template)} doesn't have the expected version label on the pod"
             )
 
-            for container in pod_template["spec"].get("initContainers", []) + pod_template["spec"]["containers"]:
+            for container in workload_spec_containers(template["spec"]["template"]["spec"]):
                 assert "image" in container, f"{template_id(template)} has container {container['name']} without image"
 
                 deployable_details = template_to_deployable_details(template, container["name"])
@@ -97,7 +97,7 @@ async def test_pods_with_digests_and_tags(release_name, values, make_templates):
                 f"{template_id(template)} doesn't have the expected version label on the pod"
             )
 
-            for container in pod_template["spec"].get("initContainers", []) + pod_template["spec"]["containers"]:
+            for container in workload_spec_containers(template["spec"]["template"]["spec"]):
                 assert "image" in container, f"{template_id(template)} has container {container['name']} without image"
 
                 deployable_details = template_to_deployable_details(template, container["name"])
@@ -149,7 +149,7 @@ async def test_pods_with_digest_and_no_tags(release_name, values, make_templates
                 f"{template_id(template)} unexpectedly has a version label on the pod"
             )
 
-            for container in pod_template["spec"].get("initContainers", []) + pod_template["spec"]["containers"]:
+            for container in workload_spec_containers(template["spec"]["template"]["spec"]):
                 assert "image" in container, f"{template_id(template)} has container {container['name']} without image"
 
                 deployable_details = template_to_deployable_details(template, container["name"])
@@ -176,8 +176,7 @@ async def test_global_pullPolicy_overrides_templateDefaults(values, make_templat
     values.setdefault("image", {})["pullPolicy"] = "Never"
     for template in await make_templates(values):
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            pod_template = template["spec"]["template"]
-            for container in pod_template["spec"].get("initContainers", []) + pod_template["spec"]["containers"]:
+            for container in workload_spec_containers(template["spec"]["template"]["spec"]):
                 assert container["imagePullPolicy"] == "Never", (
                     f"{template_id(template)} has container {container['name']} "
                     "which doesn't have the expected image pull policy"
@@ -198,8 +197,7 @@ async def test_specific_image_pullPolicy_overrides_global_pullPolicy(values, mak
     iterate_deployables_parts(set_pull_policy, lambda deployable_details: deployable_details.has_image)
     for template in await make_templates(values):
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            pod_template = template["spec"]["template"]
-            for container in pod_template["spec"].get("initContainers", []) + pod_template["spec"]["containers"]:
+            for container in workload_spec_containers(template["spec"]["template"]["spec"]):
                 assert container["imagePullPolicy"] == "Never", (
                     f"{template_id(template)} has container {container['name']} "
                     "which doesn't have the expected image pull policy"

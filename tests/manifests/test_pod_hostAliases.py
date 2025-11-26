@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 import pytest
+from frozendict import deepfreeze
 
 from . import DeployableDetails, PropertyType, values_files_to_test
 from .utils import (
@@ -20,9 +21,11 @@ async def test_pod_has_hostAliases_if_appropriate(values, make_templates, releas
 
     def set_hostAliases(deployable_details: DeployableDetails):
         nonlocal counter
-        hostAliases = [
-            {"ip": f"192.0.2.{counter}", "hostnames": ["a-{{ $.Release.Name }}.example.com", "b.example.com"]}
-        ]
+        hostAliases = (
+            deepfreeze(
+                {"ip": f"192.0.2.{counter}", "hostnames": ["a-{{ $.Release.Name }}.example.com", "b.example.com"]}
+            ),
+        )
         counter += 1
         deployable_details.set_helm_values(values, PropertyType.HostAliases, hostAliases)
 
@@ -41,15 +44,20 @@ async def test_pod_has_hostAliases_if_appropriate(values, make_templates, releas
             assert "hostAliases" in pod_spec, f"{template_id(template)} doesn't set hostAliases in its Pod"
 
             expected_hostAliases = deployable_details.get_helm_values(values, PropertyType.HostAliases)
-            expected_hostAliases = [
-                {
-                    "ip": alias["ip"],
-                    "hostnames": [
-                        hostname.replace("{{ $.Release.Name }}", release_name) for hostname in alias["hostnames"]
-                    ],
-                }
-                for alias in expected_hostAliases
-            ]
+            expected_hostAliases = tuple(
+                [
+                    deepfreeze(
+                        {
+                            "ip": alias["ip"],
+                            "hostnames": [
+                                hostname.replace("{{ $.Release.Name }}", release_name)
+                                for hostname in alias["hostnames"]
+                            ],
+                        }
+                    )
+                    for alias in expected_hostAliases
+                ]
+            )
             assert pod_spec["hostAliases"] == expected_hostAliases, (
                 f"{template_id(template)} doesn't have the expected hostAliases"
             )

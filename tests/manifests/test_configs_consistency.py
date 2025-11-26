@@ -13,7 +13,12 @@ from dataclasses import dataclass, field
 import pytest
 
 from . import DeployableDetails, secret_values_files_to_test, values_files_to_test
-from .utils import get_or_empty, template_id, template_to_deployable_details
+from .utils import (
+    get_or_empty,
+    template_id,
+    template_to_deployable_details,
+    workload_spec_containers,
+)
 
 
 def assert_exists_according_to_hook_weight(template, hook_weight, used_by):
@@ -368,7 +373,7 @@ class GenericContainerSpecPathConsumer(PathConsumer):
         return (
             list(self.env.values())
             + list(self.exec_properties.values())
-            + self.args
+            + list(self.args)
             + self._empty_dir_rendered_content()
         )
 
@@ -656,14 +661,11 @@ def traverse_containers(templates, other_secrets) -> Generator[ValidatedContaine
         all_workload_empty_dirs: dict[str, MountedEmptyDir] = {}
         # Gather all containers and initContainers from the template spec
         workload_spec = template["spec"]["template"]["spec"]
-        containers = workload_spec.get("initContainers", []) + template["spec"]["template"]["spec"].get(
-            "containers", []
-        )
         weight = None
         if "pre-install,pre-upgrade" in template["metadata"].get("annotations", {}).get("helm.sh/hook", ""):
             weight = int(template["metadata"]["annotations"].get("helm.sh/hook-weight", 0))
 
-        for container_spec in containers:
+        for container_spec in workload_spec_containers(workload_spec):
             deployable_details = template_to_deployable_details(template, container_spec["name"])
             validated_container_config = ValidatedContainerConfig.from_container_spec(
                 template_id(template),

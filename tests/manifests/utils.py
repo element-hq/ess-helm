@@ -17,10 +17,12 @@ from typing import Any
 import pyhelm3
 import pytest
 import yaml
+from frozendict import deepfreeze, frozendict
 
 from . import DeployableDetails, PropertyType, all_deployables_details
 
 template_cache = {}
+manifests_cache: dict[int, frozendict] = {}
 values_cache = {}
 
 
@@ -222,15 +224,14 @@ async def helm_template(
     )
 
     if skip_cache or template_cache_key not in template_cache:
-        templates = list(
-            [
-                template
-                for template in yaml.load_all(
-                    await pyhelm3.Command().run(command, json.dumps(values or {}).encode()), Loader=yaml.SafeLoader
-                )
-                if template is not None
-            ]
-        )
+        templates = []
+        for template in yaml.load_all(
+            await pyhelm3.Command().run(command, json.dumps(values or {}).encode()), Loader=yaml.SafeLoader
+        ):
+            if template:
+                frozen_template = deepfreeze(template)
+                manifests_cache.setdefault(hash(frozen_template), frozen_template)
+                templates.append(manifests_cache[hash(frozen_template)])
         template_cache[template_cache_key] = templates
     return template_cache[template_cache_key]
 
@@ -384,3 +385,10 @@ async def assert_covers_expected_workloads(
         covered_workload_ids.update(new_covered_workload_ids)
 
     assert workload_ids_to_cover == covered_workload_ids, "Not all workloads we were expecting to cover were covered"
+
+
+def workload_spec_containers(workload_spec):
+    for container in workload_spec.get("initContainers", []):
+        yield container
+    for container in workload_spec.get("containers", []):
+        yield container

@@ -8,7 +8,12 @@ from collections import defaultdict
 import pytest
 
 from . import DeployableDetails, PropertyType, all_deployables_details, values_files_to_test
-from .utils import iterate_deployables_workload_parts, template_id, template_to_deployable_details
+from .utils import (
+    iterate_deployables_workload_parts,
+    template_id,
+    template_to_deployable_details,
+    workload_spec_containers,
+)
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -29,8 +34,7 @@ async def test_sets_extra_env(values, make_templates):
 
     for template in await make_templates(values):
         if template["kind"] in ["Deployment", "Job", "StatefulSet"]:
-            pod_spec = template["spec"]["template"]["spec"]
-            for container in pod_spec.get("initContainers", []) + pod_spec["containers"]:
+            for container in workload_spec_containers(template["spec"]["template"]["spec"]):
                 env_keys = [env["name"] for env in container.get("env", [])]
                 assert len(env_keys) == len(set(env_keys)), (
                     f"{template_id(template)} has container {container['name']} "
@@ -73,8 +77,7 @@ async def test_built_in_env_cant_be_overwritten(values, make_templates):
     # Collect the env set for each and every container
     for template in await make_templates(values):
         if template["kind"] in ["Deployment", "Job", "StatefulSet"]:
-            pod_spec = template["spec"]["template"]["spec"]
-            for container in pod_spec.get("initContainers", []) + pod_spec["containers"]:
+            for container in workload_spec_containers(template["spec"]["template"]["spec"]):
                 deployable_details = template_to_deployable_details(template, container["name"])
                 built_in_env[deployable_details][container["name"]] = [env["name"] for env in container.get("env", [])]
 
@@ -90,8 +93,7 @@ async def test_built_in_env_cant_be_overwritten(values, make_templates):
 
     for template in await make_templates(values):
         if template["kind"] in ["Deployment", "Job", "StatefulSet"]:
-            pod_spec = template["spec"]["template"]["spec"]
-            for container in pod_spec.get("initContainers", []) + pod_spec["containers"]:
+            for container in workload_spec_containers(template["spec"]["template"]["spec"]):
                 deployable_details = template_to_deployable_details(template, container["name"])
 
                 env_keys_from_chart = built_in_env[deployable_details][container["name"]]
