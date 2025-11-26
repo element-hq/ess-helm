@@ -24,6 +24,10 @@ logging:
 
 # WebRTC configuration
 rtc:
+  use_external_ip: {{ .useStunToDiscoverPublicIP }}
+{{ if or .manualIP (not .useStunToDiscoverPublicIP) }}
+  node_ip: ${NODE_IP}
+{{- end }}
 {{- with .exposedServices }}
 {{- with .rtcTcp }}
 {{- if .enabled }}

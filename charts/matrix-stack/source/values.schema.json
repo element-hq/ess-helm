@@ -31,17 +31,6 @@
         }
       }
     },
-    "imagePullSecrets": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          }
-        }
-      }
-    },
     "image": {
       "type": "object",
       "properties": {
