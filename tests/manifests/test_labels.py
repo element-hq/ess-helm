@@ -104,11 +104,9 @@ async def test_pod_spec_labels_are_consistent_with_parent_labels(templates):
         if template["kind"] not in ["Deployment", "Job", "StatefulSet"]:
             continue
 
-        parent_labels = template["metadata"]["labels"]
-        pod_labels = template["spec"]["template"]["metadata"]["labels"]
-
         # Explicitly omitted from Pod labels so that they don't restart blindly on chart upgrade
-        del parent_labels["helm.sh/chart"]
+        parent_labels = template["metadata"]["labels"].delete("helm.sh/chart")
+        pod_labels = template["spec"]["template"]["metadata"]["labels"]
 
         assert parent_labels == pod_labels, (
             f"{template_id(template)} has differing labels between itself and the Pods it would create. "

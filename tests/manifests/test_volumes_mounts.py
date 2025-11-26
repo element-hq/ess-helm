@@ -8,7 +8,7 @@ import re
 import pytest
 
 from . import secret_values_files_to_test, values_files_to_test
-from .utils import template_id
+from .utils import template_id, workload_spec_containers
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test | secret_values_files_to_test)
@@ -56,12 +56,7 @@ async def test_volumes_mounts_exists(release_name, templates, other_secrets):
                         "synapse-haproxy",
                         "well-known-haproxy",
                     ], f"{template_id(template)} contains a ConfigMap mounted with an unexpected name: {volume['name']}"
-            for container in template["spec"]["template"]["spec"].get("containers", []) + template["spec"]["template"][
-                "spec"
-            ].get(
-                "initContainers",
-                [],
-            ):
+            for container in workload_spec_containers(template["spec"]["template"]["spec"]):
                 for volume_mount in container.get("volumeMounts", []):
                     assert volume_mount["name"] in volumes_names, (
                         f"Volume Mount {volume_mount['name']} not found in volume names: {volumes_names} "

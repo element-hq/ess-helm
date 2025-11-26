@@ -5,6 +5,8 @@
 
 import pytest
 import yaml
+from frozendict import frozendict
+from yaml.representer import Representer
 
 from . import PropertyType, all_deployables_details, values_files_to_test
 from .utils import template_id
@@ -139,6 +141,7 @@ async def test_default_values_file_sets_stub_values(base_values):
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_doesnt_contain_any_unrendered_helm_templates(templates):
+    yaml.SafeDumper.add_representer(frozendict, Representer.represent_dict)
     # This test does not cover `NOTES.txt` as https://github.com/helm/helm/issues/6901
     for template in templates:
         for idx, line in enumerate(yaml.safe_dump(template).splitlines()):

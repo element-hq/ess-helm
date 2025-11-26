@@ -6,7 +6,7 @@
 import pytest
 
 from . import PropertyType, values_files_to_test
-from .utils import iterate_deployables_parts, template_id
+from .utils import iterate_deployables_parts, template_id, workload_spec_containers
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -55,18 +55,12 @@ async def test_local_pull_secrets(values, base_values, make_templates):
             any_container_uses_matrix_tools_image = any(
                 [
                     base_values["matrixTools"]["image"]["repository"] in x["image"]
-                    for x in (
-                        template["spec"]["template"]["spec"]["containers"]
-                        + template["spec"]["template"]["spec"].get("initContainers", [])
-                    )
+                    for x in workload_spec_containers(template["spec"]["template"]["spec"])
                 ]
             )
             containers_with_matrix_tools_image = [
                 base_values["matrixTools"]["image"]["repository"] in x["image"]
-                for x in (
-                    template["spec"]["template"]["spec"]["containers"]
-                    + template["spec"]["template"]["spec"].get("initContainers", [])
-                )
+                for x in workload_spec_containers(template["spec"]["template"]["spec"])
             ]
             any_container_uses_matrix_tools_image = any(containers_with_matrix_tools_image)
             containers_only_uses_matrix_tools_image = all(containers_with_matrix_tools_image)

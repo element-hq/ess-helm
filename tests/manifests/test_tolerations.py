@@ -4,23 +4,28 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 import pytest
+from frozendict import frozendict
 
 from . import PropertyType, values_files_to_test
 from .utils import iterate_deployables_workload_parts, template_id
 
-specific_toleration = {
-    "key": "component",
-    "operator": "Equals",
-    "value": "pytest",
-    "effect": "NoSchedule",
-}
+specific_toleration = frozendict(
+    {
+        "key": "component",
+        "operator": "Equals",
+        "value": "pytest",
+        "effect": "NoSchedule",
+    }
+)
 
-global_toleration = {
-    "key": "global",
-    "operator": "Equals",
-    "value": "pytest",
-    "effect": "NoSchedule",
-}
+global_toleration = frozendict(
+    {
+        "key": "global",
+        "operator": "Equals",
+        "value": "pytest",
+        "effect": "NoSchedule",
+    }
+)
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -87,7 +92,7 @@ async def test_merges_global_and_specific_tolerations(values, make_templates):
             pod_spec = template["spec"]["template"]["spec"]
             assert "tolerations" in pod_spec, f"No tolerations for {id}"
             assert len(pod_spec["tolerations"]) == 2, f"Wrong number of tolerations for {id}"
-            assert pod_spec["tolerations"] == [
+            assert pod_spec["tolerations"] == (
                 specific_toleration,
                 global_toleration,
-            ], f"Tolerations aren't as expected for {id}"
+            ), f"Tolerations aren't as expected for {id}"
