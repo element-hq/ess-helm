@@ -112,18 +112,6 @@
       },
       "additionalProperties": false
     },
-    "imagePullSecrets": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false
-      }
-    },
     "image": {
       "type": "object",
       "properties": {
