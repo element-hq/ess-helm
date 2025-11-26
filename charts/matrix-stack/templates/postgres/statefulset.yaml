@@ -53,13 +53,13 @@ spec:
               command: ["pg_ctl", "stop", "-D", "/var/lib/postgres/data", "-w", "-t", "55", "-m", "fast"]
         startupProbe: {{- include "element-io.ess-library.pods.probe" .startupProbe | nindent 10 }}
           exec:
-            command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
+            command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-h", "localhost", "-c", "SELECT 1"]
         readinessProbe: {{- include "element-io.ess-library.pods.probe" .readinessProbe | nindent 10 }}
           exec:
-            command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
+            command: ["pg_isready", "-U", "postgres", "-d", "postgres", "-h", "localhost"]
         livenessProbe: {{- include "element-io.ess-library.pods.probe" .livenessProbe | nindent 10 }}
           exec:
-            command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
+            command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-h", "localhost", "-c", "SELECT 1"]
         volumeMounts:
 {{- with (include "element-io.init-secrets.postgres-generated-secrets" (dict "root" $)) | fromYamlArray }}
   {{- range . -}}
@@ -116,13 +116,13 @@ spec:
               command: ["pg_ctl", "stop", "-D", "/var/lib/postgres/data", "-w", "-t", "55", "-m", "fast"]
         startupProbe: {{- include "element-io.ess-library.pods.probe" .startupProbe | nindent 10 }}
           exec:
-            command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
+            command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-h", "localhost", "-c", "SELECT 1"]
         readinessProbe: {{- include "element-io.ess-library.pods.probe" .readinessProbe | nindent 10 }}
           exec:
-            command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
+            command: ["pg_isready", "-U", "postgres", "-d", "postgres", "-h", "localhost"]
         livenessProbe: {{- include "element-io.ess-library.pods.probe" .livenessProbe | nindent 10 }}
           exec:
-            command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-c", "SELECT 1"]
+            command: ["psql", "-w", "-U", "postgres", "-d", "postgres", "-h", "localhost", "-c", "SELECT 1"]
         ports:
         - containerPort: 5432
           name: postgres
@@ -150,8 +150,6 @@ spec:
           subPath: configure-dbs.sh
         - name: database
           mountPath: /var/lib/postgres/data
-        - name: var-run
-          mountPath: /var/run/postgresql
 {{- with .postgresExporter }}
       - name: postgres-exporter
         {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" .image) | nindent 8 }}

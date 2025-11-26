@@ -491,7 +491,12 @@ all_components_details = [
         content_volumes_mapping={
             "/var/lib/postgres/data": ("pgdata",),
         },
-        ignore_unreferenced_mounts={"postgres": ("/tmp",)},
+        ignore_unreferenced_mounts={
+            "postgres": (
+                "/tmp",
+                "/var/run/postgresql",
+            )
+        },
     ),
     ComponentDetails(
         name="matrix-rtc",

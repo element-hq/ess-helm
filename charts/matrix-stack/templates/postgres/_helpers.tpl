@@ -133,7 +133,7 @@ env:
               )
             ) }}
 - name: "PGHOST"
-  value: "/var/run/postgresql"
+  value: "localhost"
 - name: "PGDATA"
   value: "/var/lib/postgres/data/pgdata"
 {{- end -}}
@@ -156,8 +156,6 @@ env:
                   )
                 )
               ) }}
-- name: "PGHOST"
-  value: "/var/run/postgresql"
 - name: "PGDATA"
   value: "/var/lib/postgres/data/pgdata"
 - name: "POSTGRES_INITDB_ARGS"
