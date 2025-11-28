@@ -18,7 +18,7 @@ from lightkube.models.core_v1 import (
     SecurityContext,
 )
 from lightkube.models.meta_v1 import ObjectMeta
-from lightkube.resources.apps_v1 import ReplicaSet
+from lightkube.resources.apps_v1 import Deployment
 from lightkube.resources.core_v1 import ConfigMap, Endpoints, Namespace, Pod, Secret
 
 from ..artifacts import CertKey
@@ -178,17 +178,25 @@ async def run_pod_with_args(
     return log_lines
 
 
-async def wait_for_all_replicaset_replicas_ready(kube_client: AsyncClient, namespace: str):
+async def wait_for_all_deployments_rolled_out(kube_client: AsyncClient, namespace: str):
     timeout = 30
     start_time = time.time()
     now = time.time()
     while start_time + timeout > now:
         now = time.time()
         await asyncio.sleep(0.5)
-        async for rs in kube_client.list(ReplicaSet, namespace=namespace):
-            if not rs.status or not rs.status.readyReplicas:
+        async for deployment in kube_client.list(Deployment, namespace=namespace):
+            # replicas: Total number of non-terminating pods targeted by this deployment
+            # updatedReplicas: Total number of non-terminating pods targeted by this deployment that have
+            #                  the desired template spec.
+            if not deployment.status or not deployment.status.updatedReplicas or not deployment.status.replicas:
                 break
-            if rs.status.readyReplicas != rs.status.replicas:
+            if deployment.status.updatedReplicas != deployment.status.replicas:
+                break
+
+            if not deployment.spec or not deployment.spec.replicas:
+                break
+            if deployment.spec.replicas != deployment.status.replicas:
                 break
         else:
             return

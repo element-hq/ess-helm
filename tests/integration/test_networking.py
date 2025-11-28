@@ -14,7 +14,7 @@ from lightkube.resources.core_v1 import Pod, Service
 from prometheus_client.parser import text_string_to_metric_families
 
 from .fixtures.data import ESSData
-from .lib.helpers import run_pod_with_args, wait_for_all_replicaset_replicas_ready, wait_for_endpoint_ready
+from .lib.helpers import run_pod_with_args, wait_for_all_deployments_rolled_out, wait_for_endpoint_ready
 from .lib.utils import read_service_monitor_kind
 
 
@@ -91,7 +91,7 @@ async def test_services_have_endpoints(
 ):
     # Helm will stop waiting when 1 of replicas are ready
     # We need to wait for all replicas to be ready to check that services all have endpoints
-    await wait_for_all_replicaset_replicas_ready(kube_client, generated_data.ess_namespace)
+    await wait_for_all_deployments_rolled_out(kube_client, generated_data.ess_namespace)
     endpoints_to_wait = []
     services = {}
     async for service in kube_client.list(
@@ -138,20 +138,27 @@ async def test_pods_monitored(
 ):
     # Helm will stop waiting when 1 of replicas are ready
     # We need to wait for all replicas to be ready to be able to compute monitorable and monitored pods
-    await wait_for_all_replicaset_replicas_ready(kube_client, generated_data.ess_namespace)
-    all_monitorable_pods = set()
+    await wait_for_all_deployments_rolled_out(kube_client, generated_data.ess_namespace)
+    all_running_pods = list[Pod]()
+    all_monitorable_pod_names = set[str]()
     async for pod in kube_client.list(
         Pod, namespace=generated_data.ess_namespace, labels={"app.kubernetes.io/part-of": op.in_(["matrix-stack"])}
     ):
-        if pod.metadata and pod.metadata.annotations and "has-no-service-monitor" in pod.metadata.annotations:
-            continue
+        if pod.status and pod.status.phase in ("Terminating", "Succeeded"):
+            continue  # Skip terminating pods
+
         elif pod.metadata:
             assert pod.metadata.name, "Encountered a pod without a name"
-            all_monitorable_pods.add(pod.metadata.name)
+            all_running_pods.append(pod)
+
+            if pod.metadata.annotations and "has-no-service-monitor" in pod.metadata.annotations:
+                continue
+
+            all_monitorable_pod_names.add(pod.metadata.name)
         else:
             raise RuntimeError(f"Pod {pod} has no metadata")
 
-    monitored_pods = set()
+    monitored_pod_names = set[str]()
     async for service_monitor in kube_client.list(
         await read_service_monitor_kind(kube_client),
         namespace=generated_data.ess_namespace,
@@ -171,24 +178,33 @@ async def test_pods_monitored(
                 if endpoint["port"] in service_port_names:
                     break
 
-            async for covered_pod in kube_client.list(
-                Pod, namespace=generated_data.ess_namespace, labels=service.spec.selector
-            ):
+            def matches_labels(pod, selector):
+                pod_labels = pod.metadata.labels
+                for label, value in selector.items():
+                    if label not in pod_labels:
+                        return False
+
+                    if pod_labels[label] != value:
+                        return False
+                return True
+
+            for covered_pod in [pod for pod in all_running_pods if matches_labels(pod, service.spec.selector)]:
+                assert covered_pod.metadata
                 if not covered_pod.metadata:
                     raise RuntimeError(f"Pod {covered_pod} has no metadata")
 
                 # Something monitored by multiple ServiceMonitors smells like a bug
-                assert covered_pod.metadata.name not in monitored_pods, (
+                assert covered_pod.metadata.name not in monitored_pod_names, (
                     f"Pod {covered_pod.metadata.name} is monitored multiple times"
                 )
                 assert covered_pod.metadata.name
-                monitored_pods.add(covered_pod.metadata.name)
+                monitored_pod_names.add(covered_pod.metadata.name)
                 service_monitor_is_useful = True
 
         assert service_monitor_is_useful, f"ServiceMonitor {service_monitor['metadata']['name']} does not cover any pod"
 
-    assert all_monitorable_pods == monitored_pods, (
-        f"Some pods are not monitored : {', '.join(list(set(all_monitorable_pods) ^ set(monitored_pods)))}"
+    assert all_monitorable_pod_names == monitored_pod_names, (
+        f"Some pods are not monitored : {', '.join(list(set(all_monitorable_pod_names) ^ set(monitored_pod_names)))}"
     )
 
 
