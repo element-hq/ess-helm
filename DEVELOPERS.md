@@ -16,6 +16,7 @@ Requirements for development:
 
 Optional Tools:
 * [`chart-testing`](https://github.com/helm/chart-testing) for Helm linting
+* [`k3d`](https://k3d.io/stable/) for running the test cluster
 * [`kubeconform`](https://github.com/yannh/kubeconform) for Kubernetes manifest validation
 * [`shellcheck`](https://www.shellcheck.net/)
 * Managed via Poetry and so should be available after `poetry install`
@@ -159,10 +160,10 @@ run `pytest test --cache-clear`.
 
 #### Special env variables
 - `PYTEST_KEEP_CLUSTER=1` : Do not destroy the cluster at the end of the test run.
-You must delete it using `kind delete cluster --name ess-helm` manually before running any other test run.
+You must delete it using `k3d cluster delete ess-helm` manually before running any other test run.
 
 #### Usage
-Use `kind export kubeconfig --name ess-helm` to get access to the cluster.
+Use `k3d kubeconfig merge ess-helm -ds` to get access to the cluster.
 
 The tests will use the cluster constructed by `scripts/setup_test_cluster.sh` if that is
 running. If the tests use an existing cluster, they won't destroy the cluster afterwards.

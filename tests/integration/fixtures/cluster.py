@@ -7,25 +7,26 @@ import asyncio
 import os
 from pathlib import Path
 
+import httpx
+import httpx_retries
 import pyhelm3
 import pytest
-import yaml
 from lightkube import ApiError, AsyncClient, KubeConfig
+from lightkube.config.client_adapter import verify_cluster
 from lightkube.models.meta_v1 import ObjectMeta
 from lightkube.resources.core_v1 import Namespace, Service
 from pytest_kubernetes.options import ClusterOptions
-from pytest_kubernetes.providers import KindManagerBase
-from python_on_whales import docker
+from pytest_kubernetes.providers import K3dManagerBase
 
 from .data import ESSData
 
 
-class PotentiallyExistingKindCluster(KindManagerBase):
+class PotentiallyExistingK3dCluster(K3dManagerBase):
     def __init__(self, cluster_name, provider_config=None):
         super().__init__(cluster_name, provider_config)
 
-        clusters = self._exec(["get", "clusters"])
-        if cluster_name in clusters.stdout.decode("utf-8").split("\n"):
+        clusters = self._exec(["cluster", "list"])
+        if any([line.startswith(cluster_name + " ") for line in clusters.stdout.decode("utf-8").split("\n")]):
             self.existing_cluster = True
         else:
             self.existing_cluster = False
@@ -34,11 +35,10 @@ class PotentiallyExistingKindCluster(KindManagerBase):
         if self.existing_cluster:
             self._exec(
                 [
-                    "export",
                     "kubeconfig",
-                    "--name",
+                    "print",
                     self.cluster_name,
-                    "--kubeconfig ",
+                    ">",
                     str(cluster_options.kubeconfig_path),
                 ]
             )
@@ -64,9 +64,9 @@ class PotentiallyExistingKindCluster(KindManagerBase):
 @pytest.fixture(autouse=True, scope="session")
 async def cluster():
     # Both these names must match what `setup_test_cluster.sh` would create
-    this_cluster = PotentiallyExistingKindCluster("ess-helm")
+    this_cluster = PotentiallyExistingK3dCluster("ess-helm")
     this_cluster.create(
-        ClusterOptions(cluster_name="ess-helm", provider_config=Path(__file__).parent / Path("files/clusters/kind.yml"))
+        ClusterOptions(cluster_name="ess-helm", provider_config=Path(__file__).parent / Path("files/clusters/k3d.yml"))
     )
 
     yield this_cluster
@@ -82,78 +82,39 @@ async def helm_client(cluster):
 @pytest.fixture(scope="session")
 async def kube_client(cluster):
     kube_config = KubeConfig.from_file(cluster.kubeconfig)
-    return AsyncClient(config=kube_config)
+    config = kube_config.get()
 
-
-@pytest.fixture(autouse=True, scope="session")
-async def ingress(cluster, kube_client, helm_client: pyhelm3.Client):
-    chart = await helm_client.get_chart("ingress-nginx", repo="https://kubernetes.github.io/ingress-nginx")
-
-    values_file = Path(__file__).parent.resolve() / Path("files/charts/ingress-nginx.yml")
-    # Install or upgrade a release
-    await helm_client.install_or_upgrade_release(
-        "ingress-nginx",
-        chart,
-        yaml.safe_load(values_file.read_text("utf-8")),
-        namespace="ingress-nginx",
-        create_namespace=True,
-        atomic=True,
-        wait=True,
+    # We've seen 429 errors with storage is (re)initializing. Let's retry those
+    ssl_context = verify_cluster(config.cluster, config.user, config.abs_file)
+    wrapped_transport = httpx.AsyncHTTPTransport(verify=ssl_context)
+    transport = httpx_retries.RetryTransport(
+        transport=wrapped_transport, retry=httpx_retries.Retry(status_forcelist=[429])
     )
-
-    await asyncio.to_thread(
-        cluster.wait,
-        name="endpoints/ingress-nginx-controller-admission",
-        waitfor="jsonpath='{.subsets[].addresses}'",
-        namespace="ingress-nginx",
-    )
-    await asyncio.to_thread(
-        cluster.wait,
-        name="lease/ingress-nginx-leader",
-        waitfor="jsonpath='{.spec.holderIdentity}'",
-        namespace="ingress-nginx",
-    )
-    return (await kube_client.get(Service, name="ingress-nginx-controller", namespace="ingress-nginx")).spec.clusterIP
+    return AsyncClient(config=kube_config, transport=transport)
 
 
-@pytest.fixture(autouse=True, scope="session")
-async def registry(cluster):
-    pytest_registry_container_name = "pytest-ess-helm-registry"
-    test_cluster_registry_container_name = "ess-helm-registry"
-
-    # We have a registry created by `setup_test_cluster.sh`
-    if docker.container.exists(test_cluster_registry_container_name):
-        container_name = test_cluster_registry_container_name
-    # We have a registry created by a previous run of pytest
-    elif docker.container.exists(pytest_registry_container_name):
-        container_name = pytest_registry_container_name
-    # We have no registry, create one
-    else:
-        container_name = pytest_registry_container_name
-        container = docker.run(
-            name=container_name,
-            image="registry:2",
-            publish=[("127.0.0.1:5000", "5000")],
-            restart="always",
-            detach=True,
-        )
-
-    container = docker.container.inspect(container_name)
-    if not container.state.running:
-        container.start()
-
-    kind_network = docker.network.inspect("kind")
-    if container.id not in kind_network.containers:
-        docker.network.connect(kind_network, container, alias="registry")
-
-    yield
-
-    if container_name == pytest_registry_container_name:
-        container.stop()
-        container.remove()
+@pytest.fixture(scope="session")
+async def ingress(cluster, kube_client):
+    attempt = 0
+    while attempt < 120:
+        try:
+            # We can't just kubectl wait as that doesn't work with non-existent objects
+            # This can be setup before the LB port is accessible externally, so we do it afterwards
+            service = await kube_client.get(Service, name="traefik", namespace="kube-system")
+            await asyncio.to_thread(
+                cluster.wait,
+                name="service/traefik",
+                waitfor="jsonpath='{.status.loadBalancer.ingress[0].ip}'",
+                namespace="kube-system",
+            )
+            return service.spec.clusterIP
+        except ApiError:
+            await asyncio.sleep(1)
+            attempt += 1
+    raise Exception("Couldn't fetch Trafeik Service IP afrter 120s")
 
 
-@pytest.fixture(autouse=True, scope="session")
+@pytest.fixture(scope="session")
 async def prometheus_operator_crds(helm_client):
     if os.environ.get("SKIP_SERVICE_MONITORS_CRDS", "false") == "false":
         chart = await helm_client.get_chart(
@@ -173,7 +134,7 @@ async def prometheus_operator_crds(helm_client):
 
 
 @pytest.fixture(scope="session")
-async def ess_namespace(cluster: PotentiallyExistingKindCluster, kube_client: AsyncClient, generated_data: ESSData):
+async def ess_namespace(cluster: PotentiallyExistingK3dCluster, kube_client: AsyncClient, generated_data: ESSData):
     (major_version, minor_version) = cluster.version()
     try:
         await kube_client.get(Namespace, name=generated_data.ess_namespace)

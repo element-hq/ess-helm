@@ -79,12 +79,11 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - uses: engineerd/setup-kind@ecfad61750951586a9ef973db567df1d28671bdc  # v0.6.2
+    - name: Install k3d with asdf
+      uses: asdf-vm/actions/install@1902764435ca0dd2f3388eea723a4f92a4eb8302  # v4
       with:
-        version: "v0.29.0"
-        name: "ess-helm"
-        skipClusterCreation: "true"
-        skipClusterLogsExport: "true"
+        tool_versions: |
+          k3d 5.8.3
 
     - uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4  # v4.3.1
 
@@ -124,17 +123,24 @@ jobs:
       if: ${{ failure() }}
       shell: bash
       run: |
-        kind export logs --name ess-helm ./ess-helm-logs
-        kind export kubeconfig --name ess-helm
-        ns=$(kubectl --context kind-ess-helm get ns -l app.kubernetes.io/managed-by=pytest  -o jsonpath='{.items[].metadata.name}')
+        mkdir ess-helm-logs
+        k3d kubeconfig merge ess-helm -ds
+        for ns in $(kubectl --context k3d-ess-helm get ns -o custom-columns=NS:.metadata.name --no-headers); do
+          mkdir -p "./ess-helm-logs/$ns"
+          for pod in $(kubectl --context k3d-ess-helm -n "$ns" get pod -o custom-columns=NS:.metadata.name --no-headers); do
+            kubectl --context k3d-ess-helm -n "$ns" logs --all-containers --prefix --timestamps --ignore-errors --previous "$pod" > "./ess-helm-logs/$ns/$pod.previous"
+            kubectl --context k3d-ess-helm -n "$ns" logs --all-containers --prefix --timestamps --ignore-errors "$pod" > "./ess-helm-logs/$ns/$pod.logs"
+          done
+        done
+        ess_ns=$(kubectl --context k3d-ess-helm get ns -l app.kubernetes.io/managed-by=pytest -o jsonpath='{.items[].metadata.name}')
         resources=("pods" "deployments" "statefulsets" "services" "configmaps" "ingresses" "persistentvolumes" "persistentvolumeclaims" "endpoints")
         for i in "${resources[@]}"; do
-          kubectl --context kind-ess-helm get "$i" -n "$ns" > "./ess-helm-logs/$i.txt"
+          kubectl --context k3d-ess-helm get "$i" -n "$ess_ns" > "./ess-helm-logs/$i.txt"
           echo "----" >> "./ess-helm-logs/$i.txt"
-          kubectl --context kind-ess-helm get "$i" -o yaml -n "$ns" >> "./ess-helm-logs/$i.txt"
+          kubectl --context k3d-ess-helm get "$i" -o yaml -n "$ess_ns" >> "./ess-helm-logs/$i.txt"
         done
-        kubectl --context kind-ess-helm get events --sort-by=.metadata.creationTimestamp -n "$ns" > ./ess-helm-logs/events.txt
-        kind delete cluster --name ess-helm
+        kubectl --context k3d-ess-helm get events --sort-by=.metadata.creationTimestamp -n "$ess_ns" > ./ess-helm-logs/events.txt
+        k3d cluster delete ess-helm
 
     - name: Upload logs
       if: ${{ failure() }}

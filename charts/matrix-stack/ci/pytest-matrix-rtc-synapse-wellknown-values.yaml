@@ -16,8 +16,6 @@ haproxy:
   podSecurityContext:
     runAsGroup: 0
   replicas: 2
-ingress:
-  controllerType: ingress-nginx
 initSecrets:
   annotations:
     has-no-service-monitor: "true"
