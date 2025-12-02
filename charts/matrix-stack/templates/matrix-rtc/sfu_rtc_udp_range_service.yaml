@@ -24,6 +24,7 @@ metadata:
   namespace: {{ $.Release.Namespace }}
 spec:
   type: NodePort
+  ipFamilyPolicy: PreferDualStack
   externalTrafficPolicy: Local
   ports:
 {{- $segment_start := ((add $range_start (mul 250 $port_segment)) | int) }}

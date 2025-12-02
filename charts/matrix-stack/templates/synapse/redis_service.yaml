@@ -17,6 +17,7 @@ metadata:
   name: {{ $.Release.Name }}-synapse-redis
   namespace: {{ $.Release.Namespace }}
 spec:
+  ipFamilyPolicy: PreferDualStack
   ports:
   - port: 6379
     targetPort: redis

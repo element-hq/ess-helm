@@ -57,3 +57,13 @@ async def test_references_to_services_are_anchored_by_the_cluster_domain(values,
                     f"{template_id(template)} has {line=} which has a reference to a Service that isn't "
                     "anchored with the configured cluster domain"
                 )
+
+
+@pytest.mark.parametrize("values_file", services_values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_services_are_dual_stack_where_possible(templates):
+    for template in templates:
+        if template["kind"] == "Service":
+            assert template["spec"]["ipFamilyPolicy"] == "PreferDualStack", (
+                f"{template_id(template)} does not set ipFamilyPolicy to PreferDualStack"
+            )

@@ -19,6 +19,7 @@ metadata:
   namespace: {{ $.Release.Namespace }}
 spec:
   clusterIP: None
+  ipFamilyPolicy: PreferDualStack
   ports:
 {{- if (include "element-io.synapse.process.hasHttp" (dict "root" $ "context" .)) }}
   - name: synapse-http
