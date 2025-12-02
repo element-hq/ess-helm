@@ -83,12 +83,14 @@ resolvers kubedns
 
 frontend prometheus
   bind *:8405
+  bind [::]:8405
   http-request use-service prometheus-exporter if { path /metrics }
   monitor-uri /haproxy_test
   no log
 
 frontend http-blackhole
   bind *:8009
+  bind [::]:8009
 
   # same as http log, with %Th (handshake time)
   log-format "%ci:%cp [%tr] %ft %b/%s %Th/%TR/%Tw/%Tc/%Tr/%Ta %ST %B %CC %CS %tsc %ac/%fc/%bc/%sc/%rc %sq/%bq %hr %hs %{+Q}r"

@@ -10,6 +10,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 frontend startup
    bind *:8406
+   bind [::]:8406
    acl synapse_dead nbsrv(synapse-main) lt 1
 {{- range $workerType, $_ := (include "element-io.synapse.enabledWorkers" (dict "root" $root)) | fromJson }}
 {{- if not (include "element-io.synapse.process.canFallbackToMain" (dict "root" $root "context" $workerType)) }}
@@ -22,6 +23,7 @@ frontend startup
 
 frontend synapse-http-in
   bind *:8008
+  bind [::]:8008
 
   # if we hit the maxconn on a server, and the queue timeout expires, we want
   # to avoid returning 503, since that will cause cloudflare to mark us down.
