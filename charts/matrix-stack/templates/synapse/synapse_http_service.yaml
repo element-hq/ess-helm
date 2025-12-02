@@ -16,6 +16,7 @@ metadata:
   namespace: {{ $.Release.Namespace }}
 spec:
   type: {{ .ingress.service.type | default $.Values.ingress.service.type }}
+  ipFamilyPolicy: PreferDualStack
   ports:
   - name: haproxy-synapse
     port: 8008

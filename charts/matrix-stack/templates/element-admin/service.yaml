@@ -15,6 +15,7 @@ metadata:
   namespace: {{ $.Release.Namespace }}
 spec:
   type: {{ .ingress.service.type | default $.Values.ingress.service.type }}
+  ipFamilyPolicy: PreferDualStack
   ports:
   - port: 8080
     targetPort: http

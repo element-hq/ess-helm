@@ -16,6 +16,7 @@ metadata:
   namespace: {{ $.Release.Namespace }}
 spec:
   type: ClusterIP
+  ipFamilyPolicy: PreferDualStack
   ports:
   - name: haproxy-metrics
     port: 8405

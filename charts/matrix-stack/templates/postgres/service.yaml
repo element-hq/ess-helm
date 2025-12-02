@@ -22,6 +22,7 @@ spec:
   - port: 9187
     name: metrics
   type: ClusterIP
+  ipFamilyPolicy: PreferDualStack
   selector:
     app.kubernetes.io/instance: {{ $.Release.Name }}-postgres
 {{- end -}}

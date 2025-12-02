@@ -16,6 +16,7 @@ metadata:
     {{- include "element-io.matrix-authentication-service.labels" (dict "root" $ "context" .) | nindent 4 }}
 spec:
   type: {{ .ingress.service.type | default $.Values.ingress.service.type }}
+  ipFamilyPolicy: PreferDualStack
   ports:
   - port: 8080
     protocol: TCP
