@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 matrixAuthenticationService:
-  replicas: 2
   extraEnv:
   - name: DEBUG_RENDERING
     value: "1"
