@@ -10,6 +10,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 frontend well-known-in
   bind *:8010
+  bind [::]:8010
 
   # same as http log, with %Th (handshake time)
   log-format "%ci:%cp [%tr] %ft %b/%s %Th/%TR/%Tw/%Tc/%Tr/%Ta %ST %B %CC %CS %tsc %ac/%fc/%bc/%sc/%rc %sq/%bq %hr %hs %{+Q}r"
