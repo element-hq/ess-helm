@@ -57,12 +57,12 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
                                                                 )
                                             )
                                         ) -}}
+{{- with $root.Values.matrixAuthenticationService }}
 {{- range $privateKey, $value := .privateKeys -}}
 {{- if $value.secret }}
 {{ $configSecrets = append $configSecrets (tpl $value.secret $root) }}
 {{- end -}}
 {{- end -}}
-{{- with $root.Values.matrixAuthenticationService }}
 {{- with .synapseSharedSecret.secret -}}
 {{ $configSecrets = append $configSecrets (tpl . $root) }}
 {{- end -}}
