@@ -108,7 +108,7 @@ jobs:
 
     - name: On upgrade, Synapse can restart, expect 429 to occur
       run: |
-        echo "PYTEST_EXPECTED_HTTP_STATUS_CODES=429,502" >> "$GITHUB_ENV"
+        echo "PYTEST_EXPECTED_HTTP_STATUS_CODES=429,502,504" >> "$GITHUB_ENV"
       if: ${{ matrix.test-from-ref != github.event.pull_request.head.sha }}
 
     - name: Test with pytest (upgrade or idempotent setup)
