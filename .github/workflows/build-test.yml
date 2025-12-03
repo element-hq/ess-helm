@@ -108,6 +108,10 @@ jobs:
         GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         skopeo --version
-        echo "${DOCKERHUB_TOKEN}" | skopeo login docker.io --username "${DOCKERHUB_USERNAME}" --password-stdin
+        if [[ -n ${DOCKERHUB_TOKEN+x} ]]; then
+          echo "Logging into DockerHub"
+          echo "${DOCKERHUB_TOKEN}" | skopeo login docker.io --username "${DOCKERHUB_USERNAME}" --password-stdin
+        fi
+        echo "Logging into GHCR"
         echo "${GHCR_TOKEN}" | skopeo login ghcr.io --username "${GHCR_USERNAME}" --password-stdin
         scripts/verify_images.sh
