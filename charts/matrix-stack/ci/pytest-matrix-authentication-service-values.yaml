@@ -37,7 +37,6 @@ matrixAuthenticationService:
     tlsSecret: '{{ $.Release.Name }}-mas-web-tls'
   podSecurityContext:
     runAsGroup: 0
-  replicas: 2
   syn2mas:
     extraEnv:
       - name: DEBUG_RENDERING

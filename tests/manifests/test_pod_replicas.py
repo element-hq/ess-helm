@@ -32,7 +32,7 @@ async def test_deployments_statefulsets_have_replicas_by_default(values, templat
 
         if template["kind"] == "Deployment":
             max_unavailable = template["spec"]["strategy"]["rollingUpdate"]["maxUnavailable"]
-            if expected_replicas > 1:
+            if expected_replicas > 1 or deployable_details.requires_one_by_one_rollout:
                 assert max_unavailable == 1, (
                     f"{template_id(template)} has {max_unavailable=} when it should be 1 with more than 1 replica"
                 )
