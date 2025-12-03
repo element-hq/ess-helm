@@ -18,6 +18,7 @@ kubeconform
 kubernetes
 linters
 LiveKit
+localpart
 Muxed
 newsfragment
 newsfragments
