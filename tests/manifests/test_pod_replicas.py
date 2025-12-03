@@ -40,6 +40,13 @@ async def test_deployments_statefulsets_have_replicas_by_default(values, templat
                 assert max_unavailable == 0, (
                     f"{template_id(template)} has {max_unavailable=} when it should be 0 with no replicas"
                 )
+            max_surge = template["spec"]["strategy"]["rollingUpdate"]["maxSurge"]
+            if deployable_details.requires_one_by_one_rollout:
+                assert max_surge == 0, (
+                    f"{template_id(template)} has {max_surge=} when it should be 0 as it needs a one-by-one rollout"
+                )
+            else:
+                assert max_surge == 2, f"{template_id(template)} has {max_surge=} when it should be 2"
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)

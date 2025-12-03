@@ -11,7 +11,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- with required "element-io.ess-library.workloads.commonSpec missing context" .context -}}
 {{- $nameSuffix := required "element-io.ess-library.workloads.commonSpec missing context.nameSuffix" .nameSuffix -}}
 {{- $serviceNameSuffix := .serviceNameSuffix | default $nameSuffix -}}
-{{- $maxSurge := .maxSurge | default 2 -}}
+{{- $maxSurge := ternary .maxSurge 2 (hasKey . "maxSurge") -}}
 {{- $kind := required "element-io.ess-library.workloads.commonSpec missing context.kind" .kind -}}
 {{- with required "element-io.ess-library.workloads.commonSpec missing context.componentValues" .componentValues -}}
 replicas: {{ .replicas | default 1 }}
