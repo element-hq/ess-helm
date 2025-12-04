@@ -7,6 +7,108 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 25.12.0 (2025-12-04)
+
+## Removed / Breaking Changes
+
+- Remove `imagePullSecrets` in favour of `image.pullSecrets`.
+
+  As of 25.10.1 `imagePullSecrets` was deprecated in favour of `image.pullSecrets`.
+  It has now been removed and attempting to use `imagePullSecrets` will trigger a schema
+  validation error. (#901)
+- Remove the ability to set `rtc.{use_external_ip,node_ip}` via `matrixRTC.sfu.additional` in favour of `matrixRTC.sfu.{useStunToDiscoverPublicIP,manualIP}`.
+
+  As of 25.9.1 `matrixRTC.sfu.{useStunToDiscoverPublicIP,manualIP}` were introduced to provide direct values for these settings. Attempting to set
+  these via `matrixRTC.sfu.additional` will result in your values being ignored. (#901)
+
+## Changed
+
+- Upgrade Element Web to v1.12.6.
+
+  Highlights:
+  - Remove mentions from forwarded messages.
+  - Improve aria attributes on the emoji picker.
+  - Support using Element Call for voice calls in DMs.
+
+  Full Changelogs:
+  - [v1.12.4](https://github.com/element-hq/element-web/releases/tag/v1.12.4)
+  - [v1.12.5](https://github.com/element-hq/element-web/releases/tag/v1.12.5)
+  - [v1.12.6](https://github.com/element-hq/element-web/releases/tag/v1.12.6)
+
+  (#865, #903, #918)
+- Remove hard-coded `podAntiAffinity` for `Deployments` that had set `replicas > 2`. (#867)
+- Support `topologySpreadConstraints` on all workloads, not just select ones. (#867)
+- Set a soft, default `topologySpreadConstraints` for all workloads.
+
+  The can be removed by setting `topologySpreadConstraints` to `[]` at the top-level or
+  overridden on a per-component basis by setting that component's `topologySpreadConstraints`. (#867)
+- Unify management of `StatefulSet.spec` along with `Deployment.spec`. (#872)
+- Upgrade Synapse to v1.143.0.
+
+  Highlights:
+  - Update MSC4140 delayed event support, for separate endpoints.
+
+  Full Changelogs:
+  - [v1.143.0](https://github.com/element-hq/synapse/releases/tag/v1.143.0)
+
+  (#876)
+- Upgrade Matrix Authentication Service to v1.7.0.
+
+  Highlights:
+  - Interactively help users choosing a username.
+
+  Full Changelogs:
+  - [v1.7.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.7.0)
+
+  (#878)
+- Change Element Web and MatrixRTC SFU `Ingresses` to target `Service` port names rather than numbers. (#879)
+- Harmonise the hook weights and reduce the number of distinct hook weight values.
+
+  This should speed up installs and upgrades as now there are only 2 distinct pre-install/pre-upgrade hook weights. (#880)
+- Better handle the only worker-capable delayed-events endpoint. (#889)
+- Remove explicit configuration of HAProxy `maxconn` at the global and backend level.
+
+  This improves the compatibility with microk8s clusters that don't raise `ulimits` by default. (#890)
+- Upgrade Element Admin to v0.1.9.
+
+  Highlights:
+  - Integration with the ESS Pro Adminbot
+
+  Full Changelogs:
+  - [v0.1.9](https://github.com/element-hq/element-admin/releases/tag/v0.1.9)
+
+  (#900)
+- Listen for HAProxy traffic over IPv6. (#905)
+- Change `ipFamilyPolicy` to `PreferDualStack` for all services to expose them over dual-stack where possible. (#907)
+- Change Matrix Authentication Service deployment `maxSurge` to 0.
+
+  We have seen migrations race conditions happening during Matrix Authentication Service pods
+  rollout. This sets `maxSurge` to 0 to try to make sure only 1 pod at a time runs the
+  migration process. (#910, #914)
+
+## Fixed
+
+- Change Postgres `emptyDirs` to be memory backed. (#894)
+- Ensure Postgres is fully setup before marking as available or live. (#897)
+- Fix Matrix Authentication Service secrets config generation so private keys coming from an external secret are correctly referenced. (#908)
+
+## Internal
+
+- CI: switch from kind to k3d for integration tests. (#871)
+- CI: simplify manifest test setup now that we care less about which deployables are in-use for a given values file. (#877)
+- CI: add tests covering the weights and phases of Helm hooks. (#880, #884)
+- Document why we don't use `passfile` for Synapse & MAS' Postgres configuration. (#881)
+- CI: Don't add New Vector Ltd copyright to new ci values files. (#882)
+- CI: add concurrency limit per branch to prevent too many concurrent jobs. (#883)
+- CI: validate that all `emptyDirs` are memory backed. (#894)
+- CI: Make sure `init-secrets` job is not created when no secrets needs to be generated. (#896)
+- CI: Enhance manifests caching in manifests pytest runs. (#899)
+- CI: Make cached manifests immutable to avoid issues where they might be mutated during test runs, causing races. (#899)
+- CI: stop flakes in `test_pods_monitored`. (#902)
+- CI: fix image verifications step failing on PRs on forks. (#909)
+- CI: adjust expected status codes to retry on the upgrade integration tests. (#913)
+
+
 # ESS Community Helm Chart 25.11.1 (2025-11-14)
 
 ## Changed
