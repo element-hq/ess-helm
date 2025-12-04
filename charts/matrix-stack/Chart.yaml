@@ -5,7 +5,7 @@
 
 apiVersion: v2
 name: matrix-stack
-version: 25.11.2-dev
+version: 25.12.1-dev
 kubeVersion: '>= 1.22.0-0'
 description: A Helm chart for deploying a Matrix Stack from Element
 type: application
