@@ -1,7 +1,12 @@
-# Copyright 2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
-# SPDX-License-Identifier: AGPL-3.0-only
+{{- /*
+Copyright 2025 New Vector Ltd
+Copyright 2025 Element Creations Ltd
 
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+
+{{- $root := .root -}}
+{{- with required "configs/element-admin/default.conf.tpl missing context" .context -}}
 # Built from https://github.com/element-hq/element-admin/blob/main/docker/nginx.conf
 # * /health added for k8s
 # * setting a charset
@@ -11,8 +16,12 @@
 # * adding 'Cache-Control: no-cache' to root
 # * ensuring security headers are applied even where there's location blocks
 server {
+{{- if has $root.Values.networking.ipFamily (list "ipv4" "dual-stack") }}
   listen       8080;
-  listen  [::]:8080;
+{{- end }}
+{{- if has $root.Values.networking.ipFamily (list "ipv6" "dual-stack") }}
+  listen  [::]:8080 ipv6only={{ (eq $root.Values.networking.ipFamily "dual-stack") | ternary "on" "off" }};
+{{- end }}
   server_name  localhost;
 
   root   /dist;  # noqa
@@ -51,3 +60,4 @@ server {
   #
   error_page   500 502 503 504  /50x.html;
 }
+{{- end }}

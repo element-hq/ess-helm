@@ -1,6 +1,12 @@
-# Copyright 2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
-# SPDX-License-Identifier: AGPL-3.0-only
+{{- /*
+Copyright 2025 New Vector Ltd
+Copyright 2025 Element Creations Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+
+{{- $root := .root -}}
+{{- with required "configs/element-web/default.conf.tpl missing context" .context -}}
 
 # Copy of https://github.com/element-hq/element-web/blob/v1.11.97/docker/nginx-templates/default.conf.template but
 # * not as a template, using a hard-coded port
@@ -9,8 +15,12 @@
 # * setting a charset
 # * ensuring our security headers include are applied, whether or not paths are in location blocks or not
 server {
+{{- if has $root.Values.networking.ipFamily (list "ipv4" "dual-stack") }}
   listen       8080;
-  listen  [::]:8080;
+{{- end }}
+{{- if has $root.Values.networking.ipFamily (list "ipv6" "dual-stack") }}
+  listen  [::]:8080 ipv6only={{ (eq $root.Values.networking.ipFamily "dual-stack") | ternary "on" "off" }};
+{{- end }}
   server_name  localhost;
 
   root   /usr/share/nginx/html;  # noqa
@@ -50,3 +60,4 @@ server {
   #
   error_page   500 502 503 504  /50x.html;
 }
+{{- end }}

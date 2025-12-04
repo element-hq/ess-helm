@@ -65,3 +65,13 @@ By default, the SFU tries to connect to Google's STUN servers. You can try the f
 - Force the SFU to use a manual IP address instead of relying on STUN to resolve the advertised IP.
 
 For more information about the SFU networking, see [Matrix RTC Networking](./advanced.md#networking).
+
+## General / multiple components
+
+### Address family not supported by protocol
+
+Components are configured by default to receive traffic over both IPv4 or IPv6.
+This works in general on single-stack clusters as well as dual-stack clusters.
+In some clusters where IPv6 is disabled at boot or compiled out of the kernel this may not work.
+
+Set `networking.ipFamily: ipv4` to only bind to IPv4 and disable IPv6 support.

@@ -9,8 +9,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- with required "synapse/partial-haproxy.cfg.tpl missing context" .context -}}
 
 frontend startup
+{{- if has $root.Values.networking.ipFamily (list "ipv4" "dual-stack") }}
    bind *:8406
-   bind [::]:8406
+{{- end }}
+{{- /* v6only is here so that IPv4 mapped addresses don't show up, they go to the IPv4 bind */}}
+{{- if has $root.Values.networking.ipFamily (list "ipv6" "dual-stack") }}
+   bind [::]:8406 {{ (eq $root.Values.networking.ipFamily "dual-stack") | ternary "v6only" "v4v6" }}
+{{- end }}
    acl synapse_dead nbsrv(synapse-main) lt 1
 {{- range $workerType, $_ := (include "element-io.synapse.enabledWorkers" (dict "root" $root)) | fromJson }}
 {{- if not (include "element-io.synapse.process.canFallbackToMain" (dict "root" $root "context" $workerType)) }}
@@ -22,8 +27,12 @@ frontend startup
    monitor fail  if synapse_dead
 
 frontend synapse-http-in
+{{- if has $root.Values.networking.ipFamily (list "ipv4" "dual-stack") }}
   bind *:8008
-  bind [::]:8008
+{{- end }}
+{{- if has $root.Values.networking.ipFamily (list "ipv6" "dual-stack") }}
+  bind [::]:8008 {{ (eq $root.Values.networking.ipFamily "dual-stack") | ternary "v6only" "v4v6" }}
+{{- end }}
 
   # if we hit the maxconn on a server, and the queue timeout expires, we want
   # to avoid returning 503, since that will cause cloudflare to mark us down.

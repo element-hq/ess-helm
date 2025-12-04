@@ -317,6 +317,20 @@
     "clusterDomain": {
       "type": "string"
     },
+    "networking": {
+      "type": "object",
+      "properties": {
+        "ipFamily": {
+          "type": "string",
+          "enum": [
+            "ipv4",
+            "ipv6",
+            "dual-stack"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
     "deploymentMarkers": {
       "$id": "file://deployment-markers",
       "$schema": "https://json-schema.org/draft/2020-12/schema",

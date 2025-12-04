@@ -125,6 +125,11 @@ topologySpreadConstraints:
 ## strongly consider having a trailing dot to prevent multiple search domains being queried.
 clusterDomain: "cluster.local."
 
+## Networking configuration options that globally apply
+networking:
+  ## Whether components should attempt to bind IPv4 (ipv4) /IPv6 (ipv6) / both (dual-stack)
+  ipFamily: dual-stack
+
 ## Components
 initSecrets:
   enabled: true
