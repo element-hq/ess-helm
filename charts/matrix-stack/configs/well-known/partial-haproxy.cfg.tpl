@@ -9,8 +9,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- with required "well-known/partial-haproxy.cfg.tpl missing context" .context -}}
 
 frontend well-known-in
+{{- if has $root.Values.networking.ipFamily (list "ipv4" "dual-stack") }}
   bind *:8010
-  bind [::]:8010
+{{- end }}
+{{- if has $root.Values.networking.ipFamily (list "ipv6" "dual-stack") }}
+  bind [::]:8010 {{ (eq $root.Values.networking.ipFamily "dual-stack") | ternary "v6only" "v4v6" }}
+{{- end }}
 
   # same as http log, with %Th (handshake time)
   log-format "%ci:%cp [%tr] %ft %b/%s %Th/%TR/%Tw/%Tc/%Tr/%Ta %ST %B %CC %CS %tsc %ac/%fc/%bc/%sc/%rc %sq/%bq %hr %hs %{+Q}r"

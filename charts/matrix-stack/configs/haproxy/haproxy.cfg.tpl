@@ -82,15 +82,24 @@ resolvers kubedns
   hold refused 600s
 
 frontend prometheus
+{{- if has $root.Values.networking.ipFamily (list "ipv4" "dual-stack") }}
   bind *:8405
-  bind [::]:8405
+{{- end }}
+{{- /* v6only is here so that IPv4 mapped addresses don't show up, they go to the IPv4 bind */}}
+{{- if has $root.Values.networking.ipFamily (list "ipv6" "dual-stack") }}
+  bind [::]:8405 {{ (eq $root.Values.networking.ipFamily "dual-stack") | ternary "v6only" "v4v6" }}
+{{- end }}
   http-request use-service prometheus-exporter if { path /metrics }
   monitor-uri /haproxy_test
   no log
 
 frontend http-blackhole
+{{- if has $root.Values.networking.ipFamily (list "ipv4" "dual-stack") }}
   bind *:8009
-  bind [::]:8009
+{{- end }}
+{{- if has $root.Values.networking.ipFamily (list "ipv6" "dual-stack") }}
+  bind [::]:8009 {{ (eq $root.Values.networking.ipFamily "dual-stack") | ternary "v6only" "v4v6" }}
+{{- end }}
 
   # same as http log, with %Th (handshake time)
   log-format "%ci:%cp [%tr] %ft %b/%s %Th/%TR/%Tw/%Tc/%Tr/%Ta %ST %B %CC %CS %tsc %ac/%fc/%bc/%sc/%rc %sq/%bq %hr %hs %{+Q}r"

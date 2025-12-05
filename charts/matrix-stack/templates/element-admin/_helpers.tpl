@@ -30,10 +30,10 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- define "element-io.element-admin.configmap-data" }}
 {{- $root := .root }}
 default.conf: |
-  {{- ($root.Files.Get "configs/element-admin/default.conf") | nindent 2 }}
+  {{- tpl ($root.Files.Get "configs/element-admin/default.conf.tpl") (dict "root" $root "context" .) | nindent 2 }}
 # Customisations that we do at the http rather than the server level
 http_customisations.conf: |
-  {{- ($root.Files.Get "configs/element-admin/http_customisations.conf") | nindent 2 }}
+  {{- tpl ($root.Files.Get "configs/element-admin/http_customisations.conf.tpl") (dict "root" $root "context" .) | nindent 2 }}
 # For repeated inclusion in default.conf because the add_header directives need to be repeated as per
 # https://nginx.org/en/docs/http/ngx_http_headers_module.html#add_header as they are only inherited from
 # the server block iff there's no add_header directives in the location block

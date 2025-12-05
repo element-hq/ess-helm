@@ -19,7 +19,14 @@ worker_listeners:
 {{- if (include "element-io.synapse.process.hasHttp" (dict "root" $root "context" .processType)) }}
 - port: 8008
   tls: false
-  bind_addresses: ['0.0.0.0']
+  bind_addresses:
+{{- /* Do not be tempted to reorder, Synapse allows 0.0.0.0 to fail IFF the address is already bound and :: is in the list */}}
+{{- if has $root.Values.networking.ipFamily (list "ipv6" "dual-stack") }}
+  - "::"
+{{- end }}
+{{- if has $root.Values.networking.ipFamily (list "ipv4" "dual-stack") }}
+  - "0.0.0.0"
+{{- end }}
   type: http
   x_forwarded: true
   resources:
@@ -35,7 +42,13 @@ worker_listeners:
 {{- if (include "element-io.synapse.process.hasReplication" (dict "root" $root "context" .processType)) }}
 - port: 9093
   tls: false
-  bind_addresses: ['0.0.0.0']
+  bind_addresses:
+{{- if has $root.Values.networking.ipFamily (list "ipv6" "dual-stack") }}
+  - "::"
+{{- end }}
+{{- if has $root.Values.networking.ipFamily (list "ipv4" "dual-stack") }}
+  - "0.0.0.0"
+{{- end }}
   type: http
   x_forwarded: false
   resources:
@@ -44,11 +57,23 @@ worker_listeners:
 {{- end }}
 - type: metrics
   port: 9001
-  bind_addresses: ['0.0.0.0']
+  bind_addresses:
+{{- /* This is different to the others and doesn't currently handle the address being in-use. We bind :: and rely on the lack of IPV6_V6ONLY on the scoket options */}}
+{{- if has $root.Values.networking.ipFamily (list "ipv6" "dual-stack") }}
+  - "::"
+{{- else }}
+  - "0.0.0.0"
+{{- end }}
 {{- /* Unfortunately the metrics type doesn't get the health endpoint*/}}
 - port: 8080
   tls: false
-  bind_addresses: ['0.0.0.0']
+  bind_addresses:
+{{- if has $root.Values.networking.ipFamily (list "ipv6" "dual-stack") }}
+  - "::"
+{{- end }}
+{{- if has $root.Values.networking.ipFamily (list "ipv4" "dual-stack") }}
+  - "0.0.0.0"
+{{- end }}
   type: http
   x_forwarded: false
   resources:

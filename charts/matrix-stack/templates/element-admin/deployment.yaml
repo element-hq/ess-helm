@@ -15,6 +15,7 @@ metadata:
 {{- end }}
   labels:
     {{- include "element-io.element-admin.labels" (dict "root" $ "context" .) | nindent 4 }}
+    k8s.element.io/element-admin-config-hash: "{{( include "element-io.element-admin.configmap-data" (dict "root" $ "context" .)) | sha1sum }}"
   name: {{ $.Release.Name }}-element-admin
   namespace: {{ $.Release.Namespace }}
 spec:
@@ -23,6 +24,7 @@ spec:
     metadata:
       labels:
         {{- include "element-io.element-admin.labels" (dict "root" $ "context" (dict "image" .image "labels" .labels "withChartVersion" false)) | nindent 8 }}
+        k8s.element.io/element-admin-config-hash: "{{( include "element-io.element-admin.configmap-data" (dict "root" $ "context" .)) | sha1sum }}"
 {{- with .annotations }}
       annotations:
         {{- toYaml . | nindent 8 }}

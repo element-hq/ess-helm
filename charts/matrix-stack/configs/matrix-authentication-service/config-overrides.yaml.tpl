@@ -13,8 +13,16 @@ http:
   listeners:
   - name: web
     binds:
-    - host: 0.0.0.0
-      port: 8080
+    - port: 8080
+{{- /*
+While MAS theoretically accepts multiple binds, in practice we received 'Address in use' errors
+Work around this by omitted the host name in the dual-stack case and MAS itself binds 0.0.0.0 && ::
+*/}}
+{{- if eq $root.Values.networking.ipFamily "ipv4"  }}
+      host: "0.0.0.0"
+{{- else if eq $root.Values.networking.ipFamily "ipv6" }}
+      host: "::"
+{{- end }}
     resources:
     - name: human
     - name: discovery
@@ -28,8 +36,12 @@ http:
     - name: adminapi
   - name: internal
     binds:
-    - host: 0.0.0.0
-      port: 8081
+    - port: 8081
+{{- if eq $root.Values.networking.ipFamily "ipv4"  }}
+      host: "0.0.0.0"
+{{- else if eq $root.Values.networking.ipFamily "ipv6" }}
+      host: "::"
+{{- end }}
     resources:
     - name: health
     - name: prometheus
