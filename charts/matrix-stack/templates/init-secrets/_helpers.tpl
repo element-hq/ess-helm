@@ -74,7 +74,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" $
 {{- end -}}
 {{- with .privateKeys }}
 {{- if not .rsa }}
-- {{ (printf "%s-generated" $root.Release.Name) }}:MAS_RSA_PRIVATE_KEY:rsa
+- {{ (printf "%s-generated" $root.Release.Name) }}:MAS_RSA_PRIVATE_KEY:rsa4096
 {{- end }}
 {{- if not .ecdsaPrime256v1 }}
 - {{ (printf "%s-generated" $root.Release.Name) }}:MAS_ECDSA_PRIME256V1_PRIVATE_KEY:ecdsaprime256v1
