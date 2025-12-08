@@ -27,8 +27,6 @@ const (
 	Hex32
 	RSA
 	EcdsaPrime256v1
-	EcdsaSecp256k1
-	EcdsaSecp384r1
 )
 
 func GenerateSecret(client kubernetes.Interface, secretLabels map[string]string, namespace string, name string, key string, secretType SecretType) error {
