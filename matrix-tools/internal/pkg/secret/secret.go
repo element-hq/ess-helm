@@ -25,7 +25,7 @@ const (
 	Rand32
 	SigningKey
 	Hex32
-	RSA
+	RSA4096
 	EcdsaPrime256v1
 )
 
@@ -81,14 +81,14 @@ func GenerateSecret(client kubernetes.Interface, secretLabels map[string]string,
 			} else {
 				return fmt.Errorf("failed to generate Hex32 : %w", err)
 			}
-		case RSA:
-			if keyBytes, err := generateRSA(); err == nil {
+		case RSA4096:
+			if keyBytes, err := generateRSA4096DER(); err == nil {
 				existingSecret.Data[key] = keyBytes
 			} else {
 				return fmt.Errorf("failed to generate RSA key: %w", err)
 			}
 		case EcdsaPrime256v1:
-			if keyBytes, err := generateEcdsaPrime256v1(); err == nil {
+			if keyBytes, err := generateEcdsaPrime256v1DER(); err == nil {
 				existingSecret.Data[key] = keyBytes
 			} else {
 				return fmt.Errorf("failed to generate ECDSA Prime256v1 key: %w", err)

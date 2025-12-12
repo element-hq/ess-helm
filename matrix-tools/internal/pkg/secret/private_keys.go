@@ -13,7 +13,7 @@ import (
 	"crypto/x509"
 )
 
-func marshallKey(key any) ([]byte, error) {
+func marshallKeyIntoDER(key any) ([]byte, error) {
 	keyBytes, err := x509.MarshalPKCS8PrivateKey(key)
 	if err != nil {
 		return nil, err
@@ -22,18 +22,18 @@ func marshallKey(key any) ([]byte, error) {
 	return keyBytes, nil
 }
 
-func generateRSA() ([]byte, error) {
+func generateRSA4096DER() ([]byte, error) {
 	rsaPrivateKey, err := rsa.GenerateKey(rand.Reader, 4096)
 	if err != nil {
 		return nil, err
 	}
-	return marshallKey(rsaPrivateKey)
+	return marshallKeyIntoDER(rsaPrivateKey)
 }
 
-func generateEcdsaPrime256v1() ([]byte, error) {
+func generateEcdsaPrime256v1DER() ([]byte, error) {
 	ecdsaPrivateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
 		return nil, err
 	}
-	return marshallKey(ecdsaPrivateKey)
+	return marshallKeyIntoDER(ecdsaPrivateKey)
 }
