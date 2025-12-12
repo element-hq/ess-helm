@@ -7,6 +7,57 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 25.12.1 (2025-12-12)
+
+## Removed / Breaking Changes
+
+- The MatrixRTC SFU now restricts creation of calls to users on the local homeserver.
+
+  This can be changed back to allowing anyone to create calls on the SFU by by setting `matrixRTC.restrictRoomCreationToLocalUsers: false`. (#926)
+
+## Changed
+
+- Upgrade Synapse to v1.144.0.
+
+  Highlights:
+  - Add experimental implementation of [MSC4380](https://github.com/matrix-org/matrix-spec-proposals/pull/4380) (invite blocking).
+  - Allow the restarting delayed events endpoint for MatrixRTC to be served by workers.
+
+  Full Changelogs:
+  - [v1.144.0](https://github.com/element-hq/synapse/releases/tag/v1.144.0)
+
+  (#915)
+- Upgrade Matrix Authentication Service to v1.8.0.
+
+  Highlights:
+  - Add more options to deal with localpart conflicts on upstream OAuth 2.0 login.
+  - Option to skip confirmation when registering through an upstream OAuth provider.
+
+  Full Changelogs:
+  - [v1.8.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.8.0)
+
+  (#916)
+- Support configuring IPv4-only, IPv6-only or Dual-Stack component binds by configuring `networking.ipFamily`.
+
+  Defaults to `dual-stack` but if you are in a cluster where IPv6 support is either disabled at boot or compiled out you may need to set this to `ipv4` (#921)
+- Allow Synapse and Matrix Authentication Service to receive traffic over IPv6. (#921)
+- Removed some unused code from the `initSecrets` generation container.
+
+  Also complete the docs on the secret types it supports. (#927)
+- Upgrade Element Admin to v0.1.10.
+
+  Highlights :
+  - Fixed a crash in the moderation tab when the Adminbot endpoint is unavailable
+  - Added the ability to delete rooms
+  - Made the language switcher keyboard navigable
+  - Updated translations for better user experience
+
+  Full Changelogs:
+  - [v0.1.10](https://github.com/element-hq/element-admin/releases/tag/v0.1.10)
+
+  (#932)
+
+
 # ESS Community Helm Chart 25.12.0 (2025-12-04)
 
 ## Removed / Breaking Changes
