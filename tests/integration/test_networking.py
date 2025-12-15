@@ -261,6 +261,10 @@ async def has_actual_metrics_on_endpoint(
                     "curl",
                     [
                         "-s",
+                        "--connect-timeout",
+                        "2",
+                        "--max-time",
+                        "5",
                         f"http://{service.metadata.name}.{generated_data.ess_namespace}.svc.cluster.local:{port_spec.port}/metrics",
                     ],
                     restart_policy="OnFailure",
