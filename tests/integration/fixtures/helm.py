@@ -219,7 +219,7 @@ def ingress_ready(cluster, kube_client: AsyncClient, matrix_stack, generated_dat
 
             if rule.host:
                 attempt = 0
-                while attempt < 20:
+                while attempt < 30:
                     try:
                         # Wait for the port and certificate to be available
                         _, writer = await asyncio.wait_for(
@@ -235,7 +235,7 @@ def ingress_ready(cluster, kube_client: AsyncClient, matrix_stack, generated_dat
                 else:
                     raise Exception(
                         f"Unable to connect to Ingress/{generated_data.release_name}-{ingress_suffix}"
-                        " externally after 20s"
+                        " externally after 30s"
                     )
 
     return _ingress_ready
