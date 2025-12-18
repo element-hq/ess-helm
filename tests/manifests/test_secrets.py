@@ -24,6 +24,17 @@ async def test_all_secrets_have_type(templates):
 @pytest.mark.asyncio_cooperative
 async def test_no_secret_generated_when_unneeded(release_name, values, make_templates):
     values["initSecrets"] = {"enabled": True}
-    for template in await make_templates(values):
-        if template["kind"] == "Job":
-            assert template["metadata"]["name"] != f"{release_name}-init-secrets"
+
+    async def _find_init_secrets():
+        for template in await make_templates(values):
+            if template["kind"] == "Job" and template["metadata"]["name"] == f"{release_name}-init-secrets":
+                return True
+        return False
+
+    # init-secret is always present when synapse.enabled=true
+    if values["synapse"]["enabled"]:
+        assert await _find_init_secrets()
+    else:
+        # if snyapse.enabled=false, we should not have init-secrets when all
+        # secrets are specified
+        assert not await _find_init_secrets()
