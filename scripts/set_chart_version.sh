@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Copyright 2024-2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -24,8 +24,7 @@ function set_chart_version() {
   yq -i '.version="'"$version"'"' "$chart_dir/Chart.yaml"
   yq -iP '.' "$chart_dir/Chart.yaml"
   # REUSE-IgnoreStart
-  # Needs `-$(date +%Y)` on 2026
-  reuse annotate --copyright-prefix=string --year "2025" --copyright="Element Creations Ltd" --license "AGPL-3.0-only" "$chart_dir/Chart.yaml"
+  reuse annotate --copyright-prefix=string --year "2025-$(date +%Y)" --copyright="Element Creations Ltd" --license "AGPL-3.0-only" "$chart_dir/Chart.yaml"
   reuse annotate --copyright-prefix=string --year "2024-2025" --copyright="New Vector Ltd" --license "AGPL-3.0-only" "$chart_dir/Chart.yaml"
   # REUSE-IgnoreEnd
 }
