@@ -241,12 +241,17 @@ ess-version.json: |
 {{- with required "element-io.synapse.render-config-container missing context" .context }}
 {{- $processType := required "element-io.synapse.render-config-container context required processType" .processType -}}
 {{- $isHook := required "element-io.synapse.render-config-container context required isHook" .isHook -}}
+{{- $underridesSecrets := list }}
+{{- if $root.Values.initSecrets.enabled }}
+{{- $underridesSecrets = append $underridesSecrets (dict "configSecret" (printf "%s-generated" $root.Release.Name) "configSecretKey" "SYNAPSE_EXTRA") }}
+{{- end}}
 {{- include "element-io.ess-library.render-config-container" (dict "root" $root "context"
             (dict "additionalPath" "synapse.additional"
                   "nameSuffix" "synapse"
                   "containerName" (.containerName | default "render-config")
                   "templatesVolume" (.templatesVolume | default "plain-config")
                   "underrides" (list "01-homeserver-underrides.yaml")
+                  "underridesSecrets" $underridesSecrets
                   "overrides" (list "04-homeserver-overrides.yaml"
                                     (eq $processType "check-config" | ternary "05-main.yaml" (printf "05-%s.yaml" $processType)))
                   "outputFile" "homeserver.yaml"

@@ -9,6 +9,7 @@ on:
   push:
     branches:
     - main
+    - 'maintenance/*'
     tags:
     - '[0-9]+.[0-9]+.[0-9]+'
   workflow_dispatch:

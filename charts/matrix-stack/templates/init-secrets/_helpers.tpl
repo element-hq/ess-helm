@@ -49,7 +49,8 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" $
 {{- end }}
 {{- end }}
 {{- with $root.Values.synapse }}
-{{- if .enabled -}}
+{{- if .enabled }}
+- {{ (printf "%s-generated" $root.Release.Name) }}:SYNAPSE_EXTRA:extra
 {{- if not .macaroon }}
 - {{ (printf "%s-generated" $root.Release.Name) }}:SYNAPSE_MACAROON:rand32
 {{- end }}
