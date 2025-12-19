@@ -19,6 +19,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- end -}}
 {{- $outputFile := required "element-io.ess-library.render-config-container missing context.outputFile" .outputFile -}}
 {{- $underrides := .underrides | default list -}}
+{{- $underridesSecrets := .underridesSecrets | default list -}}
 {{- $overrides := required "element-io.ess-library.render-config-container missing context.overrides" .overrides -}}
 - name: {{ $containerName }}
   {{- include "element-io.ess-library.pods.image" (dict "root" $root "context" $root.Values.matrixTools.image) | nindent 2 }}
@@ -32,6 +33,9 @@ SPDX-License-Identifier: AGPL-3.0-only
   - /conf/{{ $outputFile }}
     {{- range $underrides }}
   - /config-templates/{{ . }}
+    {{- end }}
+    {{- range $underridesSecrets }}
+  - /secrets/{{ tpl .configSecret $root }}/{{ .configSecretKey }}
     {{- end }}
     {{- range $key := ($additionalProperty | keys | uniq | sortAlpha) -}}
     {{- $prop := index $additionalProperty $key }}
