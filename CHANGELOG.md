@@ -7,6 +7,19 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 25.12.2 (2025-12-19)
+
+## Security
+
+- Fix critical security issue tracked as `ELEMENTSEC-2025-1670`.
+
+  This release is a critical security update to address an issue affecting all versions of ESS Community and ESS Pro. ESS Classic and other Synapse-based deployments are not affected.
+
+  The issue only has an impact when federation APIs are exposed to an untrusted network. Deployments that are not currently federating, or that only federate in a closed, trusted federation, are not impacted. These deployments should not enable public federation without first applying this update.
+
+  We advise you to apply the update as quickly as possible. (#943)
+
+
 # ESS Community Helm Chart 25.12.1 (2025-12-12)
 
 ## Removed / Breaking Changes
