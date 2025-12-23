@@ -154,6 +154,12 @@
     "nodeSelector": {
       "$ref": "file://common/nodeSelector.json"
     },
+    "extraVolumes": {
+      "$ref": "file://common/extraVolumesWithContext.json"
+    },
+    "extraVolumeMounts": {
+      "$ref": "file://common/extraVolumeMountsWithContext.json"
+    },
     "podSecurityContext": {
       "$ref": "file://common/podSecurityContext.json"
     },

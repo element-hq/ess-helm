@@ -133,6 +133,14 @@ We have an init container to render & merge the config for several reasons:
         {{- toYaml . | nindent 8 }}
 {{- end }}
       volumeMounts:
+{{- range .extraVolumeMounts }}
+{{- if or (and $isHook ((list "hook" "both") | has (.mountContext | default "both")))
+          (and (not $isHook) ((list "runtime" "both") | has (.mountContext | default "both"))) -}}
+{{- $extraVolumeMount := . | deepCopy }}
+{{- $_ := unset $extraVolumeMount "mountContext" }}
+      - {{- ($extraVolumeMount | toYaml) | nindent 8 }}
+{{- end }}
+{{- end }}
       {{- include "element-io.ess-library.render-config-volume-mounts" (dict "root" $root "context"
             (dict "nameSuffix" "synapse"
                   "outputFile" "homeserver.yaml"
@@ -164,6 +172,14 @@ We have an init container to render & merge the config for several reasons:
             (dict "additionalPath" "synapse.additional"
                   "nameSuffix" "synapse"
                   "isHook" $isHook)) | nindent 4 }}
+{{- range .extraVolumes }}
+{{- if or (and $isHook ((list "hook" "both") | has (.mountContext | default "both")))
+          (and (not $isHook) ((list "runtime" "both") | has (.mountContext | default "both"))) -}}
+{{- $extraVolume := . | deepCopy }}
+{{- $_ := unset $extraVolume "mountContext" }}
+    - {{- (tpl ($extraVolume | toYaml) $root) | nindent 6 }}
+{{- end }}
+{{- end }}
 {{- range $idx, $appservice := .appservices }}
     - name: as-{{ $idx }}
 {{- with $appservice.configMap }}

@@ -4058,6 +4058,19 @@ synapse:
     ## pullSecrets:
     ## - name: dockerhub
     pullSecrets: []
+  # Extra volumes to mount in Synapse, as a yaml array
+  # This supports helm templating
+  # For each extra volume, specify `mountContext` to `hook`, `runtime` or `both` to specify
+  # if it has to be mounted in hook jobs, runtime only, or both.
+  # Defaults to "both".
+  extraVolumes: []
+
+  # Extra volumes to mount in Synapse, as a yaml array
+  # For each extra volume mount, specify `mountContext` to `hook`, `runtime` or `both` to specify
+  # if it has to be mounted in hook jobs, runtime only, or both..
+  # Defaults to "both".
+  extraVolumeMounts: []
+
   ## How this ingress should be constructed
   ingress:
     ## What hostname should be used for this Ingress

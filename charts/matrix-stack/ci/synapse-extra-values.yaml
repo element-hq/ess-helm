@@ -1,0 +1,50 @@
+# Copyright 2025 Element Creations Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# source_fragments: init-secrets-minimal.yaml postgres-minimal.yaml server-name.yaml synapse-extra.yaml synapse-minimal.yaml
+# DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
+
+# initSecrets, postgres don't have any required properties to be set and defaults to enabled
+deploymentMarkers:
+  enabled: false
+elementAdmin:
+  enabled: false
+elementWeb:
+  enabled: false
+matrixAuthenticationService:
+  enabled: false
+matrixRTC:
+  enabled: false
+serverName: ess.localhost
+synapse:
+  extraVolumeMounts:
+    - mountContext: both
+      mountPath: /opt/synapse/gpdr_templates/en/
+      name: test-consenttemplates
+      readOnly: true
+    - mountContext: runtime
+      mountPath: /saml2_mappings
+      name: test-synapse-saml2-mappings
+      readOnly: true
+    - mountContext: hook
+      mountPath: /saml2_mappings
+      name: test-synapse-saml2-mappings-hook
+      readOnly: true
+  extraVolumes:
+    - configMap:
+        name: consenttemplates
+      mountContext: both
+      name: test-consenttemplates
+    - configMap:
+        name: synapse-saml2-mappings
+      mountContext: runtime
+      name: test-synapse-saml2-mappings
+    - configMap:
+        name: synapse-saml2-mappings-hook
+      mountContext: hook
+      name: test-synapse-saml2-mappings-hook
+  ingress:
+    host: synapse.ess.localhost
+wellKnownDelegation:
+  enabled: false

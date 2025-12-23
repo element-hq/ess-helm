@@ -1,0 +1,25 @@
+{
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "name"
+    ],
+    "additionalProperties": true,
+    "properties": {
+      "mountContext": {
+        "type": [
+          "string"
+        ],
+        "enum": [
+          "hook",
+          "both",
+          "runtime"
+        ]
+      },
+      "name": {
+        "type": "string"
+      }
+    }
+  }
+}
