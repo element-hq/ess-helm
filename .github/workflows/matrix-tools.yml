@@ -17,7 +17,7 @@ on:
 
 env:
   REGISTRY_IMAGE: ghcr.io/${{ github.repository }}/matrix-tools
-  GO_VERSION: "1.24"
+  GO_VERSION: "1.25"
 
 jobs:
   gofmt:
