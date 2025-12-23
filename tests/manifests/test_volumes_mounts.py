@@ -13,8 +13,10 @@ from .utils import template_id, workload_spec_containers
 
 @pytest.mark.parametrize("values_file", values_files_to_test | secret_values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_volumes_mounts_exists(release_name, templates, other_secrets):
-    configmaps_names = [t["metadata"]["name"] for t in templates if t["kind"] == "ConfigMap"]
+async def test_volumes_mounts_exists(release_name, templates, other_secrets, other_configmaps):
+    configmaps_names = [t["metadata"]["name"] for t in templates if t["kind"] == "ConfigMap"] + [
+        s["metadata"]["name"] for s in other_configmaps
+    ]
     secrets_names = [t["metadata"]["name"] for t in templates if t["kind"] == "Secret"] + [
         s["metadata"]["name"] for s in other_secrets
     ]
