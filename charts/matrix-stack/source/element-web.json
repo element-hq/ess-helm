@@ -16,6 +16,12 @@
       "minimum": 1,
       "type": "integer"
     },
+    "extraVolumes": {
+      "$ref": "file://common/extraVolumes.json"
+    },
+    "extraVolumeMounts": {
+      "$ref": "file://common/extraVolumeMounts.json"
+    },
     "image": {
       "$ref": "file://common/image.json"
     },
