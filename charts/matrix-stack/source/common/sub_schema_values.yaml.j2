@@ -439,6 +439,15 @@ networking:
 {{ key }}: {}
 {% endmacro %}
 
+{% macro extraVolumesAndMounts(component) %}
+# Extra volumes to mount in {{ component }}, as a yaml array
+# This supports helm templating
+extraVolumes: []
+
+# Extra volumes to mount in {{ component }}, as a yaml array
+extraVolumeMounts: []
+{% endmacro %}
+
 {% macro exposedServicePort(name, port, portType='NodePort') %}
 {{ name }}:
   enabled: true

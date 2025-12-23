@@ -13,8 +13,10 @@ from .utils import template_id, workload_spec_containers
 
 @pytest.mark.parametrize("values_file", values_files_to_test | secret_values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_volumes_mounts_exists(release_name, templates, other_secrets):
-    configmaps_names = [t["metadata"]["name"] for t in templates if t["kind"] == "ConfigMap"]
+async def test_volumes_mounts_exists(release_name, templates, other_secrets, other_configmaps):
+    configmaps_names = [t["metadata"]["name"] for t in templates if t["kind"] == "ConfigMap"] + [
+        s["metadata"]["name"] for s in other_configmaps
+    ]
     secrets_names = [t["metadata"]["name"] for t in templates if t["kind"] == "Secret"] + [
         s["metadata"]["name"] for s in other_secrets
     ]
@@ -46,16 +48,15 @@ async def test_volumes_mounts_exists(release_name, templates, other_secrets):
                         f"Volume {volume['configMap']['name']} not found in ConfigMap names:"
                         f"{configmaps_names} for {template_id(template)}"
                     )
-                    assert volume["name"] in [
-                        "config",
-                        "haproxy-config",
-                        "nginx-config",
-                        "plain-config",
-                        "plain-syn-config",
-                        "plain-mas-config",
-                        "synapse-haproxy",
-                        "well-known-haproxy",
-                    ], f"{template_id(template)} contains a ConfigMap mounted with an unexpected name: {volume['name']}"
+                    assert re.match(
+                        r"^("
+                        r"(haproxy-|nginx-|plain)?(-syn-|-mas-|-)?config|"
+                        r"(synapse|well-known)-haproxy|"
+                        r"test-[\w-]+"
+                        r")$",
+                        volume["name"],
+                    ), f"{template_id(template)} contains a ConfigMap mounted with an unexpected name: {volume['name']}"
+
             for container in workload_spec_containers(template["spec"]["template"]["spec"]):
                 for volume_mount in container.get("volumeMounts", []):
                     assert volume_mount["name"] in volumes_names, (
