@@ -535,6 +535,7 @@ all_components_details = [
         has_credentials=False,
         has_service_monitor=False,
         makes_outbound_requests=False,
+        additional_values_files=("element-web-extra-values.yaml",),
         ignore_paths_mismatches={
             "element-web": (
                 # Various paths / path prefixes in the nginx config for adjusting headers.
