@@ -1,0 +1,14 @@
+# Copyright 2025 Element Creations Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+elementWeb:
+  extraVolumes:
+    - name: test-policydocs
+      configMap:
+        name: "{{ $.Release.Name }}-element-policydocs"
+
+  extraVolumeMounts:
+    - mountPath: "/app/privacy_policy/en"
+      name: test-policydocs
+      readOnly: true
