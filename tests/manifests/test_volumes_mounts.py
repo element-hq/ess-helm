@@ -48,16 +48,15 @@ async def test_volumes_mounts_exists(release_name, templates, other_secrets, oth
                         f"Volume {volume['configMap']['name']} not found in ConfigMap names:"
                         f"{configmaps_names} for {template_id(template)}"
                     )
-                    assert volume["name"] in [
-                        "config",
-                        "haproxy-config",
-                        "nginx-config",
-                        "plain-config",
-                        "plain-syn-config",
-                        "plain-mas-config",
-                        "synapse-haproxy",
-                        "well-known-haproxy",
-                    ], f"{template_id(template)} contains a ConfigMap mounted with an unexpected name: {volume['name']}"
+                    assert re.match(
+                        r"^("
+                        r"(haproxy-|nginx-|plain)?(-syn-|-mas-|-)?config|"
+                        r"(synapse|well-known)-haproxy|"
+                        r"test-[\w-]+"
+                        r")$",
+                        volume["name"],
+                    ), f"{template_id(template)} contains a ConfigMap mounted with an unexpected name: {volume['name']}"
+
             for container in workload_spec_containers(template["spec"]["template"]["spec"]):
                 for volume_mount in container.get("volumeMounts", []):
                     assert volume_mount["name"] in volumes_names, (
