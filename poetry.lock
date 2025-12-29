@@ -716,14 +716,14 @@ files = [
 
 [[package]]
 name = "checkov"
-version = "3.2.495"
+version = "3.2.496"
 description = "Infrastructure as code static analysis"
 optional = false
 python-versions = ">=3.9"
 groups = ["dev"]
 files = [
-    {file = "checkov-3.2.495-py3-none-any.whl", hash = "sha256:737f39cbab5987d49204cd5e62cfca72ffab3f01fa3314471624e1c4256268ac"},
-    {file = "checkov-3.2.495.tar.gz", hash = "sha256:304ffc37f3297b86bd682747898a98a53eec112c89e4172891d7b3113b9a805b"},
+    {file = "checkov-3.2.496-py3-none-any.whl", hash = "sha256:bf21897a9d38ac421b6e4542f1be8d49d319be9db40e5272650b4be8c32ec1c0"},
+    {file = "checkov-3.2.496.tar.gz", hash = "sha256:ff64e9c7bd46b3547203814c6066f7e5676b1e857e27f45b919e3ea801ac4e9f"},
 ]
 
 [package.dependencies]
@@ -1688,14 +1688,14 @@ dev = ["Sphinx (>=5.0.2)", "doc8 (>=0.11.2)", "pytest (>=7.0.1)", "pytest-xdist 
 
 [[package]]
 name = "lightkube"
-version = "0.18.0"
+version = "0.19.0"
 description = "Lightweight kubernetes client library"
 optional = false
 python-versions = ">=3.8"
 groups = ["dev"]
 files = [
-    {file = "lightkube-0.18.0-py3-none-any.whl", hash = "sha256:418fd6202962484222f92c7ee4f323b07d31988a08d101ede445aba7f516fa7d"},
-    {file = "lightkube-0.18.0.tar.gz", hash = "sha256:b42dc8f00baab3f34d10b58808f73d3f48c89115db292db0c30e8810d769cb29"},
+    {file = "lightkube-0.19.0-py3-none-any.whl", hash = "sha256:f0ec92ce11ec07e98619e65de3381180a676fe7a62342e0996e19d3928d21650"},
+    {file = "lightkube-0.19.0.tar.gz", hash = "sha256:0d1e6c004b4a0ebc6a15d9c4db9663261fb84f3ad2ee00aa8cb520af11639069"},
 ]
 
 [package.dependencies]
@@ -3987,14 +3987,14 @@ telegram = ["requests"]
 
 [[package]]
 name = "typer"
-version = "0.20.1"
+version = "0.21.0"
 description = "Typer, build great CLIs. Easy to code. Based on Python type hints."
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.9"
 groups = ["dev"]
 files = [
-    {file = "typer-0.20.1-py3-none-any.whl", hash = "sha256:4b3bde918a67c8e03d861aa02deca90a95bbac572e71b1b9be56ff49affdb5a8"},
-    {file = "typer-0.20.1.tar.gz", hash = "sha256:68585eb1b01203689c4199bc440d6be616f0851e9f0eb41e4a778845c5a0fd5b"},
+    {file = "typer-0.21.0-py3-none-any.whl", hash = "sha256:c79c01ca6b30af9fd48284058a7056ba0d3bf5cf10d0ff3d0c5b11b68c258ac6"},
+    {file = "typer-0.21.0.tar.gz", hash = "sha256:c87c0d2b6eee3b49c5c64649ec92425492c14488096dfbc8a0c2799b2f6f9c53"},
 ]
 
 [package.dependencies]
@@ -4340,4 +4340,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0"
-content-hash = "d79a735262fb34b0626056f369a2d80bdf41fbc7215e48fe0974fc73bd3c7ccc"
+content-hash = "60edb637412bb57fb156ca4f549c6e46395b3be3c1315986a52f5f99e58cfbca"
