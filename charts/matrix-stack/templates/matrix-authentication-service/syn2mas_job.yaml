@@ -9,8 +9,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- if and .enabled .syn2mas.enabled $.Values.synapse.enabled -}}
 {{/* dryRun mode runs as a post-upgrade hook, and can use the existing configmaps and secrets */}}
 {{- $isHook := (not .syn2mas.dryRun) -}}
-{{- $synapseContext := (mustMergeOverwrite ($.Values.synapse | deepCopy) (dict "templatesVolume" "plain-syn-config" "containerName" "render-config-syn" "processType" "main" "isHook" $isHook)) -}}
-{{- $masContext := (mustMergeOverwrite ($.Values.matrixAuthenticationService | deepCopy) (dict "templatesVolume" "plain-mas-config" "containerName" "render-config-mas" "isHook" $isHook)) -}}
+{{- $synapseContext := (mustMergeOverwrite ($.Values.synapse | deepCopy)
+                                (dict "templatesVolume" "plain-syn-config"
+                                        "containerName" "render-config-syn"
+                                        "processType" "main"
+                                        "isHook" $isHook
+                                        "extraVolumeMounts" .extraVolumeMounts)) -}}
+{{- $masContext := (mustMergeOverwrite ($.Values.matrixAuthenticationService | deepCopy)
+                                (dict "templatesVolume" "plain-mas-config"
+                                "containerName" "render-config-mas"
+                                "isHook" $isHook)) -}}
 {{- with (mustMergeOverwrite ($.Values.matrixAuthenticationService.syn2mas | deepCopy) (dict "isHook" $isHook)) -}}
 apiVersion: batch/v1
 kind: Job

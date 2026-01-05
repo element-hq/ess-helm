@@ -14,7 +14,12 @@ from . import (
     secret_values_files_to_test,
     values_files_to_test,
 )
-from .utils import iterate_deployables_workload_parts, template_id, workload_spec_containers
+from .utils import (
+    iterate_deployables_workload_parts,
+    template_id,
+    template_to_deployable_details,
+    workload_spec_containers,
+)
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test | secret_values_files_to_test)
@@ -83,12 +88,39 @@ async def test_extra_volume_mounts(values, make_templates):
         ]
     )
 
+    extra_volume_mounts_hooks = deepfreeze(
+        [
+            {
+                "name": "extra-volume-context-hook",
+                "mountContext": "hook",
+                "mountPath": "/extra-volume-context",
+            },
+        ]
+    )
+
+    extra_volume_mounts_runtime = deepfreeze(
+        [
+            {
+                "name": "extra-volume-context-runtime",
+                "mountContext": "runtime",
+                "mountPath": "/extra-volume-context",
+            },
+        ]
+    )
+
     def set_extra_volume_mounts(deployable_details: DeployableDetails):
-        deployable_details.set_helm_values(
-            values,
-            PropertyType.VolumeMounts,
-            extra_volume_mounts,
-        )
+        if deployable_details.has_mount_context:
+            deployable_details.set_helm_values(
+                values,
+                PropertyType.VolumeMounts,
+                extra_volume_mounts + extra_volume_mounts_hooks + extra_volume_mounts_runtime,
+            )
+        else:
+            deployable_details.set_helm_values(
+                values,
+                PropertyType.VolumeMounts,
+                extra_volume_mounts,
+            )
 
     template_containers_volumes_mounts = {}
     for template in await make_templates(values):
@@ -106,9 +138,23 @@ async def test_extra_volume_mounts(values, make_templates):
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
             for container in workload_spec_containers(template["spec"]["template"]["spec"]):
                 volumes_mounts = deepfreeze(container.get("volumeMounts", []))
-                assert set(volumes_mounts) - set(
-                    template_containers_volumes_mounts[f"{template_id(template)}/{container['name']}"]
-                ) == set(extra_volume_mounts), (
-                    f"Pod container {template_id(template)}/{container['name']} volume mounts {volumes_mounts}"
-                )
-                " is missing expected extra volume"
+                if template_to_deployable_details(template).has_mount_context:
+                    if template["metadata"].get("annotations", {}).get("helm.sh/hook-weight"):
+                        assert set(volumes_mounts) - set(
+                            template_containers_volumes_mounts[f"{template_id(template)}/{container['name']}"]
+                        ) == set((extra_volume_mounts_hooks[0].delete("mountContext"),) + extra_volume_mounts), (
+                            f"Pod container {template_id(template)}/{container['name']} volume mounts {volumes_mounts}"
+                        )
+                    else:
+                        assert set(volumes_mounts) - set(
+                            template_containers_volumes_mounts[f"{template_id(template)}/{container['name']}"]
+                        ) == set((extra_volume_mounts_runtime[0].delete("mountContext"),) + extra_volume_mounts), (
+                            f"Pod container {template_id(template)}/{container['name']} volume mounts {volumes_mounts}"
+                        )
+                else:
+                    assert set(volumes_mounts) - set(
+                        template_containers_volumes_mounts[f"{template_id(template)}/{container['name']}"]
+                    ) == set(extra_volume_mounts), (
+                        f"Pod container {template_id(template)}/{container['name']} volume mounts {volumes_mounts}"
+                    )
+                    " is missing expected extra volume"
