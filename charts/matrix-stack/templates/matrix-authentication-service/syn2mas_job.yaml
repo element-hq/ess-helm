@@ -178,6 +178,9 @@ spec:
           readOnly: true
 {{- end }}
 {{- end }}
+{{- range .extraVolumeMounts }}
+        - {{ (. | toYaml) | nindent 10 }}
+{{- end }}
       volumes:
       - name: plain-syn-config
         configMap:
@@ -192,6 +195,9 @@ spec:
           secretName: {{ . }}
         name: "secret-{{ . | sha256sum | trunc 12 }}"
 {{- end }}
+{{- end }}
+{{- range .extraVolumes }}
+      - {{- (tpl (. | toYaml) $) | nindent 8 }}
 {{- end }}
       - emptyDir:
           medium: Memory

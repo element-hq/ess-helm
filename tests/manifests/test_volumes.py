@@ -57,11 +57,7 @@ async def test_extra_volumes(values, make_templates):
     template_id_to_pod_volumes = {}
     for template in await make_templates(values):
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            assert "volumes" in template["spec"]["template"]["spec"], (
-                f"Pod volumes unexpectedly absent for {template_id(template)}"
-            )
-
-            pod_volumes = deepfreeze(template["spec"]["template"]["spec"]["volumes"])
+            pod_volumes = deepfreeze(template["spec"]["template"]["spec"].get("volumes", []))
             template_id_to_pod_volumes[template_id(template)] = pod_volumes
 
     iterate_deployables_workload_parts(set_extra_volumes)

@@ -74,15 +74,13 @@ async def test_volumes_mounts_exists(release_name, templates, other_secrets, oth
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_extra_volume_mounts(values, make_templates):
-    extra_volume_mounts = set(
-        deepfreeze(
-            [
-                {
-                    "name": "extra-volume",
-                    "path": "/extra-volume",
-                },
-            ]
-        )
+    extra_volume_mounts = deepfreeze(
+        [
+            {
+                "name": "extra-volume",
+                "mountPath": "/extra-volume",
+            },
+        ]
     )
 
     def set_extra_volume_mounts(deployable_details: DeployableDetails):
@@ -108,7 +106,9 @@ async def test_extra_volume_mounts(values, make_templates):
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
             for container in template["spec"]["template"]["spec"].get("containers", []):
                 volumes_mounts = deepfreeze(container.get("volumeMounts", []))
-                assert set(volumes_mounts) - set(template_containers_volumes_mounts[template_id(template)]) == set(
-                    extra_volume_mounts
-                ), f"Pod container {template_id(template) / container['name']} volume mounts {volumes_mounts}"
+                assert set(volumes_mounts) - set(
+                    template_containers_volumes_mounts[f"{template_id(template)}/{container['name']}"]
+                ) == set(extra_volume_mounts), (
+                    f"Pod container {template_id(template) / container['name']} volume mounts {volumes_mounts}"
+                )
                 " is missing expected extra volume"

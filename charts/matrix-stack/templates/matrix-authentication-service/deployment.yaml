@@ -129,10 +129,16 @@ We don't want background jobs to get failed use up their retries because MAS has
             (dict "nameSuffix" "matrix-authentication-service"
                   "outputFile" "mas-config.yaml"
                   "isHook" false)) | nindent 8 }}
+{{- range .extraVolumeMounts }}
+        - {{ (. | toYaml) | nindent 10 }}
+{{- end }}
       volumes:
       {{- include "element-io.ess-library.render-config-volumes" (dict "root" $ "context"
             (dict "additionalPath" "matrixAuthenticationService.additional"
                   "nameSuffix" "matrix-authentication-service"
                   "isHook" false)) | nindent 6 }}
+{{- range .extraVolumes }}
+      - {{- (tpl (. | toYaml) $) | nindent 8 }}
+{{- end }}
 {{- end -}}
 {{- end -}}
