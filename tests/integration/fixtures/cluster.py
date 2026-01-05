@@ -1,5 +1,5 @@
 # Copyright 2024-2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -12,13 +12,28 @@ import httpx_retries
 import pyhelm3
 import pytest
 from lightkube import ApiError, AsyncClient, KubeConfig
-from lightkube.config.client_adapter import verify_cluster
+from lightkube.config.client_adapter import ConnectionParams, verify_cluster
+from lightkube.config.kubeconfig import SingleConfig
+from lightkube.core.generic_client import GenericAsyncClient
 from lightkube.models.meta_v1 import ObjectMeta
 from lightkube.resources.core_v1 import Namespace, Service
 from pytest_kubernetes.options import ClusterOptions
 from pytest_kubernetes.providers import K3dManagerBase
 
 from .data import ESSData
+
+
+def FixedAsyncClient(config: SingleConfig, conn_parameters: ConnectionParams) -> httpx.AsyncClient:
+    # A transport with a SSLContext can't be pickled. This happens with the deepcopy that `asdict` does
+    # inside conn_parameters.httpx_params(). Save it off, null it out for the `asdict` and pass it explicitly
+    transport: httpx.AsyncBaseTransport | None = conn_parameters.transport  # type: ignore[assignment]
+    conn_parameters.transport = None
+    args = conn_parameters.httpx_params(config)
+    args["transport"] = transport
+    return httpx.AsyncClient(**args)
+
+
+GenericAsyncClient.AdapterClient = staticmethod(FixedAsyncClient)
 
 
 class PotentiallyExistingK3dCluster(K3dManagerBase):
