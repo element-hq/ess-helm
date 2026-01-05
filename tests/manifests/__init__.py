@@ -240,6 +240,8 @@ class SidecarDetails(DeployableDetails):
             PropertyType.NodeSelector: ValuesFilePath.not_supported(),
             PropertyType.PodSecurityContext: ValuesFilePath.not_supported(),
             PropertyType.ServiceAccount: ValuesFilePath.not_supported(),
+            PropertyType.Volumes: ValuesFilePath.not_supported(),
+            PropertyType.VolumeMounts: ValuesFilePath.not_supported(),
             PropertyType.Tolerations: ValuesFilePath.not_supported(),
             PropertyType.TopologySpreadConstraints: ValuesFilePath.not_supported(),
         }
@@ -623,12 +625,16 @@ all_components_details = [
         name="synapse",
         values_file_path_overrides={
             PropertyType.Storage: ValuesFilePath.read_write("synapse", "media", "storage"),
+            # This is a hack to make the test `test_volumes.py` understand that
+            # synapse is sharing `extraVolumes` with all its workers and hooks
+            PropertyType.Volumes: ValuesFilePath.read_write("synapse", "extraVolumes"),
+            PropertyType.VolumeMounts: ValuesFilePath.read_write("synapse", "extraVolumeMounts"),
         },
         has_db=True,
         has_storage=True,
         has_replicas=False,
         is_synapse_process=True,
-        additional_values_files=("synapse-worker-example-values.yaml", "synapse-extra-values.yaml"),
+        additional_values_files=("synapse-worker-example-values.yaml",),
         skip_path_consistency_for_files=("path_map_file", "path_map_file_get"),
         ignore_unreferenced_mounts={"synapse": ("/tmp",)},
         has_mount_context=True,

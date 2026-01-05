@@ -2370,13 +2370,6 @@ postgres:
     ## - name: FOO
     ##   value: "bar"
     extraEnv: []
-    # Extra volumes to mount in Postgres Exporter, as a yaml array
-    # This supports helm templating
-    extraVolumes: []
-
-    # Extra volumes to mount in Postgres Exporter, as a yaml array
-    extraVolumeMounts: []
-
     ## Configuration of the thresholds and frequencies of the livenessProbe
     livenessProbe:
       ## How many consecutive failures for the probe to be considered failed
