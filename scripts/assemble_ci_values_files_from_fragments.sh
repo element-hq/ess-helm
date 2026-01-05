@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Copyright 2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -67,8 +67,7 @@ EOF
   yq -P "$yq_command" "$values_file_root/nothing-enabled-values.yaml" >> "$values_file"
 
   # REUSE-IgnoreStart
-  # Needs `-$(date +%Y)` on 2026
-  reuse annotate --copyright-prefix=string --year "2025" --copyright="Element Creations Ltd" --license "AGPL-3.0-only" "$values_file"
+  reuse annotate --copyright-prefix=string --year "2025-$(date +%Y)" --copyright="Element Creations Ltd" --license "AGPL-3.0-only" "$values_file"
   if [ -n "$has_new_vector_ltd_copyright" ]; then
   reuse annotate --copyright-prefix=string --year "2024-2025" --copyright="New Vector Ltd" --license "AGPL-3.0-only" "$values_file"
   fi
