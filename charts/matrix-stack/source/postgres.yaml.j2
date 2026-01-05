@@ -11,6 +11,7 @@ postgresExporter:
   {{- sub_schema_values.resources(requests_memory='10Mi', requests_cpu='10m', limits_memory='500Mi')| indent(2) }}
   {{- sub_schema_values.containersSecurityContext() | indent(2) }}
   {{- sub_schema_values.extraEnv() | indent(2) }}
+  {{- sub_schema_values.extraVolumesAndMounts("Postgres Exporter") | indent(2) }}
   {{- sub_schema_values.probe("liveness", periodSeconds=6, timeoutSeconds=2) | indent(2) }}
   {{- sub_schema_values.probe("readiness", periodSeconds=2, successThreshold=2, timeoutSeconds=2) | indent(2) }}
   {{- sub_schema_values.probe("startup", failureThreshold=20, periodSeconds=2) | indent(2) }}
@@ -24,6 +25,7 @@ essPasswords:
 {{- sub_schema_values.persistentVolumeClaim("storage") }}
 {{- sub_schema_values.image(registry='docker.io', repository='postgres', tag='17-alpine') }}
 {{- sub_schema_values.extraEnv() }}
+{{- sub_schema_values.extraVolumesAndMounts("Postgres") }}
 {{- sub_schema_values.labels() }}
 {{- sub_schema_values.workloadAnnotations() }}
 {{- sub_schema_values.containersSecurityContext() }}

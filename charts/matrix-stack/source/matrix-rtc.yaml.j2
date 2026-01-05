@@ -30,6 +30,7 @@ replicas: 1
 {{- sub_schema_values.containersSecurityContext() }}
 {{- sub_schema_values.hostAliases() }}
 {{- sub_schema_values.extraEnv() }}
+{{- sub_schema_values.extraVolumesAndMounts("Matrix RTC") }}
 {{- sub_schema_values.nodeSelector() }}
 {{- sub_schema_values.podSecurityContext(user_id='10033', group_id='10033') }}
 {{- sub_schema_values.resources(requests_memory='20Mi', requests_cpu='50m', limits_memory='20Mi') }}
@@ -75,6 +76,7 @@ sfu:
 
 {{- sub_schema_values.image(registry='docker.io', repository='livekit/livekit-server', tag='v1.9.1') | indent(2) }}
 {{- sub_schema_values.extraEnv() | indent(2) }}
+{{- sub_schema_values.extraVolumesAndMounts("Matrix RTC SFU") | indent(2) }}
 {{- sub_schema_values.labels() | indent(2) }}
 {{- sub_schema_values.workloadAnnotations() | indent(2) }}
 {{- sub_schema_values.containersSecurityContext() | indent(2) }}

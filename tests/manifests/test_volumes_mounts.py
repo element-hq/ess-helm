@@ -6,9 +6,15 @@
 import re
 
 import pytest
+from frozendict import deepfreeze
 
-from . import secret_values_files_to_test, values_files_to_test
-from .utils import template_id, workload_spec_containers
+from . import (
+    DeployableDetails,
+    PropertyType,
+    secret_values_files_to_test,
+    values_files_to_test,
+)
+from .utils import iterate_deployables_workload_parts, template_id, workload_spec_containers
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test | secret_values_files_to_test)
@@ -63,3 +69,46 @@ async def test_volumes_mounts_exists(release_name, templates, other_secrets, oth
                         f"Volume Mount {volume_mount['name']} not found in volume names: {volumes_names} "
                         f"for {template_id(template)}/{container['name']}"
                     )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_extra_volume_mounts(values, make_templates):
+    extra_volume_mounts = set(
+        deepfreeze(
+            [
+                {
+                    "name": "extra-volume",
+                    "path": "/extra-volume",
+                },
+            ]
+        )
+    )
+
+    def set_extra_volume_mounts(deployable_details: DeployableDetails):
+        deployable_details.set_helm_values(
+            values,
+            PropertyType.VolumeMounts,
+            extra_volume_mounts,
+        )
+
+    template_containers_volumes_mounts = {}
+    for template in await make_templates(values):
+        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
+            for container in template["spec"]["template"]["spec"].get("containers", []):
+                volumes_mounts = deepfreeze(container.get("volumeMounts", []))
+                pod_container_volumes = volumes_mounts
+                template_containers_volumes_mounts[f"{template_id(template)}/{container['name']}"] = (
+                    pod_container_volumes
+                )
+
+    iterate_deployables_workload_parts(set_extra_volume_mounts)
+
+    for template in await make_templates(values):
+        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
+            for container in template["spec"]["template"]["spec"].get("containers", []):
+                volumes_mounts = deepfreeze(container.get("volumeMounts", []))
+                assert set(volumes_mounts) - set(template_containers_volumes_mounts[template_id(template)]) == set(
+                    extra_volume_mounts
+                ), f"Pod container {template_id(template) / container['name']} volume mounts {volumes_mounts}"
+                " is missing expected extra volume"

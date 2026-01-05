@@ -113,6 +113,7 @@ redis:
 {{- sub_schema_values.workloadAnnotations() | indent(2) }}
 {{- sub_schema_values.containersSecurityContext() | indent(2) }}
 {{- sub_schema_values.extraEnv() | indent(2) }}
+{{- sub_schema_values.extraVolumesAndMounts("Redis") | indent(2) }}
 {{- sub_schema_values.nodeSelector() | indent(2) }}
 {{- sub_schema_values.podSecurityContext(user_id='10002', group_id='10002') | indent(2) }}
 {{- sub_schema_values.resources(requests_memory='50Mi', requests_cpu='50m', limits_memory='50Mi') | indent(2) }}

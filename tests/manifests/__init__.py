@@ -13,6 +13,8 @@ class PropertyType(Enum):
     AdditionalConfig = "additional"
     Enabled = "enabled"
     Env = "extraEnv"
+    Volumes = "extraVolumes"
+    VolumeMounts = "extraVolumeMounts"
     HostAliases = "hostAliases"
     Image = "image"
     Ingress = "ingress"
@@ -357,6 +359,8 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
     values_file_path_overrides: dict[PropertyType, ValuesFilePath] = {
         PropertyType.AdditionalConfig: ValuesFilePath.read_elsewhere("synapse", "additional"),
         PropertyType.Env: ValuesFilePath.read_elsewhere("synapse", "extraEnv"),
+        PropertyType.Volumes: ValuesFilePath.read_elsewhere("synapse", "extraVolumes"),
+        PropertyType.VolumeMounts: ValuesFilePath.read_elsewhere("synapse", "extraVolumeMounts"),
         PropertyType.HostAliases: ValuesFilePath.read_elsewhere("synapse", "hostAliases"),
         PropertyType.Image: ValuesFilePath.read_elsewhere("synapse", "image"),
         PropertyType.Labels: ValuesFilePath.read_elsewhere("synapse", "labels"),
@@ -641,6 +645,8 @@ all_components_details = [
                 values_file_path_overrides={
                     PropertyType.AdditionalConfig: ValuesFilePath.read_elsewhere("synapse", "additional"),
                     PropertyType.Env: ValuesFilePath.read_elsewhere("synapse", "extraEnv"),
+                    PropertyType.Volumes: ValuesFilePath.read_elsewhere("synapse", "extraVolumes"),
+                    PropertyType.VolumeMounts: ValuesFilePath.read_elsewhere("synapse", "extraVolumeMounts"),
                     PropertyType.Image: ValuesFilePath.read_elsewhere("synapse", "image"),
                     # Job so no livenessProbe
                     PropertyType.LivenessProbe: ValuesFilePath.not_supported(),

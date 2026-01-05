@@ -169,6 +169,13 @@ initSecrets:
   ## - name: FOO
   ##   value: "bar"
   extraEnv: []
+  # Extra volumes to mount in Init Secrets, as a yaml array
+  # This supports helm templating
+  extraVolumes: []
+
+  # Extra volumes to mount in Init Secrets, as a yaml array
+  extraVolumeMounts: []
+
   ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   nodeSelector: {}
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
@@ -309,6 +316,13 @@ deploymentMarkers:
   ## - name: FOO
   ##   value: "bar"
   extraEnv: []
+  # Extra volumes to mount in Deployment Markers, as a yaml array
+  # This supports helm templating
+  extraVolumes: []
+
+  # Extra volumes to mount in Deployment Markers, as a yaml array
+  extraVolumeMounts: []
+
   ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   nodeSelector: {}
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
@@ -541,6 +555,13 @@ matrixRTC:
   ## - name: FOO
   ##   value: "bar"
   extraEnv: []
+  # Extra volumes to mount in Matrix RTC, as a yaml array
+  # This supports helm templating
+  extraVolumes: []
+
+  # Extra volumes to mount in Matrix RTC, as a yaml array
+  extraVolumeMounts: []
+
   ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   nodeSelector: {}
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
@@ -785,6 +806,13 @@ matrixRTC:
     ## - name: FOO
     ##   value: "bar"
     extraEnv: []
+    # Extra volumes to mount in Matrix RTC SFU, as a yaml array
+    # This supports helm templating
+    extraVolumes: []
+
+    # Extra volumes to mount in Matrix RTC SFU, as a yaml array
+    extraVolumeMounts: []
+
     ## Labels to add to all manifest for this component
     labels: {}
     ## Defines the annotations to add to the workload
@@ -1029,6 +1057,13 @@ elementAdmin:
   ## - name: FOO
   ##   value: "bar"
   extraEnv: []
+  # Extra volumes to mount in Element Admin, as a yaml array
+  # This supports helm templating
+  extraVolumes: []
+
+  # Extra volumes to mount in Element Admin, as a yaml array
+  extraVolumeMounts: []
+
   ## A subset of SecurityContext. ContainersSecurityContext holds pod-level security attributes and common container settings
   containersSecurityContext:
     ## Controls whether a process can gain more privileges than its parent process.
@@ -1513,6 +1548,13 @@ haproxy:
   ## - name: FOO
   ##   value: "bar"
   extraEnv: []
+  # Extra volumes to mount in HAProxy, as a yaml array
+  # This supports helm templating
+  extraVolumes: []
+
+  # Extra volumes to mount in HAProxy, as a yaml array
+  extraVolumeMounts: []
+
   ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   nodeSelector: {}
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
@@ -2009,6 +2051,14 @@ matrixAuthenticationService:
   ##   value: "bar"
   extraEnv: []
 
+  # Extra volumes to mount in Matrix Authentication Service, as a yaml array
+  # This supports helm templating
+  extraVolumes: []
+
+  # Extra volumes to mount in Matrix Authentication Service, as a yaml array
+  extraVolumeMounts: []
+
+
   ## Configuration of the thresholds and frequencies of the livenessProbe
   livenessProbe:
     ## How many consecutive failures for the probe to be considered failed
@@ -2208,6 +2258,13 @@ matrixAuthenticationService:
     ## - name: FOO
     ##   value: "bar"
     extraEnv: []
+    # Extra volumes to mount in Syn2Mas, as a yaml array
+    # This supports helm templating
+    extraVolumes: []
+
+    # Extra volumes to mount in Syn2Mas, as a yaml array
+    extraVolumeMounts: []
+
     ## Workload tolerations allows Pods that are part of this (sub)component to 'tolerate' any taint that matches the triple <key,value,effect> using the matching operator <operator>.
     ##
     ## * effect indicates the taint effect to match. Empty means match all taint effects. When specified, allowed values are NoSchedule, PreferNoSchedule and NoExecute.
@@ -2313,6 +2370,13 @@ postgres:
     ## - name: FOO
     ##   value: "bar"
     extraEnv: []
+    # Extra volumes to mount in Postgres Exporter, as a yaml array
+    # This supports helm templating
+    extraVolumes: []
+
+    # Extra volumes to mount in Postgres Exporter, as a yaml array
+    extraVolumeMounts: []
+
     ## Configuration of the thresholds and frequencies of the livenessProbe
     livenessProbe:
       ## How many consecutive failures for the probe to be considered failed
@@ -2449,6 +2513,13 @@ postgres:
   ## - name: FOO
   ##   value: "bar"
   extraEnv: []
+  # Extra volumes to mount in Postgres, as a yaml array
+  # This supports helm templating
+  extraVolumes: []
+
+  # Extra volumes to mount in Postgres, as a yaml array
+  extraVolumeMounts: []
+
   ## Labels to add to all manifest for this component
   labels: {}
   ## Defines the annotations to add to the workload
@@ -4355,6 +4426,13 @@ synapse:
     ## - name: FOO
     ##   value: "bar"
     extraEnv: []
+    # Extra volumes to mount in Redis, as a yaml array
+    # This supports helm templating
+    extraVolumes: []
+
+    # Extra volumes to mount in Redis, as a yaml array
+    extraVolumeMounts: []
+
     ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
     nodeSelector: {}
     ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings

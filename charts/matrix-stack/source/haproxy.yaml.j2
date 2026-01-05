@@ -13,6 +13,7 @@ replicas: 1
 {{- sub_schema_values.workloadAnnotations() }}
 {{- sub_schema_values.containersSecurityContext() }}
 {{- sub_schema_values.extraEnv() }}
+{{- sub_schema_values.extraVolumesAndMounts("HAProxy") }}
 {{- sub_schema_values.nodeSelector() }}
 {{- sub_schema_values.podSecurityContext(user_id='10001', group_id='10001') }}
 {{- sub_schema_values.resources(requests_memory='100Mi', requests_cpu='100m', limits_memory='200Mi') }}
