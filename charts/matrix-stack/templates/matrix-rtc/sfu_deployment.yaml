@@ -50,7 +50,9 @@ spec:
               "outputFile" "keys.yaml"
               "resources" .resources
               "containersSecurityContext" .containersSecurityContext
-              "extraEnv" .extraEnv)) | nindent 6 }}
+              "extraEnv" .extraEnv
+              "extraVolumeMounts" .extraVolumeMounts
+              )) | nindent 6 }}
 {{- end }}
       {{- include "element-io.ess-library.render-config-container" (dict "root" $ "context"
         (dict "nameSuffix" "matrix-rtc-sfu"
@@ -61,7 +63,9 @@ spec:
               "outputFile" "sfu-config.yaml"
               "resources" .resources
               "containersSecurityContext" .containersSecurityContext
-              "extraEnv" .extraEnv)) | nindent 6 }}
+              "extraEnv" .extraEnv
+              "extraVolumeMounts" .extraVolumeMounts
+              )) | nindent 6 }}
       hostNetwork: {{ .hostNetwork }}
       containers:
       - name: sfu

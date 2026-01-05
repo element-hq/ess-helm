@@ -93,7 +93,7 @@ async def test_extra_volume_mounts(values, make_templates):
     template_containers_volumes_mounts = {}
     for template in await make_templates(values):
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            for container in template["spec"]["template"]["spec"].get("containers", []):
+            for container in workload_spec_containers(template["spec"]["template"]["spec"]):
                 volumes_mounts = deepfreeze(container.get("volumeMounts", []))
                 pod_container_volumes = volumes_mounts
                 template_containers_volumes_mounts[f"{template_id(template)}/{container['name']}"] = (
@@ -104,11 +104,11 @@ async def test_extra_volume_mounts(values, make_templates):
 
     for template in await make_templates(values):
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            for container in template["spec"]["template"]["spec"].get("containers", []):
+            for container in workload_spec_containers(template["spec"]["template"]["spec"]):
                 volumes_mounts = deepfreeze(container.get("volumeMounts", []))
                 assert set(volumes_mounts) - set(
                     template_containers_volumes_mounts[f"{template_id(template)}/{container['name']}"]
                 ) == set(extra_volume_mounts), (
-                    f"Pod container {template_id(template) / container['name']} volume mounts {volumes_mounts}"
+                    f"Pod container {template_id(template)}/{container['name']} volume mounts {volumes_mounts}"
                 )
                 " is missing expected extra volume"

@@ -64,6 +64,12 @@ spec:
         resources:
           {{- toYaml . | nindent 10 }}
 {{- end }}
+{{- with .extraVolumeMounts }}
+        volumeMounts:
+{{- range . }}
+        - {{ (. | toYaml) | nindent 10 }}
+{{- end }}
+{{- end }}
       - name: database-migrate
         args: ["database", "migrate"]
         {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" .image) | nindent 8 }}
@@ -77,6 +83,9 @@ spec:
           {{- toYaml . | nindent 10 }}
 {{- end }}
         volumeMounts:
+{{- range .extraVolumeMounts }}
+        - {{ (. | toYaml) | nindent 10 }}
+{{- end }}
         {{- include "element-io.ess-library.render-config-volume-mounts" (dict "root" $ "context"
             (dict "nameSuffix" "matrix-authentication-service"
                   "outputFile" "mas-config.yaml"

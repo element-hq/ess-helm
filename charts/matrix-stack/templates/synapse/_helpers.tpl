@@ -258,6 +258,7 @@ ess-version.json: |
                   "resources" .resources
                   "containersSecurityContext" .containersSecurityContext
                   "extraEnv" .extraEnv
+                  "extraVolumeMounts" .extraVolumeMounts
                   "isHook" $isHook)) }}
 {{- end }}
 {{- end }}

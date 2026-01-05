@@ -79,6 +79,17 @@ We have an init container to render & merge the config for several reasons:
       resources:
         {{- toYaml . | nindent 8 }}
 {{- end }}
+{{- with .extraVolumeMounts }}
+      volumeMounts:
+{{- range . }}
+{{- if or (and $isHook ((list "hook" "both") | has (.mountContext | default "both")))
+          (and (not $isHook) ((list "runtime" "both") | has (.mountContext | default "both"))) -}}
+{{- $extraVolumeMount := . | deepCopy }}
+{{- $_ := unset $extraVolumeMount "mountContext" }}
+      - {{- ($extraVolumeMount | toYaml) | nindent 8 }}
+{{- end }}
+{{- end }}
+{{- end }}
 {{- end }}
     containers:
     - name: synapse

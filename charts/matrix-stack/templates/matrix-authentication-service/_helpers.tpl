@@ -235,6 +235,7 @@ mas-config-overrides.yaml: |
         dict "additionalPath" "matrixAuthenticationService.additional"
               "nameSuffix" "matrix-authentication-service"
               "containerName" (.containerName | default "render-config")
+              "extraVolumeMounts" .extraVolumeMounts
               "templatesVolume" (.templatesVolume | default "plain-config")
               "underrides" (list "mas-config-underrides.yaml")
               "overrides" (list "mas-config-overrides.yaml")
