@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -9,6 +9,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 # A map file that is used in haproxy config to map from matrix paths to the
 # named backend. The format is: path_regexp backend_name
+{{ if dig "client-reader" "enabled" false $root.Values.synapse.workers }}
+^/_synapse/admin/v2/users/[^/]+$ client-reader
+{{- end }}
 {{- /*
 The client-reader worker could also support the following GET requests
 when the related workers are not enabled. To keep things simple, we don't support
