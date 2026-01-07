@@ -37,22 +37,15 @@ async def test_emptyDirs_are_memory(templates):
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_extra_volumes(values, make_templates):
-    def extra_volume_suffix(deployable_details: DeployableDetails) -> str:
-        if deployable_details.values_file_path_overrides and deployable_details.values_file_path_overrides.get(
-            PropertyType.Volumes
-        ):
-            read_path = deployable_details.values_file_path_overrides[PropertyType.Volumes].read_path or tuple()
-            return "-".join(read_path[:-1])
-        else:
-            return deployable_details.name
-
+async def test_extra_volumes(values, make_templates, release_name):
     def extra_volumes(deployable_details: DeployableDetails):
         return deepfreeze(
             [
                 {
-                    "name": f"extra-volume-{extra_volume_suffix(deployable_details)}",
-                    "emptyDir": {},
+                    "name": f"extra-volume-{deployable_details.name}",
+                    "configMap": {
+                        "name": "config-{{ $.Release.Name }}",
+                    },
                 },
             ]
         )
@@ -61,9 +54,11 @@ async def test_extra_volumes(values, make_templates):
         return deepfreeze(
             [
                 {
-                    "name": f"extra-volume-{extra_volume_suffix(deployable_details)}-context-hook",
+                    "name": f"extra-volume-{deployable_details.name}-context-hook",
                     "mountContext": "hook",
-                    "emptyDir": {},
+                    "configMap": {
+                        "name": "config-{{ $.Release.Name }}",
+                    },
                 },
             ]
         )
@@ -72,9 +67,11 @@ async def test_extra_volumes(values, make_templates):
         return deepfreeze(
             [
                 {
-                    "name": f"extra-volume-{extra_volume_suffix(deployable_details)}-context-runtime",
+                    "name": f"extra-volume-{deployable_details.name}-context-runtime",
                     "mountContext": "runtime",
-                    "emptyDir": {},
+                    "configMap": {
+                        "name": "config-{{ $.Release.Name }}",
+                    },
                 },
             ]
         )
@@ -95,6 +92,33 @@ async def test_extra_volumes(values, make_templates):
                 extra_volumes(deployable_details),
             )
 
+    def get_expected_volumes_from_values(deployable_details: DeployableDetails, with_hooks: bool):
+        volumes = deepfreeze(deployable_details.get_helm_values(values, PropertyType.Volumes, default_value=None))
+        expected_volumes = []
+        for v in volumes:
+            new_volume = v
+            if new_volume.get("mountContext"):
+                if with_hooks is None:
+                    raise RuntimeError(
+                        f"{deployable_details.name} : Encountered a volume with mountContext, "
+                        f"but we expected none : {v}"
+                    )
+                elif (
+                    v.get("mountContext") == "hook"
+                    and with_hooks
+                    or v.get("mountContext") == "runtime"
+                    and not with_hooks
+                ):
+                    new_volume = new_volume.delete("mountContext")
+                else:
+                    continue
+            new_volume = new_volume.set(
+                "configMap",
+                v["configMap"].set("name", v["configMap"]["name"].replace("{{ $.Release.Name }}", release_name)),
+            )
+            expected_volumes.append(new_volume)
+        return expected_volumes
+
     template_id_to_pod_volumes = {}
     for template in await make_templates(values):
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
@@ -107,22 +131,14 @@ async def test_extra_volumes(values, make_templates):
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
             pod_volumes = deepfreeze(template["spec"]["template"]["spec"]["volumes"])
             deployable_details = template_to_deployable_details(template)
-            if (
-                deployable_details.values_file_path_overrides
-                and deployable_details.values_file_path_overrides.get(PropertyType.Volumes)
-                and deployable_details.values_file_path_overrides[PropertyType.Volumes].read_path is None
-            ):
-                continue
             if deployable_details.has_mount_context:
                 if template["metadata"].get("annotations", {}).get("helm.sh/hook-weight"):
                     assert set(pod_volumes) - set(template_id_to_pod_volumes[f"{template_id(template)}"]) == set(
-                        (extra_volumes_hooks(deployable_details)[0].delete("mountContext"),)
-                        + extra_volumes(deployable_details)
+                        get_expected_volumes_from_values(deployable_details, with_hooks=True)
                     ), f"Pod container {template_id(template)} volume mounts {pod_volumes}"
                 else:
                     assert set(pod_volumes) - set(template_id_to_pod_volumes[f"{template_id(template)}"]) == set(
-                        (extra_volumes_runtime(deployable_details)[0].delete("mountContext"),)
-                        + extra_volumes(deployable_details)
+                        get_expected_volumes_from_values(deployable_details, with_hooks=False)
                     ), f"Pod container {template_id(template)} volume mounts {pod_volumes}"
             else:
                 assert "volumes" in template["spec"]["template"]["spec"], (
@@ -130,5 +146,5 @@ async def test_extra_volumes(values, make_templates):
                 )
 
                 assert set(pod_volumes) - set(template_id_to_pod_volumes[template_id(template)]) == set(
-                    extra_volumes(deployable_details)
+                    get_expected_volumes_from_values(deployable_details, with_hooks=None)
                 ), f"Pod volumes {pod_volumes} is missing expected extra volume"

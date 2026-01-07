@@ -625,10 +625,6 @@ all_components_details = [
         name="synapse",
         values_file_path_overrides={
             PropertyType.Storage: ValuesFilePath.read_write("synapse", "media", "storage"),
-            # This is a hack to make the test `test_volumes.py` understand that
-            # synapse is sharing `extraVolumes` with all its workers and hooks
-            PropertyType.Volumes: ValuesFilePath.read_write("synapse", "extraVolumes"),
-            PropertyType.VolumeMounts: ValuesFilePath.read_write("synapse", "extraVolumeMounts"),
         },
         has_db=True,
         has_storage=True,
