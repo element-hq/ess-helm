@@ -571,7 +571,6 @@ all_components_details = [
     ComponentDetails(
         name="matrix-authentication-service",
         values_file_path=ValuesFilePath.read_write("matrixAuthenticationService"),
-        requires_one_by_one_rollout=True,
         has_db=True,
         sub_components=(
             SubComponentDetails(
