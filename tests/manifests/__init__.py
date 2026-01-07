@@ -105,7 +105,6 @@ class DeployableDetails(abc.ABC):
     has_automount_service_account_token: bool = field(default=False, hash=False)
     has_workloads: bool = field(default=True, hash=False)
     has_replicas: bool = field(default=None, hash=False)  # type: ignore[assignment]
-    requires_one_by_one_rollout: bool = field(default=False, hash=False)
     has_service_monitor: bool = field(default=None, hash=False)  # type: ignore[assignment]
     has_storage: bool = field(default=False, hash=False)
     makes_outbound_requests: bool = field(default=None, hash=False)  # type: ignore[assignment]

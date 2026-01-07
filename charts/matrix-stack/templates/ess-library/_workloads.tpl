@@ -11,7 +11,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- with required "element-io.ess-library.workloads.commonSpec missing context" .context -}}
 {{- $nameSuffix := required "element-io.ess-library.workloads.commonSpec missing context.nameSuffix" .nameSuffix -}}
 {{- $serviceNameSuffix := .serviceNameSuffix | default $nameSuffix -}}
-{{- $maxSurge := ternary .maxSurge 2 (hasKey . "maxSurge") -}}
 {{- $kind := required "element-io.ess-library.workloads.commonSpec missing context.kind" .kind -}}
 {{- with required "element-io.ess-library.workloads.commonSpec missing context.componentValues" .componentValues -}}
 replicas: {{ .replicas | default 1 }}
@@ -22,15 +21,11 @@ selector:
 strategy:
   type: RollingUpdate
   rollingUpdate:
-    maxSurge: {{ $maxSurge }}
-{{- if gt $maxSurge 0 }}
-  {{- if hasKey . "replicas" }}
+    maxSurge: 2
+{{- if hasKey . "replicas" }}
     maxUnavailable: {{ min (max 0 (sub .replicas 1)) 1 }}
-  {{- else }}
-    maxUnavailable: 0
-  {{- end }}
 {{- else }}
-    maxUnavailable: 1
+    maxUnavailable: 0
 {{- end }}
 {{- else }}
 serviceName: {{ $root.Release.Name }}-{{ $serviceNameSuffix }}
