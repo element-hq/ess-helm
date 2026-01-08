@@ -24,6 +24,12 @@
         "resources": {
           "$ref": "file://common/resources.json"
         },
+        "extraVolumes": {
+          "$ref": "file://common/extraVolumes.json"
+        },
+        "extraVolumeMounts": {
+          "$ref": "file://common/extraVolumeMounts.json"
+        },
         "livenessProbe": {
           "$ref": "file://common/probe.json"
         },

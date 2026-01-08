@@ -2341,6 +2341,13 @@ postgres:
       ## Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
       limits:
         memory: 500Mi
+    # Extra volumes to mount in PostgresExporter, as a yaml array
+    # This supports helm templating
+    extraVolumes: []
+
+    # Extra volumes to mount in PostgresExporter, as a yaml array
+    extraVolumeMounts: []
+
     ## A subset of SecurityContext. ContainersSecurityContext holds pod-level security attributes and common container settings
     containersSecurityContext:
       ## Controls whether a process can gain more privileges than its parent process.
