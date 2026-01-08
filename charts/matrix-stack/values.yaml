@@ -1246,11 +1246,11 @@ elementWeb:
   ## Full details on available configuration options can be found at https://github.com/element-hq/element-web/blob/develop/docs/config.md
   ## Most settings are configurable but some settings are owned by the chart and can't be overwritten
   additional: {}
-  # Extra volumes to mount in ElementWeb, as a yaml array
+  # Extra volumes to mount in Element Web, as a yaml array
   # This supports helm templating
   extraVolumes: []
 
-  # Extra volumes to mount in ElementWeb, as a yaml array
+  # Extra volumes to mount in Element Web, as a yaml array
   extraVolumeMounts: []
 
 
@@ -2055,6 +2055,7 @@ matrixAuthenticationService:
   # This supports helm templating
   extraVolumes: []
 
+
   # Extra volumes to mount in Matrix Authentication Service, as a yaml array
   extraVolumeMounts: []
 
@@ -2341,6 +2342,9 @@ postgres:
       ## Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
       limits:
         memory: 500Mi
+    # Extra volumes to mount in PostgresExporter, as a yaml array
+    extraVolumeMounts: []
+
     ## A subset of SecurityContext. ContainersSecurityContext holds pod-level security attributes and common container settings
     containersSecurityContext:
       ## Controls whether a process can gain more privileges than its parent process.

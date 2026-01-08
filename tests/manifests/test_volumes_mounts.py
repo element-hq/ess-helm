@@ -174,7 +174,10 @@ async def test_extra_volume_mounts(values, make_templates):
     for template in await make_templates(values):
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
             for container in workload_spec_containers(template["spec"]["template"]["spec"]):
-                volumes_mounts = deepfreeze(container.get("volumeMounts", []))
+                assert "volumeMounts" in container, (
+                    f"Pod container {template_id(template)}/{container['name']} does not have volumeMounts"
+                )
+                volumes_mounts = deepfreeze(container["volumeMounts"])
                 deployable_details = template_to_deployable_details(template)
                 container_details = deployable_details.deployable_details_for_container(container["name"])
                 if container_details.has_mount_context:

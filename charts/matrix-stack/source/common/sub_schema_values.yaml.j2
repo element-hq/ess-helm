@@ -439,7 +439,7 @@ networking:
 {{ key }}: {}
 {% endmacro %}
 
-{% macro extraVolumesAndMounts(component, with_context=False) %}
+{% macro extraVolumes(component, with_context=False) %}
 # Extra volumes to mount in {{ component }}, as a yaml array
 # This supports helm templating
 {%- if with_context %}
@@ -448,7 +448,9 @@ networking:
 # Defaults to "both".
 {%- endif %}
 extraVolumes: []
+{% endmacro %}
 
+{% macro extraVolumeMounts(component, with_context=False) %}
 # Extra volumes to mount in {{ component }}, as a yaml array
 {%- if with_context %}
 # For each extra volume mount, specify `mountContext` to `hook`, `runtime` or `both` to specify

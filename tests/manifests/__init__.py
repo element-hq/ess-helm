@@ -241,7 +241,6 @@ class SidecarDetails(DeployableDetails):
             PropertyType.PodSecurityContext: ValuesFilePath.not_supported(),
             PropertyType.ServiceAccount: ValuesFilePath.not_supported(),
             PropertyType.Volumes: ValuesFilePath.not_supported(),
-            PropertyType.VolumeMounts: ValuesFilePath.not_supported(),
             PropertyType.Tolerations: ValuesFilePath.not_supported(),
             PropertyType.TopologySpreadConstraints: ValuesFilePath.not_supported(),
         }
