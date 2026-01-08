@@ -129,6 +129,9 @@ async def test_extra_volumes(values, make_templates, release_name):
 
     for template in await make_templates(values):
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
+            assert "volumes" in template["spec"]["template"]["spec"], (
+                f"Pod volumes unexpectedly absent for {template_id(template)}"
+            )
             pod_volumes = deepfreeze(template["spec"]["template"]["spec"]["volumes"])
             deployable_details = template_to_deployable_details(template)
             if deployable_details.has_mount_context:
