@@ -51,6 +51,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.pytest.ini_options]
 # we use asyncio-cooperative
 addopts = "-p no:asyncio --strict-markers"
+max_asyncio_tasks = 32
 
 [tool.ruff]
 line-length = 120
