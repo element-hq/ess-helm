@@ -17,7 +17,8 @@ replicas: 1
 {{- sub_schema_values.labels() -}}
 {{- sub_schema_values.workloadAnnotations() -}}
 {{- sub_schema_values.extraEnv() -}}
-{{- sub_schema_values.extraVolumesAndMounts("Element Admin") }}
+{{- sub_schema_values.extraVolumes("Element Admin") }}
+{{- sub_schema_values.extraVolumeMounts("Element Admin") }}
 {{- sub_schema_values.containersSecurityContext() -}}
 {{- sub_schema_values.nodeSelector() -}}
 {{- sub_schema_values.podSecurityContext(user_id='10104', group_id='10104') -}}
