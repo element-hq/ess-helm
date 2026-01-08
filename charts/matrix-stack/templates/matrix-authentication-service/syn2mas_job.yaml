@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -9,8 +9,19 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- if and .enabled .syn2mas.enabled $.Values.synapse.enabled -}}
 {{/* dryRun mode runs as a post-upgrade hook, and can use the existing configmaps and secrets */}}
 {{- $isHook := (not .syn2mas.dryRun) -}}
-{{- $synapseContext := (mustMergeOverwrite ($.Values.synapse | deepCopy) (dict "templatesVolume" "plain-syn-config" "containerName" "render-config-syn" "processType" "main" "isHook" $isHook)) -}}
-{{- $masContext := (mustMergeOverwrite ($.Values.matrixAuthenticationService | deepCopy) (dict "templatesVolume" "plain-mas-config" "containerName" "render-config-mas" "isHook" $isHook)) -}}
+{{- $synapseContext := (mustMergeOverwrite ($.Values.synapse | deepCopy)
+                                (dict "templatesVolume" "plain-syn-config"
+                                        "containerName" "render-config-syn"
+                                        "processType" "main"
+                                        "isHook" $isHook
+                                        "extraVolumeMounts" .syn2mas.extraVolumeMounts
+                                        )) -}}
+{{- $masContext := (mustMergeOverwrite ($.Values.matrixAuthenticationService | deepCopy)
+                                (dict "templatesVolume" "plain-mas-config"
+                                "containerName" "render-config-mas"
+                                "isHook" $isHook
+                                "extraVolumeMounts" .syn2mas.extraVolumeMounts
+                                )) -}}
 {{- with (mustMergeOverwrite ($.Values.matrixAuthenticationService.syn2mas | deepCopy) (dict "isHook" $isHook)) -}}
 apiVersion: batch/v1
 kind: Job
@@ -92,6 +103,9 @@ spec:
           {{- toYaml . | nindent 10 }}
 {{- end }}
         volumeMounts:
+{{- range .extraVolumeMounts }}
+        - {{ (. | toYaml) | nindent 10 }}
+{{- end }}
         - mountPath: /tmp-mas-cli
           name: tmp-mas-cli
       {{- include "element-io.matrix-authentication-service.render-config-container" (dict "root" $ "context" $masContext) | nindent 6 }}
@@ -110,6 +124,12 @@ spec:
         resources:
           {{- toYaml . | nindent 10 }}
 {{- end }}
+{{- with .extraVolumeMounts }}
+        volumeMounts:
+{{- range . }}
+        - {{ (. | toYaml) | nindent 10 }}
+{{- end }}
+{{- end }}
       - name: db-wait-syn
         {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" $.Values.matrixTools.image) | nindent 8 }}
 {{- with .containersSecurityContext }}
@@ -123,6 +143,12 @@ spec:
 {{- with .resources }}
         resources:
           {{- toYaml . | nindent 10 }}
+{{- end }}
+{{- with .extraVolumeMounts }}
+        volumeMounts:
+{{- range . }}
+        - {{ (. | toYaml) | nindent 10 }}
+{{- end }}
 {{- end }}
       - name: syn2mas-check
         args: ["syn2mas", "check", "--config", "/conf/mas-config.yaml", "--synapse-config", "/conf/homeserver.yaml"]
@@ -139,6 +165,9 @@ spec:
         - mountPath: "/conf"
           name: rendered-config
           readOnly: true
+{{- range .extraVolumeMounts }}
+        - {{ (. | toYaml) | nindent 10 }}
+{{- end }}
 {{- range $secret := include "element-io.matrix-authentication-service.syn2masConfigSecrets" (dict "root" $ "context" (dict "synapseContext" $synapseContext "masContext" $masContext)) | fromJsonArray }}
 {{- with (tpl $secret $) }}
         - mountPath: /secrets/{{ . }}
@@ -178,6 +207,9 @@ spec:
           readOnly: true
 {{- end }}
 {{- end }}
+{{- range .extraVolumeMounts }}
+        - {{ (. | toYaml) | nindent 10 }}
+{{- end }}
       volumes:
       - name: plain-syn-config
         configMap:
@@ -192,6 +224,9 @@ spec:
           secretName: {{ . }}
         name: "secret-{{ . | sha256sum | trunc 12 }}"
 {{- end }}
+{{- end }}
+{{- range .extraVolumes }}
+      - {{- (tpl (. | toYaml) $) | nindent 8 }}
 {{- end }}
       - emptyDir:
           medium: Memory

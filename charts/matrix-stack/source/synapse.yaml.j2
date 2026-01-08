@@ -1,6 +1,6 @@
 {#
 Copyright 2024-2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 #}
@@ -86,6 +86,7 @@ logging:
   ##   synapse.util.caches.lrucache: WARNING
   levelOverrides: {}
 {{- sub_schema_values.image(registry='oci.element.io', repository='synapse', tag='v1.144.0-ess.2') }}
+{{- sub_schema_values.extraVolumesAndMounts("Synapse", with_context=true) }}
 {{- sub_schema_values.ingress() }}
 {{- sub_schema_values.labels() }}
 {{- sub_schema_values.workloadAnnotations() }}
@@ -112,6 +113,7 @@ redis:
 {{- sub_schema_values.workloadAnnotations() | indent(2) }}
 {{- sub_schema_values.containersSecurityContext() | indent(2) }}
 {{- sub_schema_values.extraEnv() | indent(2) }}
+{{- sub_schema_values.extraVolumesAndMounts("Redis") | indent(2) }}
 {{- sub_schema_values.nodeSelector() | indent(2) }}
 {{- sub_schema_values.podSecurityContext(user_id='10002', group_id='10002') | indent(2) }}
 {{- sub_schema_values.resources(requests_memory='50Mi', requests_cpu='50m', limits_memory='50Mi') | indent(2) }}

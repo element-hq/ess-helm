@@ -1,5 +1,5 @@
 # Copyright 2024-2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -13,6 +13,8 @@ class PropertyType(Enum):
     AdditionalConfig = "additional"
     Enabled = "enabled"
     Env = "extraEnv"
+    Volumes = "extraVolumes"
+    VolumeMounts = "extraVolumeMounts"
     HostAliases = "hostAliases"
     Image = "image"
     Ingress = "ingress"
@@ -108,6 +110,7 @@ class DeployableDetails(abc.ABC):
     has_storage: bool = field(default=False, hash=False)
     makes_outbound_requests: bool = field(default=None, hash=False)  # type: ignore[assignment]
     is_hook: bool = field(default=False, hash=False)
+    has_mount_context: bool = field(default=None, hash=False)  # type: ignore[assignment]
     is_synapse_process: bool = field(default=False, hash=False)
 
     # Use this to skip mounts point we expect not to be referenced in commands, configs, etc
@@ -137,6 +140,8 @@ class DeployableDetails(abc.ABC):
             self.has_replicas = self.has_workloads
         if self.makes_outbound_requests is None:
             self.makes_outbound_requests = self.has_workloads
+        if self.has_mount_context is None:
+            self.has_mount_context = self.is_hook
 
     def _get_values_file_path(self, propertyType: PropertyType) -> ValuesFilePath:
         """
@@ -235,6 +240,8 @@ class SidecarDetails(DeployableDetails):
             PropertyType.NodeSelector: ValuesFilePath.not_supported(),
             PropertyType.PodSecurityContext: ValuesFilePath.not_supported(),
             PropertyType.ServiceAccount: ValuesFilePath.not_supported(),
+            PropertyType.Volumes: ValuesFilePath.not_supported(),
+            PropertyType.VolumeMounts: ValuesFilePath.not_supported(),
             PropertyType.Tolerations: ValuesFilePath.not_supported(),
             PropertyType.TopologySpreadConstraints: ValuesFilePath.not_supported(),
         }
@@ -357,6 +364,8 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
     values_file_path_overrides: dict[PropertyType, ValuesFilePath] = {
         PropertyType.AdditionalConfig: ValuesFilePath.read_elsewhere("synapse", "additional"),
         PropertyType.Env: ValuesFilePath.read_elsewhere("synapse", "extraEnv"),
+        PropertyType.Volumes: ValuesFilePath.read_elsewhere("synapse", "extraVolumes"),
+        PropertyType.VolumeMounts: ValuesFilePath.read_elsewhere("synapse", "extraVolumeMounts"),
         PropertyType.HostAliases: ValuesFilePath.read_elsewhere("synapse", "hostAliases"),
         PropertyType.Image: ValuesFilePath.read_elsewhere("synapse", "image"),
         PropertyType.Labels: ValuesFilePath.read_elsewhere("synapse", "labels"),
@@ -376,6 +385,7 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
         is_synapse_process=True,
         has_replicas=(worker_type == "scalable"),
         ignore_unreferenced_mounts={"synapse": ("/tmp",)},
+        has_mount_context=True,
         content_volumes_mapping={
             "/media": ("media_store",),
         },
@@ -432,6 +442,7 @@ all_components_details = [
         has_service_monitor=False,
         makes_outbound_requests=False,
         is_hook=True,
+        has_mount_context=False,
         is_shared_component=True,
     ),
     ComponentDetails(
@@ -453,6 +464,7 @@ all_components_details = [
         has_service_monitor=False,
         makes_outbound_requests=False,
         is_hook=True,
+        has_mount_context=False,
         is_shared_component=True,
     ),
     ComponentDetails(
@@ -604,6 +616,7 @@ all_components_details = [
                 has_replicas=False,
                 has_service_monitor=False,
                 is_hook=True,
+                has_mount_context=False,
                 makes_outbound_requests=False,
             ),
         ),
@@ -620,6 +633,7 @@ all_components_details = [
         additional_values_files=("synapse-worker-example-values.yaml",),
         skip_path_consistency_for_files=("path_map_file", "path_map_file_get"),
         ignore_unreferenced_mounts={"synapse": ("/tmp",)},
+        has_mount_context=True,
         content_volumes_mapping={
             "/media": ("media_store",),
         },
@@ -640,6 +654,8 @@ all_components_details = [
                 values_file_path_overrides={
                     PropertyType.AdditionalConfig: ValuesFilePath.read_elsewhere("synapse", "additional"),
                     PropertyType.Env: ValuesFilePath.read_elsewhere("synapse", "extraEnv"),
+                    PropertyType.Volumes: ValuesFilePath.read_elsewhere("synapse", "extraVolumes"),
+                    PropertyType.VolumeMounts: ValuesFilePath.read_elsewhere("synapse", "extraVolumeMounts"),
                     PropertyType.Image: ValuesFilePath.read_elsewhere("synapse", "image"),
                     # Job so no livenessProbe
                     PropertyType.LivenessProbe: ValuesFilePath.not_supported(),

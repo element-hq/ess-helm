@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -11,6 +11,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $context := . -}}
 {{- $nameSuffix := required "element-io.ess-library.render-config-container missing context.nameSuffix" .nameSuffix -}}
 {{- $containerName := required "element-io.ess-library.render-config-container missing context.containerName" .containerName -}}
+{{- $isHook := .isHook -}}
+{{- $extraVolumeMounts := .extraVolumeMounts -}}
 {{- $templatesVolume := (.templatesVolume | default "plain-config") -}}
 {{- $additionalPath := .additionalPath -}}
 {{- $additionalProperty := dict -}}
@@ -68,6 +70,14 @@ SPDX-License-Identifier: AGPL-3.0-only
   - mountPath: /conf
     name: rendered-config
     readOnly: false
+{{- range $extraVolumeMounts }}
+{{- if or (and $isHook ((list "hook" "both") | has (.mountContext | default "both")))
+          (and (not $isHook) ((list "runtime" "both") | has (.mountContext | default "both"))) -}}
+{{- $extraVolumeMount := . | deepCopy }}
+{{- $_ := unset $extraVolumeMount "mountContext" }}
+  - {{- ($extraVolumeMount | toYaml) | nindent 4 }}
+{{- end }}
+{{- end }}
 {{- end }}
 {{- end }}
 

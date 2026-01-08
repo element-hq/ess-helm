@@ -1,6 +1,6 @@
 {#
 Copyright 2024-2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 #}
@@ -437,6 +437,25 @@ networking:
 ##
 ## Most settings are configurable but some settings are owned by the chart and can't overwritten
 {{ key }}: {}
+{% endmacro %}
+
+{% macro extraVolumesAndMounts(component, with_context=False) %}
+# Extra volumes to mount in {{ component }}, as a yaml array
+# This supports helm templating
+{%- if with_context %}
+# For each extra volume, specify `mountContext` to `hook`, `runtime` or `both` to specify
+# if it has to be mounted in hook jobs, runtime only, or both.
+# Defaults to "both".
+{%- endif %}
+extraVolumes: []
+
+# Extra volumes to mount in {{ component }}, as a yaml array
+{%- if with_context %}
+# For each extra volume mount, specify `mountContext` to `hook`, `runtime` or `both` to specify
+# if it has to be mounted in hook jobs, runtime only, or both..
+# Defaults to "both".
+{%- endif %}
+extraVolumeMounts: []
 {% endmacro %}
 
 {% macro exposedServicePort(name, port, portType='NodePort') %}

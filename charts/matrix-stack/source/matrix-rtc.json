@@ -53,6 +53,12 @@
     "extraEnv": {
       "$ref": "file://common/extraEnv.json"
     },
+    "extraVolumes": {
+      "$ref": "file://common/extraVolumes.json"
+    },
+    "extraVolumeMounts": {
+      "$ref": "file://common/extraVolumeMounts.json"
+    },
     "image": {
       "$ref": "file://common/image.json"
     },
@@ -115,6 +121,12 @@
         },
         "extraEnv": {
           "$ref": "file://common/extraEnv.json"
+        },
+        "extraVolumes": {
+          "$ref": "file://common/extraVolumes.json"
+        },
+        "extraVolumeMounts": {
+          "$ref": "file://common/extraVolumeMounts.json"
         },
         "annotations": {
           "$ref": "file://common/workloadAnnotations.json"

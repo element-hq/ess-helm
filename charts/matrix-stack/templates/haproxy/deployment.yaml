@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2024-2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -114,6 +114,9 @@ spec:
           mountPath: "/well-known"
           readOnly: true
 {{- end }}
+{{- range .extraVolumeMounts }}
+        - {{ (. | toYaml) | nindent 10 }}
+{{- end }}
       volumes:
       - configMap:
           name: "{{ $.Release.Name }}-haproxy"
@@ -130,6 +133,9 @@ spec:
           name: "{{ $.Release.Name }}-well-known-haproxy"
           defaultMode: 420
         name: well-known-haproxy
+{{- end }}
+{{- range .extraVolumes }}
+      - {{- (tpl (. | toYaml) $) | nindent 8 }}
 {{- end }}
 {{- end }}
 {{- end }}

@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2024-2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -50,7 +50,9 @@ spec:
               "outputFile" "keys.yaml"
               "resources" .resources
               "containersSecurityContext" .containersSecurityContext
-              "extraEnv" .extraEnv)) | nindent 6 }}
+              "extraEnv" .extraEnv
+              "extraVolumeMounts" .extraVolumeMounts
+              )) | nindent 6 }}
 {{- end }}
       {{- include "element-io.ess-library.render-config-container" (dict "root" $ "context"
         (dict "nameSuffix" "matrix-rtc-sfu"
@@ -61,7 +63,9 @@ spec:
               "outputFile" "sfu-config.yaml"
               "resources" .resources
               "containersSecurityContext" .containersSecurityContext
-              "extraEnv" .extraEnv)) | nindent 6 }}
+              "extraEnv" .extraEnv
+              "extraVolumeMounts" .extraVolumeMounts
+              )) | nindent 6 }}
       hostNetwork: {{ .hostNetwork }}
       containers:
       - name: sfu
@@ -148,9 +152,15 @@ spec:
           name: rendered-config
           subPath: keys.yaml
 {{- end }}
+{{- range .extraVolumeMounts }}
+        - {{ (. | toYaml) | nindent 10 }}
+{{- end }}
       volumes:
       {{- include "element-io.ess-library.render-config-volumes" (dict "root" $ "context"
               (dict "nameSuffix" "matrix-rtc-sfu" "additionalPath" "matrixRTC.sfu.additional")) | nindent 6 }}
+{{- range .extraVolumes }}
+      - {{- (tpl (. | toYaml) $) | nindent 8 }}
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end -}}

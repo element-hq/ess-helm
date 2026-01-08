@@ -1,5 +1,5 @@
 # Copyright 2024-2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -94,6 +94,11 @@ def other_secrets(release_name, values, templates):
     return list(generated_secrets(release_name, values, templates)) + list(external_secrets(release_name, values))
 
 
+@pytest.fixture
+def other_configmaps(release_name, values):
+    return list(external_configmaps(release_name, values))
+
+
 def generated_secrets(release_name: str, values: dict[str, Any], helm_generated_templates: list[Any]) -> Iterator[Any]:
     if values["initSecrets"]["enabled"]:
         init_secrets_job = None
@@ -183,6 +188,35 @@ def external_secrets(release_name, values):
                 ).decode("utf-8")
                 for secret_key in secret_keys
             },
+        }
+
+
+def external_configmaps(release_name, values):
+    def find_extra_configmaps(values_fragment):
+        if isinstance(values_fragment, (dict, list)):
+            for value in values_fragment.values() if isinstance(values_fragment, dict) else values_fragment:
+                if isinstance(value, dict):
+                    if "extraVolumes" in value:
+                        for vol in value["extraVolumes"]:
+                            if "configMap" in vol:
+                                yield vol["configMap"]["name"].replace("{{ $.Release.Name }}", release_name)
+                elif isinstance(value, list):
+                    yield from find_extra_configmaps(value)
+
+    for cm_name in find_extra_configmaps(values):
+        yield {
+            "kind": "ConfigMap",
+            "metadata": {
+                "name": cm_name,
+                "annotations": {
+                    # We simulate the fact that it exists before the chart deployment
+                    # using the hook weight.
+                    # Actually it does not have any
+                    # but this is necessary for tests/manifests/test_configs_and_mounts_consistency.py
+                    "helm.sh/hook-weight": "-100"
+                },
+            },
+            "data": {},
         }
 
 

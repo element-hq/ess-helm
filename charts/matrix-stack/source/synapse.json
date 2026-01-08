@@ -154,6 +154,12 @@
     "nodeSelector": {
       "$ref": "file://common/nodeSelector.json"
     },
+    "extraVolumes": {
+      "$ref": "file://common/extraVolumesWithContext.json"
+    },
+    "extraVolumeMounts": {
+      "$ref": "file://common/extraVolumeMountsWithContext.json"
+    },
     "podSecurityContext": {
       "$ref": "file://common/podSecurityContext.json"
     },
@@ -266,6 +272,12 @@
         },
         "extraEnv": {
           "$ref": "file://common/extraEnv.json"
+        },
+        "extraVolumes": {
+          "$ref": "file://common/extraVolumes.json"
+        },
+        "extraVolumeMounts": {
+          "$ref": "file://common/extraVolumeMounts.json"
         },
         "containersSecurityContext": {
           "$ref": "file://common/containersSecurityContext.json"

@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -65,10 +65,16 @@ spec:
         volumeMounts:
         - mountPath: /tmp
           name: nginx-tmp
+{{- range .extraVolumeMounts }}
+        - {{ (. | toYaml) | nindent 10 }}
+{{- end }}
       restartPolicy: Always
       volumes:
       - emptyDir:
           medium: Memory
         name: nginx-tmp
+{{- range .extraVolumes }}
+      - {{- (tpl (. | toYaml) $) | nindent 8 }}
+{{- end }}
 {{- end }}
 {{- end }}

@@ -382,6 +382,60 @@
             "additionalProperties": false
           }
         },
+        "extraVolumes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "additionalProperties": true,
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "extraVolumeMounts": {
+          "type": "array",
+          "items": {
+            "required": [
+              "name",
+              "mountPath"
+            ],
+            "type": "object",
+            "description": "VolumeMount describes a mounting of a Volume within a container.",
+            "properties": {
+              "readOnly": {
+                "type": "boolean",
+                "description": "Mounted read-only if true, read-write otherwise (false or unspecified). Defaults to false."
+              },
+              "mountPath": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Path within the container at which the volume should be mounted.  Must not contain ':'."
+              },
+              "subPath": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Path within the volume from which the container's volume should be mounted. Defaults to \"\" (volume's root)."
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "This must match the Name of a Volume."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
         "containersSecurityContext": {
           "properties": {
             "allowPrivilegeEscalation": {
@@ -734,6 +788,60 @@
               },
               "value": {
                 "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "extraVolumes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "additionalProperties": true,
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "extraVolumeMounts": {
+          "type": "array",
+          "items": {
+            "required": [
+              "name",
+              "mountPath"
+            ],
+            "type": "object",
+            "description": "VolumeMount describes a mounting of a Volume within a container.",
+            "properties": {
+              "readOnly": {
+                "type": "boolean",
+                "description": "Mounted read-only if true, read-write otherwise (false or unspecified). Defaults to false."
+              },
+              "mountPath": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Path within the container at which the volume should be mounted.  Must not contain ':'."
+              },
+              "subPath": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Path within the volume from which the container's volume should be mounted. Defaults to \"\" (volume's root)."
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "This must match the Name of a Volume."
               }
             },
             "additionalProperties": false
@@ -1136,6 +1244,60 @@
               },
               "value": {
                 "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "extraVolumes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "additionalProperties": true,
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "extraVolumeMounts": {
+          "type": "array",
+          "items": {
+            "required": [
+              "name",
+              "mountPath"
+            ],
+            "type": "object",
+            "description": "VolumeMount describes a mounting of a Volume within a container.",
+            "properties": {
+              "readOnly": {
+                "type": "boolean",
+                "description": "Mounted read-only if true, read-write otherwise (false or unspecified). Defaults to false."
+              },
+              "mountPath": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Path within the container at which the volume should be mounted.  Must not contain ':'."
+              },
+              "subPath": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Path within the volume from which the container's volume should be mounted. Defaults to \"\" (volume's root)."
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "This must match the Name of a Volume."
               }
             },
             "additionalProperties": false
@@ -1835,6 +1997,60 @@
                   },
                   "value": {
                     "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "extraVolumes": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "additionalProperties": true,
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "extraVolumeMounts": {
+              "type": "array",
+              "items": {
+                "required": [
+                  "name",
+                  "mountPath"
+                ],
+                "type": "object",
+                "description": "VolumeMount describes a mounting of a Volume within a container.",
+                "properties": {
+                  "readOnly": {
+                    "type": "boolean",
+                    "description": "Mounted read-only if true, read-write otherwise (false or unspecified). Defaults to false."
+                  },
+                  "mountPath": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Path within the container at which the volume should be mounted.  Must not contain ':'."
+                  },
+                  "subPath": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Path within the volume from which the container's volume should be mounted. Defaults to \"\" (volume's root)."
+                  },
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "This must match the Name of a Volume."
                   }
                 },
                 "additionalProperties": false
@@ -2588,6 +2804,60 @@
             ]
           }
         },
+        "extraVolumes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "additionalProperties": true,
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "extraVolumeMounts": {
+          "type": "array",
+          "items": {
+            "required": [
+              "name",
+              "mountPath"
+            ],
+            "type": "object",
+            "description": "VolumeMount describes a mounting of a Volume within a container.",
+            "properties": {
+              "readOnly": {
+                "type": "boolean",
+                "description": "Mounted read-only if true, read-write otherwise (false or unspecified). Defaults to false."
+              },
+              "mountPath": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Path within the container at which the volume should be mounted.  Must not contain ':'."
+              },
+              "subPath": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Path within the volume from which the container's volume should be mounted. Defaults to \"\" (volume's root)."
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "This must match the Name of a Volume."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
         "annotations": {
           "type": "object",
           "additionalProperties": {
@@ -3059,6 +3329,60 @@
         "replicas": {
           "minimum": 1,
           "type": "integer"
+        },
+        "extraVolumes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "additionalProperties": true,
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "extraVolumeMounts": {
+          "type": "array",
+          "items": {
+            "required": [
+              "name",
+              "mountPath"
+            ],
+            "type": "object",
+            "description": "VolumeMount describes a mounting of a Volume within a container.",
+            "properties": {
+              "readOnly": {
+                "type": "boolean",
+                "description": "Mounted read-only if true, read-write otherwise (false or unspecified). Defaults to false."
+              },
+              "mountPath": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Path within the container at which the volume should be mounted.  Must not contain ':'."
+              },
+              "subPath": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Path within the volume from which the container's volume should be mounted. Defaults to \"\" (volume's root)."
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "This must match the Name of a Volume."
+              }
+            },
+            "additionalProperties": false
+          }
         },
         "image": {
           "type": "object",
@@ -3758,6 +4082,60 @@
               },
               "value": {
                 "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "extraVolumes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "additionalProperties": true,
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "extraVolumeMounts": {
+          "type": "array",
+          "items": {
+            "required": [
+              "name",
+              "mountPath"
+            ],
+            "type": "object",
+            "description": "VolumeMount describes a mounting of a Volume within a container.",
+            "properties": {
+              "readOnly": {
+                "type": "boolean",
+                "description": "Mounted read-only if true, read-write otherwise (false or unspecified). Defaults to false."
+              },
+              "mountPath": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Path within the container at which the volume should be mounted.  Must not contain ':'."
+              },
+              "subPath": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Path within the volume from which the container's volume should be mounted. Defaults to \"\" (volume's root)."
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "This must match the Name of a Volume."
               }
             },
             "additionalProperties": false
@@ -4525,6 +4903,60 @@
                 "additionalProperties": false
               }
             },
+            "extraVolumes": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "additionalProperties": true,
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "extraVolumeMounts": {
+              "type": "array",
+              "items": {
+                "required": [
+                  "name",
+                  "mountPath"
+                ],
+                "type": "object",
+                "description": "VolumeMount describes a mounting of a Volume within a container.",
+                "properties": {
+                  "readOnly": {
+                    "type": "boolean",
+                    "description": "Mounted read-only if true, read-write otherwise (false or unspecified). Defaults to false."
+                  },
+                  "mountPath": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Path within the container at which the volume should be mounted.  Must not contain ':'."
+                  },
+                  "subPath": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Path within the volume from which the container's volume should be mounted. Defaults to \"\" (volume's root)."
+                  },
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "This must match the Name of a Volume."
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
             "containersSecurityContext": {
               "properties": {
                 "allowPrivilegeEscalation": {
@@ -5029,6 +5461,60 @@
               },
               "value": {
                 "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "extraVolumes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "additionalProperties": true,
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "extraVolumeMounts": {
+          "type": "array",
+          "items": {
+            "required": [
+              "name",
+              "mountPath"
+            ],
+            "type": "object",
+            "description": "VolumeMount describes a mounting of a Volume within a container.",
+            "properties": {
+              "readOnly": {
+                "type": "boolean",
+                "description": "Mounted read-only if true, read-write otherwise (false or unspecified). Defaults to false."
+              },
+              "mountPath": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Path within the container at which the volume should be mounted.  Must not contain ':'."
+              },
+              "subPath": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Path within the volume from which the container's volume should be mounted. Defaults to \"\" (volume's root)."
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "This must match the Name of a Volume."
               }
             },
             "additionalProperties": false
@@ -5932,6 +6418,60 @@
               },
               "value": {
                 "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "extraVolumes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "additionalProperties": true,
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "extraVolumeMounts": {
+          "type": "array",
+          "items": {
+            "required": [
+              "name",
+              "mountPath"
+            ],
+            "type": "object",
+            "description": "VolumeMount describes a mounting of a Volume within a container.",
+            "properties": {
+              "readOnly": {
+                "type": "boolean",
+                "description": "Mounted read-only if true, read-write otherwise (false or unspecified). Defaults to false."
+              },
+              "mountPath": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Path within the container at which the volume should be mounted.  Must not contain ':'."
+              },
+              "subPath": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Path within the volume from which the container's volume should be mounted. Defaults to \"\" (volume's root)."
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "This must match the Name of a Volume."
               }
             },
             "additionalProperties": false
@@ -6974,6 +7514,80 @@
           "type": "object",
           "additionalProperties": {
             "type": "string"
+          }
+        },
+        "extraVolumes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "additionalProperties": true,
+            "properties": {
+              "mountContext": {
+                "type": [
+                  "string"
+                ],
+                "enum": [
+                  "hook",
+                  "both",
+                  "runtime"
+                ]
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "extraVolumeMounts": {
+          "type": "array",
+          "items": {
+            "required": [
+              "name",
+              "mountPath"
+            ],
+            "type": "object",
+            "description": "VolumeMount describes a mounting of a Volume within a container.",
+            "properties": {
+              "readOnly": {
+                "type": "boolean",
+                "description": "Mounted read-only if true, read-write otherwise (false or unspecified). Defaults to false."
+              },
+              "mountContext": {
+                "type": [
+                  "string"
+                ],
+                "enum": [
+                  "hook",
+                  "both",
+                  "runtime"
+                ]
+              },
+              "mountPath": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Path within the container at which the volume should be mounted.  Must not contain ':'."
+              },
+              "subPath": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Path within the volume from which the container's volume should be mounted. Defaults to \"\" (volume's root)."
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "This must match the Name of a Volume."
+              }
+            },
+            "additionalProperties": false
           }
         },
         "podSecurityContext": {
@@ -12443,6 +13057,60 @@
                   },
                   "value": {
                     "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "extraVolumes": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "additionalProperties": true,
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "extraVolumeMounts": {
+              "type": "array",
+              "items": {
+                "required": [
+                  "name",
+                  "mountPath"
+                ],
+                "type": "object",
+                "description": "VolumeMount describes a mounting of a Volume within a container.",
+                "properties": {
+                  "readOnly": {
+                    "type": "boolean",
+                    "description": "Mounted read-only if true, read-write otherwise (false or unspecified). Defaults to false."
+                  },
+                  "mountPath": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Path within the container at which the volume should be mounted.  Must not contain ':'."
+                  },
+                  "subPath": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Path within the volume from which the container's volume should be mounted. Defaults to \"\" (volume's root)."
+                  },
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "This must match the Name of a Volume."
                   }
                 },
                 "additionalProperties": false

@@ -1,6 +1,6 @@
 {#
 Copyright 2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 #}
@@ -17,6 +17,7 @@ replicas: 1
 {{- sub_schema_values.labels() -}}
 {{- sub_schema_values.workloadAnnotations() -}}
 {{- sub_schema_values.extraEnv() -}}
+{{- sub_schema_values.extraVolumesAndMounts("Element Admin") }}
 {{- sub_schema_values.containersSecurityContext() -}}
 {{- sub_schema_values.nodeSelector() -}}
 {{- sub_schema_values.podSecurityContext(user_id='10104', group_id='10104') -}}

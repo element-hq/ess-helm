@@ -19,6 +19,12 @@
     "labels": {
       "$ref": "file://common/labels.json"
     },
+    "extraVolumes": {
+      "$ref": "file://common/extraVolumes.json"
+    },
+    "extraVolumeMounts": {
+      "$ref": "file://common/extraVolumeMounts.json"
+    },
     "annotations": {
       "$ref": "file://common/workloadAnnotations.json"
     },

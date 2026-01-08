@@ -1,5 +1,5 @@
 # Copyright 2024-2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -34,13 +34,13 @@ def assert_exists_according_to_hook_weight(template, hook_weight, used_by):
         )
 
 
-def get_configmap(templates, configmap_name):
+def get_configmap(templates, other_configmaps, configmap_name):
     """
     Get the content of a ConfigMap with the given name.
     :param configmap_name: The name of the ConfigMap to retrieve.
     :return: A string containing the content of the ConfigMap, or an empty string if not found.
     """
-    for t in templates:
+    for t in templates + other_configmaps:
         if t["kind"] == "ConfigMap" and t["metadata"]["name"] == configmap_name:
             return t
     raise ValueError(f"ConfigMap {configmap_name} not found")
@@ -296,7 +296,12 @@ class PathConsumer(abc.ABC):
 
 ## Gets all mounted files in a render-config container
 def get_all_mounted_files(
-    workload_spec, container_spec, templates, other_secrets, mounted_empty_dirs: dict[str, MountedEmptyDir]
+    workload_spec,
+    container_spec,
+    templates,
+    other_secrets,
+    other_configmaps,
+    mounted_empty_dirs: dict[str, MountedEmptyDir],
 ):
     def _get_content(content, kind):
         if kind in ["EmptyDir", "ConfigMap"]:
@@ -308,7 +313,7 @@ def get_all_mounted_files(
     for volume_mount in container_spec.get("volumeMounts", []):
         current_volume = get_volume_from_mount(workload_spec, volume_mount)
         if "configMap" in current_volume:
-            current_res = get_configmap(templates, current_volume["configMap"]["name"])
+            current_res = get_configmap(templates, other_configmaps, current_volume["configMap"]["name"])
         elif "secret" in current_volume:
             current_res = get_secret(templates, other_secrets, current_volume["secret"]["secretName"])
         elif "emptyDir" in current_volume:
@@ -422,10 +427,16 @@ class RenderConfigContainerPathConsumer(PathConsumer):
 
     @classmethod
     def from_container_spec(
-        cls, container_spec, workload_spec, templates, other_secrets, mutable_empty_dirs: dict[str, MountedEmptyDir]
+        cls,
+        container_spec,
+        workload_spec,
+        templates,
+        other_secrets,
+        other_configmaps,
+        mutable_empty_dirs: dict[str, MountedEmptyDir],
     ):
         all_mounted_files = get_all_mounted_files(
-            workload_spec, container_spec, templates, other_secrets, mutable_empty_dirs
+            workload_spec, container_spec, templates, other_secrets, other_configmaps, mutable_empty_dirs
         )
         args = container_spec["args"]
         for idx, cmd in enumerate(args):
@@ -521,6 +532,7 @@ class ValidatedContainerConfig(ValidatedConfig):
         deployable_details,
         templates,
         other_secrets,
+        other_configmaps,
         previously_mounted_empty_dirs: dict[str, MountedEmptyDir],
     ):
         validated_config = cls(
@@ -536,7 +548,7 @@ class ValidatedContainerConfig(ValidatedConfig):
                 current_source_of_mount = MountedSecret.from_template(secret, volume_mount)
             elif "configMap" in current_volume:
                 # Parse config map content
-                configmap = get_configmap(templates, current_volume["configMap"]["name"])
+                configmap = get_configmap(templates, other_configmaps, current_volume["configMap"]["name"])
                 assert_exists_according_to_hook_weight(configmap, weight, validated_config.name)
                 current_source_of_mount = MountedConfigMap.from_template(configmap, volume_mount)
                 if not is_matrix_tools_command(container_spec, "render-config"):
@@ -576,6 +588,7 @@ class ValidatedContainerConfig(ValidatedConfig):
                 workload_spec,
                 templates,
                 other_secrets,
+                other_configmaps,
                 validated_config.mutable_empty_dirs,
             )
             validated_config.paths_consumers.append(render_config_consumer)
@@ -655,7 +668,7 @@ class ValidatedContainerConfig(ValidatedConfig):
             consumer.mutate_empty_dirs(container_spec, workload_spec, self.mutable_empty_dirs)
 
 
-def traverse_containers(templates, other_secrets) -> Generator[ValidatedContainerConfig]:
+def traverse_containers(templates, other_secrets, other_configmaps) -> Generator[ValidatedContainerConfig]:
     workloads = [t for t in templates if t["kind"] in ("Deployment", "StatefulSet", "Job")]
     for template in workloads:
         all_workload_empty_dirs: dict[str, MountedEmptyDir] = {}
@@ -675,6 +688,7 @@ def traverse_containers(templates, other_secrets) -> Generator[ValidatedContaine
                 deployable_details,
                 templates,
                 other_secrets,
+                other_configmaps,
                 all_workload_empty_dirs,
             )
             yield validated_container_config
@@ -690,21 +704,21 @@ def traverse_containers(templates, other_secrets) -> Generator[ValidatedContaine
 
 @pytest.mark.parametrize("values_file", values_files_to_test | secret_values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_mounted_files_unique(templates, other_secrets):
+async def test_mounted_files_unique(templates, other_secrets, other_configmaps):
     # A list of empty dirs that will be updated as we traverse containers
-    for validated_container_config in traverse_containers(templates, other_secrets):
+    for validated_container_config in traverse_containers(templates, other_secrets, other_configmaps):
         validated_container_config.check_mounted_files_unique()
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test | secret_values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_any_mounted_path_is_used_in_content(templates, other_secrets):
-    for validated_container_config in traverse_containers(templates, other_secrets):
+async def test_any_mounted_path_is_used_in_content(templates, other_secrets, other_configmaps):
+    for validated_container_config in traverse_containers(templates, other_secrets, other_configmaps):
         validated_container_config.check_paths_used_in_content()
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test | secret_values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_any_path_found_matches_an_actual_mount(templates, other_secrets):
-    for validated_container_config in traverse_containers(templates, other_secrets):
+async def test_any_path_found_matches_an_actual_mount(templates, other_secrets, other_configmaps):
+    for validated_container_config in traverse_containers(templates, other_secrets, other_configmaps):
         validated_container_config.check_all_paths_matches_an_actual_mount()
