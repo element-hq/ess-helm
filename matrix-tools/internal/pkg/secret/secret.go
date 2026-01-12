@@ -1,5 +1,5 @@
 // Copyright 2025 New Vector Ltd
-// Copyright 2025 Element Creations Ltd
+// Copyright 2025-2026 Element Creations Ltd
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 // internal/pkg/secret/secret.go
@@ -29,7 +29,8 @@ const (
 	EcdsaPrime256v1
 )
 
-func GenerateSecret(client kubernetes.Interface, secretLabels map[string]string, namespace string, name string, key string, secretType SecretType) error {
+func GenerateSecret(client kubernetes.Interface, secretLabels map[string]string,
+	namespace string, name string, key string, secretType SecretType, generatorArgs []string) error {
 	ctx := context.Background()
 
 	secretsClient := client.CoreV1().Secrets(namespace)

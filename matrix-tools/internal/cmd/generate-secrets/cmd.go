@@ -1,5 +1,5 @@
 // Copyright 2025 New Vector Ltd
-// Copyright 2025 Element Creations Ltd
+// Copyright 2025-2026 Element Creations Ltd
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -27,7 +27,8 @@ func Run(options *GenerateSecretsOptions) {
 	}
 
 	for _, generatedSecret := range options.GeneratedSecrets {
-		err := secret.GenerateSecret(clientset, options.Labels, namespace, generatedSecret.Name, generatedSecret.Key, generatedSecret.Type)
+		err := secret.GenerateSecret(clientset, options.Labels, namespace,
+			generatedSecret.Name, generatedSecret.Key, generatedSecret.Type, generatedSecret.GeneratorArgs)
 		if err != nil {
 			wrappedErr := errors.Wrapf(err, "error generating secret: %s", generatedSecret.ArgValue)
 			fmt.Println("Error:", wrappedErr)

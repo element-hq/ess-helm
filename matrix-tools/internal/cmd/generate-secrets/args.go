@@ -1,5 +1,5 @@
 // Copyright 2025 New Vector Ltd
-// Copyright 2025 Element Creations Ltd
+// Copyright 2025-2026 Element Creations Ltd
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -23,10 +23,11 @@ type GenerateSecretsOptions struct {
 }
 
 type GeneratedSecret struct {
-	ArgValue string
-	Name     string
-	Key      string
-	Type     secret.SecretType
+	ArgValue      string
+	Name          string
+	Key           string
+	Type          secret.SecretType
+	GeneratorArgs []string
 }
 
 func parseSecretType(value string) (secret.SecretType, error) {
@@ -50,7 +51,7 @@ func ParseArgs(args []string) (*GenerateSecretsOptions, error) {
 	var options GenerateSecretsOptions
 
 	generateSecretsSet := flag.NewFlagSet("generate-secrets", flag.ExitOnError)
-	secrets := generateSecretsSet.String("secrets", "", "Comma-separated list of secrets to generate, in the format of `name:key:type`, where `type` is one of: rand32, signingkey, hex32, rsa4096, ecdsaprime256v1")
+	secrets := generateSecretsSet.String("secrets", "", "Comma-separated list of secrets to generate, in the format of `name:key:type:args if required`, where `type` is one of: rand32, signingkey, hex32, rsa:<bits>:<der or pem>, ecdsaprime256v1")
 	secretsLabels := generateSecretsSet.String("labels", "", "Comma-separated list of labels for generated secrets, in the format of `key=value`")
 
 	err := generateSecretsSet.Parse(args)
@@ -66,8 +67,12 @@ func ParseArgs(args []string) (*GenerateSecretsOptions, error) {
 		if parsedSecretType, err = parseSecretType(parsedValue[2]); err != nil {
 			return nil, fmt.Errorf("invalid secret type in %s : %v", generatedSecretArg, err)
 		}
+		generatorArgs := make([]string, 0)
+		if len(parsedValue) > 3 {
+			generatorArgs = parsedValue[3:]
+		}
 
-		generatedSecret := GeneratedSecret{ArgValue: generatedSecretArg, Name: parsedValue[0], Key: parsedValue[1], Type: parsedSecretType}
+		generatedSecret := GeneratedSecret{ArgValue: generatedSecretArg, Name: parsedValue[0], Key: parsedValue[1], Type: parsedSecretType, GeneratorArgs: generatorArgs}
 		options.GeneratedSecrets = append(options.GeneratedSecrets, generatedSecret)
 	}
 	options.Labels = make(map[string]string)
