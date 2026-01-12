@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -18,6 +18,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- with $.Values.elementWeb }}
 {{- if .enabled }}
 {{- $messages = concat $messages (include "element-io.element-web.validations" (dict "root" $ "context" .) | fromJsonArray) }}
+{{- end }}
+{{- end }}
+
+{{- with $.Values.hookshot }}
+{{- if .enabled }}
+{{- $messages = concat $messages (include "element-io.hookshot.validations" (dict "root" $ "context" .) | fromJsonArray) }}
 {{- end }}
 {{- end }}
 

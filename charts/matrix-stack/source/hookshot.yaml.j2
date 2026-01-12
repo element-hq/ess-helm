@@ -1,0 +1,45 @@
+{#
+Copyright 2026 Element Creations Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+#}
+
+{% import "common/sub_schema_values.yaml.j2" as sub_schema_values %}
+enabled: false
+{{- sub_schema_values.image(registry='docker.io', repository='halfshot/matrix-hookshot', tag='7.2.0') }}
+
+user:
+  localpart: hookshot
+
+logging:
+  # The maximum level of Hookshot log output before any overrides
+  # Must be one of [critical, error, warning, info, debug]
+  level: info
+
+{{- sub_schema_values.credential("Hookshot registration file to connect to a remote Synapse instance.", "appserviceRegistration", initIfAbsent=True) }}
+{{ sub_schema_values.ingress() }}
+
+## Additional configuration to provide to Hookshot.
+## You can, if you whish, override it in the additional config.
+## Each key under additional is an additional config to merge into Hookshot hookshot-config.yaml
+## Full details on available configuration options can be found at https://matrix-org.github.io/matrix-hookshot/latest/setup.html
+{{ sub_schema_values.additionalConfig() }}
+{{ sub_schema_values.persistentVolumeClaim("storage") }}
+{{ sub_schema_values.resources(requests_memory='100Mi', requests_cpu='10m', limits_memory='1000Mi') }}
+{{ sub_schema_values.extraVolumes("Hookshot") }}
+{{ sub_schema_values.extraVolumeMounts("Hookshot") }}
+{{ sub_schema_values.extraInitContainers("Hookshot") }}
+{{ sub_schema_values.labels() }}
+{{ sub_schema_values.serviceAccount() }}
+{{ sub_schema_values.nodeSelector() }}
+{{ sub_schema_values.tolerations() }}
+{{ sub_schema_values.topologySpreadConstraints() }}
+{{ sub_schema_values.podSecurityContext(user_id=10007, group_id=10007) }}
+{{ sub_schema_values.containersSecurityContext() }}
+{{ sub_schema_values.workloadAnnotations() }}
+{{ sub_schema_values.serviceMonitors() }}
+{{ sub_schema_values.extraEnv() }}
+{{ sub_schema_values.hostAliases() }}
+{{ sub_schema_values.probe("liveness", failureThreshold=9) }}
+{{ sub_schema_values.probe("readiness", failureThreshold=9) }}
+{{ sub_schema_values.probe("startup", failureThreshold=9) }}

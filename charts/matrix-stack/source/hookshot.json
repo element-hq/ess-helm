@@ -1,0 +1,105 @@
+{
+  "$id": "file://hookshot",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "description": "Enable Hookshot."
+    },
+    "appserviceRegistration": {
+      "$ref": "file://common/credential.json"
+    },
+    "logging": {
+      "type": "object",
+      "properties": {
+        "level": {
+          "type": "string",
+          "description": "The maximum level of hookshot log output before any overrides",
+          "enum": [
+            "critical",
+            "error",
+            "warning",
+            "info",
+            "debug"
+          ]
+        }
+      }
+    },
+    "user": {
+      "type": "object",
+      "properties": {
+        "localpart": {
+          "type": "string",
+          "description": "The localpart to use for the Hookshot user"
+        }
+      }
+    },
+    "additional": {
+      "$ref": "file://common/additional.json"
+    },
+    "ingress": {
+      "$ref": "file://common/ingress.json"
+    },
+    "image": {
+      "$ref": "file://common/image.json"
+    },
+    "labels": {
+      "$ref": "file://common/labels.json"
+    },
+    "annotations": {
+      "$ref": "file://common/workloadAnnotations.json"
+    },
+    "storage": {
+      "$ref": "file://common/persistentVolumeClaim.json"
+    },
+    "containersSecurityContext": {
+      "$ref": "file://common/containersSecurityContext.json"
+    },
+    "extraEnv": {
+      "$ref": "file://common/extraEnv.json"
+    },
+    "extraVolumes": {
+      "$ref": "file://common/extraVolumes.json"
+    },
+    "extraVolumeMounts": {
+      "$ref": "file://common/extraVolumeMounts.json"
+    },
+    "extraInitContainers": {
+      "$ref": "file://common/extraInitContainers.json"
+    },
+    "hostAliases": {
+      "$ref": "file://common/hostAliases.json"
+    },
+    "nodeSelector": {
+      "$ref": "file://common/nodeSelector.json"
+    },
+    "podSecurityContext": {
+      "$ref": "file://common/podSecurityContext.json"
+    },
+    "resources": {
+      "$ref": "file://common/resources.json"
+    },
+    "serviceAccount": {
+      "$ref": "file://common/serviceAccount.json"
+    },
+    "serviceMonitors": {
+      "$ref": "file://common/serviceMonitors.json"
+    },
+    "tolerations": {
+      "$ref": "file://common/tolerations.json"
+    },
+    "topologySpreadConstraints": {
+      "$ref": "file://common/topologySpreadConstraints.json"
+    },
+    "livenessProbe": {
+      "$ref": "file://common/probe.json"
+    },
+    "readinessProbe": {
+      "$ref": "file://common/probe.json"
+    },
+    "startupProbe": {
+      "$ref": "file://common/probe.json"
+    }
+  }
+}

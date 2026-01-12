@@ -98,6 +98,9 @@
     "haproxy": {
       "$ref": "file://haproxy.json"
     },
+    "hookshot": {
+      "$ref": "file://hookshot.json"
+    },
     "matrixAuthenticationService": {
       "$ref": "file://matrixAuthenticationService.json"
     },

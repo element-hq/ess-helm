@@ -1,0 +1,30 @@
+{{- /*
+Copyright 2026 Element Creations Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+
+
+{{- with $.Values.hookshot -}}
+{{- if .enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $.Release.Name }}-hookshot
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "element-io.hookshot.labels" (dict "root" $ "context" .) | nindent 4 }}
+spec:
+  clusterIP: None
+  ipFamilyPolicy: PreferDualStack
+  ports:
+  - port: 10010
+    protocol: TCP
+    name: "appservice"
+  - port: 8080
+    protocol: TCP
+    name: "metrics"
+  selector:
+    app.kubernetes.io/instance: "{{ $.Release.Name }}-hookshot"
+{{- end -}}
+{{- end -}}

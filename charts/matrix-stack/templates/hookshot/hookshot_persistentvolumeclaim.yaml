@@ -1,0 +1,29 @@
+{{- /*
+Copyright 2026 Element Creations Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+
+
+{{- with $.Values.hookshot -}}
+{{- if .enabled -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    helm.sh/resource-policy: {{ .storage.resourcePolicy }}
+  labels:
+    {{- include "element-io.hookshot.labels" (dict "root" $ "context" .) | nindent 4 }}
+  name: {{ $.Release.Name }}-hookshot
+  namespace: {{ $.Release.Namespace }}
+spec:
+{{- with .storage.storageClassName }}
+  storageClassName: {{ . }}
+{{- end }}
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .storage.size }}
+{{- end }}
+{{- end }}

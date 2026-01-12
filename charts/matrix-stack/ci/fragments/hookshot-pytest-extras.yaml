@@ -1,0 +1,22 @@
+# Copyright 2026 Element Creations Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+hookshot:
+  ingress:
+    host: hook.{{ $.Values.serverName }}
+    tlsSecret: "{{ $.Release.Name }}-hookshot-tls"
+
+  podSecurityContext:
+    runAsGroup: 0
+
+  additional:
+    user-config.yaml:
+      config: |
+        generic:
+          enabled: true
+          outbound: true # For outbound webhook support
+          urlPrefix: https://hookshot.ess.localhost/pytest-webhook/
+          allowJsTransformationFunctions: false
+          waitForComplete: false
+          enableHttpGet: false

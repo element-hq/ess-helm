@@ -1,0 +1,41 @@
+# Copyright 2026 Element Creations Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# source_fragments: hookshot-minimal.yaml hookshot-pytest-extras.yaml init-secrets-minimal.yaml postgres-minimal.yaml server-name.yaml synapse-minimal.yaml
+# DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
+
+# initSecrets, postgres don't have any required properties to be set and defaults to enabled
+deploymentMarkers:
+  enabled: false
+elementAdmin:
+  enabled: false
+elementWeb:
+  enabled: false
+hookshot:
+  additional:
+    user-config.yaml:
+      config: |
+        generic:
+          enabled: true
+          outbound: true # For outbound webhook support
+          urlPrefix: https://hookshot.ess.localhost/pytest-webhook/
+          allowJsTransformationFunctions: false
+          waitForComplete: false
+          enableHttpGet: false
+  enabled: true
+  ingress:
+    host: hook.{{ $.Values.serverName }}
+    tlsSecret: '{{ $.Release.Name }}-hookshot-tls'
+  podSecurityContext:
+    runAsGroup: 0
+matrixAuthenticationService:
+  enabled: false
+matrixRTC:
+  enabled: false
+serverName: ess.localhost
+synapse:
+  ingress:
+    host: synapse.ess.localhost
+wellKnownDelegation:
+  enabled: false

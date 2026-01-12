@@ -1,0 +1,118 @@
+{{- /*
+Copyright 2026 Element Creations Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+
+
+{{- with $.Values.hookshot -}}
+{{- if .enabled -}}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+{{- with .annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+  labels:
+    k8s.element.io/hookshot-config-hash: "{{ include "element-io.hookshot.configmap-data"  (dict "root" $ "context" .) | sha1sum }}"
+    k8s.element.io/hookshot-secret-hash: "{{ include "element-io.hookshot.secret-data"  (dict "root" $ "context" .) | sha1sum }}"
+    {{ include "element-io.hookshot.labels" (dict "root" $ "context" (dict "image" .image "labels" .labels)) | nindent 4 }}
+  name: {{ $.Release.Name }}-hookshot
+  namespace: {{ $.Release.Namespace }}
+spec:
+  {{ include "element-io.ess-library.workloads.commonSpec" (dict "root" $ "context" (dict "nameSuffix" "hookshot" "kind" "StatefulSet" "componentValues" .)) | nindent 2 }}
+  template:
+    metadata:
+      labels:
+        k8s.element.io/hookshot-secret-hash: "{{ include "element-io.hookshot.secret-data" (dict "root" $ "context" .) | sha1sum }}"
+        k8s.element.io/hookshot-config-hash: "{{ include "element-io.hookshot.configmap-data" (dict "root" $ "context" .) | sha1sum }}"
+        {{- include "element-io.hookshot.labels" (dict "root" $ "context" (dict "image" .image "labels" .labels "withChartVersion" false)) | nindent 8 }}
+{{- with .annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+{{- end }}
+    spec:
+{{- with .hostAliases }}
+      hostAliases:
+        {{- tpl (toYaml . | nindent 8) $ }}
+{{- end }}
+{{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" .
+                                                                                    "instanceSuffix" "hookshot"
+                                                                                    "deployment" false
+                                                                                    "usesMatrixTools" true
+                                                                                    "mountServiceAccountToken" true)) | nindent 6 }}
+      initContainers:
+      {{- include "element-io.ess-library.render-config-container" (dict "root" $ "context"
+            (dict "additionalPath" "hookshot.additional"
+                  "nameSuffix" "hookshot"
+                  "containerName" "render-config"
+                  "underrides" list
+                  "overrides" (list "hookshot-config.yaml")
+                  "outputFile" "hookshot-config.yaml"
+                  "resources" .resources
+                  "containersSecurityContext" .containersSecurityContext
+                  "extraEnv" .extraEnv
+                  "extraVolumeMounts" .extraVolumeMounts
+                  "isHook" false)) | nindent 6 }}
+      containers:
+      - name: hookshot
+        {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" .image) | nindent 8 }}
+{{- with .containersSecurityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+{{- end }}
+        {{- include "element-io.ess-library.pods.env" (dict "root" $ "context" (dict "componentValues" . "componentName" "hookshot")) | nindent 8 }}
+{{- with .resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+{{- end }}
+        args:
+        - /conf/hookshot-config.yaml
+        ports:
+        - containerPort: 10010
+          name: appservice
+          protocol: TCP
+        - containerPort: 8080
+          name: metrics
+          protocol: TCP
+        startupProbe: {{- include "element-io.ess-library.pods.probe" .startupProbe | nindent 10 }}
+          httpGet:
+            path: /health
+            port: metrics
+            scheme: HTTP
+        livenessProbe: {{- include "element-io.ess-library.pods.probe" .livenessProbe | nindent 10 }}
+          httpGet:
+            path: /health
+            port: metrics
+            scheme: HTTP
+        readinessProbe: {{- include "element-io.ess-library.pods.probe" .readinessProbe | nindent 10 }}
+          httpGet:
+            path: /health
+            port: metrics
+            scheme: HTTP
+        volumeMounts:
+        - name: storage
+          mountPath: /storage
+{{- range .extraVolumeMounts }}
+        - {{ (. | toYaml) | nindent 10 }}
+{{- end }}
+        {{- include "element-io.ess-library.render-config-volume-mounts" (dict "root" $ "context"
+              (dict "nameSuffix" "hookshot"
+                    "outputFile" "hookshot-config.yaml")) | nindent 8 }}
+      volumes:
+      {{- include "element-io.ess-library.render-config-volumes" (dict "root" $ "context"
+              (dict "additionalPath" "hookshot.additional"
+                    "nameSuffix" "hookshot")
+            ) | nindent 6 }}
+{{- range .extraVolumes }}
+      - {{- (tpl (. | toYaml) $) | nindent 8 }}
+{{- end }}
+      - name: storage
+        persistentVolumeClaim:
+          claimName: {{ include "element-io.hookshot.pvcName" (dict "root" $) }}
+      - emptyDir:
+          medium: Memory
+        name: temp
+{{- end }}
+{{- end -}}
