@@ -42,6 +42,8 @@ func parseSecretType(value string) (secret.SecretType, error) {
 		return secret.RSA, nil
 	case "ecdsaprime256v1":
 		return secret.EcdsaPrime256v1, nil
+	case "registration":
+		return secret.Registration, nil
 	default:
 		return secret.UnknownSecretType, fmt.Errorf("unknown secret type: %s", value)
 	}

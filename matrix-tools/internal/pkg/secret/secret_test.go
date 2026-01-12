@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/stretchr/testify/assert/yaml"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	testclient "k8s.io/client-go/kubernetes/fake"
@@ -51,6 +52,18 @@ func TestGenerateSecret(t *testing.T) {
 			secretType:          SigningKey,
 			secretData:          nil,
 			secretGeneratorArgs: make([]string, 0),
+			expectedError:       false,
+		},
+		{
+			name:                "Generate a registration file",
+			namespace:           "create-secret",
+			secretName:          "test-appservice-registration",
+			initLabels:          map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-init-secrets", "app.kubernetes.io/name": "create-secret"},
+			secretLabels:        map[string]string{"app.kubernetes.io/name": "test-secret"},
+			secretKeys:          []string{"registration.yaml"},
+			secretType:          Registration,
+			secretData:          nil,
+			secretGeneratorArgs: []string{"testdata/registration.yaml"},
 			expectedError:       false,
 		},
 		{
@@ -157,6 +170,20 @@ func TestGenerateSecret(t *testing.T) {
 							keyString := string(value)
 							if !regexp.MustCompile(expectedPattern).MatchString(keyString) {
 								t.Fatalf("Unexpected key format: %v", keyString)
+							}
+						case Registration:
+							data := make(map[string]any)
+							if err := yaml.Unmarshal(value, &data); err != nil {
+								t.Fatalf("Unexpected data: %v", data)
+							}
+							if data["static"].(string) != "values" {
+								t.Fatalf("Unexpected data, 'static' key should be 'values', found %v", data)
+							}
+							if len(data["as_token"].(string)) != 32 {
+								t.Fatalf("Unexpected data,  as_token should be a random 32 bytes string, found %v", data)
+							}
+							if len(data["hs_token"].(string)) != 32 {
+								t.Fatalf("Unexpected data,  as_token should be a random 32 bytes string, found %v", data)
 							}
 						}
 					}
