@@ -18,12 +18,18 @@ spec:
   clusterIP: None
   ipFamilyPolicy: PreferDualStack
   ports:
-  - port: 10010
+  - port: 9993
+    name: appservice
     protocol: TCP
-    name: "appservice"
-  - port: 8080
+  - port: 7775
+    name: webhooks
     protocol: TCP
-    name: "metrics"
+  - port: 7777
+    name: metrics
+    protocol: TCP
+  - port: 7778
+    name: widgets
+    protocol: TCP
   selector:
     app.kubernetes.io/instance: "{{ $.Release.Name }}-hookshot"
 {{- end -}}

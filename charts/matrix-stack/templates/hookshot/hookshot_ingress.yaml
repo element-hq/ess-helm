@@ -36,6 +36,6 @@ spec:
           service:
             name: "{{ $.Release.Name }}-hookshot"
             port:
-              name: webhook
+              name: webhooks
 {{- end -}}
 {{- end -}}

@@ -10,6 +10,9 @@
     "appserviceRegistration": {
       "$ref": "file://common/credential.json"
     },
+    "passkey": {
+      "$ref": "file://common/credential.json"
+    },
     "logging": {
       "type": "object",
       "properties": {

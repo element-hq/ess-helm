@@ -41,14 +41,14 @@ spec:
                                                                                     "instanceSuffix" "hookshot"
                                                                                     "deployment" false
                                                                                     "usesMatrixTools" true
-                                                                                    "mountServiceAccountToken" true)) | nindent 6 }}
+                                                                                    "mountServiceAccountToken" false)) | nindent 6 }}
       initContainers:
       {{- include "element-io.ess-library.render-config-container" (dict "root" $ "context"
             (dict "additionalPath" "hookshot.additional"
                   "nameSuffix" "hookshot"
                   "containerName" "render-config"
                   "underrides" list
-                  "overrides" (list "hookshot-config.yaml")
+                  "overrides" (list "config.yaml")
                   "outputFile" "hookshot-config.yaml"
                   "resources" .resources
                   "containersSecurityContext" .containersSecurityContext
@@ -70,11 +70,17 @@ spec:
         args:
         - /conf/hookshot-config.yaml
         ports:
-        - containerPort: 10010
+        - containerPort: 9993
           name: appservice
           protocol: TCP
-        - containerPort: 8080
+        - containerPort: 7775
+          name: webhooks
+          protocol: TCP
+        - containerPort: 7777
           name: metrics
+          protocol: TCP
+        - containerPort: 7778
+          name: widgets
           protocol: TCP
         startupProbe: {{- include "element-io.ess-library.pods.probe" .startupProbe | nindent 10 }}
           httpGet:

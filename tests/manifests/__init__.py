@@ -581,6 +581,15 @@ all_components_details = [
         content_volumes_mapping={"/tmp": ("element-web-config",)},
     ),
     ComponentDetails(
+        name="hookshot",
+        has_storage=True,
+        has_replicas=False,
+        values_file_path_overrides={
+            PropertyType.Storage: ValuesFilePath.read_write("hookshot", "storage"),
+        },
+        values_file_path=ValuesFilePath.read_write("hookshot"),
+    ),
+    ComponentDetails(
         name="matrix-authentication-service",
         values_file_path=ValuesFilePath.read_write("matrixAuthenticationService"),
         has_db=True,

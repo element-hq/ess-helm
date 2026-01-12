@@ -7,6 +7,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 {{- with $.Values.hookshot -}}
 {{- if .enabled -}}
+{{- if $.Capabilities.APIVersions.Has "monitoring.coreos.com/v1/ServiceMonitor" }}
+{{- if .serviceMonitors.enabled }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
@@ -21,5 +23,7 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/instance: "{{ $.Release.Name }}-hookshot"
+{{- end }}
+{{- end }}
 {{- end }}
 {{- end }}

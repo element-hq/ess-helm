@@ -58,6 +58,13 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
       {{- $configSecrets = append $configSecrets (tpl .secret $root) }}
     {{- end -}}
   {{- end -}}
+  {{- with .passkey -}}
+    {{- if .value }}
+      {{- $configSecrets = append $configSecrets (printf "%s-hookshot" $root.Release.Name) }}
+    {{- else -}}
+      {{- $configSecrets = append $configSecrets (tpl .secret $root) }}
+    {{- end -}}
+  {{- end -}}
   {{- with .additional -}}
     {{- range $key := (. | keys | uniq | sortAlpha) -}}
       {{- $prop := index $root.Values.hookshot.additional $key }}
@@ -87,10 +94,8 @@ env: []
 {{- define "element-io.hookshot.configmap-data" }}
 {{- $root := .root -}}
 {{- with required "element-io.hookshot.configmap-data" .context -}}
-hookshot-config-underrides.yaml: |
-{{- (tpl ($root.Files.Get "configs/hookshot/config-underrides.yaml.tpl") (dict "root" $root "context" .)) | nindent 2 }}
-hookshot-config-overrides.yaml: |
-{{- (tpl ($root.Files.Get "configs/hookshot/config-overrides.yaml.tpl") (dict "root" $root "context" .)) | nindent 2 }}
+config.yaml: |
+{{- (tpl ($root.Files.Get "configs/hookshot/config.yaml.tpl") (dict "root" $root "context" .)) | nindent 2 }}
 {{- end -}}
 {{- end -}}
 
@@ -98,6 +103,12 @@ hookshot-config-overrides.yaml: |
 {{- define "element-io.hookshot.secret-data" -}}
 {{- $root := .root -}}
 {{- with required "element-io.hookshot.secret-data" .context -}}
+  {{- with .passkey.value }}
+RSA_PASSKEY: {{ . | b64enc }}
+  {{- end }}
+  {{- with .appserviceRegistration.value }}
+REGISTRATION: {{ . | b64enc }}
+  {{- end }}
   {{- with .additional }}
     {{- range $key := (. | keys | uniq | sortAlpha) }}
       {{- $prop := index $root.Values.hookshot.additional $key }}

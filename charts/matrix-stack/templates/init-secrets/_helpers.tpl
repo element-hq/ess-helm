@@ -82,6 +82,16 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" $
 {{- end }}
 {{- end }}
 {{- end }}
+{{- with $root.Values.hookshot }}
+{{- if .enabled }}
+{{- if not .appserviceRegistration }}
+- {{ (printf "%s-generated" $root.Release.Name) }}:HOOKSHOT_REGISTRATION:registration:/registration-templates/hookshot-registration.yaml
+{{- end }}
+{{- if not .passkey }}
+- {{ (printf "%s-generated" $root.Release.Name) }}:HOOKSHOT_RSA_PASSKEY:rsa
+{{- end }}
+{{- end }}
+{{- end }}
 {{- end }}
 
 {{- define "element-io.init-secrets.overrideEnv" }}

@@ -1,0 +1,55 @@
+{{- /*
+Copyright 2026 Element Creations Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+
+{{- $root := .root }}
+{{- with required "hookshot/config-overrides.yaml.tpl missing context" .context }}
+{{- $context := . -}}
+bridge:
+  domain: "{{ tpl $root.Values.serverName $root }}"
+{{- if $root.Values.synapse.enabled }}
+  url: "{{ (printf "https://%s" (tpl $root.Values.synapse.ingress.host $root)) }}"
+{{- end }}
+  port: 9993
+  bindAddress: 0.0.0.0
+
+passFile: /secrets/{{
+                include "element-io.ess-library.init-secret-path" (
+                      dict "root" $root
+                      "context" (dict
+                        "secretPath" "hookshot.passkey"
+                        "initSecretKey" "HOOKSHOT_RSA_PASSKEY"
+                        "defaultSecretName" (include "element-io.hookshot.secret-name" (dict "root" $root "context" $context))
+                        "defaultSecretKey" "RSA_PASSKEY"
+                      )
+                    ) }}
+
+encryption:
+ storagePath: /storage
+
+logging:
+  level: {{ .logging.level }}
+
+metrics:
+  enabled: true
+
+listeners:
+  - port: 7775
+    bindAddress: 0.0.0.0
+    resources:
+      - webhooks
+  - port: 7777
+    bindAddress: 0.0.0.0
+    resources:
+      - metrics
+  - port: 7778
+    bindAddress: 0.0.0.0
+    resources:
+      - widgets
+
+widgets:
+  publicUrl: https://{{ .ingress.host }}/widgetapi/v1/static
+
+{{- end -}}

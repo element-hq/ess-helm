@@ -4736,6 +4736,21 @@
           },
           "additionalProperties": false
         },
+        "passkey": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "string"
+            },
+            "secret": {
+              "type": "string"
+            },
+            "secretKey": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
         "logging": {
           "type": "object",
           "properties": {
