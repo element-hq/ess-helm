@@ -29,6 +29,9 @@ passFile: /secrets/{{
 encryption:
  storagePath: /storage
 
+cache:
+  redisUri: "redis://{{ $root.Release.Name }}-redis.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:6379"
+
 logging:
   level: {{ .logging.level }}
 

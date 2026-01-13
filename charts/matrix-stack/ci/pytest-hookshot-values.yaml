@@ -1,8 +1,8 @@
-# Copyright 2025-2026 Element Creations Ltd
+# Copyright 2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# source_fragments: hookshot-minimal.yaml hookshot-pytest-extras.yaml init-secrets-minimal.yaml postgres-minimal.yaml server-name.yaml synapse-minimal.yaml
+# source_fragments: hookshot-minimal.yaml hookshot-pytest-extras.yaml init-secrets-minimal.yaml postgres-minimal.yaml server-name.yaml synapse-minimal.yaml redis-pytest-base-extras.yaml
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
 # initSecrets, postgres don't have any required properties to be set and defaults to enabled

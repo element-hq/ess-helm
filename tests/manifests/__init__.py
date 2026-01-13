@@ -588,6 +588,9 @@ all_components_details = [
             PropertyType.Storage: ValuesFilePath.read_write("hookshot", "storage"),
         },
         values_file_path=ValuesFilePath.read_write("hookshot"),
+        ignore_paths_mismatches={
+            "hookshot": ("/bin/matrix-hookshot/App/BridgeApp.js",),
+        },
     ),
     ComponentDetails(
         name="matrix-authentication-service",
