@@ -513,6 +513,16 @@ all_components_details = [
         },
     ),
     ComponentDetails(
+        name="redis",
+        values_file_path=ValuesFilePath.read_write("redis"),
+        is_shared_component=True,
+        has_additional_config=False,
+        has_ingress=False,
+        has_service_monitor=False,
+        has_replicas=False,
+        makes_outbound_requests=False,
+    ),
+    ComponentDetails(
         name="matrix-rtc",
         values_file_path=ValuesFilePath.read_write("matrixRTC"),
         has_additional_config=False,
@@ -639,15 +649,6 @@ all_components_details = [
         },
         sub_components=synapse_workers_details
         + (
-            SubComponentDetails(
-                name="synapse-redis",
-                values_file_path=ValuesFilePath.read_write("synapse", "redis"),
-                has_additional_config=False,
-                has_ingress=False,
-                has_service_monitor=False,
-                has_replicas=False,
-                makes_outbound_requests=False,
-            ),
             SubComponentDetails(
                 name="synapse-check-config",
                 values_file_path=ValuesFilePath.read_write("synapse", "checkConfigHook"),

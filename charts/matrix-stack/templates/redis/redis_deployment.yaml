@@ -1,14 +1,11 @@
 {{- /*
-Copyright 2024-2025 New Vector Ltd
-Copyright 2025-2026 Element Creations Ltd
+Copyright 2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 
-{{- with .Values.synapse -}}
-{{- if .enabled -}}
-{{- if (include "element-io.synapse.enabledWorkers" (dict "root" $)) | fromJson }}
-{{- with .redis }}
+{{- if or (and $.Values.synapse.enabled ((include "element-io.synapse.enabledWorkers" (dict "root" $)) | fromJson)) -}}
+{{- with $.Values.redis -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -17,23 +14,23 @@ metadata:
     {{- toYaml . | nindent 4 }}
 {{- end }}
   labels:
-    {{- include "element-io.synapse-redis.labels" (dict "root" $ "context" (dict "image" .image "labels" .labels)) | nindent 4 }}
-    k8s.element.io/redis-config-hash: "{{ include "element-io.synapse-redis.configmap-data" (dict "root" $) | sha1sum }}"
-  name: {{ $.Release.Name }}-synapse-redis
+    {{- include "element-io.redis.labels" (dict "root" $ "context" (dict "image" .image "labels" .labels)) | nindent 4 }}
+    k8s.element.io/redis-config-hash: "{{ include "element-io.redis.configmap-data" (dict "root" $) | sha1sum }}"
+  name: {{ $.Release.Name }}-redis
   namespace: {{ $.Release.Namespace }}
 spec:
-  {{ include "element-io.ess-library.workloads.commonSpec" (dict "root" $ "context" (dict "nameSuffix" "synapse-redis" "kind" "Deployment" "componentValues" .)) | nindent 2 }}
+  {{ include "element-io.ess-library.workloads.commonSpec" (dict "root" $ "context" (dict "nameSuffix" "redis" "kind" "Deployment" "componentValues" .)) | nindent 2 }}
   template:
     metadata:
       labels:
-        {{- include "element-io.synapse-redis.labels" (dict "root" $ "context" (dict "image" .image "labels" .labels "withChartVersion" false)) | nindent 8 }}
-        k8s.element.io/redis-config-hash: "{{ include "element-io.synapse-redis.configmap-data" (dict "root" $) | sha1sum }}"
+        {{- include "element-io.redis.labels" (dict "root" $ "context" (dict "image" .image "labels" .labels "withChartVersion" false)) | nindent 8 }}
+        k8s.element.io/redis-config-hash: "{{ include "element-io.redis.configmap-data" (dict "root" $) | sha1sum }}"
 {{- with .annotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
 {{- end }}
     spec:
-{{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "synapse-redis" "deployment" true)) | nindent 6 }}
+{{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "redis" "deployment" true)) | nindent 6 }}
 {{- with .extraInitContainers }}
       initContainers:
       {{- toYaml . | nindent 6 }}
@@ -47,7 +44,7 @@ spec:
         securityContext:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-        {{- include "element-io.ess-library.pods.env" (dict "root" $ "context" (dict "componentValues" . "componentName" "synapse-redis")) | nindent 8 }}
+        {{- include "element-io.ess-library.pods.env" (dict "root" $ "context" (dict "componentValues" . "componentName" "redis")) | nindent 8 }}
         ports:
         - containerPort: 6379
           name: redis
@@ -78,7 +75,7 @@ spec:
       restartPolicy: Always
       volumes:
       - configMap:
-          name: "{{ $.Release.Name }}-synapse-redis"
+          name: "{{ $.Release.Name }}-redis"
           defaultMode: 420
         name: config
 {{- range .extraVolumes }}
@@ -86,5 +83,3 @@ spec:
 {{- end }}
 {{- end }}
 {{- end }}
-{{- end -}}
-{{- end -}}

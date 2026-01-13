@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# source_fragments: init-secrets-minimal.yaml init-secrets-pytest-extras.yaml postgres-minimal.yaml server-name.yaml synapse-minimal.yaml synapse-pytest-base-extras.yaml synapse-pytest-self-extras.yaml
+# source_fragments: init-secrets-minimal.yaml init-secrets-pytest-extras.yaml postgres-minimal.yaml redis-pytest-base-extras.yaml server-name.yaml synapse-minimal.yaml synapse-pytest-base-extras.yaml synapse-pytest-self-extras.yaml
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
 deploymentMarkers:
@@ -26,6 +26,11 @@ matrixAuthenticationService:
 matrixRTC:
   enabled: false
 postgres:
+  podSecurityContext:
+    runAsGroup: 0
+redis:
+  annotations:
+    has-no-service-monitor: "true"
   podSecurityContext:
     runAsGroup: 0
 serverName: ess.localhost
@@ -52,11 +57,6 @@ synapse:
     tlsSecret: '{{ $.Release.Name }}-synapse-web-tls'
   podSecurityContext:
     runAsGroup: 0
-  redis:
-    annotations:
-      has-no-service-monitor: "true"
-    podSecurityContext:
-      runAsGroup: 0
   workers:
     # A non-HTTP worker & a stream writer
     event-persister:

@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -210,7 +210,7 @@ instance_map:
 
 redis:
   enabled: true
-  host: "{{ $root.Release.Name }}-synapse-redis.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}"
+  host: "{{ $root.Release.Name }}-redis.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}"
 {{- if include "element-io.synapse.streamWriterWorkers" (dict "root" $root) | fromJsonArray }}
 
 stream_writers:

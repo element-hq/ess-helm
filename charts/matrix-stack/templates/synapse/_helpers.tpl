@@ -75,21 +75,6 @@ k8s.element.io/synapse-instance: {{ $root.Release.Name }}-synapse
 {{- end }}
 {{- end }}
 
-{{- define "element-io.synapse-redis.labels" -}}
-{{- $root := .root -}}
-{{- with required "element-io.synapse-redis.labels missing context" .context -}}
-{{ include "element-io.ess-library.labels.common" (dict "root" $root "context" (dict "labels" .labels "withChartVersion" .withChartVersion)) }}
-app.kubernetes.io/component: matrix-server-pubsub
-app.kubernetes.io/name: synapse-redis
-app.kubernetes.io/instance: {{ $root.Release.Name }}-synapse-redis
-app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .image.tag }}
-{{- end }}
-{{- end }}
-
-{{- define "element-io.synapse-redis.overrideEnv" }}
-env: []
-{{- end -}}
-
 {{- define "element-io.synapse.enabledWorkers" -}}
 {{- $root := .root -}}
 {{ $enabledWorkers := dict }}
@@ -213,13 +198,6 @@ log_config.yaml: |
 {{- (tpl ($root.Files.Get "configs/synapse/synapse-log-config.yaml.tpl") (dict "root" $root)) | nindent 2 }}
 {{- end }}
 {{- end }}
-
-
-{{- define "element-io.synapse-redis.configmap-data" -}}
-{{- $root := .root -}}
-redis.conf: |
-{{- ($root.Files.Get "configs/synapse/redis.conf") | nindent 2 -}}
-{{- end -}}
 
 
 {{- define "element-io.synapse-haproxy.configmap-data" -}}

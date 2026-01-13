@@ -104,6 +104,9 @@
     "postgres": {
       "$ref": "file://postgres.json"
     },
+    "redis": {
+      "$ref": "file://redis.json"
+    },
     "synapse": {
       "$ref": "file://synapse.json"
     },

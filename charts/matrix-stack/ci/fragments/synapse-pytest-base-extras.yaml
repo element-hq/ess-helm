@@ -1,5 +1,5 @@
 # Copyright 2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -11,13 +11,6 @@ synapse:
   checkConfigHook:
     annotations:
       has-no-service-monitor: "true"
-
-  redis:
-    annotations:
-      has-no-service-monitor: "true"
-
-    podSecurityContext:
-      runAsGroup: 0
 
   podSecurityContext:
     runAsGroup: 0

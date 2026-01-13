@@ -42,6 +42,10 @@ postgres:
   {% macro postgresValues() %}{% include 'postgres.yaml.j2'%}{% endmacro %}
   {{- postgresValues() | trim | indent(2) }}
 
+redis:
+  {% macro redisValues() %}{% include 'redis.yaml.j2'%}{% endmacro %}
+  {{- redisValues() | trim | indent(2) }}
+
 synapse:
   {% macro synapseValues() %}{% include 'synapse.yaml.j2'%}{% endmacro %}
   {{- synapseValues() | trim | indent(2) }}
