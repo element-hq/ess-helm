@@ -10,6 +10,12 @@ hookshot:
   podSecurityContext:
     runAsGroup: 0
 
+  logging:
+    level: debug
+  extraEnv:
+  - name: DEBUG_RENDERING
+    value: "1"
+
   additional:
     user-config.yaml:
       config: |

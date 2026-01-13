@@ -68,7 +68,18 @@ spec:
           {{- toYaml . | nindent 10 }}
 {{- end }}
         args:
+        - "/bin/matrix-hookshot/App/BridgeApp.js"
         - /conf/hookshot-config.yaml
+        - /secrets/{{
+                include "element-io.ess-library.init-secret-path" (
+                      dict "root" $
+                      "context" (dict
+                        "secretPath" "hookshot.appserviceRegistration"
+                        "initSecretKey" "HOOKSHOT_REGISTRATION"
+                        "defaultSecretName" (include "element-io.hookshot.secret-name" (dict "root" $ "context" .))
+                        "defaultSecretKey" "REGISTRATION"
+                      )
+                    ) }}
         ports:
         - containerPort: 9993
           name: appservice

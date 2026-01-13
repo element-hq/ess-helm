@@ -1,4 +1,4 @@
-# Copyright 2026 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -24,6 +24,9 @@ hookshot:
           waitForComplete: false
           enableHttpGet: false
   enabled: true
+  extraEnv:
+    - name: DEBUG_RENDERING
+      value: "1"
   ingress:
     host: hook.{{ $.Values.serverName }}
     tlsSecret: '{{ $.Release.Name }}-hookshot-tls'

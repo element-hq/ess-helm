@@ -50,6 +50,6 @@ listeners:
       - widgets
 
 widgets:
-  publicUrl: https://{{ .ingress.host }}/widgetapi/v1/static
+  publicUrl: https://{{ tpl .ingress.host $root }}/widgetapi/v1/static
 
 {{- end -}}

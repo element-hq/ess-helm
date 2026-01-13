@@ -102,3 +102,15 @@ env:
   value: {{ $root.Release.Namespace | quote }}
 {{- end -}}
 {{- end -}}
+
+{{- define "element-io.init-secrets.registration-templates" -}}
+{{- $root := .root -}}
+{{- with $root.Values.hookshot }}
+{{- if .enabled -}}
+{{- if not .appserviceRegistration }}
+hookshot-registration.yaml: |
+{{- (tpl ($root.Files.Get "configs/hookshot/registration.yaml.tpl") (dict "root" $root)) | nindent 2 }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

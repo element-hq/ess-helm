@@ -1,0 +1,23 @@
+{{- /*
+Copyright 2025 New Vector Ltd
+Copyright 2025-2026 Element Creations Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+
+{{- with .Values.initSecrets -}}
+{{- if and .enabled (include "element-io.init-secrets.registration-templates" (dict "root" $)) -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $.Release.Name }}-init-secrets
+  namespace: {{ $.Release.Namespace }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-11"
+  labels:
+    {{- include "element-io.init-secrets.labels" (dict "root" $ "context" .) | nindent 4 }}
+data:
+  {{- (include "element-io.init-secrets.registration-templates" (dict "root" $)) | nindent 2 -}}
+{{- end -}}
+{{- end -}}
