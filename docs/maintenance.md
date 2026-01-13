@@ -19,7 +19,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 In order to upgrade your deployment, you should:
 1. Read the release notes of the new version and check if there are any breaking changes. The file [CHANGELOG.md](../CHANGELOG.md) should be your first stop.
 3. Adjust your values if necessary.
-2. Re-run the install command. It will upgrade your installation to the latest version of the chart.
+2. Re-run the [install](https://github.com/element-hq/ess-helm/tree/main?tab=readme-ov-file#installation) command. It will upgrade your installation to the latest version of the chart.
 
 ## Backup & restore
 
