@@ -55,6 +55,29 @@ spec:
                   "extraEnv" .extraEnv
                   "extraVolumeMounts" .extraVolumeMounts
                   "isHook" false)) | nindent 6 }}
+      - name: http-wait-syn
+        {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" $.Values.matrixTools.image) | nindent 8 }}
+{{- with .containersSecurityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+{{- end }}
+        args:
+        - tcpwait
+        - -address
+        - "{{ include "element-io.synapse.internal-hostport" (dict "root" $ "context" (dict "targetProcessType" "")) }}"
+{{- with .resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+{{- end }}
+{{- with .extraVolumeMounts }}
+        volumeMounts:
+  {{- range . }}
+        - {{ (. | toYaml) | nindent 10 }}
+  {{- end }}
+{{- end }}
+{{- with .extraInitContainers }}
+      {{- toYaml . | nindent 6 }}
+{{- end }}
       containers:
       - name: hookshot
         {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" .image) | nindent 8 }}
@@ -95,17 +118,17 @@ spec:
           protocol: TCP
         startupProbe: {{- include "element-io.ess-library.pods.probe" .startupProbe | nindent 10 }}
           httpGet:
-            path: /health
+            path: /ready
             port: metrics
             scheme: HTTP
         livenessProbe: {{- include "element-io.ess-library.pods.probe" .livenessProbe | nindent 10 }}
           httpGet:
-            path: /health
+            path: /live
             port: metrics
             scheme: HTTP
         readinessProbe: {{- include "element-io.ess-library.pods.probe" .readinessProbe | nindent 10 }}
           httpGet:
-            path: /health
+            path: /ready
             port: metrics
             scheme: HTTP
         volumeMounts:

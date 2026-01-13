@@ -88,7 +88,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" $
 - {{ (printf "%s-generated" $root.Release.Name) }}:HOOKSHOT_REGISTRATION:registration:/registration-templates/hookshot-registration.yaml
 {{- end }}
 {{- if not .passkey }}
-- {{ (printf "%s-generated" $root.Release.Name) }}:HOOKSHOT_RSA_PASSKEY:rsa
+- {{ (printf "%s-generated" $root.Release.Name) }}:HOOKSHOT_RSA_PASSKEY:rsa:4096:pem
 {{- end }}
 {{- end }}
 {{- end }}

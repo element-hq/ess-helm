@@ -10,7 +10,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 bridge:
   domain: "{{ tpl $root.Values.serverName $root }}"
 {{- if $root.Values.synapse.enabled }}
-  url: "{{ (printf "https://%s" (tpl $root.Values.synapse.ingress.host $root)) }}"
+  url: "http://{{ include "element-io.synapse.internal-hostport" (dict "root" $root "context" (dict "targetProcessType" "")) }}"
 {{- end }}
   port: 9993
   bindAddress: 0.0.0.0
