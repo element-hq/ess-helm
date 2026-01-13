@@ -13,15 +13,13 @@ ESS Pro provides Long-Term Support (LTS) releases, automatic scaling (horizontal
 
 Feel free to join our Matrix room to discuss at https://matrix.to/#/#ess-community:element.io.
 
-{{- if $.Values.matrixAuthenticationService.enabled }}
-
 After initial deployment:
+{{- if $.Values.matrixAuthenticationService.enabled }}
 - To create your first user, please run the following command:
 kubectl exec -n {{ $.Release.Namespace }} -it deployment/{{ $.Release.Name }}-matrix-authentication-service -- mas-cli manage register-user
 {{- end }}
 
 {{- if $.Values.wellKnownDelegation.enabled }}
-
 - To successfully federate, make sure that the well-known delegation works properly using the matrix-federation-tester: https://federationtester.matrix.org/#{{ tpl $.Values.serverName $ }}
 {{- end }}
 
