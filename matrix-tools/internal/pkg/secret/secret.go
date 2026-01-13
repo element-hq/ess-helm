@@ -82,7 +82,7 @@ func GenerateSecret(client kubernetes.Interface, secretLabels map[string]string,
 				return fmt.Errorf("failed to generate Hex32 : %w", err)
 			}
 		case RSA:
-			if keyBytes, err := generateRSA(); err == nil {
+			if keyBytes, err := generateRSA(generatorArgs[0]); err == nil {
 				existingSecret.Data[key] = keyBytes
 			} else {
 				return fmt.Errorf("failed to generate RSA key: %w", err)

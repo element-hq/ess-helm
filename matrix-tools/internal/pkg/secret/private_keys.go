@@ -11,6 +11,8 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/pem"
+	"fmt"
 )
 
 func marshallKey(key any) ([]byte, error) {
@@ -22,12 +24,23 @@ func marshallKey(key any) ([]byte, error) {
 	return keyBytes, nil
 }
 
-func generateRSA() ([]byte, error) {
+func generateRSA(format string) ([]byte, error) {
 	rsaPrivateKey, err := rsa.GenerateKey(rand.Reader, 4096)
 	if err != nil {
 		return nil, err
 	}
-	return marshallKey(rsaPrivateKey)
+	switch format {
+	case "pem":
+		return pem.EncodeToMemory(
+			&pem.Block{
+				Type:  "RSA PRIVATE KEY",
+				Bytes: x509.MarshalPKCS1PrivateKey(rsaPrivateKey),
+			}), nil
+	case "der":
+		return marshallKey(rsaPrivateKey)
+	default:
+		return nil, fmt.Errorf("%s key format unsupported", format)
+	}
 }
 
 func generateEcdsaPrime256v1() ([]byte, error) {
