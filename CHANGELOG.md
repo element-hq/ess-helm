@@ -7,6 +7,59 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.1.0 (2026-01-14)
+
+## Added
+
+- Add support for `extraVolumes` and `extraVolumeMounts` in components values. (#957, #965)
+
+## Changed
+
+- Upgrade Element Web to v1.12.8.
+
+  Highlights:
+  - Update polls UX to match EX Mobile and improve accessibility.
+  - [MSC4380](https://github.com/matrix-org/matrix-spec-proposals/pull/4380) Invite blocking support
+  - Update history visibility UX
+
+
+  Full Changelogs:
+  - [v1.12.7](https://github.com/element-hq/element-web/releases/tag/v1.12.7)
+  - [v1.12.8](https://github.com/element-hq/element-web/releases/tag/v1.12.8)
+
+  (#931, #960)
+- Adjust generated file copyright headers for 2026. (#943)
+- Revert change of Matrix Authentication Service deployment's `maxSurge` to 0. (#961)
+- Upgrade Matrix Authentication Service to v1.9.0.
+
+  Highlights:
+  - Fix running multiple migration process in parallel
+
+  Full Changelogs:
+  - [v1.9.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.9.0)
+
+  (#961)
+- Upgrade Synapse to v1.145.0.
+
+  Highlights:
+  - Add memberships endpoint to the admin API. This is useful for forensics and T&S purpose
+  - Add worker support to GET `/_synapse/admin/v2/users/<user_id>`
+
+  Full Changelogs:
+  - [v1.145.0](https://github.com/element-hq/synapse/releases/tag/v1.145.0)
+
+  (#962)
+- Separate post-deployment hints and domains in NOTES. (#968)
+
+## Internal
+
+- CI: set timeouts for curl so it doesn't attempt to connect for longer than `Pod` startup time. (#935)
+- CI: wait a bit longer for the `Ingress` controller to be available. (#942)
+- CI: run most jobs on maintenance branches too. (#945)
+- CI: Adjust Go version used to test matrix-tools to 1.25. (#952)
+- CI: Set a maximum number of cooperative asyncio tasks. (#966)
+
+
 # ESS Community Helm Chart 25.12.2 (2025-12-19)
 
 ## Security
