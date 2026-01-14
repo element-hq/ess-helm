@@ -85,7 +85,7 @@ logging:
   ## levelOverrides:
   ##   synapse.util.caches.lrucache: WARNING
   levelOverrides: {}
-{{- sub_schema_values.image(registry='oci.element.io', repository='synapse', tag='v1.144.0-ess.2') }}
+{{- sub_schema_values.image(registry='oci.element.io', repository='synapse', tag='v1.145.0-ess.1') }}
 {{- sub_schema_values.extraVolumes("Synapse", with_context=true) }}
 {{- sub_schema_values.extraVolumeMounts("Synapse", with_context=true) }}
 {{- sub_schema_values.ingress() }}
