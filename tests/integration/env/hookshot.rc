@@ -1,0 +1,6 @@
+# Copyright 2026 Element Creations Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+export TEST_VALUES_FILE=charts/matrix-stack/ci/pytest-hookshot-values.yaml
+export BUILD_MATRIX_TOOLS=1

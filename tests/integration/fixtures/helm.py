@@ -1,5 +1,5 @@
 # Copyright 2024-2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -76,6 +76,15 @@ async def helm_prerequisites(
                 f"{generated_data.release_name}-element-web-tls",
                 generated_data.ess_namespace,
                 generate_cert(delegated_ca, [f"element.{generated_data.server_name}"]),
+            )
+        )
+
+    if value_file_has("hookshot.enabled", True):
+        resources.append(
+            kubernetes_tls_secret(
+                f"{generated_data.release_name}-hookshot-tls",
+                generated_data.ess_namespace,
+                generate_cert(delegated_ca, [f"hook.{generated_data.server_name}"]),
             )
         )
 
