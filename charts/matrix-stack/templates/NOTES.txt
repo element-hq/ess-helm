@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */}}
@@ -9,12 +9,26 @@ ESS Community {{ $.Chart.Version }}
 
 You are using ESS Community which is tailored to small-/mid-scale, non-commercial community use cases. If you're looking for a professional Matrix backend that is designed to support enterprise requirements and certifications, take a look at ESS Pro https://element.io/server-suite.
 
-ESS Pro provides Long-Term Support releases, automatic scaling (horizontal and vertical) of Synapse Workers, Advanced Identity Management to manage users and spaces permissions, and more.
+ESS Pro provides Long-Term Support (LTS) releases, automatic scaling (horizontal and vertical), Advanced Identity and Access Management (Advanced IAM) to manage users and Spaces permissions, and more.
 
-Feel free to join our matrix room to discuss at https://matrix.to/#/#ess-community:element.io.
+Feel free to join our Matrix room to discuss at https://matrix.to/#/#ess-community:element.io.
+
+{{- if or $.Values.matrixAuthenticationService.enabled $.Values.wellKnownDelegation.enabled }}
+After initial deployment:
+{{- end }}
+{{- if $.Values.matrixAuthenticationService.enabled }}
+- To create your first user, please run the following command:
+kubectl exec -n {{ $.Release.Namespace }} -it deployment/{{ $.Release.Name }}-matrix-authentication-service -- mas-cli manage register-user
+{{- end }}
+
+{{- if $.Values.wellKnownDelegation.enabled }}
+- To successfully federate, make sure that the well-known delegation works properly using the matrix-federation-tester: https://federationtester.matrix.org/#{{ tpl $.Values.serverName $ }}
+{{- end }}
+
+---
 
 {{- if $.Values.elementAdmin.enabled }}
-Your admin console is available at: https://{{ tpl $.Values.elementAdmin.ingress.host $ }}
+- Element Admin is available at: https://{{ tpl $.Values.elementAdmin.ingress.host $ }}
 {{- if and $.Values.serverName (not $.Values.matrixAuthenticationService.enabled) }}
 WARNING: You have enabled the element-admin component, but have disabled the matrix-authentication-service.
          You will not be able to login to the element admin console to manage your users.
@@ -22,23 +36,11 @@ WARNING: You have enabled the element-admin component, but have disabled the mat
          in https://github.com/element-hq/ess-helm/blob/main/docs/syn2mas.md.
 {{- end }}
 {{- end }}
-
-{{- if $.Values.matrixAuthenticationService.enabled }}
-
-To create your first user, please run the following command:
-kubectl exec -n {{ $.Release.Namespace }} -it deployment/{{ $.Release.Name }}-matrix-authentication-service -- mas-cli manage register-user
-{{- end }}
-
 {{- if and $.Values.elementWeb.enabled $.Values.elementWeb.ingress.host }}
-
-Your chat client is available at: https://{{ tpl $.Values.elementWeb.ingress.host $ }}
+- Element Web is available at: https://{{ tpl $.Values.elementWeb.ingress.host $ }}
 {{- end }}
 {{- if and $.Values.matrixAuthenticationService.enabled $.Values.matrixAuthenticationService.ingress.host }}
-
-You can manage your account at: https://{{ tpl $.Values.matrixAuthenticationService.ingress.host $ }}
+- Users can manage their accounts at: https://{{ tpl $.Values.matrixAuthenticationService.ingress.host $ }}
 {{- end }}
-{{- if $.Values.wellKnownDelegation.enabled }}
 
-To successfully federate, make sure that the Well-Known Delegation works properly using the matrix-federation-tester: https://federationtester.matrix.org/#{{ tpl $.Values.serverName $ }}
-{{- end }}
 {{- include "element-io.deprecations" (dict "root" $) }}
