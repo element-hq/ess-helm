@@ -160,6 +160,9 @@
     "extraVolumeMounts": {
       "$ref": "file://common/extraVolumeMountsWithContext.json"
     },
+    "extraInitContainers": {
+      "$ref": "file://common/extraInitContainers.json"
+    },
     "podSecurityContext": {
       "$ref": "file://common/podSecurityContext.json"
     },
@@ -278,6 +281,9 @@
         },
         "extraVolumeMounts": {
           "$ref": "file://common/extraVolumeMounts.json"
+        },
+        "extraInitContainers": {
+          "$ref": "file://common/extraInitContainers.json"
         },
         "containersSecurityContext": {
           "$ref": "file://common/containersSecurityContext.json"

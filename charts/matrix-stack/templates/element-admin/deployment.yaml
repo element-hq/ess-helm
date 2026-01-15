@@ -31,6 +31,10 @@ spec:
 {{- end }}
     spec:
 {{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "element-admin" "deployment" true)) | nindent 6 }}
+{{- with .extraInitContainers }}
+      initContainers:
+      {{- toYaml . | nindent 6 }}
+{{- end }}
       containers:
       - name: element-admin
         {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" .image) | nindent 8 }}

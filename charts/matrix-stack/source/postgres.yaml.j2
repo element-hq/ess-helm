@@ -27,6 +27,7 @@ essPasswords:
 {{- sub_schema_values.extraEnv() }}
 {{- sub_schema_values.extraVolumes("Postgres") }}
 {{- sub_schema_values.extraVolumeMounts("Postgres") }}
+{{- sub_schema_values.extraInitContainers("Postgres") }}
 {{- sub_schema_values.labels() }}
 {{- sub_schema_values.workloadAnnotations() }}
 {{- sub_schema_values.containersSecurityContext() }}

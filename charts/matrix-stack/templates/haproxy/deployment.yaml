@@ -45,6 +45,10 @@ spec:
 {{- end }}
     spec:
 {{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "haproxy" "deployment" true)) | nindent 6 }}
+{{- with .extraInitContainers }}
+      initContainers:
+      {{- toYaml . | nindent 6 }}
+{{- end }}
       containers:
       - name: haproxy
         args:

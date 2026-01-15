@@ -36,6 +36,10 @@ spec:
         {{- tpl (toYaml . | nindent 8) $ }}
 {{- end }}
 {{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "matrix-rtc-authorisation-service" "deployment" true)) | nindent 6 }}
+{{- with .extraInitContainers }}
+      initContainers:
+      {{- toYaml . | nindent 6 }}
+{{- end }}
       containers:
       - name: matrix-rtc-authorisation-service
 {{- with .image -}}

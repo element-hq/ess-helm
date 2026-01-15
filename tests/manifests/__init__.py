@@ -13,11 +13,10 @@ class PropertyType(Enum):
     AdditionalConfig = "additional"
     Enabled = "enabled"
     Env = "extraEnv"
-    Volumes = "extraVolumes"
-    VolumeMounts = "extraVolumeMounts"
     HostAliases = "hostAliases"
     Image = "image"
     Ingress = "ingress"
+    InitContainers = "extraInitContainers"
     Labels = "labels"
     LivenessProbe = "livenessProbe"
     NodeSelector = "nodeSelector"
@@ -32,6 +31,8 @@ class PropertyType(Enum):
     Storage = "storage"
     Tolerations = "tolerations"
     TopologySpreadConstraints = "topologySpreadConstraints"
+    Volumes = "extraVolumes"
+    VolumeMounts = "extraVolumeMounts"
 
 
 @dataclass
@@ -236,12 +237,13 @@ class SidecarDetails(DeployableDetails):
 
         sidecar_values_file_path_overrides = {
             # Not possible, will come from the parent component
+            PropertyType.InitContainers: ValuesFilePath.not_supported(),
             PropertyType.NodeSelector: ValuesFilePath.not_supported(),
             PropertyType.PodSecurityContext: ValuesFilePath.not_supported(),
             PropertyType.ServiceAccount: ValuesFilePath.not_supported(),
-            PropertyType.Volumes: ValuesFilePath.not_supported(),
             PropertyType.Tolerations: ValuesFilePath.not_supported(),
             PropertyType.TopologySpreadConstraints: ValuesFilePath.not_supported(),
+            PropertyType.Volumes: ValuesFilePath.not_supported(),
         }
         if self.values_file_path_overrides is None:
             self.values_file_path_overrides = {}
@@ -362,10 +364,9 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
     values_file_path_overrides: dict[PropertyType, ValuesFilePath] = {
         PropertyType.AdditionalConfig: ValuesFilePath.read_elsewhere("synapse", "additional"),
         PropertyType.Env: ValuesFilePath.read_elsewhere("synapse", "extraEnv"),
-        PropertyType.Volumes: ValuesFilePath.read_elsewhere("synapse", "extraVolumes"),
-        PropertyType.VolumeMounts: ValuesFilePath.read_elsewhere("synapse", "extraVolumeMounts"),
         PropertyType.HostAliases: ValuesFilePath.read_elsewhere("synapse", "hostAliases"),
         PropertyType.Image: ValuesFilePath.read_elsewhere("synapse", "image"),
+        PropertyType.InitContainers: ValuesFilePath.read_elsewhere("synapse", "extraInitContainers"),
         PropertyType.Labels: ValuesFilePath.read_elsewhere("synapse", "labels"),
         PropertyType.NodeSelector: ValuesFilePath.read_elsewhere("synapse", "nodeSelector"),
         PropertyType.PodSecurityContext: ValuesFilePath.read_elsewhere("synapse", "podSecurityContext"),
@@ -373,6 +374,8 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
         PropertyType.ServiceMonitor: ValuesFilePath.read_elsewhere("synapse", "serviceMonitor"),
         PropertyType.Tolerations: ValuesFilePath.read_elsewhere("synapse", "tolerations"),
         PropertyType.TopologySpreadConstraints: ValuesFilePath.read_elsewhere("synapse", "topologySpreadConstraints"),
+        PropertyType.Volumes: ValuesFilePath.read_elsewhere("synapse", "extraVolumes"),
+        PropertyType.VolumeMounts: ValuesFilePath.read_elsewhere("synapse", "extraVolumeMounts"),
     }
 
     return SubComponentDetails(
@@ -651,9 +654,8 @@ all_components_details = [
                 values_file_path_overrides={
                     PropertyType.AdditionalConfig: ValuesFilePath.read_elsewhere("synapse", "additional"),
                     PropertyType.Env: ValuesFilePath.read_elsewhere("synapse", "extraEnv"),
-                    PropertyType.Volumes: ValuesFilePath.read_elsewhere("synapse", "extraVolumes"),
-                    PropertyType.VolumeMounts: ValuesFilePath.read_elsewhere("synapse", "extraVolumeMounts"),
                     PropertyType.Image: ValuesFilePath.read_elsewhere("synapse", "image"),
+                    PropertyType.InitContainers: ValuesFilePath.read_elsewhere("synapse", "extraInitContainers"),
                     # Job so no livenessProbe
                     PropertyType.LivenessProbe: ValuesFilePath.not_supported(),
                     PropertyType.NodeSelector: ValuesFilePath.read_elsewhere("synapse", "nodeSelector"),
@@ -668,6 +670,8 @@ all_components_details = [
                     PropertyType.TopologySpreadConstraints: ValuesFilePath.read_elsewhere(
                         "synapse", "topologySpreadConstraints"
                     ),
+                    PropertyType.Volumes: ValuesFilePath.read_elsewhere("synapse", "extraVolumes"),
+                    PropertyType.VolumeMounts: ValuesFilePath.read_elsewhere("synapse", "extraVolumeMounts"),
                 },
                 has_ingress=False,
                 has_service_monitor=False,

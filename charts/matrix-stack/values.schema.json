@@ -436,6 +436,25 @@
             "additionalProperties": false
           }
         },
+        "extraInitContainers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "image"
+            ],
+            "additionalProperties": true,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "image": {
+                "type": "string"
+              }
+            }
+          }
+        },
         "containersSecurityContext": {
           "properties": {
             "allowPrivilegeEscalation": {
@@ -845,6 +864,25 @@
               }
             },
             "additionalProperties": false
+          }
+        },
+        "extraInitContainers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "image"
+            ],
+            "additionalProperties": true,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "image": {
+                "type": "string"
+              }
+            }
           }
         },
         "containersSecurityContext": {
@@ -1301,6 +1339,25 @@
               }
             },
             "additionalProperties": false
+          }
+        },
+        "extraInitContainers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "image"
+            ],
+            "additionalProperties": true,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "image": {
+                "type": "string"
+              }
+            }
           }
         },
         "image": {
@@ -2054,6 +2111,25 @@
                   }
                 },
                 "additionalProperties": false
+              }
+            },
+            "extraInitContainers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "image"
+                ],
+                "additionalProperties": true,
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "image": {
+                    "type": "string"
+                  }
+                }
               }
             },
             "annotations": {
@@ -2858,6 +2934,25 @@
             "additionalProperties": false
           }
         },
+        "extraInitContainers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "image"
+            ],
+            "additionalProperties": true,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "image": {
+                "type": "string"
+              }
+            }
+          }
+        },
         "annotations": {
           "type": "object",
           "additionalProperties": {
@@ -3382,6 +3477,25 @@
               }
             },
             "additionalProperties": false
+          }
+        },
+        "extraInitContainers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "image"
+            ],
+            "additionalProperties": true,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "image": {
+                "type": "string"
+              }
+            }
           }
         },
         "image": {
@@ -4139,6 +4253,25 @@
               }
             },
             "additionalProperties": false
+          }
+        },
+        "extraInitContainers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "image"
+            ],
+            "additionalProperties": true,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "image": {
+                "type": "string"
+              }
+            }
           }
         },
         "containersSecurityContext": {
@@ -4957,6 +5090,25 @@
                 "additionalProperties": false
               }
             },
+            "extraInitContainers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "image"
+                ],
+                "additionalProperties": true,
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "image": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
             "containersSecurityContext": {
               "properties": {
                 "allowPrivilegeEscalation": {
@@ -5518,6 +5670,25 @@
               }
             },
             "additionalProperties": false
+          }
+        },
+        "extraInitContainers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "image"
+            ],
+            "additionalProperties": true,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "image": {
+                "type": "string"
+              }
+            }
           }
         },
         "hostAliases": {
@@ -6529,6 +6700,25 @@
               }
             },
             "additionalProperties": false
+          }
+        },
+        "extraInitContainers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "image"
+            ],
+            "additionalProperties": true,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "image": {
+                "type": "string"
+              }
+            }
           }
         },
         "containersSecurityContext": {
@@ -7642,6 +7832,25 @@
               }
             },
             "additionalProperties": false
+          }
+        },
+        "extraInitContainers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "image"
+            ],
+            "additionalProperties": true,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "image": {
+                "type": "string"
+              }
+            }
           }
         },
         "podSecurityContext": {
@@ -13168,6 +13377,25 @@
                   }
                 },
                 "additionalProperties": false
+              }
+            },
+            "extraInitContainers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "image"
+                ],
+                "additionalProperties": true,
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "image": {
+                    "type": "string"
+                  }
+                }
               }
             },
             "containersSecurityContext": {

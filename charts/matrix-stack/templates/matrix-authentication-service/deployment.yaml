@@ -90,6 +90,9 @@ spec:
             (dict "nameSuffix" "matrix-authentication-service"
                   "outputFile" "mas-config.yaml"
                   "isHook" false)) | nindent 8 }}
+{{- with .extraInitContainers }}
+      {{- toYaml . | nindent 6 }}
+{{- end }}
       containers:
       - name: matrix-authentication-service
         args:

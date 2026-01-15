@@ -32,6 +32,7 @@ replicas: 1
 {{- sub_schema_values.extraEnv() }}
 {{- sub_schema_values.extraVolumes("Matrix RTC") }}
 {{- sub_schema_values.extraVolumeMounts("Matrix RTC") }}
+{{- sub_schema_values.extraInitContainers("Matrix RTC") }}
 {{- sub_schema_values.nodeSelector() }}
 {{- sub_schema_values.podSecurityContext(user_id='10033', group_id='10033') }}
 {{- sub_schema_values.resources(requests_memory='20Mi', requests_cpu='50m', limits_memory='20Mi') }}
@@ -79,6 +80,7 @@ sfu:
 {{- sub_schema_values.extraEnv() | indent(2) }}
 {{- sub_schema_values.extraVolumes("Matrix RTC SFU") | indent(2) }}
 {{- sub_schema_values.extraVolumeMounts("Matrix RTC SFU") | indent(2) }}
+{{- sub_schema_values.extraInitContainers("Matrix RTC SFU") | indent(2) }}
 {{- sub_schema_values.labels() | indent(2) }}
 {{- sub_schema_values.workloadAnnotations() | indent(2) }}
 {{- sub_schema_values.containersSecurityContext() | indent(2) }}

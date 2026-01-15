@@ -22,6 +22,9 @@
     "extraVolumeMounts": {
       "$ref": "file://common/extraVolumeMounts.json"
     },
+    "extraInitContainers": {
+      "$ref": "file://common/extraInitContainers.json"
+    },
     "image": {
       "$ref": "file://common/image.json"
     },

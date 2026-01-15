@@ -1,5 +1,5 @@
 # Copyright 2024-2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -99,6 +99,9 @@ async def test_default_values_file_sets_stub_values(base_values):
     unset_marker = "XXXX unset XXX"
     for deployable_details in all_deployables_details:
         extraEnv = deployable_details.get_helm_values(base_values, PropertyType.Env, default_value=unset_marker)
+        extraInitContainers = deployable_details.get_helm_values(
+            base_values, PropertyType.InitContainers, default_value=unset_marker
+        )
         nodeSelector = deployable_details.get_helm_values(
             base_values, PropertyType.NodeSelector, default_value=unset_marker
         )
@@ -110,6 +113,9 @@ async def test_default_values_file_sets_stub_values(base_values):
             # The below might be None iff a `not_supported` values file path override is set, e.g. for Sidecars
             # default_value=unset_marker means that an omitted property in the values file won't
             # return None here
+            assert extraInitContainers == [] or extraInitContainers is None, (
+                f"{deployable_details.name} has default {extraInitContainers=} rather than {{}}"
+            )
             assert nodeSelector == {} or nodeSelector is None, (
                 f"{deployable_details.name} has default {nodeSelector=} rather than {{}}"
             )
@@ -118,6 +124,9 @@ async def test_default_values_file_sets_stub_values(base_values):
             )
         else:
             assert extraEnv == unset_marker, (
+                f"{deployable_details.name} has default {extraEnv=} rather than being unset"
+            )
+            assert extraInitContainers == unset_marker, (
                 f"{deployable_details.name} has default {extraEnv=} rather than being unset"
             )
             assert nodeSelector == unset_marker, (
