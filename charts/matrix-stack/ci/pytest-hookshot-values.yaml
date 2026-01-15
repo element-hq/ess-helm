@@ -22,21 +22,16 @@ hookshot:
         generic:
           enabled: true
           outbound: true # For outbound webhook support
-          urlPrefix: https://hookshot.ess.localhost/pytest-webhook/
           allowJsTransformationFunctions: false
-          waitForComplete: false
+          waitForComplete: true
           enableHttpGet: false
   enabled: true
   extraEnv:
     - name: DEBUG_RENDERING
       value: "1"
-  image:
-    tag: pr-1115
   ingress:
     host: hook.{{ $.Values.serverName }}
     tlsSecret: '{{ $.Release.Name }}-hookshot-tls'
-  logging:
-    level: debug
   podSecurityContext:
     runAsGroup: 0
 initSecrets:

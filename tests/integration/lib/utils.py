@@ -1,5 +1,5 @@
 # Copyright 2024-2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -127,6 +127,38 @@ async def aiohttp_post_json(url: str, data: dict, headers: dict, ssl_context: SS
     async with (
         aiohttp_client(ssl_context) as client,
         client.post(
+            url.replace(host, "127.0.0.1"), headers=headers | {"Host": host}, server_hostname=host, json=data
+        ) as response,
+    ):
+        # If we can 204: NO CONTENT, we dont want to try to parse json
+        if response.status != 204:
+            return await response.json()
+        else:
+            return {}
+
+
+async def aiohttp_put_json(url: str, data: dict, headers: dict, ssl_context: SSLContext) -> Any:
+    """Do an async HTTP PUT against a url, retry exponentially on 429s. IT expects a JSON resposne.
+
+    Due to synapse bootstrap, when helm has finished deploying, HAProxy can still return
+    429s because it did not detect the backend servers ready yet.
+
+    Args:
+        url (str): The URL to hit
+        data (dict): The data to post
+        headers (dict): Headers to use
+        ssl_context (SSLContext): The SSL Context with test CA loaded
+
+    Returns:
+        Any: the Json dict response
+    """
+    host = urlparse(url).hostname
+    if not host:
+        raise ValueError("f{url} does not have a hostname")
+
+    async with (
+        aiohttp_client(ssl_context) as client,
+        client.put(
             url.replace(host, "127.0.0.1"), headers=headers | {"Host": host}, server_hostname=host, json=data
         ) as response,
     ):

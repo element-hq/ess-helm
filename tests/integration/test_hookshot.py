@@ -3,12 +3,15 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 import asyncio
+import json
+import time
+from urllib.parse import urlparse
 
 import pytest
 from lightkube import AsyncClient
 
 from .fixtures import ESSData, User
-from .lib.utils import aiohttp_get_json, aiohttp_post_json, value_file_has
+from .lib.utils import aiohttp_get_json, aiohttp_post_json, aiohttp_put_json, value_file_has
 
 
 # This creates an unencrypted room, invites hookshot, creates a webhook,
@@ -76,12 +79,33 @@ async def test_hookshot_webhook(
 
     assert hookshot_mxid in joined_members, f"Hookshot did not join the room : {json.dumps(members_response)}"
 
+    # Get current power levels
+    power_levels = await aiohttp_get_json(
+        f"https://synapse.{generated_data.server_name}/_matrix/client/v3/rooms/{room_id}/state/m.room.power_levels",
+        {"Authorization": f"Bearer {user_access_token}"},
+        ssl_context,
+    )
+
+    # Promote hookshot to moderator (power level 50)
+    if "users" not in power_levels:
+        power_levels["users"] = {}
+
+    power_levels["users"][hookshot_mxid] = 50
+
+    await aiohttp_put_json(
+        f"https://synapse.{generated_data.server_name}/_matrix/client/v3/rooms/{room_id}/state/m.room.power_levels",
+        power_levels,
+        {"Authorization": f"Bearer {user_access_token}"},
+        ssl_context,
+    )
+
     # Generate a random webhook id
-    webhook_id = f"{generated_data.server_name}-{create_room['room_id']}"
+    webhook_id = f"{generated_data.server_name}-{create_room['room_id'][1:].split(':')[0]}"
     webhook_command = {
         "msgtype": "m.text",
         "body": f"!hookshot webhook {webhook_id}",
     }
+    webhook_create_ts = int(time.time() * 1000)
 
     await aiohttp_post_json(
         f"https://synapse.{generated_data.server_name}/_matrix/client/v3/rooms/{room_id}/send/m.room.message",
@@ -90,22 +114,91 @@ async def test_hookshot_webhook(
         ssl_context,
     )
 
-    # Wait for and extract webhook URL from hookshot's response
+    # Wait for hookshot to send an invite to the admin room
+    admin_room_id = None
+    count = 0
+    next_batch = None
+    while count < 30:
+        # Sync to get invited rooms
+        sync_args = f"since={next_batch}" if next_batch else "full_state=true"
+        sync_response = await aiohttp_get_json(
+            f"https://synapse.{generated_data.server_name}/_matrix/client/v3/sync?{sync_args}&timeout=1000",
+            {"Authorization": f"Bearer {user_access_token}"},
+            ssl_context,
+        )
+
+        if sync_response.get("next_batch"):
+            next_batch = sync_response.get("next_batch")
+
+        # Check for joined rooms, if hookshot already invited the user to the admin room
+        joined_rooms = sync_response.get("rooms", {}).get("join", {})
+        for room, room_data in joined_rooms.items():
+            # Check if one of the room is created by hookshot
+            for state_events in room_data["timeline"]["events"] + room_data["state"]["events"]:
+                # This assumes that the admin room is the only room created by hookshot in our test suite
+                if state_events.get("sender") == hookshot_mxid and state_events.get("type") == "m.room.create":
+                    admin_room_id = room
+                    break
+            if admin_room_id:
+                break
+        if admin_room_id:
+            break
+        # Check for rooms in invite state
+        invited_rooms = sync_response.get("rooms", {}).get("invite", {})
+        for room, room_data in invited_rooms.items():
+            # Check if the invite is from hookshot
+            invite_state = room_data.get("invite_state", {}).get("events", [])
+            for event in invite_state:
+                # This assumes that the admin room is the only room created by hookshot in our test suite
+                if event.get("sender") == hookshot_mxid and event.get("type") == "m.room.member":
+                    admin_room_id = room
+                    break
+            if admin_room_id:
+                break
+
+        if admin_room_id:
+            break
+        else:
+            await asyncio.sleep(3)
+            count = count + 1
+
+    assert admin_room_id is not None, f"Hookshot did not send admin room invite : {json.dumps(sync_response)}"
+
+    # Accept the invite to the admin room
+    await aiohttp_post_json(
+        f"https://synapse.{generated_data.server_name}/_matrix/client/v3/rooms/{admin_room_id}/join",
+        {},
+        {"Authorization": f"Bearer {user_access_token}"},
+        ssl_context,
+    )
+
+    # Wait for and extract webhook URL from hookshot's response in the admin room
     webhook_url = None
     count = 0
     while count < 10:
         messages = await aiohttp_get_json(
-            f"https://synapse.{generated_data.server_name}/_matrix/client/v3/rooms/{room_id}/messages?dir=b&limit=10",
+            f"https://synapse.{generated_data.server_name}/_matrix/client/v3/rooms/{admin_room_id}/messages?dir=b&limit=10",
             {"Authorization": f"Bearer {user_access_token}"},
             ssl_context,
         )
 
         # Look for hookshot's response containing the webhook URL
         for event in messages.get("chunk", []):
-            if event.get("sender") == hookshot_mxid and "body" in event.get("content", {}):
+            if (
+                event.get("sender") == hookshot_mxid
+                and "body" in event.get("content", {})
+                and event["origin_server_ts"] > webhook_create_ts
+            ):
                 body = event["content"]["body"]
                 if "http" in body:
-                    webhook_url = body
+                    # The webhook URL is the last line of the message
+                    webhook_url = body.split("\n")[-1].strip()
+                    assert urlparse(webhook_url).hostname == f"hook.{generated_data.server_name}", (
+                        f"Unexpected webhook URL found in admin room : {body}"
+                    )
+                    assert urlparse(webhook_url).scheme == "https", (
+                        f"Unexpected webhook scheme found in admin room : {body}"
+                    )
                     break
 
         if webhook_url:
@@ -121,12 +214,13 @@ async def test_hookshot_webhook(
         "text": "Test webhook payload",
     }
 
-    await aiohttp_post_json(
+    answer = await aiohttp_post_json(
         webhook_url,
         test_payload,
         {},
         ssl_context,
     )
+    assert answer["ok"]
 
     # Wait for hookshot to post the payload to the room
     payload_found = False
@@ -142,7 +236,7 @@ async def test_hookshot_webhook(
         for event in messages.get("chunk", []):
             if event.get("sender") == hookshot_mxid and "body" in event.get("content", {}):
                 body = event["content"]["body"]
-                if "Test webhook payload" in body:  # Adjust based on how hookshot formats messages
+                if "Test webhook payload" in body:
                     payload_found = True
                     break
 
@@ -152,6 +246,8 @@ async def test_hookshot_webhook(
             await asyncio.sleep(3)
             count = count + 1
 
-    assert payload_found, "Hookshot did not post webhook payload to room"
+    assert payload_found, (
+        f"Hookshot answered {answer} but did not post webhook {webhook_id} payload to room : {json.dumps(messages)}"
+    )
 
     return room_id

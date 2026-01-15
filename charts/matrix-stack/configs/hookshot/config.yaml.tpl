@@ -52,6 +52,9 @@ listeners:
     resources:
       - widgets
 
+generic:
+  urlPrefix: https://{{ tpl .ingress.host $root }}/webhook
+
 widgets:
   publicUrl: https://{{ tpl .ingress.host $root }}/widgetapi/v1/static
 
