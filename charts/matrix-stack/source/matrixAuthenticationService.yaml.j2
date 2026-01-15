@@ -41,6 +41,7 @@ privateKeys:
 {{ sub_schema_values.extraEnv() }}
 {{ sub_schema_values.extraVolumes("Matrix Authentication Service") }}
 {{ sub_schema_values.extraVolumeMounts("Matrix Authentication Service") }}
+{{ sub_schema_values.extraInitContainers("Matrix Authentication Service") }}
 {{ sub_schema_values.probe("liveness") }}
 {{ sub_schema_values.probe("readiness") }}
 {{ sub_schema_values.probe("startup", failureThreshold=4) }}
@@ -73,6 +74,7 @@ syn2mas:
   {{- sub_schema_values.extraEnv() | indent(2) -}}
   {{- sub_schema_values.extraVolumes("Syn2Mas") | indent(2) -}}
   {{- sub_schema_values.extraVolumeMounts("Syn2Mas") | indent(2) -}}
+  {{- sub_schema_values.extraInitContainers("Syn2Mas") | indent(2) -}}
   {{- sub_schema_values.tolerations() | indent(2) }}
   {{- sub_schema_values.topologySpreadConstraints() | indent(2) }}
 

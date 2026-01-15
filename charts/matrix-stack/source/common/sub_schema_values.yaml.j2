@@ -460,6 +460,11 @@ extraVolumes: []
 extraVolumeMounts: []
 {% endmacro %}
 
+{% macro extraInitContainers(component) %}
+# Extra initContainers to add to {{ component }}, as a yaml array
+extraInitContainers: []
+{% endmacro %}
+
 {% macro exposedServicePort(name, port, portType='NodePort') %}
 {{ name }}:
   enabled: true

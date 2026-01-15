@@ -17,8 +17,6 @@ enabled: true
 ## Most settings are configurable but some settings are owned by the chart and can't be overwritten
 additional: {}
 
-{{- sub_schema_values.extraVolumes("Element Web") }}
-{{- sub_schema_values.extraVolumeMounts("Element Web") }}
 
 # Number of Element Web replicas to start up
 replicas: 1
@@ -27,6 +25,9 @@ replicas: 1
 {{- sub_schema_values.labels() -}}
 {{- sub_schema_values.workloadAnnotations() -}}
 {{- sub_schema_values.extraEnv() -}}
+{{- sub_schema_values.extraVolumes("Element Web") }}
+{{- sub_schema_values.extraVolumeMounts("Element Web") }}
+{{- sub_schema_values.extraInitContainers("Element Web") }}
 {{- sub_schema_values.containersSecurityContext() -}}
 {{- sub_schema_values.nodeSelector() -}}
 {{- sub_schema_values.podSecurityContext(user_id='10004', group_id='10004') -}}

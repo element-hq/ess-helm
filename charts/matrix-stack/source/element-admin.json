@@ -25,6 +25,9 @@
     "extraVolumeMounts": {
       "$ref": "file://common/extraVolumeMounts.json"
     },
+    "extraInitContainers": {
+      "$ref": "file://common/extraInitContainers.json"
+    },
     "annotations": {
       "$ref": "file://common/workloadAnnotations.json"
     },

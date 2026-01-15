@@ -40,6 +40,7 @@ spec:
         {{- tpl (toYaml . | nindent 8) $ }}
 {{- end }}
 {{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "matrix-rtc-sfu" "deployment" true "usesMatrixTools" true)) | nindent 6 }}
+      hostNetwork: {{ .hostNetwork }}
       initContainers:
 {{- if not (.livekitAuth).keysYaml }}
       {{- include "element-io.ess-library.render-config-container" (dict "root" $ "context"
@@ -66,7 +67,9 @@ spec:
               "extraEnv" .extraEnv
               "extraVolumeMounts" .extraVolumeMounts
               )) | nindent 6 }}
-      hostNetwork: {{ .hostNetwork }}
+{{- with .extraInitContainers }}
+      {{- toYaml . | nindent 6 }}
+{{- end }}
       containers:
       - name: sfu
         args:

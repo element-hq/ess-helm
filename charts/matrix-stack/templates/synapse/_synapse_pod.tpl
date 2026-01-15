@@ -91,6 +91,9 @@ We have an init container to render & merge the config for several reasons:
 {{- end }}
 {{- end }}
 {{- end }}
+{{- with .extraInitContainers }}
+    {{- toYaml . | nindent 4 }}
+{{- end }}
     containers:
     - name: synapse
       {{- include "element-io.ess-library.pods.image" (dict "root" $root "context" .image) | nindent 6 }}

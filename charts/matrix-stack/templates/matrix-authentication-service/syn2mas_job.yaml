@@ -175,6 +175,9 @@ spec:
           readOnly: true
 {{- end }}
 {{- end }}
+{{- with .extraInitContainers }}
+      {{- toYaml . | nindent 6 }}
+{{- end }}
       containers:
       - name: syn2mas-migrate
 {{- if .dryRun }}

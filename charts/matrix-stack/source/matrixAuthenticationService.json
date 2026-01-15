@@ -70,6 +70,9 @@
         "extraVolumeMounts": {
           "$ref": "file://common/extraVolumeMounts.json"
         },
+        "extraInitContainers": {
+          "$ref": "file://common/extraInitContainers.json"
+        },
         "containersSecurityContext": {
           "$ref": "file://common/containersSecurityContext.json"
         },
@@ -116,6 +119,9 @@
     },
     "extraVolumeMounts": {
       "$ref": "file://common/extraVolumeMounts.json"
+    },
+    "extraInitContainers": {
+      "$ref": "file://common/extraInitContainers.json"
     },
     "hostAliases": {
       "$ref": "file://common/hostAliases.json"
