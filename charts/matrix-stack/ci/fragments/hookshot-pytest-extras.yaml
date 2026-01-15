@@ -3,6 +3,11 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 hookshot:
+  image:
+    tag: pr-1115
+  logging:
+    level: debug
+
   ingress:
     host: hook.{{ $.Values.serverName }}
     tlsSecret: "{{ $.Release.Name }}-hookshot-tls"

@@ -30,9 +30,18 @@ hookshot:
   extraEnv:
     - name: DEBUG_RENDERING
       value: "1"
+  image:
+    tag: pr-1115
   ingress:
     host: hook.{{ $.Values.serverName }}
     tlsSecret: '{{ $.Release.Name }}-hookshot-tls'
+  logging:
+    level: debug
+  podSecurityContext:
+    runAsGroup: 0
+initSecrets:
+  annotations:
+    has-no-service-monitor: "true"
   podSecurityContext:
     runAsGroup: 0
 matrixAuthenticationService:
