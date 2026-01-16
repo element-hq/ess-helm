@@ -1,5 +1,5 @@
 // Copyright 2025 New Vector Ltd
-// Copyright 2025 Element Creations Ltd
+// Copyright 2025-2026 Element Creations Ltd
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -86,7 +86,7 @@ func TestParseArgs(t *testing.T) {
 			expected: &Options{
 				GenerateSecrets: &generatesecrets.GenerateSecretsOptions{
 					GeneratedSecrets: []generatesecrets.GeneratedSecret{
-						{ArgValue: "secret1:value1:rand32", Name: "secret1", Key: "value1", Type: secret.Rand32},
+						{ArgValue: "secret1:value1:rand32", Name: "secret1", Key: "value1", Type: secret.Rand32, GeneratorArgs: make([]string, 0)},
 					},
 					Labels: map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-init-secrets", "mykey": "myval"},
 				},
@@ -101,8 +101,8 @@ func TestParseArgs(t *testing.T) {
 			expected: &Options{
 				GenerateSecrets: &generatesecrets.GenerateSecretsOptions{
 					GeneratedSecrets: []generatesecrets.GeneratedSecret{
-						{ArgValue: "secret1:value1:rand32", Name: "secret1", Key: "value1", Type: secret.Rand32},
-						{ArgValue: "secret2:value2:signingkey", Name: "secret2", Key: "value2", Type: secret.SigningKey},
+						{ArgValue: "secret1:value1:rand32", Name: "secret1", Key: "value1", Type: secret.Rand32, GeneratorArgs: make([]string, 0)},
+						{ArgValue: "secret2:value2:signingkey", Name: "secret2", Key: "value2", Type: secret.SigningKey, GeneratorArgs: make([]string, 0)},
 					},
 					Labels: map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-init-secrets"},
 				},
@@ -110,7 +110,20 @@ func TestParseArgs(t *testing.T) {
 			},
 			err: false,
 		},
-
+		{
+			name: "Multiple generator args in secrets",
+			args: []string{"cmd", "generate-secrets", "-secrets", "secret1:value1:rsa:4096:der"},
+			expected: &Options{
+				GenerateSecrets: &generatesecrets.GenerateSecretsOptions{
+					GeneratedSecrets: []generatesecrets.GeneratedSecret{
+						{ArgValue: "secret1:value1:rsa:4096:der", Name: "secret1", Key: "value1", Type: secret.RSA, GeneratorArgs: []string{"4096", "der"}},
+					},
+					Labels: map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-init-secrets"},
+				},
+				Command: GenerateSecrets,
+			},
+			err: false,
+		},
 		{
 			name:     "Invalid secret type",
 			args:     []string{"cmd", "generate-secrets", "-secrets", "secret1:value1:unknown"},

@@ -1,5 +1,5 @@
 // Copyright 2025 New Vector Ltd
-// Copyright 2025 Element Creations Ltd
+// Copyright 2025-2026 Element Creations Ltd
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -11,9 +11,11 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/pem"
+	"fmt"
 )
 
-func marshallKey(key any) ([]byte, error) {
+func marshallKeyIntoDER(key any) ([]byte, error) {
 	keyBytes, err := x509.MarshalPKCS8PrivateKey(key)
 	if err != nil {
 		return nil, err
@@ -22,18 +24,33 @@ func marshallKey(key any) ([]byte, error) {
 	return keyBytes, nil
 }
 
-func generateRSA() ([]byte, error) {
-	rsaPrivateKey, err := rsa.GenerateKey(rand.Reader, 4096)
+func marshallKeyIntoPEM(rsaPrivateKey *rsa.PrivateKey) ([]byte, error) {
+	return pem.EncodeToMemory(
+		&pem.Block{
+			Type:  "RSA PRIVATE KEY",
+			Bytes: x509.MarshalPKCS1PrivateKey(rsaPrivateKey),
+		}), nil
+}
+
+func generateRSA(bits int, format string) ([]byte, error) {
+	rsaPrivateKey, err := rsa.GenerateKey(rand.Reader, bits)
 	if err != nil {
 		return nil, err
 	}
-	return marshallKey(rsaPrivateKey)
+	switch format {
+	case "pem":
+		return marshallKeyIntoPEM(rsaPrivateKey)
+	case "der":
+		return marshallKeyIntoDER(rsaPrivateKey)
+	default:
+		return nil, fmt.Errorf("%s key format unsupported", format)
+	}
 }
 
-func generateEcdsaPrime256v1() ([]byte, error) {
+func generateEcdsaPrime256v1DER() ([]byte, error) {
 	ecdsaPrivateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
 		return nil, err
 	}
-	return marshallKey(ecdsaPrivateKey)
+	return marshallKeyIntoDER(ecdsaPrivateKey)
 }

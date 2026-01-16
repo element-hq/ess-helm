@@ -1,5 +1,5 @@
 // Copyright 2025 New Vector Ltd
-// Copyright 2025 Element Creations Ltd
+// Copyright 2025-2026 Element Creations Ltd
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 // internal/pkg/secret/secret.go
@@ -12,6 +12,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
+	"strconv"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,7 +30,8 @@ const (
 	EcdsaPrime256v1
 )
 
-func GenerateSecret(client kubernetes.Interface, secretLabels map[string]string, namespace string, name string, key string, secretType SecretType) error {
+func GenerateSecret(client kubernetes.Interface, secretLabels map[string]string,
+	namespace string, name string, key string, secretType SecretType, generatorArgs []string) error {
 	ctx := context.Background()
 
 	secretsClient := client.CoreV1().Secrets(namespace)
@@ -82,13 +84,17 @@ func GenerateSecret(client kubernetes.Interface, secretLabels map[string]string,
 				return fmt.Errorf("failed to generate Hex32 : %w", err)
 			}
 		case RSA:
-			if keyBytes, err := generateRSA(); err == nil {
+			bits, err := strconv.Atoi(generatorArgs[0])
+			if err != nil {
+				return fmt.Errorf("failed to parse bits for RSA key: %w", err)
+			}
+			if keyBytes, err := generateRSA(bits, generatorArgs[1]); err == nil {
 				existingSecret.Data[key] = keyBytes
 			} else {
 				return fmt.Errorf("failed to generate RSA key: %w", err)
 			}
 		case EcdsaPrime256v1:
-			if keyBytes, err := generateEcdsaPrime256v1(); err == nil {
+			if keyBytes, err := generateEcdsaPrime256v1DER(); err == nil {
 				existingSecret.Data[key] = keyBytes
 			} else {
 				return fmt.Errorf("failed to generate ECDSA Prime256v1 key: %w", err)
