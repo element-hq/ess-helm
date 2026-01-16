@@ -26,7 +26,7 @@ async def test_hookshot_webhook(
     users,
     ssl_context,
 ):
-    await ingress_ready("hookshot")
+    await ingress_ready("synapse")
     user_access_token = users[0].access_token
     hookshot_mxid = f"@hookshot:{generated_data.server_name}"
     # Create an unencrypted room
@@ -194,7 +194,7 @@ async def test_hookshot_webhook(
                 if "http" in body:
                     # The webhook URL is the last line of the message
                     webhook_url = body.split("\n")[-1].strip()
-                    assert urlparse(webhook_url).hostname == f"hook.{generated_data.server_name}", (
+                    assert urlparse(webhook_url).hostname == f"synapse.{generated_data.server_name}", (
                         f"Unexpected webhook URL found in admin room : {body}"
                     )
                     assert urlparse(webhook_url).scheme == "https", (

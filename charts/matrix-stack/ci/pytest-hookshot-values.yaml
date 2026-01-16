@@ -29,9 +29,8 @@ hookshot:
   extraEnv:
     - name: DEBUG_RENDERING
       value: "1"
-  ingress:
-    host: hook.{{ $.Values.serverName }}
-    tlsSecret: '{{ $.Release.Name }}-hookshot-tls'
+  logging:
+    level: debug
   podSecurityContext:
     runAsGroup: 0
 initSecrets:

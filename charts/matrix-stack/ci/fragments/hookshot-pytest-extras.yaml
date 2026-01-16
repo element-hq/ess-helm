@@ -3,10 +3,6 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 hookshot:
-  ingress:
-    host: hook.{{ $.Values.serverName }}
-    tlsSecret: "{{ $.Release.Name }}-hookshot-tls"
-
   podSecurityContext:
     runAsGroup: 0
 

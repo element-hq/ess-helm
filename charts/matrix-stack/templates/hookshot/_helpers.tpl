@@ -8,8 +8,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $root := .root -}}
 {{- with required "element-io.hookshot.validations missing context" .context -}}
 {{ $messages := list }}
-{{- if not .ingress.host -}}
-{{ $messages = append $messages "hookshot.ingress.host is required when hookshot.enabled=true" }}
+{{- if and (not $root.Values.synapse.enabled) (not .ingress.host) -}}
+{{ $messages = append $messages "hookshot.ingress.host is required when hookshot.enabled=true and synapse.enabled=false" }}
 {{- end }}
 {{ $messages | toJson }}
 {{- end }}

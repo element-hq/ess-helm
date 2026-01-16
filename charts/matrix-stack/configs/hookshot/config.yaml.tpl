@@ -53,9 +53,17 @@ listeners:
       - widgets
 
 generic:
-  urlPrefix: https://{{ tpl .ingress.host $root }}/webhook
+{{ if .ingress.host }}
+  urlPrefix: https://{{ (tpl .ingress.host $root) }}/webhook
+{{ else if $root.Values.synapse.enabled }}
+  urlPrefix: https://{{ (tpl $root.Values.synapse.ingress.host $root) }}/webhook
+{{ end }}
 
 widgets:
+{{- if .ingress.host }}
   publicUrl: https://{{ tpl .ingress.host $root }}/widgetapi/v1/static
+{{ else if $root.Values.synapse.enabled }}
+  publicUrl: https://{{ tpl $root.Values.synapse.ingress.host $root }}/widgetapi/v1/static
+{{ end }}
 
 {{- end -}}

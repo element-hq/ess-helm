@@ -121,6 +121,20 @@ env:
 {{- end }}
 {{- end }}
 {{- end }}
+{{- if and $root.Values.hookshot.enabled (not $root.Values.hookshot.ingress.host) -}}
+- path: "/widgetapi/v1"
+  availability: only_externally
+  service:
+    name: "{{ $root.Release.Name }}-hookshot"
+    port:
+      name: widgets
+- path: "/webhook"
+  availability: only_externally
+  service:
+    name: "{{ $root.Release.Name }}-hookshot"
+    port:
+      name: webhooks
+{{- end -}}
 {{- range $root.Values.synapse.ingress.additionalPaths }}
 - {{ . | toYaml | indent 2 | trim }}
 {{- end -}}

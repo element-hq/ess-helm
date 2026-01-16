@@ -79,15 +79,6 @@ async def helm_prerequisites(
             )
         )
 
-    if value_file_has("hookshot.enabled", True):
-        resources.append(
-            kubernetes_tls_secret(
-                f"{generated_data.release_name}-hookshot-tls",
-                generated_data.ess_namespace,
-                generate_cert(delegated_ca, [f"hook.{generated_data.server_name}"]),
-            )
-        )
-
     # if MAS is disabled but syn2mas is enabled, we are going to enable MAS later on during the test
     # So let's initilize everything it needs
     if value_file_has("matrixAuthenticationService.enabled", True) or value_file_has(
