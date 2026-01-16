@@ -1,0 +1,28 @@
+{#
+Copyright 2026 Element Creations Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+#}
+
+# redis maxmemory and maxmemory-policy settings. See https://redis.io/docs/latest/develop/reference/eviction/
+# This value should be updated with changes to Redis' memory requests and limits below
+maxMemory: 40mb
+maxMemoryPolicy: allkeys-lru
+
+{{- sub_schema_values.image(registry='docker.io', repository='library/redis', tag='7.4-alpine') }}
+{{- sub_schema_values.labels() }}
+{{- sub_schema_values.workloadAnnotations() }}
+{{- sub_schema_values.containersSecurityContext() }}
+{{- sub_schema_values.extraEnv() }}
+{{- sub_schema_values.extraVolumes(name) }}
+{{- sub_schema_values.extraVolumeMounts(name) }}
+{{- sub_schema_values.extraInitContainers("Redis") }}
+{{- sub_schema_values.nodeSelector() }}
+{{- sub_schema_values.podSecurityContext(user_id='10002', group_id='10002') }}
+{{- sub_schema_values.resources(requests_memory='50Mi', requests_cpu='50m', limits_memory='50Mi') }}
+{{- sub_schema_values.serviceAccount() }}
+{{- sub_schema_values.tolerations() }}
+{{- sub_schema_values.topologySpreadConstraints() }}
+{{- sub_schema_values.probe("liveness") }}
+{{- sub_schema_values.probe("readiness") }}
+{{- sub_schema_values.probe("startup", failureThreshold=5) }}

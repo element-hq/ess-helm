@@ -1,8 +1,11 @@
-# Copyright 2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
-# SPDX-License-Identifier: AGPL-3.0-only
+{{- /*
+Copyright 2026 Element Creations Ltd
 
-# This file is based upon https://raw.githubusercontent.com/redis/redis/6.2/redis.conf
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+
+{{- $root := .root -}}
+{{- with required "redis.conf.tpl missing context" .context -}}
 
 # Do not require a password
 protected-mode no
@@ -89,3 +92,7 @@ dynamic-hz yes
 aof-rewrite-incremental-fsync yes
 rdb-save-incremental-fsync yes
 jemalloc-bg-thread yes
+
+maxmemory {{ .maxMemory }}
+maxmemory-policy {{ .maxMemoryPolicy }}
+{{- end -}}

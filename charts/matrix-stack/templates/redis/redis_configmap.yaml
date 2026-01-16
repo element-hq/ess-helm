@@ -1,0 +1,19 @@
+{{- /*
+Copyright 2026 Element Creations Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+
+{{- if or (and $.Values.synapse.enabled ((include "element-io.synapse.enabledWorkers" (dict "root" $)) | fromJson)) -}}
+{{- with $.Values.redis -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    {{- include "element-io.redis.labels" (dict "root" $ "context" .) | nindent 4 }}
+  name: {{ $.Release.Name }}-redis
+  namespace: {{ $.Release.Namespace }}
+data:
+  {{- include "element-io.redis.configmap-data" (dict "root" $ "context" .) | nindent 2 }}
+{{- end -}}
+{{- end -}}

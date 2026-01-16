@@ -57,11 +57,6 @@ synapse:
     tlsSecret: '{{ $.Release.Name }}-synapse-web-tls'
   podSecurityContext:
     runAsGroup: 0
-  redis:
-    annotations:
-      has-no-service-monitor: "true"
-    podSecurityContext:
-      runAsGroup: 0
 wellKnownDelegation:
   ingress:
     tlsSecret: '{{ $.Release.Name }}-well-known-web-tls'

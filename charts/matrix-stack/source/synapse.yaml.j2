@@ -108,22 +108,3 @@ logging:
 
 ## Extra command line arguments to provide to Synapse
 extraArgs: []
-
-redis:
-{{- sub_schema_values.image(registry='docker.io', repository='library/redis', tag='7.4-alpine') | indent(2) }}
-{{- sub_schema_values.labels() | indent(2) }}
-{{- sub_schema_values.workloadAnnotations() | indent(2) }}
-{{- sub_schema_values.containersSecurityContext() | indent(2) }}
-{{- sub_schema_values.extraEnv() | indent(2) }}
-{{- sub_schema_values.extraVolumes("Redis") | indent(2) }}
-{{- sub_schema_values.extraVolumeMounts("Redis") | indent(2) }}
-{{- sub_schema_values.extraInitContainers("Redis") | indent(2) }}
-{{- sub_schema_values.nodeSelector() | indent(2) }}
-{{- sub_schema_values.podSecurityContext(user_id='10002', group_id='10002') | indent(2) }}
-{{- sub_schema_values.resources(requests_memory='50Mi', requests_cpu='50m', limits_memory='50Mi') | indent(2) }}
-{{- sub_schema_values.serviceAccount() | indent(2) }}
-{{- sub_schema_values.tolerations() | indent(2) }}
-{{- sub_schema_values.topologySpreadConstraints() | indent(2) }}
-{{- sub_schema_values.probe("liveness") | indent(2) }}
-{{- sub_schema_values.probe("readiness") | indent(2) }}
-{{- sub_schema_values.probe("startup", failureThreshold=5) | indent(2) }}
