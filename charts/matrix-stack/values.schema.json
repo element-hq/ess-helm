@@ -7162,6 +7162,22 @@
     "redis": {
       "type": "object",
       "properties": {
+        "maxMemory": {
+          "type": "string"
+        },
+        "maxMemoryPolicy": {
+          "type": "string",
+          "enum": [
+            "noeviction",
+            "allkeys-lru",
+            "allkeys-lfu",
+            "allkeys-random",
+            "volatile-lru",
+            "volatile-lfu",
+            "volatile-random",
+            "volatile-ttl"
+          ]
+        },
         "image": {
           "type": "object",
           "required": [

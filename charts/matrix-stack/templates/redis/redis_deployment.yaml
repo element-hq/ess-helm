@@ -15,7 +15,7 @@ metadata:
 {{- end }}
   labels:
     {{- include "element-io.redis.labels" (dict "root" $ "context" (dict "image" .image "labels" .labels)) | nindent 4 }}
-    k8s.element.io/redis-config-hash: "{{ include "element-io.redis.configmap-data" (dict "root" $) | sha1sum }}"
+    k8s.element.io/redis-config-hash: "{{ include "element-io.redis.configmap-data" (dict "root" $ "context" .) | sha1sum }}"
   name: {{ $.Release.Name }}-redis
   namespace: {{ $.Release.Namespace }}
 spec:
@@ -24,7 +24,7 @@ spec:
     metadata:
       labels:
         {{- include "element-io.redis.labels" (dict "root" $ "context" (dict "image" .image "labels" .labels "withChartVersion" false)) | nindent 8 }}
-        k8s.element.io/redis-config-hash: "{{ include "element-io.redis.configmap-data" (dict "root" $) | sha1sum }}"
+        k8s.element.io/redis-config-hash: "{{ include "element-io.redis.configmap-data" (dict "root" $ "context" .) | sha1sum }}"
 {{- with .annotations }}
       annotations:
         {{- toYaml . | nindent 8 }}

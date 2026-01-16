@@ -2731,6 +2731,10 @@ postgres:
     timeoutSeconds: 1
 
 redis:
+  # redis maxmemory and maxmemory-policy settings. See https://redis.io/docs/latest/develop/reference/eviction/
+  # This value should be updated with changes to Redis' memory requests and limits below
+  maxMemory: 40mb
+  maxMemoryPolicy: allkeys-lru
   # Details of the image to be used
   image:
     ## The host and (optional) port of the container image registry for this component.

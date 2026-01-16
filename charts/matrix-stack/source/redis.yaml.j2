@@ -4,6 +4,10 @@ Copyright 2026 Element Creations Ltd
 SPDX-License-Identifier: AGPL-3.0-only
 #}
 
+# redis maxmemory and maxmemory-policy settings. See https://redis.io/docs/latest/develop/reference/eviction/
+# This value should be updated with changes to Redis' memory requests and limits below
+maxMemory: 40mb
+maxMemoryPolicy: allkeys-lru
 
 {{- sub_schema_values.image(registry='docker.io', repository='library/redis', tag='7.4-alpine') }}
 {{- sub_schema_values.labels() }}
