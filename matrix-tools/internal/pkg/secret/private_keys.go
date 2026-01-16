@@ -1,5 +1,5 @@
 // Copyright 2025 New Vector Ltd
-// Copyright 2025 Element Creations Ltd
+// Copyright 2025-2026 Element Creations Ltd
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -32,8 +32,8 @@ func marshallKeyIntoPEM(rsaPrivateKey *rsa.PrivateKey) ([]byte, error) {
 		}), nil
 }
 
-func generateRSA4096(format string) ([]byte, error) {
-	rsaPrivateKey, err := rsa.GenerateKey(rand.Reader, 4096)
+func generateRSA(bits int, format string) ([]byte, error) {
+	rsaPrivateKey, err := rsa.GenerateKey(rand.Reader, bits)
 	if err != nil {
 		return nil, err
 	}

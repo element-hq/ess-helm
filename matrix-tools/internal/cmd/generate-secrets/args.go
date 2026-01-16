@@ -38,8 +38,8 @@ func parseSecretType(value string) (secret.SecretType, error) {
 		return secret.SigningKey, nil
 	case "hex32":
 		return secret.Hex32, nil
-	case "rsa4096":
-		return secret.RSA4096, nil
+	case "rsa":
+		return secret.RSA, nil
 	case "ecdsaprime256v1":
 		return secret.EcdsaPrime256v1, nil
 	default:

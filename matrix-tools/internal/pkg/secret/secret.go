@@ -12,6 +12,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
+	"strconv"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -25,7 +26,7 @@ const (
 	Rand32
 	SigningKey
 	Hex32
-	RSA4096
+	RSA
 	EcdsaPrime256v1
 )
 
@@ -82,8 +83,12 @@ func GenerateSecret(client kubernetes.Interface, secretLabels map[string]string,
 			} else {
 				return fmt.Errorf("failed to generate Hex32 : %w", err)
 			}
-		case RSA4096:
-			if keyBytes, err := generateRSA4096(generatorArgs[0]); err == nil {
+		case RSA:
+			bits, err := strconv.Atoi(generatorArgs[0])
+			if err != nil {
+				return fmt.Errorf("failed to parse bits for RSA key: %w", err)
+			}
+			if keyBytes, err := generateRSA(bits, generatorArgs[1]); err == nil {
 				existingSecret.Data[key] = keyBytes
 			} else {
 				return fmt.Errorf("failed to generate RSA key: %w", err)
