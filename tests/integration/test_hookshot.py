@@ -118,7 +118,29 @@ async def test_hookshot_webhook(
     admin_room_id = None
     count = 0
     next_batch = None
-    while count < 30:
+
+    # This finds the admin room either from the joined state or from the invite state
+    def _find_admin_room_in_room_data(rooms: dict):
+        admin_room_id = None
+        for room, room_data in rooms.items():
+            join_state = room_data.get("timeline", {}).get("events", []) + room_data.get("state", {}).get("events", [])
+            invite_state = room_data.get("invite_state", {}).get("events", [])
+            # Check if one of the room is created by hookshot
+            for state_events in join_state:
+                # This assumes that the admin room is the only room created by hookshot in our test suite
+                if state_events.get("sender") == hookshot_mxid and state_events.get("type") == "m.room.create":
+                    admin_room_id = room
+                    break
+            else:
+                # Check if the invite is from hookshot
+                for event in invite_state:
+                    # This assumes that the admin room is the only room created by hookshot in our test suite
+                    if event.get("sender") == hookshot_mxid and event.get("type") == "m.room.member":
+                        admin_room_id = room
+                        break
+        return admin_room_id
+
+    while count < 10:
         # Sync to get invited rooms
         sync_args = f"since={next_batch}" if next_batch else "full_state=true"
         sync_response = await aiohttp_get_json(
@@ -131,30 +153,9 @@ async def test_hookshot_webhook(
             next_batch = sync_response.get("next_batch")
 
         # Check for joined rooms, if hookshot already invited the user to the admin room
-        joined_rooms = sync_response.get("rooms", {}).get("join", {})
-        for room, room_data in joined_rooms.items():
-            # Check if one of the room is created by hookshot
-            for state_events in room_data["timeline"]["events"] + room_data["state"]["events"]:
-                # This assumes that the admin room is the only room created by hookshot in our test suite
-                if state_events.get("sender") == hookshot_mxid and state_events.get("type") == "m.room.create":
-                    admin_room_id = room
-                    break
-            if admin_room_id:
-                break
-        if admin_room_id:
-            break
-        # Check for rooms in invite state
-        invited_rooms = sync_response.get("rooms", {}).get("invite", {})
-        for room, room_data in invited_rooms.items():
-            # Check if the invite is from hookshot
-            invite_state = room_data.get("invite_state", {}).get("events", [])
-            for event in invite_state:
-                # This assumes that the admin room is the only room created by hookshot in our test suite
-                if event.get("sender") == hookshot_mxid and event.get("type") == "m.room.member":
-                    admin_room_id = room
-                    break
-            if admin_room_id:
-                break
+        joined_rooms: dict = sync_response.get("rooms", {}).get("join", {})
+        invited_rooms: dict = sync_response.get("rooms", {}).get("invite", {})
+        admin_room_id = _find_admin_room_in_room_data(joined_rooms | invited_rooms)
 
         if admin_room_id:
             break
