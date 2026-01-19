@@ -186,6 +186,9 @@
             },
             "rtcUdp": {
               "$ref": "file://common/exposedServicePortRange.json"
+            },
+            "turnTLS": {
+              "$ref": "file://common/exposedServicePortWithTLS.json"
             }
           }
         },
