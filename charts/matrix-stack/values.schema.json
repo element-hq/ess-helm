@@ -2231,6 +2231,15 @@
                     "enabled": {
                       "type": "boolean"
                     },
+                    "annotations": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
                     "portType": {
                       "type": "string"
                     },
@@ -2250,6 +2259,15 @@
                   "properties": {
                     "enabled": {
                       "type": "boolean"
+                    },
+                    "annotations": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
                     },
                     "portType": {
                       "type": "string"
@@ -2289,6 +2307,41 @@
                         }
                       },
                       "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "turnTLS": {
+                  "type": "object",
+                  "required": [
+                    "enabled",
+                    "portType",
+                    "port"
+                  ],
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "annotations": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "portType": {
+                      "type": "string"
+                    },
+                    "port": {
+                      "type": "number"
+                    },
+                    "domain": {
+                      "type": "string"
+                    },
+                    "tlsSecret": {
+                      "type": "string"
                     }
                   },
                   "additionalProperties": false
@@ -6274,29 +6327,6 @@
                 }
               },
               "additionalProperties": false
-                },
-                "turnTLS": {
-                  "type": "object",
-                  "required": [
-                    "enabled",
-                    "portType",
-                    "port"
-                  ],
-                  "properties": {
-                    "enabled": {
-                      "type": "boolean"
-                    },
-                    "portType": {
-                      "type": "string"
-                    },
-                    "port": {
-                      "type": "number"
-                    },
-                    "tlsSecret": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": false
             }
           },
           "additionalProperties": false

@@ -183,14 +183,14 @@ spec:
       - {{- (tpl (. | toYaml) $) | nindent 8 }}
 {{- end }}
 {{- if .exposedServices.turnTLS.enabled }}
-{{- if .exposedService.turnTLS.tlsSecret }}
-        - name: secret-turn-tls
-          secret:
-            secretName: {{ .exposedService.turnTLS.tlsSecret }}
-{{- else if $.Values.certManager -}}
-        - name: secret-turn-tls
-          secret:
-            secretName: "{{ .Release.Name }}-turn-tls-certmanager-tls"
+{{- if .exposedServices.turnTLS.tlsSecret }}
+      - name: secret-turn-tls
+        secret:
+          secretName: {{ .exposedServices.turnTLS.tlsSecret }}
+{{- else if $.Values.certManager }}
+      - name: secret-turn-tls
+        secret:
+          secretName: "{{ .Release.Name }}-turn-tls-certmanager-tls"
 {{- end }}
 {{- end }}
 {{- end }}

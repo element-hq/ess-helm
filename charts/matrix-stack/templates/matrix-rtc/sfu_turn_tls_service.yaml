@@ -14,6 +14,10 @@ kind: Service
 metadata:
   labels:
     {{- include "element-io.matrix-rtc-sfu-turn-tls.labels" (dict "root" $ "context" .) | nindent 4 }}
+  {{- with .annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   name: {{ $.Release.Name }}-matrix-rtc-sfu-turn-tls
   namespace: {{ $.Release.Namespace }}
 spec:

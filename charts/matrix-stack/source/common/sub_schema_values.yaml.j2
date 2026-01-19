@@ -465,14 +465,19 @@ extraVolumeMounts: []
 extraInitContainers: []
 {% endmacro %}
 
-{% macro exposedServicePort(name, port, portType='NodePort', defaultEnabled=True, tlsSecret=False) %}
+{% macro exposedServicePort(name, port, portType='NodePort', defaultEnabled=true, tlsSecret=false) %}
 {{ name }}:
-  enabled: {{ defaultEnabled }}
+  enabled: {{ 'true' if defaultEnabled else 'false' }}
+  # Annotations to be added to this service
+  annotations: {}
   # Either a NodePort or a HostPort
   portType: {{ portType }}
   port: {{ port }}
-{% if tls %}
-  tlsSecret:
+{% if tlsSecret %}
+  # The domain of the service
+  domain: ""
+  # The TLS secret used to expose this service
+  tlsSecret: ""
 {% endif %}
 {%- endmacro %}
 

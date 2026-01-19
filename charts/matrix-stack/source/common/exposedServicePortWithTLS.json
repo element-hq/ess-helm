@@ -9,11 +9,23 @@
     "enabled": {
       "type": "boolean"
     },
+    "annotations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    },
     "portType": {
       "type": "string"
     },
     "port": {
       "type": "number"
+    },
+    "domain": {
+      "type": "string"
     },
     "tlsSecret": {
       "type": "string"

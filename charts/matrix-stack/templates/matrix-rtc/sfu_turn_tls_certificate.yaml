@@ -8,7 +8,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- with $.Values.matrixRTC -}}
 {{- if .enabled -}}
 {{- with .sfu -}}
-{{- if and .enabled .exposedServices.turnTLS.enabled (not .tlsSecret) $root.Values.certManager -}}
+{{- if $.Capabilities.APIVersions.Has "cert-manager.io/v1/Certificate" }}
+{{- if and .enabled .exposedServices.turnTLS.enabled (not .tlsSecret) $.Values.certManager -}}
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -20,9 +21,10 @@ spec:
   dnsNames:
   - {{ .exposedServices.turnTLS.domain }}
   issuerRef:
-    name: {{ $root.Values.certManager.clusterIssuer }}
+    name: {{ $.Values.certManager.clusterIssuer }}
     kind: ClusterIssuer
     group: cert-manager.io
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}
