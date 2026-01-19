@@ -1,5 +1,5 @@
 # Copyright 2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -14,6 +14,8 @@ matrixRTC:
   - name: LIVEKIT_INSECURE_SKIP_VERIFY_TLS
     value: "YES_I_KNOW_WHAT_I_AM_DOING"
   sfu:
+    logging:
+      level: debug
     extraEnv:
     - name: DEBUG_RENDERING
       value: "1"
