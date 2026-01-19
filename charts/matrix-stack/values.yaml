@@ -789,7 +789,7 @@ matrixRTC:
         enabled: False
         # Either a NodePort or a HostPort
         portType: NodePort
-        port: 443
+        port: 31443
 
     # Details of the image to be used
     image:
