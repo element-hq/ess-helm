@@ -1,0 +1,29 @@
+{{- /*
+Copyright 2024 New Vector Ltd
+Copyright 2025 Element Creations Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+
+{{- with $.Values.matrixRTC -}}
+{{- if .enabled -}}
+{{- with .sfu -}}
+{{- if and .enabled .exposedServices.turnTLS.enabled (not .tlsSecret) $root.Values.certManager -}}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ $.Release.Name }}-turn-tls
+  namespace: {{ $.Release.Namespace }}
+spec:
+  commonName: {{ tpl .exposedServices.turnTLS.domain $ }}
+  secretName: "{{ .Release.Name }}-turn-tls-certmanager-tls"
+  dnsNames:
+  - {{ .exposedServices.turnTLS.domain }}
+  issuerRef:
+    name: {{ $root.Values.certManager.clusterIssuer }}
+    kind: ClusterIssuer
+    group: cert-manager.io
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

@@ -60,6 +60,17 @@ key_file: /secrets/{{ (printf "/secrets/%s"
 key_file: /conf/keys.yaml
 {{- end }}
 
+{{- with .exposedServices.turnTLS }}
+{{ if .enabled }}
+turn:
+  enabled: true
+  tls_port: {{ .port }}
+  domain: {{ .domain }}
+  cert_file: /turn-tls/tls.crt
+  key_file: /turn-tls/tls.key
+{{- end }}
+{{- end }}
+
 room:
   auto_create: false
 

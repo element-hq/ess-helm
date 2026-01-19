@@ -27,6 +27,17 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- end }}
 {{- end }}
 
+{{- define "element-io.matrix-rtc-sfu-turn-tls.labels" -}}
+{{- $root := .root -}}
+{{- with required "element-io.matrix-rtc.labels missing context" .context -}}
+{{ include "element-io.ess-library.labels.common" (dict "root" $root "context" (dict "labels" .labels)) }}
+app.kubernetes.io/component: matrix-rtc-voip-server
+app.kubernetes.io/name: matrix-rtc-sfu-turn-tls
+app.kubernetes.io/instance: {{ $root.Release.Name }}-matrix-rtc-sfu-turn-tls
+app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .image.tag }}
+{{- end }}
+{{- end }}
+
 {{- define "element-io.matrix-rtc-sfu.overrideEnv" }}
 env: []
 {{- end -}}

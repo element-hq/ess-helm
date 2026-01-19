@@ -91,6 +91,16 @@ spec:
           name: http
           protocol: TCP
 {{- with .exposedServices }}
+  {{- with .turnTLS }}
+  {{- if .enabled }}
+        - containerPort: {{ .port }}
+    {{- if eq .type "HostPort" }}
+          hostPort: {{ .port }}
+    {{- end }}
+          name: turn-tls-tcp
+          protocol: TCP
+  {{- end }}
+  {{- end }}
   {{- with .rtcTcp }}
   {{- if .enabled }}
         - containerPort: {{ .port }}
@@ -158,11 +168,30 @@ spec:
 {{- range .extraVolumeMounts }}
         - {{ (. | toYaml) | nindent 10 }}
 {{- end }}
+{{- if .exposedServices.turnTLS.enabled }}
+        - mountPath: /turn-tls/tls.crt
+          name: secret-turn-tls
+          subPath: tls.crt
+        - mountPath: /turn-tls/tls.crt
+          name: secret-turn-tls
+          subPath: tls.key
+{{- end }}
       volumes:
       {{- include "element-io.ess-library.render-config-volumes" (dict "root" $ "context"
               (dict "nameSuffix" "matrix-rtc-sfu" "additionalPath" "matrixRTC.sfu.additional")) | nindent 6 }}
 {{- range .extraVolumes }}
       - {{- (tpl (. | toYaml) $) | nindent 8 }}
+{{- end }}
+{{- if .exposedServices.turnTLS.enabled }}
+{{- if .exposedService.turnTLS.tlsSecret }}
+        - name: secret-turn-tls
+          secret:
+            secretName: {{ .exposedService.turnTLS.tlsSecret }}
+{{- else if $.Values.certManager -}}
+        - name: secret-turn-tls
+          secret:
+            secretName: "{{ .Release.Name }}-turn-tls-certmanager-tls"
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}
