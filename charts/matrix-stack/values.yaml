@@ -786,6 +786,8 @@ matrixRTC:
 
       rtcUdp:
         enabled: false
+        # Annotations to be added to this service
+        annotations: {}
         # Service type, either NodePort, LoadBalancer or ClusterIP
         type: NodePort
         # Either a NodePort or a HostPort
