@@ -65,7 +65,7 @@ key_file: /conf/keys.yaml
 turn:
   enabled: true
   tls_port: {{ .port }}
-  domain: {{ .domain }}
+  domain: {{ tpl .domain $root }}
   cert_file: /turn-tls/tls.crt
   key_file: /turn-tls/tls.key
 {{- end }}

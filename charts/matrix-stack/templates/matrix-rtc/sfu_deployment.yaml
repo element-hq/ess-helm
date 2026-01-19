@@ -172,7 +172,7 @@ spec:
         - mountPath: /turn-tls/tls.crt
           name: secret-turn-tls
           subPath: tls.crt
-        - mountPath: /turn-tls/tls.crt
+        - mountPath: /turn-tls/tls.key
           name: secret-turn-tls
           subPath: tls.key
 {{- end }}

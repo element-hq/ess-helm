@@ -165,8 +165,20 @@ def external_secrets(release_name, values):
                 elif isinstance(value, list):
                     yield from find_credential(value)
 
+    def find_tlsSecret(values_fragment):
+        if isinstance(values_fragment, (dict, list)):
+            for k, v in values_fragment.items() if isinstance(values_fragment, dict) else values_fragment:
+                if k == "tlsSecret":
+                    yield v.replace("{{ $.Release.Name }}", release_name), "tls.crt"
+                    yield v.replace("{{ $.Release.Name }}", release_name), "tls.key"
+                elif isinstance(v, (dict, list)):
+                    yield from find_tlsSecret(v)
+
     external_secrets_to_keys = {}
     for secret_name, secretKey in find_credential(values):
+        external_secrets_to_keys.setdefault(secret_name, []).append(secretKey)
+
+    for secret_name, secretKey in find_tlsSecret(values):
         external_secrets_to_keys.setdefault(secret_name, []).append(secretKey)
 
     for secret_name, secret_keys in external_secrets_to_keys.items():
