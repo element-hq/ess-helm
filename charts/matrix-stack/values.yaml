@@ -768,6 +768,8 @@ matrixRTC:
         enabled: true
         # Annotations to be added to this service
         annotations: {}
+        # Service type, either NodePort, LoadBalancer or ClusterIP
+        type: NodePort
         # Either a NodePort or a HostPort
         portType: NodePort
         port: 30881
@@ -776,12 +778,16 @@ matrixRTC:
         enabled: true
         # Annotations to be added to this service
         annotations: {}
+        # Service type, either NodePort, LoadBalancer or ClusterIP
+        type: NodePort
         # Either a NodePort or a HostPort
         portType: NodePort
         port: 30882
 
       rtcUdp:
         enabled: false
+        # Service type, either NodePort, LoadBalancer or ClusterIP
+        type: NodePort
         # Either a NodePort or a HostPort
         portType: NodePort
         portRange:
@@ -793,6 +799,8 @@ matrixRTC:
         enabled: false
         # Annotations to be added to this service
         annotations: {}
+        # Service type, either NodePort, LoadBalancer or ClusterIP
+        type: NodePort
         # Either a NodePort or a HostPort
         portType: NodePort
         port: 31443

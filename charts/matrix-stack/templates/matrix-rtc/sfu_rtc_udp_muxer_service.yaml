@@ -21,7 +21,7 @@ metadata:
   name: {{ $.Release.Name }}-matrix-rtc-sfu-muxed-udp
   namespace: {{ $.Release.Namespace }}
 spec:
-  type: NodePort
+  type: {{ .exposedServices.rtcMuxedUdp.type }}
   ipFamilyPolicy: PreferDualStack
   externalTrafficPolicy: Local
   ports:

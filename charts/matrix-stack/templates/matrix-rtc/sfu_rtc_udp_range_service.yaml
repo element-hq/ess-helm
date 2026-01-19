@@ -23,7 +23,7 @@ metadata:
   name: {{ $.Release.Name }}-matrix-rtc-sfu-udp-range-{{ $port_segment }}
   namespace: {{ $.Release.Namespace }}
 spec:
-  type: NodePort
+  type: {{ $.Values.matrixRTC.sfu.exposedServices.rtcUdp.type }}
   ipFamilyPolicy: PreferDualStack
   externalTrafficPolicy: Local
   ports:

@@ -2224,6 +2224,7 @@
                   "type": "object",
                   "required": [
                     "enabled",
+                    "type",
                     "portType",
                     "port"
                   ],
@@ -2234,11 +2235,16 @@
                     "annotations": {
                       "type": "object",
                       "additionalProperties": {
-                        "type": [
-                          "string",
-                          "null"
-                        ]
+                        "type": "string"
                       }
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "ClusterIP",
+                        "NodePort",
+                        "LoadBalancer"
+                      ]
                     },
                     "portType": {
                       "type": "string"
@@ -2253,6 +2259,7 @@
                   "type": "object",
                   "required": [
                     "enabled",
+                    "type",
                     "portType",
                     "port"
                   ],
@@ -2263,11 +2270,16 @@
                     "annotations": {
                       "type": "object",
                       "additionalProperties": {
-                        "type": [
-                          "string",
-                          "null"
-                        ]
+                        "type": "string"
                       }
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "ClusterIP",
+                        "NodePort",
+                        "LoadBalancer"
+                      ]
                     },
                     "portType": {
                       "type": "string"
@@ -2282,12 +2294,21 @@
                   "type": "object",
                   "required": [
                     "enabled",
+                    "type",
                     "portType",
                     "portRange"
                   ],
                   "properties": {
                     "enabled": {
                       "type": "boolean"
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "ClusterIP",
+                        "NodePort",
+                        "LoadBalancer"
+                      ]
                     },
                     "portType": {
                       "type": "string"
@@ -2315,6 +2336,7 @@
                   "type": "object",
                   "required": [
                     "enabled",
+                    "type",
                     "portType",
                     "port"
                   ],
@@ -2325,11 +2347,16 @@
                     "annotations": {
                       "type": "object",
                       "additionalProperties": {
-                        "type": [
-                          "string",
-                          "null"
-                        ]
+                        "type": "string"
                       }
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "ClusterIP",
+                        "NodePort",
+                        "LoadBalancer"
+                      ]
                     },
                     "portType": {
                       "type": "string"

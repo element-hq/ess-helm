@@ -470,6 +470,8 @@ extraInitContainers: []
   enabled: {{ 'true' if defaultEnabled else 'false' }}
   # Annotations to be added to this service
   annotations: {}
+  # Service type, either NodePort, LoadBalancer or ClusterIP
+  type: NodePort
   # Either a NodePort or a HostPort
   portType: {{ portType }}
   port: {{ port }}
@@ -484,6 +486,8 @@ extraInitContainers: []
 {% macro exposedServicePortRange(name, startPort, endPort, portType='NodePort') %}
 {{ name }}:
   enabled: false
+  # Service type, either NodePort, LoadBalancer or ClusterIP
+  type: NodePort
   # Either a NodePort or a HostPort
   portType: {{ portType }}
   portRange:
