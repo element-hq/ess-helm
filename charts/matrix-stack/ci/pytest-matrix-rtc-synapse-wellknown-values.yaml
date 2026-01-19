@@ -36,6 +36,13 @@ matrixRTC:
     runAsGroup: 0
   replicas: 2
   sfu:
+    exposedServices:
+      rtcTcp:
+        type: LoadBalancer
+      rtcUdp:
+        type: LoadBalancer
+      turnTLS:
+        type: LoadBalancer
     extraEnv:
       - name: DEBUG_RENDERING
         value: "1"

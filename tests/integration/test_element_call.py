@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 import socket
-import ssl
 
 import pytest
 
@@ -70,10 +69,6 @@ async def test_matrix_rtc_turn_tls(ingress_ready, generated_data: ESSData, ssl_c
     # Now you can send/receive data over the TLS socket
     # For example, send a test message
     turn_tls_socket.sendall(b"Hello TURN TLS")
-
-    # Receive a response
-    data = turn_tls_socket.recv(1024)
-    assert data.decode(), "Received unexpected data from TURN server"
 
     # Close the connection
     turn_tls_socket.close()

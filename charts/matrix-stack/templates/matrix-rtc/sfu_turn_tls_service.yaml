@@ -31,7 +31,7 @@ spec:
     targetPort: {{ .exposedServices.turnTLS.port }}
     nodePort: {{ .exposedServices.turnTLS.port }}
   selector:
-    app.kubernetes.io/instance: "{{ $.Release.Name }}-matrix-turn-tls-sfu"
+    app.kubernetes.io/instance: "{{ $.Release.Name }}-matrix-rtc-sfu"
 {{- end }}
 {{- end }}
 {{- end }}

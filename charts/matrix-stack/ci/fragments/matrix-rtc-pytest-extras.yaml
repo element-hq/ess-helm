@@ -21,5 +21,12 @@ matrixRTC:
       value: "1"
     podSecurityContext:
       runAsGroup: 0
+    exposedServices:
+      rtcTcp:
+        type: LoadBalancer
+      rtcUdp:
+        type: LoadBalancer
+      turnTLS:
+        type: LoadBalancer
   podSecurityContext:
     runAsGroup: 0
