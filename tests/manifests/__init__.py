@@ -536,6 +536,7 @@ all_components_details = [
                 makes_outbound_requests=False,
             ),
         ),
+        additional_values_files=("matrix-rtc-turn-tls-values.yaml",),
         additional_secret_values_files=(
             "matrix-rtc-external-livekit-secrets-in-helm-values.yaml",
             "matrix-rtc-external-livekit-secrets-externally-values.yaml",
