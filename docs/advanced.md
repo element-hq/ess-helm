@@ -1,6 +1,6 @@
 <!--
 Copyright 2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 -->
@@ -82,7 +82,15 @@ If your cluster has [Prometheus Operator](https://github.com/prometheus-operator
 
 ## Configuration
 
-ESS Community allows you to easily configure its individual components. You basically have to create a values file for each component in which you specify your custom configuration. Below you  find sections for each component.
+ESS Community allows you to easily configure its individual components. You basically have to create a values file for each component in which you specify your custom configuration. Below you find sections for each component.
+
+Some component configuration options are controlled by the chart.
+These configuration options usually fall into one of the following categories:
+* Required configuration options, so that the chart can validate that they've been set at install time rather than the application failing at runtime.
+* Configuration options that are required to "wire-up" the component either to its dependencies or other configured components in the chart.
+* Configuration options that need to be consistently set in several places.
+
+Attempting to change these configuration options by the mechanism described below will appear to have no effect.
 
 **If you have created new values files for custom configuration, make sure to apply them by passing them with the helm upgrade command (see [Setting up the stack](#setting-up-the-stack)).**
 
@@ -113,6 +121,10 @@ synapse:
         # Add your settings below, taking care of the spacing indentation
         some: settings
 ```
+
+One common Synapse configuration option that can't be set by this mechanism is `max_upload_size`.
+This is controlled by `synapse.media.maxUploadSize`.
+This is so that Ingress controller specific annotations can be adjusted to match.
 
 ### Configuring Matrix Authentication Service
 
