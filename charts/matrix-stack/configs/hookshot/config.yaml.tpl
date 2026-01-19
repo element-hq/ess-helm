@@ -43,6 +43,9 @@ listeners:
     bindAddress: 0.0.0.0
     resources:
       - webhooks
+{{- if and $root.Values.synapse.enabled (not .ingress.host) }}
+    prefix: "/_matrix/hookshot"
+{{- end }}
   - port: 7777
     bindAddress: 0.0.0.0
     resources:
@@ -51,6 +54,9 @@ listeners:
     bindAddress: 0.0.0.0
     resources:
       - widgets
+{{- if and $root.Values.synapse.enabled (not .ingress.host) }}
+    prefix: "/_matrix/hookshot"
+{{- end }}
 
 generic:
 {{ if .ingress.host }}

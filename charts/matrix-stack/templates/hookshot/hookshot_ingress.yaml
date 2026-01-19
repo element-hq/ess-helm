@@ -30,7 +30,7 @@ spec:
             name: "{{ $.Release.Name }}-hookshot"
             port:
               name: widgets
-      - path: /webhook
+      - path: /
         pathType: Prefix
         backend:
           service:

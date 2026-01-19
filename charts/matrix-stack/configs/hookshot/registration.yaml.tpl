@@ -6,10 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $root := .root -}}
 
 rate_limited: false
-namespaces:
-  users:
-  - regex: "@{{ $root.Values.hookshot.user.localpart }}:{{ $root.Values.servername }}"
-    exclusive: true
+namespaces: {}
 id: hookshot
 as_token: "${AS_TOKEN}"
 hs_token: "${HS_TOKEN}"
