@@ -11,6 +11,7 @@ Distroless
 dockerhub
 Gematik
 GHSA
+Hookshot
 homeserver
 Homeserver
 homeservers
