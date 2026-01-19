@@ -56,14 +56,14 @@ generic:
 {{ if .ingress.host }}
   urlPrefix: https://{{ (tpl .ingress.host $root) }}/webhook
 {{ else if $root.Values.synapse.enabled }}
-  urlPrefix: https://{{ (tpl $root.Values.synapse.ingress.host $root) }}/webhook
+  urlPrefix: https://{{ (tpl $root.Values.synapse.ingress.host $root) }}/_matrix/hookshot/webhook
 {{ end }}
 
 widgets:
 {{- if .ingress.host }}
   publicUrl: https://{{ tpl .ingress.host $root }}/widgetapi/v1/static
 {{ else if $root.Values.synapse.enabled }}
-  publicUrl: https://{{ tpl $root.Values.synapse.ingress.host $root }}/widgetapi/v1/static
+  publicUrl: https://{{ tpl $root.Values.synapse.ingress.host $root }}/_matrix/hookshot/widgetapi/v1/static
 {{ end }}
 
 {{- end -}}

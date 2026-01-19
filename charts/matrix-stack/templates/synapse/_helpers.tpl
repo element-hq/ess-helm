@@ -122,13 +122,13 @@ env:
 {{- end }}
 {{- end }}
 {{- if and $root.Values.hookshot.enabled (not $root.Values.hookshot.ingress.host) -}}
-- path: "/widgetapi/v1"
+- path: "/_matrix/hookshot/widgetapi/v1"
   availability: only_externally
   service:
     name: "{{ $root.Release.Name }}-hookshot"
     port:
       name: widgets
-- path: "/webhook"
+- path: "/_matrix/hookshot"
   availability: only_externally
   service:
     name: "{{ $root.Release.Name }}-hookshot"
