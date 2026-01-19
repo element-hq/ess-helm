@@ -12,6 +12,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- if not .ingress.host -}}
 {{ $messages = append $messages "matrixRTC.ingress.host is required when matrixRTC.enabled=true" }}
 {{- end }}
+{{- if and .sfu.exposedServices.turnTLS.enabled (not .sfu.exposedServices.turnTLS.tlsSecret) (not $root.Values.certManager) -}}
+{{ $messages = append $messages "matrixRTC.sfu.exposedServices.turnTLS.enabled requires matrixRTC.sfu.exposedServices.turnTLS.tlsSecret set or certManager enabled" }}
+{{- end }}
 {{ $messages | toJson }}
 {{- end }}
 {{- end }}
