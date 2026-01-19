@@ -186,7 +186,7 @@ spec:
 {{- if .exposedServices.turnTLS.tlsSecret }}
       - name: secret-turn-tls
         secret:
-          secretName: {{ .exposedServices.turnTLS.tlsSecret }}
+          secretName: {{ tpl .exposedServices.turnTLS.tlsSecret $ }}
 {{- else if $.Values.certManager }}
       - name: secret-turn-tls
         secret:

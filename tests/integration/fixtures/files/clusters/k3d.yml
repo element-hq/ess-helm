@@ -1,5 +1,5 @@
 # Copyright 2024-2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -20,6 +20,9 @@ ports:
 - port: 127.0.0.1:30881:30881
   nodeFilters: [loadbalancer]
 - port: 127.0.0.1:30882:30882/UDP
+  nodeFilters: [loadbalancer]
+  # Matrix RTC SFU Turn TLS
+- port: 127.0.0.1:31443:31443
   nodeFilters: [loadbalancer]
 options:
   k3d:

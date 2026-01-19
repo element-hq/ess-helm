@@ -60,6 +60,14 @@ async def helm_prerequisites(
                 generate_cert(delegated_ca, [f"mrtc.{generated_data.server_name}"]),
             )
         )
+        if value_file_has("matrixRTC.sfu.exposedServices.turnTLS.enabled", True):
+            resources.append(
+                kubernetes_tls_secret(
+                    f"{generated_data.release_name}-turn-tls",
+                    generated_data.ess_namespace,
+                    generate_cert(delegated_ca, [f"turn.{generated_data.server_name}"]),
+                )
+            )
 
     if value_file_has("elementAdmin.enabled", True):
         resources.append(
