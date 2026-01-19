@@ -201,3 +201,26 @@ matrixRTC:
             stun_servers:
             - "example.com:3478"
 ```
+
+#### Enable Turn-TLS behind Traefik
+
+For Turn-TLS to work behind Traefik, you need to create the following manifest :
+
+```yml
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: ess-turn-tls
+  namespace: ess
+spec:
+  entryPoints:
+    - websecure
+  routes:
+  - match: HostSNI(`< .matrixRTC.sfu.exposedServices.turnTLS.domain >`)
+    priority: 10
+    services:
+    - name: ess-matrix-rtc-sfu-turn-tls
+      port: < .matrixRTC.sfu.exposedServices.turnTLS.port >
+  tls:
+    passthrough: true
+```
