@@ -1,5 +1,5 @@
 # Copyright 2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -12,10 +12,6 @@ synapse:
     01-other-user-config.yaml:
       configSecret: "{{ $.Release.Name }}-synapse-secrets"
       configSecretKey: "01-other-user-config.yaml"
-
-  extraEnv:
-  - name: DEBUG_RENDERING
-    value: "1"
 
   workers:
     # A non-HTTP worker & a stream writer

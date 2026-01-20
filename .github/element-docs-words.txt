@@ -1,6 +1,7 @@
 Adminbot
 ansible
 Ansible
+appservice
 appservices
 Artifacthub
 asyncio
@@ -11,6 +12,7 @@ Distroless
 dockerhub
 Gematik
 GHSA
+Hookshot
 homeserver
 Homeserver
 homeservers

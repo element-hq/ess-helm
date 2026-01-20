@@ -1,0 +1,29 @@
+{{- /*
+Copyright 2026 Element Creations Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+
+
+{{- with $.Values.hookshot -}}
+{{- if .enabled -}}
+{{- if $.Capabilities.APIVersions.Has "monitoring.coreos.com/v1/ServiceMonitor" }}
+{{- if .serviceMonitors.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    {{- include "element-io.hookshot.labels" (dict "root" $ "context" .) | nindent 4 }}
+  name: {{ $.Release.Name }}-hookshot
+  namespace: {{ $.Release.Namespace }}
+spec:
+  endpoints:
+  - interval: 30s
+    port: metrics
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: "{{ $.Release.Name }}-hookshot"
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

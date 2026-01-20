@@ -1,0 +1,41 @@
+{{- /*
+Copyright 2026 Element Creations Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+
+
+{{- with $.Values.hookshot -}}
+{{- if and .enabled .ingress.host }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+{{- $extraAnnotations := dict }}
+{{- include "element-io.ess-library.ingress.annotations" (dict "root" $ "context" (dict "ingress" .ingress "extraAnnotations" $extraAnnotations)) | nindent 2 }}
+  labels:
+    {{- include "element-io.hookshot.labels" (dict "root" $ "context" $.Values.haproxy) | nindent 4 }}
+  name: {{ $.Release.Name }}-hookshot
+  namespace: {{ $.Release.Namespace }}
+spec:
+{{- include "element-io.ess-library.ingress.tls" (dict "root" $ "context" (dict "ingress" .ingress "ingressName" "hookshot")) | nindent 2 }}
+{{- include "element-io.ess-library.ingress.className" (dict "root" $ "context" .ingress.className) | nindent 2 }}
+  rules:
+  - host: {{ (tpl .ingress.host $) | quote }}
+    http:
+      paths:
+      - path: /widgetapi/v1
+        pathType: Prefix
+        backend:
+          service:
+            name: "{{ $.Release.Name }}-hookshot"
+            port:
+              name: widgets
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: "{{ $.Release.Name }}-hookshot"
+            port:
+              name: webhooks
+{{- end -}}
+{{- end -}}

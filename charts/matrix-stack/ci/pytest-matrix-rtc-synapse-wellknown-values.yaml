@@ -52,6 +52,9 @@ synapse:
   extraArgs:
     # Validate that any Synapse config that has a <foo>_path equivalent uses it
     - --no-secrets-in-config
+  extraEnv:
+    - name: DEBUG_RENDERING
+      value: "1"
   ingress:
     host: synapse.{{ $.Values.serverName }}
     tlsSecret: '{{ $.Release.Name }}-synapse-web-tls'

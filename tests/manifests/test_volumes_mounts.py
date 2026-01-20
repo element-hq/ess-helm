@@ -63,6 +63,7 @@ async def test_volumes_mounts_exists(release_name, templates, other_secrets, oth
                         r"^("
                         r"(haproxy-|nginx-|plain)?(-syn-|-mas-|-)?config|"
                         r"(synapse|well-known)-haproxy|"
+                        r"registration-templates|"
                         r"test-[\w-]+"
                         r")$",
                         volume["name"],

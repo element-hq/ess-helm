@@ -105,7 +105,7 @@ matrix_authentication_service:
   endpoint: http://{{ $root.Release.Name }}-matrix-authentication-service.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:8080/
 {{- end }}
 
-{{- if or (include "element-io.matrix-authentication-service.readyToHandleAuth" (dict "root" $root)) $root.Values.matrixRTC.enabled }}
+{{- if or (include "element-io.matrix-authentication-service.readyToHandleAuth" (dict "root" $root)) $root.Values.matrixRTC.enabled $root.Values.hookshot.enabled }}
 experimental_features:
 {{- if $root.Values.matrixRTC.enabled }}
   # MSC3266: Room summary API. Used for knocking over federation
@@ -115,6 +115,13 @@ experimental_features:
   # MSC4222 needed for syncv2 state_after. This allow clients to
   # correctly track the state of the room.
   msc4222_enabled: true
+{{- end }}
+{{- if $root.Values.hookshot.enabled }}
+  # MSCs required for Hookshot encryption support
+  # https://matrix-org.github.io/matrix-hookshot/latest/advanced/encryption.html
+  msc2409_to_device_messages_enabled: true
+  msc3202_device_masquerading: true
+  msc3202_transaction_extensions: true
 {{- end }}
 
 {{- if (include "element-io.matrix-authentication-service.readyToHandleAuth" (dict "root" $root)) }}
@@ -138,15 +145,9 @@ matrix_rtc:
 notify_appservices_from_worker: {{ $root.Release.Name }}-synapse-{{- include "element-io.synapse.process.workerTypeName" (dict "root" $root "context" "appservice") }}-0
 {{- end }}
 
-{{- with .appservices }}
+{{- with (include "element-io.synapse.appservices-config-files" (dict "root" $root "context" .)) | fromJsonArray }}
 app_service_config_files:
-{{- range $idx, $appservice := . }}
-{{- if $appservice.configMap }}
- - /as/{{ $idx }}/{{ $appservice.configMapKey }}
-{{- else }}
- - /as/{{ $idx }}/{{ $appservice.secretKey }}
-{{- end }}
-{{- end }}
+{{ . | toYaml }}
 {{- end }}
 
 {{- if dig "background" "enabled" false .workers }}

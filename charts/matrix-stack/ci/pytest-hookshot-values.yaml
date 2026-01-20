@@ -1,0 +1,70 @@
+# Copyright 2025-2026 Element Creations Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# source_fragments: hookshot-minimal.yaml hookshot-pytest-extras.yaml init-secrets-minimal.yaml init-secrets-pytest-extras.yaml postgres-minimal.yaml redis-pytest-base-extras.yaml server-name.yaml synapse-minimal.yaml synapse-pytest-base-extras.yaml
+# DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
+
+deploymentMarkers:
+  enabled: false
+elementAdmin:
+  enabled: false
+elementWeb:
+  enabled: false
+haproxy:
+  podSecurityContext:
+    runAsGroup: 0
+  replicas: 2
+hookshot:
+  additional:
+    user-config.yaml:
+      config: |
+        generic:
+          enabled: true
+          outbound: true # For outbound webhook support
+          allowJsTransformationFunctions: false
+          waitForComplete: true
+          enableHttpGet: false
+  enabled: true
+  extraEnv:
+    - name: DEBUG_RENDERING
+      value: "1"
+  logging:
+    level: debug
+  podSecurityContext:
+    runAsGroup: 0
+initSecrets:
+  annotations:
+    has-no-service-monitor: "true"
+  podSecurityContext:
+    runAsGroup: 0
+matrixAuthenticationService:
+  enabled: false
+matrixRTC:
+  enabled: false
+postgres:
+  podSecurityContext:
+    runAsGroup: 0
+redis:
+  annotations:
+    has-no-service-monitor: "true"
+  podSecurityContext:
+    runAsGroup: 0
+serverName: ess.localhost
+synapse:
+  checkConfigHook:
+    annotations:
+      has-no-service-monitor: "true"
+  extraArgs:
+    # Validate that any Synapse config that has a <foo>_path equivalent uses it
+    - --no-secrets-in-config
+  extraEnv:
+    - name: DEBUG_RENDERING
+      value: "1"
+  ingress:
+    host: synapse.{{ $.Values.serverName }}
+    tlsSecret: '{{ $.Release.Name }}-synapse-web-tls'
+  podSecurityContext:
+    runAsGroup: 0
+wellKnownDelegation:
+  enabled: false

@@ -26,6 +26,7 @@ const (
 	Rand32
 	SigningKey
 	Hex32
+	Registration
 	RSA
 	EcdsaPrime256v1
 )
@@ -98,6 +99,12 @@ func GenerateSecret(client kubernetes.Interface, secretLabels map[string]string,
 				existingSecret.Data[key] = keyBytes
 			} else {
 				return fmt.Errorf("failed to generate ECDSA Prime256v1 key: %w", err)
+			}
+		case Registration:
+			if registrationString, err := generateRegistration(generatorArgs[0]); err == nil {
+				existingSecret.Data[key] = registrationString
+			} else {
+				return fmt.Errorf("failed to generate registration: %w", err)
 			}
 		default:
 			return fmt.Errorf("unknown secret type for: %s:%s", name, key)

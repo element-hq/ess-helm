@@ -97,12 +97,13 @@ func TestParseArgs(t *testing.T) {
 
 		{
 			name: "Multiple generated secrets",
-			args: []string{"cmd", "generate-secrets", "-secrets", "secret1:value1:rand32,secret2:value2:signingkey"},
+			args: []string{"cmd", "generate-secrets", "-secrets", "secret1:value1:rand32,secret2:value2:signingkey,secret3:value3:registration:/registration-templates/registration.yaml"},
 			expected: &Options{
 				GenerateSecrets: &generatesecrets.GenerateSecretsOptions{
 					GeneratedSecrets: []generatesecrets.GeneratedSecret{
 						{ArgValue: "secret1:value1:rand32", Name: "secret1", Key: "value1", Type: secret.Rand32, GeneratorArgs: make([]string, 0)},
 						{ArgValue: "secret2:value2:signingkey", Name: "secret2", Key: "value2", Type: secret.SigningKey, GeneratorArgs: make([]string, 0)},
+						{ArgValue: "secret3:value3:registration:/registration-templates/registration.yaml", Name: "secret3", Key: "value3", Type: secret.Registration, GeneratorArgs: []string{"/registration-templates/registration.yaml"}},
 					},
 					Labels: map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-init-secrets"},
 				},

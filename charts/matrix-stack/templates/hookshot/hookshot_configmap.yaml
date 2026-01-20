@@ -1,0 +1,19 @@
+{{- /*
+Copyright 2026 Element Creations Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+
+{{- with $.Values.hookshot -}}
+{{- if .enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $.Release.Name }}-hookshot
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "element-io.hookshot.labels" (dict "root" $ "context" .) | nindent 4 }}
+data:
+  {{- include "element-io.hookshot.configmap-data" (dict "root" $ "context" .) | nindent 2 -}}
+{{- end -}}
+{{- end -}}

@@ -12,6 +12,10 @@ synapse:
     annotations:
       has-no-service-monitor: "true"
 
+  extraEnv:
+  - name: DEBUG_RENDERING
+    value: "1"
+
   podSecurityContext:
     runAsGroup: 0
 

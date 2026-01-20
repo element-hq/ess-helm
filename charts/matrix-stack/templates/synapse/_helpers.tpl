@@ -121,6 +121,20 @@ env:
 {{- end }}
 {{- end }}
 {{- end }}
+{{- if and $root.Values.hookshot.enabled (not $root.Values.hookshot.ingress.host) -}}
+- path: "/_matrix/hookshot/widgetapi/v1"
+  availability: only_externally
+  service:
+    name: "{{ $root.Release.Name }}-hookshot"
+    port:
+      name: widgets
+- path: "/_matrix/hookshot"
+  availability: only_externally
+  service:
+    name: "{{ $root.Release.Name }}-hookshot"
+    port:
+      name: webhooks
+{{- end -}}
 {{- range $root.Values.synapse.ingress.additionalPaths }}
 - {{ . | toYaml | indent 2 | trim }}
 {{- end -}}
@@ -213,6 +227,36 @@ When we have a process to watch for file changes and send a reload signal to HAP
 ess-version.json: |
   {"version": "{{ $root.Chart.Version }}", "edition": "community"}
 {{- end -}}
+
+
+{{- define "element-io.synapse.appservices-config-files" -}}
+{{- $root := .root -}}
+{{- with required "element-io.synapse.appservices requires context" .context }}
+{{- $isHook := required "element-io.synapse.appservices context requires isHook" .isHook -}}
+{{- $appservicesFiles := list -}}
+{{- range $idx, $appservice := $root.Values.synapse.appservices }}
+{{- if $appservice.configMap }}
+{{ $appservicesFiles = append $appservicesFiles (printf "/as/%d/%s" $idx $appservice.configMapKey) }}
+{{- else }}
+{{ $appservicesFiles = append $appservicesFiles (printf "/as/%d/%s" $idx $appservice.secretKey) }}
+{{- end }}
+{{- end }}
+{{- if $root.Values.hookshot.enabled -}}
+{{- $appservicesFiles = append $appservicesFiles (printf "/secrets/%s"
+                (include "element-io.ess-library.init-secret-path" (
+                      dict "root" $root
+                      "context" (dict
+                        "secretPath" "hookshot.appserviceRegistration"
+                        "initSecretKey" "HOOKSHOT_REGISTRATION"
+                        "defaultSecretName" (include "element-io.hookshot.secret-name" (dict "root" $root "context"  (dict "isHook" $isHook)))
+                        "defaultSecretKey" "REGISTRATION"
+                      )
+                    ))) -}}
+{{- end -}}
+{{- $appservicesFiles | toJson -}}
+{{- end }}
+{{- end }}
+
 
 {{- define "element-io.synapse.render-config-container" -}}
 {{- $root := .root -}}

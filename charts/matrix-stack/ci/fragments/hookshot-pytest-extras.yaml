@@ -1,0 +1,23 @@
+# Copyright 2026 Element Creations Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+hookshot:
+  podSecurityContext:
+    runAsGroup: 0
+
+  logging:
+    level: debug
+  extraEnv:
+  - name: DEBUG_RENDERING
+    value: "1"
+
+  additional:
+    user-config.yaml:
+      config: |
+        generic:
+          enabled: true
+          outbound: true # For outbound webhook support
+          allowJsTransformationFunctions: false
+          waitForComplete: true
+          enableHttpGet: false

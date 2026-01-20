@@ -34,6 +34,10 @@ haproxy:
   {% macro haproxyValues() %}{% include 'haproxy.yaml.j2'%}{% endmacro %}
   {{- haproxyValues() | trim | indent(2) }}
 
+hookshot:
+  {% macro hookshotValues() %}{% include 'hookshot.yaml.j2'%}{% endmacro %}
+  {{- hookshotValues() | trim | indent(2) }}
+
 matrixAuthenticationService:
   {% macro matrixAuthenticationServiceValues() %}{% include 'matrixAuthenticationService.yaml.j2'%}{% endmacro %}
   {{- matrixAuthenticationServiceValues() | trim | indent(2) }}

@@ -61,17 +61,28 @@ spec:
         - {{ include "element-io.init-secrets.generated-secrets" (dict "root" $ "context" .) | fromYamlArray | join "," | quote }}
         - "-labels"
         - {{ include "element-io.init-secrets.labels" (dict "root" $ "context" (dict "labels" .labels "withChartVersion" false)) | trim  | replace ": " "="| replace "\n" "," | replace "\"" "" | quote }}
-{{- with .extraVolumeMounts }}
+{{- if or (include "element-io.init-secrets.registration-templates" (dict "root" $)) .extraVolumeMounts }}
         volumeMounts:
-{{- range . }}
+{{- range .extraVolumeMounts }}
         - {{ (. | toYaml) | nindent 10 }}
 {{- end }}
-{{- end }}
-{{- with .extraVolumes }}
+{{- if include "element-io.init-secrets.registration-templates" (dict "root" $) }}
+        - mountPath: "/registration-templates"
+          name: registration-templates
+          readOnly: true
+{{- end -}}
+{{- end -}}
+{{- if or (include "element-io.init-secrets.registration-templates" (dict "root" $))  .extraVolumes }}
       volumes:
-{{- range . }}
+{{- range .extraVolumes }}
       - {{- (tpl (. | toYaml) $) | nindent 8 }}
 {{- end }}
-{{- end }}
+{{- if include "element-io.init-secrets.registration-templates" (dict "root" $) }}
+      - configMap:
+          defaultMode: 420
+          name: {{ $.Release.Name }}-init-secrets
+        name: registration-templates
+{{- end -}}
+{{- end -}}
 {{- end -}}
 {{- end -}}
