@@ -1,6 +1,7 @@
 Adminbot
 ansible
 Ansible
+appservice
 appservices
 Artifacthub
 asyncio
