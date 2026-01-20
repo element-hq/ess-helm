@@ -22,8 +22,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 </p>
 <!-- cSpell:enable -->
 
-<h1 align="center">Element Server Suite Community</h1>
-
 <p align="center">
 <b>The official Matrix stack from Element for non-commercial use</b>
 </p>
@@ -51,13 +49,13 @@ Find below an overview of the most important additional product capabilities for
     - More efficient and cloud-native Synapse subsystems (for running individual large hosts)
   - Dynamic and automatic scaling with adaptation to actual load (horizontal and vertical)
   - In-cluster high availability (HA)
-  - Improved end-user experience due to better stability under load
+  - Improved end-user experience due to better stability and resilience under load
 - Application-level firewall with federation controls and more (Secure Border Gateway)
 - User lifecycle management and group access control via LDAP/SCIM (Advanced IAM)
 - Malware scanning of media attachments (Content Scanner)
-- Auditing capabilities (AuditBot)
-- Moderation and central control (AdminBot)
-- LDAP and SSO support for user authentication
+- Auditing (AuditBot)
+- Supervision and central control (AdminBot)
+- LDAP support for user authentication
 - S3 support for media storage
 - Distroless/minimal images of all relevant core components
 
