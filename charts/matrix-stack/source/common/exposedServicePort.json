@@ -2,7 +2,6 @@
   "type": "object",
   "required": [
     "enabled",
-    "type",
     "portType",
     "port"
   ],
@@ -16,16 +15,13 @@
         "type": "string"
       }
     },
-    "type": {
+    "portType": {
       "type": "string",
       "enum": [
-        "ClusterIP",
         "NodePort",
+        "HostPort",
         "LoadBalancer"
       ]
-    },
-    "portType": {
-      "type": "string"
     },
     "port": {
       "type": "number"

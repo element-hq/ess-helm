@@ -8,7 +8,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- with $.Values.matrixRTC -}}
 {{- if .enabled -}}
 {{- with .sfu -}}
-{{- if and .enabled .exposedServices.rtcUdp.enabled (eq .exposedServices.rtcUdp.portType "NodePort") -}}
+{{- if and .enabled .exposedServices.rtcUdp.enabled (ne .exposedServices.rtcUdp.portType "HostPort") -}}
 {{- $range_start := (.exposedServices.rtcUdp.portRange.startPort | int) -}}
 {{- $range_end := (.exposedServices.rtcUdp.portRange.endPort | int) -}}
 {{- $range_size := sub $range_end $range_start -}}
@@ -27,7 +27,7 @@ metadata:
   name: {{ $.Release.Name }}-matrix-rtc-sfu-udp-range-{{ $port_segment }}
   namespace: {{ $.Release.Namespace }}
 spec:
-  type: {{ $.Values.matrixRTC.sfu.exposedServices.rtcUdp.type }}
+  type: {{ $.Values.matrixRTC.sfu.exposedServices.rtcUdp.portType }}
   ipFamilyPolicy: PreferDualStack
   externalTrafficPolicy: Local
   ports:

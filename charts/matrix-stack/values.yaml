@@ -767,30 +767,33 @@ matrixRTC:
       rtcTcp:
         enabled: true
         # Annotations to be added to this service
+        # This is unused if the portType is `HostPort` as the pod port
+        # is exposed directly on the node running it, so no service is created.
         annotations: {}
-        # Service type, either NodePort, LoadBalancer or ClusterIP
-        type: NodePort
-        # Either a NodePort or a HostPort
+        # Either a NodePort, HostPort or LoadBalancer
+        # If the port is a HostPort, no Service will be created.
         portType: NodePort
         port: 30881
 
       rtcMuxedUdp:
         enabled: true
         # Annotations to be added to this service
+        # This is unused if the portType is `HostPort` as the pod port
+        # is exposed directly on the node running it, so no service is created.
         annotations: {}
-        # Service type, either NodePort, LoadBalancer or ClusterIP
-        type: NodePort
-        # Either a NodePort or a HostPort
+        # Either a NodePort, HostPort or LoadBalancer
+        # If the port is a HostPort, no Service will be created.
         portType: NodePort
         port: 30882
 
       rtcUdp:
         enabled: false
         # Annotations to be added to this service
+        # This is unused if the portType is `HostPort` as the pod port
+        # is exposed directly on the node running it, so no service is created.
         annotations: {}
-        # Service type, either NodePort, LoadBalancer or ClusterIP
-        type: NodePort
-        # Either a NodePort or a HostPort
+        # Either a NodePort, HostPort or LoadBalancer
+        # If the port is a HostPort, no Service will be created.
         portType: NodePort
         portRange:
           # The beginning port of the range
@@ -800,10 +803,11 @@ matrixRTC:
       turnTLS:
         enabled: false
         # Annotations to be added to this service
+        # This is unused if the portType is `HostPort` as the pod port
+        # is exposed directly on the node running it, so no service is created.
         annotations: {}
-        # Service type, either NodePort, LoadBalancer or ClusterIP
-        type: NodePort
-        # Either a NodePort or a HostPort
+        # Either a NodePort, HostPort or LoadBalancer
+        # If the port is a HostPort, no Service will be created.
         portType: NodePort
         port: 31443
 

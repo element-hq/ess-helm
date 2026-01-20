@@ -8,7 +8,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- with $.Values.matrixRTC -}}
 {{- if .enabled -}}
 {{- with .sfu -}}
-{{- if and .enabled .exposedServices.turnTLS.enabled (eq .exposedServices.turnTLS.portType "NodePort") -}}
+{{- if and .enabled .exposedServices.turnTLS.enabled (ne .exposedServices.turnTLS.portType "HostPort") -}}
 apiVersion: v1
 kind: Service
 metadata:
@@ -21,7 +21,7 @@ metadata:
   name: {{ $.Release.Name }}-matrix-rtc-sfu-turn-tls
   namespace: {{ $.Release.Namespace }}
 spec:
-  type: {{ .exposedServices.turnTLS.type }}
+  type: {{ .exposedServices.turnTLS.portType }}
   ipFamilyPolicy: PreferDualStack
   externalTrafficPolicy: Local
   ports:

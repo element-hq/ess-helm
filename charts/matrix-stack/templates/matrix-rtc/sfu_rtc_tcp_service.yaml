@@ -8,7 +8,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- with $.Values.matrixRTC -}}
 {{- if .enabled -}}
 {{- with .sfu -}}
-{{- if and .enabled .exposedServices.rtcTcp.enabled (eq .exposedServices.rtcTcp.portType "NodePort") -}}
+{{- if and .enabled .exposedServices.rtcTcp.enabled (ne .exposedServices.rtcTcp.portType "HostPort") -}}
 apiVersion: v1
 kind: Service
 metadata:
@@ -21,7 +21,7 @@ metadata:
   name: {{ $.Release.Name }}-matrix-rtc-sfu-tcp
   namespace: {{ $.Release.Namespace }}
 spec:
-  type: {{ .exposedServices.rtcTcp.type }}
+  type: {{ .exposedServices.rtcTcp.portType }}
   ipFamilyPolicy: PreferDualStack
   externalTrafficPolicy: Local
   ports:

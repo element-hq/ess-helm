@@ -2224,7 +2224,6 @@
                   "type": "object",
                   "required": [
                     "enabled",
-                    "type",
                     "portType",
                     "port"
                   ],
@@ -2238,16 +2237,13 @@
                         "type": "string"
                       }
                     },
-                    "type": {
+                    "portType": {
                       "type": "string",
                       "enum": [
-                        "ClusterIP",
                         "NodePort",
+                        "HostPort",
                         "LoadBalancer"
                       ]
-                    },
-                    "portType": {
-                      "type": "string"
                     },
                     "port": {
                       "type": "number"
@@ -2259,7 +2255,6 @@
                   "type": "object",
                   "required": [
                     "enabled",
-                    "type",
                     "portType",
                     "port"
                   ],
@@ -2273,16 +2268,13 @@
                         "type": "string"
                       }
                     },
-                    "type": {
+                    "portType": {
                       "type": "string",
                       "enum": [
-                        "ClusterIP",
                         "NodePort",
+                        "HostPort",
                         "LoadBalancer"
                       ]
-                    },
-                    "portType": {
-                      "type": "string"
                     },
                     "port": {
                       "type": "number"
@@ -2294,7 +2286,6 @@
                   "type": "object",
                   "required": [
                     "enabled",
-                    "type",
                     "portType",
                     "portRange"
                   ],
@@ -2308,16 +2299,13 @@
                         "type": "string"
                       }
                     },
-                    "type": {
+                    "portType": {
                       "type": "string",
                       "enum": [
-                        "ClusterIP",
                         "NodePort",
+                        "HostPort",
                         "LoadBalancer"
                       ]
-                    },
-                    "portType": {
-                      "type": "string"
                     },
                     "portRange": {
                       "type": "object",
@@ -2342,7 +2330,6 @@
                   "type": "object",
                   "required": [
                     "enabled",
-                    "type",
                     "portType",
                     "port"
                   ],
@@ -2356,16 +2343,13 @@
                         "type": "string"
                       }
                     },
-                    "type": {
+                    "portType": {
                       "type": "string",
                       "enum": [
-                        "ClusterIP",
                         "NodePort",
+                        "HostPort",
                         "LoadBalancer"
                       ]
-                    },
-                    "portType": {
-                      "type": "string"
                     },
                     "port": {
                       "type": "number"

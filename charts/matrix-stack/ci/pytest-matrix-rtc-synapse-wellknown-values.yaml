@@ -38,11 +38,11 @@ matrixRTC:
   sfu:
     exposedServices:
       rtcTcp:
-        type: LoadBalancer
+        portType: LoadBalancer
       rtcUdp:
-        type: LoadBalancer
+        portType: LoadBalancer
       turnTLS:
-        type: LoadBalancer
+        portType: LoadBalancer
     extraEnv:
       - name: DEBUG_RENDERING
         value: "1"

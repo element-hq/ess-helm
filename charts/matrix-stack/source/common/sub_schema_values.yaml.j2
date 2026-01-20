@@ -469,10 +469,11 @@ extraInitContainers: []
 {{ name }}:
   enabled: {{ 'true' if defaultEnabled else 'false' }}
   # Annotations to be added to this service
+  # This is unused if the portType is `HostPort` as the pod port
+  # is exposed directly on the node running it, so no service is created.
   annotations: {}
-  # Service type, either NodePort, LoadBalancer or ClusterIP
-  type: NodePort
-  # Either a NodePort or a HostPort
+  # Either a NodePort, HostPort or LoadBalancer
+  # If the port is a HostPort, no Service will be created.
   portType: {{ portType }}
   port: {{ port }}
 {% if tlsSecret %}
@@ -487,10 +488,11 @@ extraInitContainers: []
 {{ name }}:
   enabled: false
   # Annotations to be added to this service
+  # This is unused if the portType is `HostPort` as the pod port
+  # is exposed directly on the node running it, so no service is created.
   annotations: {}
-  # Service type, either NodePort, LoadBalancer or ClusterIP
-  type: NodePort
-  # Either a NodePort or a HostPort
+  # Either a NodePort, HostPort or LoadBalancer
+  # If the port is a HostPort, no Service will be created.
   portType: {{ portType }}
   portRange:
     # The beginning port of the range

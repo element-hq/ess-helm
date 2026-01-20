@@ -23,10 +23,10 @@ matrixRTC:
       runAsGroup: 0
     exposedServices:
       rtcTcp:
-        type: LoadBalancer
+        portType: LoadBalancer
       rtcUdp:
-        type: LoadBalancer
+        portType: LoadBalancer
       turnTLS:
-        type: LoadBalancer
+        portType: LoadBalancer
   podSecurityContext:
     runAsGroup: 0
