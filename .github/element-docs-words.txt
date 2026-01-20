@@ -35,3 +35,4 @@ shellcheck
 templatable
 towncrier
 Traefik
+Wifi
