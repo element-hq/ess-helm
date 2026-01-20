@@ -366,6 +366,7 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
     values_file_path_overrides: dict[PropertyType, ValuesFilePath] = {
         PropertyType.AdditionalConfig: ValuesFilePath.read_elsewhere("synapse", "additional"),
         PropertyType.Env: ValuesFilePath.read_elsewhere("synapse", "extraEnv"),
+        PropertyType.ExposedServices: ValuesFilePath.not_supported(),
         PropertyType.HostAliases: ValuesFilePath.read_elsewhere("synapse", "hostAliases"),
         PropertyType.Image: ValuesFilePath.read_elsewhere("synapse", "image"),
         PropertyType.InitContainers: ValuesFilePath.read_elsewhere("synapse", "extraInitContainers"),
