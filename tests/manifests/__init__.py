@@ -13,6 +13,7 @@ class PropertyType(Enum):
     AdditionalConfig = "additional"
     Enabled = "enabled"
     Env = "extraEnv"
+    ExposedServices = "exposedServices"
     HostAliases = "hostAliases"
     Image = "image"
     Ingress = "ingress"
@@ -101,6 +102,7 @@ class DeployableDetails(abc.ABC):
 
     has_additional_config: bool = field(default=None, hash=False)  # type: ignore[assignment]
     has_db: bool = field(default=False, hash=False)
+    has_exposed_services: bool = field(default=False, hash=False)
     has_image: bool = field(default=None, hash=False)  # type: ignore[assignment]
     has_ingress: bool = field(default=True, hash=False)
     has_automount_service_account_token: bool = field(default=False, hash=False)
@@ -531,6 +533,7 @@ all_components_details = [
             SubComponentDetails(
                 name="matrix-rtc-sfu",
                 values_file_path=ValuesFilePath.read_write("matrixRTC", "sfu"),
+                has_exposed_services=True,
                 has_ingress=False,
                 has_replicas=False,
                 makes_outbound_requests=False,

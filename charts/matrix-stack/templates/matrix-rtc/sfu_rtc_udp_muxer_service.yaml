@@ -14,7 +14,7 @@ kind: Service
 metadata:
   labels:
     {{- include "element-io.matrix-rtc-sfu-rtc.labels" (dict "root" $ "context" .) | nindent 4 }}
-  {{- with .annotations }}
+  {{- with .exposedServices.rtcMuxedUdp.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
