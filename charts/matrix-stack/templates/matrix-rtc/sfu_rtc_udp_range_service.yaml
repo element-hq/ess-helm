@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2024-2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -8,7 +8,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- with $.Values.matrixRTC -}}
 {{- if .enabled -}}
 {{- with .sfu -}}
-{{- if and .enabled .exposedServices.rtcUdp.enabled (eq .exposedServices.rtcUdp.portType "NodePort") -}}
+{{- if and .enabled .exposedServices.rtcUdp.enabled (ne .exposedServices.rtcUdp.portType "HostPort") -}}
 {{- $range_start := (.exposedServices.rtcUdp.portRange.startPort | int) -}}
 {{- $range_end := (.exposedServices.rtcUdp.portRange.endPort | int) -}}
 {{- $range_size := sub $range_end $range_start -}}
@@ -20,10 +20,14 @@ kind: Service
 metadata:
   labels:
     {{- include "element-io.matrix-rtc-sfu-rtc.labels" (dict "root" $ "context" $.Values.matrixRTC.sfu) | nindent 4 }}
+  {{- with $.Values.matrixRTC.sfu.exposedServices.rtcUdp.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   name: {{ $.Release.Name }}-matrix-rtc-sfu-udp-range-{{ $port_segment }}
   namespace: {{ $.Release.Namespace }}
 spec:
-  type: NodePort
+  type: {{ $.Values.matrixRTC.sfu.exposedServices.rtcUdp.portType }}
   ipFamilyPolicy: PreferDualStack
   externalTrafficPolicy: Local
   ports:

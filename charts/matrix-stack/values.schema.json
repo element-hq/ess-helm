@@ -2231,8 +2231,19 @@
                     "enabled": {
                       "type": "boolean"
                     },
+                    "annotations": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    },
                     "portType": {
-                      "type": "string"
+                      "type": "string",
+                      "enum": [
+                        "NodePort",
+                        "HostPort",
+                        "LoadBalancer"
+                      ]
                     },
                     "port": {
                       "type": "number"
@@ -2251,8 +2262,19 @@
                     "enabled": {
                       "type": "boolean"
                     },
+                    "annotations": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    },
                     "portType": {
-                      "type": "string"
+                      "type": "string",
+                      "enum": [
+                        "NodePort",
+                        "HostPort",
+                        "LoadBalancer"
+                      ]
                     },
                     "port": {
                       "type": "number"
@@ -2271,8 +2293,19 @@
                     "enabled": {
                       "type": "boolean"
                     },
+                    "annotations": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    },
                     "portType": {
-                      "type": "string"
+                      "type": "string",
+                      "enum": [
+                        "NodePort",
+                        "HostPort",
+                        "LoadBalancer"
+                      ]
                     },
                     "portRange": {
                       "type": "object",
@@ -2289,6 +2322,43 @@
                         }
                       },
                       "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "turnTLS": {
+                  "type": "object",
+                  "required": [
+                    "enabled",
+                    "portType",
+                    "port"
+                  ],
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "annotations": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    },
+                    "portType": {
+                      "type": "string",
+                      "enum": [
+                        "NodePort",
+                        "HostPort",
+                        "LoadBalancer"
+                      ]
+                    },
+                    "port": {
+                      "type": "number"
+                    },
+                    "domain": {
+                      "type": "string"
+                    },
+                    "tlsSecret": {
+                      "type": "string"
                     }
                   },
                   "additionalProperties": false

@@ -25,6 +25,12 @@
     },
     "port": {
       "type": "number"
+    },
+    "domain": {
+      "type": "string"
+    },
+    "tlsSecret": {
+      "type": "string"
     }
   }
 }

@@ -1,5 +1,5 @@
 # Copyright 2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -33,6 +33,7 @@ jobs:
           helm template \
               -n ess-ci \
               -a monitoring.coreos.com/v1/ServiceMonitor \
+              -a cert-manager.io/v1/Certificate \
               -f "$values" charts/matrix-stack | \
           yq ea '[.] | .[] | splitDoc' | \
           yq -s "\"$RUNNER_TEMP/new/$(basename "$values" ".yaml")/\""' + ([.kind, .metadata.name] | join("-") | downcase) + ".yaml"'
@@ -55,6 +56,7 @@ jobs:
           helm template \
               -n ess-ci \
               -a monitoring.coreos.com/v1/ServiceMonitor \
+              -a cert-manager.io/v1/Certificate \
               -f "$values" charts/matrix-stack | \
           yq ea '[.] | .[] | splitDoc' | \
           yq -s "\"$RUNNER_TEMP/old/$(basename "$values" ".yaml")/\""' + ([.kind, .metadata.name] | join("-") | downcase) + ".yaml"'

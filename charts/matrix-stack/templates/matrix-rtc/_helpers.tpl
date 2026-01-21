@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2024-2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -11,6 +11,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{ $messages := list }}
 {{- if not .ingress.host -}}
 {{ $messages = append $messages "matrixRTC.ingress.host is required when matrixRTC.enabled=true" }}
+{{- end }}
+{{- if and .sfu.exposedServices.turnTLS.enabled (not .sfu.exposedServices.turnTLS.tlsSecret) (not $root.Values.certManager) -}}
+{{ $messages = append $messages "matrixRTC.sfu.exposedServices.turnTLS.enabled requires matrixRTC.sfu.exposedServices.turnTLS.tlsSecret set or certManager enabled" }}
+{{- end }}
+{{- if and .sfu.exposedServices.turnTLS.enabled (not .sfu.exposedServices.turnTLS.tlsSecret) (not $root.Capabilities.APIVersions.Has "cert-manager.io/v1/Certificate") ($root.Values.certManager) -}}
+{{ $messages = append $messages "matrixRTC.sfu.exposedServices.turnTLS.enabled does not configure .sfu.exposedServices.turnTLS.tlsSecret. The chart has certManager enabled but the `cert-manager.io/v1/Certificate` API could not be found." }}
 {{- end }}
 {{ $messages | toJson }}
 {{- end }}

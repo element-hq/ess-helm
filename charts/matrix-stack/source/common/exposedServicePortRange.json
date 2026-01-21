@@ -9,8 +9,19 @@
     "enabled": {
       "type": "boolean"
     },
+    "annotations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
     "portType": {
-      "type": "string"
+      "type": "string",
+      "enum": [
+        "NodePort",
+        "HostPort",
+        "LoadBalancer"
+      ]
     },
     "portRange": {
       "type": "object",

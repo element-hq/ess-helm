@@ -36,9 +36,18 @@ matrixRTC:
     runAsGroup: 0
   replicas: 2
   sfu:
+    exposedServices:
+      rtcTcp:
+        portType: LoadBalancer
+      rtcUdp:
+        portType: LoadBalancer
+      turnTLS:
+        portType: LoadBalancer
     extraEnv:
       - name: DEBUG_RENDERING
         value: "1"
+    logging:
+      level: debug
     podSecurityContext:
       runAsGroup: 0
 postgres:

@@ -766,23 +766,56 @@ matrixRTC:
     exposedServices:
       rtcTcp:
         enabled: true
-        # Either a NodePort or a HostPort
+        # Annotations to be added to this service
+        # This is unused if the portType is `HostPort` as the pod port
+        # is exposed directly on the node running it, so no service is created.
+        annotations: {}
+        # Either a NodePort, HostPort or LoadBalancer
+        # If the port is a HostPort, no Service will be created.
         portType: NodePort
         port: 30881
+
       rtcMuxedUdp:
         enabled: true
-        # Either a NodePort or a HostPort
+        # Annotations to be added to this service
+        # This is unused if the portType is `HostPort` as the pod port
+        # is exposed directly on the node running it, so no service is created.
+        annotations: {}
+        # Either a NodePort, HostPort or LoadBalancer
+        # If the port is a HostPort, no Service will be created.
         portType: NodePort
         port: 30882
+
       rtcUdp:
         enabled: false
-        # Either a NodePort or a HostPort
+        # Annotations to be added to this service
+        # This is unused if the portType is `HostPort` as the pod port
+        # is exposed directly on the node running it, so no service is created.
+        annotations: {}
+        # Either a NodePort, HostPort or LoadBalancer
+        # If the port is a HostPort, no Service will be created.
         portType: NodePort
         portRange:
           # The beginning port of the range
           startPort: 31000
           # The last port of the range
           endPort: 32000
+      turnTLS:
+        enabled: false
+        # Annotations to be added to this service
+        # This is unused if the portType is `HostPort` as the pod port
+        # is exposed directly on the node running it, so no service is created.
+        annotations: {}
+        # Either a NodePort, HostPort or LoadBalancer
+        # If the port is a HostPort, no Service will be created.
+        portType: NodePort
+        port: 31443
+
+        # The domain of the service
+        domain: ""
+        # The TLS secret used to expose this service
+        tlsSecret: ""
+
     # Details of the image to be used
     image:
       ## The host and (optional) port of the container image registry for this component.

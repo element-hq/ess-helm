@@ -91,10 +91,20 @@ spec:
           name: http
           protocol: TCP
 {{- with .exposedServices }}
+  {{- with .turnTLS }}
+  {{- if .enabled }}
+        - containerPort: {{ .port }}
+    {{- if eq .portType "HostPort" }}
+          hostPort: {{ .port }}
+    {{- end }}
+          name: turn-tls-tcp
+          protocol: TCP
+  {{- end }}
+  {{- end }}
   {{- with .rtcTcp }}
   {{- if .enabled }}
         - containerPort: {{ .port }}
-    {{- if eq .type "HostPort" }}
+    {{- if eq .portType "HostPort" }}
           hostPort: {{ .port }}
     {{- end }}
           name: rtc-tcp
@@ -104,7 +114,7 @@ spec:
   {{- with .rtcMuxedUdp }}
   {{- if .enabled }}
         - containerPort: {{ .port }}
-    {{- if eq .type "HostPort" }}
+    {{- if eq .portType "HostPort" }}
           hostPort: {{ .port }}
     {{- end }}
           name: rtc-muxed-udp
@@ -113,7 +123,7 @@ spec:
   {{- end }}
   {{- with .rtcUdp }}
   {{- if .enabled }}
-    {{- $portType := .type -}}
+    {{- $portType := .portType -}}
     {{- with .portRange }}
     {{- /* container.port is metadata. Omit if a large range is provided so that we don't run into document size limits when submitting to the API server */ -}}
     {{- if le (sub (.endPort | int) (.startPort | int)) 100 }}
@@ -158,11 +168,30 @@ spec:
 {{- range .extraVolumeMounts }}
         - {{ (. | toYaml) | nindent 10 }}
 {{- end }}
+{{- if .exposedServices.turnTLS.enabled }}
+        - mountPath: /turn-tls/tls.crt
+          name: secret-turn-tls
+          subPath: tls.crt
+        - mountPath: /turn-tls/tls.key
+          name: secret-turn-tls
+          subPath: tls.key
+{{- end }}
       volumes:
       {{- include "element-io.ess-library.render-config-volumes" (dict "root" $ "context"
               (dict "nameSuffix" "matrix-rtc-sfu" "additionalPath" "matrixRTC.sfu.additional")) | nindent 6 }}
 {{- range .extraVolumes }}
       - {{- (tpl (. | toYaml) $) | nindent 8 }}
+{{- end }}
+{{- if .exposedServices.turnTLS.enabled }}
+{{- if .exposedServices.turnTLS.tlsSecret }}
+      - name: secret-turn-tls
+        secret:
+          secretName: {{ tpl .exposedServices.turnTLS.tlsSecret $ }}
+{{- else if $.Values.certManager }}
+      - name: secret-turn-tls
+        secret:
+          secretName: "{{ .Release.Name }}-turn-tls-certmanager-tls"
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}

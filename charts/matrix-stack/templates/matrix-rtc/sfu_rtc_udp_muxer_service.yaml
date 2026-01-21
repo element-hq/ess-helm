@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2024 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -8,16 +8,20 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- with $.Values.matrixRTC -}}
 {{- if .enabled -}}
 {{- with .sfu -}}
-{{- if and .enabled .exposedServices.rtcMuxedUdp.enabled (eq .exposedServices.rtcMuxedUdp.portType "NodePort") -}}
+{{- if and .enabled .exposedServices.rtcMuxedUdp.enabled (ne .exposedServices.rtcMuxedUdp.portType "HostPort") -}}
 apiVersion: v1
 kind: Service
 metadata:
   labels:
     {{- include "element-io.matrix-rtc-sfu-rtc.labels" (dict "root" $ "context" .) | nindent 4 }}
+  {{- with .exposedServices.rtcMuxedUdp.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   name: {{ $.Release.Name }}-matrix-rtc-sfu-muxed-udp
   namespace: {{ $.Release.Namespace }}
 spec:
-  type: NodePort
+  type: {{ .exposedServices.rtcMuxedUdp.portType }}
   ipFamilyPolicy: PreferDualStack
   externalTrafficPolicy: Local
   ports:
