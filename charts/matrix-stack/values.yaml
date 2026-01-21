@@ -816,6 +816,17 @@ matrixRTC:
         # The TLS secret used to expose this service
         tlsSecret: ""
 
+      turn:
+        enabled: false
+        # Annotations to be added to this service
+        # This is unused if the portType is `HostPort` as the pod port
+        # is exposed directly on the node running it, so no service is created.
+        annotations: {}
+        # Either a NodePort, HostPort or LoadBalancer
+        # If the port is a HostPort, no Service will be created.
+        portType: NodePort
+        port: 31478
+
     # Details of the image to be used
     image:
       ## The host and (optional) port of the container image registry for this component.

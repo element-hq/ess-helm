@@ -75,6 +75,7 @@ sfu:
     {{- sub_schema_values.exposedServicePort('rtcMuxedUdp', 30882, 'NodePort') | indent(4) }}
     {{- sub_schema_values.exposedServicePortRange('rtcUdp', 31000, 32000, 'NodePort') | indent(4) }}
     {{- sub_schema_values.exposedServicePort('turnTLS', 31443, 'NodePort', defaultEnabled=False, tlsSecret=True) | indent(4) }}
+    {{- sub_schema_values.exposedServicePort('turn', 31478, 'NodePort', defaultEnabled=False) | indent(4) }}
 
 
 {{- sub_schema_values.image(registry='docker.io', repository='livekit/livekit-server', tag='v1.9.1') | indent(2) }}

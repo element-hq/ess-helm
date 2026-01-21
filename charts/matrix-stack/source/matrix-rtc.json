@@ -189,6 +189,9 @@
             },
             "turnTLS": {
               "$ref": "file://common/exposedServicePortWithTLS.json"
+            },
+            "turn": {
+              "$ref": "file://common/exposedServicePort.json"
             }
           }
         },

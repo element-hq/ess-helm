@@ -24,6 +24,9 @@ ports:
   # Matrix RTC SFU Turn TLS
 - port: 127.0.0.1:31443:31443
   nodeFilters: [loadbalancer]
+  # Matrix RTC SFU Turn
+- port: 127.0.0.1:31478:31478
+  nodeFilters: [loadbalancer]
 options:
   k3d:
     wait: true

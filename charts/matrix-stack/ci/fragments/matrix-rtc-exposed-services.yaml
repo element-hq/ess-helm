@@ -18,3 +18,6 @@ matrixRTC:
       turnTLS:
         enabled: true
         port: 31002
+      turn:
+        enabled: true
+        port: 31003

@@ -101,6 +101,16 @@ spec:
           protocol: TCP
   {{- end }}
   {{- end }}
+  {{- with .turn }}
+  {{- if .enabled }}
+        - containerPort: {{ .port }}
+    {{- if eq .portType "HostPort" }}
+          hostPort: {{ .port }}
+    {{- end }}
+          name: turn-udp
+          protocol: UDP
+  {{- end }}
+  {{- end }}
   {{- with .rtcTcp }}
   {{- if .enabled }}
         - containerPort: {{ .port }}

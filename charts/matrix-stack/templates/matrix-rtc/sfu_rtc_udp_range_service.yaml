@@ -19,7 +19,7 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    {{- include "element-io.matrix-rtc-sfu-rtc.labels" (dict "root" $ "context" $.Values.matrixRTC.sfu) | nindent 4 }}
+    {{- include "element-io.matrix-rtc-sfu.labels" (dict "root" $ "context" (mustMergeOverwrite (dict "suffix" "-rtc") $.Values.matrixRTC.sfu)) | nindent 4 }}
   {{- with $.Values.matrixRTC.sfu.exposedServices.rtcUdp.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
