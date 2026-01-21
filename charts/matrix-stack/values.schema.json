@@ -2362,6 +2362,37 @@
                     }
                   },
                   "additionalProperties": false
+                },
+                "turn": {
+                  "type": "object",
+                  "required": [
+                    "enabled",
+                    "portType",
+                    "port"
+                  ],
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "annotations": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    },
+                    "portType": {
+                      "type": "string",
+                      "enum": [
+                        "NodePort",
+                        "HostPort",
+                        "LoadBalancer"
+                      ]
+                    },
+                    "port": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
                 }
               },
               "additionalProperties": false

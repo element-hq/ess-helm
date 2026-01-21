@@ -29,6 +29,9 @@ matrixRTC:
         portRange:
           endPort: 30050
           startPort: 30000
+      turn:
+        enabled: true
+        port: 31003
       turnTLS:
         domain: turn.{{ $.Values.serverName }}
         enabled: true
