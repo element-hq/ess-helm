@@ -1,5 +1,5 @@
 # Copyright 2024-2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -300,11 +300,14 @@ async def test_component_ingressClassName_beats_global(values, make_templates):
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_ingress_services(templates):
-    services_by_name = dict[str, dict]()
+async def test_ingress_services_global_service_type(values, make_templates):
+    values.setdefault("ingress", {}).setdefault("service", {})["type"] = "LoadBalancer"
+    templates = await make_templates(values)
     for template in templates:
-        if template["kind"] == "Service":
-            services_by_name[template["metadata"]["name"]] = template
+        services_by_name = dict[str, dict]()
+        for template in templates:
+            if template["kind"] == "Service":
+                services_by_name[template["metadata"]["name"]] = template
 
     for ingress in templates:
         if ingress["kind"] != "Ingress":
@@ -323,6 +326,57 @@ async def test_ingress_services(templates):
                 port_names = [port["name"] for port in found_service["spec"]["ports"]]
                 assert backend_service["port"]["name"] in port_names, (
                     f"Port name {backend_service['port']['name']} not found in service {backend_service['name']}"
+                )
+                assert services_by_name[backend_service["name"]]["spec"].get("type") == "LoadBalancer", (
+                    f"Service {backend_service['name']} is not a LoadBalancer despite setting "
+                    "$.ingress.service.type to LoadBalancer"
+                )
+                assert "clusterIP" not in services_by_name[backend_service["name"]]["spec"], (
+                    f"{template_id(template)} has a clusterIP defined for a non-ClusterIP service"
+                )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_ingress_services_local_service_type(values, make_templates):
+    values.setdefault("ingress", {}).setdefault("service", {})["type"] = "ClusterIP"
+
+    def set_ingress_service_type(deployable_details: DeployableDetails):
+        deployable_details.set_helm_values(values, PropertyType.Ingress, {"service": {"type": "LoadBalancer"}})
+
+    iterate_deployables_ingress_parts(set_ingress_service_type)
+
+    templates = await make_templates(values)
+    for template in templates:
+        services_by_name = dict[str, dict]()
+        for template in templates:
+            if template["kind"] == "Service":
+                services_by_name[template["metadata"]["name"]] = template
+
+    for ingress in templates:
+        if ingress["kind"] != "Ingress":
+            continue
+        for rule in ingress["spec"]["rules"]:
+            for path in rule["http"]["paths"]:
+                backend_service = path["backend"]["service"]
+                assert backend_service["name"] in services_by_name, (
+                    f"Backend service {backend_service['name']} not found in "
+                    f"known services: {list(services_by_name.keys())}"
+                )
+                found_service = services_by_name[backend_service["name"]]
+                assert "name" in backend_service["port"], (
+                    f"{template_id(ingress)} : Backend service {backend_service['name']} is not targetting a port name"
+                )
+                port_names = [port["name"] for port in found_service["spec"]["ports"]]
+                assert backend_service["port"]["name"] in port_names, (
+                    f"Port name {backend_service['port']['name']} not found in service {backend_service['name']}"
+                )
+                assert services_by_name[backend_service["name"]]["spec"].get("type") == "LoadBalancer", (
+                    f"Service {backend_service['name']} is not a LoadBalancer despite setting "
+                    "$.ingress.service.type to LoadBalancer"
+                )
+                assert "clusterIP" not in services_by_name[backend_service["name"]]["spec"], (
+                    f"{template_id(template)} has a clusterIP defined for a non-ClusterIP service"
                 )
 
 

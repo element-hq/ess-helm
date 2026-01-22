@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -15,13 +15,13 @@ metadata:
   name: {{ $.Release.Name }}-postgres
   namespace: {{ $.Release.Namespace }}
 spec:
+  type: ClusterIP
   clusterIP: None
   ports:
   - port: 5432
     name: postgres
   - port: 9187
     name: metrics
-  type: ClusterIP
   ipFamilyPolicy: PreferDualStack
   selector:
     app.kubernetes.io/instance: {{ $.Release.Name }}-postgres
