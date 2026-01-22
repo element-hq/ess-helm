@@ -15,8 +15,12 @@ metadata:
   labels:
     {{- include "element-io.hookshot.labels" (dict "root" $ "context" .) | nindent 4 }}
 spec:
-  type: {{ .ingress.service.type | default $.Values.ingress.service.type }}
+{{ with .ingress.service.type | default $.Values.ingress.service.type }}
+  type: {{ . }}
+  {{ if eq . "ClusterIP" }}
   clusterIP: None
+  {{- end }}
+{{- end }}
   ipFamilyPolicy: PreferDualStack
   ports:
   - port: 9993

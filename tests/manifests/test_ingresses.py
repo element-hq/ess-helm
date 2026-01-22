@@ -331,6 +331,9 @@ async def test_ingress_services_global_service_type(values, make_templates):
                     f"Service {backend_service['name']} is not a LoadBalancer despite setting "
                     "$.ingress.service.type to LoadBalancer"
                 )
+                assert "clusterIP" not in services_by_name[backend_service["name"]]["spec"], (
+                    f"{template_id(template)} has a clusterIP defined for a non-ClusterIP service"
+                )
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -371,6 +374,9 @@ async def test_ingress_services_local_service_type(values, make_templates):
                 assert services_by_name[backend_service["name"]]["spec"].get("type") == "LoadBalancer", (
                     f"Service {backend_service['name']} is not a LoadBalancer despite setting "
                     "$.ingress.service.type to LoadBalancer"
+                )
+                assert "clusterIP" not in services_by_name[backend_service["name"]]["spec"], (
+                    f"{template_id(template)} has a clusterIP defined for a non-ClusterIP service"
                 )
 
 

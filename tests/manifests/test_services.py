@@ -166,3 +166,7 @@ async def test_services_specify_type_by_default(templates):
             assert template["spec"].get("type") in ("ClusterIP", "NodePort"), (
                 f"{template_id(template)} service type is not ClusterIP"
             )
+            if template["spec"]["type"] != "ClusterIP":
+                assert "clusterIP" not in template["spec"], (
+                    f"{template_id(template)} has a clusterIP defined for a non-ClusterIP service"
+                )
