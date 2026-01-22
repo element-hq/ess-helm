@@ -18,6 +18,7 @@ matrixRTC:
       turnTLS:
         enabled: true
         port: 31002
+        domain: turn.{{ $.Values.serverName }}
       turn:
         enabled: true
         port: 31003

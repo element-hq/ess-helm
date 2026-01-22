@@ -539,7 +539,6 @@ all_components_details = [
                 makes_outbound_requests=False,
             ),
         ),
-        additional_values_files=("matrix-rtc-turn-tls-values.yaml",),
         additional_secret_values_files=(
             "matrix-rtc-external-livekit-secrets-in-helm-values.yaml",
             "matrix-rtc-external-livekit-secrets-externally-values.yaml",
@@ -732,6 +731,7 @@ _extra_values_files_to_test: list[str] = [
     "matrix-authentication-service-synapse-syn2mas-dry-run-secrets-externally-values.yaml",
     "matrix-authentication-service-synapse-syn2mas-migrate-secrets-in-helm-values.yaml",
     "matrix-authentication-service-synapse-syn2mas-migrate-secrets-externally-values.yaml",
+    "matrix-rtc-host-mode-values.yaml",
 ]
 
 _extra_secret_values_files_to_test = [
@@ -742,16 +742,18 @@ _extra_secret_values_files_to_test = [
 ]
 
 _extra_services_values_files_to_test = [
-    "matrix-rtc-exposed-services-values.yaml",
-    "matrix-rtc-host-mode-values.yaml",
+    "matrix-rtc-exposed-services-tls-values.yaml",
+    "matrix-rtc-exposed-services-cert-manager-values.yaml",
 ]
 
 secret_values_files_to_test = set(
     sum([component_details.secret_values_files for component_details in all_components_details], tuple())
 ) | set(_extra_secret_values_files_to_test)
 
-values_files_to_test = set(
-    sum([component_details.values_files for component_details in all_components_details], tuple())
-) | set(_extra_values_files_to_test)
+values_files_to_test = (
+    set(sum([component_details.values_files for component_details in all_components_details], tuple()))
+    | set(_extra_values_files_to_test)
+    | set(_extra_services_values_files_to_test)
+)
 
-services_values_files_to_test = values_files_to_test | set(_extra_services_values_files_to_test)
+services_values_files_to_test = set(_extra_services_values_files_to_test)

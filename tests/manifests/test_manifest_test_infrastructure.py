@@ -1,5 +1,5 @@
 # Copyright 2024-2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -32,8 +32,10 @@ def test_all_components_covered():
 @pytest.mark.asyncio_cooperative
 def test_component_has_values_file(values_file):
     ci_folder = Path(__file__).parent.parent.parent / Path("charts/matrix-stack/ci")
-    values_file = ci_folder / values_file
-    assert values_file.exists()
+    extra_ci_folder = Path(__file__).parent.parent.parent / Path("charts/matrix-stack/ci_extra")
+    ci_values_file = ci_folder / values_file
+    extra_values_file = extra_ci_folder / values_file
+    assert ci_values_file.exists() or extra_values_file.exists()
 
 
 @pytest.mark.asyncio_cooperative

@@ -7,5 +7,4 @@ matrixRTC:
     exposedServices:
       turnTLS:
         enabled: true
-        domain: turn.{{ $.Values.serverName }}
         tlsSecret: "{{ $.Release.Name }}-turn-tls"

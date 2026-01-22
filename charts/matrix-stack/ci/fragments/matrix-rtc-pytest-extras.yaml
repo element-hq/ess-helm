@@ -28,5 +28,7 @@ matrixRTC:
         portType: LoadBalancer
       turnTLS:
         portType: LoadBalancer
+        domain: turn.{{ $.Values.serverName }}
+        tlsSecret: '{{ $.Release.Name }}-turn-tls'
   podSecurityContext:
     runAsGroup: 0

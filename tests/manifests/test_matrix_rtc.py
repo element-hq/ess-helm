@@ -1,5 +1,5 @@
 # Copyright 2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -61,7 +61,7 @@ def assert_sharded_udp_range_ports(start_port, end_port, service):
     assert port["port"] == end_port, f"{id} doesn't end with port {end_port}"
 
 
-@pytest.mark.parametrize("values_file", ["matrix-rtc-exposed-services-values.yaml"])
+@pytest.mark.parametrize("values_file", ["matrix-rtc-exposed-services-tls-values.yaml"])
 @pytest.mark.asyncio_cooperative
 async def test_udp_range_services_are_sharded(values, make_templates):
     start_port = 32000

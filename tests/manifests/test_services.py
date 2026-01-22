@@ -16,7 +16,7 @@ from . import (
 from .utils import iterate_deployables_parts, template_id, template_to_deployable_details
 
 
-@pytest.mark.parametrize("values_file", ["matrix-rtc-exposed-services-values.yaml"])
+@pytest.mark.parametrize("values_file", services_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_exposed_services_configurability(values, make_templates):
     num_of_expected_ports = {}
@@ -97,7 +97,7 @@ async def test_exposed_services_configurability(values, make_templates):
                 ), f"Did not find expected exposed service despite using {service_mode}. Services: {found_services}"
 
 
-@pytest.mark.parametrize("values_file", ["matrix-rtc-exposed-services-values.yaml"])
+@pytest.mark.parametrize("values_file", services_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_exposed_services_certificate(values, make_templates):
     num_of_expected_certificates = {}
@@ -174,7 +174,7 @@ async def test_exposed_services_certificate(values, make_templates):
                 )
 
 
-@pytest.mark.parametrize("values_file", services_values_files_to_test)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_ports_in_services_are_named(templates):
     for template in templates:
@@ -188,7 +188,7 @@ async def test_ports_in_services_are_named(templates):
             )
 
 
-@pytest.mark.parametrize("values_file", services_values_files_to_test)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_not_too_many_ports_in_services(templates):
     for template in templates:
@@ -223,7 +223,7 @@ async def test_references_to_services_are_anchored_by_the_cluster_domain(values,
                 )
 
 
-@pytest.mark.parametrize("values_file", services_values_files_to_test)
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_services_are_dual_stack_where_possible(templates):
     for template in templates:

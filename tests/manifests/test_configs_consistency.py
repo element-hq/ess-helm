@@ -5,7 +5,7 @@
 
 import abc
 import re
-from base64 import b64decode
+from base64 import b64decode, b64encode
 from collections import Counter
 from collections.abc import Generator
 from dataclasses import dataclass, field
@@ -55,6 +55,15 @@ def get_secret(templates, other_secrets, secret_name):
     for t in templates:
         if t["kind"] == "Secret" and t["metadata"]["name"] == secret_name:
             return t
+        if t["kind"] == "Certificate" and t["spec"]["secretName"] == secret_name:
+            return {
+                "kind": "Secret",
+                "metadata": {
+                    "name": secret_name,
+                    "namespace": t["metadata"]["namespace"],
+                },
+                "data": {"tls.crt": b64encode(b"some-certificate"), "tls.key": b64encode(b"some-key")},
+            }
     for s in other_secrets:
         if s["metadata"]["name"] == secret_name:
             return s

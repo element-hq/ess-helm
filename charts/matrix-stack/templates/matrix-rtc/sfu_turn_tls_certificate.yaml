@@ -13,7 +13,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: {{ $.Release.Name }}-turn-tls
+  name: {{ $.Release.Name }}-matrix-rtc-sfu-turn-tls
   namespace: {{ $.Release.Namespace }}
   labels:
     {{- include "element-io.matrix-rtc-sfu.labels" (dict "root" $ "context" (mustMergeOverwrite (dict "suffix" "-turn-tls") .)) | nindent 4 }}
@@ -21,7 +21,7 @@ spec:
   commonName: {{ tpl .exposedServices.turnTLS.domain $ }}
   secretName: "{{ $.Release.Name }}-turn-tls-certmanager-tls"
   dnsNames:
-  - {{ .exposedServices.turnTLS.domain }}
+  - {{ tpl .exposedServices.turnTLS.domain $ }}
   issuerRef:
 {{- with $.Values.certManager.clusterIssuer }}
     name: {{ . }}
