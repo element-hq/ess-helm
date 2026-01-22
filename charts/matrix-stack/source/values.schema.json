@@ -21,7 +21,28 @@
         "issuer": {
           "type": "string"
         }
-      }
+      },
+      "maxProperties": 1,
+      "anyOf": [
+        {
+          "required": [
+            "clusterIssuer"
+          ]
+        },
+        {
+          "required": [
+            "issuer"
+          ]
+        },
+        {
+          "not": {
+            "required": [
+              "clusterIssuer",
+              "issuer"
+            ]
+          }
+        }
+      ]
     },
     "matrixTools": {
       "type": "object",

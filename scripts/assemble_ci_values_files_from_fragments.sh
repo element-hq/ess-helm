@@ -13,12 +13,13 @@ shopt -s nullglob
 scripts_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 values_file_root=$( cd "$scripts_dir/../charts/matrix-stack/ci" &> /dev/null && pwd )
 user_values_file_root=$( cd "$scripts_dir/../charts/matrix-stack/user_values" &> /dev/null && pwd )
+extra_values_file_root=$( cd "$scripts_dir/../charts/matrix-stack/ci_extra" &> /dev/null && pwd )
 values_file_prefix="${1:-*}"
 
 [ ! -d "$values_file_root" ] && echo "$values_file_root must be a directory that exists" 1>&2 && exit 1
 [ ! -d "$user_values_file_root" ] && echo "$user_values_file_root must be a directory that exists" 1>&2 && exit 1
 
-for values_file in "$values_file_root"/$values_file_prefix-values.yaml "$user_values_file_root"/$values_file_prefix-values.yaml; do
+for values_file in "$values_file_root"/$values_file_prefix-values.yaml "$user_values_file_root"/$values_file_prefix-values.yaml "$extra_values_file_root"/$values_file_prefix-values.yaml; do
   if [ "$values_file_prefix" != '*' ] &&  [ ! -e "$values_file" ]; then
     echo "$values_file_prefix-values.yaml doesn't exist in $(dirname "$values_file"). Skipping"
     continue

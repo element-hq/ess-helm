@@ -63,8 +63,14 @@ def base_values() -> dict[str, Any]:
 
 @pytest.fixture
 def values(values_file) -> dict[str, Any]:
+    if (Path("charts/matrix-stack/ci") / values_file).exists():
+        values_file_path = Path("charts/matrix-stack/ci") / values_file
+    elif (Path("charts/matrix-stack/ci_extra") / values_file).exists():
+        values_file_path = Path("charts/matrix-stack/ci_extra") / values_file
+    else:
+        raise FileNotFoundError(f"Could not find {values_file} in charts/matrix-stack")
     if values_file not in values_cache:
-        v = yaml.safe_load((Path("charts/matrix-stack/ci") / values_file).read_text("utf-8"))
+        v = yaml.safe_load((values_file_path).read_text("utf-8"))
         for default_enabled_component in [
             "elementAdmin",
             "elementWeb",
@@ -237,6 +243,7 @@ async def helm_template(
     release_name: str,
     namespace: str,
     values: Any | None,
+    has_cert_manager_crd=True,
     has_service_monitor_crd=True,
     skip_cache=False,
 ) -> list[Any]:
@@ -248,6 +255,9 @@ async def helm_template(
     additional_apis: list[str] = []
     if has_service_monitor_crd:
         additional_apis.append("monitoring.coreos.com/v1/ServiceMonitor")
+
+    if has_cert_manager_crd:
+        additional_apis.append("cert-manager.io/v1/Certificate")
 
     additional_apis_args = [arg for additional_api in additional_apis for arg in ["-a", additional_api]]
     command = [
@@ -284,8 +294,10 @@ async def helm_template(
 
 @pytest.fixture
 def make_templates(chart: pyhelm3.Chart, release_name: str, namespace: str):
-    async def _make_templates(values, has_service_monitor_crd=True, skip_cache=False):
-        return await helm_template(chart, release_name, namespace, values, has_service_monitor_crd, skip_cache)
+    async def _make_templates(values, has_cert_manager_crd=True, has_service_monitor_crd=True, skip_cache=False):
+        return await helm_template(
+            chart, release_name, namespace, values, has_cert_manager_crd, has_service_monitor_crd, skip_cache
+        )
 
     return _make_templates
 

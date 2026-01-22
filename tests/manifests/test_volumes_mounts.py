@@ -28,9 +28,11 @@ async def test_volumes_mounts_exists(release_name, templates, other_secrets, oth
     configmaps_names = [t["metadata"]["name"] for t in templates if t["kind"] == "ConfigMap"] + [
         s["metadata"]["name"] for s in other_configmaps
     ]
-    secrets_names = [t["metadata"]["name"] for t in templates if t["kind"] == "Secret"] + [
-        s["metadata"]["name"] for s in other_secrets
-    ]
+    secrets_names = (
+        [t["metadata"]["name"] for t in templates if t["kind"] == "Secret"]
+        + [s["metadata"]["name"] for s in other_secrets]
+        + [c["spec"]["secretName"] for c in [c for c in templates if c["kind"] == "Certificate"]]
+    )
     for template in templates:
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
             volumes_names = []

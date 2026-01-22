@@ -27,7 +27,7 @@ jobs:
       id: generate-manifests
       run: |
         mkdir -p "$RUNNER_TEMP/new"
-        for values in charts/matrix-stack/ci/*values.yaml; do
+        for values in charts/matrix-stack/ci*/*values.yaml; do
           echo "Generating new templates with $values";
           mkdir -p "$RUNNER_TEMP/new/$(basename "$values" ".yaml")"
           helm template \
@@ -50,7 +50,7 @@ jobs:
     - name: Generate manifests for base
       run: |
         mkdir -p "$RUNNER_TEMP/old"
-        for values in charts/matrix-stack/ci/*values.yaml; do
+        for values in charts/matrix-stack/ci*/*values.yaml; do
           echo "Generating old templates with $values";
           mkdir -p "$RUNNER_TEMP/old/$(basename "$values" ".yaml")"
           helm template \
