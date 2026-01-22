@@ -97,6 +97,83 @@ async def test_exposed_services_configurability(values, make_templates):
                 ), f"Did not find expected exposed service despite using {service_mode}. Services: {found_services}"
 
 
+@pytest.mark.parametrize("values_file", ["matrix-rtc-exposed-services-values.yaml"])
+@pytest.mark.asyncio_cooperative
+async def test_exposed_services_certificate(values, make_templates):
+    num_of_expected_certificates = {}
+
+    def exposed_service_certificate(deployable_details: DeployableDetails, issuer_name: str):
+        nonlocal num_of_expected_certificates
+        exposed_services = deployable_details.get_helm_values(values, PropertyType.ExposedServices)
+        assert exposed_services is not None
+        test_annotations = {
+            "exposed-service-cert-manager": issuer_name,
+        }
+        exposed_services_values = dict(exposed_services)
+
+        for service_name in exposed_services:
+            if exposed_services_values[service_name].get("domain"):
+                if issuer_name == "no-issuer":
+                    exposed_services_values[service_name]["tlsSecret"] = f"{deployable_details.name}-tls-secret"
+                else:
+                    if exposed_services_values[service_name].get("tlsSecret"):
+                        exposed_services_values[service_name].pop("tlsSecret")
+                    num_of_expected_certificates[deployable_details.name] += 1
+                exposed_services_values[service_name]["annotations"] = test_annotations
+
+        deployable_details.set_helm_values(values, PropertyType.ExposedServices, exposed_services_values)
+
+    found_exposed_services_using_cert_manager = {}
+    found_certificates = {}
+
+    values.setdefault("certManager", {})
+
+    for cert_manager in ({"clusterIssuer": "cluster-issuer"}, {"issuer": "issuer"}, {}):
+        values["certManager"] = cert_manager
+        for deployable_details in all_deployables_details:
+            found_exposed_services_using_cert_manager[deployable_details.name] = []
+            num_of_expected_certificates[deployable_details.name] = 0
+            found_certificates[deployable_details.name] = []
+
+        issuer_name = "no-issuer"
+        if cert_manager:
+            issuer_name = list(cert_manager.values())[0]
+        iterate_deployables_parts(
+            lambda deployable_details, issuer_name=issuer_name: exposed_service_certificate(
+                deployable_details, issuer_name
+            ),
+            lambda deployable_details: deployable_details.has_exposed_services,
+        )
+        for template in await make_templates(values):
+            deployable_details = template_to_deployable_details(template)
+            if deployable_details.has_exposed_services:
+                test_annotation_value = template["kind"] == "Service" and template["metadata"].get(
+                    "annotations", {}
+                ).get("exposed-service-cert-manager")
+                if test_annotation_value and test_annotation_value != "no-issuer":
+                    found_exposed_services_using_cert_manager[deployable_details.name].append(template)
+                if template["kind"] == "Certificate":
+                    found_certificates[deployable_details.name].append(template)
+                    assert template["spec"]["issuerRef"]["name"] == issuer_name
+                    kind = list(cert_manager.keys())[0]
+                    assert template["spec"]["issuerRef"]["kind"] == kind[0].upper() + kind[1:]
+
+        for deployable_details in all_deployables_details:
+            assert num_of_expected_certificates[deployable_details.name] == len(
+                found_certificates[deployable_details.name]
+            ), (
+                f"Did not find number of expected certificates : {found_certificates[deployable_details.name]}"
+                f" when testing with cert-manager {issuer_name}"
+            )
+            if deployable_details.has_exposed_services:
+                assert len(found_certificates[deployable_details.name]) == len(
+                    found_exposed_services_using_cert_manager[deployable_details.name]
+                ), (
+                    f"Did not find expected certificates : {found_certificates[deployable_details.name]}"
+                    f" when testing with cert-manager {issuer_name}"
+                )
+
+
 @pytest.mark.parametrize("values_file", services_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_ports_in_services_are_named(templates):

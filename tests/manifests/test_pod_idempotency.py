@@ -54,11 +54,23 @@ async def test_values_file_renders_idempotent_pods(release_name, namespace, valu
     first_render = {}
     second_render = {}
     for template in await helm_template(
-        (await _patch_version_chart()), release_name, namespace, values, has_service_monitor_crd=True, skip_cache=True
+        (await _patch_version_chart()),
+        release_name,
+        namespace,
+        values,
+        has_cert_manager_crd=True,
+        has_service_monitor_crd=True,
+        skip_cache=True,
     ):
         first_render[template_id(template)] = template
     for template in await helm_template(
-        (await _patch_version_chart()), release_name, namespace, values, has_service_monitor_crd=True, skip_cache=True
+        (await _patch_version_chart()),
+        release_name,
+        namespace,
+        values,
+        has_cert_manager_crd=True,
+        has_service_monitor_crd=True,
+        skip_cache=True,
     ):
         second_render[template_id(template)] = template
 

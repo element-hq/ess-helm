@@ -15,7 +15,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- if and .sfu.exposedServices.turnTLS.enabled (not .sfu.exposedServices.turnTLS.tlsSecret) (not $root.Values.certManager) -}}
 {{ $messages = append $messages "matrixRTC.sfu.exposedServices.turnTLS.enabled requires matrixRTC.sfu.exposedServices.turnTLS.tlsSecret set or certManager enabled" }}
 {{- end }}
-{{- if and .sfu.exposedServices.turnTLS.enabled (not .sfu.exposedServices.turnTLS.tlsSecret) (not $root.Capabilities.APIVersions.Has "cert-manager.io/v1/Certificate") ($root.Values.certManager) -}}
+{{- if and .sfu.exposedServices.turnTLS.enabled (not .sfu.exposedServices.turnTLS.tlsSecret) (not ($root.Capabilities.APIVersions.Has "cert-manager.io/v1/Certificate")) ($root.Values.certManager) -}}
 {{ $messages = append $messages "matrixRTC.sfu.exposedServices.turnTLS.enabled does not configure .sfu.exposedServices.turnTLS.tlsSecret. The chart has certManager enabled but the `cert-manager.io/v1/Certificate` API could not be found." }}
 {{- end }}
 {{ $messages | toJson }}

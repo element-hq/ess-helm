@@ -200,7 +200,7 @@ spec:
 {{- else if $.Values.certManager }}
       - name: secret-turn-tls
         secret:
-          secretName: "{{ .Release.Name }}-turn-tls-certmanager-tls"
+          secretName: "{{ $.Release.Name }}-turn-tls-certmanager-tls"
 {{- end }}
 {{- end }}
 {{- end }}

@@ -237,6 +237,7 @@ async def helm_template(
     release_name: str,
     namespace: str,
     values: Any | None,
+    has_cert_manager_crd=True,
     has_service_monitor_crd=True,
     skip_cache=False,
 ) -> list[Any]:
@@ -248,6 +249,9 @@ async def helm_template(
     additional_apis: list[str] = []
     if has_service_monitor_crd:
         additional_apis.append("monitoring.coreos.com/v1/ServiceMonitor")
+
+    if has_cert_manager_crd:
+        additional_apis.append("cert-manager.io/v1/Certificate")
 
     additional_apis_args = [arg for additional_api in additional_apis for arg in ["-a", additional_api]]
     command = [
