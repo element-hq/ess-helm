@@ -154,3 +154,15 @@ async def test_services_are_dual_stack_where_possible(templates):
             assert template["spec"]["ipFamilyPolicy"] == "PreferDualStack", (
                 f"{template_id(template)} does not set ipFamilyPolicy to PreferDualStack"
             )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_services_specify_type_by_default(templates):
+    for template in templates:
+        if template["kind"] == "Service":
+            # Default service type is ClusterIP for internal services
+            # Or NodePort for exposed services
+            assert template["spec"].get("type") in ("ClusterIP", "NodePort"), (
+                f"{template_id(template)} service type is not ClusterIP"
+            )
