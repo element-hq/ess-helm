@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -84,13 +84,6 @@ worker_listeners:
 {{- if (include "element-io.synapse.process.responsibleForMedia" (dict "root" $root "context" (dict "processType" .processType "enabledWorkerTypes" (keys $enabledWorkers)))) }}
 enable_media_repo: true
 {{- else }}
-# Stub out the media storage provider for processes not responsible for media
-media_storage_providers:
-- module: file_system
-  store_local: false
-  store_remote: false
-  store_synchronous: false
-  config:
-    directory: "/media/media_store"
+enable_local_media_storage: false
 {{- end }}
 {{- end }}
