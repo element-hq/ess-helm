@@ -1,6 +1,6 @@
 <!--
 Copyright 2024-2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 -->
@@ -111,6 +111,7 @@ ESS Community comes with the following components out-of-the box:
 - [Element Call's Matrix RTC Backend](https://github.com/element-hq/element-call/tree/livekit): Allows to use Element Call from Element X and Element Web apps.
 - [Element Web](https://github.com/element-hq/element-web): The Matrix Web Client provided by Element.
 - [Element Admin](https://github.com/element-hq/element-admin): The Admin Console provided by Element.
+- [Hookshot](https://github.com/matrix-org/hookshot): A Matrix bot for connecting to external services like GitHub, GitLab, JIRA, and more.
 - PostgreSQL: An optional packaged PostgreSQL server that allows you to quickly set up the stack out-of-the-box. For a better long-term experience, please consider using a dedicated PostgreSQL server. See the [advanced setup docs](./docs/advanced.md) for more information.
 - HAProxy: Provides the routing to Synapse processes.
 - .well-known delegation: Required for federation and Matrix clients.

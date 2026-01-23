@@ -14,6 +14,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 - [Monitoring](#monitoring)
 - [Components Configuration](#configuration)
    - [Configuring Element Web](#configuring-element-web)
+   - [Configuring Hookshot](#configuring-hookshot)
    - [Configuring Synapse](#configuring-synapse)
    - [Configuring Matrix Authentication Service](#configuring-matrix-authentication-service)
    - [Configuring Matrix RTC](#configuring-matrix-rtc)
@@ -107,6 +108,39 @@ elementWeb:
       {
         "some": "settings"
       }
+```
+
+### Configuring Hookshot
+
+Hookshot is disabled by default and needs to be explicitly enabled.
+
+```yml
+hookshot:
+  enabled: true
+```
+
+Hookshot configuration is written in YAML. The documentation can be found in the [Hookshot website](https://matrix-org.github.io/matrix-hookshot/latest/setup/sample-configuration.html)
+
+Below is an example configuration enabling generic webhooks:
+
+```yml
+hookshot:
+  additional:
+    user-config.yaml:
+      config: |
+        generic:
+          enabled: true
+          allowJsTransformationFunctions: false
+          waitForComplete: true
+          enableHttpGet: false
+```
+
+Note that by default, Hookshot will be setup behind Synapse hostname unless configured with a dedicated ingress :
+
+```yml
+hookshot:
+  ingress:
+    host: <hookshot domain name>
 ```
 
 ### Configuring Synapse
