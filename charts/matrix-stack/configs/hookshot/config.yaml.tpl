@@ -65,6 +65,21 @@ generic:
   urlPrefix: https://{{ (tpl $root.Values.synapse.ingress.host $root) }}/_matrix/hookshot/webhook
 {{ end }}
 
+{{ with .github }}
+github:
+  auth:
+    privateKeyFile: /secrets/{{
+                include "element-io.ess-library.provided-secret-path" (
+                      dict "root" $root
+                      "context" (dict
+                        "secretPath" "hookshot.github.privateKey"
+                        "defaultSecretName" (include "element-io.hookshot.secret-name" (dict "root" $root "context" $context))
+                        "defaultSecretKey" "GITHUB_PRIVATE_KEY"
+                      )
+                    ) }}
+{{ end }}
+
+
 widgets:
 {{- if .ingress.host }}
   publicUrl: https://{{ tpl .ingress.host $root }}/widgetapi/v1/static

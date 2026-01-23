@@ -65,6 +65,13 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
       {{- $configSecrets = append $configSecrets (tpl .secret $root) }}
     {{- end -}}
   {{- end -}}
+  {{- with (.github).privateKey -}}
+    {{- if .value }}
+      {{- $configSecrets = append $configSecrets (printf "%s-hookshot" $root.Release.Name) }}
+    {{- else -}}
+      {{- $configSecrets = append $configSecrets (tpl .secret $root) }}
+    {{- end -}}
+  {{- end -}}
   {{- with .additional -}}
     {{- range $key := (. | keys | uniq | sortAlpha) -}}
       {{- $prop := index $root.Values.hookshot.additional $key }}
@@ -108,6 +115,9 @@ RSA_PASSKEY: {{ . | b64enc }}
   {{- end }}
   {{- with .appserviceRegistration.value }}
 REGISTRATION: {{ . | b64enc }}
+  {{- end }}
+  {{- with ((.github).privateKey).value }}
+GITHUB_PRIVATE_KEY: {{ . | b64enc }}
   {{- end }}
   {{- with .additional }}
     {{- range $key := (. | keys | uniq | sortAlpha) }}

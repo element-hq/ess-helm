@@ -12,6 +12,9 @@ enabled: false
 user:
   localpart: hookshot
 
+github: {}
+{{- sub_schema_values.credential("Github App Private key.", "privateKey", initIfAbsent=False, commented=True) | indent(2) }}
+
 logging:
   # The maximum level of Hookshot log output before any overrides
   # Must be one of [critical, error, warning, info, debug]

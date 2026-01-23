@@ -13,6 +13,14 @@
     "passkey": {
       "$ref": "file://common/credential.json"
     },
+    "github": {
+      "type": "object",
+      "properties": {
+        "privateKey": {
+          "$ref": "file://common/credential.json"
+        }
+      }
+    },
     "logging": {
       "type": "object",
       "properties": {

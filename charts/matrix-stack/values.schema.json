@@ -4873,6 +4873,27 @@
           },
           "additionalProperties": false
         },
+        "github": {
+          "type": "object",
+          "properties": {
+            "privateKey": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "string"
+                },
+                "secret": {
+                  "type": "string"
+                },
+                "secretKey": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
         "logging": {
           "type": "object",
           "properties": {

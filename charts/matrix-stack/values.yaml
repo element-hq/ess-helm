@@ -1809,6 +1809,18 @@ hookshot:
   user:
     localpart: hookshot
 
+  github: {}
+    ## Github App Private key..
+    ## It can either be provided inline in the Helm chart e.g.:
+    ## privateKey:
+    ##   value: SecretValue
+    ##
+    ## Or it can be provided via an existing Secret e.g.:
+    ## privateKey:
+    ##   secret: existing-secret
+    ##   secretKey: key-in-secret
+    # privateKey: {}
+
   logging:
     # The maximum level of Hookshot log output before any overrides
     # Must be one of [critical, error, warning, info, debug]
