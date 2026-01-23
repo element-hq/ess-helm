@@ -47,8 +47,8 @@ spec:
             (dict "additionalPath" "hookshot.additional"
                   "nameSuffix" "hookshot"
                   "containerName" "render-config"
-                  "underrides" list
-                  "overrides" (list "config.yaml")
+                  "underrides" (list "config-underride.yaml")
+                  "overrides" (list "config-override.yaml")
                   "outputFile" "hookshot-config.yaml"
                   "resources" .resources
                   "containersSecurityContext" .containersSecurityContext
