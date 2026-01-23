@@ -121,7 +121,7 @@ env:
 {{- end }}
 {{- end }}
 {{- end }}
-{{- if and $root.Values.hookshot.enabled (not $root.Values.hookshot.ingress.host) -}}
+{{- if and $root.Values.hookshot.enabled (not $root.Values.hookshot.ingress.host) }}
 - path: "/_matrix/hookshot/widgetapi/v1"
   availability: only_externally
   service:
