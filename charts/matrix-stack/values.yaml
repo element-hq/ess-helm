@@ -1806,6 +1806,9 @@ hookshot:
     ## - name: dockerhub
     pullSecrets: []
 
+  # Hookshot encryption support is experimental. You can enable it by setting `enableEncryption` to `true`.
+  enableEncryption: false
+
   user:
     localpart: hookshot
 

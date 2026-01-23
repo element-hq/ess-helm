@@ -26,8 +26,10 @@ passFile: /secrets/{{
                       )
                     ) }}
 
+{{- if .enableEncryption }}
 encryption:
  storagePath: /storage
+{{- end }}
 
 cache:
   redisUri: "redis://{{ $root.Release.Name }}-redis.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:6379"

@@ -9,6 +9,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 enabled: false
 {{- sub_schema_values.image(registry='ghcr.io', repository='matrix-org/matrix-hookshot', tag='7.3.0') }}
 
+# Hookshot encryption support is experimental. You can enable it by setting `enableEncryption` to `true`.
+enableEncryption: false
+
 user:
   localpart: hookshot
 

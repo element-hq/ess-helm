@@ -132,8 +132,10 @@ spec:
             port: metrics
             scheme: HTTP
         volumeMounts:
+{{- if .enableEncryption }}
         - name: storage
           mountPath: /storage
+{{- end }}
 {{- range .extraVolumeMounts }}
         - {{ (. | toYaml) | nindent 10 }}
 {{- end }}
@@ -148,9 +150,11 @@ spec:
 {{- range .extraVolumes }}
       - {{- (tpl (. | toYaml) $) | nindent 8 }}
 {{- end }}
+{{- if .enableEncryption }}
       - name: storage
         persistentVolumeClaim:
           claimName: {{ include "element-io.hookshot.pvcName" (dict "root" $) }}
+{{- end }}
       - emptyDir:
           medium: Memory
         name: temp

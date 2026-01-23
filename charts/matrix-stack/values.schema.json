@@ -4858,6 +4858,10 @@
           },
           "additionalProperties": false
         },
+        "enableEncryption": {
+          "type": "boolean",
+          "description": "Experimental: Enable encryption support"
+        },
         "passkey": {
           "type": "object",
           "properties": {
