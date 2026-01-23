@@ -22,6 +22,7 @@ spec:
   {{- end }}
 {{- end }}
   ipFamilyPolicy: PreferDualStack
+  publishNotReadyAddresses: true
   ports:
   - port: 9993
     name: appservice
