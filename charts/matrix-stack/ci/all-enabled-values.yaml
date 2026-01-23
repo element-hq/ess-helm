@@ -1,0 +1,26 @@
+# Copyright 2025-2026 Element Creations Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# source_fragments: deployment-markers-minimal.yaml element-admin-minimal.yaml element-web-minimal.yaml hookshot-minimal.yaml init-secrets-minimal.yaml matrix-authentication-service-minimal.yaml matrix-rtc-minimal.yaml postgres-minimal.yaml server-name.yaml synapse-minimal.yaml well-known-minimal.yaml
+# DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
+
+# deploymentMarkers, initSecrets, postgres, wellKnownDelegation don't have any required properties to be set and defaults to enabled
+elementAdmin:
+  ingress:
+    host: admin.ess.localhost
+elementWeb:
+  ingress:
+    host: element.ess.localhost
+hookshot:
+  enabled: true
+matrixAuthenticationService:
+  ingress:
+    host: mas.ess.localhost
+matrixRTC:
+  ingress:
+    host: mrtc.ess.localhost
+serverName: ess.localhost
+synapse:
+  ingress:
+    host: synapse.ess.localhost
