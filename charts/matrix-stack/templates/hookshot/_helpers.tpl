@@ -97,8 +97,10 @@ env: []
 {{- define "element-io.hookshot.configmap-data" }}
 {{- $root := .root -}}
 {{- with required "element-io.hookshot.configmap-data" .context -}}
-config.yaml: |
-{{- (tpl ($root.Files.Get "configs/hookshot/config.yaml.tpl") (dict "root" $root "context" .)) | nindent 2 }}
+config-underride.yaml: |
+{{- (tpl ($root.Files.Get "configs/hookshot/config-underride.yaml.tpl") (dict "root" $root "context" .)) | nindent 2 }}
+config-override.yaml: |
+{{- (tpl ($root.Files.Get "configs/hookshot/config-override.yaml.tpl") (dict "root" $root "context" .)) | nindent 2 }}
 {{- end -}}
 {{- end -}}
 
