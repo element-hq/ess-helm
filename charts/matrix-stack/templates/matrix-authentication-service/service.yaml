@@ -15,7 +15,13 @@ metadata:
   labels:
     {{- include "element-io.matrix-authentication-service.labels" (dict "root" $ "context" .) | nindent 4 }}
 spec:
-  type: {{ .ingress.service.type | default $.Values.ingress.service.type }}
+{{- $ingressService := .ingress.service -}}
+{{ with .ingress.service.type | default $.Values.ingress.service.type }}
+  type: {{ . }}
+{{- if (list "LoadBalancer" "NodePort") | has . }}
+  externalTrafficPolicy: {{ $ingressService.externalTrafficPolicy | default $.Values.ingress.service.externalTrafficPolicy }}
+{{- end }}
+{{- end }}
   internalTrafficPolicy: {{ .ingress.service.internalTrafficPolicy | default $.Values.ingress.service.internalTrafficPolicy }}
   ipFamilyPolicy: PreferDualStack
   ports:

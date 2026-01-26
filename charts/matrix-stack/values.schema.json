@@ -204,6 +204,13 @@
                 "Cluster",
                 "Local"
               ]
+            },
+            "externalTrafficPolicy": {
+              "type": "string",
+              "enum": [
+                "Cluster",
+                "Local"
+              ]
             }
           },
           "additionalProperties": false
@@ -1506,6 +1513,13 @@
                   ]
                 },
                 "internalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalTrafficPolicy": {
                   "type": "string",
                   "enum": [
                     "Cluster",
@@ -3008,6 +3022,13 @@
                     "Cluster",
                     "Local"
                   ]
+                },
+                "externalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
                 }
               },
               "additionalProperties": false
@@ -3759,6 +3780,13 @@
                   ]
                 },
                 "internalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalTrafficPolicy": {
                   "type": "string",
                   "enum": [
                     "Cluster",
@@ -5018,6 +5046,13 @@
                   ]
                 },
                 "internalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalTrafficPolicy": {
                   "type": "string",
                   "enum": [
                     "Cluster",
@@ -6435,6 +6470,13 @@
                   ]
                 },
                 "internalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalTrafficPolicy": {
                   "type": "string",
                   "enum": [
                     "Cluster",
@@ -9121,6 +9163,13 @@
                   ]
                 },
                 "internalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalTrafficPolicy": {
                   "type": "string",
                   "enum": [
                     "Cluster",
@@ -14887,6 +14936,13 @@
                   ]
                 },
                 "internalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalTrafficPolicy": {
                   "type": "string",
                   "enum": [
                     "Cluster",

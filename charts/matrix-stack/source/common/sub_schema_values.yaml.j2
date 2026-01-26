@@ -183,6 +183,7 @@ networking:
 {%- if global %}
   service:
     type: ClusterIP
+    externalTrafficPolicy: Cluster
     internalTrafficPolicy: Cluster
 {%- else %}
   service: {}
