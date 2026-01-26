@@ -23,7 +23,8 @@ metadata:
 spec:
   type: {{ .exposedServices.rtcTcp.portType }}
   ipFamilyPolicy: PreferDualStack
-  externalTrafficPolicy: Local
+  internalTrafficPolicy: {{ .exposedServices.rtcTcp.internalTrafficPolicy }}
+  externalTrafficPolicy: {{ .exposedServices.rtcTcp.externalTrafficPolicy }}
   ports:
   - name: "rtc-tcp"
     protocol: "TCP"

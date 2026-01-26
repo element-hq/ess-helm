@@ -29,7 +29,8 @@ metadata:
 spec:
   type: {{ $.Values.matrixRTC.sfu.exposedServices.rtcUdp.portType }}
   ipFamilyPolicy: PreferDualStack
-  externalTrafficPolicy: Local
+  internalTrafficPolicy: {{ $.Values.matrixRTC.sfu.exposedServices.rtcUdp.internalTrafficPolicy }}
+  externalTrafficPolicy: {{ $.Values.matrixRTC.sfu.exposedServices.rtcUdp.externalTrafficPolicy }}
   ports:
 {{- $segment_start := ((add $range_start (mul 250 $port_segment)) | int) }}
 {{- $segment_end := ((min (add $range_end 1) (add $segment_start 250)) | int) }}

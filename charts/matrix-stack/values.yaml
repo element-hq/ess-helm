@@ -776,6 +776,9 @@ matrixRTC:
         # Either a NodePort, HostPort or LoadBalancer
         # If the port is a HostPort, no Service will be created.
         portType: NodePort
+        # Either Local or Cluster
+        internalTrafficPolicy: Cluster
+        externalTrafficPolicy: Cluster
         port: 30881
 
       rtcMuxedUdp:
@@ -787,6 +790,9 @@ matrixRTC:
         # Either a NodePort, HostPort or LoadBalancer
         # If the port is a HostPort, no Service will be created.
         portType: NodePort
+        # Either Local or Cluster
+        internalTrafficPolicy: Cluster
+        externalTrafficPolicy: Cluster
         port: 30882
 
       rtcUdp:
@@ -812,6 +818,9 @@ matrixRTC:
         # Either a NodePort, HostPort or LoadBalancer
         # If the port is a HostPort, no Service will be created.
         portType: NodePort
+        # Either Local or Cluster
+        internalTrafficPolicy: Cluster
+        externalTrafficPolicy: Cluster
         port: 31443
 
         # The domain of the service
@@ -828,6 +837,9 @@ matrixRTC:
         # Either a NodePort, HostPort or LoadBalancer
         # If the port is a HostPort, no Service will be created.
         portType: NodePort
+        # Either Local or Cluster
+        internalTrafficPolicy: Cluster
+        externalTrafficPolicy: Cluster
         port: 31478
 
     # Details of the image to be used
