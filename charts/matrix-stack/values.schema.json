@@ -1525,6 +1525,12 @@
                     "Cluster",
                     "Local"
                   ]
+                },
+                "externalIPs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
                 }
               },
               "additionalProperties": false
@@ -3144,6 +3150,12 @@
                     "Cluster",
                     "Local"
                   ]
+                },
+                "externalIPs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
                 }
               },
               "additionalProperties": false
@@ -3907,6 +3919,12 @@
                     "Cluster",
                     "Local"
                   ]
+                },
+                "externalIPs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
                 }
               },
               "additionalProperties": false
@@ -5173,6 +5191,12 @@
                     "Cluster",
                     "Local"
                   ]
+                },
+                "externalIPs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
                 }
               },
               "additionalProperties": false
@@ -6597,6 +6621,12 @@
                     "Cluster",
                     "Local"
                   ]
+                },
+                "externalIPs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
                 }
               },
               "additionalProperties": false
@@ -9290,6 +9320,12 @@
                     "Cluster",
                     "Local"
                   ]
+                },
+                "externalIPs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
                 }
               },
               "additionalProperties": false
@@ -15063,6 +15099,12 @@
                     "Cluster",
                     "Local"
                   ]
+                },
+                "externalIPs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
                 }
               },
               "additionalProperties": false

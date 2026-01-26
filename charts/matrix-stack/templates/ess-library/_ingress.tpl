@@ -31,6 +31,22 @@ annotations:
 {{- end -}}
 {{- end -}}
 
+{{- define "element-io.ess-library.ingress-service.annotations" -}}
+{{- $root := .root -}}
+{{- with required "element-io.ess-library.ingress-service.annotations missing context" .context -}}
+{{- $annotations := .extraAnnotations | default dict -}}
+{{- with required "element-io.ess-library.ingress-service.annotations context missing ingress" .ingress }}
+{{- $tlsSecret := coalesce .tlsSecret $root.Values.ingress.tlsSecret -}}
+{{- $annotations = mustMergeOverwrite $annotations ($root.Values.ingress.annotations | deepCopy) -}}
+{{- $annotations = mustMergeOverwrite $annotations (.annotations | deepCopy) -}}
+{{- with $annotations -}}
+annotations:
+  {{- toYaml . | nindent 2 }}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "element-io.ess-library.ingress.tls" -}}
 {{- $root := .root -}}
 {{- with required "element-io.ess-library.ingress.tls missing context" .context -}}

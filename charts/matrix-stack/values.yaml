@@ -494,6 +494,8 @@ matrixRTC:
     #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
     #   externalTrafficPolicy: Cluster
     #   internalTrafficPolicy: Cluster
+    #   # External IPs addresses of this service.
+    #   externalIPs: []
     service: {}
     ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
     ## This can be set to `ingress-nginx`.
@@ -1154,6 +1156,8 @@ elementAdmin:
     #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
     #   externalTrafficPolicy: Cluster
     #   internalTrafficPolicy: Cluster
+    #   # External IPs addresses of this service.
+    #   externalIPs: []
     service: {}
     ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
     ## This can be set to `ingress-nginx`.
@@ -1413,6 +1417,8 @@ elementWeb:
     #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
     #   externalTrafficPolicy: Cluster
     #   internalTrafficPolicy: Cluster
+    #   # External IPs addresses of this service.
+    #   externalIPs: []
     service: {}
     ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
     ## This can be set to `ingress-nginx`.
@@ -1927,6 +1933,8 @@ hookshot:
     #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
     #   externalTrafficPolicy: Cluster
     #   internalTrafficPolicy: Cluster
+    #   # External IPs addresses of this service.
+    #   externalIPs: []
     service: {}
     ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
     ## This can be set to `ingress-nginx`.
@@ -2374,6 +2382,8 @@ matrixAuthenticationService:
     #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
     #   externalTrafficPolicy: Cluster
     #   internalTrafficPolicy: Cluster
+    #   # External IPs addresses of this service.
+    #   externalIPs: []
     service: {}
     ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
     ## This can be set to `ingress-nginx`.
@@ -4889,6 +4899,8 @@ synapse:
     #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
     #   externalTrafficPolicy: Cluster
     #   internalTrafficPolicy: Cluster
+    #   # External IPs addresses of this service.
+    #   externalIPs: []
     service: {}
     ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
     ## This can be set to `ingress-nginx`.
@@ -5125,6 +5137,8 @@ wellKnownDelegation:
     #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
     #   externalTrafficPolicy: Cluster
     #   internalTrafficPolicy: Cluster
+    #   # External IPs addresses of this service.
+    #   externalIPs: []
     service: {}
     ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
     ## This can be set to `ingress-nginx`.

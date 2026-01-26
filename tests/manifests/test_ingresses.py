@@ -4,6 +4,8 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 
+import ipaddress
+
 import pytest
 
 from . import (
@@ -359,14 +361,37 @@ async def test_ingress_services_local_service_properties(values, make_templates)
     values.setdefault("ingress", {}).setdefault("service", {})["internalTrafficPolicy"] = "Cluster"
     values.setdefault("ingress", {}).setdefault("service", {})["externalTrafficPolicy"] = "Cluster"
 
-    def set_ingress_service_type(deployable_details: DeployableDetails):
+    # we set deployables external ips on 10.0.X.1
+    expected_deployable_external_ips = {}
+
+    next_external_ip = ipaddress.IPv4Address("10.0.0.1")
+    for deployable_details in all_deployables_details:
+        if deployable_details.has_ingress:
+            expected_deployable_external_ips.setdefault(deployable_details.name, next_external_ip)
+            next_external_ip += 256
+
+    def set_ingress_service_properties(deployable_details: DeployableDetails, external_ip: ipaddress.IPv4Address):
         deployable_details.set_helm_values(
             values,
             PropertyType.Ingress,
-            {"service": {"type": "LoadBalancer", "internalTrafficPolicy": "Local", "externalTrafficPolicy": "Local"}},
+            {
+                "service": {
+                    "type": "LoadBalancer",
+                    "internalTrafficPolicy": "Local",
+                    "externalTrafficPolicy": "Local",
+                    "externalIPs": ("127.0.0.1", str(external_ip)),
+                    "annotations": {
+                        "ingress-service-external-ip": str(external_ip),
+                    },
+                },
+            },
         )
 
-    iterate_deployables_ingress_parts(set_ingress_service_type)
+    iterate_deployables_ingress_parts(
+        lambda deployable_details: set_ingress_service_properties(
+            deployable_details, expected_deployable_external_ips[deployable_details.name]
+        )
+    )
 
     templates = await make_templates(values)
     for template in templates:
@@ -404,6 +429,14 @@ async def test_ingress_services_local_service_properties(values, make_templates)
                 assert services_by_name[backend_service["name"]]["spec"].get("externalTrafficPolicy") == "Local", (
                     f"Service {backend_service['name']} does not use Local externalTrafficPolicy despite setting "
                     "$.ingress.service.externalTrafficPolicy to Local and $.ingress.service.type to LoadBalancer"
+                )
+                assert services_by_name[backend_service["name"]]["spec"].get("externalIPs") == (
+                    "127.0.0.1",
+                    services_by_name[backend_service["name"]]["metadata"]["annotations"]["ingress-service-external-ip"],
+                ), (
+                    f"Service {backend_service['name']} does not have externalIPs set"
+                    f" despite {deployable_details.name} having externalIPs"
+                    f" set {services_by_name[backend_service['name']]['metadata']['annotations']['ingress-service-external-ip']})"
                 )
                 assert "clusterIP" not in services_by_name[backend_service["name"]]["spec"], (
                     f"{template_id(template)} has a clusterIP defined for a non-ClusterIP service"

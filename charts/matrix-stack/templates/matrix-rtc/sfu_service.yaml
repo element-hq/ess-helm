@@ -21,6 +21,9 @@ spec:
   type: {{ . }}
 {{- if (list "LoadBalancer" "NodePort") | has . }}
   externalTrafficPolicy: {{ $.Values.matrixRTC.ingress.service.externalTrafficPolicy | default $.Values.ingress.service.externalTrafficPolicy }}
+  {{- if hasKey $.Values.matrixRTC.ingress.service "externalIPs" }}
+  externalIPs: {{ $.Values.matrixRTC.ingress.externalIPs | toYaml | nindent 4 }}
+  {{- end }}
 {{- end }}
 {{- end }}
   internalTrafficPolicy: {{ $.Values.matrixRTC.ingress.service.internalTrafficPolicy | default $.Values.ingress.service.internalTrafficPolicy }}

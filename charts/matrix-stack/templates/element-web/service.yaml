@@ -19,6 +19,9 @@ spec:
   type: {{ . }}
 {{- if (list "LoadBalancer" "NodePort") | has . }}
   externalTrafficPolicy: {{ $ingressService.externalTrafficPolicy | default $.Values.ingress.service.externalTrafficPolicy }}
+  {{- if hasKey $ingressService "externalIPs" }}
+  externalIPs: {{ $ingressService.externalIPs | toYaml | nindent 4 }}
+  {{- end }}
 {{- end }}
 {{- end }}
   internalTrafficPolicy: {{ .ingress.service.internalTrafficPolicy | default $.Values.ingress.service.internalTrafficPolicy }}

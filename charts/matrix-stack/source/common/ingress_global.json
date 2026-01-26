@@ -29,6 +29,12 @@
         "internalTrafficPolicy"
       ],
       "properties": {
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "type": {
           "type": "string",
           "enum": [

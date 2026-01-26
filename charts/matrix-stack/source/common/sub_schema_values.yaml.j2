@@ -192,6 +192,8 @@ networking:
   #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
   #   externalTrafficPolicy: Cluster
   #   internalTrafficPolicy: Cluster
+  #   # External IPs addresses of this service.
+  #   externalIPs: []
   service: {}
 {%- endif %}
   ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
