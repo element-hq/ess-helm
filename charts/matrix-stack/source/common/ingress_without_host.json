@@ -35,6 +35,13 @@
             "NodePort",
             "LoadBalancer"
           ]
+        },
+        "internalTrafficPolicy": {
+          "type": "string",
+          "enum": [
+            "Cluster",
+            "Local"
+          ]
         }
       }
     }
