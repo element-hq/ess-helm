@@ -187,6 +187,11 @@ networking:
     externalTrafficPolicy: Cluster
     internalTrafficPolicy: Cluster
 {%- else %}
+  # service:
+  #   type: ClusterIP
+  #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
+  #   externalTrafficPolicy: Cluster
+  #   internalTrafficPolicy: Cluster
   service: {}
 {%- endif %}
   ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
@@ -478,6 +483,8 @@ extraInitContainers: []
   # Either a NodePort, HostPort or LoadBalancer
   # If the port is a HostPort, no Service will be created.
   portType: {{ portType }}
+  # External IPs addresses of this service.
+  # externalIPs: []
   # Node Port template value. If empty, `nodePort` wont be set on the service port
   # And kubernetes will automatically assign a port.
   nodePort: "{{ nodePortTemplate }}"
@@ -503,6 +510,8 @@ extraInitContainers: []
   # Either a NodePort, HostPort or LoadBalancer
   # If the port is a HostPort, no Service will be created.
   portType: {{ portType }}
+  # External IPs addresses of this service.
+  # externalIPs: []
   portRange:
     # The beginning port of the range
     startPort: {{ startPort }}

@@ -489,6 +489,11 @@ matrixRTC:
     # tlsSecret:
 
     ## How the Service behind this Ingress is constructed
+    # service:
+    #   type: ClusterIP
+    #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
+    #   externalTrafficPolicy: Cluster
+    #   internalTrafficPolicy: Cluster
     service: {}
     ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
     ## This can be set to `ingress-nginx`.
@@ -776,6 +781,8 @@ matrixRTC:
         # Either a NodePort, HostPort or LoadBalancer
         # If the port is a HostPort, no Service will be created.
         portType: NodePort
+        # External IPs addresses of this service.
+        # externalIPs: []
         # Node Port template value. If empty, `nodePort` wont be set on the service port
         # And kubernetes will automatically assign a port.
         nodePort: "{{ .context.port }}"
@@ -793,6 +800,8 @@ matrixRTC:
         # Either a NodePort, HostPort or LoadBalancer
         # If the port is a HostPort, no Service will be created.
         portType: NodePort
+        # External IPs addresses of this service.
+        # externalIPs: []
         # Node Port template value. If empty, `nodePort` wont be set on the service port
         # And kubernetes will automatically assign a port.
         nodePort: "{{ .context.port }}"
@@ -810,6 +819,8 @@ matrixRTC:
         # Either a NodePort, HostPort or LoadBalancer
         # If the port is a HostPort, no Service will be created.
         portType: NodePort
+        # External IPs addresses of this service.
+        # externalIPs: []
         portRange:
           # The beginning port of the range
           startPort: 31000
@@ -832,6 +843,8 @@ matrixRTC:
         # Either a NodePort, HostPort or LoadBalancer
         # If the port is a HostPort, no Service will be created.
         portType: NodePort
+        # External IPs addresses of this service.
+        # externalIPs: []
         # Node Port template value. If empty, `nodePort` wont be set on the service port
         # And kubernetes will automatically assign a port.
         nodePort: "{{ .context.port }}"
@@ -854,6 +867,8 @@ matrixRTC:
         # Either a NodePort, HostPort or LoadBalancer
         # If the port is a HostPort, no Service will be created.
         portType: NodePort
+        # External IPs addresses of this service.
+        # externalIPs: []
         # Node Port template value. If empty, `nodePort` wont be set on the service port
         # And kubernetes will automatically assign a port.
         nodePort: "{{ .context.port }}"
@@ -1134,6 +1149,11 @@ elementAdmin:
     # tlsSecret:
 
     ## How the Service behind this Ingress is constructed
+    # service:
+    #   type: ClusterIP
+    #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
+    #   externalTrafficPolicy: Cluster
+    #   internalTrafficPolicy: Cluster
     service: {}
     ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
     ## This can be set to `ingress-nginx`.
@@ -1388,6 +1408,11 @@ elementWeb:
     # tlsSecret:
 
     ## How the Service behind this Ingress is constructed
+    # service:
+    #   type: ClusterIP
+    #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
+    #   externalTrafficPolicy: Cluster
+    #   internalTrafficPolicy: Cluster
     service: {}
     ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
     ## This can be set to `ingress-nginx`.
@@ -1897,6 +1922,11 @@ hookshot:
     # tlsSecret:
 
     ## How the Service behind this Ingress is constructed
+    # service:
+    #   type: ClusterIP
+    #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
+    #   externalTrafficPolicy: Cluster
+    #   internalTrafficPolicy: Cluster
     service: {}
     ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
     ## This can be set to `ingress-nginx`.
@@ -2339,6 +2369,11 @@ matrixAuthenticationService:
     # tlsSecret:
 
     ## How the Service behind this Ingress is constructed
+    # service:
+    #   type: ClusterIP
+    #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
+    #   externalTrafficPolicy: Cluster
+    #   internalTrafficPolicy: Cluster
     service: {}
     ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
     ## This can be set to `ingress-nginx`.
@@ -4849,6 +4884,11 @@ synapse:
     # tlsSecret:
 
     ## How the Service behind this Ingress is constructed
+    # service:
+    #   type: ClusterIP
+    #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
+    #   externalTrafficPolicy: Cluster
+    #   internalTrafficPolicy: Cluster
     service: {}
     ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
     ## This can be set to `ingress-nginx`.
@@ -5080,6 +5120,11 @@ wellKnownDelegation:
     # tlsSecret:
 
     ## How the Service behind this Ingress is constructed
+    # service:
+    #   type: ClusterIP
+    #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
+    #   externalTrafficPolicy: Cluster
+    #   internalTrafficPolicy: Cluster
     service: {}
     ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
     ## This can be set to `ingress-nginx`.

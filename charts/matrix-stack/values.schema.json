@@ -2314,6 +2314,12 @@
                     },
                     "nodePort": {
                       "type": "string"
+                    },
+                    "externalIPs": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
                     }
                   },
                   "additionalProperties": false
@@ -2362,6 +2368,12 @@
                     },
                     "nodePort": {
                       "type": "string"
+                    },
+                    "externalIPs": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
                     }
                   },
                   "additionalProperties": false
@@ -2423,6 +2435,12 @@
                         }
                       },
                       "additionalProperties": false
+                    },
+                    "externalIPs": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
                     }
                   },
                   "additionalProperties": false
@@ -2477,6 +2495,12 @@
                     },
                     "tlsSecret": {
                       "type": "string"
+                    },
+                    "externalIPs": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
                     }
                   },
                   "additionalProperties": false
@@ -2525,6 +2549,12 @@
                     },
                     "nodePort": {
                       "type": "string"
+                    },
+                    "externalIPs": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
                     }
                   },
                   "additionalProperties": false

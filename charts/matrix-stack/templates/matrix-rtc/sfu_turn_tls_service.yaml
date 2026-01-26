@@ -23,6 +23,9 @@ metadata:
 spec:
   type: {{ .exposedServices.turnTLS.portType }}
   ipFamilyPolicy: PreferDualStack
+  {{- if hasKey .exposedServices.turnTLS "externalIPs" }}
+  externalIPs: {{ .exposedServices.turnTLS.externalIPs | toYaml | nindent 4 }}
+  {{- end }}
   internalTrafficPolicy: {{ .exposedServices.turnTLS.internalTrafficPolicy }}
   externalTrafficPolicy: {{ .exposedServices.turnTLS.externalTrafficPolicy }}
   ports:

@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
+import ipaddress
 import itertools
 
 import pytest
@@ -20,7 +21,7 @@ from .utils import iterate_deployables_parts, template_id, template_to_deployabl
 
 @pytest.mark.parametrize("values_file", services_values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_exposed_services_configurability(values, make_templates):
+async def test_exposed_services_port_and_type(values, make_templates):
     num_of_expected_ports = {}
     num_of_expected_exposed_services = {}
 
@@ -119,6 +120,65 @@ async def test_exposed_services_configurability(values, make_templates):
                     len(found_exposed_services[deployable_details.name])
                     == num_of_expected_exposed_services[deployable_details.name]
                 ), f"Did not find expected exposed service despite using {service_mode}. Services: {found_services}"
+
+
+@pytest.mark.parametrize("values_file", services_values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_exposed_services_external_ips(values, make_templates):
+    # we set deployables external ips on 10.0.X.1
+    # and each exposed services increments the last digit of the ip
+    expected_deployable_external_ips = {}
+    num_of_expected_exposed_services = {}
+
+    def exposed_external_ip(deployable_details: DeployableDetails, external_ip: ipaddress.IPv4Address):
+        nonlocal num_of_expected_exposed_services
+        exposed_services = deployable_details.get_helm_values(values, PropertyType.ExposedServices)
+        assert exposed_services is not None
+        exposed_services_values = dict(exposed_services)
+        for service_name in exposed_services:
+            exposed_services_values[service_name]["annotations"] = {
+                "exposed-service-external-ip": str(external_ip),
+            }
+            exposed_services_values[service_name]["externalIPs"] = ("127.0.0.1", str(external_ip))
+            external_ip += 1
+            num_of_expected_exposed_services[deployable_details.name] += 1
+        deployable_details.set_helm_values(values, PropertyType.ExposedServices, exposed_services_values)
+
+    found_exposed_services = {}
+    found_services = {}
+    next_external_ip = ipaddress.IPv4Address("10.0.0.1")
+    for deployable_details in all_deployables_details:
+        expected_deployable_external_ips[deployable_details.name] = next_external_ip
+        next_external_ip += 255
+        num_of_expected_exposed_services[deployable_details.name] = 0
+        found_exposed_services[deployable_details.name] = []
+        found_services[deployable_details.name] = []
+
+    iterate_deployables_parts(
+        lambda deployable_details: exposed_external_ip(
+            deployable_details, expected_deployable_external_ips[deployable_details.name]
+        ),
+        lambda deployable_details: deployable_details.has_exposed_services,
+    )
+    for template in await make_templates(values):
+        deployable_details = template_to_deployable_details(template)
+        if deployable_details.has_exposed_services and template["kind"] == "Service":
+            found_services[deployable_details.name].append(template)
+            if "exposed-service-external-ip" in template["metadata"].get("annotations", {}):
+                found_exposed_services[deployable_details.name].append(template)
+                assert template["spec"].get("externalIPs") == (
+                    "127.0.0.1",
+                    template["metadata"]["annotations"]["exposed-service-external-ip"],
+                ), (
+                    f"{template_id(template)} : Expected external IP "
+                    f"{template['metadata']['annotations']['exposed-service-external-ip']}"
+                )
+
+    for deployable_details in all_deployables_details:
+        assert (
+            len(found_exposed_services[deployable_details.name])
+            == num_of_expected_exposed_services[deployable_details.name]
+        ), f"Did not find expected exposed service despite. Services: {found_services}"
 
 
 @pytest.mark.parametrize("values_file", services_values_files_to_test)
@@ -361,3 +421,6 @@ async def test_services_specify_type_by_default(templates):
                     f"{template_id(template)} does not specify an externalTrafficPolicy "
                     "despite being a NodePort service"
                 )
+            assert "externalIPs" not in template["spec"], (
+                f"{template_id(template)} has externalIPs defined despite not configuring any"
+            )

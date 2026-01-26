@@ -22,6 +22,9 @@ metadata:
   namespace: {{ $.Release.Namespace }}
 spec:
   type: {{ .exposedServices.rtcMuxedUdp.portType }}
+  {{- if hasKey .exposedServices.rtcMuxedUdp "externalIPs" }}
+  externalIPs: {{ .exposedServices.rtcMuxedUdp.externalIPs | toYaml | nindent 4 }}
+  {{- end }}
   ipFamilyPolicy: PreferDualStack
   internalTrafficPolicy: {{ .exposedServices.rtcMuxedUdp.internalTrafficPolicy }}
   externalTrafficPolicy: {{ .exposedServices.rtcMuxedUdp.externalTrafficPolicy }}
