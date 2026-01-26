@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2024 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -15,6 +15,7 @@ metadata:
   namespace: {{ $.Release.Namespace }}
 spec:
   type: {{ .ingress.service.type | default $.Values.ingress.service.type }}
+  internalTrafficPolicy: {{ .ingress.service.internalTrafficPolicy | default $.Values.ingress.service.internalTrafficPolicy }}
   ipFamilyPolicy: PreferDualStack
   ports:
   - port: 80

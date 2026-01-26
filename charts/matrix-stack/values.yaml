@@ -68,6 +68,7 @@ ingress:
   ## How the Services behind all Ingresses is constructed by default
   service:
     type: ClusterIP
+    internalTrafficPolicy: Cluster
   ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
   ## This can be set to `ingress-nginx`.
   # controllerType:

@@ -21,6 +21,7 @@ spec:
   clusterIP: None
   {{- end }}
 {{- end }}
+  internalTrafficPolicy: {{ .ingress.service.internalTrafficPolicy | default $.Values.ingress.service.internalTrafficPolicy }}
   ipFamilyPolicy: PreferDualStack
   publishNotReadyAddresses: true
   ports:

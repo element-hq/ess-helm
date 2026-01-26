@@ -186,7 +186,8 @@
         "service": {
           "type": "object",
           "required": [
-            "type"
+            "type",
+            "internalTrafficPolicy"
           ],
           "properties": {
             "type": {
@@ -195,6 +196,13 @@
                 "ClusterIP",
                 "NodePort",
                 "LoadBalancer"
+              ]
+            },
+            "internalTrafficPolicy": {
+              "type": "string",
+              "enum": [
+                "Cluster",
+                "Local"
               ]
             }
           },
@@ -1495,6 +1503,13 @@
                     "ClusterIP",
                     "NodePort",
                     "LoadBalancer"
+                  ]
+                },
+                "internalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
                   ]
                 }
               },
@@ -2986,6 +3001,13 @@
                     "NodePort",
                     "LoadBalancer"
                   ]
+                },
+                "internalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
                 }
               },
               "additionalProperties": false
@@ -3734,6 +3756,13 @@
                     "ClusterIP",
                     "NodePort",
                     "LoadBalancer"
+                  ]
+                },
+                "internalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
                   ]
                 }
               },
@@ -4986,6 +5015,13 @@
                     "ClusterIP",
                     "NodePort",
                     "LoadBalancer"
+                  ]
+                },
+                "internalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
                   ]
                 }
               },
@@ -6396,6 +6432,13 @@
                     "ClusterIP",
                     "NodePort",
                     "LoadBalancer"
+                  ]
+                },
+                "internalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
                   ]
                 }
               },
@@ -9075,6 +9118,13 @@
                     "ClusterIP",
                     "NodePort",
                     "LoadBalancer"
+                  ]
+                },
+                "internalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
                   ]
                 }
               },
@@ -14834,6 +14884,13 @@
                     "ClusterIP",
                     "NodePort",
                     "LoadBalancer"
+                  ]
+                },
+                "internalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
                   ]
                 }
               },
