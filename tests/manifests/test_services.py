@@ -34,7 +34,15 @@ async def test_exposed_services_configurability(values, make_templates):
         }
         exposed_services_values = dict(exposed_services)
         for service_name in exposed_services:
-            exposed_services_values[service_name]["portType"] = mode
+            # "dynamic node port" is NodePort mode with nodePort set to empty in the value file
+            # this will make kubernetes allocate a nodePort dynamically
+            if mode == "DynamicNodePort":
+                if "portRange" in exposed_services_values[service_name]:
+                    exposed_services_values[service_name]["portRange"]["nodePort"] = ""
+                else:
+                    exposed_services_values[service_name]["nodePort"] = ""
+
+            exposed_services_values[service_name]["portType"] = mode.replace("Dynamic", "")
             exposed_services_values[service_name]["annotations"] = test_annotations_labels
             num_of_expected_exposed_services[deployable_details.name] += 1
             if "portRange" in exposed_services_values[service_name]:
@@ -49,7 +57,7 @@ async def test_exposed_services_configurability(values, make_templates):
 
     found_exposed_services = {}
     found_services = {}
-    for service_mode in ("NodePort", "HostPort", "LoadBalancer"):
+    for service_mode in ("NodePort", "HostPort", "LoadBalancer", "DynamicNodePort"):
         for deployable_details in all_deployables_details:
             num_of_expected_ports[deployable_details.name] = 0
             num_of_expected_exposed_services[deployable_details.name] = 0
@@ -70,9 +78,23 @@ async def test_exposed_services_configurability(values, make_templates):
                 if template["kind"] == "Service":
                     found_services[deployable_details.name].append(template)
                     if "exposed-service-port-type" in template["metadata"].get("annotations", {}):
-                        assert (
-                            template["spec"]["type"] == template["metadata"]["annotations"]["exposed-service-port-type"]
-                        )
+                        for port in template["spec"]["ports"]:
+                            if template["metadata"]["annotations"]["exposed-service-port-type"] == "DynamicNodePort":
+                                assert template["spec"]["type"] == "NodePort"
+                                assert "nodePort" not in port, f"Found nodePort despite using {service_mode} : {port}"
+                            elif template["metadata"]["annotations"]["exposed-service-port-type"] == "NodePort":
+                                assert template["spec"]["type"] == "NodePort"
+                                assert "nodePort" in port, (
+                                    f"`nodePort` is missing despite using {service_mode} : {port}"
+                                )
+                                assert int(port["nodePort"]), (
+                                    f"`nodePort` is not an integer despite using {service_mode} : {port}"
+                                )
+                            else:
+                                assert (
+                                    template["spec"]["type"]
+                                    == template["metadata"]["annotations"]["exposed-service-port-type"]
+                                )
                         found_exposed_services[deployable_details.name].append(template)
                 if template["kind"] == "Deployment" and "exposed-service-port-type" in template["metadata"]["labels"]:
                     container = template["spec"]["template"]["spec"]["containers"][0]
@@ -245,6 +267,31 @@ async def test_ports_in_services_are_named(templates):
             assert len(port_names) == len(set(port_names)), (
                 f"Port names are not unique: {template_id(template)}, {port_names}"
             )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_ports_are_valid_numbers_and_unique(templates):
+    for template in templates:
+        if template["kind"] == "Service":
+            ports = []
+            nodes_ports = []
+            for port in template["spec"]["ports"]:
+                assert int(port["port"]), f"{template_id(template)} has a port which is not a number: {port}"
+                if port.get("nodePort"):
+                    assert int(port["nodePort"]), (
+                        f"{template_id(template)} has a nodePort which is not a number: {port}"
+                    )
+                ports.append(port["port"])
+                if port.get("nodePort"):
+                    nodes_ports.append(port["nodePort"])
+            assert len(template["spec"]["ports"]) == len(set(ports)), (
+                f"Port numbers are not unique: {template_id(template)}, {ports}"
+            )
+            if nodes_ports:
+                assert len(template["spec"]["ports"]) == len(set(nodes_ports)), (
+                    f"Node Port numbers are not unique: {template_id(template)}, {nodes_ports}"
+                )
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)

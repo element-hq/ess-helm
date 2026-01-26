@@ -30,7 +30,9 @@ spec:
     protocol: "TCP"
     port: {{ .exposedServices.turnTLS.port }}
     targetPort: {{ .exposedServices.turnTLS.port }}
-    nodePort: {{ .exposedServices.turnTLS.port }}
+    {{- with .exposedServices.turnTLS.nodePort }}
+    nodePort: {{ tpl . (dict "context" $.Values.matrixRTC.sfu.exposedServices.turnTLS "root" $) }}
+    {{- end }}
   selector:
     app.kubernetes.io/instance: "{{ $.Release.Name }}-matrix-rtc-sfu"
 {{- end }}

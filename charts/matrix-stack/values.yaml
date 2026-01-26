@@ -776,6 +776,9 @@ matrixRTC:
         # Either a NodePort, HostPort or LoadBalancer
         # If the port is a HostPort, no Service will be created.
         portType: NodePort
+        # Node Port template value. If empty, `nodePort` wont be set on the service port
+        # And kubernetes will automatically assign a port.
+        nodePort: "{{ .context.port }}"
         # Either Local or Cluster
         internalTrafficPolicy: Cluster
         externalTrafficPolicy: Cluster
@@ -790,6 +793,9 @@ matrixRTC:
         # Either a NodePort, HostPort or LoadBalancer
         # If the port is a HostPort, no Service will be created.
         portType: NodePort
+        # Node Port template value. If empty, `nodePort` wont be set on the service port
+        # And kubernetes will automatically assign a port.
+        nodePort: "{{ .context.port }}"
         # Either Local or Cluster
         internalTrafficPolicy: Cluster
         externalTrafficPolicy: Cluster
@@ -809,6 +815,14 @@ matrixRTC:
           startPort: 31000
           # The last port of the range
           endPort: 32000
+          # Node Port template value.
+          # The template takes as argument :
+          # - "context" : This exposed service values context, in addition with a key "port"
+          #               containing current port number of the helm range
+          # - "root" : The $ helm root special context
+          # If empty, `nodePort` wont be set on the service port
+          # And kubernetes will automatically assign a port.
+          nodePort: "{{ .context.port }}"
       turnTLS:
         enabled: false
         # Annotations to be added to this service
@@ -818,6 +832,9 @@ matrixRTC:
         # Either a NodePort, HostPort or LoadBalancer
         # If the port is a HostPort, no Service will be created.
         portType: NodePort
+        # Node Port template value. If empty, `nodePort` wont be set on the service port
+        # And kubernetes will automatically assign a port.
+        nodePort: "{{ .context.port }}"
         # Either Local or Cluster
         internalTrafficPolicy: Cluster
         externalTrafficPolicy: Cluster
@@ -837,6 +854,9 @@ matrixRTC:
         # Either a NodePort, HostPort or LoadBalancer
         # If the port is a HostPort, no Service will be created.
         portType: NodePort
+        # Node Port template value. If empty, `nodePort` wont be set on the service port
+        # And kubernetes will automatically assign a port.
+        nodePort: "{{ .context.port }}"
         # Either Local or Cluster
         internalTrafficPolicy: Cluster
         externalTrafficPolicy: Cluster

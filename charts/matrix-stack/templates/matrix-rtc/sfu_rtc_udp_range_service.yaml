@@ -38,7 +38,9 @@ spec:
   - name: rtc-udp-{{ $port }}
     port: {{ $port }}
     targetPort: {{ $port }}
-    nodePort: {{ $port }}
+    {{- with $.Values.matrixRTC.sfu.exposedServices.rtcUdp.portRange.nodePort }}
+    nodePort: {{ tpl . (dict "context" (mustMergeOverwrite (dict "port" $port) ($.Values.matrixRTC.sfu.exposedServices.rtcUdp)) "root" $)  }}
+    {{- end }}
     protocol: UDP
 {{- end }}
   selector:

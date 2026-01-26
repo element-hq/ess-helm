@@ -39,6 +39,9 @@
     },
     "port": {
       "type": "number"
+    },
+    "nodePort": {
+      "type": "string"
     }
   }
 }
