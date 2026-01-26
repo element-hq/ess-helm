@@ -23,7 +23,8 @@ metadata:
 spec:
   type: {{ .exposedServices.rtcMuxedUdp.portType }}
   ipFamilyPolicy: PreferDualStack
-  externalTrafficPolicy: Local
+  internalTrafficPolicy: {{ .exposedServices.rtcMuxedUdp.internalTrafficPolicy }}
+  externalTrafficPolicy: {{ .exposedServices.rtcMuxedUdp.externalTrafficPolicy }}
   ports:
   - name: "rtc-muxed-udp"
     protocol: "UDP"

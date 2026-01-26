@@ -478,6 +478,9 @@ extraInitContainers: []
   # Either a NodePort, HostPort or LoadBalancer
   # If the port is a HostPort, no Service will be created.
   portType: {{ portType }}
+  # Either Local or Cluster
+  internalTrafficPolicy: Cluster
+  externalTrafficPolicy: Cluster
   port: {{ port }}
 {% if tlsSecret %}
   # The domain of the service

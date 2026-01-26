@@ -2295,6 +2295,20 @@
                         "LoadBalancer"
                       ]
                     },
+                    "internalTrafficPolicy": {
+                      "type": "string",
+                      "enum": [
+                        "Cluster",
+                        "Local"
+                      ]
+                    },
+                    "externalTrafficPolicy": {
+                      "type": "string",
+                      "enum": [
+                        "Cluster",
+                        "Local"
+                      ]
+                    },
                     "port": {
                       "type": "number"
                     }
@@ -2326,6 +2340,20 @@
                         "LoadBalancer"
                       ]
                     },
+                    "internalTrafficPolicy": {
+                      "type": "string",
+                      "enum": [
+                        "Cluster",
+                        "Local"
+                      ]
+                    },
+                    "externalTrafficPolicy": {
+                      "type": "string",
+                      "enum": [
+                        "Cluster",
+                        "Local"
+                      ]
+                    },
                     "port": {
                       "type": "number"
                     }
@@ -2355,6 +2383,20 @@
                         "NodePort",
                         "HostPort",
                         "LoadBalancer"
+                      ]
+                    },
+                    "internalTrafficPolicy": {
+                      "type": "string",
+                      "enum": [
+                        "Cluster",
+                        "Local"
+                      ]
+                    },
+                    "externalTrafficPolicy": {
+                      "type": "string",
+                      "enum": [
+                        "Cluster",
+                        "Local"
                       ]
                     },
                     "portRange": {
@@ -2401,6 +2443,20 @@
                         "LoadBalancer"
                       ]
                     },
+                    "internalTrafficPolicy": {
+                      "type": "string",
+                      "enum": [
+                        "Cluster",
+                        "Local"
+                      ]
+                    },
+                    "externalTrafficPolicy": {
+                      "type": "string",
+                      "enum": [
+                        "Cluster",
+                        "Local"
+                      ]
+                    },
                     "port": {
                       "type": "number"
                     },
@@ -2436,6 +2492,20 @@
                         "NodePort",
                         "HostPort",
                         "LoadBalancer"
+                      ]
+                    },
+                    "internalTrafficPolicy": {
+                      "type": "string",
+                      "enum": [
+                        "Cluster",
+                        "Local"
+                      ]
+                    },
+                    "externalTrafficPolicy": {
+                      "type": "string",
+                      "enum": [
+                        "Cluster",
+                        "Local"
                       ]
                     },
                     "port": {

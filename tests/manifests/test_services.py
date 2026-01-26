@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
+import itertools
+
 import pytest
 import yaml
 
@@ -172,6 +174,63 @@ async def test_exposed_services_certificate(values, make_templates):
                     f"Did not find expected certificates : {found_certificates[deployable_details.name]}"
                     f" when testing with cert-manager {issuer_name}"
                 )
+
+
+@pytest.mark.parametrize("values_file", services_values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_exposed_services_traffic_policy(values, make_templates):
+    num_of_expected_exposed_services = {}
+
+    def exposed_services_traffic_policy(deployable_details: DeployableDetails, internal: str, external: str):
+        nonlocal num_of_expected_exposed_services
+        exposed_services = deployable_details.get_helm_values(values, PropertyType.ExposedServices)
+        assert exposed_services is not None
+        exposed_services_values = dict(exposed_services)
+        test_annotations = {
+            "exposed-service-internal": internal,
+            "exposed-service-external": external,
+        }
+        for service_name in exposed_services_values:
+            exposed_services_values[service_name]["internalTrafficPolicy"] = internal
+            exposed_services_values[service_name]["externalTrafficPolicy"] = external
+            exposed_services_values[service_name]["annotations"] = test_annotations
+        deployable_details.set_helm_values(values, PropertyType.ExposedServices, exposed_services_values)
+
+    found_exposed_services = {}
+    found_services = {}
+    traffic_policies = ("Local", "Cluster")
+    for internal, external in list(itertools.product(traffic_policies, traffic_policies)):
+        for deployable_details in all_deployables_details:
+            num_of_expected_exposed_services[deployable_details.name] = 0
+
+        for deployable_details in all_deployables_details:
+            found_exposed_services[deployable_details.name] = []
+            found_services[deployable_details.name] = []
+
+        iterate_deployables_parts(
+            lambda deployable_details, internal=internal, external=external: exposed_services_traffic_policy(
+                deployable_details, internal, external
+            ),
+            lambda deployable_details: deployable_details.has_exposed_services,
+        )
+        for template in await make_templates(values):
+            deployable_details = template_to_deployable_details(template)
+            if deployable_details.has_exposed_services and template["kind"] == "Service":
+                found_services[deployable_details.name].append(template)
+                if "exposed-service-internal" in template["metadata"].get("annotations", {}):
+                    assert (
+                        template["spec"].get("internalTrafficPolicy")
+                        == template["metadata"]["annotations"]["exposed-service-internal"]
+                    )
+                    assert (
+                        template["spec"].get("externalTrafficPolicy")
+                        == template["metadata"]["annotations"]["exposed-service-external"]
+                    )
+        for deployable_details in all_deployables_details:
+            assert (
+                len(found_exposed_services[deployable_details.name])
+                == num_of_expected_exposed_services[deployable_details.name]
+            ), f"Did not find expected exposed service. Services: {found_services}"
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)

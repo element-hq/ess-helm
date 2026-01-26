@@ -23,7 +23,8 @@ metadata:
 spec:
   type: {{ .exposedServices.turn.portType }}
   ipFamilyPolicy: PreferDualStack
-  externalTrafficPolicy: Local
+  internalTrafficPolicy: {{ .exposedServices.turn.internalTrafficPolicy }}
+  externalTrafficPolicy: {{ .exposedServices.turn.externalTrafficPolicy }}
   ports:
   - name: "turn-udp"
     protocol: "UDP"

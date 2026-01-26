@@ -23,7 +23,8 @@ metadata:
 spec:
   type: {{ .exposedServices.turnTLS.portType }}
   ipFamilyPolicy: PreferDualStack
-  externalTrafficPolicy: Local
+  internalTrafficPolicy: {{ .exposedServices.turnTLS.internalTrafficPolicy }}
+  externalTrafficPolicy: {{ .exposedServices.turnTLS.externalTrafficPolicy }}
   ports:
   - name: "turn-tls-tcp"
     protocol: "TCP"
