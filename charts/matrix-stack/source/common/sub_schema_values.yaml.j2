@@ -183,6 +183,7 @@ networking:
 {%- if global %}
   service:
     type: ClusterIP
+    # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
     externalTrafficPolicy: Cluster
     internalTrafficPolicy: Cluster
 {%- else %}
