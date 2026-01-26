@@ -2311,6 +2311,9 @@
                     },
                     "port": {
                       "type": "number"
+                    },
+                    "nodePort": {
+                      "type": "string"
                     }
                   },
                   "additionalProperties": false
@@ -2356,6 +2359,9 @@
                     },
                     "port": {
                       "type": "number"
+                    },
+                    "nodePort": {
+                      "type": "string"
                     }
                   },
                   "additionalProperties": false
@@ -2411,6 +2417,9 @@
                         },
                         "endPort": {
                           "type": "number"
+                        },
+                        "nodePort": {
+                          "type": "string"
                         }
                       },
                       "additionalProperties": false
@@ -2459,6 +2468,9 @@
                     },
                     "port": {
                       "type": "number"
+                    },
+                    "nodePort": {
+                      "type": "string"
                     },
                     "domain": {
                       "type": "string"
@@ -2510,6 +2522,9 @@
                     },
                     "port": {
                       "type": "number"
+                    },
+                    "nodePort": {
+                      "type": "string"
                     }
                   },
                   "additionalProperties": false

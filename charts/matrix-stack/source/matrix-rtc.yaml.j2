@@ -71,11 +71,11 @@ sfu:
   # Whether to start the SFU in host network mode or not
   hostNetwork: false
   exposedServices:
-    {{- sub_schema_values.exposedServicePort('rtcTcp', 30881, 'NodePort') | indent(4) }}
-    {{- sub_schema_values.exposedServicePort('rtcMuxedUdp', 30882, 'NodePort') | indent(4) }}
-    {{- sub_schema_values.exposedServicePortRange('rtcUdp', 31000, 32000, 'NodePort') | indent(4) }}
-    {{- sub_schema_values.exposedServicePort('turnTLS', 31443, 'NodePort', defaultEnabled=False, tlsSecret=True) | indent(4) }}
-    {{- sub_schema_values.exposedServicePort('turn', 31478, 'NodePort', defaultEnabled=False) | indent(4) }}
+    {{- sub_schema_values.exposedServicePort('rtcTcp', 30881, 'NodePort', nodePortTemplate="{{ .context.port }}") | indent(4) }}
+    {{- sub_schema_values.exposedServicePort('rtcMuxedUdp', 30882, 'NodePort', nodePortTemplate="{{ .context.port }}") | indent(4) }}
+    {{- sub_schema_values.exposedServicePortRange('rtcUdp', 31000, 32000, 'NodePort', nodePortTemplate="{{ .context.port }}") | indent(4) }}
+    {{- sub_schema_values.exposedServicePort('turnTLS', 31443, 'NodePort', defaultEnabled=False, tlsSecret=True, nodePortTemplate="{{ .context.port }}") | indent(4) }}
+    {{- sub_schema_values.exposedServicePort('turn', 31478, 'NodePort', defaultEnabled=False, nodePortTemplate="{{ .context.port }}") | indent(4) }}
 
 
 {{- sub_schema_values.image(registry='docker.io', repository='livekit/livekit-server', tag='v1.9.1') | indent(2) }}

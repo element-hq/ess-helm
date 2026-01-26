@@ -40,6 +40,9 @@
     "port": {
       "type": "number"
     },
+    "nodePort": {
+      "type": "string"
+    },
     "domain": {
       "type": "string"
     },

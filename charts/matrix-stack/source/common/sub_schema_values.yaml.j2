@@ -468,7 +468,7 @@ extraVolumeMounts: []
 extraInitContainers: []
 {% endmacro %}
 
-{% macro exposedServicePort(name, port, portType='NodePort', defaultEnabled=true, tlsSecret=false) %}
+{% macro exposedServicePort(name, port, portType='NodePort', defaultEnabled=true, tlsSecret=false, nodePortTemplate='') %}
 {{ name }}:
   enabled: {{ 'true' if defaultEnabled else 'false' }}
   # Annotations to be added to this service
@@ -478,6 +478,9 @@ extraInitContainers: []
   # Either a NodePort, HostPort or LoadBalancer
   # If the port is a HostPort, no Service will be created.
   portType: {{ portType }}
+  # Node Port template value. If empty, `nodePort` wont be set on the service port
+  # And kubernetes will automatically assign a port.
+  nodePort: "{{ nodePortTemplate }}"
   # Either Local or Cluster
   internalTrafficPolicy: Cluster
   externalTrafficPolicy: Cluster
@@ -490,7 +493,7 @@ extraInitContainers: []
 {% endif %}
 {%- endmacro %}
 
-{% macro exposedServicePortRange(name, startPort, endPort, portType='NodePort') %}
+{% macro exposedServicePortRange(name, startPort, endPort, portType='NodePort', nodePortTemplate='') %}
 {{ name }}:
   enabled: false
   # Annotations to be added to this service
@@ -505,4 +508,12 @@ extraInitContainers: []
     startPort: {{ startPort }}
     # The last port of the range
     endPort: {{ endPort }}
+    # Node Port template value.
+    # The template takes as argument :
+    # - "context" : This exposed service values context, in addition with a key "port"
+    #               containing current port number of the helm range
+    # - "root" : The $ helm root special context
+    # If empty, `nodePort` wont be set on the service port
+    # And kubernetes will automatically assign a port.
+    nodePort: "{{ nodePortTemplate }}"
 {%- endmacro %}

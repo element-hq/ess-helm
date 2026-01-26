@@ -49,6 +49,9 @@
         },
         "endPort": {
           "type": "number"
+        },
+        "nodePort": {
+          "type": "string"
         }
       }
     }

@@ -30,7 +30,9 @@ spec:
     protocol: "UDP"
     port: {{ .exposedServices.rtcMuxedUdp.port }}
     targetPort: {{ .exposedServices.rtcMuxedUdp.port }}
-    nodePort: {{ .exposedServices.rtcMuxedUdp.port }}
+    {{- with .exposedServices.rtcMuxedUdp.nodePort }}
+    nodePort: {{ tpl . (dict "context" $.Values.matrixRTC.sfu.exposedServices.rtcMuxedUdp "root" $) }}
+    {{- end }}
   selector:
     app.kubernetes.io/instance: "{{ $.Release.Name }}-matrix-rtc-sfu"
 {{- end }}
