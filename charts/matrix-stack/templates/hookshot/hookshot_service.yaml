@@ -15,10 +15,14 @@ metadata:
   labels:
     {{- include "element-io.hookshot.labels" (dict "root" $ "context" .) | nindent 4 }}
 spec:
+{{- $ingressService := .ingress.service -}}
 {{ with .ingress.service.type | default $.Values.ingress.service.type }}
   type: {{ . }}
   {{ if eq . "ClusterIP" }}
   clusterIP: None
+  {{- end }}
+  {{- if (list "LoadBalancer" "NodePort") | has . }}
+  externalTrafficPolicy: {{ $ingressService.externalTrafficPolicy | default $.Values.ingress.service.externalTrafficPolicy }}
   {{- end }}
 {{- end }}
   internalTrafficPolicy: {{ .ingress.service.internalTrafficPolicy | default $.Values.ingress.service.internalTrafficPolicy }}

@@ -309,6 +309,7 @@ async def test_component_ingressClassName_beats_global(values, make_templates):
 async def test_ingress_services_global_service_properties(values, make_templates):
     values.setdefault("ingress", {}).setdefault("service", {})["type"] = "LoadBalancer"
     values.setdefault("ingress", {}).setdefault("service", {})["internalTrafficPolicy"] = "Local"
+    values.setdefault("ingress", {}).setdefault("service", {})["externalTrafficPolicy"] = "Local"
     templates = await make_templates(values)
     for template in templates:
         services_by_name = dict[str, dict]()
@@ -342,6 +343,10 @@ async def test_ingress_services_global_service_properties(values, make_templates
                     f"Service {backend_service['name']} does not use Local internalTrafficPolicy despite setting "
                     "$.ingress.service.internalTrafficPolicy to Local"
                 )
+                assert services_by_name[backend_service["name"]]["spec"].get("externalTrafficPolicy") == "Local", (
+                    f"Service {backend_service['name']} does not use Local externalTrafficPolicy despite setting "
+                    "$.ingress.service.externalTrafficPolicy to Local and $.ingress.service.type to LoadBalancer"
+                )
                 assert "clusterIP" not in services_by_name[backend_service["name"]]["spec"], (
                     f"{template_id(template)} has a clusterIP defined for a non-ClusterIP service"
                 )
@@ -352,10 +357,13 @@ async def test_ingress_services_global_service_properties(values, make_templates
 async def test_ingress_services_local_service_properties(values, make_templates):
     values.setdefault("ingress", {}).setdefault("service", {})["type"] = "ClusterIP"
     values.setdefault("ingress", {}).setdefault("service", {})["internalTrafficPolicy"] = "Cluster"
+    values.setdefault("ingress", {}).setdefault("service", {})["externalTrafficPolicy"] = "Cluster"
 
     def set_ingress_service_type(deployable_details: DeployableDetails):
         deployable_details.set_helm_values(
-            values, PropertyType.Ingress, {"service": {"type": "LoadBalancer", "internalTrafficPolicy": "Local"}}
+            values,
+            PropertyType.Ingress,
+            {"service": {"type": "LoadBalancer", "internalTrafficPolicy": "Local", "externalTrafficPolicy": "Local"}},
         )
 
     iterate_deployables_ingress_parts(set_ingress_service_type)
@@ -392,6 +400,10 @@ async def test_ingress_services_local_service_properties(values, make_templates)
                 assert services_by_name[backend_service["name"]]["spec"].get("internalTrafficPolicy") == "Local", (
                     f"Service {backend_service['name']} does not use Local internalTrafficPolicy despite setting "
                     ".ingress.service.internalTrafficPolicy to Local"
+                )
+                assert services_by_name[backend_service["name"]]["spec"].get("externalTrafficPolicy") == "Local", (
+                    f"Service {backend_service['name']} does not use Local externalTrafficPolicy despite setting "
+                    "$.ingress.service.externalTrafficPolicy to Local and $.ingress.service.type to LoadBalancer"
                 )
                 assert "clusterIP" not in services_by_name[backend_service["name"]]["spec"], (
                     f"{template_id(template)} has a clusterIP defined for a non-ClusterIP service"

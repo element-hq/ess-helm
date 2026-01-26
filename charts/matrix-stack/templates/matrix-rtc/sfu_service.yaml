@@ -17,7 +17,12 @@ metadata:
   name: {{ $.Release.Name }}-matrix-rtc-sfu
   namespace: {{ $.Release.Namespace }}
 spec:
-  type: {{ $.Values.matrixRTC.ingress.service.type | default $.Values.ingress.service.type }}
+{{ with $.Values.matrixRTC.ingress.service.type | default $.Values.ingress.service.type }}
+  type: {{ . }}
+{{- if (list "LoadBalancer" "NodePort") | has . }}
+  externalTrafficPolicy: {{ $.Values.matrixRTC.ingress.service.externalTrafficPolicy | default $.Values.ingress.service.externalTrafficPolicy }}
+{{- end }}
+{{- end }}
   internalTrafficPolicy: {{ $.Values.matrixRTC.ingress.service.internalTrafficPolicy | default $.Values.ingress.service.internalTrafficPolicy }}
   ipFamilyPolicy: PreferDualStack
   ports:
