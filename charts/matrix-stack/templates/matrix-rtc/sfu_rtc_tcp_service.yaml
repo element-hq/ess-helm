@@ -23,6 +23,9 @@ metadata:
 spec:
   type: {{ .exposedServices.rtcTcp.portType }}
   ipFamilyPolicy: PreferDualStack
+  {{- if hasKey .exposedServices.rtcTcp "externalIPs" }}
+  externalIPs: {{ .exposedServices.rtcTcp.externalIPs | toYaml | nindent 4 }}
+  {{- end }}
   internalTrafficPolicy: {{ .exposedServices.rtcTcp.internalTrafficPolicy }}
   externalTrafficPolicy: {{ .exposedServices.rtcTcp.externalTrafficPolicy }}
   ports:

@@ -54,6 +54,12 @@
           "type": "string"
         }
       }
+    },
+    "externalIPs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     }
   }
 }

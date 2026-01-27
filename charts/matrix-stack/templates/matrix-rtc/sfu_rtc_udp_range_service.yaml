@@ -28,6 +28,9 @@ metadata:
   namespace: {{ $.Release.Namespace }}
 spec:
   type: {{ $.Values.matrixRTC.sfu.exposedServices.rtcUdp.portType }}
+  {{- if hasKey $.Values.matrixRTC.sfu.exposedServices.rtcUdp "externalIPs" }}
+  externalIPs: {{ $.Values.matrixRTC.sfu.exposedServices.rtcUdp.externalIPs | toYaml | nindent 4 }}
+  {{- end }}
   ipFamilyPolicy: PreferDualStack
   internalTrafficPolicy: {{ $.Values.matrixRTC.sfu.exposedServices.rtcUdp.internalTrafficPolicy }}
   externalTrafficPolicy: {{ $.Values.matrixRTC.sfu.exposedServices.rtcUdp.externalTrafficPolicy }}
