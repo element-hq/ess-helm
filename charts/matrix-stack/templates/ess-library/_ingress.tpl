@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2024 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -51,9 +51,13 @@ annotations:
 {{- define "element-io.ess-library.ingress-service.spec" -}}
 {{- $root := .root -}}
 {{- with required "element-io.ess-library.ingress-service.spec missing context" .context -}}
+{{- $headlessService := .headlessService | default false -}}
 {{- $ingressService := .service -}}
 {{ with $ingressService.type | default $root.Values.ingress.service.type }}
 type: {{ . }}
+{{ if and $headlessService (eq . "ClusterIP") }}
+clusterIP: None
+{{- end }}
 {{- if (list "LoadBalancer" "NodePort") | has . }}
 externalTrafficPolicy: {{ $ingressService.externalTrafficPolicy | default $root.Values.ingress.service.externalTrafficPolicy }}
 {{- end }}
