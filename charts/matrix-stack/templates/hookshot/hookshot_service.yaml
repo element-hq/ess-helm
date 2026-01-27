@@ -12,21 +12,11 @@ kind: Service
 metadata:
   name: {{ $.Release.Name }}-hookshot
   namespace: {{ $.Release.Namespace }}
+{{- include "element-io.ess-library.ingress-service.annotations" (dict "root" $ "context" .ingress) | nindent 2 }}
   labels:
     {{- include "element-io.hookshot.labels" (dict "root" $ "context" .) | nindent 4 }}
 spec:
-{{- $ingressService := .ingress.service -}}
-{{ with .ingress.service.type | default $.Values.ingress.service.type }}
-  type: {{ . }}
-  {{ if eq . "ClusterIP" }}
-  clusterIP: None
-  {{- end }}
-  {{- if (list "LoadBalancer" "NodePort") | has . }}
-  externalTrafficPolicy: {{ $ingressService.externalTrafficPolicy | default $.Values.ingress.service.externalTrafficPolicy }}
-  {{- end }}
-{{- end }}
-  internalTrafficPolicy: {{ .ingress.service.internalTrafficPolicy | default $.Values.ingress.service.internalTrafficPolicy }}
-  ipFamilyPolicy: PreferDualStack
+{{- include "element-io.ess-library.ingress-service.spec" (dict "root" $ "context" (mustMergeOverwrite (dict "headlessService" true) .ingress)) | nindent 2 }}
   publishNotReadyAddresses: true
   ports:
   - port: 9993

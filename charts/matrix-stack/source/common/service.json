@@ -9,6 +9,15 @@
         "LoadBalancer"
       ]
     },
+    "annotations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    },
     "internalTrafficPolicy": {
       "type": "string",
       "enum": [
@@ -22,6 +31,12 @@
         "Cluster",
         "Local"
       ]
+    },
+    "externalIPs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     }
   }
 }

@@ -68,6 +68,8 @@ ingress:
   ## How the Services behind all Ingresses is constructed by default
   service:
     type: ClusterIP
+    ## Annotations to be added to all Ingresses services. Will be merged with component specific Ingress services annotations
+    annotations: {}
     # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
     externalTrafficPolicy: Cluster
     internalTrafficPolicy: Cluster
@@ -491,9 +493,12 @@ matrixRTC:
     ## How the Service behind this Ingress is constructed
     # service:
     #   type: ClusterIP
+    #   annotations: {}
     #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
     #   externalTrafficPolicy: Cluster
     #   internalTrafficPolicy: Cluster
+    #   # External IPs addresses of this service.
+    #   externalIPs: []
     service: {}
     ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
     ## This can be set to `ingress-nginx`.
@@ -1151,9 +1156,12 @@ elementAdmin:
     ## How the Service behind this Ingress is constructed
     # service:
     #   type: ClusterIP
+    #   annotations: {}
     #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
     #   externalTrafficPolicy: Cluster
     #   internalTrafficPolicy: Cluster
+    #   # External IPs addresses of this service.
+    #   externalIPs: []
     service: {}
     ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
     ## This can be set to `ingress-nginx`.
@@ -1410,9 +1418,12 @@ elementWeb:
     ## How the Service behind this Ingress is constructed
     # service:
     #   type: ClusterIP
+    #   annotations: {}
     #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
     #   externalTrafficPolicy: Cluster
     #   internalTrafficPolicy: Cluster
+    #   # External IPs addresses of this service.
+    #   externalIPs: []
     service: {}
     ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
     ## This can be set to `ingress-nginx`.
@@ -1924,9 +1935,12 @@ hookshot:
     ## How the Service behind this Ingress is constructed
     # service:
     #   type: ClusterIP
+    #   annotations: {}
     #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
     #   externalTrafficPolicy: Cluster
     #   internalTrafficPolicy: Cluster
+    #   # External IPs addresses of this service.
+    #   externalIPs: []
     service: {}
     ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
     ## This can be set to `ingress-nginx`.
@@ -2371,9 +2385,12 @@ matrixAuthenticationService:
     ## How the Service behind this Ingress is constructed
     # service:
     #   type: ClusterIP
+    #   annotations: {}
     #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
     #   externalTrafficPolicy: Cluster
     #   internalTrafficPolicy: Cluster
+    #   # External IPs addresses of this service.
+    #   externalIPs: []
     service: {}
     ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
     ## This can be set to `ingress-nginx`.
@@ -4886,9 +4903,12 @@ synapse:
     ## How the Service behind this Ingress is constructed
     # service:
     #   type: ClusterIP
+    #   annotations: {}
     #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
     #   externalTrafficPolicy: Cluster
     #   internalTrafficPolicy: Cluster
+    #   # External IPs addresses of this service.
+    #   externalIPs: []
     service: {}
     ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
     ## This can be set to `ingress-nginx`.
@@ -5122,9 +5142,12 @@ wellKnownDelegation:
     ## How the Service behind this Ingress is constructed
     # service:
     #   type: ClusterIP
+    #   annotations: {}
     #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
     #   externalTrafficPolicy: Cluster
     #   internalTrafficPolicy: Cluster
+    #   # External IPs addresses of this service.
+    #   externalIPs: []
     service: {}
     ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
     ## This can be set to `ingress-nginx`.

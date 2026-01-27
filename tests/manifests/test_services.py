@@ -149,7 +149,7 @@ async def test_exposed_services_external_ips(values, make_templates):
     next_external_ip = ipaddress.IPv4Address("10.0.0.1")
     for deployable_details in all_deployables_details:
         expected_deployable_external_ips[deployable_details.name] = next_external_ip
-        next_external_ip += 255
+        next_external_ip += 256
         num_of_expected_exposed_services[deployable_details.name] = 0
         found_exposed_services[deployable_details.name] = []
         found_services[deployable_details.name] = []

@@ -190,6 +190,12 @@
             "internalTrafficPolicy"
           ],
           "properties": {
+            "annotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
             "type": {
               "type": "string",
               "enum": [
@@ -1512,6 +1518,15 @@
                     "LoadBalancer"
                   ]
                 },
+                "annotations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
                 "internalTrafficPolicy": {
                   "type": "string",
                   "enum": [
@@ -1525,6 +1540,12 @@
                     "Cluster",
                     "Local"
                   ]
+                },
+                "externalIPs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
                 }
               },
               "additionalProperties": false
@@ -3131,6 +3152,15 @@
                     "LoadBalancer"
                   ]
                 },
+                "annotations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
                 "internalTrafficPolicy": {
                   "type": "string",
                   "enum": [
@@ -3144,6 +3174,12 @@
                     "Cluster",
                     "Local"
                   ]
+                },
+                "externalIPs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
                 }
               },
               "additionalProperties": false
@@ -3894,6 +3930,15 @@
                     "LoadBalancer"
                   ]
                 },
+                "annotations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
                 "internalTrafficPolicy": {
                   "type": "string",
                   "enum": [
@@ -3907,6 +3952,12 @@
                     "Cluster",
                     "Local"
                   ]
+                },
+                "externalIPs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
                 }
               },
               "additionalProperties": false
@@ -5160,6 +5211,15 @@
                     "LoadBalancer"
                   ]
                 },
+                "annotations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
                 "internalTrafficPolicy": {
                   "type": "string",
                   "enum": [
@@ -5173,6 +5233,12 @@
                     "Cluster",
                     "Local"
                   ]
+                },
+                "externalIPs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
                 }
               },
               "additionalProperties": false
@@ -6584,6 +6650,15 @@
                     "LoadBalancer"
                   ]
                 },
+                "annotations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
                 "internalTrafficPolicy": {
                   "type": "string",
                   "enum": [
@@ -6597,6 +6672,12 @@
                     "Cluster",
                     "Local"
                   ]
+                },
+                "externalIPs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
                 }
               },
               "additionalProperties": false
@@ -9277,6 +9358,15 @@
                     "LoadBalancer"
                   ]
                 },
+                "annotations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
                 "internalTrafficPolicy": {
                   "type": "string",
                   "enum": [
@@ -9290,6 +9380,12 @@
                     "Cluster",
                     "Local"
                   ]
+                },
+                "externalIPs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
                 }
               },
               "additionalProperties": false
@@ -15050,6 +15146,15 @@
                     "LoadBalancer"
                   ]
                 },
+                "annotations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
                 "internalTrafficPolicy": {
                   "type": "string",
                   "enum": [
@@ -15063,6 +15168,12 @@
                     "Cluster",
                     "Local"
                   ]
+                },
+                "externalIPs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
                 }
               },
               "additionalProperties": false
