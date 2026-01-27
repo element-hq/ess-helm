@@ -7,6 +7,64 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.1.2 (2026-01-27)
+
+## Added
+
+- Add support for configuring `internalTrafficPolicy` for services behind ingresses. (#999)
+- Add support for configuring `externalTrafficPolicy` for `NodePort` and `LoadBalancer` services behind ingresses. (#1000)
+- Add support for configuring `externalTrafficPolicy` to `exposedServices`. (#1001)
+- Add support for configuring `internalTrafficPolicy` to `exposedServices`. (#1001)
+- Add support to customize `nodePort` of exposed services.
+
+  `nodePort` property of `exposedServices.*` is now a string template taking two parameters:
+  - `context`: The exposed service values context `*.exposedServices.<svc>`
+  - `root` : The helm $ root values context
+
+  On Matrix RTC values, the `nodePort` template defaults to `{{ .context.port }}` so that the `nodePort`
+  is the same as `port`. Setting the template to an empty string will skip setting `nodePort`
+  on the service.
+
+  (#1002)
+- Add support for configuring `externalIPs` of exposed services. (#1006)
+- Add support for configuring annotations of Ingress services. (#1007)
+- Add support for configuring `externalIPs` of Ingress services. (#1007)
+
+## Changed
+
+- Hookshot: Disable encryption by default as it is still experimental. (#995)
+- Hookshot: Use appservice fully qualified domain name in the registration file. (#996)
+- Hookshot: Publish service unready address. (#996)
+- Hookshot: Enable adding widgets in rooms where it is invited by default. (#997)
+- Change default `externalTrafficPolicy` for the SFU exposed services from `Local` to Kubernetes defaults `Cluster`. (#1001)
+- Update Hookshot to 7.3.1.
+
+  Highlights :
+  - Add generic webhook transformation JS snippet which can handle GitLab Pipeline payloads under `contrib/jsTransformationFunctions/gitlab-pipeline.js`
+  - Add generic webhook transformation JS snippet to format text as code block under `contrib/jsTransformationFunctions/format-as-code.js`
+  - Fix the `!hookshot help` command not working
+
+  Full Changelogs:
+  - [7.3.1](https://github.com/matrix-org/matrix-hookshot/releases/tag/7.3.1)
+
+  (#1008)
+
+## Fixed
+
+- Matrix RTC: Fix a templating issue when turn was enabled with  a cert-manager issuer to generate the tls secret. (#989)
+- Hookshot: Fix a templating issue when Matrix Authentication Service is enabled if Hookshot was enabled without an Ingress. (#993)
+
+## Documentation
+
+- Document how to setup and configure Hookshot. (#988)
+
+## Internal
+
+- CI: pin Helm to 3.19.4 in the manifest tests to avoid a bug with merging null values. (#994)
+- CI: Add test running Hookshot with Matrix Authentication Service enabled. (#995)
+- Build services schema using a common service.json file. (#1003)
+
+
 # ESS Community Helm Chart 26.1.1 (2026-01-22)
 
 ## Removed / Breaking Changes
