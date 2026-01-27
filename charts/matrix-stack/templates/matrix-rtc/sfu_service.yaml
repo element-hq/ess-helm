@@ -12,22 +12,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 apiVersion: v1
 kind: Service
 metadata:
+{{- include "element-io.ess-library.ingress-service.annotations" (dict "root" $ "context" $.Values.matrixRTC.ingress) | nindent 2 }}
   labels:
     {{- include "element-io.matrix-rtc-sfu.labels" (dict "root" $ "context" .) | nindent 4 }}
   name: {{ $.Release.Name }}-matrix-rtc-sfu
   namespace: {{ $.Release.Namespace }}
 spec:
-{{ with $.Values.matrixRTC.ingress.service.type | default $.Values.ingress.service.type }}
-  type: {{ . }}
-{{- if (list "LoadBalancer" "NodePort") | has . }}
-  externalTrafficPolicy: {{ $.Values.matrixRTC.ingress.service.externalTrafficPolicy | default $.Values.ingress.service.externalTrafficPolicy }}
-  {{- if hasKey $.Values.matrixRTC.ingress.service "externalIPs" }}
-  externalIPs: {{ $.Values.matrixRTC.ingress.externalIPs | toYaml | nindent 4 }}
-  {{- end }}
-{{- end }}
-{{- end }}
-  internalTrafficPolicy: {{ $.Values.matrixRTC.ingress.service.internalTrafficPolicy | default $.Values.ingress.service.internalTrafficPolicy }}
-  ipFamilyPolicy: PreferDualStack
+{{- include "element-io.ess-library.ingress-service.spec" (dict "root" $ "context" $.Values.matrixRTC.ingress) | nindent 2 }}
   ports:
   - name: http
     port: 7880

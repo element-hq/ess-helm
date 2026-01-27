@@ -190,6 +190,12 @@
             "internalTrafficPolicy"
           ],
           "properties": {
+            "annotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
             "type": {
               "type": "string",
               "enum": [
@@ -1511,6 +1517,15 @@
                     "NodePort",
                     "LoadBalancer"
                   ]
+                },
+                "annotations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
                 },
                 "internalTrafficPolicy": {
                   "type": "string",
@@ -3137,6 +3152,15 @@
                     "LoadBalancer"
                   ]
                 },
+                "annotations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
                 "internalTrafficPolicy": {
                   "type": "string",
                   "enum": [
@@ -3905,6 +3929,15 @@
                     "NodePort",
                     "LoadBalancer"
                   ]
+                },
+                "annotations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
                 },
                 "internalTrafficPolicy": {
                   "type": "string",
@@ -5177,6 +5210,15 @@
                     "NodePort",
                     "LoadBalancer"
                   ]
+                },
+                "annotations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
                 },
                 "internalTrafficPolicy": {
                   "type": "string",
@@ -6607,6 +6649,15 @@
                     "NodePort",
                     "LoadBalancer"
                   ]
+                },
+                "annotations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
                 },
                 "internalTrafficPolicy": {
                   "type": "string",
@@ -9306,6 +9357,15 @@
                     "NodePort",
                     "LoadBalancer"
                   ]
+                },
+                "annotations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
                 },
                 "internalTrafficPolicy": {
                   "type": "string",
@@ -15085,6 +15145,15 @@
                     "NodePort",
                     "LoadBalancer"
                   ]
+                },
+                "annotations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
                 },
                 "internalTrafficPolicy": {
                   "type": "string",

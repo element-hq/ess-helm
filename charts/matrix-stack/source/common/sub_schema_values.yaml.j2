@@ -183,12 +183,15 @@ networking:
 {%- if global %}
   service:
     type: ClusterIP
+    ## Annotations to be added to {{ 'all Ingresses services. Will be merged with component specific Ingress services annotations' if global else 'this Ingress' }}
+    annotations: {}
     # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
     externalTrafficPolicy: Cluster
     internalTrafficPolicy: Cluster
 {%- else %}
   # service:
   #   type: ClusterIP
+  #   annotations: {}
   #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
   #   externalTrafficPolicy: Cluster
   #   internalTrafficPolicy: Cluster
