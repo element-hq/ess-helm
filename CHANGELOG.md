@@ -7,6 +7,45 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.1.3 (2026-01-28)
+
+## Changed
+
+- Upgrade Element Web to v1.12.9.
+
+  Highlights:
+  - Allow local log downloads instead of a bug report endpoint URL.
+  - Support for stable [MSC4191](https://github.com/matrix-org/matrix-spec-proposals/pull/4191) account management action parameter
+  - Support for stable m.oauth UIA stage from [MSC4312](https://github.com/matrix-org/matrix-spec-proposals/pull/4312)
+
+  Full Changelogs:
+  - [v1.12.9](https://github.com/element-hq/element-web/releases/tag/v1.12.9)
+
+  (#981)
+- Upgrade Matrix Authentication Service to v1.10.0.
+
+  Highlights:
+  - Support for stable [MSC3824](https://github.com/matrix-org/matrix-spec-proposals/pull/3824) (OAuth 2.0 API aware clients) values
+  - Support for stable [MSC4191](https://github.com/matrix-org/matrix-spec-proposals/pull/4191) account management actions
+  - Cleanup various old, soft-deleted entities from the database.
+
+  Full Changelogs:
+  - [v1.10.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.10.0)
+
+  (#990)
+- Upgrade Synapse to v1.146.0.
+
+  Highlights:
+  - Stabilise support for [MSC4312](https://github.com/matrix-org/matrix-spec-proposals/pull/4312)'s `m.oauth` User-Interactive Auth stage for resetting cross-signing identity with the OAuth 2.0 API.
+  - Fix joining a restricted v12 room locally when no local room creator is present but local users with sufficient power levels are.
+  - Fixed parallel calls to `/_matrix/media/v1/create` being rate-limited for appservices even if `rate_limited: false` was set in the registration.
+
+  Full Changelogs:
+  - [v1.146.0](https://github.com/element-hq/synapse/releases/tag/v1.146.0)
+
+  (#992)
+
+
 # ESS Community Helm Chart 26.1.2 (2026-01-27)
 
 ## Added
