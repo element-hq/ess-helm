@@ -1,5 +1,5 @@
 # Copyright 2024-2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -9,6 +9,14 @@
 
 certManager:
   clusterIssuer: ess-selfsigned
+
+hookshot:
+  additional:
+    allow_local_ips.yaml:
+      config: |
+        widgets:
+          allowedIpRanges:
+          - 10.0.0.0/8
 
 matrixRTC:
   # Because the authoriser service won't trust certificates issued by the above self-signed CA
