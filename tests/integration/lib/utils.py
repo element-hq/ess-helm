@@ -189,6 +189,10 @@ def value_file_has(property_path, expected=None):
     """
     Check if a nested property (given as a dot-separated string) is would be true if the chart was installed/templated.
     """
+    # If we do not have TEST_VALUES_FILE defined, we return False by default
+    if not os.environ.get("TEST_VALUES_FILE"):
+        return False
+
     with (
         open(Path().resolve() / "charts" / "matrix-stack" / "values.yaml") as base_value_file,
         open(os.environ["TEST_VALUES_FILE"]) as test_value_file,
