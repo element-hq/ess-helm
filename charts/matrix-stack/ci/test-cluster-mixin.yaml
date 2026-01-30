@@ -1,5 +1,5 @@
 # Copyright 2024-2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -9,6 +9,16 @@
 
 certManager:
   clusterIssuer: ess-selfsigned
+
+hookshot:
+  additional:
+    allow_local_ips.yaml:
+      config: |
+        widgets:
+          allowedIpRanges:
+          - 10.0.0.0/8
+  # Hookshot doesn't need extraEnv to disable TLS validation as `widgets.openIdOverrides` sets Synapse's endpoint to HTTP
+  # Hookshot doesn't need hostAliases for Synapse and Well-Known as `widgets.openIdOverrides` skips this
 
 matrixRTC:
   # Because the authoriser service won't trust certificates issued by the above self-signed CA

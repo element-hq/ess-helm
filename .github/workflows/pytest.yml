@@ -94,6 +94,8 @@ jobs:
       if: ${{ matrix.test-from-ref != github.event.pull_request.head.sha }}
 
     - name: Deploy with pytest once
+      env:
+        PYTEST_CI_FIRST_STEP: "1"
       run: |
         if [ -f "tests/integration/env/${MATRIX_TEST_COMPONENT}.rc" ]; then
           # shellcheck source=/dev/null
@@ -113,6 +115,8 @@ jobs:
       if: ${{ matrix.test-from-ref != github.event.pull_request.head.sha }}
 
     - name: Test with pytest (upgrade or idempotent setup)
+      env:
+        PYTEST_CI_SECOND_STEP: "1"
       run: |
         # shellcheck source=/dev/null
         . "tests/integration/env/${MATRIX_TEST_COMPONENT}.rc"

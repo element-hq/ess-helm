@@ -4,14 +4,16 @@
 
 import asyncio
 import json
+import os
 import time
 from urllib.parse import urlparse
 
 import pytest
+import semver
 from lightkube import AsyncClient
 
 from .fixtures import ESSData, User
-from .lib.utils import aiohttp_get_json, aiohttp_post_json, aiohttp_put_json, value_file_has
+from .lib.utils import aiohttp_client, aiohttp_get_json, aiohttp_post_json, aiohttp_put_json, value_file_has
 
 
 # This creates an unencrypted room, invites hookshot, creates a webhook,
@@ -252,3 +254,32 @@ async def test_hookshot_webhook(
     )
 
     return room_id
+
+
+# This creates an unencrypted room, invites hookshot, creates a webhook,
+# and verifies that hookshot posts webhook payloads to the room
+@pytest.mark.skipif(not value_file_has("hookshot.enabled", True), reason="Hookshot not enabled")
+@pytest.mark.skipif(
+    semver.Version.is_valid(os.environ.get("MATRIX_TEST_FROM_REF", ""))
+    and semver.VersionInfo.parse(os.environ.get("MATRIX_TEST_FROM_REF", "")).compare("26.1.3") <= 0
+    and os.environ.get("PYTEST_CI_FIRST_STEP", "") == "1",
+    reason="26.1.3 or earlier doesn't correctly mount widgets on the Synapse Ingress, so it fails before upgrading.",
+)
+@pytest.mark.asyncio_cooperative
+async def test_hookshot_widget(
+    kube_client: AsyncClient,
+    ingress_ready,
+    generated_data: ESSData,
+    ssl_context,
+):
+    await ingress_ready("synapse")
+
+    async with (
+        aiohttp_client(ssl_context) as client,
+        client.get(
+            "https://127.0.0.1/_matrix/hookshot/widgetapi/v1/static",
+            headers={"Host": f"synapse.{generated_data.server_name}"},
+            server_hostname=f"synapse.{generated_data.server_name}",
+        ) as response,
+    ):
+        assert response.status != 404

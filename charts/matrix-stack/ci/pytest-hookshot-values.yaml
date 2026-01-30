@@ -19,12 +19,18 @@ hookshot:
   additional:
     permissions.yaml:
       config: |
+        # Permissions are ordered this way so that we can easily see that they aren't appended to the default
+        # which is identical to the middle item in the array
         permissions:
+        - actor: "@user1:{{ $.Values.serverName }}"
+          services:
+          - service: "*"
+            level: admin
         - actor: {{ $.Values.serverName | quote }}
           services:
           - service: "*"
-            level: notifications
-        - actor: "@hookshot-user:{{ $.Values.serverName }}"
+            level: manageConnections
+        - actor: "@user2:{{ $.Values.serverName }}"
           services:
           - service: "*"
             level: admin
@@ -36,6 +42,8 @@ hookshot:
           allowJsTransformationFunctions: false
           waitForComplete: true
           enableHttpGet: false
+          allowedIpRanges:
+          - 10.0.0.0/8
   enableEncryption: true
   enabled: true
   extraEnv:
