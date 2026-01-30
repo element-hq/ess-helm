@@ -6,8 +6,9 @@
 package args
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	deploymentmarkers "github.com/element-hq/ess-helm/matrix-tools/internal/cmd/deployment-markers"
 	generatesecrets "github.com/element-hq/ess-helm/matrix-tools/internal/cmd/generate-secrets"
@@ -64,6 +65,19 @@ func TestParseArgs(t *testing.T) {
 				RenderConfig: &renderconfig.RenderConfigOptions{
 					Files:  []string{"file1", "file2"},
 					Output: "outputFile",
+				},
+				Command: RenderConfig,
+			},
+			err: false,
+		},
+		{
+			name: "Correct usage of render-config with append arrays",
+			args: []string{"cmd", "render-config", "-output", "outputFile", "-array-overwrite-keys", "permissions,another_array", "file1", "file2"},
+			expected: &Options{
+				RenderConfig: &renderconfig.RenderConfigOptions{
+					Files:              []string{"file1", "file2"},
+					Output:             "outputFile",
+					ArrayOverwriteKeys: []string{"permissions", "another_array"},
 				},
 				Command: RenderConfig,
 			},

@@ -455,7 +455,9 @@ class RenderConfigContainerPathConsumer(PathConsumer):
                 break
 
         render_config_container = cls(
-            inputs_files={input_file: all_mounted_files[input_file] for input_file in container_spec["args"][3:]},
+            inputs_files={
+                input_file: all_mounted_files[input_file] for input_file in container_spec["args"][idx + 2 :]
+            },
             env={e["name"]: e["value"] for e in container_spec.get("env", [])},
             output=output,
         )

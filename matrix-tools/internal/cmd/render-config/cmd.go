@@ -1,5 +1,5 @@
 // Copyright 2025 New Vector Ltd
-// Copyright 2025 Element Creations Ltd
+// Copyright 2025-2026 Element Creations Ltd
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -53,7 +53,7 @@ func Run(options *RenderConfigOptions) {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	result, err := renderer.RenderConfig(fileReaders)
+	result, err := renderer.RenderConfig(fileReaders, options.ArrayOverwriteKeys)
 	if err != nil {
 		if err == flag.ErrHelp {
 			flag.CommandLine.Usage()

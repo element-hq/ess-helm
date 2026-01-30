@@ -1,5 +1,5 @@
 // Copyright 2025 New Vector Ltd
-// Copyright 2025 Element Creations Ltd
+// Copyright 2025-2026 Element Creations Ltd
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -16,8 +16,9 @@ const (
 )
 
 type RenderConfigOptions struct {
-	Files  []string
-	Output string
+	Files              []string
+	Output             string
+	ArrayOverwriteKeys []string
 }
 
 func ParseArgs(args []string) (*RenderConfigOptions, error) {
@@ -25,6 +26,7 @@ func ParseArgs(args []string) (*RenderConfigOptions, error) {
 
 	renderConfigSet := flag.NewFlagSet(FlagSetName, flag.ExitOnError)
 	output := renderConfigSet.String("output", "", "Output file for rendering")
+	arrayOverwriteKeys := renderConfigSet.String("array-overwrite-keys", "", "Comma-separated list of top-level config keys, that are arrays and should overwrite any existing array in earlier files, rather than the default of appending to them")
 
 	err := renderConfigSet.Parse(args)
 	if err != nil {
@@ -35,6 +37,9 @@ func ParseArgs(args []string) (*RenderConfigOptions, error) {
 			return nil, flag.ErrHelp
 		}
 		options.Files = append(options.Files, file)
+	}
+	if *arrayOverwriteKeys != "" {
+		options.ArrayOverwriteKeys = strings.Split(*arrayOverwriteKeys, ",")
 	}
 	options.Output = *output
 	if *output == "" {
