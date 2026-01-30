@@ -12,4 +12,11 @@ widgets:
   roomSetupWidget:
     addOnInvite: true
 
+permissions:
+# Allow all users to send commands to existing services
+- actor: {{ tpl $root.Values.serverName $root | quote }}
+  services:
+  - service: "*"
+    level: commands
+
 {{- end -}}

@@ -50,6 +50,7 @@ spec:
                   "underrides" (list "config-underride.yaml")
                   "overrides" (list "config-override.yaml")
                   "outputFile" "hookshot-config.yaml"
+                  "arrayOverwriteKeys" ((list "permissions") | join ",")
                   "resources" .resources
                   "containersSecurityContext" .containersSecurityContext
                   "extraEnv" .extraEnv
