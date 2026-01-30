@@ -16,7 +16,9 @@ root_folder="$(git rev-parse --show-toplevel)"
 ca_folder="$root_folder/.ca"
 mkdir -p "$ca_folder"
 
-PYTEST_KEEP_CLUSTER=1 pytest tests/integration --setup-only
+PYTEST_KEEP_CLUSTER=1 pytest tests/integration --env-setup
+
+k3d kubeconfig merge ess-helm -ds
 
 for namespace in $ess_namespaces; do
   echo "Constructing ESS dependencies in $namespace"
