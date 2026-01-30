@@ -132,15 +132,14 @@ jobs:
             kubectl --context k3d-ess-helm -n "$ns" logs --all-containers --prefix --timestamps --ignore-errors --previous "$pod" > "./ess-helm-logs/$ns/$pod.previous"
             kubectl --context k3d-ess-helm -n "$ns" logs --all-containers --prefix --timestamps --ignore-errors "$pod" > "./ess-helm-logs/$ns/$pod.logs"
           done
+          resources=("pods" "deployments" "statefulsets" "services" "configmaps" "ingresses" "persistentvolumes" "persistentvolumeclaims" "endpoints")
+          for i in "${resources[@]}"; do
+            kubectl --context k3d-ess-helm get "$i" -n "$ns" > "./ess-helm-logs/$ns/$i.txt"
+            echo "----" >> "./ess-helm-logs/$ns/$i.txt"
+            kubectl --context k3d-ess-helm get "$i" -o yaml -n "$ns" >> "./ess-helm-logs/$ns/$i.txt"
+          done
+          kubectl --context k3d-ess-helm get events --sort-by=.metadata.creationTimestamp -n "$ns" > "./ess-helm-logs/$ns/events.txt"
         done
-        ess_ns=$(kubectl --context k3d-ess-helm get ns -l app.kubernetes.io/managed-by=pytest -o jsonpath='{.items[].metadata.name}')
-        resources=("pods" "deployments" "statefulsets" "services" "configmaps" "ingresses" "persistentvolumes" "persistentvolumeclaims" "endpoints")
-        for i in "${resources[@]}"; do
-          kubectl --context k3d-ess-helm get "$i" -n "$ess_ns" > "./ess-helm-logs/$i.txt"
-          echo "----" >> "./ess-helm-logs/$i.txt"
-          kubectl --context k3d-ess-helm get "$i" -o yaml -n "$ess_ns" >> "./ess-helm-logs/$i.txt"
-        done
-        kubectl --context k3d-ess-helm get events --sort-by=.metadata.creationTimestamp -n "$ess_ns" > ./ess-helm-logs/events.txt
         k3d cluster delete ess-helm
 
     - name: Upload logs
