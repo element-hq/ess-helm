@@ -169,6 +169,10 @@ async def matrix_stack(
     generated_data: ESSData,
     loaded_matrix_tools: dict,
 ):
+    # If we do not have TEST_VALUES_FILE define, we skip setting up matrix-stack
+    if not os.environ.get("TEST_VALUES_FILE"):
+        return False
+
     with open(os.environ["TEST_VALUES_FILE"]) as stream:
         values = yaml.safe_load(stream)
 
