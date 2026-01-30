@@ -17,6 +17,17 @@ haproxy:
   replicas: 2
 hookshot:
   additional:
+    permissions.yaml:
+      config: |
+        permissions:
+        - actor: {{ $.Values.serverName | quote }}
+          services:
+          - service: "*"
+            level: notifications
+        - actor: "@hookshot-user:{{ $.Values.serverName }}"
+          services:
+          - service: "*"
+            level: admin
     user-config.yaml:
       config: |
         generic:

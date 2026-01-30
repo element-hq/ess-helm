@@ -31,6 +31,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- end }}
   args:
   - render-config
+{{- with .arrayOverwriteKeys }}
+  - -array-overwrite-keys
+  - {{ . }}
+{{- end }}
   - -output
   - /conf/{{ $outputFile }}
     {{- range $underrides }}

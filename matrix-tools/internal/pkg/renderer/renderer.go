@@ -1,5 +1,5 @@
 // Copyright 2025 New Vector Ltd
-// Copyright 2025 Element Creations Ltd
+// Copyright 2025-2026 Element Creations Ltd
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -9,26 +9,28 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"io"
 	"net/url"
 	"os"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"text/template"
+
+	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
 	Data map[string]any `json:"data"`
 }
 
-func deepMergeMaps(source, destination map[string]any) error {
+func deepMergeMaps(source, destination map[string]any, arrayOverwriteKeys []string) error {
 	for key, value := range source {
 		if destValue, exists := destination[key]; exists {
 			if srcMap, ok := value.(map[string]any); ok {
 				if destMap, ok := destValue.(map[string]any); ok {
-					if err := deepMergeMaps(srcMap, destMap); err != nil {
+					if err := deepMergeMaps(srcMap, destMap, nil); err != nil {
 						return fmt.Errorf("failed to deep merge maps for key '%s': %w", key, err)
 					}
 				} else {
@@ -36,7 +38,11 @@ func deepMergeMaps(source, destination map[string]any) error {
 				}
 			} else if srcArray, ok := value.([]any); ok {
 				if destArray, ok := destValue.([]any); ok {
-					destination[key] = append(destArray, srcArray...)
+					if arrayOverwriteKeys != nil && slices.Contains(arrayOverwriteKeys, key) {
+						destination[key] = srcArray
+					} else {
+						destination[key] = append(destArray, srcArray...)
+					}
 				} else {
 					destination[key] = srcArray
 				}
@@ -84,7 +90,10 @@ func urlencode(src string) string {
 // - readfile(path) : reads a file and returns its content
 // - hostname() : returns the current host name
 // - replace(old,new,string) : replaces old with new in string
-func RenderConfig(sourceConfigs []io.Reader) (map[string]any, error) {
+// It also takes a list of strings that are expected to be top-level keys of arrays in one of more of the source configs
+// If these are present these arrays are overwritten by later source configs rather than the default behaviour of appending
+// These only impact the top-level keys and not anything nested
+func RenderConfig(sourceConfigs []io.Reader, arrayOverwriteKeys []string) (map[string]any, error) {
 	output := make(map[string]any)
 
 	for _, configReader := range sourceConfigs {
@@ -130,7 +139,7 @@ func RenderConfig(sourceConfigs []io.Reader) (map[string]any, error) {
 			return nil, fmt.Errorf("post-processed yaml is invalid: %v", err)
 		}
 
-		if err := deepMergeMaps(data, output); err != nil {
+		if err := deepMergeMaps(data, output, arrayOverwriteKeys); err != nil {
 			return nil, fmt.Errorf("failed to deep merge files %w", err)
 		}
 	}

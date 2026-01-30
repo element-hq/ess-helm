@@ -1,5 +1,5 @@
 // Copyright 2025 New Vector Ltd
-// Copyright 2025 Element Creations Ltd
+// Copyright 2025-2026 Element Creations Ltd
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -19,11 +19,12 @@ func TestRenderConfig(t *testing.T) {
 	droppedFromHostname := hostname[2:4]
 
 	testCases := []struct {
-		name     string
-		readers  []io.Reader
-		env      map[string]string
-		expected map[string]any
-		err      bool
+		name               string
+		readers            []io.Reader
+		env                map[string]string
+		expected           map[string]any
+		err                bool
+		arrayOverwriteKeys []string
 	}{
 		{
 			name: "Single File",
@@ -77,27 +78,37 @@ keyWithEnv2:
 			name: "Overrides in order",
 			readers: []io.Reader{
 				bytes.NewBuffer([]byte(`overriddenKey: value_000
-overriddenArray:
+mergedArray:
   - item_000_a
   - item_000_b
+overriddenArray:
+  - item_002_a
+  - item_002_b
 overriddenObject:
   childKey: value_000
 only000Key: only_000`)),
 				bytes.NewBuffer([]byte(`overriddenKey: value_001
-overriddenArray:
+mergedArray:
   - item_001_a
   - item_001_b
+overriddenArray:
+  - item_003_a
+  - item_003_b
 overriddenObject:
   childKey: value_001
 only001Key: only_001`)),
 			},
 			expected: map[string]any{
 				"overriddenKey": "value_001",
-				"overriddenArray": []any{
+				"mergedArray": []any{
 					"item_000_a",
 					"item_000_b",
 					"item_001_a",
 					"item_001_b",
+				},
+				"overriddenArray": []any{
+					"item_003_a",
+					"item_003_b",
 				},
 				"overriddenObject": map[string]any{
 					"childKey": "value_001",
@@ -105,7 +116,8 @@ only001Key: only_001`)),
 				"only000Key": "only_000",
 				"only001Key": "only_001",
 			},
-			err: false,
+			err:                false,
+			arrayOverwriteKeys: []string{"overriddenArray"},
 		},
 		{
 			name: "Environment Variable Missing",
@@ -159,7 +171,7 @@ anotherKey:
 				}
 			}
 
-			result, err := RenderConfig(tc.readers)
+			result, err := RenderConfig(tc.readers, tc.arrayOverwriteKeys)
 			if (err != nil) != tc.err {
 				t.Errorf("expected error: %v, got: %v", tc.err, err)
 			}

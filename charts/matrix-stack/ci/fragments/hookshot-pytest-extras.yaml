@@ -21,3 +21,14 @@ hookshot:
           allowJsTransformationFunctions: false
           waitForComplete: true
           enableHttpGet: false
+    permissions.yaml:
+      config: |
+        permissions:
+        - actor: {{ $.Values.serverName | quote }}
+          services:
+          - service: "*"
+            level: notifications
+        - actor: "@hookshot-user:{{ $.Values.serverName }}"
+          services:
+          - service: "*"
+            level: admin
