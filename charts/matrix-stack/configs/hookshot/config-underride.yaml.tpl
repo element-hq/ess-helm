@@ -22,6 +22,6 @@ permissions:
 - actor: {{ tpl $root.Values.serverName $root | quote }}
   services:
   - service: "*"
-    level: commands
+    level: manageConnections
 
 {{- end -}}
