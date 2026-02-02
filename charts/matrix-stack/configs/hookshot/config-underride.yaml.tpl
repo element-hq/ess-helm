@@ -12,11 +12,6 @@ widgets:
   roomSetupWidget:
     addOnInvite: true
 
-{{- if $root.Values.synapse.enabled }}
-  openIdOverrides:
-    {{ tpl $root.Values.serverName $root | quote }}: "http://{{ include "element-io.synapse.internal-hostport" (dict "root" $root "context" (dict "targetProcessType" "")) }}"
-{{- end }}
-
 permissions:
 # Allow all users to send commands to existing services
 - actor: {{ tpl $root.Values.serverName $root | quote }}
