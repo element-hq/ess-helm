@@ -1,5 +1,5 @@
 # Copyright 2024-2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -19,11 +19,7 @@ from .lib.utils import read_service_monitor_kind
 
 
 @pytest.mark.asyncio_cooperative
-@pytest.mark.usefixtures("matrix_stack")
-async def test_services_have_matching_labels(
-    kube_client: AsyncClient,
-    generated_data: ESSData,
-):
+async def test_services_have_matching_labels(kube_client: AsyncClient, generated_data: ESSData, matrix_stack):
     ignored_labels = [
         "app.kubernetes.io/managed-by",
         "helm.sh/chart",
@@ -83,12 +79,7 @@ async def test_services_have_matching_labels(
 
 
 @pytest.mark.asyncio_cooperative
-@pytest.mark.usefixtures("matrix_stack")
-async def test_services_have_endpoints(
-    cluster,
-    kube_client: AsyncClient,
-    generated_data: ESSData,
-):
+async def test_services_have_endpoints(cluster, kube_client: AsyncClient, generated_data: ESSData, matrix_stack):
     # Helm will stop waiting when 1 of replicas are ready
     # We need to wait for all replicas to be ready to check that services all have endpoints
     await wait_for_all_deployments_rolled_out(kube_client, generated_data.ess_namespace)

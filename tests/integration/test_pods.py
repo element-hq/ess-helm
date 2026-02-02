@@ -1,5 +1,5 @@
 # Copyright 2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -13,10 +13,10 @@ from .fixtures.data import ESSData
 
 
 @pytest.mark.asyncio_cooperative
-@pytest.mark.usefixtures("matrix_stack")
 async def test_pods_run_as_gid_0(
     kube_client: AsyncClient,
     generated_data: ESSData,
+    matrix_stack,
 ):
     async for pod in kube_client.list(
         Pod, namespace=generated_data.ess_namespace, labels={"app.kubernetes.io/part-of": op.in_(["matrix-stack"])}
