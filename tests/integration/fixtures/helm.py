@@ -159,7 +159,7 @@ retention:
     )
 
 
-@pytest.fixture(autouse=True, scope="session")
+@pytest.fixture(scope="session")
 async def matrix_stack(
     helm_client: pyhelm3.Client,
     ingress,
