@@ -103,7 +103,9 @@ jobs:
 
     - name: Reshim installed ASDF tools
       shell: bash
-      run: asdf reshim
+      run: |
+        ls -lRt ${{ env.ASDF_DIR }}
+        asdf reshim
 
     - uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4  # v4.3.1
 
