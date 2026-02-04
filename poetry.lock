@@ -716,14 +716,14 @@ files = [
 
 [[package]]
 name = "checkov"
-version = "3.2.499"
+version = "3.2.500"
 description = "Infrastructure as code static analysis"
 optional = false
 python-versions = ">=3.9"
 groups = ["dev"]
 files = [
-    {file = "checkov-3.2.499-py3-none-any.whl", hash = "sha256:e5432dcc685be155dcfdc72c0066f7051a1014e0037b3bec26a3aef4a4deaa83"},
-    {file = "checkov-3.2.499.tar.gz", hash = "sha256:2e389bc27f51044f60295da380ef2d6afa3059b81d19d97acd455835a303ed7b"},
+    {file = "checkov-3.2.500-py3-none-any.whl", hash = "sha256:9b6a64b0e9eb9d6d2714b3d0fd7f26b8f5dd9ffbfa686777617dc0acdb2318e9"},
+    {file = "checkov-3.2.500.tar.gz", hash = "sha256:4c1c720447b30cadf3a0c28bb5c4cb70f5c82af2d811fc19fdc30f633a110e61"},
 ]
 
 [package.dependencies]
@@ -4268,4 +4268,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0"
-content-hash = "58b875ebc9a80a1157ccd6697660309797fc0c0371416fa259e3cf023fa42009"
+content-hash = "cf3dbb0dca910fcb3840cb24a1f1b9a8bd220586f0eafc7f866ee1bf8f052d91"
