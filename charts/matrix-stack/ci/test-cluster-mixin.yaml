@@ -17,6 +17,8 @@ hookshot:
         widgets:
           allowedIpRanges:
           - 10.0.0.0/8
+          openIdOverrides:
+            {{ $.Values.serverName | quote }}: "http://{{- $.Release.Name }}-synapse.{{ $.Release.Namespace }}.svc.{{ $.Values.clusterDomain }}:8008"
   # Hookshot doesn't need extraEnv to disable TLS validation as `widgets.openIdOverrides` sets Synapse's endpoint to HTTP
   # Hookshot doesn't need hostAliases for Synapse and Well-Known as `widgets.openIdOverrides` skips this
 
