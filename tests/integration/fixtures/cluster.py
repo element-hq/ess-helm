@@ -153,10 +153,7 @@ async def cert_manager(helm_client, kube_client):
     if os.environ.get("SKIP_CERT_MANAGER", "false") != "false":
         return
 
-    chart = await helm_client.get_chart(
-        "cert-manager",
-        repo="https://charts.jetstack.io",
-    )
+    chart = await helm_client.get_chart("oci://quay.io/jetstack/charts/cert-manager")
     await helm_client.install_or_upgrade_release(
         "cert-manager",
         chart,
@@ -231,9 +228,7 @@ async def cert_manager(helm_client, kube_client):
 @pytest.fixture(scope="session")
 async def prometheus_operator_crds(helm_client):
     if os.environ.get("SKIP_SERVICE_MONITORS_CRDS", "false") == "false":
-        chart = await helm_client.get_chart(
-            "prometheus-operator-crds", repo="https://prometheus-community.github.io/helm-charts"
-        )
+        chart = await helm_client.get_chart("oci://ghcr.io/prometheus-community/charts/prometheus-operator-crds")
 
         # Install or upgrade a release
         await helm_client.install_or_upgrade_release(
