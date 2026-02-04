@@ -14,8 +14,8 @@ python = ">=3.12,<4.0"
 frozendict = "^2.4.7"
 
 [tool.poetry.group.dev.dependencies]
-# For https://github.com/azimuth-cloud/pyhelm3/pull/36 & https://github.com/azimuth-cloud/pyhelm3/pull/37
-pyhelm3 = {git = "https://github.com/element-hq/pyhelm3.git", rev = "788ac4c1f"}
+# For https://github.com/azimuth-cloud/pyhelm3/pull/36 & https://github.com/azimuth-cloud/pyhelm3/pull/37 & https://github.com/azimuth-cloud/pyhelm3/pull/39
+pyhelm3 = {git = "https://github.com/element-hq/pyhelm3.git", rev = "efa509e7501edeb9d04f2a9e688f6e0088305954"}
 lightkube = "^0.19.1"
 pytz = "^2025.2"
 cryptography = "^46.0.4"

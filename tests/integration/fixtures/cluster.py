@@ -160,6 +160,7 @@ async def cert_manager(helm_client, kube_client):
         yaml.safe_load((Path(__file__).parent / "files/charts/cert-manager.yml").open()),
         namespace="cert-manager",
         create_namespace=True,
+        atomic=True,
         wait=True,
     )
 
@@ -237,6 +238,7 @@ async def prometheus_operator_crds(helm_client):
             {},
             namespace="prometheus-operator",
             create_namespace=True,
+            atomic=True,
             wait=True,
         )
 
