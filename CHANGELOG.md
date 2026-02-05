@@ -7,6 +7,42 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.2.0 (2026-02-05)
+
+## Changed
+
+- Set default permissions on Hookshot so that local users only have permissions to manage integrations and connections.
+
+  Permissions should be adjusted to give specific users the ability to administer integrations, e.g.
+  ```yaml
+  hookshot:
+    additional:
+      permissions.yaml:
+        config: |
+          permissions:
+          - actor: {{ $.Values.serverName | quote }}
+            services:
+            - service: "*"
+              level: manageConnections
+          - action: "@an-admin-user:{{ $.Values.serverName }}"
+            services:
+            - service: "*"
+              level: admin
+  ``` (#1010, #1014)
+- Update the test cluster values so that Hookshot can make requests to cluster-internal IP addresses. (#1010, #1018, #1023)
+
+## Fixed
+
+- Fix Hookshot widgets not being available when using the Synapse `Ingress` / not having a dedicated Hookshot `Ingress`. (#1010)
+
+## Internal
+
+- CI: Export logs of all k3d namespaces. (#1015)
+- CI: Remove code duplication that existed between `pytest` integration test suite and `setup_test_cluster.sh` script. (#1016, #1017)
+- CI: Use OCI repository to install `cert-manager` and `prometheus-operator-crds`. (#1020)
+- CI: Support `--rollback-on-failure` helm 4 parameter. (#1022)
+
+
 # ESS Community Helm Chart 26.1.3 (2026-01-28)
 
 ## Changed
