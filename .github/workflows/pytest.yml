@@ -181,5 +181,13 @@ jobs:
         tool_versions: |
           helm 3.19.4
 
+    - name: Restore pytest cache
+      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5
+      with:
+        path: .pytest_cache
+        key: pytest-manifests-cache-${{ matrix.manifest-test }}
+        restore-keys: |
+          pytest-manifests-cache-
+
     - name: Run our manifest test
       run: poetry run pytest -vv tests/manifests/${{ matrix.manifest-test }}.py
