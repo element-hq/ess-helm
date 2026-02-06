@@ -68,7 +68,7 @@ async def strict_mas_schema(pytestconfig: pytest.Config, base_values: dict[str, 
         # main, or any other branch/tag name
         ref = tag
 
-    cache_key = f"mas_config_schema/{ref}"
+    cache_key = f"ess-helm/mas-config-schema/{ref}"
     cached = pytestconfig.cache.get(cache_key, None) if cacheable else None
 
     if cached is not None:
