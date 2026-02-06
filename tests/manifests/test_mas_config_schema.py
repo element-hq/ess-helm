@@ -13,6 +13,7 @@ import semver
 import yaml
 
 from . import secret_values_files_to_test, values_files_to_test
+from .oci_helpers import get_oci_image_source_ref
 
 
 def _make_strict(schema: dict[str, Any]) -> None:
@@ -53,6 +54,19 @@ def _deep_merge(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any
     return result
 
 
+async def fetch_mas_schema(ref):
+    url = f"https://raw.githubusercontent.com/element-hq/matrix-authentication-service/{ref}/docs/config.schema.json"
+    timeout = aiohttp.ClientTimeout(total=30)
+    async with aiohttp.ClientSession() as session, session.get(url, timeout=timeout) as resp:
+        # There are edge case where we were not able to reliably map an
+        # image tag to a git ref, in which case we're going to get a 404
+        # from GitHub, and we'll skip the test
+        if resp.status == 200:
+            raw = await resp.read()
+            return json.loads(raw)
+    return {}
+
+
 @pytest.fixture(scope="session")
 async def strict_mas_schema(pytestconfig: pytest.Config, base_values: dict[str, Any]) -> dict[str, Any]:
     tag = base_values["matrixAuthenticationService"]["image"]["tag"]
@@ -75,19 +89,20 @@ async def strict_mas_schema(pytestconfig: pytest.Config, base_values: dict[str, 
     if cached is not None:
         schema = cached
     else:
-        url = (
-            f"https://raw.githubusercontent.com/element-hq/matrix-authentication-service/{ref}/docs/config.schema.json"
-        )
-        timeout = aiohttp.ClientTimeout(total=30)
-        async with aiohttp.ClientSession() as session, session.get(url, timeout=timeout) as resp:
-            # There are edge case where we were not able to reliably map an
-            # image tag to a git ref, in which case we're going to get a 404
-            # from GitHub, and we'll skip the test
-            if resp.status == 404:
-                pytest.skip(f"Could not fetch MAS config schema from {url}")
-            resp.raise_for_status()
-            raw = await resp.read()
-        schema = json.loads(raw)
+        schema = await fetch_mas_schema(ref)
+        if not schema:
+            # In case of 404, it probably means we are targetting an image tag which does not match perfectly
+            # to a git ref.
+            # We have to parse the docker image attestations to find the proper ref
+            mas_source = (
+                f"{base_values['matrixAuthenticationService']['image']['registry']}/"
+                f"{base_values['matrixAuthenticationService']['image']['repository']}:"
+                f"{base_values['matrixAuthenticationService']['image']['tag']}"
+            )
+            source_ref = await get_oci_image_source_ref(mas_source)
+            schema = await fetch_mas_schema(source_ref)
+        if not schema:
+            pytest.fail(f"Failed to fetch schema for {mas_source}")
         if cacheable:
             pytestconfig.cache.set(cache_key, schema)
 
