@@ -60,7 +60,7 @@ async def strict_mas_schema(pytestconfig: pytest.Config, base_values: dict[str, 
         # sha-xxyyzz → commit ref xxyyzz
         ref = tag.removeprefix("sha-")
         cacheable = True
-    elif tag[0].isdigit():
+    elif semver.Version.is_valid(tag):
         # 1.10.0 → tag v1.10.0
         ref = f"v{tag}"
         cacheable = True
