@@ -19,6 +19,7 @@ dependencies = [
   "jsonschema>=4.26.0",
   "lightkube>=1.0.0",
   "platformdirs>=4.9.2",
+  "playwright>=1.62.0",
   "prometheus-client>=0.26.0",
   # For https://github.com/azimuth-cloud/pyhelm3/pull/36 & https://github.com/azimuth-cloud/pyhelm3/pull/37 & https://github.com/azimuth-cloud/pyhelm3/pull/39
   "pyhelm3 @ git+https://github.com/element-hq/pyhelm3.git@efa509e7501edeb9d04f2a9e688f6e0088305954",
