@@ -9,6 +9,7 @@ from typing import Any
 import aiohttp
 import jsonschema
 import pytest
+import semver
 import yaml
 
 from . import secret_values_files_to_test, values_files_to_test
