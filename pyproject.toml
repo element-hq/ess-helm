@@ -12,6 +12,7 @@ package-mode = false
 [tool.poetry.dependencies]
 python = ">=3.12,<4.0"
 frozendict = "^2.4.7"
+types-jsonschema = "^4.26.0.20260202"
 
 [tool.poetry.group.dev.dependencies]
 # For https://github.com/azimuth-cloud/pyhelm3/pull/36 & https://github.com/azimuth-cloud/pyhelm3/pull/37 & https://github.com/azimuth-cloud/pyhelm3/pull/39
