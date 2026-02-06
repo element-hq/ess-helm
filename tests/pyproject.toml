@@ -19,6 +19,7 @@ dependencies = [
   "jsonschema>=4.26.0",
   "lightkube>=1.0.0",
   "platformdirs>=4.9.2",
+  "playwright>=1.62.0",
   "prometheus-client>=0.26.0",
   "pyhelm3>=0.5.7",
   "pytest-asyncio-cooperative>=0.40.0",
