@@ -75,6 +75,9 @@ jobs:
     - name: Set up UV environment
       run: uv sync
 
+    - name: Install Playwright browsers
+      run: uv run playwright install chromium --with-deps
+
     - name: Get current week number and home dir
       id: cache-input
       run: |
