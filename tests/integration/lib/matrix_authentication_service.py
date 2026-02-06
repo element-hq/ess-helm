@@ -9,6 +9,7 @@ from urllib.parse import urlparse
 import aiohttp
 import pytest
 from aiohttp_retry import RetryClient
+from playwright.async_api import Page
 
 from ..fixtures import ESSData
 from .utils import aiohttp_get_json, aiohttp_post_json, retry_options
@@ -135,3 +136,10 @@ async def create_mas_user(
     )
     pytestconfig.cache.set(f"ess-helm/cached-tokens/{username}", response["data"]["createOauth2Session"]["accessToken"])
     return response["data"]["createOauth2Session"]["accessToken"]
+
+
+async def login_on_mas_page(page: Page, username: str, password: str):
+    """Fill and submit the MAS password login form the page is currently showing"""
+    await page.get_by_role("textbox", name="Username").fill(username)
+    await page.get_by_role("textbox", name="Password").fill(password)
+    await page.get_by_role("button", name="Continue").click()
