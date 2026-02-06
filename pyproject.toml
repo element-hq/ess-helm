@@ -41,6 +41,8 @@ mypy = "^1.19.1"
 types-pyyaml = "^6.0.12.20250915"
 semver = "^3.0.4"
 prometheus-client = "^0.24.1"
+jsonschema = "^4.26"
+types-jsonschema = "^4.26.0.20260109"
 yamllint = "^1.38.0"
 httpx-retries = "^0.4.5"
 
