@@ -78,13 +78,15 @@ async def strict_mas_schema(pytestconfig: pytest.Config, base_values: dict[str, 
         url = (
             f"https://raw.githubusercontent.com/element-hq/matrix-authentication-service/{ref}/docs/config.schema.json"
         )
-        try:
-            timeout = aiohttp.ClientTimeout(total=30)
-            async with aiohttp.ClientSession() as session, session.get(url, timeout=timeout) as resp:
-                resp.raise_for_status()
-                raw = await resp.read()
-        except (aiohttp.ClientError, TimeoutError):
-            pytest.skip(f"Could not fetch MAS config schema from {url}")
+        timeout = aiohttp.ClientTimeout(total=30)
+        async with aiohttp.ClientSession() as session, session.get(url, timeout=timeout) as resp:
+            # There are edge case where we were not able to reliably map an
+            # image tag to a git ref, in which case we're going to get a 404
+            # from GitHub, and we'll skip the test
+            if resp.status == 404:
+                pytest.skip(f"Could not fetch MAS config schema from {url}")
+            resp.raise_for_status()
+            raw = await resp.read()
         schema = json.loads(raw)
         if cacheable:
             pytestconfig.cache.set(cache_key, schema)
