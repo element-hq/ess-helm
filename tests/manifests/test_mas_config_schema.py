@@ -94,15 +94,13 @@ async def strict_mas_schema(pytestconfig: pytest.Config, base_values: dict[str, 
             # In case of 404, it probably means we are targetting an image tag which does not match perfectly
             # to a git ref.
             # We have to parse the docker image attestations to find the proper ref
-            mas_source = (
-                f"{base_values['matrixAuthenticationService']['image']['registry']}/"
-                f"{base_values['matrixAuthenticationService']['image']['repository']}:"
-                f"{base_values['matrixAuthenticationService']['image']['tag']}"
-            )
-            source_ref = await get_oci_image_source_ref(mas_source)
+            source_ref = await get_oci_image_source_ref(base_values["matrixAuthenticationService"]["image"])
             schema = await fetch_mas_schema(source_ref)
         if not schema:
-            pytest.fail(f"Failed to fetch schema for {mas_source}")
+            pytest.fail(
+                f"Failed to fetch schema for {base_values['matrixAuthenticationService']['image']['registry']}"
+                f"/{base_values['matrixAuthenticationService']['image']['repository']}:{base_values['matrixAuthenticationService']['image']['tag']}"
+            )
         if cacheable:
             pytestconfig.cache.set(cache_key, schema)
 
