@@ -28,6 +28,7 @@ media:
 {{- sub_schema_values.credential("Key used to sign events and federation requests.\n## This needs to be the full signing key starting `ed25519 ...`", "signingKey", initIfAbsent=True) }}
 {{- sub_schema_values.credential("Shared Secret to registering users without having any users provisioned", "registrationSharedSecret", initIfAbsent=True) }}
 {{- sub_schema_values.credential("Secret used to sign Synapse issued tokens", "macaroon", initIfAbsent=True) }}
+{{- synapse_sub_schema_values.externalRedis() }}
 
 ## Additional configuration to provide to all Synapse processes.
 ## Each key under additional is an additional config to merge into synapse homeserver.yaml

@@ -207,11 +207,25 @@ instance_map:
 {{- end }}
 {{- end }}
 
-{{- if $enabledWorkers }}
+{{- if or .externalRedis $enabledWorkers }}
 
 redis:
   enabled: true
+{{- if .externalRedis }}
+  host: "{{ tpl .externalRedis.host $root }}"
+  port: {{ .externalRedis.port | default 6379 }}
+{{- if .externalRedis.db }}
+  dbid: {{ .externalRedis.db }}
+{{- end }}
+{{- if .externalRedis.password }}
+  password: "${SYNAPSE_REDIS_PASSWORD}"
+{{- end }}
+{{- if .externalRedis.tls }}
+  use_tls: true
+{{- end }}
+{{- else }}
   host: "{{ $root.Release.Name }}-redis.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}"
+{{- end }}
 {{- if include "element-io.synapse.streamWriterWorkers" (dict "root" $root) | fromJsonArray }}
 
 stream_writers:

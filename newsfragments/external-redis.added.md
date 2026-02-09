@@ -1,0 +1,1 @@
+Added support for external Redis configuration (`synapse.externalRedis`) for Synapse workers. This allows using managed Redis services (AWS Elasticache, Azure Cache for Redis, etc.) instead of the internal Redis deployment. When `externalRedis` is configured, the internal Redis Deployment, Service, ConfigMap, and ServiceAccount are automatically skipped.

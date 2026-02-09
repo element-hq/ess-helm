@@ -9115,6 +9115,50 @@
           },
           "additionalProperties": false
         },
+        "externalRedis": {
+          "type": "object",
+          "required": [
+            "host"
+          ],
+          "properties": {
+            "host": {
+              "type": "string",
+              "description": "Redis host address"
+            },
+            "port": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535,
+              "default": 6379
+            },
+            "db": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 15,
+              "default": 0
+            },
+            "password": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "string"
+                },
+                "secret": {
+                  "type": "string"
+                },
+                "secretKey": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            "tls": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          "additionalProperties": false
+        },
         "media": {
           "type": "object",
           "properties": {

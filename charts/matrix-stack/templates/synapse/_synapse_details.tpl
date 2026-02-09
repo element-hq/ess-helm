@@ -168,6 +168,13 @@ responsibleForMedia
 {{- with .signingKey.secret -}}
 {{ $configSecrets = append $configSecrets (tpl . $root) }}
 {{- end -}}
+{{- if .externalRedis }}
+{{- if .externalRedis.password }}
+{{- if .externalRedis.password.secret }}
+{{ $configSecrets = append $configSecrets (tpl .externalRedis.password.secret $root) }}
+{{- end }}
+{{- end }}
+{{- end }}
 {{- with .additional -}}
 {{- range $key := (. | keys | uniq | sortAlpha) -}}
 {{- $prop := index $root.Values.synapse.additional $key }}
