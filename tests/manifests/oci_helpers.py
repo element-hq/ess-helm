@@ -21,7 +21,7 @@ def load_docker_config():
     return config
 
 
-def get_auth_header(registry="docker.io"):
+def get_auth_header(registry):
     config = load_docker_config()
     auths = config.get("auths", {})
 
@@ -35,11 +35,11 @@ def get_auth_header(registry="docker.io"):
     return f"Basic {auth_token}"
 
 
-async def get_bearer_token(registry, repo, service="registry.docker.io"):
+async def get_bearer_token(registry, repo, tag, service="registry.docker.io"):
     auth_header = get_auth_header(registry)
 
     # Trigger a 401 to get the auth challenge
-    auth_url = f"https://{registry}/v2/{repo}/manifests/latest"
+    auth_url = f"https://{registry}/v2/{repo}/manifests/{tag}"
     headers = {
         "Accept": "application/vnd.oci.image.index.v1+json",
     }
@@ -47,6 +47,8 @@ async def get_bearer_token(registry, repo, service="registry.docker.io"):
         headers["Authorization"] = auth_header
 
     async with aiohttp.ClientSession() as session, session.get(auth_url, headers=headers) as response:
+        if response.status == 200:
+            return None
         if response.status != 401:
             raise Exception(f"Unexpected status code: {response.status}")
 
@@ -60,34 +62,33 @@ async def get_bearer_token(registry, repo, service="registry.docker.io"):
         async with session.get(token_url) as token_response:
             token_response.raise_for_status()
             token_data = await token_response.json()
-            return token_data.get("token")
+            return token_data["token"]
 
 
-async def get_oci_image_source_ref(image_name, platform_os="linux", platform_arch="amd64"):
-    # Parse image_name into registry, repo, and tag
-    parts = image_name.split("/")
-    if len(parts) == 1:
-        registry = "registry-1.docker.io"
-        repo = f"library/{parts[0]}"
-    elif len(parts) == 2:
-        registry = "registry-1.docker.io"
-        repo = parts[1]
-    else:
-        registry = parts[0]
-        repo = "/".join(parts[1:])
-    tag = "latest" if ":" not in repo else repo.split(":")[1]
-    repo = repo.split(":")[0]
+async def get_oci_image_source_ref(image_values: dict, platform_os="linux", platform_arch="amd64"):
+    registry = image_values["registry"]
+    repo = image_values["repository"]
+    tag = image_values["tag"]
+
+    index_url = f"https://{registry}/v2/{repo}/manifests/{tag}"
 
     # Get the bearer token
-    token = await get_bearer_token(registry, repo)
+    token = await get_bearer_token(registry, repo, tag)
+    if token:
+        auth_header = {"Authorization": f"Bearer {token}"}
+    # If no bearer token was issued, it means we are able to authenticate using basic auth
+    elif get_auth_header(registry):
+        auth_header = {"Authorization": get_auth_header(registry)}
+    else:
+        raise RuntimeError("Error: Unable to authenticate. Please check your Docker configuration.")
 
     # Step 1: Fetch the OCI image index
-    index_url = f"https://{registry}/v2/{repo}/manifests/{tag}"
-    headers = {"Accept": "application/vnd.oci.image.index.v1+json", "Authorization": f"Bearer {token}"}
-
-    async with aiohttp.ClientSession() as session, session.get(index_url, headers=headers) as response:
+    async with (
+        aiohttp.ClientSession() as session,
+        session.get(index_url, headers={"Accept": "application/vnd.oci.image.index.v1+json"} | auth_header) as response,
+    ):
         if response.status != 200:
-            return f"Error: Could not fetch image index. Status code: {response.status}"
+            raise RuntimeError(f"Error: Could not fetch image index. Status code: {response.status}")
 
         index = await response.json()
 
@@ -103,24 +104,28 @@ async def get_oci_image_source_ref(image_name, platform_os="linux", platform_arc
                 break
 
         if not manifest_digest:
-            return "Error: No matching manifest found for the specified platform."
+            raise RuntimeError("Error: No matching manifest found for the specified platform.")
 
         # Step 3: Fetch the platform-specific manifest
         manifest_url = f"https://{registry}/v2/{repo}/manifests/{manifest_digest}"
-        headers = {"Accept": "application/vnd.oci.image.manifest.v1+json", "Authorization": f"Bearer {token}"}
-        async with session.get(manifest_url, headers=headers) as manifest_response:
+        async with session.get(
+            manifest_url, headers={"Accept": "application/vnd.oci.image.manifest.v1+json"} | auth_header
+        ) as manifest_response:
             if manifest_response.status != 200:
-                return f"Error: Could not fetch manifest {manifest_url}. Status code: {manifest_response.status}"
+                raise RuntimeError(
+                    f"Error: Could not fetch manifest {manifest_url}. Status code: {manifest_response.status}"
+                )
 
             manifest = await manifest_response.json()
             config_digest = manifest["config"]["digest"]
 
         # Step 4: Fetch the config blob
         config_url = f"https://{registry}/v2/{repo}/blobs/{config_digest}"
-        headers = {"Authorization": f"Bearer {token}"}
-        async with session.get(config_url, headers=headers) as config_response:
+        async with session.get(
+            config_url, headers={"Accept": "application/vnd.oci.image.manifest.v1+json"} | auth_header
+        ) as config_response:
             if config_response.status != 200:
-                return f"Error: Could not fetch config blob. Status code: {config_response.status}"
+                raise RuntimeError(f"Error: Could not fetch config blob. Status code: {config_response.status}")
 
             result = await config_response.read()
             config = json.loads(result)
