@@ -19,7 +19,7 @@ types-jsonschema = "^4.26.0.20260202"
 pyhelm3 = {git = "https://github.com/element-hq/pyhelm3.git", rev = "efa509e7501edeb9d04f2a9e688f6e0088305954"}
 lightkube = "^0.19.1"
 pytz = "^2025.2"
-cryptography = "^46.0.4"
+cryptography = "^46.0.5"
 platformdirs = "^4.5.1"
 python-on-whales = "^0.80.0"
 aiohttp = "^3.13.3"
