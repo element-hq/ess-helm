@@ -45,6 +45,8 @@ func parseSecretType(value string) (secret.SecretType, error) {
 	// FIXME: De-obfuscate this with the actual "expireKey" type
 	case "extra":
 		return secret.ExpireKey, nil
+	case "registration":
+		return secret.Registration, nil
 	default:
 		return secret.UnknownSecretType, fmt.Errorf("unknown secret type: %s", value)
 	}

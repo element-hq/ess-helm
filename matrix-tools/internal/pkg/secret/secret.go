@@ -107,6 +107,12 @@ func GenerateSecret(client kubernetes.Interface, secretLabels map[string]string,
 			if err != nil {
 				return fmt.Errorf("failed to generate : %w", err)
 			}
+		case Registration:
+			if registrationString, err := generateRegistration(generatorArgs[0]); err == nil {
+				existingSecret.Data[key] = registrationString
+			} else {
+				return fmt.Errorf("failed to generate registration: %w", err)
+			}
 		default:
 			return fmt.Errorf("unknown secret type for: %s:%s", name, key)
 		}

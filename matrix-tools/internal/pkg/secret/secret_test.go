@@ -60,6 +60,20 @@ func TestGenerateSecret(t *testing.T) {
 			expectedError:         false,
 			expectedChange:        true,
 		},
+		{
+			name:                  "Generate a registration file",
+			namespace:             "create-secret",
+			secretName:            "test-appservice-registration",
+			initLabels:            map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-init-secrets", "app.kubernetes.io/name": "create-secret"},
+			secretLabels:          map[string]string{"app.kubernetes.io/name": "test-secret"},
+			generatedSecretsTypes: map[string]SecretType{"registration.yaml": Registration},
+			secretKeys:            []string{"registration.yaml"},
+			secretType:            Registration,
+			secretData:            nil,
+			secretGeneratorArgs:   []string{"testdata/registration.yaml"},
+			expectedError:         false,
+			expectedChange:        true,
+		},
 		{name: "Override wrong new signing key",
 			namespace:             "create-secret",
 			secretName:            "test-signing-key",
@@ -231,6 +245,20 @@ func TestGenerateSecret(t *testing.T) {
 								if _, ok := old_signing_keys["ed25519:0"]; !ok {
 									t.Fatalf("Unexpected data,  old_signing_keys should be have the old bad key, found %v", data)
 								}
+							}
+						case Registration:
+							data := make(map[string]any)
+							if err := yaml.Unmarshal(value, &data); err != nil {
+								t.Fatalf("Unexpected data: %v", data)
+							}
+							if data["static"].(string) != "values" {
+								t.Fatalf("Unexpected data, 'static' key should be 'values', found %v", data)
+							}
+							if len(data["as_token"].(string)) != 32 {
+								t.Fatalf("Unexpected data,  as_token should be a random 32 bytes string, found %v", data)
+							}
+							if len(data["hs_token"].(string)) != 32 {
+								t.Fatalf("Unexpected data,  as_token should be a random 32 bytes string, found %v", data)
 							}
 						}
 					}
