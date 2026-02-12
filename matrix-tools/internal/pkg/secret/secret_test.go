@@ -60,20 +60,6 @@ func TestGenerateSecret(t *testing.T) {
 			expectedError:         false,
 			expectedChange:        true,
 		},
-		{
-			name:                  "Generate a registration file",
-			namespace:             "create-secret",
-			secretName:            "test-appservice-registration",
-			initLabels:            map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-init-secrets", "app.kubernetes.io/name": "create-secret"},
-			secretLabels:          map[string]string{"app.kubernetes.io/name": "test-secret"},
-			generatedSecretsTypes: map[string]SecretType{"registration.yaml": Registration},
-			secretKeys:            []string{"registration.yaml"},
-			secretType:            Registration,
-			secretData:            nil,
-			secretGeneratorArgs:   []string{"testdata/registration.yaml"},
-			expectedError:         false,
-			expectedChange:        true,
-		},
 		{name: "Override wrong new signing key",
 			namespace:             "create-secret",
 			secretName:            "test-signing-key",
@@ -86,6 +72,18 @@ func TestGenerateSecret(t *testing.T) {
 			secretGeneratorArgs:   make([]string, 0),
 			expectedError:         false,
 			expectedChange:        true,
+		},
+		{
+			name:                "Generate a registration file",
+			namespace:           "create-secret",
+			secretName:          "test-appservice-registration",
+			initLabels:          map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-init-secrets", "app.kubernetes.io/name": "create-secret"},
+			secretLabels:        map[string]string{"app.kubernetes.io/name": "test-secret"},
+			secretKeys:          []string{"registration.yaml"},
+			secretType:          Registration,
+			secretData:          nil,
+			secretGeneratorArgs: []string{"testdata/registration.yaml"},
+			expectedError:       false,
 		},
 		{
 			name:                  "Secret exists with data",
@@ -230,7 +228,6 @@ func TestGenerateSecret(t *testing.T) {
 							if !regexp.MustCompile(expectedPattern).MatchString(keyString) {
 								t.Fatalf("Unexpected key format: %v", keyString)
 							}
-
 						case ExpireKey:
 							data := make(map[string]any)
 							if err := yaml.Unmarshal(value, &data); err != nil {
