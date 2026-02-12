@@ -9,12 +9,23 @@ import (
 	"crypto/ed25519"
 	"encoding/base64"
 	"fmt"
+	"strings"
 )
 
 type SigningKeyData struct {
 	Alg     string
 	Version string
 	Key     []byte
+}
+
+const BAD_SIGNING_KEY_ID = "ed25519 0"
+
+func mustBeRotated(existingSecretData map[string][]byte, key string) bool {
+	if value, ok := existingSecretData[key]; ok &&
+		strings.HasPrefix(strings.TrimSpace(string(value)), BAD_SIGNING_KEY_ID) {
+		return true
+	}
+	return false
 }
 
 func generateSigningKey(version string) (*SigningKeyData, error) {

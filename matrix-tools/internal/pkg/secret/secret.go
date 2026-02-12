@@ -27,11 +27,11 @@ const (
 	Hex32
 	RSA
 	EcdsaPrime256v1
-	EcdsaSecp256k1
-	EcdsaSecp384r1
+	ExpireKey
 )
 
-func GenerateSecret(client kubernetes.Interface, secretLabels map[string]string, namespace string, name string, key string, secretType SecretType) error {
+func GenerateSecret(client kubernetes.Interface, secretLabels map[string]string, generatedSecretsTypes map[string]SecretType,
+	namespace string, name string, key string, secretType SecretType) error {
 	ctx := context.Background()
 
 	secretsClient := client.CoreV1().Secrets(namespace)
@@ -65,7 +65,8 @@ func GenerateSecret(client kubernetes.Interface, secretLabels map[string]string,
 	if existingSecret.Data == nil {
 		existingSecret.Data = make(map[string][]byte)
 	}
-	if _, ok := existingSecret.Data[key]; !ok {
+	if _, ok := existingSecret.Data[key]; !ok || (secretType == SigningKey &&
+		mustBeRotated(existingSecret.Data, key)) {
 		switch secretType {
 		case Rand32:
 			if randomString, err := generateRandomString(32); err == nil {
@@ -94,6 +95,11 @@ func GenerateSecret(client kubernetes.Interface, secretLabels map[string]string,
 				existingSecret.Data[key] = keyBytes
 			} else {
 				return fmt.Errorf("failed to generate ECDSA Prime256v1 key: %w", err)
+			}
+		case ExpireKey:
+			existingSecret.Data[key], err = generateExpiredKeys(existingSecret.Data, generatedSecretsTypes)
+			if err != nil {
+				return fmt.Errorf("failed to generate : %w", err)
 			}
 		default:
 			return fmt.Errorf("unknown secret type for: %s:%s", name, key)

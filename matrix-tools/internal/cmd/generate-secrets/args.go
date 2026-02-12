@@ -41,8 +41,9 @@ func parseSecretType(value string) (secret.SecretType, error) {
 		return secret.RSA, nil
 	case "ecdsaprime256v1":
 		return secret.EcdsaPrime256v1, nil
-	case "ecdsasecp256k1":
-		return secret.EcdsaSecp256k1, nil
+	// FIXME: De-obfuscate this with the actual "expireKey" type
+	case "extra":
+		return secret.ExpireKey, nil
 	default:
 		return secret.UnknownSecretType, fmt.Errorf("unknown secret type: %s", value)
 	}
@@ -52,7 +53,7 @@ func ParseArgs(args []string) (*GenerateSecretsOptions, error) {
 	var options GenerateSecretsOptions
 
 	generateSecretsSet := flag.NewFlagSet("generate-secrets", flag.ExitOnError)
-	secrets := generateSecretsSet.String("secrets", "", "Comma-separated list of secrets to generate, in the format of `name:key:type`, where `type` is one of: rand32")
+	secrets := generateSecretsSet.String("secrets", "", "Comma-separated list of secrets to generate, in the format of `name:key:type`, where `type` is one of: rand32, signingkey, hex32, rsa, ecdsaprime256v1")
 	secretsLabels := generateSecretsSet.String("labels", "", "Comma-separated list of labels for generated secrets, in the format of `key=value`")
 
 	err := generateSecretsSet.Parse(args)
