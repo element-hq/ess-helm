@@ -25,10 +25,31 @@ func Run(options *GenerateSecretsOptions) {
 		fmt.Println("Error, $NAMESPACE is not defined")
 		os.Exit(1)
 	}
-
+	generatedSecretsTypes := make(map[string]secret.SecretType)
 	for _, generatedSecret := range options.GeneratedSecrets {
-		err := secret.GenerateSecret(clientset, options.Labels, namespace,
-			generatedSecret.Name, generatedSecret.Key, generatedSecret.Type, generatedSecret.GeneratorArgs)
+		generatedSecretsTypes[generatedSecret.Key] = generatedSecret.Type
+	}
+	// Do a first pass to generate extra synapse config depending on the existing
+	// signing keys
+	for _, generatedSecret := range options.GeneratedSecrets {
+		if generatedSecret.Type == secret.ExpireKey {
+			err := secret.GenerateSecret(clientset, options.Labels, generatedSecretsTypes,
+				namespace, generatedSecret.Name, generatedSecret.Key, generatedSecret.Type)
+			if err != nil {
+				wrappedErr := errors.Wrapf(err, "error generating secret: %s", generatedSecret.ArgValue)
+				fmt.Println("Error:", wrappedErr)
+				os.Exit(1)
+			}
+		}
+	}
+
+	// We do a second pass which will re-generate the signing key if it was invalid
+	for _, generatedSecret := range options.GeneratedSecrets {
+		if generatedSecret.Type == secret.ExpireKey {
+			continue
+		}
+		err := secret.GenerateSecret(clientset, options.Labels, generatedSecretsTypes,
+			namespace, generatedSecret.Name, generatedSecret.Key, generatedSecret.Type)
 		if err != nil {
 			wrappedErr := errors.Wrapf(err, "error generating secret: %s", generatedSecret.ArgValue)
 			fmt.Println("Error:", wrappedErr)

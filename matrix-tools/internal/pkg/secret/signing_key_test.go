@@ -22,14 +22,15 @@ func TestGenerateSigningKey(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			synapseKey, err := generateSynapseSigningKey()
+			version := "asDv"
+			synapseKey, err := generateSynapseSigningKey(version)
 			if err != nil {
 				t.Errorf("failed to generate signing key: %v", err)
 			}
-			expectedPattern := "ed25519 0 ([a-zA-Z0-9=\\/\\+]+)"
+			expectedPattern := "ed25519 " + version + " ([a-zA-Z0-9\\/\\+]+)"
 			if matches := regexp.MustCompile(expectedPattern).FindStringSubmatch(synapseKey); matches != nil {
 				priv := matches[1]
-				if privBytes, err := base64.StdEncoding.DecodeString(priv); err == nil {
+				if privBytes, err := base64.RawStdEncoding.DecodeString(priv); err == nil {
 					if len(privBytes) != 32 {
 						t.Errorf("Invalid private key length: %d, expected 32", len(privBytes))
 					}
