@@ -11,7 +11,7 @@ import (
 	"regexp"
 	"testing"
 
-	"go.yaml.in/yaml/v2"
+	"github.com/stretchr/testify/assert/yaml"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	testclient "k8s.io/client-go/kubernetes/fake"
@@ -28,6 +28,7 @@ func TestGenerateSecret(t *testing.T) {
 		secretKeys            []string
 		secretType            SecretType
 		secretData            map[string][]byte
+		secretGeneratorArgs   []string
 		expectedError         bool
 		expectedChange        bool
 	}{
@@ -41,6 +42,7 @@ func TestGenerateSecret(t *testing.T) {
 			secretKeys:            []string{"key"},
 			secretType:            Rand32,
 			secretData:            nil,
+			secretGeneratorArgs:   make([]string, 0),
 			expectedError:         false,
 			expectedChange:        true,
 		},
@@ -54,6 +56,7 @@ func TestGenerateSecret(t *testing.T) {
 			secretKeys:            []string{"key"},
 			secretType:            SigningKey,
 			secretData:            nil,
+			secretGeneratorArgs:   make([]string, 0),
 			expectedError:         false,
 			expectedChange:        true,
 		},
@@ -66,6 +69,7 @@ func TestGenerateSecret(t *testing.T) {
 			secretKeys:            []string{"key"},
 			secretType:            SigningKey,
 			secretData:            map[string][]byte{"key": []byte("ed25519 0 Ng6VNhsOd/fWeMqIJ7+x9W+cpxzdIdnCER+QFC/Jt6w")},
+			secretGeneratorArgs:   make([]string, 0),
 			expectedError:         false,
 			expectedChange:        true,
 		},
@@ -79,6 +83,7 @@ func TestGenerateSecret(t *testing.T) {
 			secretKeys:            []string{"key2"},
 			secretType:            Rand32,
 			secretData:            map[string][]byte{"key1": []byte("dmFsdWUx")},
+			secretGeneratorArgs:   make([]string, 0),
 			expectedError:         false,
 			expectedChange:        true,
 		},
@@ -92,6 +97,7 @@ func TestGenerateSecret(t *testing.T) {
 			secretKeys:            []string{"key2"},
 			secretType:            Rand32,
 			secretData:            map[string][]byte{"key2": []byte("dmFsdWUx")},
+			secretGeneratorArgs:   make([]string, 0),
 			expectedError:         false,
 			expectedChange:        false,
 		},
@@ -105,6 +111,7 @@ func TestGenerateSecret(t *testing.T) {
 			secretKeys:            []string{"key2"},
 			secretType:            Rand32,
 			secretData:            map[string][]byte{"key2": []byte("dmFsdWUx")},
+			secretGeneratorArgs:   make([]string, 0),
 			expectedError:         true,
 			expectedChange:        false,
 		},
@@ -118,6 +125,7 @@ func TestGenerateSecret(t *testing.T) {
 			secretKeys:            []string{},
 			secretType:            Rand32,
 			secretData:            nil,
+			secretGeneratorArgs:   make([]string, 0),
 			expectedError:         false,
 			expectedChange:        true,
 		}, {
@@ -130,9 +138,10 @@ func TestGenerateSecret(t *testing.T) {
 			secretKeys:            []string{},
 			secretType:            ExpireKey,
 			// Data with good signing key to not rotate
-			secretData:     map[string][]byte{"SOME_SIGNING_KEY": []byte("ed25519 1 oy11WZaJNEyJbj+I27RlIXhz7JmDsT24yBz0QdvZ4K0")},
-			expectedError:  false,
-			expectedChange: false,
+			secretData:          map[string][]byte{"SOME_SIGNING_KEY": []byte("ed25519 1 oy11WZaJNEyJbj+I27RlIXhz7JmDsT24yBz0QdvZ4K0")},
+			secretGeneratorArgs: make([]string, 0),
+			expectedError:       false,
+			expectedChange:      false,
 		},
 		{name: "Does rotate existing signing key if key id 0",
 			namespace:             "with-signing-key",
@@ -143,9 +152,10 @@ func TestGenerateSecret(t *testing.T) {
 			secretKeys:            []string{},
 			secretType:            ExpireKey,
 			// Data with bad signing key id to rotate
-			secretData:     map[string][]byte{"SOME_SIGNING_KEY": []byte("ed25519 0 Ozi/KgL1WiuGMmp/GUME26bMWtqH92jF036tK6SIks4")},
-			expectedError:  false,
-			expectedChange: true,
+			secretData:          map[string][]byte{"SOME_SIGNING_KEY": []byte("ed25519 0 Ozi/KgL1WiuGMmp/GUME26bMWtqH92jF036tK6SIks4")},
+			secretGeneratorArgs: make([]string, 0),
+			expectedError:       false,
+			expectedChange:      true,
 		},
 	}
 
@@ -174,7 +184,7 @@ func TestGenerateSecret(t *testing.T) {
 
 			for _, secretKey := range tc.secretKeys {
 				existingSecretValue, valueExistsBeforeGen := tc.secretData[secretKey]
-				err = GenerateSecret(client, tc.secretLabels, tc.generatedSecretsTypes, tc.namespace, tc.secretName, secretKey, tc.secretType)
+				err = GenerateSecret(client, tc.secretLabels, tc.generatedSecretsTypes, tc.namespace, tc.secretName, secretKey, tc.secretType, tc.secretGeneratorArgs)
 				if err == nil && tc.expectedError {
 					t.Fatalf("GenerateSecret() error is nil, expected an error")
 				} else if err != nil && !tc.expectedError {

@@ -34,7 +34,7 @@ func Run(options *GenerateSecretsOptions) {
 	for _, generatedSecret := range options.GeneratedSecrets {
 		if generatedSecret.Type == secret.ExpireKey {
 			err := secret.GenerateSecret(clientset, options.Labels, generatedSecretsTypes,
-				namespace, generatedSecret.Name, generatedSecret.Key, generatedSecret.Type)
+				namespace, generatedSecret.Name, generatedSecret.Key, generatedSecret.Type, generatedSecret.GeneratorArgs)
 			if err != nil {
 				wrappedErr := errors.Wrapf(err, "error generating secret: %s", generatedSecret.ArgValue)
 				fmt.Println("Error:", wrappedErr)
@@ -49,7 +49,7 @@ func Run(options *GenerateSecretsOptions) {
 			continue
 		}
 		err := secret.GenerateSecret(clientset, options.Labels, generatedSecretsTypes,
-			namespace, generatedSecret.Name, generatedSecret.Key, generatedSecret.Type)
+			namespace, generatedSecret.Name, generatedSecret.Key, generatedSecret.Type, generatedSecret.GeneratorArgs)
 		if err != nil {
 			wrappedErr := errors.Wrapf(err, "error generating secret: %s", generatedSecret.ArgValue)
 			fmt.Println("Error:", wrappedErr)

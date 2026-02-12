@@ -32,7 +32,7 @@ const (
 )
 
 func GenerateSecret(client kubernetes.Interface, secretLabels map[string]string, generatedSecretsTypes map[string]SecretType,
-	namespace string, name string, key string, secretType SecretType) error {
+	namespace string, name string, key string, secretType SecretType, generatorArgs []string) error {
 	ctx := context.Background()
 
 	secretsClient := client.CoreV1().Secrets(namespace)
