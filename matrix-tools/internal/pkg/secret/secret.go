@@ -27,6 +27,8 @@ const (
 	Hex32
 	RSA
 	EcdsaPrime256v1
+	EcdsaSecp256k1
+	EcdsaSecp384r1
 )
 
 func GenerateSecret(client kubernetes.Interface, secretLabels map[string]string, namespace string, name string, key string, secretType SecretType) error {
@@ -70,7 +72,7 @@ func GenerateSecret(client kubernetes.Interface, secretLabels map[string]string,
 				existingSecret.Data[key] = randomString
 			}
 		case SigningKey:
-			if signingKey, err := generateSynapseSigningKey(); err == nil {
+			if signingKey, err := generateSynapseSigningKey("1"); err == nil {
 				existingSecret.Data[key] = []byte(signingKey)
 			} else {
 				return fmt.Errorf("failed to generate signing key: %w", err)

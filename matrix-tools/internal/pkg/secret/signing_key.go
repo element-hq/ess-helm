@@ -9,17 +9,16 @@ import (
 	"crypto/ed25519"
 	"encoding/base64"
 	"fmt"
-	"math/rand"
 )
 
 type SigningKeyData struct {
 	Alg     string
-	Version int
+	Version string
 	Key     []byte
 }
 
-func generateSigningKey(version int) (*SigningKeyData, error) {
-	_, priv, err := ed25519.GenerateKey(rand.New(rand.NewSource(0)))
+func generateSigningKey(version string) (*SigningKeyData, error) {
+	_, priv, err := ed25519.GenerateKey(nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate key: %w", err)
 	}
@@ -37,14 +36,14 @@ func generateSigningKey(version int) (*SigningKeyData, error) {
 }
 
 func encodeSigningKeyBase64(key *SigningKeyData) string {
-	return base64.StdEncoding.EncodeToString(key.Key)
+	return base64.RawStdEncoding.EncodeToString(key.Key)
 }
 
-func generateSynapseSigningKey() (string, error) {
-	signingKey, err := generateSigningKey(0)
+func generateSynapseSigningKey(version string) (string, error) {
+	signingKey, err := generateSigningKey(version)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate signing key: %w", err)
 	}
 
-	return fmt.Sprintf("%s %d %s\n", signingKey.Alg, signingKey.Version, encodeSigningKeyBase64(signingKey)), nil
+	return fmt.Sprintf("%s %s %s\n", signingKey.Alg, signingKey.Version, encodeSigningKeyBase64(signingKey)), nil
 }

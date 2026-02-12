@@ -146,7 +146,7 @@ func TestGenerateSecret(t *testing.T) {
 								t.Fatalf("Unexpected data in secret: %v", value)
 							}
 						case SigningKey:
-							expectedPattern := "ed25519 0 [a-zA-Z0-9]+"
+							expectedPattern := "ed25519 1 ([a-zA-Z0-9\\/\\+]+)"
 							keyString := string(value)
 							if !regexp.MustCompile(expectedPattern).MatchString(keyString) {
 								t.Fatalf("Unexpected key format: %v", keyString)
