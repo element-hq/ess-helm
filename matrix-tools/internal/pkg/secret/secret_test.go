@@ -19,100 +19,143 @@ import (
 
 func TestGenerateSecret(t *testing.T) {
 	testCases := []struct {
-		name                string
-		namespace           string
-		initLabels          map[string]string
-		secretLabels        map[string]string
-		secretName          string
-		secretKeys          []string
-		secretType          SecretType
-		secretData          map[string][]byte
-		secretGeneratorArgs []string
-		expectedError       bool
+		name                  string
+		namespace             string
+		initLabels            map[string]string
+		secretLabels          map[string]string
+		generatedSecretsTypes map[string]SecretType
+		secretName            string
+		secretKeys            []string
+		secretType            SecretType
+		secretData            map[string][]byte
+		secretGeneratorArgs   []string
+		expectedError         bool
+		expectedChange        bool
 	}{
 		{
-			name:                "Create a new secret",
-			namespace:           "create-secret",
-			secretName:          "test-secret",
-			initLabels:          map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-init-secrets", "app.kubernetes.io/name": "create-secret"},
-			secretLabels:        map[string]string{"app.kubernetes.io/name": "test-secret"},
-			secretKeys:          []string{"key"},
-			secretType:          Rand32,
-			secretData:          nil,
-			secretGeneratorArgs: make([]string, 0),
-			expectedError:       false,
+			name:                  "Create a new secret",
+			namespace:             "create-secret",
+			secretName:            "test-secret",
+			initLabels:            map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-init-secrets", "app.kubernetes.io/name": "create-secret"},
+			secretLabels:          map[string]string{"app.kubernetes.io/name": "test-secret"},
+			generatedSecretsTypes: map[string]SecretType{"key": Rand32},
+			secretKeys:            []string{"key"},
+			secretType:            Rand32,
+			secretData:            nil,
+			secretGeneratorArgs:   make([]string, 0),
+			expectedError:         false,
+			expectedChange:        true,
 		},
 		{
-			name:                "Create a new signing key",
-			namespace:           "create-secret",
-			secretName:          "test-signing-key",
-			initLabels:          map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-init-secrets", "app.kubernetes.io/name": "create-secret"},
-			secretLabels:        map[string]string{"app.kubernetes.io/name": "test-secret"},
-			secretKeys:          []string{"key"},
-			secretType:          SigningKey,
-			secretData:          nil,
-			secretGeneratorArgs: make([]string, 0),
-			expectedError:       false,
+			name:                  "Create a new signing key",
+			namespace:             "create-secret",
+			secretName:            "test-signing-key",
+			initLabels:            map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-init-secrets", "app.kubernetes.io/name": "create-secret"},
+			secretLabels:          map[string]string{"app.kubernetes.io/name": "test-secret"},
+			generatedSecretsTypes: map[string]SecretType{"key": SigningKey},
+			secretKeys:            []string{"key"},
+			secretType:            SigningKey,
+			secretData:            nil,
+			secretGeneratorArgs:   make([]string, 0),
+			expectedError:         false,
+			expectedChange:        true,
+		},
+		{name: "Override wrong new signing key",
+			namespace:             "create-secret",
+			secretName:            "test-signing-key",
+			initLabels:            map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-init-secrets", "app.kubernetes.io/name": "create-secret"},
+			secretLabels:          map[string]string{"app.kubernetes.io/name": "test-secret"},
+			generatedSecretsTypes: map[string]SecretType{"key": SigningKey},
+			secretKeys:            []string{"key"},
+			secretType:            SigningKey,
+			secretData:            map[string][]byte{"key": []byte("ed25519 0 Ng6VNhsOd/fWeMqIJ7+x9W+cpxzdIdnCER+QFC/Jt6w")},
+			secretGeneratorArgs:   make([]string, 0),
+			expectedError:         false,
+			expectedChange:        true,
 		},
 		{
-			name:                "Generate a registration file",
-			namespace:           "create-secret",
-			secretName:          "test-appservice-registration",
-			initLabels:          map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-init-secrets", "app.kubernetes.io/name": "create-secret"},
-			secretLabels:        map[string]string{"app.kubernetes.io/name": "test-secret"},
-			secretKeys:          []string{"registration.yaml"},
-			secretType:          Registration,
-			secretData:          nil,
-			secretGeneratorArgs: []string{"testdata/registration.yaml"},
-			expectedError:       false,
+			name:                  "Secret exists with data",
+			namespace:             "secret-exists",
+			initLabels:            map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-init-secrets", "app.kubernetes.io/name": "create-secret"},
+			secretLabels:          map[string]string{"element.io/name": "secret-exists"},
+			generatedSecretsTypes: map[string]SecretType{"key2": Rand32},
+			secretName:            "test-secret",
+			secretKeys:            []string{"key2"},
+			secretType:            Rand32,
+			secretData:            map[string][]byte{"key1": []byte("dmFsdWUx")},
+			secretGeneratorArgs:   make([]string, 0),
+			expectedError:         false,
+			expectedChange:        true,
 		},
 		{
-			name:                "Secret exists with data",
-			namespace:           "secret-exists",
-			initLabels:          map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-init-secrets", "app.kubernetes.io/name": "create-secret"},
-			secretLabels:        map[string]string{"element.io/name": "secret-exists"},
-			secretName:          "test-secret",
-			secretKeys:          []string{"key2"},
-			secretType:          Rand32,
-			secretData:          map[string][]byte{"key1": []byte("dmFsdWUx")},
-			secretGeneratorArgs: make([]string, 0),
-			expectedError:       false,
+			name:                  "Secret exists and we don't override key",
+			namespace:             "override-key",
+			initLabels:            map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-init-secrets", "app.kubernetes.io/name": "create-secret"},
+			secretLabels:          map[string]string{"test-name": "override-key"},
+			generatedSecretsTypes: map[string]SecretType{"key2": Rand32},
+			secretName:            "test-secret",
+			secretKeys:            []string{"key2"},
+			secretType:            Rand32,
+			secretData:            map[string][]byte{"key2": []byte("dmFsdWUx")},
+			secretGeneratorArgs:   make([]string, 0),
+			expectedError:         false,
+			expectedChange:        false,
 		},
 		{
-			name:                "Secret exists and we don't override key",
-			namespace:           "override-key",
-			initLabels:          map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-init-secrets", "app.kubernetes.io/name": "create-secret"},
-			secretLabels:        map[string]string{"test-name": "override-key"},
-			secretName:          "test-secret",
-			secretKeys:          []string{"key2"},
-			secretType:          Rand32,
-			secretData:          map[string][]byte{"key2": []byte("dmFsdWUx")},
-			secretGeneratorArgs: make([]string, 0),
-			expectedError:       false,
+			name:                  "Secret exists but is not managed by matrix-tools-init-secrets",
+			namespace:             "override-key",
+			initLabels:            map[string]string{"app.kubernetes.io/managed-by": "helm", "app.kubernetes.io/name": "create-secret"},
+			secretLabels:          map[string]string{"test-name": "override-key"},
+			generatedSecretsTypes: map[string]SecretType{"key2": Rand32},
+			secretName:            "test-secret",
+			secretKeys:            []string{"key2"},
+			secretType:            Rand32,
+			secretData:            map[string][]byte{"key2": []byte("dmFsdWUx")},
+			secretGeneratorArgs:   make([]string, 0),
+			expectedError:         true,
+			expectedChange:        false,
 		},
 		{
-			name:                "Secret exists but is not managed by matrix-tools-init-secrets",
-			namespace:           "override-key",
-			initLabels:          map[string]string{"app.kubernetes.io/managed-by": "helm", "app.kubernetes.io/name": "create-secret"},
-			secretLabels:        map[string]string{"test-name": "override-key"},
-			secretName:          "test-secret",
-			secretKeys:          []string{"key2"},
-			secretType:          Rand32,
-			secretData:          map[string][]byte{"key2": []byte("dmFsdWUx")},
-			secretGeneratorArgs: make([]string, 0),
-			expectedError:       true,
-		},
-		{
-			name:                "Create empty secret",
-			namespace:           "empty-secret",
-			initLabels:          map[string]string{"app.kubernetes.io/managed-by": "helm", "app.kubernetes.io/name": "create-secret"},
-			secretLabels:        map[string]string{"test-name": "override-key"},
-			secretName:          "test-secret",
-			secretKeys:          []string{},
-			secretType:          Rand32,
-			secretData:          nil,
+			name:                  "Create empty secret",
+			namespace:             "empty-secret",
+			initLabels:            map[string]string{"app.kubernetes.io/managed-by": "helm", "app.kubernetes.io/name": "create-secret"},
+			secretLabels:          map[string]string{"test-name": "override-key"},
+			generatedSecretsTypes: map[string]SecretType{},
+			secretName:            "test-secret",
+			secretKeys:            []string{},
+			secretType:            Rand32,
+			secretData:            nil,
+			secretGeneratorArgs:   make([]string, 0),
+			expectedError:         false,
+			expectedChange:        true,
+		}, {
+			name:                  "Does not rotate existing signing key if key id 1",
+			namespace:             "with-signing-key",
+			initLabels:            map[string]string{"app.kubernetes.io/managed-by": "helm", "app.kubernetes.io/name": "create-secret"},
+			secretLabels:          map[string]string{"test-name": "override-key"},
+			secretName:            "test-secret",
+			generatedSecretsTypes: map[string]SecretType{"SOME_SIGNING_KEY": SigningKey},
+			secretKeys:            []string{},
+			secretType:            ExpireKey,
+			// Data with good signing key to not rotate
+			secretData:          map[string][]byte{"SOME_SIGNING_KEY": []byte("ed25519 1 oy11WZaJNEyJbj+I27RlIXhz7JmDsT24yBz0QdvZ4K0")},
 			secretGeneratorArgs: make([]string, 0),
 			expectedError:       false,
+			expectedChange:      false,
+		},
+		{name: "Does rotate existing signing key if key id 0",
+			namespace:             "with-signing-key",
+			initLabels:            map[string]string{"app.kubernetes.io/managed-by": "helm", "app.kubernetes.io/name": "create-secret"},
+			secretLabels:          map[string]string{"test-name": "override-key"},
+			secretName:            "test-secret",
+			generatedSecretsTypes: map[string]SecretType{"SOME_SIGNING_KEY": SigningKey},
+			secretKeys:            []string{},
+			secretType:            ExpireKey,
+			// Data with bad signing key id to rotate
+			secretData:          map[string][]byte{"SOME_SIGNING_KEY": []byte("ed25519 0 Ozi/KgL1WiuGMmp/GUME26bMWtqH92jF036tK6SIks4")},
+			secretGeneratorArgs: make([]string, 0),
+			expectedError:       false,
+			expectedChange:      true,
 		},
 	}
 
@@ -141,7 +184,7 @@ func TestGenerateSecret(t *testing.T) {
 
 			for _, secretKey := range tc.secretKeys {
 				existingSecretValue, valueExistsBeforeGen := tc.secretData[secretKey]
-				err = GenerateSecret(client, tc.secretLabels, tc.namespace, tc.secretName, secretKey, tc.secretType, tc.secretGeneratorArgs)
+				err = GenerateSecret(client, tc.secretLabels, tc.generatedSecretsTypes, tc.namespace, tc.secretName, secretKey, tc.secretType, tc.secretGeneratorArgs)
 				if err == nil && tc.expectedError {
 					t.Fatalf("GenerateSecret() error is nil, expected an error")
 				} else if err != nil && !tc.expectedError {
@@ -155,8 +198,10 @@ func TestGenerateSecret(t *testing.T) {
 
 				if value, ok := secret.Data[secretKey]; ok {
 					if valueExistsBeforeGen {
-						existingSecretValueBytes := []byte(existingSecretValue)
-						if !reflect.DeepEqual(value, existingSecretValueBytes) {
+						if tc.expectedChange && reflect.DeepEqual(value, existingSecretValue) {
+							t.Fatalf("The secret has not been updated with the new value but the wrong signing key should overwrite: %s", string(value))
+						}
+						if !tc.expectedChange && !reflect.DeepEqual(value, existingSecretValue) {
 							t.Fatalf("The secret has been updated with the new value but it should not overwrite: %s", string(value))
 						}
 					} else {
@@ -166,24 +211,26 @@ func TestGenerateSecret(t *testing.T) {
 								t.Fatalf("Unexpected data in secret: %v", value)
 							}
 						case SigningKey:
-							expectedPattern := "ed25519 0 [a-zA-Z0-9]+"
+							expectedPattern := "ed25519 1 ([a-zA-Z0-9\\/\\+]+)"
 							keyString := string(value)
 							if !regexp.MustCompile(expectedPattern).MatchString(keyString) {
 								t.Fatalf("Unexpected key format: %v", keyString)
 							}
-						case Registration:
+
+						case ExpireKey:
 							data := make(map[string]any)
 							if err := yaml.Unmarshal(value, &data); err != nil {
 								t.Fatalf("Unexpected data: %v", data)
 							}
-							if data["static"].(string) != "values" {
-								t.Fatalf("Unexpected data, 'static' key should be 'values', found %v", data)
-							}
-							if len(data["as_token"].(string)) != 32 {
-								t.Fatalf("Unexpected data,  as_token should be a random 32 bytes string, found %v", data)
-							}
-							if len(data["hs_token"].(string)) != 32 {
-								t.Fatalf("Unexpected data,  as_token should be a random 32 bytes string, found %v", data)
+							old_signing_keys := data["old_signing_keys"].(map[string]map[string]map[string]string)
+							if mustBeRotated(tc.secretData, "SOME_SIGNING_KEY") {
+								if len(old_signing_keys) != 0 {
+									t.Fatalf("Unexpected data,  old_signing_keys should be a empty, found %v", data)
+								}
+							} else {
+								if _, ok := old_signing_keys["ed25519:0"]; !ok {
+									t.Fatalf("Unexpected data,  old_signing_keys should be have the old bad key, found %v", data)
+								}
 							}
 						}
 					}

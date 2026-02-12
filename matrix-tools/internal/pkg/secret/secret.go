@@ -29,9 +29,10 @@ const (
 	Registration
 	RSA
 	EcdsaPrime256v1
+	ExpireKey
 )
 
-func GenerateSecret(client kubernetes.Interface, secretLabels map[string]string,
+func GenerateSecret(client kubernetes.Interface, secretLabels map[string]string, generatedSecretsTypes map[string]SecretType,
 	namespace string, name string, key string, secretType SecretType, generatorArgs []string) error {
 	ctx := context.Background()
 
@@ -66,14 +67,15 @@ func GenerateSecret(client kubernetes.Interface, secretLabels map[string]string,
 	if existingSecret.Data == nil {
 		existingSecret.Data = make(map[string][]byte)
 	}
-	if _, ok := existingSecret.Data[key]; !ok {
+	if _, ok := existingSecret.Data[key]; !ok || (secretType == SigningKey &&
+		mustBeRotated(existingSecret.Data, key)) {
 		switch secretType {
 		case Rand32:
 			if randomString, err := generateRandomString(32); err == nil {
 				existingSecret.Data[key] = randomString
 			}
 		case SigningKey:
-			if signingKey, err := generateSynapseSigningKey(); err == nil {
+			if signingKey, err := generateSynapseSigningKey("1"); err == nil {
 				existingSecret.Data[key] = []byte(signingKey)
 			} else {
 				return fmt.Errorf("failed to generate signing key: %w", err)
@@ -100,11 +102,10 @@ func GenerateSecret(client kubernetes.Interface, secretLabels map[string]string,
 			} else {
 				return fmt.Errorf("failed to generate ECDSA Prime256v1 key: %w", err)
 			}
-		case Registration:
-			if registrationString, err := generateRegistration(generatorArgs[0]); err == nil {
-				existingSecret.Data[key] = registrationString
-			} else {
-				return fmt.Errorf("failed to generate registration: %w", err)
+		case ExpireKey:
+			existingSecret.Data[key], err = generateExpiredKeys(existingSecret.Data, generatedSecretsTypes)
+			if err != nil {
+				return fmt.Errorf("failed to generate : %w", err)
 			}
 		default:
 			return fmt.Errorf("unknown secret type for: %s:%s", name, key)

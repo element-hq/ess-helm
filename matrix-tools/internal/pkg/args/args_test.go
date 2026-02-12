@@ -126,6 +126,20 @@ func TestParseArgs(t *testing.T) {
 			err: false,
 		},
 		{
+			name: "Multiple generator args in secrets",
+			args: []string{"cmd", "generate-secrets", "-secrets", "secret1:value1:rsa:4096:der"},
+			expected: &Options{
+				GenerateSecrets: &generatesecrets.GenerateSecretsOptions{
+					GeneratedSecrets: []generatesecrets.GeneratedSecret{
+						{ArgValue: "secret1:value1:rsa:4096:der", Name: "secret1", Key: "value1", Type: secret.RSA, GeneratorArgs: []string{"4096", "der"}},
+					},
+					Labels: map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-init-secrets"},
+				},
+				Command: GenerateSecrets,
+			},
+			err: false,
+		},
+		{
 			name:     "Invalid secret type",
 			args:     []string{"cmd", "generate-secrets", "-secrets", "secret1:value1:unknown"},
 			expected: &Options{},
