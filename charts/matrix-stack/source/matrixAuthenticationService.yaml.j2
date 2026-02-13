@@ -7,7 +7,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 {% import "common/sub_schema_values.yaml.j2" as sub_schema_values %}
 enabled: true
-{{- sub_schema_values.image(registry='ghcr.io', repository='element-hq/matrix-authentication-service', tag='1.10.0') }}
+{{- sub_schema_values.image(registry='ghcr.io', repository='element-hq/matrix-authentication-service', tag='1.11.0') }}
 
 replicas: 1
 
@@ -63,7 +63,7 @@ syn2mas:
   enabled: false
 
   # Syn2Mas relies on the debug image to copy mas-cli to the matrix-tools container
-  {{- sub_schema_values.image(registry='ghcr.io', repository='element-hq/matrix-authentication-service', tag='1.10.0-debug') | indent(2) }}
+  {{- sub_schema_values.image(registry='ghcr.io', repository='element-hq/matrix-authentication-service', tag='1.11.0-debug') | indent(2) }}
   {{- sub_schema_values.labels() | indent(2) -}}
   {{- sub_schema_values.workloadAnnotations() | indent(2) -}}
   {{- sub_schema_values.containersSecurityContext() | indent(2) -}}
