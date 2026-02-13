@@ -7,6 +7,41 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.2.1 (2026-02-13)
+
+## Changed
+
+- Upgrade Synapse to v1.147.1.
+
+  Highlights:
+  * Don't retry joining partial state rooms all at once on startup.
+  * Block federation requests and events authenticated using a known insecure signing key. See `CVE-2026-24044` / `ELEMENTSEC-2025-1670`.
+
+  Full Changelogs:
+  * [v1.147.0](https://github.com/element-hq/synapse/releases/tag/v1.147.0)
+
+  (#1031)
+- Upgrade Element Web to v1.12.10.
+
+  Highlights:
+  - Allow Element Call widgets to receive sticky events
+  - Add option for sorting by rooms with unread messages in the room list view
+
+  Full Changelogs:
+  - [v1.12.10](https://github.com/element-hq/element-web/releases/tag/v1.12.10)
+
+  (#1034)
+
+## Documentation
+
+- Document how to manually fix `CVE-2026-24044`/`ELEMENTSEC-2025-1670`. (#1037)
+
+## Internal
+
+- Add strict schema validation test for MAS config. (#1026, #1030)
+- Merge matrix-tools fixes related to `CVE-2026-24044` / `ELEMENTSEC-2025-1670` to main. (#1036)
+
+
 # ESS Community Helm Chart 26.2.0 (2026-02-05)
 
 ## Changed
