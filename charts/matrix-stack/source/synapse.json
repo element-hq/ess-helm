@@ -26,8 +26,8 @@
     "postgres": {
       "$ref": "file://common/postgres-libpq.json"
     },
-    "externalRedis": {
-      "$ref": "file://synapse/external_redis.json"
+    "redis": {
+      "$ref": "file://common/redis.json"
     },
     "media": {
       "type": "object",

@@ -168,10 +168,10 @@ responsibleForMedia
 {{- with .signingKey.secret -}}
 {{ $configSecrets = append $configSecrets (tpl . $root) }}
 {{- end -}}
-{{- if .externalRedis }}
-{{- if .externalRedis.password }}
-{{- if .externalRedis.password.secret }}
-{{ $configSecrets = append $configSecrets (tpl .externalRedis.password.secret $root) }}
+{{- if .redis }}
+{{- if .redis.password }}
+{{- if .redis.password.secret }}
+{{ $configSecrets = append $configSecrets (tpl .redis.password.secret $root) }}
 {{- end }}
 {{- end }}
 {{- end }}

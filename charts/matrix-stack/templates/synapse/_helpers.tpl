@@ -175,8 +175,8 @@ env:
 - name: APPLICATION_NAME
   value: >-
     {{ printf "{{ hostname }}" }}
-{{- if .externalRedis }}
-{{- if .externalRedis.password }}
+{{- if $root.Values.synapse.redis }}
+{{- if $root.Values.synapse.redis.password }}
 - name: SYNAPSE_REDIS_PASSWORD
   value: >-
     {{
@@ -185,7 +185,7 @@ env:
           include "element-io.ess-library.provided-secret-path" (
             dict "root" $root
             "context" (dict
-              "secretPath" "synapse.externalRedis.password"
+              "secretPath" "synapse.redis.password"
               "defaultSecretName" (include "element-io.synapse.secret-name" (dict "root" $root "context" (dict "isHook" $isHook)))
               "defaultSecretKey" "REDIS_PASSWORD"
             )

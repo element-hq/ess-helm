@@ -71,6 +71,13 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
       {{- $configSecrets = append $configSecrets (tpl .secret $root) }}
     {{- end -}}
   {{- end -}}
+  {{- if .redis }}
+  {{- if .redis.password }}
+  {{- if .redis.password.secret }}
+  {{ $configSecrets = append $configSecrets (tpl .redis.password.secret $root) }}
+  {{- end }}
+  {{- end }}
+  {{- end }}
   {{- with .additional -}}
     {{- range $key := (. | keys | uniq | sortAlpha) -}}
       {{- $prop := index $root.Values.hookshot.additional $key }}
@@ -93,7 +100,26 @@ env: []
 {{- define "element-io.hookshot.renderConfigOverrideEnv" }}
 {{- $root := .root -}}
 {{- with required "element-io.hookshot.renderConfigOverrideEnv missing context" .context -}}
+{{- if and $root.Values.hookshot.redis $root.Values.hookshot.redis.password }}
+env:
+- name: HOOKSHOT_REDIS_PASSWORD
+  value: >-
+    {{
+      printf "{{ readfile \"/secrets/%s\" | quote }}"
+        (
+          include "element-io.ess-library.provided-secret-path" (
+            dict "root" $root
+            "context" (dict
+              "secretPath" "hookshot.redis.password"
+              "defaultSecretName" (include "element-io.hookshot.secret-name" (dict "root" $root "context" (dict "isHook" false)))
+              "defaultSecretKey" "REDIS_PASSWORD"
+            )
+          )
+        )
+    }}
+{{- else }}
 env: []
+{{- end }}
 {{- end }}
 {{- end }}
 
@@ -117,6 +143,13 @@ RSA_PASSKEY: {{ . | b64enc }}
   {{- with .appserviceRegistration.value }}
 REGISTRATION: {{ . | b64enc }}
   {{- end }}
+{{- if .redis }}
+{{- if .redis.password }}
+{{- if .redis.password.value }}
+REDIS_PASSWORD: {{ .redis.password.value | b64enc | quote }}
+{{- end }}
+{{- end }}
+{{- end }}
   {{- with .additional }}
     {{- range $key := (. | keys | uniq | sortAlpha) }}
       {{- $prop := index $root.Values.hookshot.additional $key }}

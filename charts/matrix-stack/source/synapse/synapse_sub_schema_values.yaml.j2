@@ -7,36 +7,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 {% import 'sub_schema_values.yaml.j2' as sub_schema_values -%}
 
-{% macro externalRedis() %}
-## Details of an external Redis to use for worker coordination
-## If set, the internal Redis deployment will be skipped
-## This is useful for production environments where you want to use
-## managed Redis services (AWS Elasticache, Azure Cache for Redis, etc.)
-# externalRedis:
-  ## Redis host
-  # host:
-
-  ## Redis port
-  # port: 6379
-
-  ## Redis database number (0-15)
-  # db: 0
-
-  ## Redis password (optional - many managed services require auth)
-  ## It can either be provided inline in the Helm chart e.g.:
-  ## password:
-  ##   value: SecretValue
-  ##
-  ## Or it can be provided via an existing Secret e.g.:
-  ## password:
-  ##   secret: existing-secret
-  ##   secretKey: key-in-secret
-  # password: {}
-
-  ## Enable TLS for Redis connection
-  # tls: false
-{%- endmacro %}
-
 {% macro single_worker(workerType) %}
 {{ workerType }}:
   ## Set to true to deploy this worker

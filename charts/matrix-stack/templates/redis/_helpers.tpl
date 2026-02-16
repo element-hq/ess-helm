@@ -30,8 +30,8 @@ env: []
 
 {{- define "element-io.redis.internalRedisEnabled" -}}
 {{- $root := .root -}}
-{{- $synapseNeedsRedis := and $root.Values.synapse.enabled (not $root.Values.synapse.externalRedis) (include "element-io.synapse.enabledWorkers" (dict "root" $root) | fromJson) -}}
-{{- $hookshotNeedsRedis := $root.Values.hookshot.enabled -}}
+{{- $synapseNeedsRedis := and $root.Values.synapse.enabled (not $root.Values.synapse.redis) (include "element-io.synapse.enabledWorkers" (dict "root" $root) | fromJson) -}}
+{{- $hookshotNeedsRedis := and $root.Values.hookshot.enabled (not $root.Values.hookshot.redis) -}}
 {{- if or $synapseNeedsRedis $hookshotNeedsRedis -}}
 true
 {{- end }}

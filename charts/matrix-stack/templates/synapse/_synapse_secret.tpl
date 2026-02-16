@@ -47,10 +47,10 @@ data:
 {{- with .signingKey.value }}
   SIGNING_KEY: {{ .| b64enc }}
 {{- end }}
-{{- if .externalRedis }}
-{{- if .externalRedis.password }}
-{{- if .externalRedis.password.value }}
-  REDIS_PASSWORD: {{ .externalRedis.password.value | b64enc | quote }}
+{{- if .redis }}
+{{- if .redis.password }}
+{{- if .redis.password.value }}
+  REDIS_PASSWORD: {{ .redis.password.value | b64enc | quote }}
 {{- end }}
 {{- end }}
 {{- end }}

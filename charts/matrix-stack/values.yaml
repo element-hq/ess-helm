@@ -1915,6 +1915,34 @@ hookshot:
   ##   secretKey: key-in-secret
   passkey: {}
 
+  ## Details of the external Redis to use
+  ## Does not need to be set if the internal Redis should be used
+  ## This is useful for production environments where you want to use
+  ## managed Redis services (AWS Elasticache, Azure Cache for Redis, etc.)
+  # redis:
+    ## Redis host
+    # host:
+
+    ## Redis port
+    # port: 6379
+
+    ## Redis database number (0-15)
+    # db: 0
+
+    ## Redis password (optional - many managed services require auth)
+    ## It can either be provided inline in the Helm chart e.g.:
+    ## password:
+    ##   value: SecretValue
+    ##
+    ## Or it can be provided via an existing Secret e.g.:
+    ## password:
+    ##   secret: existing-secret
+    ##   secretKey: key-in-secret
+    # password: {}
+
+    ## Enable TLS for Redis connection
+    # tls: false
+
   ## How this ingress should be constructed
   ingress:
     ## What hostname should be used for this Ingress
@@ -3548,11 +3576,11 @@ synapse:
   ##   secret: existing-secret
   ##   secretKey: key-in-secret
   macaroon: {}
-  ## Details of an external Redis to use for worker coordination
-  ## If set, the internal Redis deployment will be skipped
+  ## Details of the external Redis to use
+  ## Does not need to be set if the internal Redis should be used
   ## This is useful for production environments where you want to use
   ## managed Redis services (AWS Elasticache, Azure Cache for Redis, etc.)
-  # externalRedis:
+  # redis:
     ## Redis host
     # host:
 

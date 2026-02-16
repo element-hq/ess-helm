@@ -1,0 +1,8 @@
+# Copyright 2025 Element Creations Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+hookshot:
+  redis:
+    host: "external-redis.example.com"
+    port: 6379

@@ -207,20 +207,20 @@ instance_map:
 {{- end }}
 {{- end }}
 
-{{- if or .externalRedis $enabledWorkers }}
+{{- if or .redis $enabledWorkers }}
 
 redis:
   enabled: true
-{{- if .externalRedis }}
-  host: "{{ tpl .externalRedis.host $root }}"
-  port: {{ .externalRedis.port | default 6379 }}
-{{- if .externalRedis.db }}
-  dbid: {{ .externalRedis.db }}
+{{- if .redis }}
+  host: "{{ tpl .redis.host $root }}"
+  port: {{ .redis.port | default 6379 }}
+{{- if .redis.db }}
+  dbid: {{ .redis.db }}
 {{- end }}
-{{- if .externalRedis.password }}
+{{- if .redis.password }}
   password: "${SYNAPSE_REDIS_PASSWORD}"
 {{- end }}
-{{- if .externalRedis.tls }}
+{{- if .redis.tls }}
   use_tls: true
 {{- end }}
 {{- else }}
