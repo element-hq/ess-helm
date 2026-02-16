@@ -1,0 +1,41 @@
+{{- /*
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+{{- with $.Values.wellKnownDelegation -}}
+{{- if eq (include "element-io.ess-library.ingress.isEnabled" (dict "root" $ "context" (dict "ingress" .ingress "type" "HTTPRoute"))) "true" -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+{{- include "element-io.ess-library.ingress.annotations" (dict "root" $ "context" (dict "ingress" .ingress)) | nindent 2 }}
+  labels:
+    {{- include "element-io.well-known-delegation-ingress.labels" (dict "root" $ "context" $.Values.haproxy) | nindent 4 }}
+  name: {{ $.Release.Name }}-well-known
+  namespace: {{ $.Release.Namespace }}
+spec:
+  parentRefs:
+    {{- include "element-io.ess-library.ingress.parentRefs" (dict "root" $ "context" (dict "serviceName" "well-known" "HTTPRoute" .ingress.HTTPRoute)) | nindent 4 }}
+  hostnames:
+    - {{ tpl $.Values.serverName $ }}
+  rules:
+    - matches:
+      - path:
+          type: PathPrefix
+          value: {{ include "element-io.well-known-delegation.httproute-path" (dict "root" $ "context" .baseDomainRedirect) }}
+      backendRefs:
+        - name: {{ $.Release.Name }}-well-known
+          port: 8010
+          group: ""
+          kind: Service
+    {{- if eq (include "element-io.ess-library.ingress.tls.isEnabled" (dict "root" $ "context" .ingress)) "true" }}
+    - matches:
+      - path:
+          type: PathPrefix
+          value: {{ include "element-io.well-known-delegation.httproute-path" (dict "root" $ "context" .baseDomainRedirect) }}
+      filters:
+      - requestRedirect:
+          scheme: https
+          statusCode: 301
+        type: RequestRedirect
+    {{- end }}
+{{- end }}
+{{- end }}
