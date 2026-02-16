@@ -167,11 +167,13 @@ networking:
   ## What hostname should be used for this Ingress
   # host:
 {% endif %}
+  ## Should we generate {{ 'any' if global else 'this' }} Ingress {{ 'resources' if global else 'resource' }}
+  enabled: true
+  ## What type of ingress resource should be used (Ingress, HTTPRoute)
+  type: Ingress
+
   ## Annotations to be added to {{ 'all Ingresses. Will be merged with component specific Ingress annotations' if global else 'this Ingress' }}
   annotations: {}
-
-  ## What Ingress Class Name that should be used for {{ 'all Ingresses by default' if global else 'this Ingress' }}
-  # className:
 
   ## Disable TLS configuration by setting it to false
   tlsEnabled: true
@@ -199,9 +201,35 @@ networking:
   #   externalIPs: []
   service: {}
 {%- endif %}
-  ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
-  ## This can be set to `ingress-nginx`.
-  # controllerType:
+
+  ## Ingress specific configuration
+  Ingress: {}
+    ## What Ingress Class Name that should be used for {{ 'all Ingresses by default' if global else 'this Ingress' }}
+    # className:
+
+    ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
+    ## This can be set to `ingress-nginx`.
+    # controllerType:
+
+  ## HTTPRoute specific configuration
+  HTTPRoute: {}
+    ## List of existing Gateway parent refs to connect the routes to.
+    ## More info: https://gateway-api.sigs.k8s.io/reference/spec/#parentreference
+    # existingGateways: {}
+  
+  {%- if global %}
+
+  ## Configuration for the generated Gateway
+  gateway:
+    ## Should we generate a Gateway resource for the HTTPRoutes
+    create: false
+
+    ## Gateway controller class name to use
+    # className: ""
+
+    ## Additional annotations for the Gateway
+    annotations: {}
+  {%- endif %}
 {%- endmacro %}
 
 {% macro labels(global=false, key='labels') %}
