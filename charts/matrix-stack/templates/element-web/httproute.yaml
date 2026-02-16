@@ -1,0 +1,41 @@
+{{- /*
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+{{- with .Values.elementWeb -}}
+{{- if eq (include "element-io.ess-library.ingress.isEnabled" (dict "root" $ "context" (dict "ingress" .ingress "type" "HTTPRoute"))) "true" -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+{{- include "element-io.ess-library.ingress.annotations" (dict "root" $ "context" (dict "ingress" .ingress)) | nindent 2 }}
+  labels:
+    {{- include "element-io.element-web.labels" (dict "root" $ "context" .) | nindent 4 }}
+  name: {{ $.Release.Name }}-element-web
+  namespace: {{ $.Release.Namespace }}
+spec:
+  parentRefs:
+    {{- include "element-io.ess-library.ingress.parentRefs" (dict "root" $ "context" (dict "serviceName" "element-web" "HTTPRoute" .ingress.HTTPRoute)) | nindent 4 }}
+  hostnames:
+    - {{ (tpl .ingress.host $) | quote }}
+  rules:
+    - matches:
+      - path:
+          type: PathPrefix
+          value: /
+      backendRefs:
+        - name: {{ $.Release.Name }}-element-web
+          port: 80
+          group: ""
+          kind: Service
+    {{- if eq (include "element-io.ess-library.ingress.tls.isEnabled" (dict "root" $ "context" .ingress)) "true" }}
+    - matches:
+      - path:
+          type: PathPrefix
+          value: /
+      filters:
+      - requestRedirect:
+          scheme: https
+          statusCode: 301
+        type: RequestRedirect
+    {{- end }}
+{{- end }}
+{{- end }}

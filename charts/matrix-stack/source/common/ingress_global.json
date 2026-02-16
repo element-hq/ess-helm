@@ -1,26 +1,88 @@
 {
   "type": "object",
+  "required": [
+    "enabled",
+    "type"
+  ],
   "properties": {
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "HTTPRoute",
+        "Ingress"
+      ],
+      "default": "Ingress"
+    },
+    "HTTPRoute": {
+      "type": "object",
+      "properties": {
+        "existingGateways": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": { "type": "string" },
+              "namespace": { "type": "string" },
+              "group": { "type": "string" },
+              "kind": { "type": "string" },
+              "sectionName": { "type": "string" },
+              "port": { "type": "integer" }
+            }
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "Ingress": {
+      "type": "object",
+      "properties": {
+        "className": {
+          "type": "string"
+        },
+        "controllerType": {
+          "type": "string",
+          "enum": [
+            "ingress-nginx"
+          ]
+        }
+      }
+    },
+    "gateway": {
+      "type": "object",
+      "properties": {
+        "create": {
+          "type": "boolean",
+          "default": false
+        },
+        "className": {
+          "type": "string"
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "annotations": {
       "type": "object",
       "additionalProperties": {
         "type": "string"
       }
     },
-    "className": {
-      "type": "string"
-    },
     "tlsEnabled": {
       "type": "boolean"
     },
     "tlsSecret": {
       "type": "string"
-    },
-    "controllerType": {
-      "type": "string",
-      "enum": [
-        "ingress-nginx"
-      ]
     },
     "service": {
       "type": "object",
