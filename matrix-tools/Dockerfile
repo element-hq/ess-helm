@@ -1,5 +1,5 @@
 # Copyright 2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -19,7 +19,7 @@ RUN --mount=type=cache,target=/gomod-cache \
     --mount=type=cache,target=/go-cache \
   GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=0 go build -o /app/matrix-tools cmd/main.go
 
-FROM gcr.io/distroless/cc-debian12
+FROM gcr.io/distroless/cc-debian13
 WORKDIR /
 
 COPY --from=buildstage --chmod=0755 /app/matrix-tools /
