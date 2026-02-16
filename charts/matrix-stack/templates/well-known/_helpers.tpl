@@ -101,3 +101,14 @@ support: |
   {{- (tpl (include "element-io.well-known-delegation.support" (dict "root" $root "context" .)) $root) | nindent 2 }}
 {{- end -}}
 {{- end -}}
+
+{{- define "element-io.well-known-delegation.httproute-path" -}}
+{{- $root := .root -}}
+{{- with required "element-io.well-known-delegation.httproute-path missing context" .context -}}
+{{- if and .enabled (or $root.Values.elementWeb.enabled .url) -}}
+/
+{{- else -}}
+/.well-known/matrix
+{{- end -}}
+{{- end -}}
+{{- end -}}

@@ -5,13 +5,13 @@ Copyright 2025 Element Creations Ltd
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 {{- with .Values.matrixRTC -}}
-{{- if .enabled -}}
+{{- if eq (include "element-io.ess-library.ingress.isEnabled" (dict "root" $ "context" (dict "ingress" .ingress "type" "Ingress"))) "true" -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
 {{- $extraAnnotations := dict }}
 {{- if .sfu.enabled }}
-{{- if eq "ingress-nginx" (include "element-io.ess-library.ingress-controller-type" (dict "root" $ "context" .ingress.controllerType)) }}
+{{- if eq "ingress-nginx" (include "element-io.ess-library.ingress-controller-type" (dict "root" $ "context" .ingress.Ingress.controllerType)) }}
 {{- $_ := set $extraAnnotations "nginx.ingress.kubernetes.io/proxy-send-timeout" "120" }}
 {{- $_ := set $extraAnnotations "nginx.ingress.kubernetes.io/proxy-read-timeout" "120" }}
 {{- $_ := set $extraAnnotations "nginx.ingress.kubernetes.io/proxy-buffering" "off" }}
@@ -24,7 +24,7 @@ metadata:
   namespace: {{ $.Release.Namespace }}
 spec:
 {{- include "element-io.ess-library.ingress.tls" (dict "root" $ "context" (dict "ingress" .ingress "ingressName" "matrix-rtc")) | nindent 2 }}
-{{- include "element-io.ess-library.ingress.className" (dict "root" $ "context" .ingress.className) | nindent 2 }}
+{{- include "element-io.ess-library.ingress.className" (dict "root" $ "context" .ingress.Ingress.className) | nindent 2 }}
   rules:
   - host: {{ (tpl .ingress.host $) | quote }}
     http:
