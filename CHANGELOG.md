@@ -7,6 +7,32 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.2.2 (2026-02-18)
+
+## Changed
+
+- Upgrade Matrix Authentication Service to v1.11.0.
+
+  Highlights:
+  - Make the compat login SSO redirect query parameters ignore invalid values
+  - Clean up unsupported threepids from already deactivated users
+  - Cleanup finished OAuth 2.0 sessions
+  - Cleanup finished user/browser sessions
+  - Clear out last active IP on each session after 30 days
+
+  Full Changelogs:
+  - [v1.11.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.11.0)
+
+  (#1035)
+- Update `matrix-tools` base image to Debian 13.
+
+  For compatibility with syn2mas v1.11 (#1042)
+
+## Documentation
+
+- Update README diagram to represent Hookshot. (#1039)
+
+
 # ESS Community Helm Chart 26.2.1 (2026-02-13)
 
 ## Changed
