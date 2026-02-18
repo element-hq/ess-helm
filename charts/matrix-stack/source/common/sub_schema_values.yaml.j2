@@ -170,7 +170,7 @@ networking:
   ## Should we generate {{ 'any' if global else 'this' }} Ingress {{ 'resources' if global else 'resource' }}
   enabled: true
   ## What type of ingress resource should be used (Ingress, HTTPRoute)
-  type: Ingress
+  {{ '# ' if not global }}type: Ingress
 
   ## Annotations to be added to {{ 'all Ingresses. Will be merged with component specific Ingress annotations' if global else 'this Ingress' }}
   annotations: {}
