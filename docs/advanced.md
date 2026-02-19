@@ -236,7 +236,27 @@ matrixRTC:
             - "example.com:3478"
 ```
 
+#### Configuring exposed services
+
+See the fragment `charts/matrix-stack/ci/fragments/matrix-rtc-exposed-services.yaml` to see the exposed services configuration.
+
+Note that using NodePorts implies using a port allowed in the Kubernetes range. See the Kubernetes documentation for the [defaults](https://kubernetes.io/docs/concepts/services-networking/service/#avoid-nodeport-collisions).
+
 #### Enable Turn-TLS behind Traefik
+
+The SFU can enable Turn-TLS. By default it will listen on the port `31443/TCP` and advertise the turn address `<turn domain>:443`. The advertised port cannot be changed and must be properly forwarded to the SFU Pod.
+
+This is so that the traffic looks like HTTPS for firewalls. In practice, the traffic must be forwarded as-is to the SFU Pod, with TLS passthrough enabled.
+
+```yaml
+matrixRTC:
+  sfu:
+    exposedServices:
+      turnTLS:
+        enabled: true
+        domain: <turn domain advertised to the clients>
+        tlsSecret: <tls secret for the turn domain. Optional if cert manager is enabled>
+```
 
 For Turn-TLS to work behind Traefik, you need to create the following manifest :
 

@@ -1,6 +1,6 @@
 <!--
 Copyright 2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 -->
@@ -65,6 +65,95 @@ By default, the SFU tries to connect to Google's STUN servers. You can try the f
 - Force the SFU to use a manual IP address instead of relying on STUN to resolve the advertised IP.
 
 For more information about the SFU networking, see [Matrix RTC Networking](./advanced.md#networking).
+
+### SFU Connectivity troubleshooting
+
+The SFU traffic flow is as follows:
+
+1. Device -> (DNS resolution of `<SFU FQDN>`) -> `<HTTPS Requests/Websocket>` --> `cluster (Ingress host of <SFU FQDN>)` to open the signaling channel
+1. Signaling channel is opened
+1. Device do a STUN resolution against the stun server configured in ElementCall. If not STUN server is configured, it fallbacks to google stun servers
+1. Device advertise its access IP through the signaling channel
+1. SFU advertise its IP through the signaling channel
+1. The connection uses UDP and tries to do `Device Access IP` <-> `<Network>` <-> `IP Advertised by the SFU`
+
+#### SFU IP Advertise modes
+
+You can configure how the SFU chooses the IP it advertises using 3 options:
+
+1. Host IP: The SFU will advertise the Host IP. (`matrixRTC.sfu.useStunToDiscoverPublicIP: false`, `matrixRTC.sfu.manualIP` undefined)
+1. Manual IP: You decide which IP the SFU should advertised  (`matrixRTC.sfu.useStunToDiscoverPublicIP: false`, `matrixRTC.sfu.manualIP: <ip>` )
+1. STUN (`matrixRTC.sfu.useStunToDiscoverPublicIP: true`, `matrixRTC.sfu.manualIP` undefined)
+
+##### Host IP
+
+A direct IP route must exist between the devices and the Node IP. Therefore, the Node IP should be in a public network.
+
+If you are working on Kubernetes deployment, you might want to have dedicated nodes with an IP in the public network. You can configure `nodeSelectors` and `tolerations` on the workloads to force the SFU to be started on this publicly accessible nodes.
+
+#### Manual IP
+
+The IP advertised by the SFU should be able to forward packets to the SFU pod.
+
+This mode can be used if you are configuring your SFU behind a LoadBalancer. In this case, the device would sent its UDP packets to the Load Balancer, on the same ports as the one expected by the SFU. The Load Balancer will forward the packets to the SFU ports.
+
+#### STUN
+
+The SFU will determine its public IP using STUN. It needs a working STUN server, and by default will use Google stun servers.
+
+This mode can be used if you are behind a NAT Gateway. Routing from the SFU to the STUN Server should traverse the NAT gateway, to successfully resolve the Access IP.
+
+### Device debugging tools
+
+#### In ElementWeb
+
+Make sure ElementCall is enabled in the room you are testing it. You can check under `Room settings -> VoIP -> Enable ElementCall`
+
+#### Verify STUN resolution
+
+##### On Mac
+
+On mac, you can install the homebrew formula [stuntman](https://formulae.brew.sh/formula/stuntman). Once installed, you can use `stunclient` to verify which IP the stun resolution discovers from a device: `stunclient --protocol udp <coturn fqdn>  <stun port>`
+
+The result should be the access IP that the SFU can request.
+
+##### On Linux
+
+On Linux, you can install the `coturn` package. Once installed,  you can use `turnutils_stunclient` to verify which IP the stun resolution discovers from a device: `turnutils_stunclient -p <stun port> <coturn fqdn>`
+
+##### On Windows
+
+On Windows, you can install [stuntman](https://www.stunprotocol.org/) cygwin package. Once installed, you can use `stunclient` to verify which IP the stun resolution discovers from a device: `stunclient --protocol udp <coturn fqdn>  <stun port>`
+
+#### About:WebRTC
+
+While Running an ElementCall session, you can open the WebRTC tools of Chrome (`chrome://webrtc-internals`) or Firefox (`about:webrtc`) to find which IPs are discovered, and which connections are failing.
+
+For example, in the screenshot below, using chrome tools, you can find the following information:
+
+1. The blue arrow points to the stun server that the device uses to discover its IP. They are the ones configured into ElementCall.
+1. ICE Connection State says `New` -> `Completed` and worked correctly
+1. Connection state says `New` -> `Connected` and worked correctly
+1. The Signaling state says `New` -> `Stable` -> `Have-Local-Offer` -> `Stable` and worked correctly
+
+The table contains the ICE Candidates pairs, and we can find the SFU Advertised IP as expected. The blue arrow points to the STUN Server that the clients will use to resolve their own IP address. It must be reachable from the clients.
+
+![About WebRTC screenshot](./assets/images/about-webrtc.png)
+
+And example which would fail could show in the informations, where we can see that the connection sent through the signaling channel failed to open:
+
+![Signaling Failed](./assets/images/signaling-failed.png)
+
+#### Verify connection
+
+`netcat` can be used to test that the device is able to contact the SFU Pod. As UDP does not have ACK, a successful connection might not be enough to prove that the device is able to contact the SFU Pod on the UDP port.
+
+```shell
+➜ nc -vnzu 192.100.0.2 30882
+Connection to 192.100.0.2 port 30882 [udp/*] succeeded!
+➜ nc -vnz 192.100.0.2 30881
+Connection to 192.100.0.2 port 30881 [tcp/*] succeeded!
+```
 
 ## General / multiple components
 
