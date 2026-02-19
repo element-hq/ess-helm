@@ -10,6 +10,12 @@
     "appserviceRegistration": {
       "$ref": "file://common/credential.json"
     },
+    "asToken": {
+      "$ref": "file://common/credential.json"
+    },
+    "hsToken": {
+      "$ref": "file://common/credential.json"
+    },
     "enableEncryption": {
       "type": "boolean",
       "description": "Experimental: Enable encryption support"

@@ -1,0 +1,77 @@
+# Copyright 2025-2026 Element Creations Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# source_fragments: hookshot-additional-in-helm.yaml hookshot-ingress.yaml hookshot-minimal.yaml hookshot-secrets-in-helm.yaml hookshot-static-registration-in-helm.yaml init-secrets-disabled.yaml server-name.yaml synapse-additional-in-helm.yaml synapse-minimal.yaml synapse-postgres-secrets-in-helm.yaml synapse-postgres.yaml synapse-secrets-in-helm.yaml
+# DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
+
+# postgres don't have any required properties to be set and defaults to enabled
+deploymentMarkers:
+  enabled: false
+elementAdmin:
+  enabled: false
+elementWeb:
+  enabled: false
+hookshot:
+  additional:
+    example-value:
+      config: |
+        example: value
+  # Static registration file provided in Helm values - should ignore AS_TOKEN and HS_TOKEN
+  appserviceRegistration:
+    value: |
+      rate_limited: false
+      namespaces:
+        users:
+          - regex: "@_github_.*:{{ $.Release.Name }}"
+            exclusive: true
+      id: hookshot
+      hs_token: "CHANGEME-cie9nehee2ohSahloh3Ahquii3ningai"
+      as_token: "CHANGEME-ushi5ieMaebooJahquaechucha7Owua2"
+      url: "http://hookshot:9993"
+      sender_localpart: "hookshot"
+  # Use AS_TOKEN and HS_TOKEN instead of static registration file
+  asToken:
+    value: CHANGEME-ushi5ieMaebooJahquaechucha7Owua2
+  enabled: true
+  hsToken:
+    value: CHANGEME-cie9nehee2ohSahloh3Ahquii3ningai
+  ingress:
+    host: hookshot.ess.localhost
+  passkey:
+    value: |
+      CHANGEME
+      -----BEGIN PRIVATE KEY-----
+      MIIJQQIBADANBgkqhkiG9w0BAQEFAASCCSswggknAgEAAoICAQDLtjXE9gRU9GVE
+      2Kt8VQORnOOlNlPvTwosXeSvJKl0llRW3ajDqpfbHfG2BOTvnHEqfO5KQGXCwBmx
+      3a0sbQ0x4upx47vOpX+zpOaF3gor
+      -----END PRIVATE KEY-----
+initSecrets:
+  enabled: false
+matrixAuthenticationService:
+  enabled: false
+matrixRTC:
+  enabled: false
+serverName: ess.localhost
+synapse:
+  additional:
+    00-userconfig.yaml:
+      config: |
+        push:
+          jitter_delay: 10
+  ingress:
+    host: synapse.ess.localhost
+  macaroon:
+    value: CHANGEME-eek3Eigoh8ux8laeTingeej1
+  postgres:
+    database: synapse
+    host: ess-postgres
+    password:
+      value: CHANGEME-ooWo6jeidahhei3Hae0eer9U
+    user: synapse_user
+  registrationSharedSecret:
+    value: CHANGEME-ooWo6jeidahhei3Hae0eer9U
+  signingKey:
+    value: ed25519 0 bNQOzBUDszff7Ax81z6w0uZ1IPWoxYaazT7emaZEfpw
+wellKnownDelegation:
+  enabled: false

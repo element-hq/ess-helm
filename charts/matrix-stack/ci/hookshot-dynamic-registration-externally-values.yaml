@@ -1,0 +1,67 @@
+# Copyright 2025-2026 Element Creations Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# source_fragments: hookshot-additional-secrets-externally.yaml hookshot-ingress.yaml hookshot-minimal.yaml hookshot-secrets-externally.yaml init-secrets-disabled.yaml server-name.yaml synapse-additional-secrets-externally.yaml synapse-minimal.yaml synapse-postgres-secrets-externally.yaml synapse-postgres.yaml synapse-secrets-externally.yaml
+# DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
+
+# postgres don't have any required properties to be set and defaults to enabled
+deploymentMarkers:
+  enabled: false
+elementAdmin:
+  enabled: false
+elementWeb:
+  enabled: false
+hookshot:
+  additional:
+    example-value:
+      configSecret: '{{ $.Release.Name }}-hookshot-external'
+      configSecretKey: config
+  # Use AS_TOKEN and HS_TOKEN instead of static registration file
+  asToken:
+    secret: '{{ $.Release.Name }}-hookshot-external-as-token'
+    secretKey: as_token
+  enabled: true
+  hsToken:
+    secret: '{{ $.Release.Name }}-hookshot-external-hs-token'
+    secretKey: hs_token
+  ingress:
+    host: hookshot.ess.localhost
+  passkey:
+    secret: '{{ $.Release.Name }}-hookshot-external-passkey'
+    secretKey: passfile
+initSecrets:
+  enabled: false
+matrixAuthenticationService:
+  enabled: false
+matrixRTC:
+  enabled: false
+serverName: ess.localhost
+synapse:
+  additional:
+    00-userconfig.yaml:
+      configSecret: '{{ $.Release.Name }}-synapse-secrets'
+      configSecretKey: 00-userconfig.yaml
+  appservices:
+    - secret: '{{ $.Release.Name }}-synapse-external'
+      secretKey: bridge_registration.yaml
+  ingress:
+    host: synapse.ess.localhost
+  macaroon:
+    secret: '{{ $.Release.Name }}-synapse-external'
+    secretKey: macaroon
+  postgres:
+    database: synapse
+    host: ess-postgres
+    password:
+      secret: '{{ $.Release.Name }}-synapse-external'
+      secretKey: postgresPassword
+    user: synapse_user
+  registrationSharedSecret:
+    secret: '{{ $.Release.Name }}-synapse-external'
+    secretKey: registrationSharedSecret
+  signingKey:
+    secret: '{{ $.Release.Name }}-synapse-external'
+    secretKey: signingKey
+wellKnownDelegation:
+  enabled: false

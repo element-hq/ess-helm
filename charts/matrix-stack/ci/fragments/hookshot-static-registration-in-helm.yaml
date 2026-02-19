@@ -1,0 +1,19 @@
+# Copyright 2025 New Vector Ltd
+# Copyright 2025-2026 Element Creations Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+hookshot:
+  # Static registration file provided in Helm values - should ignore AS_TOKEN and HS_TOKEN
+  appserviceRegistration:
+    value: |
+      rate_limited: false
+      namespaces:
+        users:
+          - regex: "@_github_.*:{{ $.Release.Name }}"
+            exclusive: true
+      id: hookshot
+      hs_token: "CHANGEME-cie9nehee2ohSahloh3Ahquii3ningai"
+      as_token: "CHANGEME-ushi5ieMaebooJahquaechucha7Owua2"
+      url: "http://hookshot:9993"
+      sender_localpart: "hookshot"

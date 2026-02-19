@@ -5084,6 +5084,36 @@
           },
           "additionalProperties": false
         },
+        "asToken": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "string"
+            },
+            "secret": {
+              "type": "string"
+            },
+            "secretKey": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "hsToken": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "string"
+            },
+            "secret": {
+              "type": "string"
+            },
+            "secretKey": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
         "enableEncryption": {
           "type": "boolean",
           "description": "Experimental: Enable encryption support"
