@@ -736,6 +736,10 @@ _extra_values_files_to_test: list[str] = [
 ]
 
 _extra_secret_values_files_to_test = [
+    "hookshot-static-registration-externally-values.yaml",
+    "hookshot-static-registration-in-helm-values.yaml",
+    "hookshot-dynamic-registration-externally-values.yaml",
+    "hookshot-dynamic-registration-in-helm-values.yaml",
     "matrix-authentication-service-synapse-syn2mas-dry-run-secrets-in-helm-values.yaml",
     "matrix-authentication-service-synapse-syn2mas-dry-run-secrets-externally-values.yaml",
     "matrix-authentication-service-synapse-syn2mas-migrate-secrets-in-helm-values.yaml",

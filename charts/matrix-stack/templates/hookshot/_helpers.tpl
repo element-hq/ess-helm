@@ -53,37 +53,76 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- $root := .root -}}
 {{- with required "element-io.hookshot.configSecrets missing context" .context -}}
 {{ $configSecrets := list (printf "%s-hookshot" $root.Release.Name) }}
+{{ $configSecrets := concat $configSecrets (include "element-io.hookshot.registrationConfigSecrets" (dict "root" $root) | fromJsonArray) }}
 {{- if and $root.Values.initSecrets.enabled (include "element-io.init-secrets.generated-secrets" (dict "root" $root)) }}
 {{ $configSecrets = append $configSecrets (printf "%s-generated" $root.Release.Name) }}
 {{- end }}
 {{- with $root.Values.hookshot }}
   {{- with .appserviceRegistration -}}
-    {{- if .value }}
-      {{- $configSecrets = append $configSecrets (printf "%s-hookshot" $root.Release.Name) }}
+    {{- if .value -}}
+      {{- $configSecrets = append $configSecrets (printf "%s-hookshot" $root.Release.Name) -}}
     {{- else -}}
-      {{- $configSecrets = append $configSecrets (tpl .secret $root) }}
+      {{- $configSecrets = append $configSecrets (tpl .secret $root) -}}
+    {{- end -}}
+  {{- end -}}
+  {{- with .asToken -}}
+    {{- if .value -}}
+      {{- $configSecrets = append $configSecrets (printf "%s-hookshot" $root.Release.Name) -}}
+    {{- else -}}
+      {{- $configSecrets = append $configSecrets (tpl .secret $root) -}}
+    {{- end -}}
+  {{- end -}}
+  {{- with .hsToken -}}
+    {{- if .value -}}
+      {{- $configSecrets = append $configSecrets (printf "%s-hookshot" $root.Release.Name) -}}
+    {{- else -}}
+      {{- $configSecrets = append $configSecrets (tpl .secret $root) -}}
     {{- end -}}
   {{- end -}}
   {{- with .passkey -}}
-    {{- if .value }}
-      {{- $configSecrets = append $configSecrets (printf "%s-hookshot" $root.Release.Name) }}
+    {{- if .value -}}
+      {{- $configSecrets = append $configSecrets (printf "%s-hookshot" $root.Release.Name) -}}
     {{- else -}}
-      {{- $configSecrets = append $configSecrets (tpl .secret $root) }}
+      {{- $configSecrets = append $configSecrets (tpl .secret $root) -}}
     {{- end -}}
   {{- end -}}
   {{- with .additional -}}
     {{- range $key := (. | keys | uniq | sortAlpha) -}}
-      {{- $prop := index $root.Values.hookshot.additional $key }}
-      {{- if $prop.configSecret }}
+      {{- $prop := index $root.Values.hookshot.additional $key -}}
+      {{- if $prop.configSecret -}}
       {{ $configSecrets = append $configSecrets (tpl $prop.configSecret $root) }}
-      {{- end }}
-    {{- end }}
-  {{- end }}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
 {{- end }}
 {{ $configSecrets | uniq | toJson }}
 {{- end }}
 {{- end }}
 
+{{- define "element-io.hookshot.registrationConfigSecrets" -}}
+{{- $root := .root -}}
+{{ $configSecrets := list (printf "%s-hookshot" $root.Release.Name) }}
+{{- if and $root.Values.initSecrets.enabled (include "element-io.init-secrets.generated-secrets" (dict "root" $root)) }}
+{{ $configSecrets = append $configSecrets (printf "%s-generated" $root.Release.Name) }}
+{{- end }}
+{{- with $root.Values.hookshot }}
+  {{- with .asToken -}}
+    {{- if .value -}}
+      {{- $configSecrets = append $configSecrets (printf "%s-hookshot" $root.Release.Name) -}}
+    {{- else -}}
+      {{- $configSecrets = append $configSecrets (tpl .secret $root) -}}
+    {{- end -}}
+  {{- end -}}
+  {{- with .hsToken -}}
+    {{- if .value -}}
+      {{- $configSecrets = append $configSecrets (printf "%s-hookshot" $root.Release.Name) -}}
+    {{- else -}}
+      {{- $configSecrets = append $configSecrets (tpl .secret $root) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end }}
+{{ $configSecrets | uniq | toJson }}
+{{- end }}
 
 {{- define "element-io.hookshot.overrideEnv" }}
 {{- $root := .root -}}
@@ -94,28 +133,81 @@ env: []
 {{- $root := .root -}}
 {{- with required "element-io.hookshot.renderConfigOverrideEnv missing context" .context -}}
 env: []
-{{- end }}
+{{- end -}}
+{{- end -}}
+
+{{- define "element-io.hookshot.renderRegistrationOverrideEnv" -}}
+{{- $root := .root -}}
+env:
+{{- with $root.Values.hookshot }}
+  {{- if not .appserviceRegistration }}
+  {{- /* Dynamic registration - provide AS_TOKEN and HS_TOKEN as environment variables */}}
+  - name: AS_TOKEN
+    value: >-
+      {{ (printf "{{ readfile \"/secrets/%s\" }}" (
+          (include "element-io.ess-library.init-secret-path" (
+              dict "root" $root
+              "context" (dict
+                "secretPath" "hookshot.asToken"
+                "initSecretKey" "HOOKSHOT_AS_TOKEN"
+                "defaultSecretName" (include "element-io.hookshot.secret-name" (dict "root" $root "context" .))
+                "defaultSecretKey" "AS_TOKEN"
+                )
+              )
+            )
+          )
+        )
+      }}
+  - name: HS_TOKEN
+    value: >-
+      {{ (printf "{{ readfile \"/secrets/%s\" }}" (
+          (include "element-io.ess-library.init-secret-path" (
+              dict "root" $root
+              "context" (dict
+                "secretPath" "hookshot.hsToken"
+                "initSecretKey" "HOOKSHOT_HS_TOKEN"
+                "defaultSecretName" (include "element-io.hookshot.secret-name" (dict "root" $root "context" .))
+                "defaultSecretKey" "HS_TOKEN"
+                )
+              )
+            )
+          )
+        )
+      }}
+  {{- end -}}
+{{- end -}}
 {{- end }}
 
-{{- define "element-io.hookshot.configmap-data" }}
+{{- define "element-io.hookshot.configmap-data" -}}
 {{- $root := .root -}}
 {{- with required "element-io.hookshot.configmap-data" .context -}}
 config-underride.yaml: |
 {{- (tpl ($root.Files.Get "configs/hookshot/config-underride.yaml.tpl") (dict "root" $root "context" .)) | nindent 2 }}
 config-override.yaml: |
 {{- (tpl ($root.Files.Get "configs/hookshot/config-override.yaml.tpl") (dict "root" $root "context" .)) | nindent 2 }}
+{{- if not .appserviceRegistration -}}
+{{- /* Only include registration template for dynamic registration */}}
+hookshot-registration.yaml.tpl: |
+{{- (tpl ($root.Files.Get "configs/hookshot/registration.yaml.tpl") (dict "root" $root "context" .)) | nindent 2 }}
+{{- end -}}
 {{- end -}}
 {{- end -}}
 
 
-{{- define "element-io.hookshot.secret-data" -}}
-{{- $root := .root -}}
-{{- with required "element-io.hookshot.secret-data" .context -}}
+{{- define "element-io.hookshot.secret-data" }}
+{{- $root := .root }}
+{{- with required "element-io.hookshot.secret-data" .context }}
   {{- with .passkey.value }}
 RSA_PASSKEY: {{ . | b64enc }}
   {{- end }}
-  {{- with .appserviceRegistration.value }}
+  {{- with (.appserviceRegistration).value }}
 REGISTRATION: {{ . | b64enc }}
+  {{- end }}
+  {{- with .asToken.value }}
+AS_TOKEN: {{ . | b64enc }}
+  {{- end }}
+  {{- with .hsToken.value }}
+HS_TOKEN: {{ . | b64enc }}
   {{- end }}
   {{- with .additional }}
     {{- range $key := (. | keys | uniq | sortAlpha) }}
@@ -126,7 +218,7 @@ user-{{ $key }}: {{ (tpl $prop.config $root) | b64enc }}
     {{- end }}
   {{- end }}
 {{- end }}
-{{- end -}}
+{{- end }}
 
 {{- define "element-io.hookshot.pvcName" -}}
 {{- $root := .root -}}

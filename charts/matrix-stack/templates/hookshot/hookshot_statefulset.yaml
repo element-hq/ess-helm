@@ -4,7 +4,6 @@ Copyright 2026 Element Creations Ltd
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 
-
 {{- with $.Values.hookshot -}}
 {{- if .enabled -}}
 apiVersion: apps/v1
@@ -43,6 +42,21 @@ spec:
                                                                                     "usesMatrixTools" true
                                                                                     "mountServiceAccountToken" false)) | nindent 6 }}
       initContainers:
+{{- /* Add registration init container only if using dynamic registration */}}
+{{- if not .appserviceRegistration }}
+      {{- include "element-io.ess-library.render-registration-container" (dict "root" $ "context" (dict
+          "nameSuffix" "hookshot"
+          "containerName" "render-registration"
+          "templatesVolume" "registration-templates"
+          "outputFile" "hookshot-registration.yaml"
+          "registrationTemplate" "hookshot-registration.yaml.tpl"
+          "resources" .resources
+          "containersSecurityContext" .containersSecurityContext
+          "extraEnv" .extraEnv
+          "extraVolumeMounts" .extraVolumeMounts
+          "isHook" false
+        )) | nindent 6 }}
+{{- end }}
       {{- include "element-io.ess-library.render-config-container" (dict "root" $ "context"
             (dict "additionalPath" "hookshot.additional"
                   "nameSuffix" "hookshot"
@@ -76,9 +90,9 @@ spec:
         - {{ (. | toYaml) | nindent 10 }}
   {{- end }}
 {{- end }}
-{{- with .extraInitContainers }}
+      {{- with .extraInitContainers }}
       {{- toYaml . | nindent 6 }}
-{{- end }}
+      {{- end }}
       containers:
       - name: hookshot
         {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" .image) | nindent 8 }}
@@ -94,16 +108,21 @@ spec:
         args:
         - "/bin/matrix-hookshot/App/BridgeApp.js"
         - /conf/hookshot-config.yaml
-        - /secrets/{{
-                include "element-io.ess-library.init-secret-path" (
-                      dict "root" $
-                      "context" (dict
-                        "secretPath" "hookshot.appserviceRegistration"
-                        "initSecretKey" "HOOKSHOT_REGISTRATION"
-                        "defaultSecretName" (include "element-io.hookshot.secret-name" (dict "root" $ "context" .))
-                        "defaultSecretKey" "REGISTRATION"
-                      )
-                    ) }}
+        {{- if .appserviceRegistration }}
+        {{- /* Static registration - use provided-secret approach */}}
+        - /secrets/{{ include "element-io.ess-library.init-secret-path" (
+                dict "root" $
+                "context" (dict
+                  "secretPath" "hookshot.appserviceRegistration"
+                  "initSecretKey" "HOOKSHOT_REGISTRATION"
+                  "defaultSecretName" (include "element-io.hookshot.secret-name" (dict "root" $ "context" .))
+                  "defaultSecretKey" "REGISTRATION"
+                )
+              ) }}
+        {{- else }}
+        {{- /* Dynamic registration - use generated registration file */}}
+        - /conf/hookshot-registration.yaml
+        {{- end }}
         ports:
         - containerPort: 9993
           name: appservice
@@ -143,11 +162,22 @@ spec:
         {{- include "element-io.ess-library.render-config-volume-mounts" (dict "root" $ "context"
               (dict "nameSuffix" "hookshot"
                     "outputFile" "hookshot-config.yaml")) | nindent 8 }}
+        {{- if not .appserviceRegistration }}
+        {{- /* Dynamic registration - mount generated registration file */}}
+        - mountPath: /conf/hookshot-registration.yaml
+          name: rendered-registration
+          subPath: hookshot-registration.yaml
+          readOnly: true
+        {{- end }}
       volumes:
       {{- include "element-io.ess-library.render-config-volumes" (dict "root" $ "context"
               (dict "additionalPath" "hookshot.additional"
                     "nameSuffix" "hookshot")
             ) | nindent 6 }}
+      {{- if not .appserviceRegistration }}
+      {{- /* Dynamic registration - add registration volumes */}}
+      {{- include "element-io.ess-library.render-registration-volumes" (dict "root" $ "context" (dict "nameSuffix" "hookshot" )) | nindent 6 }}
+      {{- end }}
 {{- range .extraVolumes }}
       - {{- (tpl (. | toYaml) $) | nindent 8 }}
 {{- end }}
