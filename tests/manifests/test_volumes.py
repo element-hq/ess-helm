@@ -35,6 +35,28 @@ async def test_emptyDirs_are_memory(templates):
             )
 
 
+@pytest.mark.parametrize("values_file", values_files_to_test | secret_values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_volume_names_are_unique(templates):
+    """Test that volume names are unique within each pod template."""
+    for template in templates:
+        if template["kind"] not in ["Deployment", "StatefulSet", "Job"]:
+            continue
+
+        volumes = template["spec"]["template"]["spec"].get("volumes", [])
+        volume_names = [volume["name"] for volume in volumes]
+
+        # Check for duplicates
+        seen_names = set()
+        duplicates = []
+        for name in volume_names:
+            if name in seen_names:
+                duplicates.append(name)
+            seen_names.add(name)
+
+        assert len(duplicates) == 0, f"{template_id(template)} has duplicate volume names: {duplicates}"
+
+
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_extra_volumes(values, make_templates, release_name):
