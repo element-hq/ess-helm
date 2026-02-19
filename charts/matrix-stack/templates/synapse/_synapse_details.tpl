@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2024-2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -175,6 +175,9 @@ responsibleForMedia
 {{ $configSecrets = append $configSecrets (tpl $prop.configSecret $root) }}
 {{- end }}
 {{- end }}
+{{- end }}
+{{- if and (not $isHook) $root.Values.hookshot.enabled }}
+{{ $configSecrets = concat $configSecrets (include "element-io.hookshot.registrationConfigSecrets" (dict "root" $root) | fromJsonArray) }}
 {{- end }}
 {{- end }}
 {{ $configSecrets | uniq | toJson }}

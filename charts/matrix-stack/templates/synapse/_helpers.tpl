@@ -242,6 +242,8 @@ ess-version.json: |
 {{- end }}
 {{- end }}
 {{- if $root.Values.hookshot.enabled -}}
+{{- if $root.Values.hookshot.appserviceRegistration -}}
+{{- /* Static registration - use provided-secret approach */ -}}
 {{- $appservicesFiles = append $appservicesFiles (printf "/secrets/%s"
                 (include "element-io.ess-library.init-secret-path" (
                       dict "root" $root
@@ -252,6 +254,10 @@ ess-version.json: |
                         "defaultSecretKey" "REGISTRATION"
                       )
                     ))) -}}
+{{- else -}}
+{{- /* Dynamic registration - use rendered configmap approach */ -}}
+{{- $appservicesFiles = append $appservicesFiles "/as/hookshot/registration.yaml" -}}
+{{- end -}}
 {{- end -}}
 {{- $appservicesFiles | toJson -}}
 {{- end }}
