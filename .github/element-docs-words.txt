@@ -25,12 +25,15 @@ localpart
 Muxed
 newsfragment
 newsfragments
+passthrough
 postgres
 PostgreSQL
 pytest
 Pytest
 Referer
 SCIM
+signaling
+Signaling
 shellcheck
 templatable
 threepids
