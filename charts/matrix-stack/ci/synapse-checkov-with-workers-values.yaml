@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# source_fragments: haproxy-checkov.yaml init-secrets-checkov.yaml init-secrets-minimal.yaml postgres-checkov.yaml postgres-minimal.yaml redis-checkov.yaml server-name.yaml synapse-checkov.yaml synapse-minimal.yaml synapse-some-workers-running.yaml
+# source_fragments:  haproxy-checkov.yaml init-secrets-checkov.yaml init-secrets-minimal.yaml postgres-checkov.yaml postgres-minimal.yaml redis-checkov.yaml server-name.yaml synapse-checkov.yaml synapse-minimal.yaml synapse-some-workers-running.yaml 
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
 deploymentMarkers:
