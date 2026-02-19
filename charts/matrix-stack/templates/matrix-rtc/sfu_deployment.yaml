@@ -179,12 +179,14 @@ spec:
         - {{ (. | toYaml) | nindent 10 }}
 {{- end }}
 {{- if .exposedServices.turnTLS.enabled }}
+{{- if and .exposedServices.turnTLS.tlsTerminationOnPod (or .exposedServices.turnTLS.tlsSecret $.Values.certManager) }}
         - mountPath: /turn-tls/tls.crt
           name: secret-turn-tls
           subPath: tls.crt
         - mountPath: /turn-tls/tls.key
           name: secret-turn-tls
           subPath: tls.key
+{{- end }}
 {{- end }}
       volumes:
       {{- include "element-io.ess-library.render-config-volumes" (dict "root" $ "context"
@@ -193,11 +195,11 @@ spec:
       - {{- (tpl (. | toYaml) $) | nindent 8 }}
 {{- end }}
 {{- if .exposedServices.turnTLS.enabled }}
-{{- if .exposedServices.turnTLS.tlsSecret }}
+{{- if and .exposedServices.turnTLS.tlsTerminationOnPod .exposedServices.turnTLS.tlsSecret }}
       - name: secret-turn-tls
         secret:
           secretName: {{ tpl .exposedServices.turnTLS.tlsSecret $ }}
-{{- else if $.Values.certManager }}
+{{- else if and .exposedServices.turnTLS.tlsTerminationOnPod $.Values.certManager }}
       - name: secret-turn-tls
         secret:
           secretName: "{{ $.Release.Name }}-turn-tls-certmanager-tls"

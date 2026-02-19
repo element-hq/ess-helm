@@ -861,7 +861,11 @@ matrixRTC:
         # The domain of the service
         domain: ""
         # The TLS secret used to expose this service
+        # Optional when tlsTerminationOnPod is false (external termination) or when certManager is configured
         tlsSecret: ""
+        # Whether TLS termination should happen on the pod (true) or externally (false)
+        # When false, TLS termination is handled by an external load balancer or proxy
+        tlsTerminationOnPod: true
 
       turn:
         enabled: false

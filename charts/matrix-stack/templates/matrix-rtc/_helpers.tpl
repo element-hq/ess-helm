@@ -12,10 +12,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- if not .ingress.host -}}
 {{ $messages = append $messages "matrixRTC.ingress.host is required when matrixRTC.enabled=true" }}
 {{- end }}
-{{- if and .sfu.exposedServices.turnTLS.enabled (not .sfu.exposedServices.turnTLS.tlsSecret) (not $root.Values.certManager) -}}
-{{ $messages = append $messages "matrixRTC.sfu.exposedServices.turnTLS.enabled requires matrixRTC.sfu.exposedServices.turnTLS.tlsSecret set or certManager enabled" }}
+{{- if and .sfu.exposedServices.turnTLS.enabled .sfu.exposedServices.turnTLS.tlsTerminationOnPod (not .sfu.exposedServices.turnTLS.tlsSecret) (not $root.Values.certManager) -}}
+{{ $messages = append $messages "matrixRTC.sfu.exposedServices.turnTLS.enabled with tlsTerminationOnPod=true requires either .sfu.exposedServices.turnTLS.tlsSecret or certManager to be configured." }}
 {{- end }}
-{{- if and .sfu.exposedServices.turnTLS.enabled (not .sfu.exposedServices.turnTLS.tlsSecret) (not ($root.Capabilities.APIVersions.Has "cert-manager.io/v1/Certificate")) ($root.Values.certManager) -}}
+{{- if and .sfu.exposedServices.turnTLS.enabled .sfu.exposedServices.turnTLS.tlsTerminationOnPod (not .sfu.exposedServices.turnTLS.tlsSecret) (not ($root.Capabilities.APIVersions.Has "cert-manager.io/v1/Certificate")) ($root.Values.certManager) -}}
 {{ $messages = append $messages "matrixRTC.sfu.exposedServices.turnTLS.enabled does not configure .sfu.exposedServices.turnTLS.tlsSecret. The chart has certManager enabled but the `cert-manager.io/v1/Certificate` API could not be found." }}
 {{- end }}
 {{ $messages | toJson }}
