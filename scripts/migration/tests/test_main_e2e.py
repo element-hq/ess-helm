@@ -17,11 +17,11 @@ import yaml
 from .. import __main__
 
 
-def test_main_e2e_synapse_only(tmp_path, basic_synapse_config, write_synapse_config):
+def test_main_e2e_synapse_only(tmp_path, synapse_config_with_signing_key, write_synapse_config):
     """Test the complete end-to-end migration workflow with Synapse only."""
 
     # Write Synapse config
-    synapse_config_file = write_synapse_config(basic_synapse_config)
+    synapse_config_file = write_synapse_config(synapse_config_with_signing_key)
 
     # Create output directory
     output_dir = tmp_path / "output"
@@ -68,3 +68,24 @@ def test_main_e2e_synapse_only(tmp_path, basic_synapse_config, write_synapse_con
     assert postgres_config["user"] == "synapse"
     assert postgres_config["host"] == "postgres"
     assert postgres_config["port"] == 5432
+
+    # Verify secrets were handled (using credential schema)
+    for secret in ["macaroon", "registrationSharedSecret", "signingKey"]:
+        assert secret in synapse_config
+        assert "secret" in synapse_config[secret]
+        assert "secretKey" in synapse_config[secret]
+
+    # Check for Secret files (should be created for discovered secrets)
+    secret_files = list(output_dir.glob("*secret.yaml"))
+    # Should have at least one secret file for the discovered secrets
+    assert len(secret_files) > 0, "Secret files should be created for discovered secrets"
+
+    # Verify the secret file content
+    for secret_file in secret_files:
+        with open(secret_file) as f:
+            secret_content = yaml.safe_load(f)
+            assert secret_content["apiVersion"] == "v1"
+            assert secret_content["kind"] == "Secret"
+            assert "metadata" in secret_content
+            assert "name" in secret_content["metadata"]
+            assert "data" in secret_content

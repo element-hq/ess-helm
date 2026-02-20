@@ -19,13 +19,10 @@ def basic_synapse_config():
         "server_name": "test.example.com",
         "public_baseurl": "https://matrix.example.com",
         "database": {
-            "args": {
-                "database": "synapse",
-                "user": "synapse",
-                "host": "postgres",
-                "port": 5432,
-            }
+            "args": {"database": "synapse", "user": "synapse", "host": "postgres", "port": 5432, "password": "test"}
         },
+        "macaroon_secret_key": "test_macaroon_secret",
+        "registration_shared_secret": "test_registration_secret",
     }
 
 
@@ -40,3 +37,17 @@ def write_synapse_config(tmp_path):
         return synapse_config_file
 
     return _write_config
+
+
+@pytest.fixture
+def synapse_config_with_signing_key(tmp_path, basic_synapse_config):
+    """Synapse configuration with a signing key file."""
+    # Create signing key file
+    signing_key_file = tmp_path / "signing.key"
+    signing_key_file.write_text("test_signing_key_content")
+
+    # Add signing key to config
+    config = basic_synapse_config.copy()
+    config["signing_key_path"] = str(signing_key_file)
+
+    return config

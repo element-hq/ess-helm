@@ -13,7 +13,8 @@ from typing import Any
 
 from .inputs import InputProcessor
 from .migration import MigrationService
-from .synapse import SynapseMigration
+from .models import DiscoveredSecret, Secret
+from .synapse import SynapseMigration, SynapseSecretDiscovery
 
 logger = logging.getLogger("migration")
 
@@ -23,18 +24,24 @@ class MigrationEngine:
     """Core migration engine that handles the conversion process."""
 
     input_processor: InputProcessor = field(init=True)
+    pretty_logger: logging.Logger = field(init=True)
     ess_config: dict[str, Any] = field(default_factory=dict)
+    secrets: list[Secret] = field(default_factory=list)
     override_warnings: list[str] = field(default_factory=list)
+    discovered_secrets: list[DiscoveredSecret] = field(default_factory=list)
     migrators: list[MigrationService] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         """Initialize the migration engine."""
-        for migration in [SynapseMigration()]:
+        for migration, secret_discovery_strategy in [(SynapseMigration(), SynapseSecretDiscovery())]:
             self.migrators.append(
                 MigrationService(
                     input=self.input_processor.input_for_component(migration.component_root_key),
                     ess_config=self.ess_config,
+                    pretty_logger=self.pretty_logger,
                     migration=migration,
+                    secrets=self.secrets,
+                    secret_discovery_strategy=secret_discovery_strategy,
                 )
             )
 
@@ -53,6 +60,7 @@ class MigrationEngine:
 
             # Collect override warnings
             self.override_warnings.extend(migrator.override_warnings)
+            self.discovered_secrets.extend(migrator.discovered_secrets)
 
         logger.info("Migration process completed successfully")
         return self.ess_config

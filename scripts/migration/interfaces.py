@@ -9,6 +9,8 @@ Interfaces for the migration system.
 
 from typing import Any, Protocol, runtime_checkable
 
+from .models import SecretConfig
+
 
 @runtime_checkable
 class MigrationStrategy(Protocol):
@@ -27,4 +29,19 @@ class MigrationStrategy(Protocol):
     @property
     def transformations(self) -> list[Any]:
         """Get component-specific transformations."""
+        ...
+
+
+@runtime_checkable
+class SecretDiscoveryStrategy(Protocol):
+    """Minimal interface for secret discovery strategies."""
+
+    @property
+    def ess_secret_schema(self) -> dict[str, SecretConfig]:
+        """Get the ESS secret schema for this component."""
+        ...
+
+    @property
+    def component_name(self) -> str:
+        """Get the component name for user-facing messages."""
         ...
