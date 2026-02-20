@@ -11,6 +11,8 @@ from dataclasses import dataclass
 from typing import Any
 
 from .migration import MigrationStrategy, TransformationSpec
+from .models import SecretConfig
+from .secrets import SecretDiscoveryStrategy
 from .utils import extract_hostname_from_url
 
 
@@ -85,3 +87,43 @@ class SynapseMigration(MigrationStrategy):
     @property
     def component_config_extras(self) -> dict[str, Any]:
         return {"enabled": True}
+
+
+class SynapseSecretDiscovery(SecretDiscoveryStrategy):
+    """Synapse-specific secret discovery implementation."""
+
+    @property
+    def ess_secret_schema(self) -> dict[str, SecretConfig]:
+        """Get the ESS secret schema for Synapse."""
+        return {
+            # Synapse secrets
+            "synapse.postgres.password": SecretConfig(
+                init_if_missing_from_source_cfg=False,  # Must be provided
+                description="Synapse database password",
+                config_inline="database.args.password",
+                config_path=None,
+            ),
+            "synapse.macaroon": SecretConfig(
+                init_if_missing_from_source_cfg=False,  # This would break user tokens if changing after migrating
+                description="Synapse macaroon secret",
+                config_inline="macaroon_secret_key",
+                config_path="macaroon_secret_key_path",
+            ),
+            "synapse.registrationSharedSecret": SecretConfig(
+                init_if_missing_from_source_cfg=True,  # Would break external scripts
+                # if changing after migrating. Just warn about it, dont break.
+                description="Registration shared secret",
+                config_inline="registration_shared_secret",
+                config_path="registration_shared_secret_path",
+            ),
+            "synapse.signingKey": SecretConfig(
+                init_if_missing_from_source_cfg=False,  # This would break federation if changing after migrating
+                description="Signing key",
+                config_inline="signing_key",
+                config_path="signing_key_path",
+            ),
+        }
+
+    @property
+    def component_name(self) -> str:
+        return "Synapse"

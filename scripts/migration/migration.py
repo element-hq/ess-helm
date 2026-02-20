@@ -7,13 +7,15 @@
 Migration service.
 """
 
+import base64
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
 from .interfaces import MigrationStrategy
-from .models import MigrationInput
+from .models import DiscoveredSecret, MigrationInput, Secret
+from .secrets import SecretDiscovery, SecretDiscoveryStrategy
 from .utils import (
     get_nested_value,
     remove_nested_value,
@@ -150,6 +152,70 @@ class ConfigValueTransformer:
                 "00-imported.yaml": {"config": yaml_dump_with_pipe_for_multiline(filtered_config)}
             }
 
+    def handle_secrets(
+        self,
+        config: dict[str, Any],
+        secret_discovery: SecretDiscovery,
+        component_root_key: str,
+        secrets_list: list[Secret],
+    ) -> None:
+        """
+        Handle secrets for component using SecretDiscovery.
+
+        Args:
+            config: Configuration to analyze for secrets
+            secret_service: SecretDiscoveryService instance
+            component_root_key: Name of the component (synapse or mas)
+            secrets_list: List to append created secrets to
+
+        Returns:
+            ESS configuration dictionary with credential schema
+        """
+        # Skip if secret_service is None or no secrets discovered
+        if secret_discovery is None or not secret_discovery.discovered_secrets:
+            return
+
+        # Create a Kubernetes Secret containing all discovered secrets
+        # Convert component_root_key to kebab-case for the secret name
+        # Replace camelCase with kebab-case (e.g., "matrixAuthenticationService" -> "matrix-authentication-service")
+        kebab_case_name = component_root_key
+        # Insert hyphens before uppercase letters and convert to lowercase
+        kebab_case_name = "".join(["-" + c.lower() if c.isupper() else c for c in kebab_case_name]).lstrip("-")
+
+        secret_name = f"imported-{kebab_case_name}"
+        secret_data = {}
+
+        for secret_key, discover_secret in secret_discovery.discovered_secrets.items():
+            # Base64 encode the secret value for Kubernetes Secret
+            encoded_value = base64.b64encode(discover_secret.value.encode("utf-8")).decode("utf-8")
+            secret_data[secret_key] = encoded_value
+
+        secret = Secret(name=secret_name, data=secret_data)
+        secrets_list.append(secret)
+        logging.info(
+            f"Created Kubernetes Secret with {len(secret_discovery.discovered_secrets)}"
+            f" secrets for {component_root_key}"
+        )
+
+        # Update ESS values to use credential schema instead of direct values
+        # Use the ess_secret_schema to map secret keys to ESS configuration paths
+        for secret_key, discover_secret in secret_discovery.discovered_secrets.items():
+            # Convert secret key to credential schema format
+            # Example: secret -> {"secret": "imported-synapse", "secretKey": "synapse.postgres.password"}
+            credential_config = {"secret": secret.name, "secretKey": secret_key}
+
+            # Get the secret configuration from the schema
+            secret_config = secret_discovery.strategy.ess_secret_schema.get(secret_key)
+            if secret_config is None:
+                raise RuntimeError(f"No ESS configuration mapping found for secret key: {secret_key}")
+
+            # Set the credential config in the ESS config under the component section
+            set_nested_value(self.ess_config, discover_secret.secret_key, credential_config)
+
+            # Track the config value that is being passed to ESS
+            # We need to track the original config path so it gets filtered out later
+            self.tracked_values.append(discover_secret.config_key)
+
 
 class MigrationError(Exception):
     """Base exception for migration-related errors."""
@@ -162,9 +228,13 @@ class MigrationService:
     """Migration service."""
 
     input: MigrationInput = field(init=True)  # Migration input data
+    pretty_logger: logging.Logger = field(init=True)  # Pretty logger
     ess_config: dict[str, Any] = field(init=True)  # Target ESS configuration
     migration: MigrationStrategy = field(init=True)  # Migration strategy
+    secret_discovery_strategy: SecretDiscoveryStrategy = field(init=True)  # Secret discovery service
     override_warnings: list[str] = field(default_factory=list)  # Warnings about overridden configurations
+    discovered_secrets: list[DiscoveredSecret] = field(default_factory=list)  # List of discovered secrets
+    secrets: list[Secret] = field(default_factory=list)  # List of created Secrets
     override_configs: set[str] = field(default_factory=set)  # Set of configurations that are managed by ESS
     component_root_key: str = field(init=False)  # Root key for the component (e.g., 'synapse')
     config_to_ess_transformer: ConfigValueTransformer = field(default_factory=ConfigValueTransformer)  # Config
@@ -224,14 +294,34 @@ class MigrationService:
         2. Check for override configurations
         3. Add filtered additional configurations
         """
-        # Step 1: Enable component
+        # Step 1: Discover secrets
+        secret_discovery = SecretDiscovery(
+            strategy=self.secret_discovery_strategy,
+            source_file=self.input.config_path,
+            pretty_logger=self.pretty_logger,
+        )
+        secret_discovery.discover_secrets(self.input.config)
+        # Prompt for missing secrets then validate
+        secret_discovery.prompt_for_missing_secrets()
+        secret_discovery.validate_required_secrets()
+
+        # Step 2: Enable component
         self.ess_config.setdefault(self.component_root_key, {})["enabled"] = True
 
-        # Step 2: Apply component transformations
+        # Step 3: Apply component transformations
         self.config_to_ess_transformer.transform_from_config(self.input.config, self.migration.transformations)
 
-        # Step 3: Check for override configurations and warn user
+        # Step 4: Handle secrets for the component using the transformer's method
+        # This will update the root ESS config directly and create Kubernetes Secrets
+        self.config_to_ess_transformer.handle_secrets(
+            self.input.config,
+            secret_discovery,
+            self.component_root_key,
+            self.secrets,
+        )
+
+        # Step 5: Check for override configurations and warn user
         self._check_overrides(self.input.config)
 
-        # Step 4: Add filtered additional configurations (not from transformation)
+        # Step 6: Add filtered additional configurations (not from transformation)
         self.config_to_ess_transformer.add_additional_config_to_component(self.component_root_key, self.input.config)

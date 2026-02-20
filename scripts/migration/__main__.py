@@ -141,8 +141,15 @@ Examples:
         logger.setLevel(logging.CRITICAL)
 
     pretty_logger = logging.getLogger("migration:summary")
+    pretty_logger.propagate = False
     pretty_logger.setLevel(logging.CRITICAL if args.quiet else logging.INFO)
-    pretty_logger.addHandler(logging.StreamHandler())
+    pretty_sh = logging.StreamHandler()
+    pretty_sh.setFormatter(
+        logging.Formatter(
+            "%(message)s",
+        )
+    )
+    pretty_logger.addHandler(pretty_sh)
 
     # Set up progress reporter
     reporter = ProgressReporter(pretty_logger=pretty_logger)
@@ -160,7 +167,7 @@ Examples:
 
         # Run migration
         reporter.report_step(MIGRATING_STEP)
-        engine = MigrationEngine(input_processor=input_processor)
+        engine = MigrationEngine(input_processor=input_processor, pretty_logger=pretty_logger)
         ess_values = engine.run_migration()
 
         # Generate outputs
@@ -171,6 +178,7 @@ Examples:
         reporter.report_step(WRITING_OUTPUTS_STEP)
         write_outputs(
             helm_values=helm_values,
+            secrets=engine.secrets,
             output_dir=args.output_dir,
         )
 
@@ -195,6 +203,14 @@ Examples:
             for source_path, (source_file, target_path) in sorted(migration_mapping.items()):
                 pretty_logger.info(f"   • {source_file}: {source_path} → {target_path}")
             pretty_logger.info("")
+
+        if engine.discovered_secrets:
+            pretty_logger.info("🔐 MIGRATED SECRETS:")
+            for discovered_secret in engine.discovered_secrets:
+                pretty_logger.info(
+                    f"   • {discovered_secret.source_file}: {discovered_secret.config_key} → "
+                    f"{discovered_secret.secret_key}\n"
+                )
 
         # Show override warnings within the migration summary
         if engine.override_warnings:

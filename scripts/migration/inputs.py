@@ -39,7 +39,7 @@ class InputProcessor:
         for _input in self.inputs:
             if _input.name == component_root_key:
                 return _input
-        raise MigrationError(f"Component {component_root_key} not found in input file")
+        raise MigrationError(f"Component {component_root_key} does not have an migration input service")
 
     @staticmethod
     def load_yaml_file(path: str) -> dict[str, Any]:

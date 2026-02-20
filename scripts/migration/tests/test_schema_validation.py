@@ -40,13 +40,13 @@ def validate_against_schema(data: dict, schema: dict):
         return False, str(e)
 
 
-def test_migration_output_schema_validation(tmp_path, basic_synapse_config, write_synapse_config):
+def test_migration_output_schema_validation(tmp_path, synapse_config_with_signing_key, write_synapse_config):
     """Test that MigrationEngine output validates against the Helm chart schema."""
 
     # Load the Helm chart schema
     schema = load_helm_schema()
 
-    synapse_path = write_synapse_config(basic_synapse_config)
+    synapse_path = write_synapse_config(synapse_config_with_signing_key)
 
     # Load migration input
     input_processor = InputProcessor()
@@ -56,7 +56,7 @@ def test_migration_output_schema_validation(tmp_path, basic_synapse_config, writ
     )
 
     # Create and run migration engine
-    engine = MigrationEngine(input_processor=input_processor)
+    engine = MigrationEngine(input_processor=input_processor, pretty_logger=logging.getLogger())
     ess_values = engine.run_migration()
 
     # Validate the output against the schema
