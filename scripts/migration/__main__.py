@@ -141,8 +141,15 @@ Examples:
         logger.setLevel(logging.CRITICAL)
 
     pretty_logger = logging.getLogger("migration:summary")
+    pretty_logger.propagate = False
     pretty_logger.setLevel(logging.CRITICAL if args.quiet else logging.INFO)
-    pretty_logger.addHandler(logging.StreamHandler())
+    pretty_sh = logging.StreamHandler()
+    pretty_sh.setFormatter(
+        logging.Formatter(
+            "%(message)s",
+        )
+    )
+    pretty_logger.addHandler(pretty_sh)
 
     # Set up progress reporter
     reporter = ProgressReporter(pretty_logger=pretty_logger)
