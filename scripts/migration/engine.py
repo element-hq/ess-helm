@@ -14,7 +14,7 @@ from typing import Any
 from .inputs import InputProcessor
 from .migration import MigrationService
 from .models import DiscoveredSecret, Secret
-from .synapse import SynapseMigration, SynapseSecretDiscovery
+from .synapse import SynapseExtraFileDiscovery, SynapseMigration, SynapseSecretDiscovery
 
 logger = logging.getLogger("migration")
 
@@ -34,7 +34,9 @@ class MigrationEngine:
 
     def __post_init__(self) -> None:
         """Initialize the migration engine."""
-        for migration, secret_discovery_strategy in [(SynapseMigration(), SynapseSecretDiscovery())]:
+        for migration, secret_discovery_strategy, extra_file_strategy in [
+            (SynapseMigration(), SynapseSecretDiscovery(), SynapseExtraFileDiscovery())
+        ]:
             self.migrators.append(
                 MigrationService(
                     input=self.input_processor.input_for_component(migration.component_root_key),
@@ -43,6 +45,7 @@ class MigrationEngine:
                     migration=migration,
                     secrets=self.secrets,
                     secret_discovery_strategy=secret_discovery_strategy,
+                    extra_files_strategy=extra_file_strategy,
                 )
             )
 

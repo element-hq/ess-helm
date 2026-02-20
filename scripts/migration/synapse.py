@@ -13,9 +13,9 @@ from typing import Any
 
 from rapidfuzz import fuzz, process
 
+from .interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
 from .migration import MigrationStrategy, TransformationSpec
 from .models import MigrationError, SecretConfig
-from .secrets import SecretDiscoveryStrategy
 from .utils import extract_hostname_from_url
 
 logger = logging.getLogger("migration")
@@ -226,3 +226,22 @@ class SynapseSecretDiscovery(SecretDiscoveryStrategy):
     @property
     def component_name(self) -> str:
         return "Synapse"
+
+
+class SynapseExtraFileDiscovery(ExtraFilesDiscoveryStrategy):
+    @property
+    def component_name(self) -> str:
+        return "Synapse"
+
+    @property
+    def ignored_config_keys(self) -> list[str]:
+        return [
+            "media_store_path",  # Synapse media store path should be ignored
+            "log_config",  # Log configuration is handled by the chart
+        ]
+
+    @property
+    def ignored_file_paths(self) -> list[str]:
+        """Files paths to ignore when discovering extra files."""
+        ...
+        return []

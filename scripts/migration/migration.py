@@ -11,11 +11,13 @@ import base64
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
-from .interfaces import MigrationStrategy
-from .models import DiscoveredSecret, MigrationInput, Secret
-from .secrets import SecretDiscovery, SecretDiscoveryStrategy
+from .extra_files import ExtraFilesDiscovery
+from .interfaces import ExtraFilesDiscoveryStrategy, MigrationStrategy, SecretDiscoveryStrategy
+from .models import ConfigMap, DiscoveredExtraFile, DiscoveredSecret, MigrationInput, Secret
+from .secrets import SecretDiscovery
 from .utils import (
     get_nested_value,
     remove_nested_value,
@@ -231,11 +233,14 @@ class MigrationService:
     pretty_logger: logging.Logger = field(init=True)  # Pretty logger
     ess_config: dict[str, Any] = field(init=True)  # Target ESS configuration
     migration: MigrationStrategy = field(init=True)  # Migration strategy
+    extra_files_strategy: ExtraFilesDiscoveryStrategy = field(init=True)  # Extra files discovery service
     secret_discovery_strategy: SecretDiscoveryStrategy = field(init=True)  # Secret discovery service
     override_warnings: list[str] = field(default_factory=list)  # Warnings about overridden configurations
     init_by_ess_secrets: list[str] = field(default_factory=list)  # List of secrets that will be initialized by ESS
     discovered_secrets: list[DiscoveredSecret] = field(default_factory=list)  # List of discovered secrets
+    discovered_extra_files: list[DiscoveredExtraFile] = field(default_factory=list)  # List of discovered secrets
     secrets: list[Secret] = field(default_factory=list)  # List of created Secrets
+    configmaps: list[ConfigMap] = field(default_factory=list)  # List of created ConfigMaps
     override_configs: set[str] = field(default_factory=set)  # Set of configurations that are managed by ESS
     component_root_key: str = field(init=False)  # Root key for the component (e.g., 'synapse')
     config_to_ess_transformer: ConfigValueTransformer = field(default_factory=ConfigValueTransformer)  # Config
@@ -286,6 +291,57 @@ class MigrationService:
             for warning in override_warnings:
                 logger.warning(warning)
 
+    def _update_config_with_mounted_file_paths(self, config: dict[str, Any]) -> None:
+        """
+        Update configuration to point to mounted file paths instead of original file paths.
+        Uses the tracked reference paths to update only the exact locations where files were referenced.
+
+        Args:
+            config: Configuration dictionary to update
+        """
+        if not self.discovered_extra_files:
+            return
+
+        # Get the base mount path for the component
+        base_mount_path = getattr(self.migration, "configmap_mount_path", f"/etc/{self.component_root_key}/extra")
+
+        for extra_file in self.discovered_extra_files:
+            # Get the original value for logging (we know it exists since we just parsed it)
+            original_value = get_nested_value(config, extra_file.discovered_source_path.config_key)
+            original_name = extra_file.discovered_source_path.source_path.name
+            mounted_path = f"{base_mount_path}/{original_name}"
+            set_nested_value(config, extra_file.discovered_source_path.config_key, mounted_path)
+            logging.info(
+                f"Updated config: {extra_file.discovered_source_path.config_key} = {original_value} -> {mounted_path}"
+            )
+
+    def _create_configmap_from_files(self, f, component_name: str) -> ConfigMap:
+        """
+        Create a single ConfigMap containing all extra files for a component.
+
+        Args:
+            file_paths: List of file paths to include in the ConfigMap
+            component_name: Name of the component (synapse or mas)
+
+        Returns:
+            ConfigMap object containing all files
+        """
+        configmap_data = {}
+
+        for extra_file in self.discovered_extra_files:
+            if extra_file.cleartext:
+                # Use the file name as the key in the ConfigMap
+                file_name = Path(extra_file.discovered_source_path.source_path).name
+                configmap_data[file_name] = extra_file.content.decode("utf-8")
+
+        # Create a single ConfigMap name for the component
+        configmap_name = f"{component_name}-extra-files"
+
+        return ConfigMap(
+            name=configmap_name,
+            data=configmap_data,
+        )
+
     def migrate(self) -> None:
         """
         Perform migration using the injected strategy.
@@ -309,13 +365,28 @@ class MigrationService:
         self.discovered_secrets = list(secret_discovery.discovered_secrets.values())
         self.init_by_ess_secrets = secret_discovery.init_by_ess_secrets
 
-        # Step 2: Enable component
+        # Step 2: Discover extra files
+        extra_files_discovery = ExtraFilesDiscovery(
+            source_file=self.input.config_path,
+            strategy=self.extra_files_strategy,
+            secrets_strategy=self.secret_discovery_strategy,
+            pretty_logger=self.pretty_logger,
+        )
+        extra_files_discovery.discover_extra_files_from_config(self.input.config)
+        # Prompt for missing files then validate
+        extra_files_discovery.prompt_for_missing_files()
+        extra_files_discovery.validate_extra_files()
+
+        self.discovered_file_paths = extra_files_discovery.discovered_file_paths
+        self.missing_file_paths = extra_files_discovery.missing_file_paths
+
+        # Step 3: Enable component
         self.ess_config.setdefault(self.component_root_key, {})["enabled"] = True
 
-        # Step 3: Apply component transformations
+        # Step 4: Apply component transformations
         self.config_to_ess_transformer.transform_from_config(self.input.config, self.migration.transformations)
 
-        # Step 4: Handle secrets for the component using the transformer's method
+        # Step 5: Handle secrets for the component using the transformer's method
         # This will update the root ESS config directly and create Kubernetes Secrets
         self.config_to_ess_transformer.handle_secrets(
             secret_discovery,
@@ -323,8 +394,8 @@ class MigrationService:
             self.secrets,
         )
 
-        # Step 5: Check for override configurations and warn user
+        # Step 6: Check for override configurations and warn user
         self._check_overrides(self.input.config)
 
-        # Step 6: Add filtered additional configurations (not from transformation)
+        # Step 7: Add filtered additional configurations (not from transformation)
         self.config_to_ess_transformer.add_additional_config_to_component(self.component_root_key, self.input.config)
