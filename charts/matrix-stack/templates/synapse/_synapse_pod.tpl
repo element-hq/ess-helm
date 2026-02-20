@@ -38,9 +38,6 @@ template:
       {{- toYaml . | nindent 6 }}
 {{- end }}
   spec:
-{{- if $isHook }}
-    restartPolicy: Never
-{{- end }}
 {{- include "element-io.ess-library.pods.commonSpec"
             (dict "root" $root "context"
                                     (dict "componentValues" .

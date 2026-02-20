@@ -73,7 +73,6 @@ spec:
 {{- range .extraVolumeMounts }}
         - {{ (. | toYaml) | nindent 10 }}
 {{- end }}
-      restartPolicy: Always
       volumes:
       - configMap:
           name: "{{ $.Release.Name }}-redis"

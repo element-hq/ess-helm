@@ -72,7 +72,6 @@ spec:
 {{- range .extraVolumeMounts }}
         - {{ (. | toYaml) | nindent 10 }}
 {{- end }}
-      restartPolicy: Always
       volumes:
       - emptyDir:
           medium: Memory

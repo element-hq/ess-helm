@@ -90,7 +90,6 @@ spec:
 {{- range .extraVolumeMounts }}
         - {{ (. | toYaml) | nindent 10 }}
 {{- end }}
-      restartPolicy: Always
       volumes:
       - configMap:
           defaultMode: 420
