@@ -266,12 +266,17 @@ async def chart_from_ci_cache(helm_client: pyhelm3.Client, chart_ref: str) -> As
         helm_cache.mkdir(parents=True, exist_ok=True)
         chart_name = chart_ref.split("/")[-1]
         cached_ref = helm_cache / chart_name
-        if cached_ref.exists():
-            yield await helm_client.get_chart(cached_ref)
-        else:
+        try:
+            # Always try to fetch the remote chart first
             async with helm_client.pull_chart(chart_ref) as chart:
                 # pull_chart returns a Chart object, not a Path, type annotation is wrong
                 chart.ref.copy(cached_ref)  # type: ignore
                 yield chart  # type: ignore
+        except Exception:
+            # Fall back to cache if remote fetch fails
+            if cached_ref.exists():
+                yield await helm_client.get_chart(cached_ref)
+            else:
+                raise  # Re-raise if neither remote nor cache is available
     else:
         yield await helm_client.get_chart(chart_ref)
