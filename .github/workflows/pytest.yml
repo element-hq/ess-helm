@@ -72,6 +72,19 @@ jobs:
       run: |
         echo "$(poetry env info -p)/bin" >> "${GITHUB_PATH}"
 
+    - name: Get current week number
+      id: week
+      run: echo "week=$(date +%Y%U)" | tee -a "$GITHUB_OUTPUT"
+
+    - name: Restore pyhelm cache
+      id: cache-pyhelm
+      uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5
+      with:
+        path: .pyhelm_cache
+        key: pyhelm-integration-cache-${{ hashFiles('tests/integration/fixtures/cluster.py') }}-week-${{ steps.week.outputs.week }}
+        restore-keys: |
+          pyhelm-integration-cache-
+
     - name: Login to Dockerhub
       uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9  # v3
       if: ${{ github.event.pull_request.head.repo.full_name == 'element-hq/ess-helm' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
@@ -123,6 +136,13 @@ jobs:
         PYTEST_KEEP_CLUSTER=1 poetry run pytest -vv tests/integration
       # syn2mas is a special case that cannot run twice by design
       if: ${{ matrix.test-component != 'matrix-authentication-service-syn2mas' }}
+
+    - name: Save pyhelm cache
+      if: always() && steps.cache-pyhelm.outputs.cache-hit != 'true'
+      uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5
+      with:
+        key: pyhelm-integration-cache-${{ hashFiles('tests/integration/fixtures/cluster.py') }}-week-${{ steps.week.outputs.week }}
+        path: .pyhelm_cache
 
     - name: Export logs
       if: ${{ failure() }}
