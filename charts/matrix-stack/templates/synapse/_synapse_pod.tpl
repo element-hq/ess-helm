@@ -61,7 +61,7 @@ We have an init container to render & merge the config for several reasons:
 */}}
     initContainers:
 {{- /* Add hookshot registration rendering init container if dynamic registration is used */}}
-{{- if and $root.Values.hookshot.enabled (not $root.Values.hookshot.appserviceRegistration) (not $isHook) }}
+{{- if and $root.Values.hookshot.enabled (not $root.Values.hookshot.appserviceRegistration) }}
 {{- include "element-io.ess-library.render-registration-container" (dict "root" $root "context" (dict
     "nameSuffix" "hookshot"
     "containerName" "render-hookshot-registration"
@@ -183,9 +183,6 @@ We have an init container to render & merge the config for several reasons:
 {{- end }}
 {{- /* Add hookshot registration rendering volume mounts if dynamic registration is used */}}
 {{- if and $root.Values.hookshot.enabled (not $root.Values.hookshot.appserviceRegistration) }}
-      - name: plain-config
-        mountPath: /config-templates
-        readOnly: true
       - name: rendered-registration
         mountPath: /as/hookshot/registration.yaml
         subPath: registration.yaml
@@ -208,7 +205,7 @@ We have an init container to render & merge the config for several reasons:
                   "isHook" $isHook)) | nindent 4 }}
 {{- if and $root.Values.hookshot.enabled (not $root.Values.hookshot.appserviceRegistration)  }}
     {{- /* Add registration volumes for dynamic hookshot registration */}}
-    {{- include "element-io.ess-library.render-registration-volumes" (dict "root" $root "context" (dict "nameSuffix" "hookshot" )) | nindent 4 }}
+    {{- include "element-io.ess-library.render-registration-volumes" (dict "root" $root "context" (dict "nameSuffix" "hookshot" "isHook" $isHook)) | nindent 4 }}
 {{- end }}
 {{- range .extraVolumes }}
 {{- if or (and $isHook ((list "hook" "both") | has (.mountContext | default "both")))

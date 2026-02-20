@@ -26,22 +26,24 @@ SPDX-License-Identifier: AGPL-3.0-only
   - -output
   - /conf/{{ $outputFile }}
   - /config-templates/{{ $registrationTemplate }}
-  {{ include "element-io.ess-library.pods.env" (dict "root" $root "context" (dict "componentValues" . "componentName" $nameSuffix "overrideEnvSuffix" "renderRegistrationOverrideEnv")) | nindent 2 }}
+  {{ include "element-io.ess-library.pods.env" (dict "root" $root "context" (dict "componentValues" . "componentName" $nameSuffix
+                                                    "overrideEnvSuffix" "renderRegistrationOverrideEnv" "isHook" $isHook)) | nindent 2 }}
 {{- with .resources }}
   resources:
     {{- toYaml . | nindent 4 }}
 {{- end }}
   volumeMounts:
-{{- range $secret := include (printf "element-io.%s.registrationConfigSecrets" $nameSuffix) (dict "root" $root) | fromJsonArray }}
+{{- range $secret := include (printf "element-io.%s.registrationConfigSecrets" $nameSuffix) (dict "root" $root "context" .) | fromJsonArray }}
 {{- with (tpl $secret $root) }}
   - mountPath: /secrets/{{ . }}
     name: "secret-{{ . | sha256sum | trunc 12 }}"
     readOnly: true
 {{- end }}
 {{- end }}
-  - mountPath: /config-templates
+  - mountPath: /config-templates/{{ $registrationTemplate }}
     name: {{ $templatesVolume }}
     readOnly: true
+    subPath: "{{ $registrationTemplate }}"
   - mountPath: /conf
     name: rendered-registration
     readOnly: false

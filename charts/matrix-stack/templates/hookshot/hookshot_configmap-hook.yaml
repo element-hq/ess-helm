@@ -5,12 +5,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 
 {{- with $.Values.hookshot -}}
-{{- if .enabled -}}
+{{- if and .enabled $.Values.synapse.enabled $.Values.synapse.checkConfigHook.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "element-io.hookshot.configmap-name" (dict "root" $ "context"  (dict "isHook" false)) }}
+  name: {{ include "element-io.hookshot.configmap-name" (dict "root" $ "context"  (dict "isHook" true)) }}
   namespace: {{ $.Release.Namespace }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-1"
   labels:
     {{- include "element-io.hookshot.labels" (dict "root" $ "context" .) | nindent 4 }}
 data:

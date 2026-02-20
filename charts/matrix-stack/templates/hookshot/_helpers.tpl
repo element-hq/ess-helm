@@ -36,7 +36,12 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- define "element-io.hookshot.configmap-name" -}}
 {{- $root := .root -}}
 {{- with required "element-io.hookshot.configmap-name requires context" .context -}}
+{{- $isHook := .isHook -}}
+{{- if $isHook -}}
+{{ $root.Release.Name }}-hookshot-pre
+{{- else -}}
 {{ $root.Release.Name }}-hookshot
+{{- end -}}
 {{- end -}}
 {{- end }}
 
@@ -44,44 +49,49 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- define "element-io.hookshot.secret-name" -}}
 {{- $root := .root -}}
 {{- with required "element-io.hookshot.secret-name requires context" .context -}}
+{{- $isHook := .isHook -}}
+{{- if $isHook -}}
+{{ $root.Release.Name }}-hookshot-pre
+{{- else -}}
 {{ $root.Release.Name }}-hookshot
 {{- end -}}
-{{- end }}
+{{- end -}}
+{{- end -}}
 
 
 {{- define "element-io.hookshot.configSecrets" -}}
 {{- $root := .root -}}
 {{- with required "element-io.hookshot.configSecrets missing context" .context -}}
-{{ $configSecrets := list (printf "%s-hookshot" $root.Release.Name) }}
-{{ $configSecrets := concat $configSecrets (include "element-io.hookshot.registrationConfigSecrets" (dict "root" $root) | fromJsonArray) }}
+{{ $configSecrets := list (include "element-io.hookshot.secret-name" (dict "root" $root "context"  (dict "isHook" false))) }}
+{{ $configSecrets := concat $configSecrets (include "element-io.hookshot.registrationConfigSecrets" (dict "root" $root "context" .) | fromJsonArray) }}
 {{- if and $root.Values.initSecrets.enabled (include "element-io.init-secrets.generated-secrets" (dict "root" $root)) }}
 {{ $configSecrets = append $configSecrets (printf "%s-generated" $root.Release.Name) }}
 {{- end }}
 {{- with $root.Values.hookshot }}
   {{- with .appserviceRegistration -}}
     {{- if .value -}}
-      {{- $configSecrets = append $configSecrets (printf "%s-hookshot" $root.Release.Name) -}}
+      {{- $configSecrets = append $configSecrets (include "element-io.hookshot.secret-name" (dict "root" $root "context"  (dict "isHook" false))) -}}
     {{- else -}}
       {{- $configSecrets = append $configSecrets (tpl .secret $root) -}}
     {{- end -}}
   {{- end -}}
   {{- with .asToken -}}
     {{- if .value -}}
-      {{- $configSecrets = append $configSecrets (printf "%s-hookshot" $root.Release.Name) -}}
+      {{- $configSecrets = append $configSecrets (include "element-io.hookshot.secret-name" (dict "root" $root "context"  (dict "isHook" false))) -}}
     {{- else -}}
       {{- $configSecrets = append $configSecrets (tpl .secret $root) -}}
     {{- end -}}
   {{- end -}}
   {{- with .hsToken -}}
     {{- if .value -}}
-      {{- $configSecrets = append $configSecrets (printf "%s-hookshot" $root.Release.Name) -}}
+      {{- $configSecrets = append $configSecrets (include "element-io.hookshot.secret-name" (dict "root" $root "context"  (dict "isHook" false))) -}}
     {{- else -}}
       {{- $configSecrets = append $configSecrets (tpl .secret $root) -}}
     {{- end -}}
   {{- end -}}
   {{- with .passkey -}}
     {{- if .value -}}
-      {{- $configSecrets = append $configSecrets (printf "%s-hookshot" $root.Release.Name) -}}
+      {{- $configSecrets = append $configSecrets (include "element-io.hookshot.secret-name" (dict "root" $root "context"  (dict "isHook" false))) -}}
     {{- else -}}
       {{- $configSecrets = append $configSecrets (tpl .secret $root) -}}
     {{- end -}}
@@ -101,27 +111,30 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 
 {{- define "element-io.hookshot.registrationConfigSecrets" -}}
 {{- $root := .root -}}
-{{ $configSecrets := list (printf "%s-hookshot" $root.Release.Name) }}
+{{- with required "element-io.hookshot.registrationConfigSecrets missing context" .context -}}
+{{- $isHook := .isHook -}}
+{{ $configSecrets := list (include "element-io.hookshot.secret-name" (dict "root" $root "context"  (dict "isHook" $isHook))) }}
 {{- if and $root.Values.initSecrets.enabled (include "element-io.init-secrets.generated-secrets" (dict "root" $root)) }}
 {{ $configSecrets = append $configSecrets (printf "%s-generated" $root.Release.Name) }}
 {{- end }}
 {{- with $root.Values.hookshot }}
   {{- with .asToken -}}
     {{- if .value -}}
-      {{- $configSecrets = append $configSecrets (printf "%s-hookshot" $root.Release.Name) -}}
+      {{- $configSecrets = append $configSecrets (include "element-io.hookshot.secret-name" (dict "root" $root "context"  (dict "isHook" $isHook))) -}}
     {{- else -}}
       {{- $configSecrets = append $configSecrets (tpl .secret $root) -}}
     {{- end -}}
   {{- end -}}
   {{- with .hsToken -}}
     {{- if .value -}}
-      {{- $configSecrets = append $configSecrets (printf "%s-hookshot" $root.Release.Name) -}}
+      {{- $configSecrets = append $configSecrets (include "element-io.hookshot.secret-name" (dict "root" $root "context"  (dict "isHook" $isHook))) -}}
     {{- else -}}
       {{- $configSecrets = append $configSecrets (tpl .secret $root) -}}
     {{- end -}}
   {{- end -}}
 {{- end }}
 {{ $configSecrets | uniq | toJson }}
+{{- end }}
 {{- end }}
 
 {{- define "element-io.hookshot.overrideEnv" }}
@@ -138,8 +151,8 @@ env: []
 
 {{- define "element-io.hookshot.renderRegistrationOverrideEnv" -}}
 {{- $root := .root -}}
+{{- with required "element-io.hookshot.renderRegistrationOverrideEnv missing context" .context -}}
 env:
-{{- with $root.Values.hookshot }}
   {{- if not .appserviceRegistration }}
   {{- /* Dynamic registration - provide AS_TOKEN and HS_TOKEN as environment variables */}}
   - name: AS_TOKEN

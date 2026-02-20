@@ -176,8 +176,17 @@ responsibleForMedia
 {{- end }}
 {{- end }}
 {{- end }}
-{{- if and (not $isHook) $root.Values.hookshot.enabled }}
-{{ $configSecrets = concat $configSecrets (include "element-io.hookshot.registrationConfigSecrets" (dict "root" $root) | fromJsonArray) }}
+{{- if and $root.Values.hookshot.enabled }}
+  {{- if $root.Values.hookshot.appserviceRegistration }}
+    {{- with $root.Values.hookshot.appserviceRegistration.value -}}
+    {{- $configSecrets = append $configSecrets (include "element-io.hookshot.secret-name" (dict "root" $root "context" (dict "isHook" $isHook))) -}}
+    {{- end -}}
+    {{- with $root.Values.hookshot.appserviceRegistration.secret }}
+    {{ $configSecrets = append $configSecrets (tpl . $root) }}
+    {{- end }}
+  {{- else }}
+  {{ $configSecrets = concat $configSecrets (include "element-io.hookshot.registrationConfigSecrets" (dict "root" $root "context" (dict "isHook" $isHook)) | fromJsonArray) }}
+  {{- end }}
 {{- end }}
 {{- end }}
 {{ $configSecrets | uniq | toJson }}

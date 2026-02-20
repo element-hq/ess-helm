@@ -127,13 +127,14 @@ timeoutSeconds: {{ . }}
 {{- $root := .root -}}
 {{- with required "element-io.ess-library.pods.env missing context" .context -}}
 {{- $componentValues := required "element-io.ess-library.pods.env missing context.componentValues" .componentValues -}}
+{{- $isHook := .isHook -}}
 {{- $resultEnv := dict -}}
 {{- range $envEntry := $componentValues.extraEnv -}}
 {{- $_ := set $resultEnv $envEntry.name $envEntry -}}
 {{- end -}}
 {{- $componentName := required "element-io.ess-library.pods.env missing context.componentName" .componentName -}}
 {{- $overrideEnvType := .overrideEnvSuffix | default "overrideEnv" -}}
-{{- $overrideEnvDocument := include (printf "element-io.%s.%s" $componentName $overrideEnvType) (dict "root" $root "context" $componentValues) -}}
+{{- $overrideEnvDocument := include (printf "element-io.%s.%s" $componentName $overrideEnvType) (dict "root" $root "context" (mustMergeOverwrite (dict "isHook" $isHook) $componentValues)) -}}
 {{- $overrideEnvYaml := $overrideEnvDocument | fromYaml -}}
 {{- range $envEntry := $overrideEnvYaml.env -}}
 {{- $_ := set $resultEnv $envEntry.name $envEntry -}}
