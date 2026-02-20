@@ -595,10 +595,6 @@ all_components_details = [
             "hookshot": ("/bin/matrix-hookshot/App/BridgeApp.js",),
         },
         additional_values_files=("hookshot-encryption-enabled-values.yaml",),
-        additional_secret_values_files=(
-            "hookshot-static-registration-externally-test-values.yaml",
-            "hookshot-static-registration-in-helm-test-values.yaml",
-        ),
     ),
     ComponentDetails(
         name="matrix-authentication-service",
