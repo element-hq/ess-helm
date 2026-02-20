@@ -178,7 +178,7 @@ spec:
 {{- range .extraVolumeMounts }}
         - {{ (. | toYaml) | nindent 10 }}
 {{- end }}
-{{- if .exposedServices.turnTLS.enabled }}
+{{- if and .exposedServices.turnTLS.enabled .exposedServices.turnTLS.tlsTerminationOnPod }}
         - mountPath: /turn-tls/tls.crt
           name: secret-turn-tls
           subPath: tls.crt
@@ -192,7 +192,7 @@ spec:
 {{- range .extraVolumes }}
       - {{- (tpl (. | toYaml) $) | nindent 8 }}
 {{- end }}
-{{- if .exposedServices.turnTLS.enabled }}
+{{- if and .exposedServices.turnTLS.enabled .exposedServices.turnTLS.tlsTerminationOnPod }}
 {{- if .exposedServices.turnTLS.tlsSecret }}
       - name: secret-turn-tls
         secret:

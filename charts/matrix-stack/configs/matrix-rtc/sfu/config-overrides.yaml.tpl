@@ -67,8 +67,10 @@ turn:
 {{ if .enabled }}
   tls_port: {{ .port }}
   domain: {{ tpl .domain $root }}
+{{- if .tlsTerminationOnPod }}
   cert_file: /turn-tls/tls.crt
   key_file: /turn-tls/tls.key
+{{- end }}
 {{- end }}
 {{- end }}
 {{- with .exposedServices.turn }}

@@ -89,3 +89,136 @@ async def test_udp_range_services_are_sharded(values, make_templates):
     assert_sharded_udp_range_ports(start_port + 250, start_port + 499, services[1])
     assert_sharded_udp_range_ports(start_port + 500, start_port + 749, services[2])
     assert_sharded_udp_range_ports(start_port + 750, start_port + 999, services[3])
+
+
+@pytest.mark.parametrize("values_file", ["matrix-rtc-turn-tls-external-values.yaml"])
+@pytest.mark.asyncio_cooperative
+async def test_turn_tls_external_termination(values, templates):
+    sfu_deployment = None
+    sfu_configmap = None
+    turn_tls_service = None
+
+    for template in templates:
+        if template["kind"] == "Deployment" and "matrix-rtc-sfu" in template["metadata"]["name"]:
+            sfu_deployment = template
+        elif template["kind"] == "ConfigMap" and "matrix-rtc-sfu" in template["metadata"]["name"]:
+            sfu_configmap = template
+        elif template["kind"] == "Service" and "turn-tls" in template["metadata"]["name"]:
+            turn_tls_service = template
+        if sfu_configmap and sfu_deployment and turn_tls_service:
+            break
+
+    assert sfu_deployment is not None, "SFU deployment not found"
+    assert sfu_configmap is not None, "SFU configmap not found"
+    assert turn_tls_service is not None, "TURN TLS service not found"
+
+    # Verify TURN TLS service is created
+    assert turn_tls_service["spec"]["ports"][0]["name"] == "turn-tls-tcp"
+    assert turn_tls_service["spec"]["ports"][0]["port"] == 31002
+
+    # Verify SFU deployment does NOT have turn-tls volume mounts (external termination)
+    containers = sfu_deployment["spec"]["template"]["spec"]["containers"]
+    sfu_container = next((c for c in containers if c["name"] == "sfu"), None)
+    assert sfu_container is not None, "SFU container not found"
+
+    volume_mounts = sfu_container.get("volumeMounts", [])
+    turn_tls_mounts = [vm for vm in volume_mounts if "turn-tls" in vm.get("name", "")]
+    assert len(turn_tls_mounts) == 0, "Found turn-tls volume mounts when they should not exist for external termination"
+
+    config_data = sfu_configmap["data"]["config-overrides.yaml"]
+    config_yaml = yaml.safe_load(config_data)
+
+    assert "turn" in config_yaml, "No turn configuration found"
+    turn_config = config_yaml["turn"]
+    assert turn_config.get("enabled"), "TURN not enabled in config"
+    assert "tls_port" in turn_config, "tls_port not found in turn config"
+    assert "cert_file" not in turn_config, "cert_file should not exist for external termination"
+    assert "key_file" not in turn_config, "key_file should not exist for external termination"
+
+
+@pytest.mark.parametrize("values_file", ["matrix-rtc-turn-tls-external-values.yaml"])
+@pytest.mark.asyncio_cooperative
+async def test_turn_tls_external_termination_with_certmanager(values, make_templates):
+    """Test that TURN TLS works with tlsTerminationOnPod=false even when certManager is enabled."""
+    # Enable certManager in the values
+    values["certManager"] = {"clusterIssuer": "test-issuer"}
+
+    # Find the SFU deployment
+    sfu_deployment = None
+    sfu_configmap = None
+
+    for template in await make_templates(values):
+        if template["kind"] == "Deployment" and "matrix-rtc-sfu" in template["metadata"]["name"]:
+            sfu_deployment = template
+        elif template["kind"] == "ConfigMap" and "matrix-rtc-sfu" in template["metadata"]["name"]:
+            sfu_configmap = template
+        if sfu_configmap and sfu_deployment:
+            break
+
+    assert sfu_deployment is not None, "SFU deployment not found"
+    assert sfu_configmap is not None, "SFU configmap not found"
+
+    # Verify SFU deployment does NOT have turn-tls volume mounts (external termination)
+    containers = sfu_deployment["spec"]["template"]["spec"]["containers"]
+    sfu_container = next((c for c in containers if c["name"] == "sfu"), None)
+    assert sfu_container is not None, "SFU container not found"
+
+    volume_mounts = sfu_container.get("volumeMounts", [])
+    turn_tls_mounts = [vm for vm in volume_mounts if "turn-tls" in vm.get("name", "")]
+    assert len(turn_tls_mounts) == 0, (
+        "Found turn-tls volume mounts when they should not exist for external termination with certManager"
+    )
+
+    config_data = sfu_configmap["data"]["config-overrides.yaml"]
+    config_yaml = yaml.safe_load(config_data)
+
+    assert "turn" in config_yaml, "No turn configuration found"
+    turn_config = config_yaml["turn"]
+    assert turn_config.get("enabled"), "TURN not enabled in config"
+    assert "tls_port" in turn_config, "tls_port not found in turn config"
+    assert "cert_file" not in turn_config, "cert_file should not exist for external termination with certManager"
+    assert "key_file" not in turn_config, "key_file should not exist for external termination with certManager"
+
+
+@pytest.mark.parametrize("values_file", ["matrix-rtc-exposed-services-tls-values.yaml"])
+@pytest.mark.asyncio_cooperative
+async def test_turn_tls_pod_termination_with_secret(values, templates):
+    """Test that TURN TLS works with tlsTerminationOnPod=true (default) and manual secret."""
+
+    # Find the SFU deployment
+    sfu_deployment = None
+    sfu_configmap = None
+
+    for template in templates:
+        if template["kind"] == "Deployment" and "matrix-rtc-sfu" in template["metadata"]["name"]:
+            sfu_deployment = template
+        elif template["kind"] == "ConfigMap" and "matrix-rtc-sfu" in template["metadata"]["name"]:
+            sfu_configmap = template
+        if sfu_configmap and sfu_deployment:
+            break
+
+    assert sfu_deployment is not None, "SFU deployment not found"
+    assert sfu_configmap is not None, "SFU configmap not found"
+
+    # Verify SFU deployment HAS turn-tls volume mounts (pod termination)
+    containers = sfu_deployment["spec"]["template"]["spec"]["containers"]
+    sfu_container = next((c for c in containers if c["name"] == "sfu"), None)
+    assert sfu_container is not None, "SFU container not found"
+
+    volume_mounts = sfu_container.get("volumeMounts", [])
+    turn_tls_mounts = [vm for vm in volume_mounts if "turn-tls" in vm.get("name", "")]
+    assert len(turn_tls_mounts) == 2, (
+        "Expected 2 turn-tls volume mounts (cert and key) for pod termination with manual secret"
+    )
+
+    config_data = sfu_configmap["data"]["config-overrides.yaml"]
+    config_yaml = yaml.safe_load(config_data)
+
+    assert "turn" in config_yaml, "No turn configuration found"
+    turn_config = config_yaml["turn"]
+    assert turn_config.get("enabled"), "TURN not enabled in config"
+    assert "tls_port" in turn_config, "tls_port not found in turn config"
+    assert "cert_file" in turn_config, "cert_file should exist for pod termination with manual secret"
+    assert "key_file" in turn_config, "key_file should exist for pod termination with manual secret"
+    assert turn_config["cert_file"] == "/turn-tls/tls.crt", "cert_file path incorrect"
+    assert turn_config["key_file"] == "/turn-tls/tls.key", "key_file path incorrect"
