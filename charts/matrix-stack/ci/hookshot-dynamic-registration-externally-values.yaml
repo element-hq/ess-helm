@@ -17,7 +17,7 @@ hookshot:
     example-value:
       configSecret: '{{ $.Release.Name }}-hookshot-external'
       configSecretKey: config
-  # Use AS_TOKEN and HS_TOKEN instead of static registration file
+  # Use as_token and hs_token to generate a dynamic instead of static registration file
   asToken:
     secret: '{{ $.Release.Name }}-hookshot-external-as-token'
     secretKey: as_token

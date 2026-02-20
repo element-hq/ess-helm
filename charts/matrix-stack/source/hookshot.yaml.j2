@@ -22,10 +22,10 @@ logging:
 
 {{ sub_schema_values.credential("Hookshot registration file to connect to a remote Synapse instance.", "appserviceRegistration", initIfAbsent=False, commented=True) }}
 
-## AS_TOKEN and HS_TOKEN are used for dynamic registration file generation
+## asToken and hsToken are used for dynamic registration file generation
 ## If appserviceRegistration is not provided, these tokens will be used to generate the registration file dynamically
-{{ sub_schema_values.credential("Hookshot AS_TOKEN for dynamic registration generation.", "asToken", initIfAbsent=True) }}
-{{ sub_schema_values.credential("Hookshot HS_TOKEN for dynamic registration generation.", "hsToken", initIfAbsent=True) }}
+{{ sub_schema_values.credential("Hookshot asToken used for dynamic registration generation.", "asToken", initIfAbsent=True) }}
+{{ sub_schema_values.credential("Hookshot hsToken for dynamic registration generation.", "hsToken", initIfAbsent=True) }}
 
 {{ sub_schema_values.credential("Hookshot passkey used to encrypt stored tokens.", "passkey", initIfAbsent=True) }}
 {{ sub_schema_values.ingress() }}

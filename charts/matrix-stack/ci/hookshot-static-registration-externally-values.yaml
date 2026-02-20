@@ -17,11 +17,11 @@ hookshot:
     example-value:
       configSecret: '{{ $.Release.Name }}-hookshot-external'
       configSecretKey: config
-  # Static registration file provided externally - should ignore AS_TOKEN and HS_TOKEN
+  # Static registration file provided externally by the user instead of the dynamicly generated one by the chart
   appserviceRegistration:
     secret: '{{ $.Release.Name }}-hookshot-external-registration'
     secretKey: registration.yaml
-  # Use AS_TOKEN and HS_TOKEN instead of static registration file
+  # Use as_token and hs_token to generate a dynamic instead of static registration file
   asToken:
     secret: '{{ $.Release.Name }}-hookshot-external-as-token'
     secretKey: as_token

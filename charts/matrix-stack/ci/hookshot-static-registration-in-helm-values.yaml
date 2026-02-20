@@ -17,7 +17,7 @@ hookshot:
     example-value:
       config: |
         example: value
-  # Static registration file provided in Helm values - should ignore AS_TOKEN and HS_TOKEN
+  # Static registration file provided externally by the user instead of the dynamicly generated one by the chart
   appserviceRegistration:
     value: |
       rate_limited: false
@@ -30,7 +30,7 @@ hookshot:
       as_token: "CHANGEME-ushi5ieMaebooJahquaechucha7Owua2"
       url: "http://hookshot:9993"
       sender_localpart: "hookshot"
-  # Use AS_TOKEN and HS_TOKEN instead of static registration file
+  # Use as_token and hs_token to generate a dynamic instead of static registration file
   asToken:
     value: CHANGEME-ushi5ieMaebooJahquaechucha7Owua2
   enabled: true

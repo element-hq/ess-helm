@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 hookshot:
-  # Static registration file provided in Helm values - should ignore AS_TOKEN and HS_TOKEN
+  # Static registration file provided externally by the user instead of the dynamicly generated one by the chart
   appserviceRegistration:
     value: |
       rate_limited: false
