@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2024-2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -12,7 +12,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $serviceAccountNameSuffix := .serviceAccountNameSuffix | default .instanceSuffix -}}
 {{- $usesMatrixTools := .usesMatrixTools | default false -}}
 {{- $mountServiceAccountToken := .mountServiceAccountToken | default false -}}
-{{- $deployment := required "element-io.ess-library.pods.commonSpec missing context.deployment" .deployment -}}
+{{- $kind := required "element-io.ess-library.pods.commonSpec missing context.kind" .kind -}}
+{{- if not (has $kind (list "Deployment" "StatefulSet" "Job")) -}}
+{{- fail (printf "element-io.ess-library.pods.commonSpec for instanceSuffix=%s received unexpected kind=%s" $instanceSuffix $kind) -}}
+{{- end -}}
 {{- with required "element-io.ess-library.pods.commonSpec missing context.componentValues" .componentValues -}}
 automountServiceAccountToken: {{ $mountServiceAccountToken }}
 serviceAccountName: {{ include "element-io.ess-library.serviceAccountName" (dict "root" $root "context" (dict "serviceAccount" .serviceAccount "nameSuffix" $serviceAccountNameSuffix)) }}
@@ -26,7 +29,7 @@ nodeSelector:
   {{- toYaml . | nindent 2 }}
 {{- end }}
 {{- include "element-io.ess-library.pods.tolerations" (dict "root" $root "context" .tolerations) }}
-{{- include "element-io.ess-library.pods.topologySpreadConstraints" (dict "root" $root "context" (dict "instanceSuffix" $instanceSuffix "deployment" $deployment "topologySpreadConstraints" .topologySpreadConstraints)) }}
+{{- include "element-io.ess-library.pods.topologySpreadConstraints" (dict "root" $root "context" (dict "instanceSuffix" $instanceSuffix "deployment" (eq $kind "Deployment") "topologySpreadConstraints" .topologySpreadConstraints)) }}
 {{- end }}
 {{- end }}
 {{- end }}

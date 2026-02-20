@@ -46,7 +46,7 @@ template:
                                     (dict "componentValues" .
                                           "instanceSuffix" ($isHook | ternary "synapse-check-config" (printf "synapse-%s" $processType))
                                           "serviceAccountNameSuffix" ($isHook | ternary "synapse-check-config" "synapse")
-                                          "deployment" false
+                                          "kind" ($isHook | ternary "Job" "StatefulSet")
                                           "usesMatrixTools" true)
                                     ) | nindent 4 }}
 {{- if not $isHook }}

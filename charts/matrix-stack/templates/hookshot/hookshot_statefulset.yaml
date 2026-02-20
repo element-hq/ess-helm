@@ -39,7 +39,7 @@ spec:
 {{- end }}
 {{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" .
                                                                                     "instanceSuffix" "hookshot"
-                                                                                    "deployment" false
+                                                                                    "kind" "StatefulSet"
                                                                                     "usesMatrixTools" true
                                                                                     "mountServiceAccountToken" false)) | nindent 6 }}
       initContainers:
