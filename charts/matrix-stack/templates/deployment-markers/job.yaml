@@ -37,8 +37,7 @@ spec:
       labels:
         {{- include "element-io.deployment-markers.labels" (dict "root" $ "context" (dict "step" $step "labels" .labels "withChartVersion" false)) | nindent 8 }}
     spec:
-      restartPolicy: OnFailure
-{{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" (printf "deployment-markers-%s" $step) "deployment" false "usesMatrixTools" true "mountServiceAccountToken" true)) | nindent 6 }}
+{{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" (printf "deployment-markers-%s" $step) "kind" "Job" "usesMatrixTools" true "mountServiceAccountToken" true)) | nindent 6 }}
 {{- with .extraInitContainers }}
       initContainers:
       {{- toYaml . | nindent 6 }}

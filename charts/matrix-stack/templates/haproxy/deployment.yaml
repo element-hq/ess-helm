@@ -44,7 +44,7 @@ spec:
         {{- toYaml . | nindent 8 }}
 {{- end }}
     spec:
-{{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "haproxy" "deployment" true)) | nindent 6 }}
+{{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "haproxy" "kind" "Deployment")) | nindent 6 }}
 {{- with .extraInitContainers }}
       initContainers:
       {{- toYaml . | nindent 6 }}
