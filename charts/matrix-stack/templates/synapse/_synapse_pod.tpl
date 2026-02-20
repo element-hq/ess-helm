@@ -60,19 +60,7 @@ We have an init container to render & merge the config for several reasons:
 * We could do this all in the main Synapse container but then there's potential confusion between `/config-templates`, `/conf` in the image and `/conf` the `emptyDir`
 */}}
     initContainers:
-{{- /* Add hookshot registration rendering init container if dynamic registration is used */}}
-{{- if and $root.Values.hookshot.enabled (not $root.Values.hookshot.appserviceRegistration) }}
-{{- include "element-io.ess-library.render-registration-container" (dict "root" $root "context" (dict
-    "nameSuffix" "hookshot"
-    "containerName" "render-hookshot-registration"
-    "isHook" $isHook
-    "extraVolumeMounts" .extraVolumeMounts
-    "templatesVolume" "registration-templates"
-    "outputFile" "registration.yaml"
-    "registrationTemplate" "hookshot-registration.yaml.tpl"
-    "containersSecurityContext" .containersSecurityContext
-  )) | nindent 4 }}
-{{- end }}
+    {{- include "element-io.synapse.render-registrations-container" (dict "root" $root "context" .) | nindent 4 }}
     {{- include "element-io.synapse.render-config-container" (dict "root" $root "context" .) | nindent 4 }}
 {{- if not $isHook }}
     - name: db-wait
@@ -169,6 +157,7 @@ We have an init container to render & merge the config for several reasons:
             (dict "nameSuffix" "synapse"
                   "outputFile" "homeserver.yaml"
                   "isHook" $isHook)) | nindent 6 }}
+      {{- include "element-io.synapse.render-registrations-volumes-mounts" (dict "root" $root) | nindent 6 }}
 {{- range $idx, $appservice := .appservices }}
       - name: as-{{ $idx }}
         readOnly: true
@@ -180,13 +169,6 @@ We have an init container to render & merge the config for several reasons:
         mountPath: "/as/{{ $idx }}/{{ $appservice.secretKey }}"
         subPath: {{ $appservice.secretKey | quote }}
 {{- end -}}
-{{- end }}
-{{- /* Add hookshot registration rendering volume mounts if dynamic registration is used */}}
-{{- if and $root.Values.hookshot.enabled (not $root.Values.hookshot.appserviceRegistration) }}
-      - name: rendered-registration
-        mountPath: /as/hookshot/registration.yaml
-        subPath: registration.yaml
-        readOnly: true
 {{- end }}
       - mountPath: /conf/log_config.yaml
         name: plain-config
@@ -203,10 +185,7 @@ We have an init container to render & merge the config for several reasons:
             (dict "additionalPath" "synapse.additional"
                   "nameSuffix" "synapse"
                   "isHook" $isHook)) | nindent 4 }}
-{{- if and $root.Values.hookshot.enabled (not $root.Values.hookshot.appserviceRegistration)  }}
-    {{- /* Add registration volumes for dynamic hookshot registration */}}
-    {{- include "element-io.ess-library.render-registration-volumes" (dict "root" $root "context" (dict "nameSuffix" "hookshot" "isHook" $isHook)) | nindent 4 }}
-{{- end }}
+    {{- include "element-io.synapse.render-registrations-volumes" (dict "root" $root) | nindent 4 }}
 {{- range .extraVolumes }}
 {{- if or (and $isHook ((list "hook" "both") | has (.mountContext | default "both")))
           (and (not $isHook) ((list "runtime" "both") | has (.mountContext | default "both"))) -}}

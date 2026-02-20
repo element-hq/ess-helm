@@ -292,6 +292,51 @@ ess-version.json: |
 {{- end }}
 
 
+{{- define "element-io.synapse.render-registrations-container" -}}
+{{- $root := .root -}}
+{{- with required "element-io.synapse.render-registrations-container missing context" .context }}
+{{- $isHook := required "element-io.synapse.render-registrations-container context required isHook" .isHook -}}
+{{- /* Add hookshot registration rendering init container if dynamic registration is used */}}
+{{- if and $root.Values.hookshot.enabled (not $root.Values.hookshot.appserviceRegistration) }}
+{{- include "element-io.ess-library.render-registration-container" (dict "root" $root "context" (dict
+    "nameSuffix" "hookshot"
+    "containerName" "render-hookshot-registration"
+    "isHook" $isHook
+    "extraVolumeMounts" .extraVolumeMounts
+    "templatesVolume" "registration-templates"
+    "outputFile" "hookshot-registration.yaml"
+    "registrationTemplate" "hookshot-registration.yaml.tpl"
+    "containersSecurityContext" .containersSecurityContext
+  )) }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{- define "element-io.synapse.render-registrations-volumes-mounts" -}}
+{{- $root := .root -}}
+{{- /* Add hookshot registration rendering volume mounts if dynamic registration is used */}}
+{{- if and $root.Values.hookshot.enabled (not $root.Values.hookshot.appserviceRegistration) }}
+- name: rendered-registration
+  mountPath: /as/hookshot/registration.yaml
+  subPath: hookshot-registration.yaml
+  readOnly: true
+{{- end }}
+{{- end }}
+
+{{- define "element-io.synapse.render-registrations-volumes" -}}
+{{- $root := .root -}}
+{{- if and $root.Values.hookshot.enabled (not $root.Values.hookshot.appserviceRegistration)  }}
+- configMap:
+    defaultMode: 420
+    name: {{ include (printf "element-io.hookshot.configmap-name") (dict "root" $root "context" .) }}
+  name: registration-templates
+- emptyDir:
+    medium: Memory
+  name: "rendered-registration"
+{{- end }}
+{{- end }}
+
+
 {{- define "element-io.synapse.internal-hostport" -}}
 {{- $root := .root -}}
 {{- with required "element-io.synapse.internal-hostport missing context" .context -}}
