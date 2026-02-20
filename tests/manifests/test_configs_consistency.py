@@ -25,10 +25,10 @@ def assert_exists_according_to_hook_weight(template, hook_weight, used_by):
     # We skip any template which hook weight is higher than the current template using it
     if hook_weight is not None:
         assert "helm.sh/hook-weight" in template["metadata"].get("annotations", {}), (
-            f"template {template['metadata']['name']} used by {used_by} has no hook weight"
+            f"template {template_id(template)} used by {used_by} has no hook weight"
         )
         assert int(template["metadata"]["annotations"]["helm.sh/hook-weight"]) < hook_weight, (
-            f"template {template['metadata']['name']} has the same or "
+            f"template {template_id(template)} has the same or "
             f"higher hook weight ({template['metadata']['annotations']['helm.sh/hook-weight']}) "
             f"than the current one used by {used_by} ({hook_weight})"
         )
@@ -555,12 +555,16 @@ class ValidatedContainerConfig(ValidatedConfig):
             if "secret" in current_volume:
                 # Extract the paths where this volume's secrets are mounted
                 secret = get_secret(templates, other_secrets, current_volume["secret"]["secretName"])
-                assert_exists_according_to_hook_weight(secret, weight, validated_config.name)
+                assert_exists_according_to_hook_weight(
+                    secret, weight, f"{validated_config.template_id}/{validated_config.name}"
+                )
                 current_source_of_mount = MountedSecret.from_template(secret, volume_mount)
             elif "configMap" in current_volume:
                 # Parse config map content
                 configmap = get_configmap(templates, other_configmaps, current_volume["configMap"]["name"])
-                assert_exists_according_to_hook_weight(configmap, weight, validated_config.name)
+                assert_exists_according_to_hook_weight(
+                    configmap, weight, f"{validated_config.template_id}/{validated_config.name}"
+                )
                 current_source_of_mount = MountedConfigMap.from_template(configmap, volume_mount)
                 if not is_matrix_tools_command(container_spec, "render-config"):
                     # We only consume ConfigMaps in render-config
