@@ -5,13 +5,12 @@ import logging
 
 import pytest
 
-from ..secrets import SecretsError
+from ..secrets import SecretDiscovery, SecretsError
 from ..synapse import SynapseSecretDiscovery
 
 
 def test_discover_secrets_from_synapse_config(basic_synapse_config):
     """Test discovering secrets from Synapse configuration."""
-    from scripts.migration.secrets import SecretDiscovery
 
     # Start with basic config and add secret file references
     synapse_config = basic_synapse_config.copy()

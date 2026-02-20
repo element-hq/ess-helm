@@ -29,6 +29,7 @@ class MigrationEngine:
     secrets: list[Secret] = field(default_factory=list)
     override_warnings: list[str] = field(default_factory=list)
     discovered_secrets: list[DiscoveredSecret] = field(default_factory=list)
+    init_by_ess_secrets: list[str] = field(default_factory=list)
     migrators: list[MigrationService] = field(default_factory=list)
 
     def __post_init__(self) -> None:
@@ -61,6 +62,7 @@ class MigrationEngine:
             # Collect override warnings
             self.override_warnings.extend(migrator.override_warnings)
             self.discovered_secrets.extend(migrator.discovered_secrets)
+            self.init_by_ess_secrets.extend(migrator.init_by_ess_secrets)
 
         logger.info("Migration process completed successfully")
         return self.ess_config

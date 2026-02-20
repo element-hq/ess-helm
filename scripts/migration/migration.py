@@ -154,7 +154,6 @@ class ConfigValueTransformer:
 
     def handle_secrets(
         self,
-        config: dict[str, Any],
         secret_discovery: SecretDiscovery,
         component_root_key: str,
         secrets_list: list[Secret],
@@ -214,7 +213,7 @@ class ConfigValueTransformer:
 
             # Track the config value that is being passed to ESS
             # We need to track the original config path so it gets filtered out later
-            self.tracked_values.append(discover_secret.config_key)
+            self.tracked_values.append(discover_secret.secret_key)
 
 
 class MigrationError(Exception):
@@ -233,6 +232,7 @@ class MigrationService:
     migration: MigrationStrategy = field(init=True)  # Migration strategy
     secret_discovery_strategy: SecretDiscoveryStrategy = field(init=True)  # Secret discovery service
     override_warnings: list[str] = field(default_factory=list)  # Warnings about overridden configurations
+    init_by_ess_secrets: list[str] = field(default_factory=list)  # List of secrets that will be initialized by ESS
     discovered_secrets: list[DiscoveredSecret] = field(default_factory=list)  # List of discovered secrets
     secrets: list[Secret] = field(default_factory=list)  # List of created Secrets
     override_configs: set[str] = field(default_factory=set)  # Set of configurations that are managed by ESS
@@ -304,6 +304,8 @@ class MigrationService:
         # Prompt for missing secrets then validate
         secret_discovery.prompt_for_missing_secrets()
         secret_discovery.validate_required_secrets()
+        self.discovered_secrets = list(secret_discovery.discovered_secrets.values())
+        self.init_by_ess_secrets = secret_discovery.init_by_ess_secrets
 
         # Step 2: Enable component
         self.ess_config.setdefault(self.component_root_key, {})["enabled"] = True
@@ -314,7 +316,6 @@ class MigrationService:
         # Step 4: Handle secrets for the component using the transformer's method
         # This will update the root ESS config directly and create Kubernetes Secrets
         self.config_to_ess_transformer.handle_secrets(
-            self.input.config,
             secret_discovery,
             self.component_root_key,
             self.secrets,

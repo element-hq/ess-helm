@@ -13,6 +13,8 @@ from .interfaces import SecretDiscoveryStrategy
 from .models import DiscoveredSecret
 from .utils import get_nested_value
 
+logger = logging.getLogger("migration")
+
 
 class SecretsError(Exception):
     """Base exception for secrets-related errors."""
@@ -61,15 +63,15 @@ class SecretDiscovery:
                             discovered_value = f.read()
                         logging.info(f"Found file value for {secret_key}")
                     except FileNotFoundError:
-                        logging.warning(f"File not found: {file_path}")
+                        logger.warning(f"File not found: {file_path}")
 
             # Apply transformer if available and we have a value
             if discovered_value is not None and secret_config.transformer is not None:
                 try:
                     discovered_value = secret_config.transformer(discovered_value)
-                    logging.info(f"Applied transformer to {secret_key}")
+                    logger.info(f"Applied transformer to {secret_key}")
                 except Exception as e:
-                    logging.warning(f"Failed to apply transformer for {secret_key}: {e}")
+                    logger.warning(f"Failed to apply transformer for {secret_key}: {e}")
                     discovered_value = None
 
             if discovered_value is not None:
