@@ -100,7 +100,8 @@ async def cluster():
     # Both these names must match what `setup_test_cluster.sh` would create
     this_cluster = PotentiallyExistingK3dCluster("ess-helm")
     this_cluster.create(
-        ClusterOptions(cluster_name="ess-helm", provider_config=Path(__file__).parent / Path("files/clusters/k3d.yml"))
+        ClusterOptions(cluster_name="ess-helm", provider_config=Path(__file__).parent / Path("files/clusters/k3d.yml")),
+        options=os.environ.get("K3D_EXTRA_OPTIONS", "").split(" "),
     )
 
     yield this_cluster
