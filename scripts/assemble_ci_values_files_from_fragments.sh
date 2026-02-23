@@ -24,12 +24,12 @@ for values_file in "$values_file_root"/$values_file_prefix-values.yaml "$user_va
     echo "$values_file_prefix-values.yaml doesn't exist in $(dirname "$values_file"). Skipping"
     continue
   fi
-  if ! source_fragments=$(grep -E '#\s+source_fragments:' "$values_file" | sed 's/.*:\s*//'); then
+  if ! source_fragments=$(grep -E '#\s+source_fragments:' "$values_file" | sed 's/.*:[[:space:]]*//'); then
     echo "$values_file doesn't have a source_fragments header comment. Skipping"
     continue
   fi
   has_new_vector_ltd_copyright=$(grep -E '#\s+Copyright [0-9-]+ New Vector Ltd' "$values_file" || echo -n "")
-  source_fragments=$(echo "$source_fragments" | tr " " "\n" | sort | uniq | tr "\n" " " | sed 's/^\s*//' | sed 's/\s*$//')
+  source_fragments=$(echo "$source_fragments" | tr " " "\n" | sort | uniq | tr "\n" " " | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//')
 
   yq_command='.'
   for fragment_name in ${source_fragments}; do
