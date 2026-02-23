@@ -5,6 +5,7 @@
 
 import ipaddress
 import itertools
+import re
 
 import pytest
 import yaml
@@ -387,6 +388,29 @@ async def test_references_to_services_are_anchored_by_the_cluster_domain(values,
                     f"{template_id(template)} has {line=} which has a reference to a Service that isn't "
                     "anchored with the configured cluster domain"
                 )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_references_to_services_exist(namespace, templates):
+    services_names_fqdns = []
+
+    templates_containing_services: dict[str, list[str]] = {}
+    for template in templates:
+        if template["kind"] == "Service":
+            services_names_fqdns.append(f"{template['metadata']['name']}.{namespace}.svc.cluster.local.")
+        else:
+            template_as_yaml = yaml.dump(template)
+            for line in template_as_yaml.splitlines():
+                if ".svc.cluster.local." in line:
+                    matches = re.findall(r"[^\.\s\"\'@/]+\.[^\.]+\.svc\.cluster\.local\.", line)
+                    assert len(matches) > 0, f"Found {line.strip()} but didn't extract any Services from it"
+                    templates_containing_services.setdefault(template_id(template), []).extend(matches)
+    for id, referenced_services in templates_containing_services.items():
+        for referenced_service in referenced_services:
+            assert referenced_service in services_names_fqdns, (
+                f"{id} referred to {referenced_service} that doesn't appear to exist"
+            )
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
