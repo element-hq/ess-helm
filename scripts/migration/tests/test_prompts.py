@@ -110,7 +110,6 @@ def test_migration_with_unknown_workers_prompt(
 
     # Write Synapse config
     synapse_config_file = write_synapse_config(synapse_config_with_signing_key | synapse_config_with_instance_map)
-
     # Load migration input - this should prompt for missing secrets
     input_processor = InputProcessor()
     input_processor.load_migration_input(
@@ -125,8 +124,71 @@ def test_migration_with_unknown_workers_prompt(
 
     engine = MigrationEngine(input_processor, pretty_logger=pretty_logger)
 
-    # Mock user input for missing secrets
+    # Mock user input for workers
     side_effect = (n for n in ("8"))
+    monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
+
+    # Test with async timeout to prevent hanging
+    async def test_with_timeout():
+        nonlocal ess_values
+        ess_values = engine.run_migration()
+
+    # Run the async test with timeout
+    try:
+        asyncio.run(asyncio.wait_for(test_with_timeout(), timeout=10.0))
+        # Capture the output after the test runs
+        output = caplog.text
+        assert " No worker type found for instance funny-name" in output
+
+        # Verify that secrets were handled
+        synapse_config_result = ess_values["synapse"]
+
+        assert "workers" in synapse_config_result
+        assert len(synapse_config_result["workers"]) == 2
+        assert "event-creator" in synapse_config_result["workers"]
+        assert "synchrotron" in synapse_config_result["workers"]
+        assert synapse_config_result["workers"]["synchrotron"]["replicas"] == 2
+    except asyncio.TimeoutError:
+        pytest.fail("Test timed out - prompt may be hanging")
+    except Exception as e:
+        # If the test fails, it should be a meaningful failure
+        # not a timeout or input issue
+        if "TimeoutError" in str(e) or "asyncio" in str(e):
+            pytest.fail(f"Async test failed: {e}")
+        else:
+            # Re-raise the original exception
+            raise
+
+
+def test_migration_with_missing_extra_files_prompt(
+    caplog,
+    monkeypatch,
+    tmp_path,
+    synapse_config_with_signing_key,
+    synapse_config_with_email_templates,
+    write_synapse_config,
+):
+    """Test migration workflow that prompts for missing secrets with timeout."""
+    # Write Synapse config
+    synapse_config_file = write_synapse_config(synapse_config_with_signing_key | synapse_config_with_email_templates)
+    # Load migration input - this should prompt for missing secrets
+    input_processor = InputProcessor()
+    input_processor.load_migration_input(
+        config_path=str(synapse_config_file),
+        name="synapse",
+    )
+    ess_values = {}
+
+    (tmp_path / "email_templates").move(tmp_path / "moved")
+
+    pretty_logger = logging.getLogger("test_prompts")
+    pretty_logger.setLevel(logging.INFO)
+    pretty_logger.addHandler(logging.StreamHandler())
+
+    engine = MigrationEngine(input_processor, pretty_logger=pretty_logger)
+
+    # Mock user input for extra files discovery
+    side_effect = (n for n in ("3", str(tmp_path / "moved")))
     monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
 
     # Test with async timeout to prevent hanging
@@ -141,16 +203,14 @@ def test_migration_with_unknown_workers_prompt(
         output = caplog.text
 
         # Verify that warnings about generated secrets are present
-        assert " No worker type found for instance funny-name" in output
+        assert "📁 EXTRA FILES DISCOVERY" in output
+        assert "The following extra files were referenced in your configuration" in output
+        assert "   ⚠️  Skipping missing files..." not in output
+        assert f"   ✅ Found 2 matching files in {(str(tmp_path / 'moved'))}" in output
 
-        # Verify that secrets were handled
-        synapse_config_result = ess_values["synapse"]
-
-        assert "workers" in synapse_config_result
-        assert len(synapse_config_result["workers"]) == 2
-        assert "event-creator" in synapse_config_result["workers"]
-        assert "synchrotron" in synapse_config_result["workers"]
-        assert synapse_config_result["workers"]["synchrotron"]["replicas"] == 2
+        # Verify that extra files were handled
+        synapse_config = ess_values["synapse"]
+        assert len(synapse_config["extraVolumeMounts"]) == 2
 
     except asyncio.TimeoutError:
         pytest.fail("Test timed out - prompt may be hanging")

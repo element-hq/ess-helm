@@ -175,10 +175,13 @@ class ExtraFilesDiscovery:
                     self.pretty_logger.info(f"⚠️  No files found in directory: {_discovered_path.source_path}")
             else:
                 if _discovered_path.source_path not in self.discovered_extra_files:
-                    # If the file is not matching an existing extra file, add it to the discovered extra files
-                    self.discovered_extra_files[_discovered_path.source_path] = self._discover_extra_file(
-                        _discovered_path
-                    )
+                    try:
+                        # If the file is not matching an existing extra file, add it to the discovered extra files
+                        self.discovered_extra_files[_discovered_path.source_path] = self._discover_extra_file(
+                            _discovered_path
+                        )
+                    except ExtraFilesError as e:
+                        logger.error(f"Failed to process file {_discovered_path.source_path}: {e}")
 
     def _handle_directory(self, discovered_path: DiscoveredPath, override_path: Path | None = None) -> list[str]:
         """
@@ -199,9 +202,12 @@ class ExtraFilesDiscovery:
             for item in list_path.iterdir():
                 if item.is_file():
                     files_in_dir.append(str(item))
-                    extra_file = self._discover_extra_file(discovered_path, item)
-                    if extra_file:
-                        self.discovered_extra_files[item] = extra_file
+                    try:
+                        extra_file = self._discover_extra_file(discovered_path, item)
+                        if extra_file:
+                            self.discovered_extra_files[item] = extra_file
+                    except ExtraFilesError as e:
+                        logger.error(f"Failed to process file {item}: {e}")
 
             return files_in_dir
 
@@ -220,7 +226,7 @@ class ExtraFilesDiscovery:
         self.pretty_logger.info("but could not be found:")
 
         for file_path in self.missing_file_paths:
-            self.pretty_logger.info(f"📝 Missing: {file_path}")
+            self.pretty_logger.info(f"📝 Missing: {file_path.config_key} ({file_path.source_path})")
 
             self.pretty_logger.info("\n🔍 Would you like to:")
             self.pretty_logger.info("  1. Provide alternative path for this file")
