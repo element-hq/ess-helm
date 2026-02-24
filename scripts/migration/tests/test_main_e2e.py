@@ -77,8 +77,8 @@ def test_main_e2e_synapse_only(tmp_path, synapse_config_with_signing_key, write_
 
     # Check for Secret files (should be created for discovered secrets)
     secret_files = list(output_dir.glob("*secret.yaml"))
-    # Should have at least one secret file for the discovered secrets
-    assert len(secret_files) > 0, "Secret files should be created for discovered secrets"
+    # Should have one secret file for the discovered secrets
+    assert len(secret_files) == 1, "Secret files should be created for discovered secrets"
 
     # Verify the secret file content
     for secret_file in secret_files:
