@@ -14,23 +14,10 @@ from typing import Any
 
 import yaml
 
-from .models import Secret
+from .models import ConfigMap, Secret
 from .utils import yaml_dump_with_pipe_for_multiline
 
 logger = logging.getLogger("migration")
-
-
-def generate_secrets(secrets: list[Secret]) -> list[dict[str, Any]]:
-    """
-    Generate Kubernetes Secret manifests.
-
-    Args:
-        secrets: List of Secret dataclass instances
-
-    Returns:
-        List of Secret manifests in dictionary format
-    """
-    return [secret.to_manifest() for secret in secrets]
 
 
 def generate_helm_values(ess_values: dict[str, Any]) -> str:
@@ -51,6 +38,7 @@ def generate_helm_values(ess_values: dict[str, Any]) -> str:
 def write_outputs(
     helm_values: str,
     secrets: list[Secret],
+    configmaps: list[ConfigMap],
     output_dir: str = "output",
 ) -> None:
     """
@@ -69,10 +57,16 @@ def write_outputs(
     # Write Secrets with error handling
     written_secrets = _write_secrets(secrets, output_dir)
 
+    # Write ConfigMaps with error handling
+    written_configmaps = _write_configmaps(configmaps, output_dir)
+
     logger.info(f"Migration outputs written successfully to {output_dir}")
     logger.info(f"- Helm values: {values_path}")
     for secret_path in written_secrets:
         logging.info(f"- Secret: {secret_path}")
+
+    for configmap_path in written_configmaps:
+        logging.info(f"- ConfigMap: {configmap_path}")
 
 
 def _create_output_dir(output_dir: str) -> None:
@@ -87,6 +81,40 @@ def _create_output_dir(output_dir: str) -> None:
     # Create directory with parents
     dir_path.mkdir(parents=True, exist_ok=True)
     logger.info(f"Created output directory: {output_dir}")
+
+
+def _write_configmaps(configmaps: list[ConfigMap], output_dir: str) -> list[str]:
+    """
+    Write ConfigMap manifests to files with error handling.
+
+    Args:
+        configmaps: List of ConfigMap manifests
+        output_dir: Output directory path
+
+    Returns:
+        List of paths to written ConfigMap files
+
+    Raises:
+        OutputError: If file writing fails
+    """
+    written_files: list[str] = []
+
+    if not configmaps:
+        logging.info("No ConfigMap to write")
+        return written_files
+
+    for configmap in configmaps:
+        configmap_name = configmap.name
+        configmap_path = Path(output_dir) / f"{configmap_name}-configmap.yaml"
+
+        # Write ConfigMap file
+        with open(configmap_path, "w", encoding="utf-8") as f:
+            yaml.safe_dump(configmap.to_manifest(), f, sort_keys=False)
+
+        written_files.append(str(configmap_path))
+        logging.info(f"ConfigMap written to {configmap_path}")
+
+    return written_files
 
 
 def _write_secrets(secrets: list[Secret], output_dir: str) -> list[str]:

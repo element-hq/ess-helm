@@ -162,15 +162,17 @@ class ExtraFilesDiscovery:
                 continue
             if _discovered_path.source_path.is_dir():
                 files_in_dir = self._handle_directory(_discovered_path)
-                logging.info(f"Found {len(files_in_dir)} files in directory {_discovered_path}")
-                self.pretty_logger.info(f"📁 Found {len(files_in_dir)} files in directory: {_discovered_path}")
+                logger.info(f"Found {len(files_in_dir)} files in directory {_discovered_path.source_path}")
+                self.pretty_logger.info(
+                    f"📁 Found {len(files_in_dir)} files in directory: {_discovered_path.source_path}"
+                )
                 # Show the files being imported
                 for file_path in files_in_dir:
                     logger.info(f"  - {file_path}")
                     self.pretty_logger.info(f"  📄 {Path(file_path).name}")
                 else:
-                    logging.warning(f"No files found in directory: {_discovered_path}")
-                    self.pretty_logger.info(f"⚠️  No files found in directory: {_discovered_path}")
+                    logger.warning(f"No files found in directory: {_discovered_path.source_path}")
+                    self.pretty_logger.info(f"⚠️  No files found in directory: {_discovered_path.source_path}")
             else:
                 if _discovered_path.source_path not in self.discovered_extra_files:
                     # If the file is not matching an existing extra file, add it to the discovered extra files
@@ -384,8 +386,8 @@ class ExtraFilesDiscovery:
         Raises:
             ExtraFilesError: If file doesn't exist or isn't readable
         """
-        extra_file = DiscoveredExtraFile(discovered_source_paths=[discovered_path])
         file_path = override_path or Path(discovered_path.source_path)
+        extra_file = DiscoveredExtraFile(filename=file_path.name, discovered_source_paths=[discovered_path])
 
         if not file_path.exists():
             raise ExtraFilesError(f"Extra file does not exist: {file_path}")

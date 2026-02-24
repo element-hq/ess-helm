@@ -13,7 +13,7 @@ from typing import Any
 
 from .inputs import InputProcessor
 from .migration import MigrationService
-from .models import DiscoveredSecret, Secret
+from .models import ConfigMap, DiscoveredSecret, Secret
 from .synapse import SynapseExtraFileDiscovery, SynapseMigration, SynapseSecretDiscovery
 
 logger = logging.getLogger("migration")
@@ -27,6 +27,7 @@ class MigrationEngine:
     pretty_logger: logging.Logger = field(init=True)
     ess_config: dict[str, Any] = field(default_factory=dict)
     secrets: list[Secret] = field(default_factory=list)
+    configmaps: list[ConfigMap] = field(default_factory=list)
     override_warnings: list[str] = field(default_factory=list)
     discovered_secrets: list[DiscoveredSecret] = field(default_factory=list)
     init_by_ess_secrets: list[str] = field(default_factory=list)
@@ -43,6 +44,7 @@ class MigrationEngine:
                     ess_config=self.ess_config,
                     pretty_logger=self.pretty_logger,
                     migration=migration,
+                    configmaps=self.configmaps,
                     secrets=self.secrets,
                     secret_discovery_strategy=secret_discovery_strategy,
                     extra_files_strategy=extra_file_strategy,

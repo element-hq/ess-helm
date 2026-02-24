@@ -179,6 +179,7 @@ Examples:
         write_outputs(
             helm_values=helm_values,
             secrets=engine.secrets,
+            configmaps=engine.configmaps,
             output_dir=args.output_dir,
         )
 

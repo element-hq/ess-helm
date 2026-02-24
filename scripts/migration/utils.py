@@ -166,3 +166,16 @@ def extract_hostname_from_url(_, url: str) -> str:
     """
     parsed_url = urllib.parse.urlparse(url)
     return parsed_url.hostname if parsed_url.hostname else ""
+
+
+def to_kebab_case(name: str) -> str:
+    """
+    Convert a resource name to a Kubernetes resource name.
+
+    Args:
+        name: Resource name
+
+    Returns:
+        Kubernetes resource name
+    """
+    return "".join(["-" + c.lower() if c.isupper() else c for c in name]).lstrip("-")

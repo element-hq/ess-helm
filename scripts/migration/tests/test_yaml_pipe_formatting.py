@@ -141,7 +141,7 @@ line3""",
     }
 
     # Add additional config
-    transformer.add_additional_config_to_component("synapse", source_config)
+    transformer.add_additional_config_to_component("synapse", source_config, None)
 
     # Get the generated YAML
     result = transformer.ess_config
@@ -162,7 +162,7 @@ def test_additional_config_single_line_no_pipe():
     source_config = {"simple_setting": "value1", "path_setting": "/path/to/file.yaml"}
 
     # Add additional config
-    transformer.add_additional_config_to_component("synapse", source_config)
+    transformer.add_additional_config_to_component("synapse", source_config, None)
 
     # Get the generated YAML
     result = transformer.ess_config
@@ -189,7 +189,7 @@ formatters:
     }
 
     # Add additional config
-    transformer.add_additional_config_to_component("synapse", source_config)
+    transformer.add_additional_config_to_component("synapse", source_config, None)
 
     # Get the generated YAML
     result = transformer.ess_config
