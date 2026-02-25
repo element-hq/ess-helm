@@ -27,6 +27,10 @@ ports:
   # Matrix RTC SFU Turn
 - port: 127.0.0.1:31478:31478
   nodeFilters: [loadbalancer]
+env:
+- envVar: K3S_DEBUG=true
+  nodeFilters:
+    - server:*
 options:
   k3d:
     wait: true

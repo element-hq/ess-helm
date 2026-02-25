@@ -131,7 +131,7 @@ async def kube_client(cluster):
 @pytest.fixture(scope="session")
 async def ingress(cluster, kube_client):
     attempt = 0
-    while attempt < 120:
+    while attempt < 180:
         try:
             # We can't just kubectl wait as that doesn't work with non-existent objects
             # This can be setup before the LB port is accessible externally, so we do it afterwards
@@ -146,24 +146,24 @@ async def ingress(cluster, kube_client):
         except ApiError:
             await asyncio.sleep(1)
             attempt += 1
-    raise Exception("Couldn't fetch Trafeik Service IP afrter 120s")
+    raise Exception("Couldn't fetch Trafeik Service IP after 180s")
 
 
-@pytest.fixture(autouse=True, scope="session")
+@pytest.fixture(scope="session")
 async def cert_manager(helm_client, kube_client):
     if os.environ.get("SKIP_CERT_MANAGER", "false") != "false":
         return
 
-    async with chart_from_ci_cache(helm_client, "oci://quay.io/jetstack/charts/cert-manager") as chart:
-        await helm_client.install_or_upgrade_release(
-            "cert-manager",
-            chart,
-            yaml.safe_load((Path(__file__).parent / "files/charts/cert-manager.yml").open()),
-            namespace="cert-manager",
-            create_namespace=True,
-            atomic=True,
-            wait=True,
-        )
+    chart = await chart_from_ci_cache(helm_client, "oci://quay.io/jetstack/charts/cert-manager")
+    await helm_client.install_or_upgrade_release(
+        "cert-manager",
+        chart,
+        yaml.safe_load((Path(__file__).parent / "files/charts/cert-manager.yml").open()),
+        namespace="cert-manager",
+        create_namespace=True,
+        atomic="CI" not in os.environ,
+        wait=True,
+    )
 
     ca_folder = Path(__file__).parent.parent.parent.parent / ".ca"
     if not ca_folder.exists():
@@ -230,20 +230,20 @@ async def cert_manager(helm_client, kube_client):
 @pytest.fixture(scope="session")
 async def prometheus_operator_crds(helm_client):
     if os.environ.get("SKIP_SERVICE_MONITORS_CRDS", "false") == "false":
-        async with chart_from_ci_cache(
+        chart = await chart_from_ci_cache(
             helm_client,
             "oci://ghcr.io/prometheus-community/charts/prometheus-operator-crds",
-        ) as chart:
-            # Install or upgrade a release
-            await helm_client.install_or_upgrade_release(
-                "prometheus-operator-crds",
-                chart,
-                {},
-                namespace="prometheus-operator",
-                create_namespace=True,
-                atomic=True,
-                wait=True,
-            )
+        )
+        # Install or upgrade a release
+        await helm_client.install_or_upgrade_release(
+            "prometheus-operator-crds",
+            chart,
+            {},
+            namespace="prometheus-operator",
+            create_namespace=True,
+            atomic="CI" not in os.environ,
+            wait=True,
+        )
 
 
 @pytest.fixture(scope="session")
