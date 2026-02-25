@@ -24,7 +24,7 @@ from lightkube.resources.core_v1 import Namespace, Secret, Service
 from pytest_kubernetes.options import ClusterOptions
 from pytest_kubernetes.providers import K3dManagerBase
 
-from ..lib.utils import b64encode, chart_from_ci_cache
+from ..lib.utils import async_retry_with_timeout, b64encode, chart_from_ci_cache
 from .data import ESSData
 
 ClusterIssuer = create_global_resource(
@@ -228,21 +228,34 @@ async def cert_manager(helm_client, kube_client):
 
 
 @pytest.fixture(scope="session")
-async def prometheus_operator_crds(helm_client):
+async def prometheus_operator_crds(helm_client: pyhelm3.Client):
     if os.environ.get("SKIP_SERVICE_MONITORS_CRDS", "false") == "false":
         chart = await chart_from_ci_cache(
             helm_client,
             "oci://ghcr.io/prometheus-community/charts/prometheus-operator-crds",
         )
-        # Install or upgrade a release
-        await helm_client.install_or_upgrade_release(
-            "prometheus-operator-crds",
-            chart,
-            {},
-            namespace="prometheus-operator",
-            create_namespace=True,
-            atomic="CI" not in os.environ,
-            wait=True,
+
+        async def _setup_prometheus_operator_crds():
+            # Install or upgrade a release
+            await helm_client.install_or_upgrade_release(
+                "prometheus-operator-crds",
+                chart,
+                {},
+                namespace="prometheus-operator",
+                create_namespace=True,
+                atomic="CI" not in os.environ,
+                timeout="1m",
+                wait=True,
+            )
+
+        # We retry 5 times, maximum for 5m
+        # Each helm install timeouts after 1m so that we early fail if the CRDs fail to setup
+        # This should be revised when https://github.com/helm/helm/issues/31824 gets resolved
+        await async_retry_with_timeout(
+            _setup_prometheus_operator_crds,
+            should_retry=lambda e: type(e) is pyhelm3.errors.Error,
+            max_retries=5,
+            timeout_seconds=300,
         )
 
 
