@@ -18,12 +18,18 @@ from .. import __main__
 
 
 def test_main_e2e_synapse_only(
-    tmp_path, synapse_config_with_signing_key, synapse_config_with_email_templates, write_synapse_config
+    tmp_path,
+    synapse_config_with_signing_key,
+    synapse_config_with_email_templates,
+    synapse_config_with_ca_federation_list,
+    write_synapse_config,
 ):
     """Test the complete end-to-end migration workflow with Synapse only."""
 
     # Write Synapse config
-    synapse_config_file = write_synapse_config(synapse_config_with_signing_key | synapse_config_with_email_templates)
+    synapse_config_file = write_synapse_config(
+        synapse_config_with_signing_key | synapse_config_with_email_templates | synapse_config_with_ca_federation_list
+    )
 
     # Create output directory
     output_dir = tmp_path / "output"
@@ -117,6 +123,21 @@ def test_main_e2e_synapse_only(
     assert synapse_config["extraVolumeMounts"] == [
         {
             "name": "imported-synapse",
+            "mountPath": "/etc/synapse/extra/ca1.pem",
+            "subPath": "ca1.pem",
+        },
+        {
+            "name": "imported-synapse",
+            "mountPath": "/etc/synapse/extra/ca-second.pem",
+            "subPath": "ca-second.pem",
+        },
+        {
+            "name": "imported-synapse",
+            "mountPath": "/etc/synapse/extra/another-ca.pem",
+            "subPath": "another-ca.pem",
+        },
+        {
+            "name": "imported-synapse",
             "mountPath": "/etc/synapse/extra/email_templates/registration.html",
             "subPath": "registration.html",
         },
@@ -128,3 +149,8 @@ def test_main_e2e_synapse_only(
     ]
     synapse_additional_config = yaml.safe_load(synapse_config["additional"]["00-imported.yaml"]["config"])
     assert synapse_additional_config["templates"]["custom_template_directory"] == "/etc/synapse/extra/email_templates"
+    assert synapse_additional_config["federation_custom_ca_list"] == [
+        "/etc/synapse/extra/ca1.pem",
+        "/etc/synapse/extra/ca-second.pem",
+        "/etc/synapse/extra/another-ca.pem",
+    ]
