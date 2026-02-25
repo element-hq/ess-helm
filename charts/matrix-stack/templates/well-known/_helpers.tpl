@@ -51,14 +51,6 @@ k8s.element.io/target-instance: {{ $root.Release.Name }}-haproxy
 {{- $_ := set $config "m.homeserver" $mHomeserver -}}
 {{- end -}}
 {{- end -}}
-{{- if include "element-io.matrix-authentication-service.readyToHandleAuth" (dict "root" $root) }}
-{{- with required "WellKnownDelegation requires matrixAuthenticationService.ingress.host set" $root.Values.matrixAuthenticationService.ingress.host -}}
-{{- $msc2965 := dict "issuer" (printf "https://%s/" .)
-                     "account" (printf "https://%s/account" .)
--}}
-{{- $_ := set $config "org.matrix.msc2965.authentication" $msc2965 -}}
-{{- end -}}
-{{- end -}}
 {{- if $root.Values.matrixRTC.enabled -}}
 {{- $_ := set $config "org.matrix.msc4143.rtc_foci" (list (dict "type" "livekit" "livekit_service_url" (printf "https://%s" $root.Values.matrixRTC.ingress.host))) -}}
 {{- end -}}

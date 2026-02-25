@@ -11,12 +11,6 @@ import pytest
 from . import DeployableDetails, PropertyType
 from .utils import iterate_deployables_ingress_parts
 
-msc_2965_authentication = {
-    "org.matrix.msc2965.authentication": {
-        "issuer": "https://mas.ess.localhost/",
-        "account": "https://mas.ess.localhost/account",
-    }
-}
 synapse_federation = {"m.server": "synapse.ess.localhost:443"}
 synapse_base_url = {"m.homeserver": {"base_url": "https://synapse.ess.localhost"}}
 
@@ -75,50 +69,6 @@ async def test_only_additional_if_all_disabled_in_well_known(release_name, value
 async def test_synapse_injected_in_server_and_client_well_known(release_name, values, make_templates):
     await assert_well_known_files(
         release_name, values, make_templates, expected_client=synapse_base_url, expected_server=synapse_federation
-    )
-
-
-@pytest.mark.parametrize("values_file", ["well-known-mas-values.yaml"])
-@pytest.mark.asyncio_cooperative
-async def test_mas_injected_in_client_well_known(release_name, values, make_templates):
-    await assert_well_known_files(release_name, values, make_templates, expected_client=msc_2965_authentication)
-
-    await assert_well_known_files(
-        release_name,
-        values,
-        make_templates,
-        expected_client=msc_2965_authentication,
-        client_config={
-            "org.matrix.msc2965.authentication": {
-                "issuer": "should-not-override",
-                "account": "https://mas.ess.localhost/account",
-            }
-        },
-    )
-
-
-@pytest.mark.parametrize("values_file", ["well-known-synapse-mas-values.yaml"])
-@pytest.mark.asyncio_cooperative
-async def test_synapse_and_mas_injected_in_client_and_server_well_known(release_name, values, make_templates):
-    await assert_well_known_files(
-        release_name,
-        values,
-        make_templates,
-        expected_client=(msc_2965_authentication | synapse_base_url),
-        expected_server=synapse_federation,
-    )
-    await assert_well_known_files(
-        release_name,
-        values,
-        make_templates,
-        expected_client=(msc_2965_authentication | synapse_base_url),
-        expected_server=synapse_federation,
-        client_config={
-            "org.matrix.msc2965.authentication": {
-                "issuer": "should-not-override",
-                "account": "https://mas.ess.localhost/account",
-            }
-        },
     )
 
 
