@@ -167,6 +167,9 @@ jobs:
           echo "----" >> "./ess-helm-logs/$ns/secrets.txt"
           kubectl --context k3d-ess-helm get secrets  -o yaml -n "$ns" | yq eval '.items[].data |= with_entries(.value = "censored") | .items[].stringData |= with_entries(.value = "censored")' > "./ess-helm-logs/$ns/secrets.txt"
         done
+        kubectl --context k3d-ess-helm get crds > "./ess-helm-logs/crds.txt"
+          echo "----" >> "./ess-helm-logs/$ns/crds.txt"
+        kubectl --context k3d-ess-helm get crds -o yaml  | yq 'del .items[].spec' > "./ess-helm-logs/crds.txt"
         docker logs k3d-ess-helm-server-0 > "./ess-helm-logs/k3d-ess-helm-server-0.logs" 2>&1
         k3d cluster delete ess-helm
 
