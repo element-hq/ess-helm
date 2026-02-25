@@ -7,6 +7,7 @@ import asyncio
 import base64
 import json
 import os
+import shutil
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
@@ -269,6 +270,8 @@ async def chart_from_ci_cache(helm_client: pyhelm3.Client, chart_ref: str) -> As
         try:
             # Always try to fetch the remote chart first
             async with helm_client.pull_chart(chart_ref) as chart:
+                if cached_ref.exists():
+                    shutil.rmtree(cached_ref)
                 # pull_chart returns a Chart object, not a Path, type annotation is wrong
                 chart.ref.copy(cached_ref)  # type: ignore
                 yield chart  # type: ignore
