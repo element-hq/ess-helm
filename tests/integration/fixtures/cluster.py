@@ -131,7 +131,7 @@ async def kube_client(cluster):
 @pytest.fixture(scope="session")
 async def ingress(cluster, kube_client):
     attempt = 0
-    while attempt < 120:
+    while attempt < 180:
         try:
             # We can't just kubectl wait as that doesn't work with non-existent objects
             # This can be setup before the LB port is accessible externally, so we do it afterwards
@@ -146,7 +146,7 @@ async def ingress(cluster, kube_client):
         except ApiError:
             await asyncio.sleep(1)
             attempt += 1
-    raise Exception("Couldn't fetch Trafeik Service IP afrter 120s")
+    raise Exception("Couldn't fetch Trafeik Service IP after 180s")
 
 
 @pytest.fixture(autouse=True, scope="session")
