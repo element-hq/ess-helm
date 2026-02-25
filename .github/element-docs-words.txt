@@ -26,6 +26,7 @@ Muxed
 newsfragment
 newsfragments
 passthrough
+prometheus
 postgres
 PostgreSQL
 pytest
