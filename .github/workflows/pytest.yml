@@ -163,6 +163,9 @@ jobs:
             kubectl --context k3d-ess-helm get "$i" -o yaml -n "$ns" >> "./ess-helm-logs/$ns/$i.txt"
           done
           kubectl --context k3d-ess-helm get events --sort-by=.metadata.creationTimestamp -n "$ns" > "./ess-helm-logs/$ns/events.txt"
+          kubectl --context k3d-ess-helm get secrets -n "$ns" > "./ess-helm-logs/$ns/secrets.txt"
+          echo "----" >> "./ess-helm-logs/$ns/secrets.txt"
+          kubectl --context k3d-ess-helm get secrets  -o yaml -n "$ns" | yq eval '.items[].data |= with_entries(.value = "censored") | .items[].stringData |= with_entries(.value = "censored")' > "./ess-helm-logs/$ns/secrets.txt"
         done
         docker logs k3d-ess-helm-server-0 > "./ess-helm-logs/k3d-ess-helm-server-0.logs" 2>&1
         k3d cluster delete ess-helm
