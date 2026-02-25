@@ -149,7 +149,7 @@ async def ingress(cluster, kube_client):
     raise Exception("Couldn't fetch Trafeik Service IP after 180s")
 
 
-@pytest.fixture(autouse=True, scope="session")
+@pytest.fixture(scope="session")
 async def cert_manager(helm_client, kube_client):
     if os.environ.get("SKIP_CERT_MANAGER", "false") != "false":
         return
