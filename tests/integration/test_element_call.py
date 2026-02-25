@@ -3,12 +3,13 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-import socket
+import asyncio
+import ssl
 
 import pytest
 
 from .fixtures import ESSData, User
-from .lib.utils import aiohttp_post_json, value_file_has
+from .lib.utils import aiohttp_post_json, async_retry_with_timeout, value_file_has
 
 
 @pytest.mark.skipif(value_file_has("matrixRTC.enabled", False), reason="Matrix RTC not deployed")
@@ -56,19 +57,26 @@ async def test_element_call_livekit_jwt(ingress_ready, users, generated_data: ES
 @pytest.mark.asyncio_cooperative
 async def test_matrix_rtc_turn_tls(ingress_ready, generated_data: ESSData, ssl_context):
     await ingress_ready("matrix-rtc")
-    # Open a TLS TCP Socket against the TURN server
-    turn_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    turn_socket.settimeout(5)
-    turn_server_url = f"turn.{generated_data.server_name}", 31443
-    turn_socket.connect(turn_server_url)
-    print("Connected to TURN server without TLS")
 
-    # Wrap the socket with TLS
-    turn_tls_socket = ssl_context.wrap_socket(turn_socket, server_side=False, server_hostname=turn_server_url[0])
+    async def _assert_tls_socket():
+        reader, writer = await asyncio.open_connection(
+            host=f"turn.{generated_data.server_name}",
+            port=31443,
+            ssl=ssl_context,
+            server_hostname=f"turn.{generated_data.server_name}",
+            ssl_handshake_timeout=3.0,
+        )
 
-    # Now you can send/receive data over the TLS socket
-    # For example, send a test message
-    turn_tls_socket.sendall(b"Hello TURN TLS")
+        # Send a test message
+        writer.write(b"Hello TURN TLS")
+        await writer.drain()
 
-    # Close the connection
-    turn_tls_socket.close()
+        # Close the connection
+        writer.close()
+        await writer.wait_closed()
+
+    # The TLS socket can somewhat expect to fail while the stack boots
+    await async_retry_with_timeout(
+        _assert_tls_socket,
+        should_retry=lambda e: type(e) is ssl.SSLEOFError,
+    )
