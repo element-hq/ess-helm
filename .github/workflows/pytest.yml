@@ -164,6 +164,7 @@ jobs:
           done
           kubectl --context k3d-ess-helm get events --sort-by=.metadata.creationTimestamp -n "$ns" > "./ess-helm-logs/$ns/events.txt"
         done
+        docker logs k3d-ess-helm-server-0 > "./ess-helm-logs/k3d-ess-helm-server-0.logs" 2>&1
         k3d cluster delete ess-helm
 
     - name: Upload logs
