@@ -259,8 +259,7 @@ async def forward_matching_logs(input_logs_queue: asyncio.Queue, output_matchers
                 output_logs_queue.put_nowait(log_line)
 
 
-@asynccontextmanager
-async def chart_from_ci_cache(helm_client: pyhelm3.Client, chart_ref: str) -> AsyncGenerator[pyhelm3.Chart]:
+async def chart_from_ci_cache(helm_client: pyhelm3.Client, chart_ref: str) -> pyhelm3.Chart:
     project_root = Path(__file__).parent.parent.parent.parent
     if os.environ.get("CI"):
         helm_cache = project_root / ".pyhelm_cache"
@@ -274,12 +273,13 @@ async def chart_from_ci_cache(helm_client: pyhelm3.Client, chart_ref: str) -> As
                     shutil.rmtree(cached_ref)
                 # pull_chart returns a Chart object, not a Path, type annotation is wrong
                 chart.ref.copy(cached_ref)  # type: ignore
-                yield chart  # type: ignore
+                # pull_chart removes the pulled chart, we return the cached one
+                return await helm_client.get_chart(cached_ref)  # type: ignore
         except Exception:
             # Fall back to cache if remote fetch fails
             if cached_ref.exists():
-                yield await helm_client.get_chart(cached_ref)
+                return await helm_client.get_chart(cached_ref)
             else:
                 raise  # Re-raise if neither remote nor cache is available
     else:
-        yield await helm_client.get_chart(chart_ref)
+        return await helm_client.get_chart(chart_ref)

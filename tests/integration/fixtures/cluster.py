@@ -154,16 +154,16 @@ async def cert_manager(helm_client, kube_client):
     if os.environ.get("SKIP_CERT_MANAGER", "false") != "false":
         return
 
-    async with chart_from_ci_cache(helm_client, "oci://quay.io/jetstack/charts/cert-manager") as chart:
-        await helm_client.install_or_upgrade_release(
-            "cert-manager",
-            chart,
-            yaml.safe_load((Path(__file__).parent / "files/charts/cert-manager.yml").open()),
-            namespace="cert-manager",
-            create_namespace=True,
-            atomic=True,
-            wait=True,
-        )
+    chart = await chart_from_ci_cache(helm_client, "oci://quay.io/jetstack/charts/cert-manager")
+    await helm_client.install_or_upgrade_release(
+        "cert-manager",
+        chart,
+        yaml.safe_load((Path(__file__).parent / "files/charts/cert-manager.yml").open()),
+        namespace="cert-manager",
+        create_namespace=True,
+        atomic=True,
+        wait=True,
+    )
 
     ca_folder = Path(__file__).parent.parent.parent.parent / ".ca"
     if not ca_folder.exists():
@@ -230,20 +230,20 @@ async def cert_manager(helm_client, kube_client):
 @pytest.fixture(scope="session")
 async def prometheus_operator_crds(helm_client):
     if os.environ.get("SKIP_SERVICE_MONITORS_CRDS", "false") == "false":
-        async with chart_from_ci_cache(
+        chart = await chart_from_ci_cache(
             helm_client,
             "oci://ghcr.io/prometheus-community/charts/prometheus-operator-crds",
-        ) as chart:
-            # Install or upgrade a release
-            await helm_client.install_or_upgrade_release(
-                "prometheus-operator-crds",
-                chart,
-                {},
-                namespace="prometheus-operator",
-                create_namespace=True,
-                atomic=True,
-                wait=True,
-            )
+        )
+        # Install or upgrade a release
+        await helm_client.install_or_upgrade_release(
+            "prometheus-operator-crds",
+            chart,
+            {},
+            namespace="prometheus-operator",
+            create_namespace=True,
+            atomic=True,
+            wait=True,
+        )
 
 
 @pytest.fixture(scope="session")
