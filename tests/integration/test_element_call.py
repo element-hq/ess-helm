@@ -60,7 +60,7 @@ async def test_matrix_rtc_turn_tls(ingress_ready, generated_data: ESSData, ssl_c
 
     async def _assert_tls_socket():
         reader, writer = await asyncio.open_connection(
-            host=f"turn.{generated_data.server_name}",
+            host="127.0.0.1",
             port=31443,
             ssl=ssl_context,
             server_hostname=f"turn.{generated_data.server_name}",
@@ -78,5 +78,5 @@ async def test_matrix_rtc_turn_tls(ingress_ready, generated_data: ESSData, ssl_c
     # The TLS socket can somewhat expect to fail while the stack boots
     await async_retry_with_timeout(
         _assert_tls_socket,
-        should_retry=lambda e: type(e) is ssl.SSLEOFError,
+        should_retry=lambda e: type(e) in [ssl.SSLEOFError, ConnectionResetError],
     )
