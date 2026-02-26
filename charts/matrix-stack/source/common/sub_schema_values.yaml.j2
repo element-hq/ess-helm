@@ -28,6 +28,7 @@ certManager: {}
 # serverName: ess.localhost
 {{ labels(global=true) }}
 {{ ingress(global=true) }}
+{{ routes(global=true, withHost=false) }}
 
 ## Common image properties that are applied as defaults to all components.
 image:
@@ -182,11 +183,6 @@ inboundTrafficHandler: ingress
   ## What hostname should be used for this Ingress
   # host:
 {% endif %}
-  ## Should we generate {{ 'any' if global else 'this' }} Ingress {{ 'resources' if global else 'resource' }}
-  enabled: true
-  ## What type of ingress resource should be used (Ingress, HTTPRoute)
-  {{ '# ' if not global }}type: Ingress
-
   ## Annotations to be added to {{ 'all Ingresses. Will be merged with component specific Ingress annotations' if global else 'this Ingress' }}
   annotations: {}
 
@@ -217,21 +213,61 @@ inboundTrafficHandler: ingress
   service: {}
 {%- endif %}
 
-  ## Ingress specific configuration
-  Ingress: {}
-    ## What Ingress Class Name that should be used for {{ 'all Ingresses by default' if global else 'this Ingress' }}
-    # className:
+  ## What Ingress Class Name that should be used for {{ 'all Ingresses by default' if global else 'this Ingress' }}
+  # className:
 
-    ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
-    ## This can be set to `ingress-nginx`.
-    # controllerType:
+  ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
+  ## This can be set to `ingress-nginx`.
+  # controllerType:
 
-  ## HTTPRoute specific configuration
-  HTTPRoute: {}
-    ## List of existing Gateway parent refs to connect the routes to.
-    ## More info: https://gateway-api.sigs.k8s.io/reference/spec/#parentreference
-    # existingGateways: {}
   
+{%- endmacro %}
+
+{% macro routes(global=false, withHost=true, key='routes') %}
+{%- if  global %}
+## How all routes should be constructed by default, unless overridden
+{%- else %}
+## How this component's routes should be constructed
+{%- endif %}
+{{ key }}:
+{%- if withHost %}
+  ## What hostname should be used for this component
+  # host:
+{% endif %}
+  ## Annotations to be added to {{ 'all routes. Will be merged with component specific route annotations' if global else 'this route' }}
+  annotations: {}
+
+  ## Disable TLS configuration by setting it to false
+  tlsEnabled: true
+
+  ## The name of the Secret containing the TLS certificate and the key that should be used for {{ 'all routes by default' if global else 'this route' }}
+  # tlsSecret:
+
+  ## How the {{ 'Services' if global else 'Service' }} behind {{ 'all routes' if global else 'this route' }} is constructed{{ ' by default' if global else '' }}
+{%- if global %}
+  service:
+    type: ClusterIP
+    ## Annotations to be added to {{ 'all routes services. Will be merged with component specific route services annotations' if global else 'this route' }}
+    annotations: {}
+    # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
+    externalTrafficPolicy: Cluster
+    internalTrafficPolicy: Cluster
+{%- else %}
+  # service:
+  #   type: ClusterIP
+  #   annotations: {}
+  #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
+  #   externalTrafficPolicy: Cluster
+  #   internalTrafficPolicy: Cluster
+  #   # External IPs addresses of this service.
+  #   externalIPs: []
+  service: {}
+{%- endif %}
+
+  ## List of existing Gateway parent refs to connect the routes to.
+  ## More info: https://gateway-api.sigs.k8s.io/reference/spec/#parentreference
+  # existingGateways: {}
+
 {%- endmacro %}
 
 {% macro labels(global=false, key='labels') %}

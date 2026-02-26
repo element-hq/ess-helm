@@ -1,6 +1,23 @@
 {
   "type": "object",
   "properties": {
+    "existingGateways": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": { "type": "string" },
+          "namespace": { "type": "string" },
+          "group": { "type": "string" },
+          "kind": { "type": "string" },
+          "sectionName": { "type": "string" },
+          "port": { "type": "integer" }
+        }
+      }
+    },
     "annotations": {
       "type": "object",
       "additionalProperties": {
@@ -13,20 +30,11 @@
     "host": {
       "type": "string"
     },
-    "className": {
-      "type": "string"
-    },
     "tlsEnabled": {
       "type": "boolean"
     },
     "tlsSecret": {
       "type": "string"
-    },
-    "controllerType": {
-      "type": "string",
-      "enum": [
-        "ingress-nginx"
-      ]
     },
     "service": {
       "$ref": "file://common/service.json"
