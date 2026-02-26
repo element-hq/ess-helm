@@ -82,6 +82,9 @@
     "storage": {
       "$ref": "file://common/storage_global.json"
     },
+    "routes": {
+      "$ref": "file://common/routes_global.json"
+    },
     "tolerations": {
       "$ref": "file://common/tolerations.json"
     },
