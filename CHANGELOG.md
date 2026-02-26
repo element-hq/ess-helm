@@ -7,6 +7,74 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.2.3 (2026-02-26)
+
+## Added
+
+- Add a script to migrate existing Synapse configuration to ESS Community values.
+
+  - The script will generate a valid ESS Values file based on an existing Synapse configuration.
+  - The script supports automatically discovering secrets and outputs them to Kubernetes Secrets manifests.
+
+  (#1052, #1056, #1058)
+- Add `tlsTerminationOnPod` property to matrix-rtc TURN TLS service for external TLS termination support. (#1053)
+
+## Changed
+
+- Upgrade Matrix Authentication Service to v1.12.0.
+
+  Highlights:
+  - Allow `+` in usernames, as per the Matrix spec
+  - Fix compat token refresh giving back a consumed token
+  - Add a default `Message-ID` when sending emails
+
+  Full Changelogs:
+  - [v1.12.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.12.0)
+
+  (#1066)
+- Upgrade Element Web to v1.12.11.
+
+  Highlights:
+  - Update the room list visuals in order to have better contrast
+  - Remove server acl status/summaries from timeline
+
+  Full Changelogs:
+  - [v1.12.11](https://github.com/element-hq/element-web/releases/tag/v1.12.11)
+
+  (#1068)
+- Upgrade Synapse to v1.148.0.
+
+  Highlights:
+  - Support sending and receiving [MSC4354 Sticky Event](https://github.com/matrix-org/matrix-spec-proposals/pull/4354) metadata
+
+  Full Changelogs:
+  - [v1.148.0](https://github.com/element-hq/synapse/releases/tag/v1.148.0)
+
+  (#1069)
+
+## Fixed
+
+- Ensure all `Deployments` and `StatefulSets` have `restartPolicy: Always` in their `spec.template.spec` so that their `Pods` are always correctly restarted. (#1055)
+- Ensure all `Jobs` have `restartPolicy: Never` in their `spec.template.spec` so that failed `Pods` are kept around. (#1055)
+- Don't wait for the chart Synapse to be available to start Hookshot when an external Synapse is used. (#1062)
+
+## Documentation
+
+- Document how to troubleshoot Matrix RTC SFU connectivity. (#1051)
+
+## Internal
+
+- CI: Cache Helm OCI dependencies for the current week. (#1057, #1070)
+- CI: test that all references to `Services` in the chart exist. (#1062)
+- Make `scripts/assemble_ci_values_files_from_fragments.sh` use standard characters classes and not GNU extensions for improved portability. (#1063)
+- Allow passing of additional options when creating the `k3d` cluster. (#1064)
+- CI: Export k3d debug logs. (#1070)
+- CI: Do not setup cert-manager in integration tests as its only used for local testing. (#1070)
+- CI: Retry setting up prometheus operator CRDs to kill flakes. (#1072)
+- CI: Retry Turn TLS connectivity in case of unexpected EOF Errors. (#1073, #1074)
+- CI: Cache dependencies installed with asdf. (#1075)
+
+
 # ESS Community Helm Chart 26.2.2 (2026-02-18)
 
 ## Changed
