@@ -82,6 +82,11 @@ class SynapseMigration(MigrationStrategy):
                 target_key="synapse.ingress.host",
                 transformer=extract_hostname_from_url,
             ),  # Extract hostname from public_baseurl for ingress host
+            TransformationSpec(
+                src_key="max_upload_size",
+                target_key="synapse.media.maxUploadSize",
+                required=False,
+            ),
         ]
 
     @property
