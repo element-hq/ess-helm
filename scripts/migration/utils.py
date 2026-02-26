@@ -57,16 +57,24 @@ def set_nested_value(config: dict[str, Any], path: str, value: Any) -> None:
 
         # Navigate/create the path
         for part in parts[:-1]:
-            if part not in current:
-                current[part] = {}
-            current = current[part]
-            if not isinstance(current, dict):
+            if isinstance(current, dict):
+                if part not in current:
+                    current[part] = {}
+                current = current[part]
+            elif isinstance(current, list):
+                if int(part) > len(current):
+                    # Create missing list items
+                    current.extend([None] * (int(part) - len(current) + 1))
+                current = current[int(part)]
+            else:
                 # Can't navigate further, overwrite with dict
                 current = {}
                 config[parts[0]] = current
 
-        # Set the final value
-        current[parts[-1]] = value
+        if isinstance(current, list):
+            current[int(parts[-1])] = value
+        else:
+            current[parts[-1]] = value
     else:
         # Direct key
         config[path] = value
@@ -90,10 +98,16 @@ def get_nested_value(config: dict[str, Any], path: str) -> Any:
 
         # Navigate to the value
         for part in parts:
-            if part not in current:
-                return None
-            current = current[part]
-            if not isinstance(current, dict) and part != parts[-1]:
+            if isinstance(current, dict):
+                if part not in current:
+                    return None
+                current = current[part]
+            elif isinstance(current, list):
+                try:
+                    current = current[int(part)]
+                except (IndexError, ValueError):
+                    return None
+            elif part != parts[-1]:
                 return None  # Can't navigate further
 
         return current
@@ -117,16 +131,23 @@ def remove_nested_value(config: dict[str, Any], path: str) -> None:
 
         # Navigate to the parent
         for part in parts[:-1]:
-            if part not in current:
-                return  # Path doesn't exist
-            current = current[part]
-            if not isinstance(current, dict):
-                return  # Can't navigate further
+            if isinstance(current, dict):
+                if part not in current:
+                    return
+                current = current[part]
+            elif isinstance(current, list):
+                try:
+                    current = current[int(part)]
+                except (IndexError, ValueError):
+                    return
 
         # Remove the final key
         final_key = parts[-1]
-        if final_key in current:
+
+        if isinstance(current, dict) and final_key in current:
             del current[final_key]
+        elif isinstance(current, list) and int(final_key) < len(current):
+            del current[int(final_key)]
     else:
         # Direct key
         if path in config:
