@@ -161,74 +161,102 @@
     },
     "ingress": {
       "type": "object",
-      "required": [
-        "enabled",
-        "type"
-      ],
       "properties": {
-        "enabled": {
-          "type": "boolean",
-          "default": true
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         },
-        "type": {
+        "className": {
+          "type": "string"
+        },
+        "tlsEnabled": {
+          "type": "boolean"
+        },
+        "tlsSecret": {
+          "type": "string"
+        },
+        "controllerType": {
           "type": "string",
           "enum": [
-            "HTTPRoute",
-            "Ingress"
+            "ingress-nginx"
+          ]
+        },
+        "service": {
+          "type": "object",
+          "required": [
+            "type",
+            "internalTrafficPolicy"
           ],
-          "default": "Ingress"
-        },
-        "HTTPRoute": {
-          "type": "object",
           "properties": {
-            "existingGateways": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "required": [
-                  "name"
-                ],
-                "properties": {
-                  "name": {
-                    "type": "string"
-                  },
-                  "namespace": {
-                    "type": "string"
-                  },
-                  "group": {
-                    "type": "string"
-                  },
-                  "kind": {
-                    "type": "string"
-                  },
-                  "sectionName": {
-                    "type": "string"
-                  },
-                  "port": {
-                    "type": "integer"
-                  }
-                },
-                "additionalProperties": false
-              },
-              "minItems": 1
-            }
-          },
-          "additionalProperties": false
-        },
-        "Ingress": {
-          "type": "object",
-          "properties": {
-            "className": {
-              "type": "string"
+            "annotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
             },
-            "controllerType": {
+            "type": {
               "type": "string",
               "enum": [
-                "ingress-nginx"
+                "ClusterIP",
+                "NodePort",
+                "LoadBalancer"
+              ]
+            },
+            "internalTrafficPolicy": {
+              "type": "string",
+              "enum": [
+                "Cluster",
+                "Local"
+              ]
+            },
+            "externalTrafficPolicy": {
+              "type": "string",
+              "enum": [
+                "Cluster",
+                "Local"
               ]
             }
           },
           "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "routes": {
+      "type": "object",
+      "properties": {
+        "existingGateways": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "namespace": {
+                "type": "string"
+              },
+              "group": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string"
+              },
+              "sectionName": {
+                "type": "string"
+              },
+              "port": {
+                "type": "integer"
+              }
+            },
+            "additionalProperties": false
+          },
+          "minItems": 1
         },
         "annotations": {
           "type": "object",
@@ -1392,6 +1420,14 @@
           },
           "additionalProperties": false
         },
+        "inboundTrafficHandler": {
+          "type": "string",
+          "enum": [
+            "ingress",
+            "routes",
+            "none"
+          ]
+        },
         "replicas": {
           "type": "integer"
         },
@@ -1565,67 +1601,6 @@
         "ingress": {
           "type": "object",
           "properties": {
-            "enabled": {
-              "type": "boolean"
-            },
-            "type": {
-              "type": "string",
-              "enum": [
-                "HTTPRoute",
-                "Ingress"
-              ]
-            },
-            "HTTPRoute": {
-              "type": "object",
-              "properties": {
-                "existingGateways": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "name"
-                    ],
-                    "properties": {
-                      "name": {
-                        "type": "string"
-                      },
-                      "namespace": {
-                        "type": "string"
-                      },
-                      "group": {
-                        "type": "string"
-                      },
-                      "kind": {
-                        "type": "string"
-                      },
-                      "sectionName": {
-                        "type": "string"
-                      },
-                      "port": {
-                        "type": "integer"
-                      }
-                    },
-                    "additionalProperties": false
-                  }
-                }
-              },
-              "additionalProperties": false
-            },
-            "Ingress": {
-              "type": "object",
-              "properties": {
-                "className": {
-                  "type": "string"
-                },
-                "controllerType": {
-                  "type": "string",
-                  "enum": [
-                    "ingress-nginx"
-                  ]
-                }
-              },
-              "additionalProperties": false
-            },
             "annotations": {
               "type": "object",
               "additionalProperties": {
@@ -1637,6 +1612,110 @@
             },
             "host": {
               "type": "string"
+            },
+            "className": {
+              "type": "string"
+            },
+            "tlsEnabled": {
+              "type": "boolean"
+            },
+            "tlsSecret": {
+              "type": "string"
+            },
+            "controllerType": {
+              "type": "string",
+              "enum": [
+                "ingress-nginx"
+              ]
+            },
+            "service": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "ClusterIP",
+                    "NodePort",
+                    "LoadBalancer"
+                  ]
+                },
+                "annotations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "internalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalIPs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "routes": {
+          "type": "object",
+          "properties": {
+            "existingGateways": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "namespace": {
+                    "type": "string"
+                  },
+                  "group": {
+                    "type": "string"
+                  },
+                  "kind": {
+                    "type": "string"
+                  },
+                  "sectionName": {
+                    "type": "string"
+                  },
+                  "port": {
+                    "type": "integer"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "minItems": 1
+            },
+            "host": {
+              "type": "string"
+            },
+            "annotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
             },
             "tlsEnabled": {
               "type": "boolean"
@@ -3176,6 +3255,14 @@
           "minimum": 1,
           "type": "integer"
         },
+        "inboundTrafficHandler": {
+          "type": "string",
+          "enum": [
+            "ingress",
+            "routes",
+            "none"
+          ]
+        },
         "image": {
           "type": "object",
           "required": [
@@ -3254,67 +3341,6 @@
         "ingress": {
           "type": "object",
           "properties": {
-            "enabled": {
-              "type": "boolean"
-            },
-            "type": {
-              "type": "string",
-              "enum": [
-                "HTTPRoute",
-                "Ingress"
-              ]
-            },
-            "HTTPRoute": {
-              "type": "object",
-              "properties": {
-                "existingGateways": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "name"
-                    ],
-                    "properties": {
-                      "name": {
-                        "type": "string"
-                      },
-                      "namespace": {
-                        "type": "string"
-                      },
-                      "group": {
-                        "type": "string"
-                      },
-                      "kind": {
-                        "type": "string"
-                      },
-                      "sectionName": {
-                        "type": "string"
-                      },
-                      "port": {
-                        "type": "integer"
-                      }
-                    },
-                    "additionalProperties": false
-                  }
-                }
-              },
-              "additionalProperties": false
-            },
-            "Ingress": {
-              "type": "object",
-              "properties": {
-                "className": {
-                  "type": "string"
-                },
-                "controllerType": {
-                  "type": "string",
-                  "enum": [
-                    "ingress-nginx"
-                  ]
-                }
-              },
-              "additionalProperties": false
-            },
             "annotations": {
               "type": "object",
               "additionalProperties": {
@@ -3326,6 +3352,110 @@
             },
             "host": {
               "type": "string"
+            },
+            "className": {
+              "type": "string"
+            },
+            "tlsEnabled": {
+              "type": "boolean"
+            },
+            "tlsSecret": {
+              "type": "string"
+            },
+            "controllerType": {
+              "type": "string",
+              "enum": [
+                "ingress-nginx"
+              ]
+            },
+            "service": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "ClusterIP",
+                    "NodePort",
+                    "LoadBalancer"
+                  ]
+                },
+                "annotations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "internalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalIPs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "routes": {
+          "type": "object",
+          "properties": {
+            "existingGateways": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "namespace": {
+                    "type": "string"
+                  },
+                  "group": {
+                    "type": "string"
+                  },
+                  "kind": {
+                    "type": "string"
+                  },
+                  "sectionName": {
+                    "type": "string"
+                  },
+                  "port": {
+                    "type": "integer"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "minItems": 1
+            },
+            "host": {
+              "type": "string"
+            },
+            "annotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
             },
             "tlsEnabled": {
               "type": "boolean"
@@ -3933,6 +4063,14 @@
           "minimum": 1,
           "type": "integer"
         },
+        "inboundTrafficHandler": {
+          "type": "string",
+          "enum": [
+            "ingress",
+            "routes",
+            "none"
+          ]
+        },
         "extraVolumes": {
           "type": "array",
           "items": {
@@ -4084,67 +4222,6 @@
         "ingress": {
           "type": "object",
           "properties": {
-            "enabled": {
-              "type": "boolean"
-            },
-            "type": {
-              "type": "string",
-              "enum": [
-                "HTTPRoute",
-                "Ingress"
-              ]
-            },
-            "HTTPRoute": {
-              "type": "object",
-              "properties": {
-                "existingGateways": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "name"
-                    ],
-                    "properties": {
-                      "name": {
-                        "type": "string"
-                      },
-                      "namespace": {
-                        "type": "string"
-                      },
-                      "group": {
-                        "type": "string"
-                      },
-                      "kind": {
-                        "type": "string"
-                      },
-                      "sectionName": {
-                        "type": "string"
-                      },
-                      "port": {
-                        "type": "integer"
-                      }
-                    },
-                    "additionalProperties": false
-                  }
-                }
-              },
-              "additionalProperties": false
-            },
-            "Ingress": {
-              "type": "object",
-              "properties": {
-                "className": {
-                  "type": "string"
-                },
-                "controllerType": {
-                  "type": "string",
-                  "enum": [
-                    "ingress-nginx"
-                  ]
-                }
-              },
-              "additionalProperties": false
-            },
             "annotations": {
               "type": "object",
               "additionalProperties": {
@@ -4156,6 +4233,110 @@
             },
             "host": {
               "type": "string"
+            },
+            "className": {
+              "type": "string"
+            },
+            "tlsEnabled": {
+              "type": "boolean"
+            },
+            "tlsSecret": {
+              "type": "string"
+            },
+            "controllerType": {
+              "type": "string",
+              "enum": [
+                "ingress-nginx"
+              ]
+            },
+            "service": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "ClusterIP",
+                    "NodePort",
+                    "LoadBalancer"
+                  ]
+                },
+                "annotations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "internalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalIPs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "routes": {
+          "type": "object",
+          "properties": {
+            "existingGateways": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "namespace": {
+                    "type": "string"
+                  },
+                  "group": {
+                    "type": "string"
+                  },
+                  "kind": {
+                    "type": "string"
+                  },
+                  "sectionName": {
+                    "type": "string"
+                  },
+                  "port": {
+                    "type": "integer"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "minItems": 1
+            },
+            "host": {
+              "type": "string"
+            },
+            "annotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
             },
             "tlsEnabled": {
               "type": "boolean"
@@ -5371,6 +5552,14 @@
           },
           "additionalProperties": false
         },
+        "inboundTrafficHandler": {
+          "type": "string",
+          "enum": [
+            "ingress",
+            "routes",
+            "none"
+          ]
+        },
         "additional": {
           "type": "object",
           "additionalProperties": {
@@ -5417,67 +5606,6 @@
         "ingress": {
           "type": "object",
           "properties": {
-            "enabled": {
-              "type": "boolean"
-            },
-            "type": {
-              "type": "string",
-              "enum": [
-                "HTTPRoute",
-                "Ingress"
-              ]
-            },
-            "HTTPRoute": {
-              "type": "object",
-              "properties": {
-                "existingGateways": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "name"
-                    ],
-                    "properties": {
-                      "name": {
-                        "type": "string"
-                      },
-                      "namespace": {
-                        "type": "string"
-                      },
-                      "group": {
-                        "type": "string"
-                      },
-                      "kind": {
-                        "type": "string"
-                      },
-                      "sectionName": {
-                        "type": "string"
-                      },
-                      "port": {
-                        "type": "integer"
-                      }
-                    },
-                    "additionalProperties": false
-                  }
-                }
-              },
-              "additionalProperties": false
-            },
-            "Ingress": {
-              "type": "object",
-              "properties": {
-                "className": {
-                  "type": "string"
-                },
-                "controllerType": {
-                  "type": "string",
-                  "enum": [
-                    "ingress-nginx"
-                  ]
-                }
-              },
-              "additionalProperties": false
-            },
             "annotations": {
               "type": "object",
               "additionalProperties": {
@@ -5489,6 +5617,110 @@
             },
             "host": {
               "type": "string"
+            },
+            "className": {
+              "type": "string"
+            },
+            "tlsEnabled": {
+              "type": "boolean"
+            },
+            "tlsSecret": {
+              "type": "string"
+            },
+            "controllerType": {
+              "type": "string",
+              "enum": [
+                "ingress-nginx"
+              ]
+            },
+            "service": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "ClusterIP",
+                    "NodePort",
+                    "LoadBalancer"
+                  ]
+                },
+                "annotations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "internalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalIPs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "routes": {
+          "type": "object",
+          "properties": {
+            "existingGateways": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "namespace": {
+                    "type": "string"
+                  },
+                  "group": {
+                    "type": "string"
+                  },
+                  "kind": {
+                    "type": "string"
+                  },
+                  "sectionName": {
+                    "type": "string"
+                  },
+                  "port": {
+                    "type": "integer"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "minItems": 1
+            },
+            "host": {
+              "type": "string"
+            },
+            "annotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
             },
             "tlsEnabled": {
               "type": "boolean"
@@ -6905,70 +7137,17 @@
           },
           "additionalProperties": false
         },
+        "inboundTrafficHandler": {
+          "type": "string",
+          "enum": [
+            "ingress",
+            "routes",
+            "none"
+          ]
+        },
         "ingress": {
           "type": "object",
           "properties": {
-            "enabled": {
-              "type": "boolean"
-            },
-            "type": {
-              "type": "string",
-              "enum": [
-                "HTTPRoute",
-                "Ingress"
-              ]
-            },
-            "HTTPRoute": {
-              "type": "object",
-              "properties": {
-                "existingGateways": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "name"
-                    ],
-                    "properties": {
-                      "name": {
-                        "type": "string"
-                      },
-                      "namespace": {
-                        "type": "string"
-                      },
-                      "group": {
-                        "type": "string"
-                      },
-                      "kind": {
-                        "type": "string"
-                      },
-                      "sectionName": {
-                        "type": "string"
-                      },
-                      "port": {
-                        "type": "integer"
-                      }
-                    },
-                    "additionalProperties": false
-                  }
-                }
-              },
-              "additionalProperties": false
-            },
-            "Ingress": {
-              "type": "object",
-              "properties": {
-                "className": {
-                  "type": "string"
-                },
-                "controllerType": {
-                  "type": "string",
-                  "enum": [
-                    "ingress-nginx"
-                  ]
-                }
-              },
-              "additionalProperties": false
-            },
             "annotations": {
               "type": "object",
               "additionalProperties": {
@@ -6980,6 +7159,110 @@
             },
             "host": {
               "type": "string"
+            },
+            "className": {
+              "type": "string"
+            },
+            "tlsEnabled": {
+              "type": "boolean"
+            },
+            "tlsSecret": {
+              "type": "string"
+            },
+            "controllerType": {
+              "type": "string",
+              "enum": [
+                "ingress-nginx"
+              ]
+            },
+            "service": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "ClusterIP",
+                    "NodePort",
+                    "LoadBalancer"
+                  ]
+                },
+                "annotations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "internalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalIPs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "routes": {
+          "type": "object",
+          "properties": {
+            "existingGateways": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "namespace": {
+                    "type": "string"
+                  },
+                  "group": {
+                    "type": "string"
+                  },
+                  "kind": {
+                    "type": "string"
+                  },
+                  "sectionName": {
+                    "type": "string"
+                  },
+                  "port": {
+                    "type": "integer"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "minItems": 1
+            },
+            "host": {
+              "type": "string"
+            },
+            "annotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
             },
             "tlsEnabled": {
               "type": "boolean"
@@ -9665,69 +9948,193 @@
             "type": "string"
           }
         },
+        "inboundTrafficHandler": {
+          "type": "string",
+          "enum": [
+            "ingress",
+            "routes",
+            "none"
+          ]
+        },
         "ingress": {
           "type": "object",
           "properties": {
-            "enabled": {
+            "annotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "host": {
+              "type": "string"
+            },
+            "className": {
+              "type": "string"
+            },
+            "tlsEnabled": {
               "type": "boolean"
             },
-            "type": {
+            "tlsSecret": {
+              "type": "string"
+            },
+            "controllerType": {
               "type": "string",
               "enum": [
-                "HTTPRoute",
-                "Ingress"
+                "ingress-nginx"
               ]
             },
-            "HTTPRoute": {
+            "service": {
               "type": "object",
               "properties": {
-                "existingGateways": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "ClusterIP",
+                    "NodePort",
+                    "LoadBalancer"
+                  ]
+                },
+                "annotations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "internalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalIPs": {
                   "type": "array",
                   "items": {
-                    "type": "object",
-                    "required": [
-                      "name"
-                    ],
-                    "properties": {
-                      "name": {
-                        "type": "string"
-                      },
-                      "namespace": {
-                        "type": "string"
-                      },
-                      "group": {
-                        "type": "string"
-                      },
-                      "kind": {
-                        "type": "string"
-                      },
-                      "sectionName": {
-                        "type": "string"
-                      },
-                      "port": {
-                        "type": "integer"
-                      }
-                    },
-                    "additionalProperties": false
+                    "type": "string"
                   }
                 }
               },
               "additionalProperties": false
             },
-            "Ingress": {
-              "type": "object",
-              "properties": {
-                "className": {
-                  "type": "string"
+            "additionalPaths": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "path",
+                  "availability"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "availability": {
+                    "type": "string",
+                    "enum": [
+                      "internally_and_externally",
+                      "only_externally",
+                      "blocked"
+                    ]
+                  },
+                  "service": {
+                    "type": "object",
+                    "required": [
+                      "name",
+                      "port"
+                    ],
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "port": {
+                        "type": "object",
+                        "oneOf": [
+                          {
+                            "required": [
+                              "name"
+                            ],
+                            "not": {
+                              "required": [
+                                "number"
+                              ]
+                            }
+                          },
+                          {
+                            "required": [
+                              "number"
+                            ],
+                            "not": {
+                              "required": [
+                                "name"
+                              ]
+                            }
+                          }
+                        ],
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "number": {
+                            "type": "integer"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "additionalProperties": false
+                  }
                 },
-                "controllerType": {
-                  "type": "string",
-                  "enum": [
-                    "ingress-nginx"
-                  ]
-                }
-              },
-              "additionalProperties": false
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "routes": {
+          "type": "object",
+          "properties": {
+            "existingGateways": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "namespace": {
+                    "type": "string"
+                  },
+                  "group": {
+                    "type": "string"
+                  },
+                  "kind": {
+                    "type": "string"
+                  },
+                  "sectionName": {
+                    "type": "string"
+                  },
+                  "port": {
+                    "type": "integer"
+                  }
+                },
+                "additionalProperties": false
+              }
             },
             "annotations": {
               "type": "object",
@@ -15508,70 +15915,17 @@
         "enabled": {
           "type": "boolean"
         },
+        "inboundTrafficHandler": {
+          "type": "string",
+          "enum": [
+            "ingress",
+            "routes",
+            "none"
+          ]
+        },
         "ingress": {
           "type": "object",
           "properties": {
-            "enabled": {
-              "type": "boolean"
-            },
-            "type": {
-              "type": "string",
-              "enum": [
-                "HTTPRoute",
-                "Ingress"
-              ]
-            },
-            "HTTPRoute": {
-              "type": "object",
-              "properties": {
-                "existingGateways": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "name"
-                    ],
-                    "properties": {
-                      "name": {
-                        "type": "string"
-                      },
-                      "namespace": {
-                        "type": "string"
-                      },
-                      "group": {
-                        "type": "string"
-                      },
-                      "kind": {
-                        "type": "string"
-                      },
-                      "sectionName": {
-                        "type": "string"
-                      },
-                      "port": {
-                        "type": "integer"
-                      }
-                    },
-                    "additionalProperties": false
-                  }
-                }
-              },
-              "additionalProperties": false
-            },
-            "Ingress": {
-              "type": "object",
-              "properties": {
-                "className": {
-                  "type": "string"
-                },
-                "controllerType": {
-                  "type": "string",
-                  "enum": [
-                    "ingress-nginx"
-                  ]
-                }
-              },
-              "additionalProperties": false
-            },
             "annotations": {
               "type": "object",
               "additionalProperties": {
@@ -15579,6 +15933,107 @@
                   "string",
                   "null"
                 ]
+              }
+            },
+            "className": {
+              "type": "string"
+            },
+            "tlsEnabled": {
+              "type": "boolean"
+            },
+            "tlsSecret": {
+              "type": "string"
+            },
+            "controllerType": {
+              "type": "string",
+              "enum": [
+                "ingress-nginx"
+              ]
+            },
+            "service": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "ClusterIP",
+                    "NodePort",
+                    "LoadBalancer"
+                  ]
+                },
+                "annotations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "internalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalIPs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "routes": {
+          "type": "object",
+          "properties": {
+            "existingGateways": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "namespace": {
+                    "type": "string"
+                  },
+                  "group": {
+                    "type": "string"
+                  },
+                  "kind": {
+                    "type": "string"
+                  },
+                  "sectionName": {
+                    "type": "string"
+                  },
+                  "port": {
+                    "type": "integer"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "minItems": 1
+            },
+            "annotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
               }
             },
             "tlsEnabled": {

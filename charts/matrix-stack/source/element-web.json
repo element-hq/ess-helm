@@ -16,6 +16,14 @@
       "minimum": 1,
       "type": "integer"
     },
+    "inboundTrafficHandler": {
+      "type": "string",
+      "enum": [
+        "ingress",
+        "routes",
+        "none"
+      ]
+    },
     "extraVolumes": {
       "$ref": "file://common/extraVolumes.json"
     },
@@ -30,6 +38,9 @@
     },
     "ingress": {
       "$ref": "file://common/ingress.json"
+    },
+    "routes": {
+      "$ref": "file://common/routes.json"
     },
     "labels": {
       "$ref": "file://common/labels.json"

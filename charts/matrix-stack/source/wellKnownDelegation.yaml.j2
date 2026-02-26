@@ -10,6 +10,7 @@ enabled: true
 
 {{ sub_schema_values.labels() }}
 {{ sub_schema_values.ingress() }}
+{{ sub_schema_values.routes(withHost=false) }}
 
 ## If ElementWeb is deployed, the base domain will redirect to it's ingress host by default
 ## If ElementWeb is not deployed or this is disabled, no base domain URL redirect will be set.
