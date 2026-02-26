@@ -60,6 +60,7 @@ class ConfigValueTransformer:
     source and target paths.
     """
 
+    pretty_logger: logging.Logger | None = field(default=None)  # Pretty logger
     results: list[TransformationResult] = field(default_factory=list)  # List of transformation results
     tracked_values: list[str] = field(default_factory=list)  # Source paths that have been processed
     ess_config: dict[str, Any] = field(default_factory=dict)  # Target ESS configuration dictionary
@@ -80,7 +81,7 @@ class ConfigValueTransformer:
                 # Apply transformer function if provided
                 transformed_value = value
                 if transformation.transformer is not None:
-                    transformed_value = transformation.transformer(value)
+                    transformed_value = transformation.transformer(self.pretty_logger, value)
 
                 # Track the source path if not already tracked
                 if transformation.src_key not in self.tracked_values:
@@ -243,6 +244,7 @@ class MigrationService:
         self.component_root_key = self.migration.component_root_key
         self.override_configs = self.migration.override_configs
         self.config_to_ess_transformer.ess_config = self.ess_config
+        self.config_to_ess_transformer.pretty_logger = self.pretty_logger
 
     def _check_overrides(self, config: dict[str, Any]) -> None:
         """

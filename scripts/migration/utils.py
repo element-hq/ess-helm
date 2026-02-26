@@ -154,7 +154,7 @@ def remove_nested_value(config: dict[str, Any], path: str) -> None:
             del config[path]
 
 
-def extract_hostname_from_url(url: str) -> str:
+def extract_hostname_from_url(_, url: str) -> str:
     """
     Extract hostname from a URL string.
 
