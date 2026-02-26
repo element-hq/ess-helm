@@ -230,25 +230,6 @@
           },
           "additionalProperties": false
         },
-        "gateway": {
-          "type": "object",
-          "properties": {
-            "create": {
-              "type": "boolean",
-              "default": false
-            },
-            "className": {
-              "type": "string"
-            },
-            "annotations": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            }
-          },
-          "additionalProperties": false
-        },
         "annotations": {
           "type": "object",
           "additionalProperties": {
@@ -450,6 +431,32 @@
         }
       },
       "additionalProperties": false
+    },
+    "gateway": {
+      "type": "object",
+      "properties": {
+        "create": {
+          "type": "boolean"
+        },
+        "className": {
+          "type": "string"
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "inboundTrafficHandler": {
+      "type": "string",
+      "enum": [
+        "ingress",
+        "routes",
+        "none"
+      ]
     },
     "deploymentMarkers": {
       "$id": "file://deployment-markers",

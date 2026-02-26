@@ -54,24 +54,6 @@
         }
       }
     },
-    "gateway": {
-      "type": "object",
-      "properties": {
-        "create": {
-          "type": "boolean",
-          "default": false
-        },
-        "className": {
-          "type": "string"
-        },
-        "annotations": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        }
-      }
-    },
     "annotations": {
       "type": "object",
       "additionalProperties": {
