@@ -72,16 +72,18 @@ jobs:
       run: |
         echo "$(poetry env info -p)/bin" >> "${GITHUB_PATH}"
 
-    - name: Get current week number
-      id: week
-      run: echo "week=$(date +%Y%U)" | tee -a "$GITHUB_OUTPUT"
+    - name: Get current week number and home dir
+      id: cache-input
+      run: |
+        echo "week=$(date +%Y%U)" | tee -a "$GITHUB_OUTPUT"
+        echo "runner-home=$HOME" | tee -a "$GITHUB_OUTPUT"
 
     - name: Restore pyhelm cache
       id: cache-pyhelm
       uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5
       with:
         path: .pyhelm_cache
-        key: pyhelm-integration-cache-${{ hashFiles('tests/integration/fixtures/cluster.py') }}-week-${{ steps.week.outputs.week }}
+        key: pyhelm-integration-cache-${{ hashFiles('tests/integration/fixtures/cluster.py') }}-week-${{ steps.cache-input.outputs.week }}
         restore-keys: |
           pyhelm-integration-cache-
 
@@ -93,11 +95,43 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Install k3d with asdf
-      uses: asdf-vm/actions/install@b7bcd026f18772e44fe1026d729e1611cc435d47  # v4
+    - name: Cache ASDF for a week
+      id: asdf-cache
+      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5
+      env:
+        gh_cache_prefix: ${{ runner.os }}-${{ runner.arch }}-asdf-
       with:
-        tool_versions: |
-          k3d 5.8.3
+        key: ${{ env.gh_cache_prefix }}week-${{ steps.cache-input.outputs.week }}
+        path: |
+          ${{ steps.cache-input.outputs.runner-home }}/.asdf/bin
+
+    - name: set up ASDF
+      uses: asdf-vm/actions/setup@b7bcd026f18772e44fe1026d729e1611cc435d47  # v4
+      with:
+        skip_install: ${{ steps.asdf-cache.outputs.cache-hit == 'true' }}
+
+    - name: Write asdf .tool-versions
+      id: write-asdf-tools
+      run: |
+        echo "k3d 5.8.3" | tee -a ".tool-versions"
+        echo "tools-hash=$(sha256sum .tool-versions | cut -d ' ' -f 1)" | tee -a "$GITHUB_OUTPUT"
+
+    - name: Restore ASDF tools from cache
+      id: asdf-tools-cache
+      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5
+      env:
+        gh_cache_prefix: ${{ runner.os }}-${{ runner.arch }}-asdf-tools-
+      with:
+        key: ${{ env.gh_cache_prefix }}${{ steps.write-asdf-tools.outputs.tools-hash }}
+        path: |
+          ${{ env.ASDF_DIR }}/plugins
+          ${{ env.ASDF_DIR }}/installs
+
+    - name: Install ASDF tools
+      uses: asdf-vm/actions/install@b7bcd026f18772e44fe1026d729e1611cc435d47  # v4
+
+    - name: Reshim installed ASDF tools
+      run: asdf reshim
 
     - uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4  # v4.3.1
 
@@ -141,7 +175,7 @@ jobs:
       if: always() && steps.cache-pyhelm.outputs.cache-hit != 'true'
       uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5
       with:
-        key: pyhelm-integration-cache-${{ hashFiles('tests/integration/fixtures/cluster.py') }}-week-${{ steps.week.outputs.week }}
+        key: pyhelm-integration-cache-${{ hashFiles('tests/integration/fixtures/cluster.py') }}-week-${{ steps.cache-input.outputs.week }}
         path: .pyhelm_cache
 
     - name: Export logs
@@ -203,8 +237,10 @@ jobs:
     # Helm >= 3.19.5 (including Helm v4) have https://github.com/helm/helm/issues/31643
     # which breaks one of the Ingress tests
     - name: Pin Helm with asdf
-      uses: asdf-vm/actions/install@b7bcd026f18772e44fe1026d729e1611cc435d47  # v4
+      # This is PR https://github.com/asdf-vm/actions/pull/596/
+      uses: flosell/asdf-actions/install@de6908050fca574940e3b8756efd39e815d3618c  # v4
       with:
+        enable_cache: true
         tool_versions: |
           helm 3.19.4
 
