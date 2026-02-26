@@ -123,8 +123,8 @@ def test_main_e2e_synapse_only(
     assert synapse_config["extraVolumeMounts"] == [
         {
             "name": "imported-synapse",
-            "mountPath": "/etc/synapse/extra/ca1.pem",
-            "subPath": "ca1.pem",
+            "mountPath": "/etc/synapse/extra/another-ca.pem",
+            "subPath": "another-ca.pem",
         },
         {
             "name": "imported-synapse",
@@ -133,18 +133,18 @@ def test_main_e2e_synapse_only(
         },
         {
             "name": "imported-synapse",
-            "mountPath": "/etc/synapse/extra/another-ca.pem",
-            "subPath": "another-ca.pem",
-        },
-        {
-            "name": "imported-synapse",
-            "mountPath": "/etc/synapse/extra/email_templates/registration.html",
-            "subPath": "registration.html",
+            "mountPath": "/etc/synapse/extra/ca1.pem",
+            "subPath": "ca1.pem",
         },
         {
             "name": "imported-synapse",
             "mountPath": "/etc/synapse/extra/email_templates/password_reset.html",
             "subPath": "password_reset.html",
+        },
+        {
+            "name": "imported-synapse",
+            "mountPath": "/etc/synapse/extra/email_templates/registration.html",
+            "subPath": "registration.html",
         },
     ]
     synapse_additional_config = yaml.safe_load(synapse_config["additional"]["00-imported.yaml"]["config"])

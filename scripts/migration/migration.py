@@ -291,6 +291,8 @@ class ConfigValueTransformer:
             )
             config_maps.append(configmap)
 
+        extra_volume_mounts.sort(key=lambda x: x["mountPath"])
+
         if extra_volumes:
             config["extraVolumes"] = extra_volumes
             config["extraVolumeMounts"] = extra_volume_mounts
