@@ -54,6 +54,21 @@ clusterDomain: "cluster.local."
 networking:
   ## Whether components should attempt to bind IPv4 (ipv4) /IPv6 (ipv6) / both (dual-stack)
   ipFamily: dual-stack
+
+## Gateway configuration options
+gateway:
+  ## Create a default gateway for all routes
+  create: false
+  
+  ## Set the gateway class to use. If not set it will use the cluster default
+  # className: ""
+
+  ## Additional annotations to add to the gateway resource
+  annotations: {}
+
+## Set the default inbound traffic handler type. Options are ingress | routes | none
+inboundTrafficHandler: ingress
+
 {%- endmacro %}
 
 {% macro containersSecurityContext(key='containersSecurityContext') %}
@@ -217,19 +232,6 @@ networking:
     ## More info: https://gateway-api.sigs.k8s.io/reference/spec/#parentreference
     # existingGateways: {}
   
-  {%- if global %}
-
-  ## Configuration for the generated Gateway
-  gateway:
-    ## Should we generate a Gateway resource for the HTTPRoutes
-    create: false
-
-    ## Gateway controller class name to use
-    # className: ""
-
-    ## Additional annotations for the Gateway
-    annotations: {}
-  {%- endif %}
 {%- endmacro %}
 
 {% macro labels(global=false, key='labels') %}
