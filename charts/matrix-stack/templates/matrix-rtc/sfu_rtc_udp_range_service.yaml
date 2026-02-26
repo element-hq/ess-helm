@@ -39,6 +39,7 @@ spec:
 {{- $segment_end := ((min (add $range_end 1) (add $segment_start 250)) | int) }}
 {{- range $port := untilStep $segment_start $segment_end 1 }}
   - name: rtc-udp-{{ $port }}
+  {{- /* port and targetPort must be the same for RTC traffic as LiveKit advertises the local port its listening on as the access port*/}}
     port: {{ $port }}
     targetPort: {{ $port }}
     {{- with $.Values.matrixRTC.sfu.exposedServices.rtcUdp.portRange.nodePort }}

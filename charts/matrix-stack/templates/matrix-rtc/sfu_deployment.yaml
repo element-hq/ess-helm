@@ -93,11 +93,13 @@ spec:
 {{- with .exposedServices }}
   {{- with .turnTLS }}
   {{- if .enabled }}
-        - containerPort: {{ .port }}
+        - name: turn-tls-tcp
     {{- if eq .portType "HostPort" }}
           hostPort: {{ .port }}
+          containerPort: {{ .port }}
+    {{- else }}
+          containerPort: 5349
     {{- end }}
-          name: turn-tls-tcp
           protocol: TCP
   {{- end }}
   {{- end }}
