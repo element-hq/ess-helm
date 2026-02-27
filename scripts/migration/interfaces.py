@@ -45,3 +45,23 @@ class SecretDiscoveryStrategy(Protocol):
     def component_name(self) -> str:
         """Get the component name for user-facing messages."""
         ...
+
+
+@runtime_checkable
+class ExtraFilesDiscoveryStrategy(Protocol):
+    """Minimal interface for extra file discovery strategies."""
+
+    @property
+    def ignored_file_paths(self) -> list[str]:
+        """Files paths to ignore when discovering extra files."""
+        ...
+
+    @property
+    def ignored_config_keys(self) -> list[str]:
+        """Config keys to ignore when discovering extra files."""
+        ...
+
+    @property
+    def component_name(self) -> str:
+        """Get the component name for user-facing messages."""
+        ...

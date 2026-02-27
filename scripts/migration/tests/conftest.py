@@ -66,3 +66,42 @@ def synapse_config_with_instance_map(tmp_path, basic_synapse_config):
     }
 
     return config
+
+
+@pytest.fixture
+def synapse_config_with_email_templates(tmp_path, basic_synapse_config):
+    """Synapse configuration with a signing key file."""
+    # Create email templates directory
+    templates_dir = tmp_path / "email_templates"
+    templates_dir.mkdir()
+    # Add password reset, registration templates
+    (templates_dir / "password_reset.html").write_text("test_password_reset_content")
+    (templates_dir / "registration.html").write_text("test_registration_content")
+
+    # Add email templates to config
+    config = basic_synapse_config.copy()
+    config.setdefault("templates", {})["custom_template_directory"] = str(templates_dir)
+
+    return config
+
+
+@pytest.fixture
+def synapse_config_with_ca_federation_list(tmp_path, basic_synapse_config):
+    """Synapse configuration with a signing key file."""
+    # Create email templates directory
+    templates_dir = tmp_path / "ca"
+    templates_dir.mkdir()
+    # Add password reset, registration templates
+    (templates_dir / "ca1.pem").write_text("CA1")
+    (templates_dir / "ca-second.pem").write_text("CA2")
+    (templates_dir / "another-ca.pem").write_text("CA3")
+
+    # Add email templates to config
+    config = basic_synapse_config.copy()
+    config["federation_custom_ca_list"] = [
+        str(templates_dir / "ca1.pem"),
+        str(templates_dir / "ca-second.pem"),
+        str(templates_dir / "another-ca.pem"),
+    ]
+
+    return config
