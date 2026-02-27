@@ -5,7 +5,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-set -exuo pipefail
+set -euo pipefail
 shopt -s nullglob
 
 [ "$#" -gt 1 ] && echo "Usage: assemble_ci_values_files_from_fragments.sh <optional values file prefix to restrict to>" 1>&2 && exit 1
