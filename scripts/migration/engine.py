@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .inputs import InputProcessor
+from .mas import MASExtraFileDiscovery, MASMigration, MASSecretDiscovery
 from .migration import MigrationService
 from .models import ConfigMap, DiscoveredSecret, Secret
 from .synapse import SynapseExtraFileDiscovery, SynapseMigration, SynapseSecretDiscovery
@@ -36,7 +37,8 @@ class MigrationEngine:
     def __post_init__(self) -> None:
         """Initialize the migration engine."""
         for migration, secret_discovery_strategy, extra_file_strategy in [
-            (SynapseMigration(), SynapseSecretDiscovery(), SynapseExtraFileDiscovery())
+            (SynapseMigration(), SynapseSecretDiscovery(), SynapseExtraFileDiscovery()),
+            (MASMigration(), MASSecretDiscovery(), MASExtraFileDiscovery()),
         ]:
             self.migrators.append(
                 MigrationService(
