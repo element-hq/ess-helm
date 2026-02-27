@@ -57,6 +57,7 @@ jobs:
         unpinned_actions=$(
           find .github/workflows .github/actions -type f \( -iname \*.yaml -o -iname \*.yml \) -print0 \
             | xargs -0 -I {} grep -E 'use[s]:' {} \
+            | grep -vE 'use[s]:\s+./.+' \
             | grep -vE 'use[s]:\s+docker://[^#]*@sha256:[a-f0-9]{64}\s+#\s' \
             | grep -vE 'use[s]:\s+[^#]*@[a-f0-9]{40}\s+#\s' || true)
         if [ "$unpinned_actions" != "" ]; then
