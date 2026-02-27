@@ -39,16 +39,18 @@ class MigrationEngine:
             (SynapseMigration(), SynapseSecretDiscovery()),
             (MASMigration(), MASSecretDiscovery()),
         ]:
-            self.migrators.append(
-                MigrationService(
-                    input=self.input_processor.input_for_component(migration.component_root_key),
-                    ess_config=self.ess_config,
-                    pretty_logger=self.pretty_logger,
-                    migration=migration,
-                    secrets=self.secrets,
-                    secret_discovery_strategy=secret_discovery_strategy,
+            migration_input = self.input_processor.input_for_component(migration.component_root_key)
+            if migration_input:
+                self.migrators.append(
+                    MigrationService(
+                        input=migration_input,
+                        ess_config=self.ess_config,
+                        pretty_logger=self.pretty_logger,
+                        migration=migration,
+                        secrets=self.secrets,
+                        secret_discovery_strategy=secret_discovery_strategy,
+                    )
                 )
-            )
 
     def run_migration(self) -> dict[str, Any]:
         """

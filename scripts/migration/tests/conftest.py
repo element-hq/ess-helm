@@ -51,3 +51,33 @@ def synapse_config_with_signing_key(tmp_path, basic_synapse_config):
     config["signing_key_path"] = str(signing_key_file)
 
     return config
+
+
+@pytest.fixture
+def basic_mas_config():
+    """Basic MAS configuration for testing."""
+    return {
+        "http": {"public_base": "https://auth.example.com", "bind": {"address": "0.0.0.0", "port": 8080}},
+        "database": {"uri": "postgresql://mas:mas_password@postgres:5432/mas?sslmode=prefer"},
+        "secrets": {
+            "encryption": "my_encryption_key",
+        },
+        "matrix": {
+            "homeserver": "test.example.com",
+            "secret": "synapse_shared_secret_abcdef",
+            "endpoint": "http://synapse:8008",
+        },
+    }
+
+
+@pytest.fixture
+def write_mas_config(tmp_path):
+    """Helper fixture to write a MAS config file."""
+
+    def _write_config(config_data):
+        mas_config_file = tmp_path / "mas.yaml"
+        with open(mas_config_file, "w") as f:
+            yaml.dump(config_data, f)
+        return mas_config_file
+
+    return _write_config
