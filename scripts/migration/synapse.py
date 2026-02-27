@@ -7,6 +7,7 @@
 Synapse-specific migration strategy.
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
@@ -93,30 +94,30 @@ class SynapseSecretDiscovery(SecretDiscoveryStrategy):
     """Synapse-specific secret discovery implementation."""
 
     @property
-    def ess_secret_schema(self) -> dict[str, SecretConfig]:
+    def ess_secret_schema(self) -> dict[str, Callable[[dict[str, Any]], SecretConfig]]:
         """Get the ESS secret schema for Synapse."""
         return {
             # Synapse secrets
-            "synapse.postgres.password": SecretConfig(
+            "synapse.postgres.password": lambda _: SecretConfig(
                 init_if_missing_from_source_cfg=False,  # Must be provided
                 description="Synapse database password",
                 config_inline="database.args.password",
                 config_path=None,
             ),
-            "synapse.macaroon": SecretConfig(
+            "synapse.macaroon": lambda _: SecretConfig(
                 init_if_missing_from_source_cfg=False,  # This would break user tokens if changing after migrating
                 description="Synapse macaroon secret",
                 config_inline="macaroon_secret_key",
                 config_path="macaroon_secret_key_path",
             ),
-            "synapse.registrationSharedSecret": SecretConfig(
+            "synapse.registrationSharedSecret": lambda _: SecretConfig(
                 init_if_missing_from_source_cfg=True,  # Would break external scripts
                 # if changing after migrating. Just warn about it, dont break.
                 description="Registration shared secret",
                 config_inline="registration_shared_secret",
                 config_path="registration_shared_secret_path",
             ),
-            "synapse.signingKey": SecretConfig(
+            "synapse.signingKey": lambda _: SecretConfig(
                 init_if_missing_from_source_cfg=False,  # This would break federation if changing after migrating
                 description="Signing key",
                 config_inline="signing_key",

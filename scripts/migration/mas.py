@@ -9,13 +9,14 @@ Synapse-specific migration strategy.
 
 import logging
 import urllib
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
 from .migration import MigrationStrategy, TransformationSpec
 from .models import SecretConfig
 from .secrets import SecretDiscoveryStrategy
-from .utils import extract_hostname_from_url
+from .utils import extract_hostname_from_url, get_nested_value
 
 logger = logging.getLogger("migration")
 
@@ -80,6 +81,25 @@ def extract_port_from_uri(uri: str) -> int | None:
     parsed = parse_postgres_uri(uri)
     port = parsed.get("port")
     return int(port) if port is not None else None
+
+
+# This SecretConfig factory discovers the MAS private keys according to their kids
+def extra_key_with_kid(source_config: dict[str, Any], kid: str) -> SecretConfig:
+    keys = get_nested_value(source_config, "secrets.keys")
+    config_inline = None
+    config_path = None
+    if keys:
+        for i, key in enumerate(keys):
+            if key["kid"] == kid:
+                config_inline = f"secrets.keys.{i}.key"
+                config_path = f"secrets.keys.{i}.key_file"
+                break
+    return SecretConfig(
+        init_if_missing_from_source_cfg=True,
+        description=f"MAS {kid.upper()} private key",
+        config_inline=config_inline,
+        config_path=config_path,
+    )
 
 
 @dataclass
@@ -148,39 +168,37 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
         return "Matrix Authentication Service"
 
     @property
-    def ess_secret_schema(self) -> dict[str, SecretConfig]:
+    def ess_secret_schema(self) -> dict[str, Callable[[dict[str, Any]], SecretConfig]]:
         """Get the ESS secret schema for MAS."""
         return {
             # MAS secrets
-            "matrixAuthenticationService.postgres.password": SecretConfig(
+            "matrixAuthenticationService.postgres.password": lambda _: SecretConfig(
                 init_if_missing_from_source_cfg=True,  # Must be provided
                 description="MAS database password",
                 config_inline="database.uri",
                 config_path=None,
                 transformer=lambda uri: parse_postgres_uri(uri).get("password"),
             ),
-            "matrixAuthenticationService.synapseSharedSecret": SecretConfig(
+            "matrixAuthenticationService.synapseSharedSecret": lambda _: SecretConfig(
                 init_if_missing_from_source_cfg=True,  # Can be auto-generated
                 description="MAS Synapse shared secret",
                 config_inline="matrix.secret",
                 config_path="matrix.secret_file",
             ),
-            "matrixAuthenticationService.encryptionSecret": SecretConfig(
+            "matrixAuthenticationService.encryptionSecret": lambda _: SecretConfig(
                 init_if_missing_from_source_cfg=True,  # Must be provided
                 description="MAS encryption secret",
                 config_inline="secrets.encryption",
                 config_path="secrets.encryption_file",
             ),
-            "matrixAuthenticationService.privateKeys.rsa": SecretConfig(
-                init_if_missing_from_source_cfg=True,  # Can be auto-generated
-                description="MAS RSA private key",
-                config_inline="",
-                config_path="",
+            "matrixAuthenticationService.privateKeys.rsa": lambda ess_config: extra_key_with_kid(ess_config, "rsa"),
+            "matrixAuthenticationService.privateKeys.ecdsaPrime256v1": lambda ess_config: extra_key_with_kid(
+                ess_config, "prime256v1"
             ),
-            "matrixAuthenticationService.privateKeys.ecdsaPrime256v1": SecretConfig(
-                init_if_missing_from_source_cfg=True,  # Can be auto-generated
-                description="MAS ECDSA private key",
-                config_inline="",
-                config_path="",
+            "matrixAuthenticationService.privateKeys.ecdsaSecp256k1": lambda ess_config: extra_key_with_kid(
+                ess_config, "secp256k1"
+            ),
+            "matrixAuthenticationService.privateKeys.ecdsaSecp384r1": lambda ess_config: extra_key_with_kid(
+                ess_config, "secp384r1"
             ),
         }

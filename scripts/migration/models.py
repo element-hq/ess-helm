@@ -65,5 +65,5 @@ class SecretConfig:
     config_inline: str | None  # Configuration path for inline secret values
     config_path: str | None  # Configuration path for secret file paths
     transformer: Callable[[str], str | None] | None = (
-        None  # Optional transformer function for extracting secrets from complex values
+        None  # Optional function for extracting secrets from complex values
     )

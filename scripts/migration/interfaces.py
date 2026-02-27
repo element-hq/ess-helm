@@ -9,6 +9,7 @@ Interfaces for the migration system.
 
 from typing import Any, Protocol, runtime_checkable
 
+from collections.abc import Callable
 from .models import SecretConfig
 
 
@@ -37,7 +38,7 @@ class SecretDiscoveryStrategy(Protocol):
     """Minimal interface for secret discovery strategies."""
 
     @property
-    def ess_secret_schema(self) -> dict[str, SecretConfig]:
+    def ess_secret_schema(self) -> dict[str, Callable[[dict[str, Any]], SecretConfig]]:
         """Get the ESS secret schema for this component."""
         ...
 

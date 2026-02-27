@@ -302,7 +302,7 @@ class MigrationService:
         )
         secret_discovery.discover_secrets(self.input.config)
         # Prompt for missing secrets then validate
-        secret_discovery.prompt_for_missing_secrets()
+        secret_discovery.prompt_for_missing_secrets(self.input.config)
         secret_discovery.validate_required_secrets()
         self.discovered_secrets = list(secret_discovery.discovered_secrets.values())
         self.init_by_ess_secrets = secret_discovery.init_by_ess_secrets
