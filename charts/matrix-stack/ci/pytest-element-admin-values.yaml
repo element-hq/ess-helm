@@ -14,7 +14,7 @@ elementAdmin:
     has-no-service-monitor: "true"
   ingress:
     host: admin.{{ $.Values.serverName }}
-    tlsSecret: '{{ $.Release.Name }}-element-admin-tls'
+    tlsSecret: "{{ $.Release.Name }}-element-admin-tls"
   podSecurityContext:
     runAsGroup: 0
   replicas: 2

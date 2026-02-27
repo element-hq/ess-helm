@@ -22,7 +22,7 @@ function set_chart_version() {
   echo "Setting version to $version for $chart_dir"
   yq -i '(.dependencies[] | select(.repository | test("file://"))).version="'"$version"'"' "$chart_dir/Chart.yaml"
   yq -i '.version="'"$version"'"' "$chart_dir/Chart.yaml"
-  yq -iP '.' "$chart_dir/Chart.yaml"
+  yq -i '. style="double"' "$chart_dir/Chart.yaml"
   # REUSE-IgnoreStart
   reuse annotate --copyright-prefix=string --year "2025-$(date +%Y)" --copyright="Element Creations Ltd" --license "AGPL-3.0-only" "$chart_dir/Chart.yaml"
   reuse annotate --copyright-prefix=string --year "2024-2025" --copyright="New Vector Ltd" --license "AGPL-3.0-only" "$chart_dir/Chart.yaml"

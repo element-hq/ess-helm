@@ -25,10 +25,10 @@ matrixRTC:
     has-no-service-monitor: "true"
   extraEnv:
     - name: LIVEKIT_INSECURE_SKIP_VERIFY_TLS
-      value: YES_I_KNOW_WHAT_I_AM_DOING
+      value: "YES_I_KNOW_WHAT_I_AM_DOING"
   ingress:
     host: mrtc.{{ $.Values.serverName }}
-    tlsSecret: '{{ $.Release.Name }}-matrix-rtc-tls'
+    tlsSecret: "{{ $.Release.Name }}-matrix-rtc-tls"
   podSecurityContext:
     runAsGroup: 0
   replicas: 2
