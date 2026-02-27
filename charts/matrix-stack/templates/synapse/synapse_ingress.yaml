@@ -6,23 +6,23 @@ SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 
 {{- with $.Values.synapse -}}
-{{- if eq (include "element-io.ess-library.ingress.isEnabled" (dict "root" $ "context" (dict "ingress" .ingress "type" "Ingress"))) "true" -}}
+{{- if eq (include "element-io.ess-library.ingress.isEnabled" (dict "root" $ "context" (dict "ingress" .ingress "type" "ingress"))) "true" -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
 {{- $extraAnnotations := dict }}
-{{- if eq (include "element-io.ess-library.ingress-controller-type" (dict "root" $ "context" .ingress.Ingress.controllerType)) "ingress-nginx" }}
+{{- if eq (include "element-io.ess-library.ingress-controller-type" (dict "root" $ "context" .ingress.controllerType)) "ingress-nginx" }}
 {{- $_ := set $extraAnnotations "nginx.ingress.kubernetes.io/proxy-body-size" .media.maxUploadSize }}
 {{- end }}
 {{- include "element-io.ess-library.ingress.annotations" (dict "root" $ "context" (dict "ingress" .ingress "extraAnnotations" $extraAnnotations)) | nindent 2 }}
-  test: {{ include "element-io.ess-library.ingress.isEnabled" (dict "root" $ "context" (dict "ingress" .ingress "type" "Ingress")) }}
+  test: {{ include "element-io.ess-library.ingress.isEnabled" (dict "root" $ "context" (dict "ingress" .ingress "type" "ingress")) }}
   labels:
     {{- include "element-io.synapse-ingress.labels" (dict "root" $ "context" $.Values.haproxy) | nindent 4 }}
   name: {{ $.Release.Name }}-synapse
   namespace: {{ $.Release.Namespace }}
 spec:
 {{- include "element-io.ess-library.ingress.tls" (dict "root" $ "context" (dict "ingress" .ingress "ingressName" "synapse")) | nindent 2 }}
-{{- include "element-io.ess-library.ingress.className" (dict "root" $ "context" .ingress.Ingress.className) | nindent 2 }}
+{{- include "element-io.ess-library.ingress.className" (dict "root" $ "context" .ingress.className) | nindent 2 }}
   rules:
   - host: {{ (tpl .ingress.host $) | quote }}
     http:

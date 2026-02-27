@@ -9,9 +9,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{ $root := .root }}
 {{- with required "element-io.synapse.validations missing context" .context -}}
 {{ $messages := list }}
-{{- if not .ingress.host -}}
-{{ $messages = append $messages "synapse.ingress.host is required when synapse.enabled=true" }}
-{{- end }}
+{{- $messages = concat $messages (include "element-io.ess-library.validations.host" (dict "root" $root "context" (dict "component" "synapse")) | fromJsonArray) -}}
 {{- if not $root.Values.serverName -}}
 {{ $messages = append $messages "serverName is required when synapse.enabled=true" }}
 {{- end }}

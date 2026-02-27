@@ -6,7 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 
 {{- with $.Values.hookshot -}}
-{{- if and (eq (include "element-io.ess-library.ingress.isEnabled" (dict "root" $ "context" (dict "ingress" .ingress "type" "Ingress"))) "true") .ingress.host -}}
+{{- if and (eq (include "element-io.ess-library.ingress.isEnabled" (dict "root" $ "context" (dict "ingress" .ingress "type" "ingress"))) "true") .ingress.host -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -18,7 +18,7 @@ metadata:
   namespace: {{ $.Release.Namespace }}
 spec:
 {{- include "element-io.ess-library.ingress.tls" (dict "root" $ "context" (dict "ingress" .ingress "ingressName" "hookshot")) | nindent 2 }}
-{{- include "element-io.ess-library.ingress.className" (dict "root" $ "context" .ingress.Ingress.className) | nindent 2 }}
+{{- include "element-io.ess-library.ingress.className" (dict "root" $ "context" .ingress.className) | nindent 2 }}
   rules:
   - host: {{ (tpl .ingress.host $) | quote }}
     http:

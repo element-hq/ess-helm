@@ -9,9 +9,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $root := .root -}}
 {{- with required "element-io.element-admin.validations missing context" .context -}}
 {{ $messages := list }}
-{{- if not .ingress.host -}}
-{{ $messages = append $messages "elementAdmin.ingress.host is required when elementAdmin.enabled=true" }}
-{{- end }}
+{{- $messages = concat $messages (include "element-io.ess-library.validations.host" (dict "root" $root "context" (dict "component" "elementAdmin")) | fromJsonArray) -}}
 {{ $messages | toJson }}
 {{- end }}
 {{- end }}

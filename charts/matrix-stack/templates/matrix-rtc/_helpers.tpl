@@ -9,9 +9,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $root := .root -}}
 {{- with required "element-io.matrix-rtc.validations missing context" .context -}}
 {{ $messages := list }}
-{{- if not .ingress.host -}}
-{{ $messages = append $messages "matrixRTC.ingress.host is required when matrixRTC.enabled=true" }}
-{{- end }}
+{{- $messages = concat $messages (include "element-io.ess-library.validations.host" (dict "root" $root "context" (dict "component" "matrixRTC")) | fromJsonArray) -}}
 {{- if and .sfu.exposedServices.turnTLS.enabled .sfu.exposedServices.turnTLS.tlsTerminationOnPod (not .sfu.exposedServices.turnTLS.tlsSecret) (not $root.Values.certManager) -}}
 {{ $messages = append $messages "matrixRTC.sfu.exposedServices.turnTLS.enabled with tlsTerminationOnPod=true requires either .sfu.exposedServices.turnTLS.tlsSecret or certManager to be configured." }}
 {{- end }}

@@ -172,10 +172,8 @@ Prefix
 {{- define "element-io.ess-library.ingress.isEnabled" -}}
 {{- $root := .root -}}
 {{- with required "element-io.ess-library.ingress.isEnabled missing context" .context -}}
-{{- $ingress := required "element-io.ess-library.ingress.isEnabled missing ingress" .ingress -}}
 {{- $type := required "element-io.ess-library.ingress.isEnabled missing type" .type -}}
-{{- $desiredType := coalesce $ingress.type $root.Values.ingress.type -}}
-{{- $enabled := or $ingress.enabled $root.Values.ingress.enabled -}}
-{{- and $enabled (eq $type $desiredType) -}}
+{{- $desiredType := coalesce .inboundTrafficHandler $root.Values.inboundTrafficHandler -}}
+{{- eq $type $desiredType -}}
 {{- end -}}
 {{- end -}}

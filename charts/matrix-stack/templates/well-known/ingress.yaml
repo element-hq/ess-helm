@@ -6,7 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 
 {{- with $.Values.wellKnownDelegation -}}
-{{- if eq (include "element-io.ess-library.ingress.isEnabled" (dict "root" $ "context" (dict "ingress" .ingress "type" "Ingress"))) "true" -}}
+{{- if eq (include "element-io.ess-library.ingress.isEnabled" (dict "root" $ "context" (dict "ingress" .ingress "type" "ingress"))) "true" -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -17,7 +17,7 @@ metadata:
   namespace: {{ $.Release.Namespace }}
 spec:
 {{- include "element-io.ess-library.ingress.tls" (dict "root" $ "context" (dict "host" $.Values.serverName "ingress" .ingress "ingressName" "well-known")) | nindent 2 }}
-{{- include "element-io.ess-library.ingress.className" (dict "root" $ "context" .ingress.Ingress.className) | nindent 2 }}
+{{- include "element-io.ess-library.ingress.className" (dict "root" $ "context" .ingress.className) | nindent 2 }}
   rules:
   - host: "{{ tpl $.Values.serverName $ }}"
     http:
@@ -32,7 +32,7 @@ spec:
               name: haproxy-wkd
 {{- else }}
       - path: /.well-known/matrix
-        pathType: {{ include "element-io.ess-library.ingress.ingress-nginx-dot-path-type" (dict "root" $ "context" .ingress.Ingress.controllerType) }}
+        pathType: {{ include "element-io.ess-library.ingress.ingress-nginx-dot-path-type" (dict "root" $ "context" .ingress.controllerType) }}
         backend:
           service:
             name: "{{ $.Release.Name }}-well-known"
