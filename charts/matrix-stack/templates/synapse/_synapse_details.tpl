@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2024-2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -168,6 +168,13 @@ responsibleForMedia
 {{- with .signingKey.secret -}}
 {{ $configSecrets = append $configSecrets (tpl . $root) }}
 {{- end -}}
+{{- if .redis }}
+{{- if .redis.password }}
+{{- if .redis.password.secret }}
+{{ $configSecrets = append $configSecrets (tpl .redis.password.secret $root) }}
+{{- end }}
+{{- end }}
+{{- end }}
 {{- with .additional -}}
 {{- range $key := (. | keys | uniq | sortAlpha) -}}
 {{- $prop := index $root.Values.synapse.additional $key }}

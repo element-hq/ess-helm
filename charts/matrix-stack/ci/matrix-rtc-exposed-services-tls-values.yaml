@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# source_fragments: matrix-rtc-exposed-services.yaml matrix-rtc-minimal.yaml matrix-rtc-turn-tls.yaml
+# source_fragments:  matrix-rtc-exposed-services.yaml matrix-rtc-minimal.yaml matrix-rtc-turn-tls.yaml 
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
 # initSecrets, postgres don't have any required properties to be set and defaults to enabled
