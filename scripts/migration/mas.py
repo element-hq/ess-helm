@@ -190,16 +190,14 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
                 config_inline="secrets.encryption",
                 config_path="secrets.encryption_file",
             ),
-            "matrixAuthenticationService.privateKeys.rsa": lambda ess_config: extra_key_with_kid(ess_config, "rsa"),
-            "matrixAuthenticationService.privateKeys.ecdsaPrime256v1": lambda ess_config: extra_key_with_kid(
-                ess_config, "prime256v1"
-            ),
-            "matrixAuthenticationService.privateKeys.ecdsaSecp256k1": lambda ess_config: extra_key_with_kid(
-                ess_config, "secp256k1"
-            ),
-            "matrixAuthenticationService.privateKeys.ecdsaSecp384r1": lambda ess_config: extra_key_with_kid(
-                ess_config, "secp384r1"
-            ),
+        }
+
+    def additional_secrets(self, config_data: dict[str, Any]) -> dict[str, SecretConfig]:
+        return {
+            "matrixAuthenticationService.privateKeys.rsa": extra_key_with_kid(config_data, "rsa"),
+            "matrixAuthenticationService.privateKeys.ecdsaPrime256v1": extra_key_with_kid(config_data, "prime256v1"),
+            "matrixAuthenticationService.privateKeys.ecdsaSecp256k1": extra_key_with_kid(config_data, "secp256k1"),
+            "matrixAuthenticationService.privateKeys.ecdsaSecp384r1": extra_key_with_kid(config_data, "secp384r1"),
         }
 
 
