@@ -106,7 +106,6 @@ def extract_workers_from_instance_map(pretty_logger: logging.Logger, instance_ma
             }
         else:
             selected_workers[selected_worker]["replicas"] += 1
-
     return selected_workers
 
 

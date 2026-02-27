@@ -150,6 +150,7 @@ def test_migration_with_unknown_workers_prompt(
         assert len(synapse_config_result["workers"]) == 2
         assert "event-creator" in synapse_config_result["workers"]
         assert "synchrotron" in synapse_config_result["workers"]
+        assert synapse_config_result["workers"]["synchrotron"]["replicas"] == 2
 
     except asyncio.TimeoutError:
         pytest.fail("Test timed out - prompt may be hanging")

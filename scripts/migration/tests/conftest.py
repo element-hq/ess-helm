@@ -61,7 +61,8 @@ def synapse_config_with_instance_map(tmp_path, basic_synapse_config):
     config["instance_map"] = {
         "main": {"host": "main-instance.local", "port": 9093},
         "funny-name": {"host": "funny-instance.local", "port": 9093},
-        "synchrotron": {"host": "funny-instance.local", "port": 9093},
+        "synchrotron": {"host": "synchro.local", "port": 9093},
+        "synchrotron2": {"host": "synchro.local", "port": 9094},
     }
 
     return config
