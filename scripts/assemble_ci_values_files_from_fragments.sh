@@ -5,7 +5,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-set -euo pipefail
+set -exuo pipefail
 shopt -s nullglob
 
 [ "$#" -gt 1 ] && echo "Usage: assemble_ci_values_files_from_fragments.sh <optional values file prefix to restrict to>" 1>&2 && exit 1
@@ -65,7 +65,7 @@ for values_file in "$values_file_root"/$values_file_prefix-values.yaml "$user_va
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
 EOF
-  yq -P "$yq_command" "$values_file_root/nothing-enabled-values.yaml" >> "$values_file"
+  yq "$yq_command" "$values_file_root/nothing-enabled-values.yaml" >> "$values_file"
 
   # REUSE-IgnoreStart
   reuse annotate --copyright-prefix=string --year "2025-$(date +%Y)" --copyright="Element Creations Ltd" --license "AGPL-3.0-only" "$values_file"

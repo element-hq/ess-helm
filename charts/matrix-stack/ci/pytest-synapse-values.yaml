@@ -41,8 +41,8 @@ synapse:
         push:
           jitter_delay: 10
     01-other-user-config.yaml:
-      configSecret: '{{ $.Release.Name }}-synapse-secrets'
-      configSecretKey: 01-other-user-config.yaml
+      configSecret: "{{ $.Release.Name }}-synapse-secrets"
+      configSecretKey: "01-other-user-config.yaml"
   checkConfigHook:
     annotations:
       has-no-service-monitor: "true"
@@ -54,7 +54,7 @@ synapse:
       value: "1"
   ingress:
     host: synapse.{{ $.Values.serverName }}
-    tlsSecret: '{{ $.Release.Name }}-synapse-web-tls'
+    tlsSecret: "{{ $.Release.Name }}-synapse-web-tls"
   podSecurityContext:
     runAsGroup: 0
   workers:
