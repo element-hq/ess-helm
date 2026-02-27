@@ -33,7 +33,7 @@ def ess_schema_config_key_secret_paths(ess_schema: dict[str, SecretConfig]):
 class ExtraFilesDiscovery:
     """Handles discovery and extraction of extra files from configuration files."""
 
-    pretty_logger: logger.Logger = field(init=True)
+    pretty_logger: logging.Logger = field(init=True)
     strategy: ExtraFilesDiscoveryStrategy = field(init=True)  # Strategy for component-specific secret discovery
     secrets_strategy: SecretDiscoveryStrategy = field(init=True)  # Strategy for component-specific secret discovery
     source_file: str = field(init=True)  # Source file path
