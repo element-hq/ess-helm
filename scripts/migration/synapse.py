@@ -7,13 +7,106 @@
 Synapse-specific migration strategy.
 """
 
+import logging
 from dataclasses import dataclass
 from typing import Any
 
+from rapidfuzz import fuzz, process
+
 from .migration import MigrationStrategy, TransformationSpec
-from .models import SecretConfig
+from .models import MigrationError, SecretConfig
 from .secrets import SecretDiscoveryStrategy
 from .utils import extract_hostname_from_url
+
+logger = logging.getLogger("migration")
+
+worker_types = [
+    "main",
+    "account-data",
+    "appservice",
+    "background",
+    "client-reader",
+    "device-lists",
+    "encryption",
+    "event-creator",
+    "event-persister",
+    "federation-inbound",
+    "federation-reader",
+    "federation-sender",
+    "initial-synchrotron",
+    "media-repository",
+    "presence-writer",
+    "push-rules",
+    "pusher",
+    "receipts",
+    "sliding-sync",
+    "sso-login",
+    "synchrotron",
+    "typing-persister",
+    "user-dir",
+]
+
+
+def prompt_user_for_worker(
+    pretty_logger: logging.Logger, instance_name: str, instance_props: Any, matched_worker_types: list[str]
+) -> str:
+    pretty_logger = logging.getLogger("migration:summary")
+
+    if not matched_worker_types:
+        matched_worker_types = worker_types
+
+    logger.info("   No worker type found for instance %s (host: %s)", instance_name, instance_props["host"])
+    pretty_logger.info(f"\n   ❌ No worker type found for instance {instance_name} (host: {instance_props['host']})")
+    pretty_logger.info("   ❌ Available worker types")
+    for i, worker_type in enumerate(matched_worker_types):
+        pretty_logger.info(f"   ❌   {i + 1}. {worker_type}")
+
+    while True:
+        try:
+            value = input(f"   Please select the worker type of instance {instance_name}: ").strip()
+            if value:
+                # make sure user selected an valid integer
+                try:
+                    worker_index = int(value) - 1
+                    if worker_index in range(len(matched_worker_types)):
+                        return matched_worker_types[worker_index]
+                    else:
+                        pretty_logger.info(f"Invalid worker type: {value}")
+                except ValueError:
+                    pretty_logger.info("   ❌ Please select a valid worker type.")
+            else:
+                pretty_logger.info("   ❌ Value cannot be empty. Please try again.")
+        except KeyboardInterrupt as err:
+            pretty_logger.info("\n   ❌ Operation cancelled by user")
+            raise MigrationError("User cancelled worker input") from err
+        except EOFError as err:
+            pretty_logger.info("\n   ❌ End of input reached")
+            raise MigrationError("End of input reached during worker prompt") from err
+
+
+def extract_workers_from_instance_map(pretty_logger: logging.Logger, instance_map: dict[str, Any]) -> dict[str, Any]:
+    """Extract workers from the instance map."""
+
+    selected_workers = {}
+    for instance_name in instance_map:
+        matches = process.extract(instance_name, worker_types, scorer=fuzz.WRatio, limit=3)
+        very_high_probable_matches = [m[0] for m in matches if m[1] > 90]
+        matches = [m[0] for m in matches if m[1] > 60]
+        selected_worker = (
+            prompt_user_for_worker(pretty_logger, instance_name, instance_map[instance_name], matches)
+            if len(very_high_probable_matches) != 1
+            else very_high_probable_matches[0]
+        )
+        if selected_worker == "main":
+            continue
+        if selected_worker not in selected_workers:
+            selected_workers[selected_worker] = {
+                "enabled": True,
+                "replicas": 1,
+            }
+        else:
+            selected_workers[selected_worker]["replicas"] += 1
+    return selected_workers
 
 
 @dataclass
@@ -82,6 +175,12 @@ class SynapseMigration(MigrationStrategy):
                 target_key="synapse.ingress.host",
                 transformer=extract_hostname_from_url,
             ),  # Extract hostname from public_baseurl for ingress host
+            TransformationSpec(
+                src_key="instance_map",
+                target_key="synapse.workers",
+                transformer=extract_workers_from_instance_map,
+                required=False,
+            ),  # Extract workers from synapse instance_map
         ]
 
     @property

@@ -51,3 +51,18 @@ def synapse_config_with_signing_key(tmp_path, basic_synapse_config):
     config["signing_key_path"] = str(signing_key_file)
 
     return config
+
+
+@pytest.fixture
+def synapse_config_with_instance_map(tmp_path, basic_synapse_config):
+    """Synapse configuration with a signing key file."""
+    # Add signing key to config
+    config = basic_synapse_config.copy()
+    config["instance_map"] = {
+        "main": {"host": "main-instance.local", "port": 9093},
+        "funny-name": {"host": "funny-instance.local", "port": 9093},
+        "synchrotron": {"host": "synchro.local", "port": 9093},
+        "synchrotron2": {"host": "synchro.local", "port": 9094},
+    }
+
+    return config
