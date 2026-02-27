@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .inputs import InputProcessor
+from .mas import MASMigration, MASSecretDiscovery
 from .migration import MigrationService
 from .models import DiscoveredSecret, Secret
 from .synapse import SynapseMigration, SynapseSecretDiscovery
@@ -34,7 +35,10 @@ class MigrationEngine:
 
     def __post_init__(self) -> None:
         """Initialize the migration engine."""
-        for migration, secret_discovery_strategy in [(SynapseMigration(), SynapseSecretDiscovery())]:
+        for migration, secret_discovery_strategy in [
+            (SynapseMigration(), SynapseSecretDiscovery()),
+            (MASMigration(), MASSecretDiscovery()),
+        ]:
             self.migrators.append(
                 MigrationService(
                     input=self.input_processor.input_for_component(migration.component_root_key),
