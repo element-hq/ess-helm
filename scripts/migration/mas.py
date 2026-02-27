@@ -15,7 +15,7 @@ from typing import Any
 from .interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
 from .migration import MigrationStrategy, TransformationSpec
 from .models import SecretConfig
-from .utils import extract_hostname_from_url
+from .utils import extract_hostname_from_url, get_nested_value
 
 logger = logging.getLogger("migration")
 
@@ -80,6 +80,25 @@ def extract_port_from_uri(_, uri: str) -> int | None:
     parsed = parse_postgres_uri(uri)
     port = parsed.get("port")
     return int(port) if port is not None else None
+
+
+# This SecretConfig factory discovers the MAS private keys according to their kids
+def extra_key_with_kid(source_config: dict[str, Any], kid: str) -> SecretConfig:
+    keys = get_nested_value(source_config, "secrets.keys")
+    config_inline = None
+    config_path = None
+    if keys:
+        for i, key in enumerate(keys):
+            if key["kid"] == kid:
+                config_inline = f"secrets.keys.{i}.key"
+                config_path = f"secrets.keys.{i}.key_file"
+                break
+    return SecretConfig(
+        init_if_missing_from_source_cfg=True,
+        description=f"MAS {kid.upper()} private key",
+        config_inline=config_inline,
+        config_path=config_path,
+    )
 
 
 @dataclass
@@ -171,17 +190,15 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
                 config_inline="secrets.encryption",
                 config_path="secrets.encryption_file",
             ),
-            "matrixAuthenticationService.privateKeys.rsa": SecretConfig(
-                init_if_missing_from_source_cfg=True,  # Can be auto-generated
-                description="MAS RSA private key",
-                config_inline="",
-                config_path="",
+            "matrixAuthenticationService.privateKeys.rsa": lambda ess_config: extra_key_with_kid(ess_config, "rsa"),
+            "matrixAuthenticationService.privateKeys.ecdsaPrime256v1": lambda ess_config: extra_key_with_kid(
+                ess_config, "prime256v1"
             ),
-            "matrixAuthenticationService.privateKeys.ecdsaPrime256v1": SecretConfig(
-                init_if_missing_from_source_cfg=True,  # Can be auto-generated
-                description="MAS ECDSA private key",
-                config_inline="",
-                config_path="",
+            "matrixAuthenticationService.privateKeys.ecdsaSecp256k1": lambda ess_config: extra_key_with_kid(
+                ess_config, "secp256k1"
+            ),
+            "matrixAuthenticationService.privateKeys.ecdsaSecp384r1": lambda ess_config: extra_key_with_kid(
+                ess_config, "secp384r1"
             ),
         }
 

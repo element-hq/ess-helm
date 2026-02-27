@@ -125,6 +125,20 @@ def basic_mas_config():
 
 
 @pytest.fixture
+def mas_config_with_keys(tmp_path, basic_mas_config):
+    """MAS configuration with a signing key file."""
+    # Create signing key file
+    rsa_file = tmp_path / "rsa_key.pem"
+    rsa_file.write_text("test_rsa_content")
+
+    basic_mas_config["secrets"].setdefault("keys", [])
+    basic_mas_config["secrets"]["keys"].append({"key_file": str(tmp_path / "rsa_key.pem"), "kid": "rsa"})
+    basic_mas_config["secrets"]["keys"].append({"key": "prime256v1_key_value", "kid": "prime256v1"})
+    basic_mas_config["secrets"]["keys"].append({"key": "key_value", "kid": "other"})
+    return basic_mas_config
+
+
+@pytest.fixture
 def write_mas_config(tmp_path):
     """Helper fixture to write a MAS config file."""
 
