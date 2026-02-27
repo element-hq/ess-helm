@@ -203,7 +203,10 @@ Examples:
 
         # Process migrations
         for migrator in engine.migrators:
-            source_file = engine.input_processor.input_for_component(migrator.component_root_key).config_path
+            migration_input = engine.input_processor.input_for_component(migrator.component_root_key)
+            # Migrators are created according to discovered input for components, we do not expect NoneTypes here
+            assert migration_input
+            source_file = migration_input.config_path
             for transformation_result in migrator.config_to_ess_transformer.results:
                 source_path = transformation_result.spec.src_key
                 target_path = transformation_result.spec.target_key
