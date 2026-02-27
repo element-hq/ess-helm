@@ -31,6 +31,7 @@ spec:
   ports:
   - name: "turn-udp"
     protocol: "UDP"
+  {{- /* port and targetPort must be the same for Turn UDP traffic as LiveKit advertises the local port its listening on as the access port*/}}
     port: {{ .exposedServices.turn.port }}
     targetPort: {{ .exposedServices.turn.port }}
     {{- with .exposedServices.turn.nodePort }}

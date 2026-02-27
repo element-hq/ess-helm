@@ -31,6 +31,7 @@ spec:
   ports:
   - name: "rtc-tcp"
     protocol: "TCP"
+  {{- /* port and targetPort must be the same for RTC traffic as LiveKit advertises the local port its listening on as the access port*/}}
     port: {{ .exposedServices.rtcTcp.port }}
     targetPort: {{ .exposedServices.rtcTcp.port }}
     {{- with .exposedServices.rtcTcp.nodePort }}

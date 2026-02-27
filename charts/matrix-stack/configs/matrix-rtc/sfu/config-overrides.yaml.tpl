@@ -65,7 +65,11 @@ turn:
   enabled: true
 {{- with .exposedServices.turnTLS }}
 {{ if .enabled }}
+{{- if eq .portType "HostPort" }}
   tls_port: {{ .port }}
+{{- else }}
+  tls_port: 5349
+{{- end }}
   domain: {{ tpl .domain $root }}
 {{- if .tlsTerminationOnPod }}
   cert_file: /turn-tls/tls.crt
