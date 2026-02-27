@@ -32,14 +32,14 @@ class InputProcessor:
 
     inputs: list[MigrationInput] = field(default_factory=list)
 
-    def input_for_component(self, component_root_key: str) -> MigrationInput:
+    def input_for_component(self, component_root_key: str) -> MigrationInput | None:
         """
         Return the migration input for a component.
         """
         for _input in self.inputs:
             if _input.name == component_root_key:
                 return _input
-        raise MigrationError(f"Component {component_root_key} does not have an migration input service")
+        return None
 
     @staticmethod
     def load_yaml_file(path: str) -> dict[str, Any]:

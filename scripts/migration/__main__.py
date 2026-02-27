@@ -96,6 +96,12 @@ Examples:
     )
 
     parser.add_argument(
+        "--mas-config",
+        required=False,
+        help=("Path to Matrix Authentication Service config.yaml configuration file. "),
+    )
+
+    parser.add_argument(
         "--output-dir",
         default="output",
         help=(
@@ -164,6 +170,12 @@ Examples:
             name="synapse",
             config_path=args.synapse_config,
         )
+
+        if args.mas_config:
+            input_processor.load_migration_input(
+                name="matrixAuthenticationService",
+                config_path=args.mas_config,
+            )
 
         # Run migration
         reporter.report_step(MIGRATING_STEP)

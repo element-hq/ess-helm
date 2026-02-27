@@ -40,18 +40,20 @@ class MigrationEngine:
             (SynapseMigration(), SynapseSecretDiscovery(), SynapseExtraFileDiscovery()),
             (MASMigration(), MASSecretDiscovery(), MASExtraFileDiscovery()),
         ]:
-            self.migrators.append(
-                MigrationService(
-                    input=self.input_processor.input_for_component(migration.component_root_key),
-                    ess_config=self.ess_config,
-                    pretty_logger=self.pretty_logger,
-                    migration=migration,
-                    configmaps=self.configmaps,
-                    secrets=self.secrets,
-                    secret_discovery_strategy=secret_discovery_strategy,
-                    extra_files_strategy=extra_file_strategy,
+            migration_input = self.input_processor.input_for_component(migration.component_root_key)
+            if migration_input:
+                self.migrators.append(
+                    MigrationService(
+                        input=migration_input,
+                        ess_config=self.ess_config,
+                        pretty_logger=self.pretty_logger,
+                        migration=migration,
+                        secrets=self.secrets,
+                        secret_discovery_strategy=secret_discovery_strategy,
+                        configmaps=self.configmaps,
+                        extra_files_strategy=extra_file_strategy,
+                    )
                 )
-            )
 
     def run_migration(self) -> dict[str, Any]:
         """
