@@ -51,6 +51,8 @@ jobs:
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
       with:
         ref: ${{ github.event.pull_request.base.ref }}
+        # We dont clean as it would remove the .tool-versions file
+        clean: false
 
     - name: Generate manifests for base
       run: |
@@ -193,3 +195,7 @@ jobs:
         name: dyff-templates
         path: ${{ steps.dyff.outputs.output_dir }}
         retention-days: 1
+
+    # Restore the current PR git state for post-step actions
+    - name: Checkout
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
