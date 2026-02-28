@@ -70,6 +70,13 @@ ipFamilyPolicy: PreferDualStack
 {{- end }}
 {{- end }}
 
+{{- define "element-io.ess-library.ingress.tls.isEnabled" -}}
+{{- $root := .root -}}
+{{- with required "element-io.ess-library.ingress.tls.isEnabled missing context" .context -}}
+{{- and $root.Values.ingress.tlsEnabled .tlsEnabled -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "element-io.ess-library.ingress.tls" -}}
 {{- $root := .root -}}
 {{- with required "element-io.ess-library.ingress.tls missing context" .context -}}
@@ -133,3 +140,51 @@ ImplementationSpecific
 Prefix
 {{- end -}}
 {{- end -}}
+
+{{- define "element-io.ess-library.ingress.parentRefs" -}}
+{{- $root := .root -}}
+{{- with required "element-io.ess-library.ingress.parentRefs missing context" .context -}}
+{{- $serviceName := required "element-io.ess-library.ingress.parentRefs missing serviceName" .serviceName -}}
+{{- $globalRouteConfig := $root.Values.routes | default dict -}}
+{{- $routeConfig := .routes | default dict -}}
+{{- $gateways := concat
+    ($globalRouteConfig.existingGateways | default list)
+    ($routeConfig.existingGateways | default list)
+-}}
+{{- $builtinGateway := $root.Values.gateway | default dict -}}
+{{- if or (gt (len $gateways) 0) $builtinGateway.create -}}
+{{- if gt (len $gateways) 0 -}}
+{{ toYaml $gateways }}
+{{- end -}}
+{{ if $builtinGateway.create }}
+- name: {{ $root.Release.Name | quote }}
+  namespace: {{ $root.Release.Namespace | quote }}
+  kind: gateway
+  group: gateway.networking.k8s.io
+  sectionname: {{ printf "%s-%s" $root.Release.Name $serviceName | quote }}
+{{ end }}
+{{- else -}}
+[]
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "element-io.ess-library.ingress.isEnabled" -}}
+{{- $root := .root -}}
+{{- with required "element-io.ess-library.ingress.isEnabled missing context" .context -}}
+{{- $handlerType := required "element-io.ess-library.ingress.isEnabled missing handlerType" .handlerType -}}
+{{- $activeTrafficHandlerType := .inboundTrafficHandler | default $root.Values.inboundTrafficHandler -}}
+{{- eq $handlerType $activeTrafficHandlerType -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "element-io.ess-library.ingress.host" -}}
+{{- $root := .root -}}
+{{- with required "element-io.ess-library.ingress.host missing context" .context -}}
+{{- $handlerType := coalesce .inboundTrafficHandler $root.Values.inboundTrafficHandler -}}
+{{- $handler := index . $handlerType -}}
+{{ $handler | toYaml }}
+{{- $handler.host -}}
+{{- end -}}
+{{- end -}}
+

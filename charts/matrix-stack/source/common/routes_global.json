@@ -1,0 +1,72 @@
+{
+  "type": "object",
+  "properties": {
+    "existingGateways": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": { "type": "string" },
+          "namespace": { "type": "string" },
+          "group": { "type": "string" },
+          "kind": { "type": "string" },
+          "sectionName": { "type": "string" },
+          "port": { "type": "integer" }
+        }
+      },
+      "minItems": 1
+    },
+    "annotations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "tlsEnabled": {
+      "type": "boolean"
+    },
+    "tlsSecret": {
+      "type": "string"
+    },
+    "service": {
+      "type": "object",
+      "required": [
+        "type",
+        "internalTrafficPolicy"
+      ],
+      "properties": {
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "ClusterIP",
+            "NodePort",
+            "LoadBalancer"
+          ]
+        },
+        "internalTrafficPolicy": {
+          "type": "string",
+          "enum": [
+            "Cluster",
+            "Local"
+          ]
+        },
+        "externalTrafficPolicy": {
+          "type": "string",
+          "enum": [
+            "Cluster",
+            "Local"
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "type": "object",
+  "properties": {
+    "existingGateways": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": { "type": "string" },
+          "namespace": { "type": "string" },
+          "group": { "type": "string" },
+          "kind": { "type": "string" },
+          "sectionName": { "type": "string" },
+          "port": { "type": "integer" }
+        }
+      },
+      "minItems": 1
+    },
+    "annotations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "tlsEnabled": {
+      "type": "boolean"
+    },
+    "tlsSecret": {
+      "type": "string"
+    },
+    "service": {
+      "$ref": "file://common/service.json"
+    }
+  }
+}

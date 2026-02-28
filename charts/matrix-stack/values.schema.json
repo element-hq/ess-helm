@@ -224,6 +224,93 @@
       },
       "additionalProperties": false
     },
+    "routes": {
+      "type": "object",
+      "properties": {
+        "existingGateways": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "namespace": {
+                "type": "string"
+              },
+              "group": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string"
+              },
+              "sectionName": {
+                "type": "string"
+              },
+              "port": {
+                "type": "integer"
+              }
+            },
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "tlsEnabled": {
+          "type": "boolean"
+        },
+        "tlsSecret": {
+          "type": "string"
+        },
+        "service": {
+          "type": "object",
+          "required": [
+            "type",
+            "internalTrafficPolicy"
+          ],
+          "properties": {
+            "annotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "ClusterIP",
+                "NodePort",
+                "LoadBalancer"
+              ]
+            },
+            "internalTrafficPolicy": {
+              "type": "string",
+              "enum": [
+                "Cluster",
+                "Local"
+              ]
+            },
+            "externalTrafficPolicy": {
+              "type": "string",
+              "enum": [
+                "Cluster",
+                "Local"
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
     "tolerations": {
       "type": "array",
       "items": {
@@ -372,6 +459,32 @@
         }
       },
       "additionalProperties": false
+    },
+    "gateway": {
+      "type": "object",
+      "properties": {
+        "create": {
+          "type": "boolean"
+        },
+        "className": {
+          "type": "string"
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "inboundTrafficHandler": {
+      "type": "string",
+      "enum": [
+        "ingress",
+        "routes",
+        "none"
+      ]
     },
     "deploymentMarkers": {
       "$id": "file://deployment-markers",
@@ -1307,6 +1420,14 @@
           },
           "additionalProperties": false
         },
+        "inboundTrafficHandler": {
+          "type": "string",
+          "enum": [
+            "ingress",
+            "routes",
+            "none"
+          ]
+        },
         "replicas": {
           "type": "integer"
         },
@@ -1506,6 +1627,101 @@
               "enum": [
                 "ingress-nginx"
               ]
+            },
+            "service": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "ClusterIP",
+                    "NodePort",
+                    "LoadBalancer"
+                  ]
+                },
+                "annotations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "internalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalIPs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "routes": {
+          "type": "object",
+          "properties": {
+            "existingGateways": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "namespace": {
+                    "type": "string"
+                  },
+                  "group": {
+                    "type": "string"
+                  },
+                  "kind": {
+                    "type": "string"
+                  },
+                  "sectionName": {
+                    "type": "string"
+                  },
+                  "port": {
+                    "type": "integer"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "minItems": 1
+            },
+            "host": {
+              "type": "string"
+            },
+            "annotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "tlsEnabled": {
+              "type": "boolean"
+            },
+            "tlsSecret": {
+              "type": "string"
             },
             "service": {
               "type": "object",
@@ -3039,6 +3255,14 @@
           "minimum": 1,
           "type": "integer"
         },
+        "inboundTrafficHandler": {
+          "type": "string",
+          "enum": [
+            "ingress",
+            "routes",
+            "none"
+          ]
+        },
         "image": {
           "type": "object",
           "required": [
@@ -3143,6 +3367,101 @@
               "enum": [
                 "ingress-nginx"
               ]
+            },
+            "service": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "ClusterIP",
+                    "NodePort",
+                    "LoadBalancer"
+                  ]
+                },
+                "annotations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "internalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalIPs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "routes": {
+          "type": "object",
+          "properties": {
+            "existingGateways": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "namespace": {
+                    "type": "string"
+                  },
+                  "group": {
+                    "type": "string"
+                  },
+                  "kind": {
+                    "type": "string"
+                  },
+                  "sectionName": {
+                    "type": "string"
+                  },
+                  "port": {
+                    "type": "integer"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "minItems": 1
+            },
+            "host": {
+              "type": "string"
+            },
+            "annotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "tlsEnabled": {
+              "type": "boolean"
+            },
+            "tlsSecret": {
+              "type": "string"
             },
             "service": {
               "type": "object",
@@ -3744,6 +4063,14 @@
           "minimum": 1,
           "type": "integer"
         },
+        "inboundTrafficHandler": {
+          "type": "string",
+          "enum": [
+            "ingress",
+            "routes",
+            "none"
+          ]
+        },
         "extraVolumes": {
           "type": "array",
           "items": {
@@ -3921,6 +4248,101 @@
               "enum": [
                 "ingress-nginx"
               ]
+            },
+            "service": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "ClusterIP",
+                    "NodePort",
+                    "LoadBalancer"
+                  ]
+                },
+                "annotations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "internalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalIPs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "routes": {
+          "type": "object",
+          "properties": {
+            "existingGateways": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "namespace": {
+                    "type": "string"
+                  },
+                  "group": {
+                    "type": "string"
+                  },
+                  "kind": {
+                    "type": "string"
+                  },
+                  "sectionName": {
+                    "type": "string"
+                  },
+                  "port": {
+                    "type": "integer"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "minItems": 1
+            },
+            "host": {
+              "type": "string"
+            },
+            "annotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "tlsEnabled": {
+              "type": "boolean"
+            },
+            "tlsSecret": {
+              "type": "string"
             },
             "service": {
               "type": "object",
@@ -5130,6 +5552,14 @@
           },
           "additionalProperties": false
         },
+        "inboundTrafficHandler": {
+          "type": "string",
+          "enum": [
+            "ingress",
+            "routes",
+            "none"
+          ]
+        },
         "additional": {
           "type": "object",
           "additionalProperties": {
@@ -5202,6 +5632,101 @@
               "enum": [
                 "ingress-nginx"
               ]
+            },
+            "service": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "ClusterIP",
+                    "NodePort",
+                    "LoadBalancer"
+                  ]
+                },
+                "annotations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "internalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalIPs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "routes": {
+          "type": "object",
+          "properties": {
+            "existingGateways": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "namespace": {
+                    "type": "string"
+                  },
+                  "group": {
+                    "type": "string"
+                  },
+                  "kind": {
+                    "type": "string"
+                  },
+                  "sectionName": {
+                    "type": "string"
+                  },
+                  "port": {
+                    "type": "integer"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "minItems": 1
+            },
+            "host": {
+              "type": "string"
+            },
+            "annotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "tlsEnabled": {
+              "type": "boolean"
+            },
+            "tlsSecret": {
+              "type": "string"
             },
             "service": {
               "type": "object",
@@ -6612,6 +7137,14 @@
           },
           "additionalProperties": false
         },
+        "inboundTrafficHandler": {
+          "type": "string",
+          "enum": [
+            "ingress",
+            "routes",
+            "none"
+          ]
+        },
         "ingress": {
           "type": "object",
           "properties": {
@@ -6641,6 +7174,101 @@
               "enum": [
                 "ingress-nginx"
               ]
+            },
+            "service": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "ClusterIP",
+                    "NodePort",
+                    "LoadBalancer"
+                  ]
+                },
+                "annotations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "internalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalIPs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "routes": {
+          "type": "object",
+          "properties": {
+            "existingGateways": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "namespace": {
+                    "type": "string"
+                  },
+                  "group": {
+                    "type": "string"
+                  },
+                  "kind": {
+                    "type": "string"
+                  },
+                  "sectionName": {
+                    "type": "string"
+                  },
+                  "port": {
+                    "type": "integer"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "minItems": 1
+            },
+            "host": {
+              "type": "string"
+            },
+            "annotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "tlsEnabled": {
+              "type": "boolean"
+            },
+            "tlsSecret": {
+              "type": "string"
             },
             "service": {
               "type": "object",
@@ -9320,6 +9948,14 @@
             "type": "string"
           }
         },
+        "inboundTrafficHandler": {
+          "type": "string",
+          "enum": [
+            "ingress",
+            "routes",
+            "none"
+          ]
+        },
         "ingress": {
           "type": "object",
           "properties": {
@@ -9349,6 +9985,174 @@
               "enum": [
                 "ingress-nginx"
               ]
+            },
+            "service": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "ClusterIP",
+                    "NodePort",
+                    "LoadBalancer"
+                  ]
+                },
+                "annotations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "internalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalIPs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
+            "additionalPaths": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "path",
+                  "availability"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "availability": {
+                    "type": "string",
+                    "enum": [
+                      "internally_and_externally",
+                      "only_externally",
+                      "blocked"
+                    ]
+                  },
+                  "service": {
+                    "type": "object",
+                    "required": [
+                      "name",
+                      "port"
+                    ],
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "port": {
+                        "type": "object",
+                        "oneOf": [
+                          {
+                            "required": [
+                              "name"
+                            ],
+                            "not": {
+                              "required": [
+                                "number"
+                              ]
+                            }
+                          },
+                          {
+                            "required": [
+                              "number"
+                            ],
+                            "not": {
+                              "required": [
+                                "name"
+                              ]
+                            }
+                          }
+                        ],
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "number": {
+                            "type": "integer"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "routes": {
+          "type": "object",
+          "properties": {
+            "existingGateways": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "namespace": {
+                    "type": "string"
+                  },
+                  "group": {
+                    "type": "string"
+                  },
+                  "kind": {
+                    "type": "string"
+                  },
+                  "sectionName": {
+                    "type": "string"
+                  },
+                  "port": {
+                    "type": "integer"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "annotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "host": {
+              "type": "string"
+            },
+            "tlsEnabled": {
+              "type": "boolean"
+            },
+            "tlsSecret": {
+              "type": "string"
             },
             "service": {
               "type": "object",
@@ -15111,6 +15915,14 @@
         "enabled": {
           "type": "boolean"
         },
+        "inboundTrafficHandler": {
+          "type": "string",
+          "enum": [
+            "ingress",
+            "routes",
+            "none"
+          ]
+        },
         "ingress": {
           "type": "object",
           "properties": {
@@ -15137,6 +15949,98 @@
               "enum": [
                 "ingress-nginx"
               ]
+            },
+            "service": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "ClusterIP",
+                    "NodePort",
+                    "LoadBalancer"
+                  ]
+                },
+                "annotations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "internalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalTrafficPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Cluster",
+                    "Local"
+                  ]
+                },
+                "externalIPs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "routes": {
+          "type": "object",
+          "properties": {
+            "existingGateways": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "namespace": {
+                    "type": "string"
+                  },
+                  "group": {
+                    "type": "string"
+                  },
+                  "kind": {
+                    "type": "string"
+                  },
+                  "sectionName": {
+                    "type": "string"
+                  },
+                  "port": {
+                    "type": "integer"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "minItems": 1
+            },
+            "annotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "tlsEnabled": {
+              "type": "boolean"
+            },
+            "tlsSecret": {
+              "type": "string"
             },
             "service": {
               "type": "object",

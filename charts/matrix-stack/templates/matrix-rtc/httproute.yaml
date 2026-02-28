@@ -1,0 +1,56 @@
+{{- /*
+Copyright 2026 New Vector Ltd
+Copyright 2026 Element Creations Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+{{- with .Values.matrixRTC -}}
+{{- if eq (include "element-io.ess-library.ingress.isEnabled" (dict "root" $ "context" (dict "inboundTrafficHandler" .inboundTrafficHandler "handlerType" "routes"))) "true" -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+{{- $extraAnnotations := dict }}
+{{- include "element-io.ess-library.ingress.annotations" (dict "root" $ "context" (dict "ingress" .routes "extraAnnotations" $extraAnnotations)) | nindent 2 }}
+  labels:
+    {{- include "element-io.matrix-rtc-ingress.labels" (dict "root" $ "context" .) | nindent 4 }}
+  name: {{ $.Release.Name }}-matrix-rtc
+  namespace: {{ $.Release.Namespace }}
+spec:
+  parentRefs:
+    {{- include "element-io.ess-library.ingress.parentRefs" (dict "root" $ "context" (dict "serviceName" "matrix-rtc" "routes" .routes)) | nindent 4 }}
+  hostnames:
+    - {{ (tpl .routes.host $) | quote }}
+  rules:
+    - matches:
+      - path:
+          type: PathPrefix
+          value: /sfu/get
+      backendRefs:
+        - name: {{ $.Release.Name }}-matrix-rtc-authorisation-service
+          port: 8080
+          group: ""
+          kind: Service
+    {{- if .sfu.enabled }}
+    - matches:
+      - path:
+          type: PathPrefix
+          value: /
+      backendRefs:
+        - name: {{ $.Release.Name }}-matrix-rtc-sfu
+          port: 7880
+          group: ""
+          kind: Service
+    {{- end }}
+    {{- if eq (include "element-io.ess-library.ingress.tls.isEnabled" (dict "root" $ "context" .routes)) "true" }}
+    - matches:
+      - path:
+          type: PathPrefix
+          value: /
+      filters:
+      - requestRedirect:
+          scheme: https
+          statusCode: 301
+        type: RequestRedirect
+    {{- end }}
+{{- end }}
+{{- end }}

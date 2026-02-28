@@ -90,6 +90,7 @@ logging:
 {{- sub_schema_values.extraVolumeMounts("Synapse", with_context=true) }}
 {{- sub_schema_values.extraInitContainers("Synapse") }}
 {{- sub_schema_values.ingress() }}
+{{- sub_schema_values.routes() }}
 {{- sub_schema_values.labels() }}
 {{- sub_schema_values.workloadAnnotations() }}
 {{- sub_schema_values.containersSecurityContext() }}

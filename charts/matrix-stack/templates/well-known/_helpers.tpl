@@ -46,13 +46,13 @@ k8s.element.io/target-instance: {{ $root.Release.Name }}-haproxy
 {{- with required "element-io.well-known-delegation.client missing context" .context -}}
 {{- $config := dict -}}
 {{- if $root.Values.synapse.enabled -}}
-{{- with required "WellKnownDelegation requires synapse.ingress.host set" $root.Values.synapse.ingress.host -}}
+{{- with required "WellKnownDelegation requires synapse.<handler>.host set" (include "element-io.ess-library.ingress.host" (dict "root" $root "context" $root.Values.synapse)) -}}
 {{- $mHomeserver := dict "base_url" (printf "https://%s" .) -}}
 {{- $_ := set $config "m.homeserver" $mHomeserver -}}
 {{- end -}}
 {{- end -}}
 {{- if include "element-io.matrix-authentication-service.readyToHandleAuth" (dict "root" $root) }}
-{{- with required "WellKnownDelegation requires matrixAuthenticationService.ingress.host set" $root.Values.matrixAuthenticationService.ingress.host -}}
+{{- with required "WellKnownDelegation requires matrixAuthenticationService.<handler>.host set" (include "element-io.ess-library.ingress.host" (dict "root" $root "context" $root.Values.matrixAuthenticationService)) -}}
 {{- $msc2965 := dict "issuer" (printf "https://%s/" .)
                      "account" (printf "https://%s/account" .)
 -}}
@@ -60,7 +60,7 @@ k8s.element.io/target-instance: {{ $root.Release.Name }}-haproxy
 {{- end -}}
 {{- end -}}
 {{- if $root.Values.matrixRTC.enabled -}}
-{{- $_ := set $config "org.matrix.msc4143.rtc_foci" (list (dict "type" "livekit" "livekit_service_url" (printf "https://%s" $root.Values.matrixRTC.ingress.host))) -}}
+{{- $_ := set $config "org.matrix.msc4143.rtc_foci" (list (dict "type" "livekit" "livekit_service_url" (printf "https://%s" (include "element-io.ess-library.ingress.host" (dict "root" $root "context" $root.Values.matrixRTC))))) -}}
 {{- end -}}
 {{- $additional := .additional.client | fromJson -}}
 {{- tpl (toPrettyJson (mustMergeOverwrite $additional $config)) $root -}}
@@ -72,7 +72,7 @@ k8s.element.io/target-instance: {{ $root.Release.Name }}-haproxy
 {{- with required "element-io.well-known-delegation.server missing context" .context -}}
 {{- $config := dict -}}
 {{- if $root.Values.synapse.enabled -}}
-{{- with required "WellKnownDelegation requires synapse.ingress.host set" $root.Values.synapse.ingress.host -}}
+{{- with required "WellKnownDelegation requires synapse.<handler>.host set" (include "element-io.ess-library.ingress.host" (dict "root" $root "context" $root.Values.synapse)) -}}
 {{- $_ := set $config "m.server" (printf "%s:443" .) -}}
 {{- end -}}
 {{- end -}}
@@ -99,5 +99,16 @@ server: |
   {{- (tpl (include "element-io.well-known-delegation.server" (dict "root" $root "context" .)) $root) | nindent 2 }}
 support: |
   {{- (tpl (include "element-io.well-known-delegation.support" (dict "root" $root "context" .)) $root) | nindent 2 }}
+{{- end -}}
+{{- end -}}
+
+{{- define "element-io.well-known-delegation.httproute-path" -}}
+{{- $root := .root -}}
+{{- with required "element-io.well-known-delegation.httproute-path missing context" .context -}}
+{{- if and .enabled (or $root.Values.elementWeb.enabled .url) -}}
+/
+{{- else -}}
+/.well-known/matrix
+{{- end -}}
 {{- end -}}
 {{- end -}}

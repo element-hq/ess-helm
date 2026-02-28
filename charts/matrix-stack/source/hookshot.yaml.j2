@@ -23,6 +23,7 @@ logging:
 {{ sub_schema_values.credential("Hookshot registration file to connect to a remote Synapse instance.", "appserviceRegistration", initIfAbsent=True) }}
 {{ sub_schema_values.credential("Hookshot passkey used to encrypt stored tokens.", "passkey", initIfAbsent=True) }}
 {{ sub_schema_values.ingress() }}
+{{ sub_schema_values.routes() }}
 
 ## Additional configuration to provide to Hookshot.
 ## You can, if you whish, override it in the additional config.

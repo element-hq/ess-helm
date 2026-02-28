@@ -35,8 +35,8 @@ frontend well-known-in
   http-request redirect  code 301  location {{ .baseDomainRedirect.url }} unless well-known
 {{- else if $root.Values.elementWeb.enabled }}
 {{- with $root.Values.elementWeb }}
-{{- $elementWebHttps := include "element-io.ess-library.ingress.tlsHostsSecret" (dict "root" $root "context" (dict "hosts" (list .ingress.host) "tlsSecret" .ingress.tlsSecret "ingressName" "element-web")) }}
-  http-request redirect  code 301  location http{{ if $elementWebHttps }}s{{ end }}://{{ tpl .ingress.host $root }} unless well-known
+{{- $elementWebHttps := include "element-io.ess-library.ingress.tlsHostsSecret" (dict "root" $root "context" (dict "hosts" (list (include "element-io.ess-library.ingress.host" (dict "root" $root "context" .))) "tlsSecret" .ingress.tlsSecret "ingressName" "element-web")) }}
+  http-request redirect  code 301  location http{{ if $elementWebHttps }}s{{ end }}://{{ include "element-io.ess-library.ingress.host" (dict "root" $root "context" .) }} unless well-known
 {{- end }}
 {{- end }}
 {{- end }}
