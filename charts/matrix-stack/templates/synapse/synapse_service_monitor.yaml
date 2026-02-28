@@ -23,7 +23,7 @@ spec:
     relabelings:
     - targetLabel: instance
       action: replace
-      replacement: {{ tpl .ingress.host $ }}
+      replacement: {{ include "element-io.ess-library.ingress.host" (dict "root" $ "context" $.Values.synapse) }}
   selector:
     matchLabels:
       app.kubernetes.io/part-of: matrix-stack

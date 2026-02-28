@@ -47,7 +47,7 @@ tls:
 {{- $service := . -}}
 {{- with required "element-io.gateway.listener missing context" (index $contexts $service) -}}
 {{- if eq (include "element-io.ess-library.ingress.isEnabled" (dict "root" $root "context" (dict "ingress" .ingress "type" "HTTPRoute"))) "true" }}
-- hostname: {{ .ingress.host | default $root.Values.serverName | quote }}
+- hostname: {{ .routes.host | default $root.Values.serverName | quote }}
   {{- if eq (include "element-io.ess-library.ingress.tls.isEnabled" (dict "root" $root "context" .ingress)) "true" }}
   port: 443
   protocol: HTTPS

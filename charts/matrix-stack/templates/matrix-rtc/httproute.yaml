@@ -5,21 +5,21 @@ Copyright 2026 Element Creations Ltd
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 {{- with .Values.matrixRTC -}}
-{{- if eq (include "element-io.ess-library.ingress.isEnabled" (dict "root" $ "context" (dict "ingress" .ingress "type" "HTTPRoute"))) "true" -}}
+{{- if eq (include "element-io.ess-library.ingress.isEnabled" (dict "root" $ "context" (dict "inboundTrafficHandler" .inboundTrafficHandler "handlerType" "routes"))) "true" -}}
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
 {{- $extraAnnotations := dict }}
-{{- include "element-io.ess-library.ingress.annotations" (dict "root" $ "context" (dict "ingress" .ingress "extraAnnotations" $extraAnnotations)) | nindent 2 }}
+{{- include "element-io.ess-library.ingress.annotations" (dict "root" $ "context" (dict "ingress" .routes "extraAnnotations" $extraAnnotations)) | nindent 2 }}
   labels:
     {{- include "element-io.matrix-rtc-ingress.labels" (dict "root" $ "context" .) | nindent 4 }}
   name: {{ $.Release.Name }}-matrix-rtc
   namespace: {{ $.Release.Namespace }}
 spec:
   parentRefs:
-    {{- include "element-io.ess-library.ingress.parentRefs" (dict "root" $ "context" (dict "serviceName" "matrix-rtc" "HTTPRoute" .ingress.HTTPRoute)) | nindent 4 }}
+    {{- include "element-io.ess-library.ingress.parentRefs" (dict "root" $ "context" (dict "serviceName" "matrix-rtc" "routes" .routes)) | nindent 4 }}
   hostnames:
-    - {{ (tpl .ingress.host $) | quote }}
+    - {{ (tpl .routes.host $) | quote }}
   rules:
     - matches:
       - path:
@@ -41,7 +41,7 @@ spec:
           group: ""
           kind: Service
     {{- end }}
-    {{- if eq (include "element-io.ess-library.ingress.tls.isEnabled" (dict "root" $ "context" .ingress)) "true" }}
+    {{- if eq (include "element-io.ess-library.ingress.tls.isEnabled" (dict "root" $ "context" .routes)) "true" }}
     - matches:
       - path:
           type: PathPrefix

@@ -145,13 +145,13 @@ Prefix
 {{- $root := .root -}}
 {{- with required "element-io.ess-library.ingress.parentRefs missing context" .context -}}
 {{- $serviceName := required "element-io.ess-library.ingress.parentRefs missing serviceName" .serviceName -}}
-{{- $globalHTTPRouteConfig := $root.Values.ingress.HTTPRoute | default dict -}}
-{{- $httpRouteConfig := .HTTPRoute | default dict -}}
+{{- $globalRouteConfig := $root.Values.routes | default dict -}}
+{{- $routeConfig := .routes | default dict -}}
 {{- $gateways := concat
-    ($globalHTTPRouteConfig.existingGateways | default list)
-    ($httpRouteConfig.existingGateways | default list)
+    ($globalRouteConfig.existingGateways | default list)
+    ($routeConfig.existingGateways | default list)
 -}}
-{{- $builtinGateway := $root.Values.ingress.gateway | default dict -}}
+{{- $builtinGateway := $root.Values.gateway | default dict -}}
 {{- if or (gt (len $gateways) 0) $builtinGateway.create -}}
 {{- if gt (len $gateways) 0 -}}
 {{ toYaml $gateways }}
@@ -172,8 +172,19 @@ Prefix
 {{- define "element-io.ess-library.ingress.isEnabled" -}}
 {{- $root := .root -}}
 {{- with required "element-io.ess-library.ingress.isEnabled missing context" .context -}}
-{{- $type := required "element-io.ess-library.ingress.isEnabled missing type" .type -}}
-{{- $desiredType := coalesce .inboundTrafficHandler $root.Values.inboundTrafficHandler -}}
-{{- eq $type $desiredType -}}
+{{- $handlerType := required "element-io.ess-library.ingress.isEnabled missing handlerType" .handlerType -}}
+{{- $activeTrafficHandlerType := .inboundTrafficHandler | default $root.Values.inboundTrafficHandler -}}
+{{- eq $handlerType $activeTrafficHandlerType -}}
 {{- end -}}
 {{- end -}}
+
+{{- define "element-io.ess-library.ingress.host" -}}
+{{- $root := .root -}}
+{{- with required "element-io.ess-library.ingress.host missing context" .context -}}
+{{- $handlerType := coalesce .inboundTrafficHandler $root.Values.inboundTrafficHandler -}}
+{{- $handler := index . $handlerType -}}
+{{ $handler | toYaml }}
+{{- $handler.host -}}
+{{- end -}}
+{{- end -}}
+

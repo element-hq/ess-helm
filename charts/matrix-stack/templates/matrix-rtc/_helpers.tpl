@@ -73,7 +73,7 @@ env:
 {{- end }}
 {{- if .sfu.enabled }}
 - name: "LIVEKIT_URL"
-  value: {{ printf "wss://%s" (tpl .ingress.host $root) }}
+  value: {{ printf "wss://%s" (include "element-io.ess-library.ingress.host" (dict "root" $root "context" $root.Values.matrixRTC)) }}
 {{- end }}
 - name: "LIVEKIT_FULL_ACCESS_HOMESERVERS"
 {{- if $root.Values.serverName }}

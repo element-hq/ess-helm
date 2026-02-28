@@ -6,7 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 
 {{- with $.Values.wellKnownDelegation -}}
-{{- if eq (include "element-io.ess-library.ingress.isEnabled" (dict "root" $ "context" (dict "ingress" .ingress "type" "ingress"))) "true" -}}
+{{- if eq (include "element-io.ess-library.ingress.isEnabled" (dict "root" $ "context" (dict "inboundTrafficHandler" .inboundTrafficHandler "handlerType" "ingress"))) "true" -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
