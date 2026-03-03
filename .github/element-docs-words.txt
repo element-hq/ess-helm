@@ -17,6 +17,7 @@ homeserver
 Homeserver
 homeservers
 Jetstack
+Jinja
 kubeconform
 kubernetes
 linters

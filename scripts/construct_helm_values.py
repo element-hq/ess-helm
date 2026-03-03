@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
 # Copyright 2024 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
 from pathlib import Path
 
 import typer
-from jinja2 import Environment, FileSystemLoader, select_autoescape
+from jinja2 import Environment, FileSystemLoader
 
 
 def find_sub_dirs(root_dir):
@@ -31,7 +31,7 @@ def construct_values_file(source_values_template_path: Path, destination_values_
                 *find_sub_dirs(charts_path),
             ]
         ),
-        autoescape=select_autoescape,
+        autoescape=False,
         keep_trailing_newline=True,
     )
     template = env.get_template(source_values_template_path.name)
