@@ -83,7 +83,7 @@ def get_volume_from_mount(workload_spec, volume_mount):
             return v
     raise ValueError(
         f"No matching volume found for mount path {volume_mount['mountPath']} in "
-        f"[{','.join([v['name'] for v in workload_spec['template']['spec'].get('volumes', [])])}]"
+        f"[{','.join([v['name'] for v in workload_spec.get('volumes', [])])}]"
     )
 
 
