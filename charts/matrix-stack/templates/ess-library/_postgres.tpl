@@ -1,7 +1,7 @@
 
 {{- /*
 Copyright 2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -24,14 +24,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- define "element-io.ess-library.postgres-env-var" -}}
 {{- $root := .root -}}
 {{- with required "element-io.ess-library.postgres-env-var requires context" .context -}}
-{{- $input := . -}}
-{{- $output := list -}}
-{{- range $input | splitList "" -}}
-{{- if (. | regexMatch "[A-Z]") -}}
-{{- $output = append $output "_" -}}
-{{- end -}}
-{{- $output = append $output . -}}
-{{- end -}}
-{{- printf "POSTGRES_%s_PASSWORD" (upper ($output | join "")) -}}
+{{- printf "POSTGRES_%s_PASSWORD" (. | snakecase | upper) -}}
 {{- end -}}
 {{- end -}}
