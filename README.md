@@ -452,6 +452,31 @@ server {
 ```
 </details>
 
+<details><summary>Caddy</summary>
+
+Below are two examples of a Caddy reverse proxy config for ESS Community with TLS termination.
+* The first is for when you don't use anything else on the domain except ESS
+* The second illustrates how you would add ESS to an already established Caddy installation where you have other sites on the base domain as well
+```
+example.com matrix.example.com account.example.com mrtc.example.com chat.example.com admin.example.com {
+  reverse_proxy http://127.0.0.1:8080
+}
+```
+
+```
+example.com {
+  # Other directives or matcher definitions i.e. your personal homepage or a blog under example.com/blog/ could be in here as well
+  #
+  reverse_proxy /.well-known/matrix/* http://127.0.0.1:8080
+}
+
+admin.example.com chat.example.com account.example.com mrtc.example.com matrix.example.com {
+  reverse_proxy http://127.0.0.1:8080
+}
+```
+
+</details>
+
 ### Configuring the database
 
 You can either use the database provided with ESS Community or you use a dedicated PostgreSQL Server. We recommend [using a PostgreSQL server](./docs/advanced.md#using-a-dedicated-postgresql-database) installed with your own distribution packages. For a quick set up, feel free to use the internal PostgreSQL database, which the chart will configure automatically for you by default with no required configuration.
