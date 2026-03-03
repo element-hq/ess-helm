@@ -496,8 +496,8 @@ This should give you the following output:
 Defaulted container "matrix-authentication-service" out of: matrix-authentication-service, render-config (init), db-wait (init), config (init)
 ✔ Username · alice
 User attributes
-    	Username: alice
-   	Matrix ID: @alice:thisservername.tld
+         Username: alice
+        Matrix ID: @alice:thisservername.tld
 No email address provided, user will be prompted to add one
 No password or upstream provider mapping provided, user will not be able to log in
 
@@ -508,9 +508,9 @@ Non-interactive equivalent to create this user:
 ✔ What do you want to do next? (<Esc> to abort) · Set a password
 ✔ Password · ********
 User attributes
-    	Username: alice
-   	Matrix ID: @alice:thisservername.tld
-    	Password: ********
+         Username: alice
+        Matrix ID: @alice:thisservername.tld
+         Password: ********
 No email address provided, user will be prompted to add one
 ```
 
