@@ -110,7 +110,7 @@ jobs:
         GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         skopeo --version
-        if [[ -n ${DOCKERHUB_TOKEN+x} ]]; then
+        if [[ -n ${DOCKERHUB_TOKEN} ]]; then
           echo "Logging into DockerHub"
           echo "${DOCKERHUB_TOKEN}" | skopeo login docker.io --username "${DOCKERHUB_USERNAME}" --password-stdin
         fi
