@@ -9,13 +9,12 @@ Migration service.
 
 import base64
 import logging
-from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
 from .extra_files import ExtraFilesDiscovery
 from .interfaces import ExtraFilesDiscoveryStrategy, MigrationStrategy, SecretDiscoveryStrategy
-from .models import ConfigMap, DiscoveredExtraFile, DiscoveredSecret, MigrationInput, Secret
+from .models import ConfigMap, DiscoveredExtraFile, DiscoveredSecret, MigrationInput, Secret, TransformationSpec
 from .secrets import SecretDiscovery
 from .utils import (
     get_nested_value,
@@ -26,20 +25,6 @@ from .utils import (
 )
 
 logger = logging.getLogger("migration")
-
-
-@dataclass
-class TransformationSpec:
-    """
-    Specification for a configuration transformation.
-
-    Defines how to map from a source configuration path to a target ESS path.
-    """
-
-    src_key: str  # Source configuration path
-    target_key: str  # Target ESS configuration path
-    required: bool = True  # Whether this transformation is required
-    transformer: Callable[[Any], Any] | None = None  # Optional transformation function
 
 
 @dataclass
@@ -62,7 +47,7 @@ class ConfigValueTransformer:
     source and target paths.
     """
 
-    pretty_logger: logging.Logger | None = field(default=None)  # Pretty logger
+    pretty_logger: logging.Logger = field(init=True)  # Pretty logger
     results: list[TransformationResult] = field(default_factory=list)  # List of transformation results
     tracked_values: list[str] = field(default_factory=list)  # Source paths that have been processed
     ess_config: dict[str, Any] = field(default_factory=dict)  # Target ESS configuration dictionary
@@ -322,13 +307,11 @@ class MigrationService:
     configmaps: list[ConfigMap] = field(default_factory=list)  # List of created ConfigMaps
     override_configs: set[str] = field(default_factory=set)  # Set of configurations that are managed by ESS
     component_root_key: str = field(init=False)  # Root key for the component (e.g., 'synapse')
-    config_to_ess_transformer: ConfigValueTransformer = field(default_factory=ConfigValueTransformer)  # Config
+    results: list[TransformationResult] = field(default_factory=list)  # List of transformation results
 
     def __post_init__(self):
         self.component_root_key = self.migration.component_root_key
         self.override_configs = self.migration.override_configs
-        self.config_to_ess_transformer.ess_config = self.ess_config
-        self.config_to_ess_transformer.pretty_logger = self.pretty_logger
 
     def _check_overrides(self, config: dict[str, Any]) -> None:
         """
@@ -348,10 +331,12 @@ class MigrationService:
         for transformation in self.migration.transformations:
             transformed_configs.add(transformation.src_key)
 
+        config_to_ess_transformer = ConfigValueTransformer(self.pretty_logger)
+
         # Use the filtered configuration (with migrated values removed) for override detection
         # This automatically excludes values that are tracked by the transformer,
         # including both regular transformations and secrets (which are added to tracked_values during handle_secrets)
-        filtered_config = self.config_to_ess_transformer.filter_config(config)
+        filtered_config = config_to_ess_transformer.filter_config(config)
 
         for override_config in self.override_configs:
             # Check if the override config path exists in the filtered configuration
@@ -411,12 +396,13 @@ class MigrationService:
         # Step 3: Enable component
         self.ess_config.setdefault(self.component_root_key, {})["enabled"] = True
 
+        config_to_ess_transformer = ConfigValueTransformer(self.pretty_logger)
         # Step 4: Apply component transformations
-        self.config_to_ess_transformer.transform_from_config(self.input.config, self.migration.transformations)
+        config_to_ess_transformer.transform_from_config(self.input.config, self.migration.transformations)
 
         # Step 5: Handle secrets for the component using the transformer's method
         # This will update the root ESS config directly and create Kubernetes Secrets
-        self.config_to_ess_transformer.handle_secrets(
+        config_to_ess_transformer.handle_secrets(
             secret_discovery,
             self.component_root_key,
             self.secrets,
@@ -424,7 +410,7 @@ class MigrationService:
 
         # Step 6: Handle extra files mounts for the component using the transformer's method
         # This will update the root ESS config directly and create Kubernetes ConfigMaps
-        self.config_to_ess_transformer.handle_extra_files_mounts(
+        config_to_ess_transformer.handle_extra_files_mounts(
             extra_files_discovery,
             self.component_root_key,
             self.configmaps,
@@ -434,6 +420,9 @@ class MigrationService:
         self._check_overrides(self.input.config)
 
         # Step 8: Add filtered additional configurations
-        self.config_to_ess_transformer.add_additional_config_to_component(
+        config_to_ess_transformer.add_additional_config_to_component(
             self.component_root_key, self.input.config, extra_files_discovery
         )
+
+        # Step 9: Store results
+        self.results.extend(config_to_ess_transformer.results)

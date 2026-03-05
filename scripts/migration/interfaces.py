@@ -7,9 +7,9 @@
 Interfaces for the migration system.
 """
 
-from typing import Any, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
-from .models import SecretConfig
+from .models import SecretConfig, TransformationSpec
 
 
 @runtime_checkable
@@ -27,7 +27,7 @@ class MigrationStrategy(Protocol):
         ...
 
     @property
-    def transformations(self) -> list[Any]:
+    def transformations(self) -> list[TransformationSpec]:
         """Get component-specific transformations."""
         ...
 

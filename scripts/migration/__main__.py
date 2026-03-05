@@ -193,7 +193,7 @@ Examples:
         # Process migrations
         for migrator in engine.migrators:
             source_file = engine.input_processor.input_for_component(migrator.component_root_key).config_path
-            for transformation_result in migrator.config_to_ess_transformer.results:
+            for transformation_result in migrator.results:
                 source_path = transformation_result.spec.src_key
                 target_path = transformation_result.spec.target_key
                 migration_mapping[source_path] = (source_file, target_path)
