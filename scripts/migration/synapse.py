@@ -91,9 +91,9 @@ def extract_workers_from_instance_map(pretty_logger: logging.Logger, instance_ma
     for instance_name in instance_map:
         matches = process.extract(instance_name, worker_types, scorer=fuzz.WRatio, limit=3)
         very_high_probable_matches = [m[0] for m in matches if m[1] > 90]
-        matches = [m[0] for m in matches if m[1] > 60]
+        probable_matches = [m[0] for m in matches if m[1] > 60]
         selected_worker = (
-            prompt_user_for_worker(pretty_logger, instance_name, instance_map[instance_name], matches)
+            prompt_user_for_worker(pretty_logger, instance_name, instance_map[instance_name], probable_matches)
             if len(very_high_probable_matches) != 1
             else very_high_probable_matches[0]
         )

@@ -7,6 +7,7 @@
 Data models for the migration script using Python dataclasses.
 """
 
+import logging
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -47,6 +48,20 @@ class MigrationError(Exception):
     """Base exception for migration-related errors."""
 
     pass
+
+
+@dataclass
+class TransformationSpec:
+    """
+    Specification for a configuration transformation.
+
+    Defines how to map from a source configuration path to a target ESS path.
+    """
+
+    src_key: str  # Source configuration path
+    target_key: str  # Target ESS configuration path
+    required: bool = True  # Whether this transformation is required
+    transformer: Callable[[logging.Logger, Any], Any] | None = None  # Optional transformation function
 
 
 @dataclass
