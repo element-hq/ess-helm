@@ -279,12 +279,15 @@ async def chart_from_ci_cache(helm_client: pyhelm3.Client, chart_ref: str) -> py
                 chart.ref.copy(cached_ref)  # type: ignore
                 # pull_chart removes the pulled chart, we return the cached one
                 return await helm_client.get_chart(cached_ref)  # type: ignore
-        except Exception:
+        except Exception as e:
             # Fall back to cache if remote fetch fails
             if cached_ref.exists():
                 return await helm_client.get_chart(cached_ref)
             else:
-                raise  # Re-raise if neither remote nor cache is available
+                raise FileNotFoundError(
+                    f"Could not find chart {chart_ref} in cache at {cached_ref}. "
+                    f"Remote fetch also failed with error: {e}"
+                ) from e
     else:
         return await helm_client.get_chart(chart_ref)
 
