@@ -5,7 +5,7 @@
 
 name: dyff of rendered templates - comment
 on:
-  workflow_run:
+  workflow_run: # zizmor: ignore[dangerous-triggers]  This is safe as not running any shell scripts, nor using any code from the upstream workflow
     workflows: ["dyff of rendered templates"]
     types:
     - completed
@@ -26,17 +26,11 @@ jobs:
         name: dyff-templates
         run-id: ${{ github.event.workflow_run.id }}
 
-    - name: Load PR number
-      id: pr-number
-      run: |
-        # This is already formatted as pr-number=<pr number>
-        cat "pr-number.txt" >> "$GITHUB_OUTPUT"
-
     - name: Find dyff comment
       uses: peter-evans/find-comment@b30e6a3c0ed37e7c023ccd3f1db5c6c0b0c23aad  # v3
       id: find-dyff-comment
       with:
-        issue-number: ${{ steps.pr-number.outputs.pr-number }}
+        issue-number: ${{ github.event.workflow_run.outputs.pr-number }}
         comment-author: 'github-actions[bot]'
         body-includes: 'dyff of changes in rendered templates'
 
@@ -44,6 +38,6 @@ jobs:
       uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9  # v5
       with:
         comment-id: ${{ steps.find-dyff-comment.outputs.comment-id }}
-        issue-number: ${{ steps.pr-number.outputs.pr-number }}
+        issue-number: ${{ github.event.workflow_run.outputs.pr-number }}
         body-path: dyff-output.md
         edit-mode: replace

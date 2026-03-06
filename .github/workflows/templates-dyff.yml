@@ -189,7 +189,7 @@ jobs:
 
 
         echo -e "$header$comment_body" | tee "$RUNNER_TEMP/dyff-output.md"
-        echo "pr-number=$PR_NUMBER" | tee "$RUNNER_TEMP/pr-number.txt"
+        echo "pr-number=$PR_NUMBER" | tee -a "$GITHUB_OUTPUT"
 
     - name: Upload generated manifests
       uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f  # v7.0.0
