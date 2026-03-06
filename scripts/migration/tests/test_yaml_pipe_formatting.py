@@ -10,6 +10,8 @@ Tests that multi-line strings in additional configurations are properly formatte
 using the pipe (|) character for better readability in Helm charts.
 """
 
+import logging
+
 import yaml
 
 from ..migration import ConfigValueTransformer
@@ -131,8 +133,7 @@ def test_config_with_lists():
 
 def test_additional_config_uses_pipe_for_multiline():
     """Test that additional config generation uses pipe for multi-line strings."""
-    transformer = ConfigValueTransformer()
-
+    transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config={})
     source_config = {
         "log_config": """line1
 line2
@@ -157,7 +158,7 @@ line3""",
 
 def test_additional_config_single_line_no_pipe():
     """Test that additional config with single-line strings doesn't force pipe usage."""
-    transformer = ConfigValueTransformer()
+    transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config={})
 
     source_config = {"simple_setting": "value1", "path_setting": "/path/to/file.yaml"}
 
@@ -175,7 +176,7 @@ def test_additional_config_single_line_no_pipe():
 
 def test_additional_config_mixed_content():
     """Test additional config with mixed single-line and multi-line content."""
-    transformer = ConfigValueTransformer()
+    transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config={})
 
     source_config = {
         "enable_metrics": True,

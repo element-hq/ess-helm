@@ -5,12 +5,14 @@
 
 """Tests for the ConfigValueTransformer class."""
 
+import logging
+
 from ..migration import ConfigValueTransformer, TransformationSpec
 
 
 def test_config_value_tracker_basic():
     """Test basic ConfigValueTransformer functionality with dict-based transformations."""
-    transformer = ConfigValueTransformer(ess_config={"unchanged": "value"})
+    transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config={"unchanged": "value"})
 
     # Create a test config
     config = {
@@ -52,7 +54,7 @@ def test_config_value_tracker_basic():
 
 def test_config_value_tracker_filter_config():
     """Test ConfigValueTransformer filter_config functionality."""
-    transformer = ConfigValueTransformer()
+    transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config={})
 
     # Create a test config
     config = {
@@ -98,7 +100,7 @@ def test_config_value_tracker_filter_config():
 
 def test_config_value_tracker_nested_dict():
     """Test ConfigValueTransformer with nested dictionaries."""
-    transformer = ConfigValueTransformer()
+    transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config={})
 
     # Create a nested config
     config = {
@@ -146,7 +148,7 @@ def test_config_value_tracker_nested_dict():
 
 def test_config_value_tracker_empty():
     """Test ConfigValueTransformer with no tracked values."""
-    transformer = ConfigValueTransformer()
+    transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config={})
 
     # Create a config to filter
     config = {
