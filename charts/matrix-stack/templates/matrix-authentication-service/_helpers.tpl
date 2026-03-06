@@ -9,9 +9,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $root := .root -}}
 {{- with required "element-io.matrix-authentication-service.validations missing context" .context -}}
 {{ $messages := list }}
-{{- if not .ingress.host -}}
-{{ $messages = append $messages "matrixAuthenticationService.ingress.host is required when matrixAuthenticationService.enabled=true" }}
-{{- end }}
+{{- $messages = concat $messages (include "element-io.ess-library.validations.host" (dict "root" $root "context" (dict "component" "matrixAuthenticationService")) | fromJsonArray) -}}
 {{- if and (not $root.Values.postgres.enabled) (not .postgres) -}}
 {{ $messages = append $messages "matrixAuthenticationService.postgres is required when matrixAuthenticationService.enabled=true but postgres.enabled=false" }}
 {{- end }}
