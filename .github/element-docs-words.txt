@@ -42,3 +42,4 @@ threepids
 towncrier
 Traefik
 Wifi
+zizmor
