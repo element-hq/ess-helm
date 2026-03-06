@@ -50,8 +50,6 @@ worker_types = [
 def prompt_user_for_worker(
     pretty_logger: logging.Logger, instance_name: str, instance_props: Any, matched_worker_types: list[str]
 ) -> str:
-    pretty_logger = logging.getLogger("migration:summary")
-
     if not matched_worker_types:
         matched_worker_types = worker_types
 
