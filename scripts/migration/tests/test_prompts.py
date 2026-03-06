@@ -11,6 +11,7 @@ import asyncio
 import base64
 import logging
 
+from io import StringIO
 import pytest
 
 from ..engine import MigrationEngine
@@ -18,7 +19,7 @@ from ..inputs import InputProcessor
 
 
 def test_migration_with_missing_secrets_prompt(
-    caplog, monkeypatch, tmp_path, synapse_config_with_signing_key, write_synapse_config
+    monkeypatch, tmp_path, synapse_config_with_signing_key, write_synapse_config
 ):
     """Test migration workflow that prompts for missing secrets with timeout."""
     # Create Synapse configuration with missing secrets
@@ -39,9 +40,11 @@ def test_migration_with_missing_secrets_prompt(
     )
     ess_values = {}
 
-    pretty_logger = logging.getLogger("test_prompts")
+    log_capture_string = StringIO()
+    pretty_logger = logging.getLogger(test_migration_with_missing_secrets_prompt.__name__)
+    pretty_logger.propagate = False
     pretty_logger.setLevel(logging.INFO)
-    pretty_logger.addHandler(logging.StreamHandler())
+    pretty_logger.addHandler(logging.StreamHandler(log_capture_string))
 
     engine = MigrationEngine(input_processor, pretty_logger=pretty_logger)
 
@@ -58,7 +61,7 @@ def test_migration_with_missing_secrets_prompt(
     try:
         asyncio.run(asyncio.wait_for(test_with_timeout(), timeout=10.0))
         # Capture the output after the test runs
-        output = caplog.text
+        output = log_capture_string.getvalue()
 
         # Verify that warnings about generated secrets are present
         assert "SECRETS REQUIRED FOR MIGRATION" in output
@@ -96,10 +99,11 @@ def test_migration_with_missing_secrets_prompt(
         else:
             # Re-raise the original exception
             raise
+    finally:
+        log_capture_string.close()
 
 
 def test_migration_with_unknown_workers_prompt(
-    caplog,
     monkeypatch,
     tmp_path,
     synapse_config_with_signing_key,
@@ -118,9 +122,11 @@ def test_migration_with_unknown_workers_prompt(
     )
     ess_values = {}
 
-    pretty_logger = logging.getLogger("test_prompts")
+    log_capture_string = StringIO()
+    pretty_logger = logging.getLogger(test_migration_with_unknown_workers_prompt.__name__)
+    pretty_logger.propagate = False
     pretty_logger.setLevel(logging.INFO)
-    pretty_logger.addHandler(logging.StreamHandler())
+    pretty_logger.addHandler(logging.StreamHandler(log_capture_string))
 
     engine = MigrationEngine(input_processor, pretty_logger=pretty_logger)
 
@@ -137,7 +143,7 @@ def test_migration_with_unknown_workers_prompt(
     try:
         asyncio.run(asyncio.wait_for(test_with_timeout(), timeout=10.0))
         # Capture the output after the test runs
-        output = caplog.text
+        output = log_capture_string.getvalue()
         assert " No worker type found for instance funny-name" in output
 
         # Verify that secrets were handled
@@ -158,10 +164,11 @@ def test_migration_with_unknown_workers_prompt(
         else:
             # Re-raise the original exception
             raise
+    finally:
+        log_capture_string.close()
 
 
 def test_migration_with_missing_extra_files_prompt(
-    caplog,
     monkeypatch,
     tmp_path,
     synapse_config_with_signing_key,
@@ -181,9 +188,11 @@ def test_migration_with_missing_extra_files_prompt(
 
     (tmp_path / "email_templates").move(tmp_path / "moved")
 
-    pretty_logger = logging.getLogger("test_prompts")
+    log_capture_string = StringIO()
+    pretty_logger = logging.getLogger(test_migration_with_missing_extra_files_prompt.__name__)
+    pretty_logger.propagate = False
     pretty_logger.setLevel(logging.INFO)
-    pretty_logger.addHandler(logging.StreamHandler())
+    pretty_logger.addHandler(logging.StreamHandler(log_capture_string))
 
     engine = MigrationEngine(input_processor, pretty_logger=pretty_logger)
 
@@ -200,7 +209,7 @@ def test_migration_with_missing_extra_files_prompt(
     try:
         asyncio.run(asyncio.wait_for(test_with_timeout(), timeout=10.0))
         # Capture the output after the test runs
-        output = caplog.text
+        output = log_capture_string.getvalue()
 
         # Verify that warnings about generated secrets are present
         assert "📁 EXTRA FILES DISCOVERY" in output
@@ -222,3 +231,5 @@ def test_migration_with_missing_extra_files_prompt(
         else:
             # Re-raise the original exception
             raise
+    finally:
+        log_capture_string.close()
