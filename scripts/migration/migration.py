@@ -48,9 +48,9 @@ class ConfigValueTransformer:
     """
 
     pretty_logger: logging.Logger = field(init=True)  # Pretty logger
+    ess_config: dict[str, Any] = field(init=True)  # Target ESS configuration dictionary
     results: list[TransformationResult] = field(default_factory=list)  # List of transformation results
     tracked_values: list[str] = field(default_factory=list)  # Source paths that have been processed
-    ess_config: dict[str, Any] = field(default_factory=dict)  # Target ESS configuration dictionary
 
     def transform_from_config(self, source_config: dict[str, Any], transformations: list[TransformationSpec]) -> None:
         """
@@ -331,7 +331,7 @@ class MigrationService:
         for transformation in self.migration.transformations:
             transformed_configs.add(transformation.src_key)
 
-        config_to_ess_transformer = ConfigValueTransformer(self.pretty_logger)
+        config_to_ess_transformer = ConfigValueTransformer(self.pretty_logger, self.ess_config)
 
         # Use the filtered configuration (with migrated values removed) for override detection
         # This automatically excludes values that are tracked by the transformer,
@@ -396,7 +396,7 @@ class MigrationService:
         # Step 3: Enable component
         self.ess_config.setdefault(self.component_root_key, {})["enabled"] = True
 
-        config_to_ess_transformer = ConfigValueTransformer(self.pretty_logger)
+        config_to_ess_transformer = ConfigValueTransformer(self.pretty_logger, self.ess_config)
         # Step 4: Apply component transformations
         config_to_ess_transformer.transform_from_config(self.input.config, self.migration.transformations)
 
