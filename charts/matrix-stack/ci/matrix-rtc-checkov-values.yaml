@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# source_fragments: init-secrets-checkov.yaml init-secrets-minimal.yaml matrix-rtc-checkov.yaml matrix-rtc-minimal.yaml
+# source_fragments:  init-secrets-checkov.yaml init-secrets-minimal.yaml matrix-rtc-checkov.yaml matrix-rtc-minimal.yaml 
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
 # postgres don't have any required properties to be set and defaults to enabled

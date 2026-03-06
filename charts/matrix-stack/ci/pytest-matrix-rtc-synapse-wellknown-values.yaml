@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# source_fragments: init-secrets-minimal.yaml init-secrets-pytest-extras.yaml matrix-rtc-minimal.yaml matrix-rtc-pytest-extras.yaml matrix-rtc-turn-tls.yaml postgres-minimal.yaml server-name.yaml synapse-minimal.yaml synapse-pytest-base-extras.yaml well-known-minimal.yaml well-known-pytest-base-extras.yaml
+# source_fragments:  init-secrets-minimal.yaml init-secrets-pytest-extras.yaml matrix-rtc-minimal.yaml matrix-rtc-pytest-extras.yaml matrix-rtc-turn-tls.yaml postgres-minimal.yaml server-name.yaml synapse-minimal.yaml synapse-pytest-base-extras.yaml well-known-minimal.yaml well-known-pytest-base-extras.yaml 
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
 deploymentMarkers:

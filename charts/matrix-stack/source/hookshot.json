@@ -14,6 +14,9 @@
       "type": "boolean",
       "description": "Experimental: Enable encryption support"
     },
+    "redis": {
+      "$ref": "file://common/redis.json"
+    },
     "passkey": {
       "$ref": "file://common/credential.json"
     },

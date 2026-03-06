@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# source_fragments: element-web-checkov.yaml element-web-minimal.yaml
+# source_fragments:  element-web-checkov.yaml element-web-minimal.yaml 
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
 # initSecrets, postgres don't have any required properties to be set and defaults to enabled
