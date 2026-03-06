@@ -170,7 +170,7 @@ class ExtraFilesDiscovery:
                 for file_path in files_in_dir:
                     logger.info(f"  - {file_path}")
                     self.pretty_logger.info(f"  📄 {Path(file_path).name}")
-                else:
+                if not files_in_dir:
                     logger.warning(f"No files found in directory: {_discovered_path.source_path}")
                     self.pretty_logger.info(f"⚠️  No files found in directory: {_discovered_path.source_path}")
             else:
@@ -222,8 +222,9 @@ class ExtraFilesDiscovery:
         self.pretty_logger.info("\n" + "=" * 60)
         self.pretty_logger.info("📁 EXTRA FILES DISCOVERY")
         self.pretty_logger.info("=" * 60)
-        self.pretty_logger.info("The following extra files were referenced in your configuration")
-        self.pretty_logger.info("but could not be found:")
+        if self.missing_file_paths:
+            self.pretty_logger.info("The following extra files were referenced in your configuration")
+            self.pretty_logger.info("but could not be found:")
 
         for file_path in self.missing_file_paths:
             self.pretty_logger.info(f"📝 Missing: {file_path.config_key} ({file_path.source_path})")
