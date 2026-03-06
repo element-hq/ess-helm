@@ -122,3 +122,7 @@ jobs:
         set: |
           *.output=type=image
           *.platform=linux/amd64,linux/arm64
+        # https://docs.zizmor.sh/audits/#cache-poisoning
+        # This is not catched by zizmor but arguably we need to disable cache for docker builds
+        # See related issue https://github.com/zizmorcore/zizmor/issues/774
+        no-cache: ${{ github.ref_type == 'tag' }}
