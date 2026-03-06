@@ -10,8 +10,8 @@ Tests for missing secrets and extra files handling.
 import asyncio
 import base64
 import logging
-
 from io import StringIO
+
 import pytest
 
 from ..engine import MigrationEngine
