@@ -7,7 +7,7 @@
 Interfaces for the migration system.
 """
 
-from typing import Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 from .models import SecretConfig, TransformationSpec
 
@@ -45,6 +45,9 @@ class SecretDiscoveryStrategy(Protocol):
     def component_name(self) -> str:
         """Get the component name for user-facing messages."""
         ...
+
+    def additional_secrets(self, config_data: dict[str, Any]) -> dict[str, SecretConfig]:
+        return {}
 
 
 @runtime_checkable

@@ -96,6 +96,12 @@ Examples:
     )
 
     parser.add_argument(
+        "--mas-config",
+        required=False,
+        help=("Path to Matrix Authentication Service config.yaml configuration file. "),
+    )
+
+    parser.add_argument(
         "--output-dir",
         default="output",
         help=(
@@ -165,6 +171,12 @@ Examples:
             config_path=args.synapse_config,
         )
 
+        if args.mas_config:
+            input_processor.load_migration_input(
+                name="matrixAuthenticationService",
+                config_path=args.mas_config,
+            )
+
         # Run migration
         reporter.report_step(MIGRATING_STEP)
         engine = MigrationEngine(input_processor=input_processor, pretty_logger=pretty_logger)
@@ -192,7 +204,10 @@ Examples:
 
         # Process migrations
         for migrator in engine.migrators:
-            source_file = engine.input_processor.input_for_component(migrator.component_root_key).config_path
+            migration_input = engine.input_processor.input_for_component(migrator.component_root_key)
+            # Migrators are created according to discovered input for components, we do not expect NoneTypes here
+            assert migration_input
+            source_file = migration_input.config_path
             for transformation_result in migrator.results:
                 source_path = transformation_result.spec.src_key
                 target_path = transformation_result.spec.target_key

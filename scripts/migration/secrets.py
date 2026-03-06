@@ -43,7 +43,9 @@ class SecretDiscovery:
 
     def _discover_secrets_from_schema(self, config_data: dict) -> None:
         """Common discovery logic using the strategy's ess_secret_schema."""
-        for secret_key, secret_config in self.strategy.ess_secret_schema.items():
+        for secret_key, secret_config in (
+            self.strategy.ess_secret_schema | self.strategy.additional_secrets(config_data)
+        ).items():
             discovered_value = None
 
             if secret_config.config_inline:
@@ -76,7 +78,9 @@ class SecretDiscovery:
 
             if discovered_value is not None:
                 # Track the source information
-                config_key = secret_config.config_inline or secret_config.config_path
+                config_key = secret_config.config_inline
+                if not config_key:
+                    config_key = secret_config.config_path
                 if not config_key:
                     raise RuntimeError(f"Missing configuration path for {secret_key}")
                 discovered_secret = DiscoveredSecret(
@@ -98,7 +102,7 @@ class SecretDiscovery:
             raise SecretsError(f"Missing required {self.strategy.component_name} secrets: {missing_list}")
         logging.info(f"All required {self.strategy.component_name} secrets are present")
 
-    def prompt_for_missing_secrets(self) -> None:
+    def prompt_for_missing_secrets(self, config_data: dict) -> None:
         """Prompt user to provide missing required secrets."""
         if not self.missing_required_secrets:
             return
@@ -110,17 +114,18 @@ class SecretDiscovery:
         self.pretty_logger.info("discovered from your configuration files. Please provide them:")
 
         for secret_key in self.missing_required_secrets[:]:
-            secret_info = self.strategy.ess_secret_schema.get(secret_key)
-            assert secret_info is not None
-
-            self.pretty_logger.info(f"📝 {secret_info.description}")
+            if secret_key in self.strategy.ess_secret_schema:
+                secret_config = self.strategy.ess_secret_schema[secret_key]
+            else:
+                secret_config = self.strategy.additional_secrets(config_data)[secret_key]
+            self.pretty_logger.info(f"📝 {secret_config.description}")
             self.pretty_logger.info(f"   Secret path: {secret_key}")
 
             # The config key that will be injected in the configuration is preferably the path to the secret
             # But we fallback to the config_inline in needed
-            config_key = self.strategy.ess_secret_schema[secret_key].config_path
+            config_key = secret_config.config_path
             if not config_key:
-                config_key = self.strategy.ess_secret_schema[secret_key].config_inline
+                config_key = secret_config.config_inline
             if not config_key:
                 raise RuntimeError(f"Missing configuration path for {secret_key}")
 
