@@ -227,4 +227,6 @@ jobs:
           pytest-manifests-cache-
 
     - name: Run our manifest test
-      run: poetry run pytest -vv tests/manifests/${{ matrix.manifest-test }}.py
+      env:
+        MANIFEST_TEST: ${{ matrix.manifest-test }}
+      run: poetry run pytest -vv "tests/manifests/${MANIFEST_TEST}.py"
