@@ -8,6 +8,7 @@ Migration service.
 """
 
 import base64
+import copy
 import logging
 from dataclasses import dataclass, field
 from typing import Any
@@ -108,8 +109,6 @@ class ConfigValueTransformer:
         Returns:
             Filtered configuration with tracked values removed
         """
-        import copy
-
         filtered_config = copy.deepcopy(config)
 
         for source_path in self.tracked_values:
@@ -132,13 +131,13 @@ class ConfigValueTransformer:
         """
         # Get or create the component config in the ESS config
         component_config = self.ess_config.setdefault(component_key, {})
-
-        # Filter the source config to remove tracked values
-        filtered_config = self.filter_config(source_config)
-
+        filtered_config = copy.deepcopy(source_config)
         # Update references to extra files
         if extra_files_discovery:
             filtered_config = self.update_paths_in_config(filtered_config, extra_files_discovery, component_key)
+
+        # Filter the source config to remove tracked values
+        filtered_config = self.filter_config(filtered_config)
 
         # Add to additional section if there's anything to add
         if filtered_config:
@@ -154,18 +153,18 @@ class ConfigValueTransformer:
     ):
         # Get the base mount path for the component
         base_mount_path = f"/etc/{component_root_key}/extra"
-
-        for extra_file in extra_files_discovery.discovered_extra_files.values():
-            for discovered_path in extra_file.discovered_source_paths:
-                if discovered_path.skipped_reason:
-                    continue
-                # If it is a directory, files will be mounted as child of the directory name
-                # If it is a file, files will be mounted as child of the `extra` folder
-                mounted_path = f"{base_mount_path}/{discovered_path.source_path.name}"
-                original_value = get_nested_value(source_config, discovered_path.config_key)
-                set_nested_value(source_config, discovered_path.config_key, mounted_path)
-                logging.info(f"Updated config: {discovered_path.config_key} = {original_value} -> {mounted_path}")
-        return source_config
+        updated_config = copy.deepcopy(source_config)
+        for discovered_path in extra_files_discovery.discovered_file_paths:
+            if discovered_path.skipped_reason:
+                self.tracked_values.append(discovered_path.config_key)
+                continue
+            # If it is a directory, files will be mounted as child of the directory name
+            # If it is a file, files will be mounted as child of the `extra` folder
+            mounted_path = f"{base_mount_path}/{discovered_path.source_path.name}"
+            original_value = get_nested_value(updated_config, discovered_path.config_key)
+            set_nested_value(updated_config, discovered_path.config_key, mounted_path)
+            logging.info(f"Updated config: {discovered_path.config_key} = {original_value} -> {mounted_path}")
+        return updated_config
 
     def handle_secrets(
         self,
@@ -228,7 +227,7 @@ class ConfigValueTransformer:
 
             # Track the config value that is being passed to ESS
             # We need to track the original config path so it gets filtered out later
-            self.tracked_values.append(discover_secret.secret_key)
+            self.tracked_values.append(discover_secret.config_key)
 
     def handle_extra_files_mounts(
         self,
