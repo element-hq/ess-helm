@@ -27,12 +27,11 @@ jobs:
           const runId = context.payload.workflow_run.id;
           const owner = context.repo.owner;
           const repo = context.repo.repo;
-          const response = await github.rest.actions.getWorkflowRun({
+          const response = await github.rest.actions.listWorkflowRunJobs({
             owner: owner,
             repo: repo,
             run_id: runId
           });
-
           console.log(response.data);
           const outputs = response.data.outputs;
           console.log(outputs);
