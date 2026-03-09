@@ -5,7 +5,7 @@
 
 name: dyff of rendered templates - comment
 on:
-  workflow_run: # zizmor: ignore[dangerous-triggers]  This is safe as not running any shell scripts, nor using any code from the upstream workflow
+  workflow_run:  # zizmor: ignore[dangerous-triggers]  This is safe as not running any shell scripts, nor using any code from the upstream workflow
     workflows: ["dyff of rendered templates"]
     types:
     - completed
@@ -19,56 +19,28 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.workflow_run.conclusion == 'success'
     steps:
-    - name: Fetch workflow run details
-      uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd  # v8
-      id: fetch-workflow
-      with:
-        script: |
-          const runId = context.payload.workflow_run.id;
-          const owner = context.repo.owner;
-          const repo = context.repo.repo;
-          const response = await github.rest.actions.listJobsForWorkflowRun({
-            owner: owner,
-            repo: repo,
-            run_id: runId
-          });
-          console.log(response.data);
-          const outputs = response.data.outputs;
-
-          // Find the job named "generate-dyff"
-          const generateDyffJob = response.data.jobs.find(job => job.name === 'generate-dyff');
-          console.log(generateDyffJob);
-
-          if (generateDyffJob) {
-            // Find the step named "dyff" within the "generate-dyff" job
-            const dyffStep = generateDyffJob.steps.find(step => step.name === 'dyff');
-            console.log(dyffStep);
-
-            if (dyffStep) {
-              // Retrieve the output named "pr-number" from the "dyff" step
-              const prNumber = dyffStep.outputs['pr-number'];
-              console.log(prNumber);
-            } else {
-              console.log('Step "dyff" not found in job "generate-dyff"');
-            }
-          } else {
-            console.log('Job "generate-dyff" not found');
-          }
-          console.log(outputs);
-          return outputs;
-
     - name: Download dyff of templates
       uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3  # v8.0.0
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         name: dyff-templates
-        run-id: ${{ steps.fetch-workflow.outputs.pr-number }}
+        run-id: ${{ github.event.workflow_run.id }}
+
+    # We cannot get the outputs from the worfklow run, so we have to download the artifact and parse the PR Number from there
+    - name: Load PR number
+      uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd  # v8
+      id: pr-number
+      with:
+        script: |
+          const fs = require('fs');
+          const prNumber = fs.readFileSync('pr-number.txt', 'utf8').trim();
+          core.setOutput('pr-number', prNumber);
 
     - name: Find dyff comment
       uses: peter-evans/find-comment@b30e6a3c0ed37e7c023ccd3f1db5c6c0b0c23aad  # v4
       id: find-dyff-comment
       with:
-        issue-number: ${{ steps.fetch-workflow.outputs.pr-number }}
+        issue-number: ${{ steps.pr-number.outputs.pr-number }}
         comment-author: 'github-actions[bot]'
         body-includes: 'dyff of changes in rendered templates'
 
@@ -76,6 +48,6 @@ jobs:
       uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9  # v5
       with:
         comment-id: ${{ steps.find-dyff-comment.outputs.comment-id }}
-        issue-number: ${{ steps.fetch-workflow.outputs.pr-number }}
+        issue-number: ${{ steps.pr-number.outputs.pr-number }}
         body-path: dyff-output.md
         edit-mode: replace
