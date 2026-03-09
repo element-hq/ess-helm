@@ -33,6 +33,7 @@ jobs:
             run_id: runId
           });
 
+          console.log(response.data);
           const outputs = response.data.outputs;
           console.log(outputs);
           return outputs;
