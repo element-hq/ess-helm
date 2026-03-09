@@ -27,13 +27,33 @@ jobs:
           const runId = context.payload.workflow_run.id;
           const owner = context.repo.owner;
           const repo = context.repo.repo;
-          const response = await github.rest.actions.listWorkflowRunJobs({
+          const response = await github.rest.actions.listJobsForWorkflowRun({
             owner: owner,
             repo: repo,
             run_id: runId
           });
           console.log(response.data);
           const outputs = response.data.outputs;
+
+          // Find the job named "generate-dyff"
+          const generateDyffJob = response.data.jobs.find(job => job.name === 'generate-dyff');
+          console.log(generateDyffJob);
+
+          if (generateDyffJob) {
+            // Find the step named "dyff" within the "generate-dyff" job
+            const dyffStep = generateDyffJob.steps.find(step => step.name === 'dyff');
+            console.log(dyffStep);
+
+            if (dyffStep) {
+              // Retrieve the output named "pr-number" from the "dyff" step
+              const prNumber = dyffStep.outputs['pr-number'];
+              console.log(prNumber);
+            } else {
+              console.log('Step "dyff" not found in job "generate-dyff"');
+            }
+          } else {
+            console.log('Job "generate-dyff" not found');
+          }
           console.log(outputs);
           return outputs;
 
