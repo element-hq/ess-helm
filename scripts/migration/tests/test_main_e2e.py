@@ -8,12 +8,13 @@ End-to-end tests for the main migration CLI functionality.
 Tests the complete workflow from input to output generation.
 """
 
+import base64
 import sys
 from unittest.mock import patch
 
+import pytest
 import yaml
 
-# Import using the same pattern as other tests
 from .. import __main__
 
 
@@ -97,6 +98,14 @@ def test_main_e2e_synapse_only(
             assert "metadata" in secret_content
             assert "name" in secret_content["metadata"]
             assert "data" in secret_content
+            assert len(secret_content["data"]) == 4
+            assert base64.b64decode(secret_content["data"]["synapse.macaroon"]) == b"test_macaroon_secret"
+            assert (
+                base64.b64decode(secret_content["data"]["synapse.registrationSharedSecret"])
+                == b"test_registration_secret"
+            )
+            assert base64.b64decode(secret_content["data"]["synapse.signingKey"]) == b"test_signing_key_content"
+            assert base64.b64decode(secret_content["data"]["synapse.postgres.password"]) == b"test"
 
     config_maps_files = list(output_dir.glob("*configmap.yaml"))
     # Should have one configmap file for the discovered extra files
@@ -228,6 +237,29 @@ def test_main_e2e_synapse_with_mas(
             assert "metadata" in secret_content
             assert "name" in secret_content["metadata"]
             assert "data" in secret_content
-
+            if secret_file.name == "imported-synapse-secret.yaml":
+                assert len(secret_content["data"]) == 4
+                assert base64.b64decode(secret_content["data"]["synapse.macaroon"]) == b"test_macaroon_secret"
+                assert (
+                    base64.b64decode(secret_content["data"]["synapse.registrationSharedSecret"])
+                    == b"test_registration_secret"
+                )
+                assert base64.b64decode(secret_content["data"]["synapse.signingKey"]) == b"test_signing_key_content"
+            elif secret_file.name == "imported-matrix-authentication-service-secret.yaml":
+                assert len(secret_content["data"]) == 3
+                assert (
+                    base64.b64decode(secret_content["data"]["matrixAuthenticationService.synapseSharedSecret"])
+                    == b"synapse_shared_secret_abcdef"
+                )
+                assert (
+                    base64.b64decode(secret_content["data"]["matrixAuthenticationService.encryptionSecret"])
+                    == b"my_encryption_key"
+                )
+                assert (
+                    base64.b64decode(secret_content["data"]["matrixAuthenticationService.postgres.password"])
+                    == b"mas_password"
+                )
+            else:
+                pytest.fail(f"Unexpected secret file: {secret_file.name}")
     mas_additional_config = yaml.safe_load(mas_config["additional"]["00-imported.yaml"]["config"])
     assert "keys_dir" not in mas_additional_config["secrets"]
