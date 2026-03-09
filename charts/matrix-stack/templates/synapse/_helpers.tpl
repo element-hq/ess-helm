@@ -9,9 +9,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{ $root := .root }}
 {{- with required "element-io.synapse.validations missing context" .context -}}
 {{ $messages := list }}
-{{- if not .ingress.host -}}
-{{ $messages = append $messages "synapse.ingress.host is required when synapse.enabled=true" }}
-{{- end }}
+{{- $messages = concat $messages (include "element-io.ess-library.validations.host" (dict "root" $root "context" (dict "component" "synapse")) | fromJsonArray) -}}
 {{- if not $root.Values.serverName -}}
 {{ $messages = append $messages "serverName is required when synapse.enabled=true" }}
 {{- end }}
@@ -108,6 +106,8 @@ env:
 
 {{- define "element-io.synapse.ingress.additionalPaths" -}}
 {{- $root := .root -}}
+{{- $ingress := $root.Values.synapse.ingress | default dict }}
+{{- $type := coalesce $ingress.type $root.Values.ingress.type }}
 {{- with required "element-io.synapse.ingress.additionalPaths missing context" .context -}}
 {{- if include "element-io.matrix-authentication-service.readyToHandleAuth" (dict "root" $root) }}
 {{- range $apiVersion := list "api/v1" "r0" "v3" "unstable" }}
@@ -118,22 +118,31 @@ env:
     name: "{{ $root.Release.Name }}-matrix-authentication-service"
     port:
       name: http
+      {{- if eq $type "HTTPRoute" }}
+      number: 8080
+      {{- end }}
 {{- end }}
 {{- end }}
 {{- end }}
-{{- if and $root.Values.hookshot.enabled (not $root.Values.hookshot.ingress.host) }}
+{{- if and $root.Values.hookshot.enabled (not (include "element-io.ess-library.ingress.host" (dict "root" $root "context" $root.Values.hookshot))) }}
 - path: "/_matrix/hookshot/widgetapi/v1"
   availability: only_externally
   service:
     name: "{{ $root.Release.Name }}-hookshot"
     port:
       name: widgets
+      {{- if eq $type "HTTPRoute" }}
+      number: 7778
+      {{- end }}
 - path: "/_matrix/hookshot"
   availability: only_externally
   service:
     name: "{{ $root.Release.Name }}-hookshot"
     port:
       name: webhooks
+      {{- if eq $type "HTTPRoute" }}
+      number: 7775
+      {{- end }}
 {{- end -}}
 {{- range $root.Values.synapse.ingress.additionalPaths }}
 - {{ . | toYaml | indent 2 | trim }}

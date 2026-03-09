@@ -130,8 +130,19 @@
         "type": "string"
       }
     },
+    "inboundTrafficHandler": {
+      "type": "string",
+      "enum": [
+        "ingress",
+        "routes",
+        "none"
+      ]
+    },
     "ingress": {
       "$ref": "file://synapse/ingress_with_additional_paths.json"
+    },
+    "routes": {
+      "$ref": "file://synapse/routes_with_additional_paths.json"
     },
     "image": {
       "$ref": "file://common/image.json"

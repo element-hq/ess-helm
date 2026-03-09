@@ -9,9 +9,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $root := .root -}}
 {{- with required "element-io.matrix-rtc.validations missing context" .context -}}
 {{ $messages := list }}
-{{- if not .ingress.host -}}
-{{ $messages = append $messages "matrixRTC.ingress.host is required when matrixRTC.enabled=true" }}
-{{- end }}
+{{- $messages = concat $messages (include "element-io.ess-library.validations.host" (dict "root" $root "context" (dict "component" "matrixRTC")) | fromJsonArray) -}}
 {{- if and .sfu.exposedServices.turnTLS.enabled .sfu.exposedServices.turnTLS.tlsTerminationOnPod (not .sfu.exposedServices.turnTLS.tlsSecret) (not $root.Values.certManager) -}}
 {{ $messages = append $messages "matrixRTC.sfu.exposedServices.turnTLS.enabled with tlsTerminationOnPod=true requires either .sfu.exposedServices.turnTLS.tlsSecret or certManager to be configured." }}
 {{- end }}
@@ -75,7 +73,7 @@ env:
 {{- end }}
 {{- if .sfu.enabled }}
 - name: "LIVEKIT_URL"
-  value: {{ printf "wss://%s" (tpl .ingress.host $root) }}
+  value: {{ printf "wss://%s" (include "element-io.ess-library.ingress.host" (dict "root" $root "context" $root.Values.matrixRTC)) }}
 {{- end }}
 - name: "LIVEKIT_FULL_ACCESS_HOMESERVERS"
 {{- if $root.Values.serverName }}

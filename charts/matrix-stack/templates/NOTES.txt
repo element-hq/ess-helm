@@ -27,8 +27,8 @@ kubectl exec -n {{ $.Release.Namespace }} -it deployment/{{ $.Release.Name }}-ma
 
 ---
 
-{{- if $.Values.elementAdmin.enabled }}
-- Element Admin is available at: https://{{ tpl $.Values.elementAdmin.ingress.host $ }}
+{{- if and $.Values.elementAdmin.enabled (include "element-io.ess-library.ingress.host" (dict "root" $ "context" $.Values.elementAdmin)) }}
+- Element Admin is available at: https://{{ include "element-io.ess-library.ingress.host" (dict "root" $ "context" $.Values.elementAdmin) }}
 {{- if and $.Values.serverName (not $.Values.matrixAuthenticationService.enabled) }}
 WARNING: You have enabled the element-admin component, but have disabled the matrix-authentication-service.
          You will not be able to login to the element admin console to manage your users.
@@ -36,11 +36,11 @@ WARNING: You have enabled the element-admin component, but have disabled the mat
          in https://github.com/element-hq/ess-helm/blob/main/docs/syn2mas.md.
 {{- end }}
 {{- end }}
-{{- if and $.Values.elementWeb.enabled $.Values.elementWeb.ingress.host }}
-- Element Web is available at: https://{{ tpl $.Values.elementWeb.ingress.host $ }}
+{{- if and $.Values.elementWeb.enabled (include "element-io.ess-library.ingress.host" (dict "root" $ "context" $.Values.elementWeb)) }}
+- Element Web is available at: https://{{ include "element-io.ess-library.ingress.host" (dict "root" $ "context" $.Values.elementWeb) }}
 {{- end }}
-{{- if and $.Values.matrixAuthenticationService.enabled $.Values.matrixAuthenticationService.ingress.host }}
-- Users can manage their accounts at: https://{{ tpl $.Values.matrixAuthenticationService.ingress.host $ }}
+{{- if and $.Values.matrixAuthenticationService.enabled (include "element-io.ess-library.ingress.host" (dict "root" $ "context" $.Values.matrixAuthenticationService)) }}
+- Users can manage their accounts at: https://{{ include "element-io.ess-library.ingress.host" (dict "root" $ "context" $.Values.matrixAuthenticationService) }}
 {{- end }}
 
 {{- include "element-io.deprecations" (dict "root" $) }}
