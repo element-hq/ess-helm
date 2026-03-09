@@ -228,3 +228,6 @@ def test_main_e2e_synapse_with_mas(
             assert "metadata" in secret_content
             assert "name" in secret_content["metadata"]
             assert "data" in secret_content
+
+    mas_additional_config = yaml.safe_load(mas_config["additional"]["00-imported.yaml"]["config"])
+    assert "keys_dir" not in mas_additional_config["secrets"]

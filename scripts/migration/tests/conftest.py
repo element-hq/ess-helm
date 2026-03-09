@@ -113,9 +113,7 @@ def basic_mas_config():
     return {
         "http": {"public_base": "https://auth.example.com", "bind": {"address": "0.0.0.0", "port": 8080}},
         "database": {"uri": "postgresql://mas:mas_password@postgres:5432/mas?sslmode=prefer"},
-        "secrets": {
-            "encryption": "my_encryption_key",
-        },
+        "secrets": {"encryption": "my_encryption_key", "keys_dir": "/tmp/mas/keys"},
         "matrix": {
             "homeserver": "test.example.com",
             "secret": "synapse_shared_secret_abcdef",

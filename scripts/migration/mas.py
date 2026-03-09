@@ -94,9 +94,8 @@ class MASMigration(MigrationStrategy):
     def override_configs(self) -> set[str]:
         return {
             "http",  # The entire HTTP configuration is managed by ESS
-            "database.uri",  # Database URI configuration is managed by ESS
-            "encryption",  # Encryption settings are managed by ESS
-            "token",  # Token configuration is managed by ESS
+            "database.uri",  # Database URI configuration is managed by ESS"
+            "secrets.keys",
         }
 
     @property
@@ -171,18 +170,6 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
                 config_inline="secrets.encryption",
                 config_path="secrets.encryption_file",
             ),
-            "matrixAuthenticationService.privateKeys.rsa": SecretConfig(
-                init_if_missing_from_source_cfg=True,  # Can be auto-generated
-                description="MAS RSA private key",
-                config_inline="",
-                config_path="",
-            ),
-            "matrixAuthenticationService.privateKeys.ecdsaPrime256v1": SecretConfig(
-                init_if_missing_from_source_cfg=True,  # Can be auto-generated
-                description="MAS ECDSA private key",
-                config_inline="",
-                config_path="",
-            ),
         }
 
 
@@ -193,7 +180,7 @@ class MASExtraFileDiscovery(ExtraFilesDiscoveryStrategy):
 
     @property
     def ignored_config_keys(self) -> list[str]:
-        return []
+        return ["secrets.keys_dir"]
 
     @property
     def ignored_file_paths(self) -> list[str]:
