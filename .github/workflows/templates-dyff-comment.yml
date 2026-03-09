@@ -34,6 +34,10 @@ jobs:
         script: |
           const fs = require('fs');
           const prNumber = fs.readFileSync('pr-number.txt', 'utf8').trim();
+          // Check if the conversion is valid and the number is a positive integer
+          if (isNaN(num) || num < 1 || !Number.isInteger(num)) {
+            throw new Error(`Invalid PR number: ${prNumber}. Expected a positive integer.`);
+          }
           core.setOutput('pr-number', prNumber);
 
     - name: Find dyff comment
