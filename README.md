@@ -178,7 +178,7 @@ You need to create DNS records (A or CNAME, for example) to set up ESS Community
 
 For this simple setup you need to open the following ports:
  - TCP 80: This port will be used for the HTTP connections of all services, which will redirect to the HTTPS connection.
- - TCP 443: This port will be used for the HTTPS connections of all services. This port is also used by the Matrix RTC Backend for authentication over HTTPS.
+ - TCP 443: This port will be used for the HTTPS connections of all services (including Matrix RTC for authentication).
  - TCP 30881: This port will be used for the TCP WebRTC connections of Matrix RTC Backend.
  - UDP 30882: This port will be used for the Muxed WebRTC connections of Matrix RTC Backend.
 
