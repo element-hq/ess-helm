@@ -350,8 +350,7 @@ spec:
         exposedPort: 8443
 ```
 
-3. Update the LoadBalancer service with `kubectl apply -f /var/lib/rancher/k3s/server/manifests/traefik-config.yaml`
-4. You can verify its ports using the command :
+3. K3s will apply the file content automatically. You can verify its ports using the command :
 
 ```
 kubectl get svc -n kube-system | grep traefik
