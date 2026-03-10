@@ -27,6 +27,9 @@ ports:
   # Matrix RTC SFU Turn
 - port: 127.0.0.1:31478:31478
   nodeFilters: [loadbalancer]
+  # Dynamic node port range
+- port: 127.0.0.1:30086-30186:30086-30186
+  nodeFilters: [server:*]
 env:
 - envVar: K3S_DEBUG=true
   nodeFilters:
@@ -43,6 +46,8 @@ options:
     - arg: "--kube-apiserver-arg=audit-log-path=/var/log/kubernetes/kube-apiserver-audit.log"
       nodeFilters: [servers:*]
     - arg: "--kube-apiserver-arg=audit-policy-file=/etc/kubernetes/policies/audit-policy.yaml"
+      nodeFilters: [servers:*]
+    - arg: "--kube-apiserver-arg=service-node-port-range=30086-30186"
       nodeFilters: [servers:*]
   runtime:
     ulimits:
