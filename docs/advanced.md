@@ -244,7 +244,7 @@ Note that using NodePorts implies using a port allowed in the Kubernetes range. 
 
 #### Enable Turn-TLS behind Traefik
 
-The SFU can enable Turn-TLS. By default it will listen on the port `31443/TCP` and advertise the turn address `<turn domain>:443`. The advertised port cannot be changed and must be properly forwarded to the SFU Pod.
+The SFU can enable Turn-TLS. By default it will listen on the port `30003/TCP` and advertise the turn address `<turn domain>:443`. The advertised port cannot be changed and must be properly forwarded to the SFU Pod.
 
 This is so that the traffic looks like HTTPS for firewalls. In practice, the traffic must be forwarded as-is to the SFU Pod, with TLS passthrough enabled.
 

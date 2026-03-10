@@ -117,6 +117,9 @@ jobs:
     - name: Deploy with pytest once
       env:
         PYTEST_CI_FIRST_STEP: "1"
+      # Drop me after releasing next 26.3.x
+      # We are changing the k3d ports range, so we cannot setup matrix-rtc with the old values
+      if: ${{ !contains(env.MATRIX_TEST_COMPONENT, 'matrix-rtc') }}
       run: |
         if [ -f "tests/integration/env/${MATRIX_TEST_COMPONENT}.rc" ]; then
           # shellcheck source=/dev/null
