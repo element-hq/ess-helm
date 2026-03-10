@@ -37,10 +37,10 @@ matrixRTC:
   replicas: 2
   sfu:
     exposedServices:
-      rtcTcp:
+      rtcMuxedUdp:
         nodePort: ""
         portType: NodePort
-      rtcUdp:
+      rtcTcp:
         nodePort: ""
         portType: NodePort
       turnTLS:

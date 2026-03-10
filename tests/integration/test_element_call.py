@@ -62,9 +62,7 @@ async def test_matrix_rtc_turn_tls(ingress_ready, generated_data: ESSData, ssl_c
 
     # Get the turnTLS service to find the dynamically assigned NodePort
     turn_tls_service = await kube_client.get(
-        Service,
-        f"{generated_data.release_name}-matrix-rtc-sfu-turn-tls",
-        namespace=generated_data.ess_namespace
+        Service, f"{generated_data.release_name}-matrix-rtc-sfu-turn-tls", namespace=generated_data.ess_namespace
     )
 
     # Find the NodePort from the service
@@ -111,9 +109,7 @@ async def test_matrix_rtc_rtc_tcp(ingress_ready, generated_data: ESSData, kube_c
 
     # Get the RTC TCP service to find the dynamically assigned NodePort
     rtc_tcp_service = await kube_client.get(
-        Service,
-        f"{generated_data.release_name}-matrix-rtc-sfu-tcp",
-        namespace=generated_data.ess_namespace
+        Service, f"{generated_data.release_name}-matrix-rtc-sfu-tcp", namespace=generated_data.ess_namespace
     )
 
     # Find the NodePort from the service
@@ -130,7 +126,6 @@ async def test_matrix_rtc_rtc_tcp(ingress_ready, generated_data: ESSData, kube_c
         reader, writer = await asyncio.open_connection(
             host="127.0.0.1",
             port=rtc_tcp_port,
-            ssl_handshake_timeout=3.0,
         )
 
         # Send a test message
@@ -159,16 +154,14 @@ async def test_matrix_rtc_rtc_udp_service_exists(ingress_ready, generated_data: 
 
     # Get the RTC UDP service
     rtc_udp_service = await kube_client.get(
-        Service,
-        f"{generated_data.release_name}-matrix-rtc-sfu-udp-muxer",
-        namespace=generated_data.ess_namespace
+        Service, f"{generated_data.release_name}-matrix-rtc-sfu-muxed-udp", namespace=generated_data.ess_namespace
     )
 
     # Verify it has a NodePort assigned
     rtc_udp_port = None
     if rtc_udp_service.spec and rtc_udp_service.spec.ports:
         for port in rtc_udp_service.spec.ports:
-            if port.name == "rtc-udp-muxer":
+            if port.name == "rtc-muxed-udp":
                 rtc_udp_port = port.nodePort
                 break
 
@@ -188,8 +181,4 @@ async def test_matrix_rtc_rtc_udp_service_exists(ingress_ready, generated_data: 
         )
         await asyncio.sleep(0.2)  # Brief delay for socket operations
 
-    await async_retry_with_timeout(
-        _test_udp_socket,
-        should_retry=lambda e: isinstance(e, OSError),
-        timeout_seconds=5.0
-    )
+    await async_retry_with_timeout(_test_udp_socket, should_retry=lambda e: isinstance(e, OSError), timeout_seconds=5.0)

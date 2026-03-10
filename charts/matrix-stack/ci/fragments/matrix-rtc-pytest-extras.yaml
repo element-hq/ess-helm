@@ -25,7 +25,7 @@ matrixRTC:
       rtcTcp:
         portType: NodePort
         nodePort: ""
-      rtcUdp:
+      rtcMuxedUdp:
         portType: NodePort
         nodePort: ""
       turnTLS:
