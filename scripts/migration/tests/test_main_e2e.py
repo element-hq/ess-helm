@@ -166,12 +166,12 @@ def test_main_e2e_synapse_only(
 
 
 def test_main_e2e_synapse_with_mas(
-    tmp_path, synapse_config_with_signing_key, basic_mas_config, write_synapse_config, write_mas_config
+    tmp_path, synapse_config_with_signing_key, basic_mas_config_with_keys, write_synapse_config, write_mas_config
 ):
     """Test the complete end-to-end migration workflow with Synapse and MAS."""
     # Write configuration files
     synapse_config_file = write_synapse_config(synapse_config_with_signing_key)
-    mas_config_file = write_mas_config(basic_mas_config)
+    mas_config_file = write_mas_config(basic_mas_config_with_keys)
 
     # Create output directory
     output_dir = tmp_path / "output"
@@ -246,7 +246,7 @@ def test_main_e2e_synapse_with_mas(
                 )
                 assert base64.b64decode(secret_content["data"]["synapse.signingKey"]) == b"test_signing_key_content"
             elif secret_file.name == "imported-matrix-authentication-service-secret.yaml":
-                assert len(secret_content["data"]) == 3
+                assert len(secret_content["data"]) == 5  # 3 original + 2 keys
                 assert (
                     base64.b64decode(secret_content["data"]["matrixAuthenticationService.synapseSharedSecret"])
                     == b"synapse_shared_secret_abcdef"
@@ -259,6 +259,20 @@ def test_main_e2e_synapse_with_mas(
                     base64.b64decode(secret_content["data"]["matrixAuthenticationService.postgres.password"])
                     == b"mas_password"
                 )
+                # Check that RSA and ECDSA keys were imported
+                assert "matrixAuthenticationService.keys.rsa" in secret_content["data"]
+                assert "matrixAuthenticationService.keys.ecdsaPrime256v1" in secret_content["data"]
+                # Verify keys are not empty and have different content
+                rsa_key_data = base64.b64decode(secret_content["data"]["matrixAuthenticationService.keys.rsa"])
+                ecdsa_key_data = base64.b64decode(
+                    secret_content["data"]["matrixAuthenticationService.keys.ecdsaPrime256v1"]
+                )
+                assert len(rsa_key_data) > 0
+                assert len(ecdsa_key_data) > 0
+                assert rsa_key_data != ecdsa_key_data  # Keys should be different
+                # Verify key-type-specific headers (PKCS1 format)
+                assert b"-----BEGIN RSA PRIVATE KEY-----" in rsa_key_data
+                assert b"-----BEGIN EC PRIVATE KEY-----" in ecdsa_key_data
             else:
                 pytest.fail(f"Unexpected secret file: {secret_file.name}")
     mas_additional_config = yaml.safe_load(mas_config["additional"]["00-imported.yaml"]["config"])

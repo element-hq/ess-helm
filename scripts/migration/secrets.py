@@ -41,6 +41,18 @@ class SecretDiscovery:
         # Common discovery using strategy's schema
         self._discover_secrets_from_schema(config_data)
 
+        # Component-specific secret discovery (e.g., for MAS keys)
+        component_secrets = self.strategy.discover_component_specific_secrets(config_data)
+        for secret_key, discovered_secret in component_secrets.items():
+            if secret_key in self.strategy.ess_secret_schema:
+                # Add the discovered secret
+                self.discovered_secrets[secret_key] = discovered_secret
+                # Remove from missing list if it was there
+                if secret_key in self.missing_required_secrets:
+                    self.missing_required_secrets.remove(secret_key)
+            else:
+                raise RuntimeError(f"Discovered component-specific secret '{secret_key}' not found in schema")
+
     def _discover_secrets_from_schema(self, config_data: dict) -> None:
         """Common discovery logic using the strategy's ess_secret_schema."""
         for secret_key, secret_config in self.strategy.ess_secret_schema.items():

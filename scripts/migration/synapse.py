@@ -15,7 +15,7 @@ from rapidfuzz import fuzz, process
 
 from .interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
 from .migration import MigrationStrategy, TransformationSpec
-from .models import MigrationError, SecretConfig
+from .models import DiscoveredSecret, MigrationError, SecretConfig
 from .utils import extract_hostname_from_url
 
 logger = logging.getLogger("migration")
@@ -224,6 +224,20 @@ class SynapseSecretDiscovery(SecretDiscoveryStrategy):
     @property
     def component_name(self) -> str:
         return "Synapse"
+
+    def discover_component_specific_secrets(self, config_data: dict) -> dict[str, DiscoveredSecret]:
+        """
+        Discover component-specific secrets from configuration.
+
+        Synapse doesn't have specialized secret discovery, so this returns an empty dict.
+
+        Args:
+            config_data: Synapse configuration data
+
+        Returns:
+            Empty dictionary (no specialized secret discovery for Synapse)
+        """
+        return {}
 
 
 class SynapseExtraFileDiscovery(ExtraFilesDiscoveryStrategy):

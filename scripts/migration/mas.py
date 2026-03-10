@@ -8,14 +8,15 @@ Synapse-specific migration strategy.
 """
 
 import logging
+import os
 import urllib
 from dataclasses import dataclass
 from typing import Any
 
 from .interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
 from .migration import MigrationStrategy, TransformationSpec
-from .models import SecretConfig
-from .utils import extract_hostname_from_url
+from .models import DiscoveredSecret, SecretConfig
+from .utils import detect_key_type, extract_hostname_from_url
 
 logger = logging.getLogger("migration")
 
@@ -170,7 +171,141 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
                 config_inline="secrets.encryption",
                 config_path="secrets.encryption_file",
             ),
+            # Key secrets - these will be discovered through special key processing
+            "matrixAuthenticationService.keys.rsa": SecretConfig(
+                init_if_missing_from_source_cfg=True,
+                description="MAS RSA private key for signing operations",
+                config_inline=None,
+                config_path=None,
+                transformer=None,
+            ),
+            "matrixAuthenticationService.keys.ecdsaPrime256v1": SecretConfig(
+                init_if_missing_from_source_cfg=True,
+                description="MAS ECDSA Prime256v1 private key for signing operations",
+                config_inline=None,
+                config_path=None,
+                transformer=None,
+            ),
         }
+
+    def discover_component_specific_secrets(self, config_data: dict) -> dict[str, DiscoveredSecret]:
+        """
+        Discover component-specific secrets from MAS configuration.
+
+        Args:
+            config_data: MAS configuration data
+
+        Returns:
+            Dictionary mapping ESS secret keys to DiscoveredSecret objects
+        """
+        discovered_secrets: dict[str, DiscoveredSecret] = {}
+
+        # Handle keys_dir (directory scanning)
+        keys_dir = config_data.get("secrets", {}).get("keys_dir")
+        if keys_dir:
+            dir_secrets = self._process_keys_directory(keys_dir)
+            discovered_secrets.update(dir_secrets)
+
+        # Handle individual keys
+        keys_config = config_data.get("secrets", {}).get("keys", [])
+        if keys_config:
+            individual_secrets = self._process_individual_keys(keys_config)
+            # Individual keys take precedence over directory keys
+            discovered_secrets.update(individual_secrets)
+
+        return discovered_secrets
+
+    def _process_keys_directory(self, keys_dir: str) -> dict[str, DiscoveredSecret]:
+        """
+        Process all key files in a directory.
+
+        Args:
+            keys_dir: Path to directory containing key files
+
+        Returns:
+            Dictionary mapping ESS secret keys to DiscoveredSecret objects
+        """
+        discovered_secrets: dict[str, DiscoveredSecret] = {}
+        try:
+            if not os.path.isdir(keys_dir):
+                logger.warning(f"Keys directory does not exist: {keys_dir}")
+                return discovered_secrets
+
+            for filename in os.listdir(keys_dir):
+                filepath = os.path.join(keys_dir, filename)
+                if os.path.isfile(filepath):
+                    try:
+                        with open(filepath, "rb") as f:
+                            content = f.read()
+                        key_type = detect_key_type(content)
+                        if key_type in ["rsa", "ecdsaPrime256v1"]:
+                            secret_key = f"matrixAuthenticationService.keys.{key_type}"
+                            # Only set if not already discovered (prefer individual keys over directory)
+                            if secret_key not in discovered_secrets:
+                                discovered_secret = DiscoveredSecret(
+                                    source_file="mas.yaml",
+                                    secret_key=secret_key,
+                                    config_key="secrets.keys_dir",
+                                    value=content.decode("utf-8")
+                                )
+                                discovered_secrets[secret_key] = discovered_secret
+                                logger.info(f"Discovered {key_type} key from file: {filepath}")
+                    except Exception as e:
+                        logger.warning(f"Failed to process key file {filepath}: {e}")
+        except Exception as e:
+            logger.warning(f"Failed to process keys directory {keys_dir}: {e}")
+        
+        return discovered_secrets
+
+    def _process_individual_keys(self, keys_config: list) -> dict[str, DiscoveredSecret]:
+        """
+        Process individual key configurations.
+
+        Args:
+            keys_config: List of key configuration dictionaries
+
+        Returns:
+            Dictionary mapping ESS secret keys to DiscoveredSecret objects
+        """
+        discovered_secrets: dict[str, DiscoveredSecret] = {}
+        
+        for index, key_config in enumerate(keys_config):
+            content = None
+            config_key = None
+
+            # Try key_file first
+            if "key_file" in key_config:
+                try:
+                    with open(key_config["key_file"], "rb") as f:
+                        content = f.read()
+                    config_key = f"secrets.keys.{index}.key_file"
+                    logger.info(f"Read key from file: {key_config['key_file']}")
+                except Exception as e:
+                    logger.warning(f"Failed to read key file {key_config['key_file']}: {e}")
+                    continue
+
+            # Try inline key content
+            elif "key" in key_config:
+                content = key_config["key"].encode("utf-8")
+                config_key = f"secrets.keys.{index}.key"
+                logger.info("Read key from inline content")
+
+            if content and config_key:
+                key_type = detect_key_type(content)
+                if key_type in ["rsa", "ecdsaPrime256v1"]:
+                    secret_key = f"matrixAuthenticationService.keys.{key_type}"
+                    # Only set if not already discovered (prefer individual keys over directory)
+                    if secret_key not in discovered_secrets:
+                        discovered_secret = DiscoveredSecret(
+                            source_file="mas.yaml",
+                            secret_key=secret_key,
+                            config_key=config_key,
+                            value=content.decode("utf-8")
+                        )
+                        discovered_secrets[secret_key] = discovered_secret
+                        logger.info(f"Discovered {key_type} key from individual configuration")
+        
+        return discovered_secrets
 
 
 class MASExtraFileDiscovery(ExtraFilesDiscoveryStrategy):
@@ -180,6 +315,8 @@ class MASExtraFileDiscovery(ExtraFilesDiscoveryStrategy):
 
     @property
     def ignored_config_keys(self) -> list[str]:
+        # Keep secrets.keys_dir in ignored keys for extra files discovery
+        # as it's processed by specialized key discovery logic
         return ["secrets.keys_dir"]
 
     @property
