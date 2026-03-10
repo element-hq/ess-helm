@@ -93,7 +93,7 @@ These configuration options usually fall into one of the following categories:
 
 Attempting to change these configuration options by the mechanism described below will appear to have no effect.
 
-**If you have created new values files for custom configuration, make sure to apply them by passing them with the helm upgrade command (see [Setting up the stack](#setting-up-the-stack)).**
+**If you have created new values files for custom configuration, make sure to apply them by passing them with the helm upgrade command (see [Setting up the stack](../README.md#setting-up-the-stack)).**
 
 ### Configuring Element Web
 
