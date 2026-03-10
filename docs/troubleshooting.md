@@ -149,10 +149,10 @@ And example which would fail could show in the informations, where we can see th
 `netcat` can be used to test that the device is able to contact the SFU Pod. As UDP does not have ACK, a successful connection might not be enough to prove that the device is able to contact the SFU Pod on the UDP port.
 
 ```shell
-➜ nc -vnzu 192.100.0.2 30882
-Connection to 192.100.0.2 port 30882 [udp/*] succeeded!
-➜ nc -vnz 192.100.0.2 30881
-Connection to 192.100.0.2 port 30881 [tcp/*] succeeded!
+➜ nc -vnzu 192.100.0.2 30002
+Connection to 192.100.0.2 port 30002 [udp/*] succeeded!
+➜ nc -vnz 192.100.0.2 30001
+Connection to 192.100.0.2 port 30001 [tcp/*] succeeded!
 ```
 
 ## General / multiple components

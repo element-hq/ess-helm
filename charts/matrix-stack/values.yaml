@@ -794,7 +794,7 @@ matrixRTC:
         # Either Local or Cluster
         internalTrafficPolicy: Cluster
         externalTrafficPolicy: Cluster
-        port: 30881
+        port: 30001
 
       rtcMuxedUdp:
         enabled: true
@@ -813,7 +813,7 @@ matrixRTC:
         # Either Local or Cluster
         internalTrafficPolicy: Cluster
         externalTrafficPolicy: Cluster
-        port: 30882
+        port: 30002
 
       rtcUdp:
         enabled: false
@@ -856,7 +856,7 @@ matrixRTC:
         # Either Local or Cluster
         internalTrafficPolicy: Cluster
         externalTrafficPolicy: Cluster
-        port: 31443
+        port: 30003
 
         # The domain of the service
         domain: ""
@@ -884,7 +884,7 @@ matrixRTC:
         # Either Local or Cluster
         internalTrafficPolicy: Cluster
         externalTrafficPolicy: Cluster
-        port: 31478
+        port: 30004
 
     # Details of the image to be used
     image:

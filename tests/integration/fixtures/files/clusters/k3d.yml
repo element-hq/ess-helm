@@ -12,23 +12,10 @@ image: rancher/k3s:v1.34.2-k3s1
 agents: 0
 servers: 1
 ports:
-- port: 127.0.0.1:80:80
-  nodeFilters: [loadbalancer]
-- port: 127.0.0.1:443:443
-  nodeFilters: [loadbalancer]
-  # Matrix RTC SFU TCP and Muxed UDP
-- port: 127.0.0.1:30881:30881
-  nodeFilters: [loadbalancer]
-- port: 127.0.0.1:30882:30882/UDP
-  nodeFilters: [loadbalancer]
-  # Matrix RTC SFU Turn TLS
-- port: 127.0.0.1:31443:31443
-  nodeFilters: [loadbalancer]
-  # Matrix RTC SFU Turn
-- port: 127.0.0.1:31478:31478
-  nodeFilters: [loadbalancer]
-  # Dynamic node port range
-- port: 127.0.0.1:30086-30186:30086-30186
+  # Services node port range
+  # Static range: 30000-30015 (first 16 ports)
+  # Dynamic range: 30016-30100 (remaining 85 ports)
+- port: 127.0.0.1:30000-30100:30000-30100
   nodeFilters: [server:*]
 env:
 - envVar: K3S_DEBUG=true
@@ -47,7 +34,7 @@ options:
       nodeFilters: [servers:*]
     - arg: "--kube-apiserver-arg=audit-policy-file=/etc/kubernetes/policies/audit-policy.yaml"
       nodeFilters: [servers:*]
-    - arg: "--kube-apiserver-arg=service-node-port-range=30086-30186"
+    - arg: "--kube-apiserver-arg=service-node-port-range=30000-30100"
       nodeFilters: [servers:*]
   runtime:
     ulimits:

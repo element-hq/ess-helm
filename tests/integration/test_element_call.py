@@ -74,7 +74,7 @@ async def test_matrix_rtc_turn_tls(ingress_ready, generated_data: ESSData, ssl_c
                 break
 
     assert turn_tls_port is not None, "Could not find turn-tls-tcp NodePort"
-    assert 30086 <= turn_tls_port <= 30186, "NodePort should be in dynamic band range (according to our k3d conf)"
+    assert 30016 <= turn_tls_port <= 30100, "NodePort should be in dynamic band range (according to our k3d conf)"
 
     async def _assert_tls_socket():
         reader, writer = await asyncio.open_connection(
@@ -122,7 +122,7 @@ async def test_matrix_rtc_rtc_tcp(ingress_ready, generated_data: ESSData, kube_c
                 break
 
     assert rtc_tcp_port is not None, "Could not find rtc-tcp NodePort"
-    assert 30086 <= rtc_tcp_port <= 30186, "NodePort should be in dynamic band range (according to our k3d conf)"
+    assert 30016 <= rtc_tcp_port <= 30100, "NodePort should be in dynamic band range (according to our k3d conf)"
 
     async def _assert_tcp_socket():
         reader, writer = await asyncio.open_connection(
@@ -168,7 +168,7 @@ async def test_matrix_rtc_rtc_udp_service_exists(ingress_ready, generated_data: 
                 break
 
     assert rtc_udp_port is not None, "UDP service should have NodePort assigned"
-    assert 30086 <= rtc_udp_port <= 30186, "NodePort should be in dynamic band range (according to our k3d conf)"
+    assert 30016 <= rtc_udp_port <= 30100, "NodePort should be in dynamic band range (according to our k3d conf)"
 
     # Basic socket creation test
     class UDPTestProtocol(asyncio.DatagramProtocol):
