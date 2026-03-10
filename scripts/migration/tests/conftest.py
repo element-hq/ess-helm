@@ -10,6 +10,9 @@ Centralizes common test configurations to reduce duplication.
 
 import pytest
 import yaml
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import ec, rsa
 
 
 @pytest.fixture
@@ -208,6 +211,51 @@ def ecdsa_key_der():
     """Generate a sample ECDSA Prime256v1 private key in DER format using PKCS1."""
 
     key = ec.generate_private_key(ec.SECP256R1(), backend=default_backend())
+    return key.private_bytes(
+        encoding=serialization.Encoding.DER,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+
+
+@pytest.fixture
+def ecdsa_secp256k1_key_pem():
+    """Generate a sample ECDSA Secp256k1 private key in PEM format using PKCS1."""
+    key = ec.generate_private_key(ec.SECP256K1(), backend=default_backend())
+    return key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+
+
+@pytest.fixture
+def ecdsa_secp256k1_key_der():
+    """Generate a sample ECDSA Secp256k1 private key in DER format using PKCS1."""
+    key = ec.generate_private_key(ec.SECP256K1(), backend=default_backend())
+    return key.private_bytes(
+        encoding=serialization.Encoding.DER,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+
+
+@pytest.fixture
+def ecdsa_secp384r1_key_pem():
+    """Generate a sample ECDSA Secp384r1 private key in PEM format using PKCS1."""
+
+    key = ec.generate_private_key(ec.SECP384R1(), backend=default_backend())
+    return key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+
+
+@pytest.fixture
+def ecdsa_secp384r1_key_der():
+    """Generate a sample ECDSA Secp384r1 private key in DER format using PKCS1."""
+    key = ec.generate_private_key(ec.SECP384R1(), backend=default_backend())
     return key.private_bytes(
         encoding=serialization.Encoding.DER,
         format=serialization.PrivateFormat.TraditionalOpenSSL,

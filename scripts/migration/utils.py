@@ -194,7 +194,7 @@ def detect_key_type(content: bytes) -> str:
         content: Binary content of the key file
 
     Returns:
-        String indicating key type: "rsa", "ecdsaPrime256v1", or "unknown"
+        String indicating key type: "rsa", "ecdsaPrime256v1", "ecdsaSecp256k1", "ecdsaSecp384r1", or "unknown"
     """
     try:
         # Try to load as PEM first (check for PEM headers)
@@ -207,9 +207,14 @@ def detect_key_type(content: bytes) -> str:
         # Determine key type
         if isinstance(key, rsa.RSAPrivateKey):
             return "rsa"
-        elif isinstance(key, ec.EllipticCurvePrivateKey) and key.curve.name == "secp256r1":
-            # Check if it's NIST P-256 (secp256r1) curve
-            return "ecdsaPrime256v1"
+        elif isinstance(key, ec.EllipticCurvePrivateKey):
+            # Check curve type
+            if key.curve.name == "secp256r1":
+                return "ecdsaPrime256v1"
+            elif key.curve.name == "secp256k1":
+                return "ecdsaSecp256k1"
+            elif key.curve.name == "secp384r1":
+                return "ecdsaSecp384r1"
 
         # Unknown key type
         return "unknown"

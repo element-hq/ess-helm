@@ -186,6 +186,20 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
                 config_path=None,
                 transformer=None,
             ),
+            "matrixAuthenticationService.keys.ecdsaSecp256k1": SecretConfig(
+                init_if_missing_from_source_cfg=True,
+                description="MAS ECDSA Secp256k1 private key for signing operations",
+                config_inline=None,
+                config_path=None,
+                transformer=None,
+            ),
+            "matrixAuthenticationService.keys.ecdsaSecp384r1": SecretConfig(
+                init_if_missing_from_source_cfg=True,
+                description="MAS ECDSA Secp384r1 private key for signing operations",
+                config_inline=None,
+                config_path=None,
+                transformer=None,
+            ),
         }
 
     def discover_component_specific_secrets(self, config_data: dict) -> dict[str, DiscoveredSecret]:
@@ -238,7 +252,7 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
                         with open(filepath, "rb") as f:
                             content = f.read()
                         key_type = detect_key_type(content)
-                        if key_type in ["rsa", "ecdsaPrime256v1"]:
+                        if key_type in ["rsa", "ecdsaPrime256v1", "ecdsaSecp256k1", "ecdsaSecp384r1"]:
                             secret_key = f"matrixAuthenticationService.keys.{key_type}"
                             # Only set if not already discovered (prefer individual keys over directory)
                             if secret_key not in discovered_secrets:
@@ -292,7 +306,7 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
 
             if content and config_key:
                 key_type = detect_key_type(content)
-                if key_type in ["rsa", "ecdsaPrime256v1"]:
+                if key_type in ["rsa", "ecdsaPrime256v1", "ecdsaSecp256k1", "ecdsaSecp384r1"]:
                     secret_key = f"matrixAuthenticationService.keys.{key_type}"
                     # Only set if not already discovered (prefer individual keys over directory)
                     if secret_key not in discovered_secrets:
