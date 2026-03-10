@@ -246,7 +246,8 @@ def test_main_e2e_synapse_with_mas(
                 )
                 assert base64.b64decode(secret_content["data"]["synapse.signingKey"]) == b"test_signing_key_content"
             elif secret_file.name == "imported-matrix-authentication-service-secret.yaml":
-                assert len(secret_content["data"]) == 5  # 3 original + 2 keys
+                # 3 original secrets + 2-4 keys (rsa, ecdsaPrime256v1, ecdsaSecp256k1, ecdsaSecp384r1)
+                assert 5 <= len(secret_content["data"]) <= 7  # 3 original + 2-4 keys
                 assert (
                     base64.b64decode(secret_content["data"]["matrixAuthenticationService.synapseSharedSecret"])
                     == b"synapse_shared_secret_abcdef"

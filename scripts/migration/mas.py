@@ -187,17 +187,19 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
                 transformer=None,
             ),
             "matrixAuthenticationService.keys.ecdsaSecp256k1": SecretConfig(
-                init_if_missing_from_source_cfg=True,
+                init_if_missing_from_source_cfg=False,
                 description="MAS ECDSA Secp256k1 private key for signing operations",
                 config_inline=None,
                 config_path=None,
+                optional=True,  # This key type is optional
                 transformer=None,
             ),
             "matrixAuthenticationService.keys.ecdsaSecp384r1": SecretConfig(
-                init_if_missing_from_source_cfg=True,
+                init_if_missing_from_source_cfg=False,
                 description="MAS ECDSA Secp384r1 private key for signing operations",
                 config_inline=None,
                 config_path=None,
+                optional=True,  # This key type is optional
                 transformer=None,
             ),
         }

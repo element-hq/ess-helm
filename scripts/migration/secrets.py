@@ -98,7 +98,10 @@ class SecretDiscovery:
                 self.discovered_secrets[secret_key] = discovered_secret
 
             if secret_key not in self.discovered_secrets:
-                if secret_config.init_if_missing_from_source_cfg:
+                if secret_config.optional:
+                    # Optional secrets are ignored if not found
+                    continue
+                elif secret_config.init_if_missing_from_source_cfg:
                     self.init_by_ess_secrets.append(secret_key)
                 else:
                     self.missing_required_secrets.append(secret_key)

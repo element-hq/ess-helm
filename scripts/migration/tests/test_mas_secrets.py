@@ -195,7 +195,7 @@ def test_mixed_key_sources(tmp_path, rsa_key_pem, ecdsa_key_pem):
 
 
 def test_no_keys_config(basic_mas_config):
-    """Test that missing keys don't cause errors and are marked for initialization."""
+    """Test that missing keys don't cause errors and are handled appropriately."""
     # Use basic config without any keys
     mas_config = basic_mas_config.copy()
 
@@ -203,11 +203,13 @@ def test_no_keys_config(basic_mas_config):
     discovery = SecretDiscovery(mas_secrets, logging.getLogger(), "mas.yaml")
     discovery.discover_secrets(mas_config)
 
-    # Key secrets should be marked for initialization since they're not required
+    # Original key types should be marked for initialization since they're not required
     assert "matrixAuthenticationService.keys.rsa" in discovery.init_by_ess_secrets
     assert "matrixAuthenticationService.keys.ecdsaPrime256v1" in discovery.init_by_ess_secrets
-    assert "matrixAuthenticationService.keys.ecdsaSecp256k1" in discovery.init_by_ess_secrets
-    assert "matrixAuthenticationService.keys.ecdsaSecp384r1" in discovery.init_by_ess_secrets
+
+    # New key types should NOT be marked for initialization (they're optional)
+    assert "matrixAuthenticationService.keys.ecdsaSecp256k1" not in discovery.init_by_ess_secrets
+    assert "matrixAuthenticationService.keys.ecdsaSecp384r1" not in discovery.init_by_ess_secrets
 
     # Should not be in discovered secrets
     assert "matrixAuthenticationService.keys.rsa" not in discovery.discovered_secrets

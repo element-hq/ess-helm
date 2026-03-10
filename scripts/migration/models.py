@@ -125,6 +125,7 @@ class SecretConfig:
     description: str  # User-friendly description of the secret
     config_inline: str | None  # Configuration path for inline secret values
     config_path: str | None  # Configuration path for secret file paths
+    optional: bool = False  # Whether the secret is optional (not required for migration)
     transformer: Callable[[str], str | None] | None = (
         None  # Optional transformer function for extracting secrets from complex values
     )
