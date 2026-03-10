@@ -110,7 +110,7 @@ def test_keys_dir_discovery(tmp_path, rsa_key_pem, ecdsa_key_pem):
 
 
 def test_individual_keys_discovery(tmp_path, rsa_key_pem, ecdsa_key_pem):
-    """Test key discovery from individual keys configuration."""
+    """Test key discovery from individual keys configuration with kid fields."""
     # Write RSA key file
     rsa_key_file = tmp_path / "rsa_key.pem"
     rsa_key_file.write_bytes(rsa_key_pem)
@@ -118,13 +118,13 @@ def test_individual_keys_discovery(tmp_path, rsa_key_pem, ecdsa_key_pem):
     # Convert ECDSA key to string for inline content
     ecdsa_pem_str = ecdsa_key_pem.decode("utf-8")
 
-    # Create MAS config with individual keys
+    # Create MAS config with individual keys that have kid fields
     mas_config = {
         "http": {"public_base": "https://auth.example.com"},
         "database": {"uri": "postgresql://mas:mas_password@postgres:5432/mas"},
         "secrets": {
             "encryption": "my_encryption_key",
-            "keys": [{"key_file": str(rsa_key_file)}, {"key": ecdsa_pem_str}],
+            "keys": [{"key_file": str(rsa_key_file), "kid": "rsa-key-1"}, {"key": ecdsa_pem_str, "kid": "ecdsa-key-1"}],
         },
         "matrix": {
             "homeserver": "test.example.com",
@@ -140,13 +140,13 @@ def test_individual_keys_discovery(tmp_path, rsa_key_pem, ecdsa_key_pem):
     # Verify RSA key was discovered from file
     assert "matrixAuthenticationService.keys.rsa" in discovery.discovered_secrets
     assert discovery.discovered_secrets["matrixAuthenticationService.keys.rsa"].value == rsa_key_pem.decode("utf-8")
-    assert discovery.discovered_secrets["matrixAuthenticationService.keys.rsa"].config_key == "secrets.keys.0.key_file"
+    assert discovery.discovered_secrets["matrixAuthenticationService.keys.rsa"].config_key == "secrets.keys.0"
 
     # Verify ECDSA key was discovered from inline content
     ecdsa_secret = discovery.discovered_secrets["matrixAuthenticationService.keys.ecdsaPrime256v1"]
     assert "matrixAuthenticationService.keys.ecdsaPrime256v1" in discovery.discovered_secrets
     assert ecdsa_secret.value == ecdsa_key_pem.decode("utf-8")
-    assert ecdsa_secret.config_key == "secrets.keys.1.key"
+    assert ecdsa_secret.config_key == "secrets.keys.1"
 
 
 def test_mixed_key_sources(tmp_path, rsa_key_pem, ecdsa_key_pem):
@@ -188,7 +188,7 @@ def test_mixed_key_sources(tmp_path, rsa_key_pem, ecdsa_key_pem):
 
     # Individual keys should take precedence over directory keys
     assert discovery.discovered_secrets["matrixAuthenticationService.keys.rsa"].value == rsa_key_pem.decode("utf-8")
-    assert discovery.discovered_secrets["matrixAuthenticationService.keys.rsa"].config_key == "secrets.keys.0.key_file"
+    assert discovery.discovered_secrets["matrixAuthenticationService.keys.rsa"].config_key == "secrets.keys.0"
     ecdsa_secret = discovery.discovered_secrets["matrixAuthenticationService.keys.ecdsaPrime256v1"]
     assert ecdsa_secret.value == ecdsa_key_pem.decode("utf-8")
     assert ecdsa_secret.config_key == "secrets.keys_dir"

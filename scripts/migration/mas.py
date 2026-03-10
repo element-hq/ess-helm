@@ -96,7 +96,6 @@ class MASMigration(MigrationStrategy):
         return {
             "http",  # The entire HTTP configuration is managed by ESS
             "database.uri",  # Database URI configuration is managed by ESS"
-            "secrets.keys",
         }
 
     @property
@@ -262,7 +261,7 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
                                     source_file="mas.yaml",
                                     secret_key=secret_key,
                                     config_key="secrets.keys_dir",
-                                    value=content.decode("utf-8")
+                                    value=content.decode("utf-8"),
                                 )
                                 discovered_secrets[secret_key] = discovered_secret
                                 logger.info(f"Discovered {key_type} key from file: {filepath}")
@@ -270,7 +269,7 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
                         logger.warning(f"Failed to process key file {filepath}: {e}")
         except Exception as e:
             logger.warning(f"Failed to process keys directory {keys_dir}: {e}")
-        
+
         return discovered_secrets
 
     def _process_individual_keys(self, keys_config: list) -> dict[str, DiscoveredSecret]:
@@ -284,7 +283,7 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
             Dictionary mapping ESS secret keys to DiscoveredSecret objects
         """
         discovered_secrets: dict[str, DiscoveredSecret] = {}
-        
+
         for index, key_config in enumerate(keys_config):
             content = None
             config_key = None
@@ -294,7 +293,7 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
                 try:
                     with open(key_config["key_file"], "rb") as f:
                         content = f.read()
-                    config_key = f"secrets.keys.{index}.key_file"
+                    config_key = f"secrets.keys.{index}"
                     logger.info(f"Read key from file: {key_config['key_file']}")
                 except Exception as e:
                     logger.warning(f"Failed to read key file {key_config['key_file']}: {e}")
@@ -303,7 +302,7 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
             # Try inline key content
             elif "key" in key_config:
                 content = key_config["key"].encode("utf-8")
-                config_key = f"secrets.keys.{index}.key"
+                config_key = f"secrets.keys.{index}"
                 logger.info("Read key from inline content")
 
             if content and config_key:
@@ -316,11 +315,11 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
                             source_file="mas.yaml",
                             secret_key=secret_key,
                             config_key=config_key,
-                            value=content.decode("utf-8")
+                            value=content.decode("utf-8"),
                         )
                         discovered_secrets[secret_key] = discovered_secret
                         logger.info(f"Discovered {key_type} key from individual configuration")
-        
+
         return discovered_secrets
 
 
