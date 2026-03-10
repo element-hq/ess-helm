@@ -6,8 +6,12 @@
 """Tests for the ConfigValueTransformer class."""
 
 import logging
+from pathlib import Path
 
+from ..extra_files import ExtraFilesDiscovery
+from ..interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
 from ..migration import ConfigValueTransformer, TransformationSpec
+from ..models import DiscoveredPath
 
 
 def test_config_value_tracker_basic():
@@ -167,3 +171,234 @@ def test_config_value_tracker_empty():
 
     # ESS config should be empty
     assert transformer.ess_config == {}
+
+
+def test_update_paths_in_config_basic():
+    """Test update_paths_in_config with basic file path updates."""
+    transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config={})
+
+    # Create a mock ExtraFilesDiscovery with discovered file paths
+    class MockStrategy(ExtraFilesDiscoveryStrategy):
+        @property
+        def ignored_config_keys(self):
+            return []
+
+    class MockSecretStrategy(SecretDiscoveryStrategy):
+        @property
+        def ess_secret_schema(self):
+            return {}
+
+    # Create test source config with file paths
+    source_config = {
+        "templates": {
+            "password_reset": "/path/to/password_reset.html",
+            "registration": "/path/to/registration.html",
+        },
+        "other_setting": "preserved",
+    }
+
+    # Create discovered paths
+    discovered_paths = [
+        DiscoveredPath(
+            config_key="templates.password_reset",
+            source_file="test.yaml",
+            source_path=Path("password_reset.html"),
+            is_dir=False,
+            skipped_reason=None,
+        ),
+        DiscoveredPath(
+            config_key="templates.registration",
+            source_file="test.yaml",
+            source_path=Path("registration.html"),
+            is_dir=False,
+            skipped_reason=None,
+        ),
+    ]
+
+    # Create ExtraFilesDiscovery instance
+    extra_files_discovery = ExtraFilesDiscovery(
+        strategy=MockStrategy(),
+        pretty_logger=logging.Logger(__name__),
+        secrets_strategy=MockSecretStrategy(),
+        source_file="test.yaml",
+        discovered_file_paths=discovered_paths,
+    )
+
+    # Test the update_paths_in_config method
+    updated_config = transformer.update_paths_in_config(source_config, extra_files_discovery, "synapse")
+
+    # Verify paths are updated correctly
+    assert updated_config["templates"]["password_reset"] == "/etc/synapse/extra/password_reset.html"
+    assert updated_config["templates"]["registration"] == "/etc/synapse/extra/registration.html"
+    assert updated_config["other_setting"] == "preserved"  # Non-file setting should be unchanged
+
+    # Verify tracked values (only skipped paths are tracked)
+    assert len(transformer.tracked_values) == 0  # No skipped paths in this test
+
+
+def test_update_paths_in_config_with_skipped_paths():
+    """Test update_paths_in_config with skipped file paths."""
+    transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config={})
+
+    class MockStrategy(ExtraFilesDiscoveryStrategy):
+        @property
+        def ignored_config_keys(self):
+            return []
+
+    class MockSecretStrategy(SecretDiscoveryStrategy):
+        @property
+        def ess_secret_schema(self):
+            return {}
+
+    # Create test source config
+    source_config = {
+        "templates": {
+            "password_reset": "/path/to/password_reset.html",
+            "registration": "/path/to/registration.html",
+        },
+    }
+
+    # Create discovered paths with one skipped
+    discovered_paths = [
+        DiscoveredPath(
+            config_key="templates.password_reset",
+            source_file="test.yaml",
+            source_path=Path("password_reset.html"),
+            is_dir=False,
+            skipped_reason="File too large",
+        ),
+        DiscoveredPath(
+            config_key="templates.registration",
+            source_file="test.yaml",
+            source_path=Path("registration.html"),
+            is_dir=False,
+            skipped_reason=None,
+        ),
+    ]
+
+    extra_files_discovery = ExtraFilesDiscovery(
+        strategy=MockStrategy(),
+        pretty_logger=logging.Logger(__name__),
+        secrets_strategy=MockSecretStrategy(),
+        source_file="test.yaml",
+        discovered_file_paths=discovered_paths,
+    )
+
+    # Test the update_paths_in_config method
+    updated_config = transformer.update_paths_in_config(source_config, extra_files_discovery, "synapse")
+
+    # Verify skipped path is not updated but is tracked
+    assert updated_config["templates"]["password_reset"] == "/path/to/password_reset.html"  # Unchanged
+    assert updated_config["templates"]["registration"] == "/etc/synapse/extra/registration.html"  # Updated
+
+    # Verify tracked values (only skipped paths are tracked)
+    assert "templates.password_reset" in transformer.tracked_values
+    assert "templates.registration" not in transformer.tracked_values
+    assert len(transformer.tracked_values) == 1
+
+
+def test_update_paths_in_config_empty_discovery():
+    """Test update_paths_in_config with no discovered files."""
+    transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config={})
+
+    class MockStrategy(ExtraFilesDiscoveryStrategy):
+        @property
+        def ignored_config_keys(self):
+            return []
+
+    class MockSecretStrategy(SecretDiscoveryStrategy):
+        @property
+        def ess_secret_schema(self):
+            return {}
+
+    # Create test source config
+    source_config = {
+        "templates": {
+            "password_reset": "/path/to/password_reset.html",
+        },
+        "other_setting": "preserved",
+    }
+
+    # Create ExtraFilesDiscovery with no discovered paths
+    extra_files_discovery = ExtraFilesDiscovery(
+        strategy=MockStrategy(),
+        pretty_logger=logging.Logger(__name__),
+        secrets_strategy=MockSecretStrategy(),
+        source_file="test.yaml",
+        discovered_file_paths=[],
+    )
+
+    # Test the update_paths_in_config method
+    updated_config = transformer.update_paths_in_config(source_config, extra_files_discovery, "synapse")
+
+    # Verify config is unchanged
+    assert updated_config == source_config
+    assert len(transformer.tracked_values) == 0
+
+
+def test_update_paths_in_config_nested_config():
+    """Test update_paths_in_config with nested configuration structures."""
+    transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config={})
+
+    class MockStrategy(ExtraFilesDiscoveryStrategy):
+        @property
+        def ignored_config_keys(self):
+            return []
+
+    class MockSecretStrategy(SecretDiscoveryStrategy):
+        @property
+        def ess_secret_schema(self):
+            return {}
+
+    # Create test source config with nested structure
+    source_config = {
+        "email": {
+            "smtp_host": "smtp.example.com",
+            "template_dir": "/path/to/email/templates",
+            "config": {
+                "tls_cert": "/path/to/cert.pem",
+                "tls_key": "/path/to/key.pem",
+            },
+        },
+        "other_setting": "preserved",
+    }
+
+    # Create discovered paths
+    discovered_paths = [
+        DiscoveredPath(
+            config_key="email.template_dir",
+            source_file="test.yaml",
+            source_path=Path("email/templates"),
+            is_dir=True,
+            skipped_reason=None,
+        ),
+        DiscoveredPath(
+            config_key="email.config.tls_cert",
+            source_file="test.yaml",
+            source_path=Path("cert.pem"),
+            is_dir=False,
+            skipped_reason=None,
+        ),
+    ]
+
+    extra_files_discovery = ExtraFilesDiscovery(
+        strategy=MockStrategy(),
+        pretty_logger=logging.Logger(__name__),
+        secrets_strategy=MockSecretStrategy(),
+        source_file="test.yaml",
+        discovered_file_paths=discovered_paths,
+    )
+
+    # Test the update_paths_in_config method
+    updated_config = transformer.update_paths_in_config(
+        source_config, extra_files_discovery, "matrix-authentication-service"
+    )
+
+    # Verify paths are updated correctly
+    assert updated_config["email"]["template_dir"] == "/etc/matrix-authentication-service/extra/templates"
+    assert updated_config["email"]["config"]["tls_cert"] == "/etc/matrix-authentication-service/extra/cert.pem"
+    assert updated_config["email"]["smtp_host"] == "smtp.example.com"  # Unchanged
+    assert updated_config["other_setting"] == "preserved"  # Unchanged
+
+    # Verify tracked values (only skipped paths are tracked)
+    assert len(transformer.tracked_values) == 0  # No skipped paths in this test
