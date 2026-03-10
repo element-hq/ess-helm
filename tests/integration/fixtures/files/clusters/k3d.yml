@@ -12,6 +12,10 @@ image: rancher/k3s:v1.34.2-k3s1
 agents: 0
 servers: 1
 ports:
+- port: 127.0.0.1:80:80
+  nodeFilters: [loadbalancer]
+- port: 127.0.0.1:443:443
+  nodeFilters: [loadbalancer]
   # Services node port range
   # Static range: 30000-30015 (first 16 ports)
   # Dynamic range: 30016-30100 (remaining 85 ports)
