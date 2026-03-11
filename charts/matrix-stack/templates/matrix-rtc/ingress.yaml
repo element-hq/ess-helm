@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2024-2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -30,6 +30,13 @@ spec:
     http:
       paths:
       - path: /sfu/get
+        pathType: Prefix
+        backend:
+          service:
+            name: "{{ $.Release.Name }}-matrix-rtc-authorisation-service"
+            port:
+              name: http
+      - path: /get_token
         pathType: Prefix
         backend:
           service:
