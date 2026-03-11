@@ -13,7 +13,8 @@ bridge:
   url: "http://{{ include "element-io.synapse.internal-hostport" (dict "root" $root "context" (dict "targetProcessType" "")) }}"
 {{- end }}
   port: 9993
-  bindAddress: 0.0.0.0
+  {{- /* We can only bind to 1 and so in the dual-stack case we bind :: and rely on the lack of IPV6_V6ONLY on the socket options */}}
+  bindAddress: {{ ( has $root.Values.networking.ipFamily (list "ipv6" "dual-stack")) | ternary "::" "0.0.0.0" | quote }}
 
 passFile: /secrets/{{
                 include "element-io.ess-library.init-secret-path" (
@@ -42,18 +43,21 @@ metrics:
 
 listeners:
   - port: 7775
-    bindAddress: 0.0.0.0
+    {{- /* We can only bind to 1 and so in the dual-stack case we bind :: and rely on the lack of IPV6_V6ONLY on the socket options */}}
+    bindAddress: {{ ( has $root.Values.networking.ipFamily (list "ipv6" "dual-stack")) | ternary "::" "0.0.0.0" | quote }}
     resources:
       - webhooks
 {{- if and $root.Values.synapse.enabled (not .ingress.host) }}
     prefix: "/_matrix/hookshot"
 {{- end }}
   - port: 7777
-    bindAddress: 0.0.0.0
+    {{- /* We can only bind to 1 and so in the dual-stack case we bind :: and rely on the lack of IPV6_V6ONLY on the socket options */}}
+    bindAddress: {{ ( has $root.Values.networking.ipFamily (list "ipv6" "dual-stack")) | ternary "::" "0.0.0.0" | quote }}
     resources:
       - metrics
   - port: 7778
-    bindAddress: 0.0.0.0
+    {{- /* We can only bind to 1 and so in the dual-stack case we bind :: and rely on the lack of IPV6_V6ONLY on the socket options */}}
+    bindAddress: {{ ( has $root.Values.networking.ipFamily (list "ipv6" "dual-stack")) | ternary "::" "0.0.0.0" | quote }}
     resources:
       - widgets
 {{- if and $root.Values.synapse.enabled (not .ingress.host) }}
