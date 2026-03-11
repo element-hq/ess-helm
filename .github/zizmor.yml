@@ -10,7 +10,7 @@ rules:
       # This job do not release any artifact, we do not care about cache poisoning
       - matrix-tools.yml:56
       # This job do not release any artifact, we do not care about cache poisoning
-      - releasing.yml:34
+      - releasing.yml:30
       # This job do not release any artifact, we do not care about cache poisoning
-      - releasing.yml:127
+      - releasing.yml:119
 

@@ -27,10 +27,6 @@ jobs:
       with:
         persist-credentials: false
 
-    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6
-      with:
-        python-version: "3.x"
-
     - name: Install uv
       uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a  # v7
       with:
@@ -70,10 +66,6 @@ jobs:
       run: |
         git config --global --add safe.directory "$GITHUB_WORKSPACE"
         scripts/ct-lint.sh --config ct.yaml
-
-    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6
-      with:
-        python-version: "3.x"
 
     - name: Install uv
       uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a  # v7
