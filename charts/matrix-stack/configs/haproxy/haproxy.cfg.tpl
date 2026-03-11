@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2024-2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -17,6 +17,19 @@ global
 
   # Allow HAProxy Stats sockets
   stats socket ipv4@127.0.0.1:1999 level admin
+
+  # In a dual-stack cluster, HAProxy will receive both the A and AAAA records for each backing Pod.
+  # This is either in the additional section of the response or when directly querying the hostname in the SRV response.
+  # As a backend server can only have a single IP address and `resolve-prefer` doesn't appear to impact SRV results,
+  # we end up having the IP for each backend server flapping between IPv4, IPv6.
+  # This also appears to cause a memory leak in HAProxy.
+  # The default (`ipv4,ipv6`) and `auto` (IPv4 + IPv6 if there's an IPv6 gateway) are both problematic and so we must set one.
+  # In the dual-stack case, we pick IPv4 only as that's most likely to work, however this means that IPv6 only clusters
+  # needs to adjust network.ipFamily to `ipv6` rather than leaving it at `dual-stack`.
+  #
+  # The only alternative found is to tweak `hold obsolete` up from the default of 0s in the `resolvers` section.
+  # This has the undesirable behaviour of making HAProxy slower to respond to Pod restarts
+  dns-accept-family {{ has $root.Values.networking.ipFamily (list "ipv4" "dual-stack") | ternary "ipv4" "ipv6" }}
 
 defaults
   mode http
