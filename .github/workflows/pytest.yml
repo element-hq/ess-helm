@@ -66,13 +66,14 @@ jobs:
         fetch-depth: 0
         fetch-tags: true
 
-    - uses: matrix-org/setup-python-poetry@5bbf6603c5c930615ec8a29f1b5d7d258d905aa4  # v2
+    - name: Install uv
+      uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a  # v7
       with:
-        python-version: "3.x"
+        enable-cache: true
+        activate-environment: true
 
-    - name: Load poetry path
-      run: |
-        echo "$(poetry env info -p)/bin" >> "${GITHUB_PATH}"
+    - name: Set up UV environment
+      run: uv sync
 
     - name: Get current week number and home dir
       id: cache-input
@@ -124,7 +125,7 @@ jobs:
         if [ -f "tests/integration/env/${MATRIX_TEST_COMPONENT}.rc" ]; then
           # shellcheck source=/dev/null
           . "tests/integration/env/${MATRIX_TEST_COMPONENT}.rc"
-          PYTEST_KEEP_CLUSTER=1 poetry run pytest -vv tests/integration
+          PYTEST_KEEP_CLUSTER=1 pytest -vv tests/integration
         else
           echo "The integration test does not exist in previous ref, skipping..."
         fi
@@ -144,7 +145,7 @@ jobs:
       run: |
         # shellcheck source=/dev/null
         . "tests/integration/env/${MATRIX_TEST_COMPONENT}.rc"
-        PYTEST_KEEP_CLUSTER=1 poetry run pytest -vv tests/integration
+        PYTEST_KEEP_CLUSTER=1 pytest -vv tests/integration
       # syn2mas is a special case that cannot run twice by design
       if: ${{ matrix.test-component != 'matrix-authentication-service-syn2mas' }}
 
@@ -205,13 +206,14 @@ jobs:
       with:
         persist-credentials: false
 
-    - uses: matrix-org/setup-python-poetry@5bbf6603c5c930615ec8a29f1b5d7d258d905aa4  # v2
+    - name: Install uv
+      uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a  # v7
       with:
-        python-version: "3.x"
+        enable-cache: true
+        activate-environment: true
 
-    - name: Load poetry path
-      run: |
-        echo "$(poetry env info -p)/bin" >> "${GITHUB_PATH}"
+    - name: Set up UV environment
+      run: uv sync
 
     # Helm >= 3.19.5 (including Helm v4) have https://github.com/helm/helm/issues/31643
     # which breaks one of the Ingress tests
@@ -232,4 +234,4 @@ jobs:
     - name: Run our manifest test
       env:
         MANIFEST_TEST: ${{ matrix.manifest-test }}
-      run: poetry run pytest -vv "tests/manifests/${MANIFEST_TEST}.py"
+      run: pytest -vv "tests/manifests/${MANIFEST_TEST}.py"

@@ -9,3 +9,8 @@ rules:
       - matrix-tools.yml:33
       # This job do not release any artifact, we do not care about cache poisoning
       - matrix-tools.yml:56
+      # This job do not release any artifact, we do not care about cache poisoning
+      - releasing.yml:30
+      # This job do not release any artifact, we do not care about cache poisoning
+      - releasing.yml:119
+

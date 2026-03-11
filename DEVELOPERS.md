@@ -1,6 +1,6 @@
 <!--
 Copyright 2024-2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 -->
@@ -10,7 +10,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 Requirements for development:
 * Python 3.11, 3.12 or 3.13
-  * [`poetry`](https://python-poetry.org/)
+  * [`uv`](https://docs.astral.sh/uv/)
 * [`helm`](https://helm.sh/docs/intro/install/)
 * [`yq`](https://github.com/mikefarah/yq)
 
@@ -19,7 +19,7 @@ Optional Tools:
 * [`k3d`](https://k3d.io/stable/) for running the test cluster
 * [`kubeconform`](https://github.com/yannh/kubeconform) for Kubernetes manifest validation
 * [`shellcheck`](https://www.shellcheck.net/)
-* Managed via Poetry and so should be available after `poetry install`
+* Managed via uv and so should be available after `uv sync`
   * [`checkov`](https://www.checkov.io/)
   * [`reuse`](https://reuse.software/)
 
