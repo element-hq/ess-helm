@@ -25,13 +25,17 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
-      - uses: matrix-org/setup-python-poetry@5bbf6603c5c930615ec8a29f1b5d7d258d905aa4  # v2
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6
         with:
           python-version: "3.x"
 
-      - name: Load poetry path
-        run: |
-          echo "$(poetry env info -p)/bin" >> "${GITHUB_PATH}"
+      - name: Install uv
+        uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a  # v7
+        with:
+          enable-cache: true
+
+      - name: Set up UV environment
+        run: uv sync
 
       - name: Run towncrier check
         env:
@@ -48,13 +52,17 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: matrix-org/setup-python-poetry@5bbf6603c5c930615ec8a29f1b5d7d258d905aa4  # v2
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6
         with:
           python-version: "3.x"
 
-      - name: Load poetry path
-        run: |
-          echo "$(poetry env info -p)/bin" >> "${GITHUB_PATH}"
+      - name: Install uv
+        uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a  # v7
+        with:
+          enable-cache: true
+
+      - name: Set up UV environment
+        run: uv sync
 
       - name: Run towncrier build --draft
         run: |
