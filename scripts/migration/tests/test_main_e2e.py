@@ -8,12 +8,13 @@ End-to-end tests for the main migration CLI functionality.
 Tests the complete workflow from input to output generation.
 """
 
+import base64
 import sys
 from unittest.mock import patch
 
+import pytest
 import yaml
 
-# Import using the same pattern as other tests
 from .. import __main__
 
 
@@ -97,6 +98,14 @@ def test_main_e2e_synapse_only(
             assert "metadata" in secret_content
             assert "name" in secret_content["metadata"]
             assert "data" in secret_content
+            assert len(secret_content["data"]) == 4
+            assert base64.b64decode(secret_content["data"]["synapse.macaroon"]) == b"test_macaroon_secret"
+            assert (
+                base64.b64decode(secret_content["data"]["synapse.registrationSharedSecret"])
+                == b"test_registration_secret"
+            )
+            assert base64.b64decode(secret_content["data"]["synapse.signingKey"]) == b"test_signing_key_content"
+            assert base64.b64decode(secret_content["data"]["synapse.postgres.password"]) == b"test"
 
     config_maps_files = list(output_dir.glob("*configmap.yaml"))
     # Should have one configmap file for the discovered extra files
@@ -154,3 +163,118 @@ def test_main_e2e_synapse_only(
         "/etc/synapse/extra/ca-second.pem",
         "/etc/synapse/extra/another-ca.pem",
     ]
+
+
+def test_main_e2e_synapse_with_mas(
+    tmp_path, synapse_config_with_signing_key, basic_mas_config_with_keys, write_synapse_config, write_mas_config
+):
+    """Test the complete end-to-end migration workflow with Synapse and MAS."""
+    # Write configuration files
+    synapse_config_file = write_synapse_config(synapse_config_with_signing_key)
+    mas_config_file = write_mas_config(basic_mas_config_with_keys)
+
+    # Create output directory
+    output_dir = tmp_path / "output"
+    output_dir.mkdir()
+
+    # Mock sys.argv to simulate CLI arguments
+    test_args = [
+        "migration",
+        "--synapse-config",
+        str(synapse_config_file),
+        "--mas-config",
+        str(mas_config_file),
+        "--output-dir",
+        str(output_dir),
+    ]
+
+    # Run the main function with mocked sys.argv
+    with patch.object(sys, "argv", test_args):
+        exit_code = __main__.main()
+
+    # Verify successful execution
+    assert exit_code == 0
+
+    # Check that output files were created
+    values_file = output_dir / "values.yaml"
+    assert values_file.exists(), "values.yaml should be created"
+
+    # Load and verify the generated values
+    with open(values_file) as f:
+        generated_values = yaml.safe_load(f)
+
+    # Verify Synapse configuration was migrated
+    assert "synapse" in generated_values
+    synapse_config = generated_values["synapse"]
+    assert synapse_config["enabled"] is True
+
+    # Verify MAS configuration was migrated
+    assert "matrixAuthenticationService" in generated_values
+    mas_config = generated_values["matrixAuthenticationService"]
+    assert mas_config["enabled"] is True
+
+    # Verify MAS secrets were handled (using credential schema)
+    assert "synapseSharedSecret" in mas_config
+
+    # Verify synapseSharedSecret uses credential schema
+    synapse_shared_secret_config = mas_config["synapseSharedSecret"]
+    assert "secret" in synapse_shared_secret_config
+    assert synapse_shared_secret_config["secret"] == "imported-matrix-authentication-service"
+    assert "secretKey" in synapse_shared_secret_config
+    assert synapse_shared_secret_config["secretKey"] == "matrixAuthenticationService.synapseSharedSecret"
+
+    # Check for Secret files (should be created for both Synapse and MAS secrets)
+    secret_files = list(output_dir.glob("*secret.yaml"))
+    # Should have at least two secret files (one for Synapse, one for MAS)
+    assert len(secret_files) >= 2, "Secret files should be created for both Synapse and MAS secrets"
+
+    # Verify the secret file content
+    for secret_file in secret_files:
+        with open(secret_file) as f:
+            secret_content = yaml.safe_load(f)
+            assert secret_content["apiVersion"] == "v1"
+            assert secret_content["kind"] == "Secret"
+            assert "metadata" in secret_content
+            assert "name" in secret_content["metadata"]
+            assert "data" in secret_content
+            if secret_file.name == "imported-synapse-secret.yaml":
+                assert len(secret_content["data"]) == 4
+                assert base64.b64decode(secret_content["data"]["synapse.macaroon"]) == b"test_macaroon_secret"
+                assert (
+                    base64.b64decode(secret_content["data"]["synapse.registrationSharedSecret"])
+                    == b"test_registration_secret"
+                )
+                assert base64.b64decode(secret_content["data"]["synapse.signingKey"]) == b"test_signing_key_content"
+            elif secret_file.name == "imported-matrix-authentication-service-secret.yaml":
+                # 3 original secrets + 2-4 keys (rsa, ecdsaPrime256v1, ecdsaSecp256k1, ecdsaSecp384r1)
+                assert 5 <= len(secret_content["data"]) <= 7  # 3 original + 2-4 keys
+                assert (
+                    base64.b64decode(secret_content["data"]["matrixAuthenticationService.synapseSharedSecret"])
+                    == b"synapse_shared_secret_abcdef"
+                )
+                assert (
+                    base64.b64decode(secret_content["data"]["matrixAuthenticationService.encryptionSecret"])
+                    == b"my_encryption_key"
+                )
+                assert (
+                    base64.b64decode(secret_content["data"]["matrixAuthenticationService.postgres.password"])
+                    == b"mas_password"
+                )
+                # Check that RSA and ECDSA keys were imported
+                assert "matrixAuthenticationService.keys.rsa" in secret_content["data"]
+                assert "matrixAuthenticationService.keys.ecdsaPrime256v1" in secret_content["data"]
+                # Verify keys are not empty and have different content
+                rsa_key_data = base64.b64decode(secret_content["data"]["matrixAuthenticationService.keys.rsa"])
+                ecdsa_key_data = base64.b64decode(
+                    secret_content["data"]["matrixAuthenticationService.keys.ecdsaPrime256v1"]
+                )
+                assert len(rsa_key_data) > 0
+                assert len(ecdsa_key_data) > 0
+                assert rsa_key_data != ecdsa_key_data  # Keys should be different
+                # Verify key-type-specific headers (PKCS1 format)
+                assert b"-----BEGIN RSA PRIVATE KEY-----" in rsa_key_data
+                assert b"-----BEGIN EC PRIVATE KEY-----" in ecdsa_key_data
+            else:
+                pytest.fail(f"Unexpected secret file: {secret_file.name}")
+    mas_additional_config = yaml.safe_load(mas_config["additional"]["00-imported.yaml"]["config"])
+    assert "keys_dir" not in mas_additional_config["secrets"]

@@ -7,6 +7,11 @@ import urllib.parse
 from typing import Any
 
 import yaml
+from cryptography.hazmat.backends import default_backend
+
+# Key detection imports (moved to module level as requested)
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import ec, rsa
 
 
 def yaml_dump_with_pipe_for_multiline(data: Any) -> str:
@@ -179,3 +184,44 @@ def to_kebab_case(name: str) -> str:
         Kubernetes resource name
     """
     return "".join(["-" + c.lower() if c.isupper() else c for c in name]).lstrip("-")
+
+
+def detect_key_type(content: bytes) -> str:
+    """
+    Detect the type of a cryptographic key from its content.
+
+    Args:
+        content: Binary content of the key file
+
+    Returns:
+        String indicating key type: "rsa", "ecdsaPrime256v1", "ecdsaSecp256k1", "ecdsaSecp384r1", or "unknown"
+    """
+    try:
+        # Try to load as PEM first (check for PEM headers)
+        if b"-----BEGIN" in content:
+            key = serialization.load_pem_private_key(content, password=None, backend=default_backend())
+        else:
+            # Try as DER format
+            key = serialization.load_der_private_key(content, password=None, backend=default_backend())
+
+        # Determine key type
+        if isinstance(key, rsa.RSAPrivateKey):
+            return "rsa"
+        elif isinstance(key, ec.EllipticCurvePrivateKey):
+            # Check curve type
+            if key.curve.name == "secp256r1":
+                return "ecdsaPrime256v1"
+            elif key.curve.name == "secp256k1":
+                return "ecdsaSecp256k1"
+            elif key.curve.name == "secp384r1":
+                return "ecdsaSecp384r1"
+
+        # Unknown key type
+        return "unknown"
+
+    except ImportError:
+        # cryptography library not available
+        return "unknown"
+    except Exception:
+        # Any other error (invalid format, corrupted data, etc.)
+        return "unknown"
