@@ -119,7 +119,7 @@ jobs:
         PYTEST_CI_FIRST_STEP: "1"
       # Drop me after releasing next 26.3.x
       # We are changing the k3d ports range, so we cannot setup matrix-rtc with the old values
-      if: ${{ !contains(env.MATRIX_TEST_COMPONENT, 'matrix-rtc') }}
+      if: ${{ env.MATRIX_TEST_FROM_REF == '26.2.3' && !contains(env.MATRIX_TEST_COMPONENT, 'matrix-rtc') || env.MATRIX_TEST_FROM_REF != '26.2.3' }}
       run: |
         if [ -f "tests/integration/env/${MATRIX_TEST_COMPONENT}.rc" ]; then
           # shellcheck source=/dev/null
