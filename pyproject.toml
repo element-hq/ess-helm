@@ -52,7 +52,8 @@ dev = [
         "rapidfuzz>=3.14.3",
     ]
 
-
+[tool.uv.workspace]
+members = ["packages/*"]
 
 [tool.pytest.ini_options]
 # we use asyncio-cooperative
