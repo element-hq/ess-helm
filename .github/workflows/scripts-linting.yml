@@ -43,7 +43,7 @@ jobs:
         activate-environment: true
 
     - name: Set up UV environment
-      run: uv sync
+      run: uv sync --all-packages
 
     - name: Run ruff check
       run: |
