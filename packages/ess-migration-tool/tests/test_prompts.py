@@ -13,9 +13,8 @@ import logging
 from io import StringIO
 
 import pytest
-
-from ..engine import MigrationEngine
-from ..inputs import InputProcessor
+from ess_migration_tool.engine import MigrationEngine
+from ess_migration_tool.inputs import InputProcessor
 
 
 def test_migration_with_missing_secrets_prompt(

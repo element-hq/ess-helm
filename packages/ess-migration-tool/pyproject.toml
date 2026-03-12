@@ -1,0 +1,14 @@
+# Copyright 2026 Element Creations Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[project]
+name = "ess-migration-tool"
+version = "0.1.0"
+
+[build-system]
+requires = ["uv_build>=0.10.9,<0.11.0"]
+build-backend = "uv_build"
+
+[project.scripts]
+ess-migration-tool = "ess_migration_tool.__main__:main"

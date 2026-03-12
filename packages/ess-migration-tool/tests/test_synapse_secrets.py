@@ -4,10 +4,9 @@
 import logging
 
 import pytest
-
-from ..extra_files import ExtraFilesDiscovery
-from ..secrets import SecretDiscovery, SecretsError
-from ..synapse import SynapseExtraFileDiscovery, SynapseSecretDiscovery
+from ess_migration_tool.extra_files import ExtraFilesDiscovery
+from ess_migration_tool.secrets import SecretDiscovery, SecretsError
+from ess_migration_tool.synapse import SynapseExtraFileDiscovery, SynapseSecretDiscovery
 
 
 def test_discover_secrets_from_synapse_config(basic_synapse_config):

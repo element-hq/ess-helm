@@ -4,8 +4,7 @@
 
 
 import pytest
-
-from ..utils import get_nested_value, remove_nested_value, set_nested_value
+from ess_migration_tool.utils import get_nested_value, remove_nested_value, set_nested_value
 
 
 @pytest.fixture

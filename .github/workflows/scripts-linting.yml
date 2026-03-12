@@ -53,15 +53,18 @@ jobs:
       run: |
         ruff format --check
 
+    - name: mypy
+      run: |
+        mypy tests
+        mypy packages
+
     - name: pytest scripts
       run: |
-        pytest --version
         pytest scripts
 
-    - name: mypy
-      run:
-        mypy tests
-
+    - name: pytest packages
+      run: |
+        pytest packages
   cspell:
     runs-on: ubuntu-latest
     steps:
