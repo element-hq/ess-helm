@@ -32,6 +32,12 @@ SPDX-License-Identifier = "AGPL-3.0-only"
 precedence = "aggregate"
 
 [[annotations]]
+path = "packages/ess-migration-tool/newsfragments/*.md"
+SPDX-FileCopyrightText = ["Copyright 2026 Element Creations Ltd"]
+SPDX-License-Identifier = "AGPL-3.0-only"
+precedence = "aggregate"
+
+[[annotations]]
 path = "docs/assets/images/*.png"
 SPDX-FileCopyrightText = ["Copyright 2025 New Vector Ltd", "Copyright 2025-2026 Element Creations Ltd"]
 SPDX-License-Identifier = "AGPL-3.0-only"

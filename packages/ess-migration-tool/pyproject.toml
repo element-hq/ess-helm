@@ -12,3 +12,8 @@ build-backend = "uv_build"
 
 [project.scripts]
 ess-migration-tool = "ess_migration_tool.__main__:main"
+
+[tool.towncrier]
+directory = "newsfragments"
+name = "ESS Migration Script"
+filename = "CHANGELOG.md"
