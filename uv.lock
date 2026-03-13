@@ -52,6 +52,12 @@ dev = [
     { name = "yamale" },
     { name = "yamllint" },
 ]
+dev-tools = [
+    { name = "mypy" },
+    { name = "pytest" },
+    { name = "ruff" },
+    { name = "types-pyyaml" },
+]
 
 [package.metadata]
 
@@ -84,12 +90,17 @@ dev = [
     { name = "spdx-tools", specifier = ">=0.8.3" },
     { name = "towncrier", specifier = ">=25.8.0" },
     { name = "typer", specifier = ">=0.24.1" },
-    { name = "types-jsonschema", specifier = ">=4.26.0.20260109" },
     { name = "types-jsonschema", specifier = ">=4.26.0.20260202" },
     { name = "types-pytz", specifier = ">=2025.2.0.20251108" },
     { name = "types-pyyaml", specifier = ">=6.0.12.20250915" },
     { name = "yamale", specifier = ">=6.1.0" },
     { name = "yamllint", specifier = ">=1.38.0" },
+]
+dev-tools = [
+    { name = "mypy", specifier = ">=1.19.1" },
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "ruff", specifier = ">=0.15.4" },
+    { name = "types-pyyaml", specifier = ">=6.0.12.20250915" },
 ]
 
 [[package]]
@@ -785,6 +796,24 @@ wheels = [
 name = "ess-migration-tool"
 version = "0.1.0"
 source = { editable = "packages/ess-migration-tool" }
+
+[package.dev-dependencies]
+dev = [
+    { name = "mypy" },
+    { name = "pytest" },
+    { name = "ruff" },
+    { name = "types-pyyaml" },
+]
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "mypy", specifier = ">=1.19.1" },
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "ruff", specifier = ">=0.15.4" },
+    { name = "types-pyyaml", specifier = ">=6.0.12.20250915" },
+]
 
 [[package]]
 name = "frozendict"
