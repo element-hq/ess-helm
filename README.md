@@ -71,7 +71,7 @@ A full comparison between the editions can be found [here](https://element.io/pr
 - [Getting started](#getting-started)
    - [Resource requirements](#resource-requirements)
    - [Prerequisites](#prerequisites)
-- [Quick setup](#installation)
+- [Quick setup](#quick-setup)
   - [Preparing the environment](#preparing-the-environment)
     - [DNS](#dns)
     - [K3S - Kubernetes single node setup](#kubernetes-single-node-setup-with-k3s)
