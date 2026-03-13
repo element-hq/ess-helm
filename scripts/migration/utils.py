@@ -110,7 +110,7 @@ def get_nested_value(config: dict[str, Any], path: str) -> Any:
             elif isinstance(current, list):
                 try:
                     current = current[int(part)]
-                except (IndexError, ValueError):
+                except IndexError, ValueError:
                     return None
             elif part != parts[-1]:
                 return None  # Can't navigate further
@@ -143,7 +143,7 @@ def remove_nested_value(config: dict[str, Any], path: str) -> None:
             elif isinstance(current, list):
                 try:
                     current = current[int(part)]
-                except (IndexError, ValueError):
+                except IndexError, ValueError:
                     return
 
         # Remove the final key

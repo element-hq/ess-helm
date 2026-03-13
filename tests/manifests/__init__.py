@@ -223,7 +223,7 @@ class DeployableDetails(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def deployable_details_for_container(self, container_name: str) -> "DeployableDetails | None":
+    def deployable_details_for_container(self, container_name: str) -> DeployableDetails | None:
         pass
 
 
@@ -254,7 +254,7 @@ class SidecarDetails(DeployableDetails):
         # We dont support replicas
         self.has_replicas = False
 
-    def create_ownership_link(self, parent: "ComponentDetails | SubComponentDetails"):
+    def create_ownership_link(self, parent: ComponentDetails | SubComponentDetails):
         self.parent = parent
 
         # If the sidecar makes outbound requests, the parent will need hostAlias support
