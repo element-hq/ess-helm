@@ -309,6 +309,36 @@ networking:
 {{ (credential("PostgreSQL password", "password", commented=True) | indent(2)) }}
 {%- endmacro %}
 
+{% macro redis(key="redis") %}
+## Details of the external Redis to use
+## Does not need to be set if the internal Redis should be used
+## This is useful for production environments where you want to use
+## managed Redis services (AWS Elasticache, Azure Cache for Redis, etc.)
+# {{ key }}:
+  ## Redis host
+  # host:
+
+  ## Redis port
+  # port: 6379
+
+  ## Redis database number (0-15)
+  # db: 0
+
+  ## Redis password (optional - many managed services require auth)
+  ## It can either be provided inline in the Helm chart e.g.:
+  ## password:
+  ##   value: SecretValue
+  ##
+  ## Or it can be provided via an existing Secret e.g.:
+  ## password:
+  ##   secret: existing-secret
+  ##   secretKey: key-in-secret
+  # password: {}
+
+  ## Enable TLS for Redis connection
+  # tls: false
+{%- endmacro %}
+
 {# The default values are the k8s defaults. We could omit but lets make them explicit. #}
 {% macro probe(type, failureThreshold=3, initialDelaySeconds=0, periodSeconds=10, successThreshold=1, timeoutSeconds=1) %}
 ## Configuration of the thresholds and frequencies of the {{ type }}Probe

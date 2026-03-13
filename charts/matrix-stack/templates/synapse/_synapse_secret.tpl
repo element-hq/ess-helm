@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -46,6 +46,13 @@ data:
 {{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "synapse.signingKey" "initIfAbsent" true)) -}}
 {{- with .signingKey.value }}
   SIGNING_KEY: {{ .| b64enc }}
+{{- end }}
+{{- if .redis }}
+{{- if .redis.password }}
+{{- if .redis.password.value }}
+  REDIS_PASSWORD: {{ .redis.password.value | b64enc | quote }}
+{{- end }}
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}
