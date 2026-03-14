@@ -1,13 +1,15 @@
-# Copyright 2026 Element Creations Ltd
-#
-# SPDX-License-Identifier: AGPL-3.0-only
-
 version = 1
 revision = 3
 requires-python = ">=3.12, <4.0"
 resolution-markers = [
     "python_full_version >= '3.14'",
     "python_full_version < '3.14'",
+]
+
+[manifest]
+members = [
+    "",
+    "ess-migration-tool",
 ]
 
 [[package]]
@@ -50,6 +52,12 @@ dev = [
     { name = "yamale" },
     { name = "yamllint" },
 ]
+dev-tools = [
+    { name = "mypy" },
+    { name = "pytest" },
+    { name = "ruff" },
+    { name = "types-pyyaml" },
+]
 
 [package.metadata]
 
@@ -82,12 +90,17 @@ dev = [
     { name = "spdx-tools", specifier = ">=0.8.3" },
     { name = "towncrier", specifier = ">=25.8.0" },
     { name = "typer", specifier = ">=0.24.1" },
-    { name = "types-jsonschema", specifier = ">=4.26.0.20260109" },
     { name = "types-jsonschema", specifier = ">=4.26.0.20260202" },
     { name = "types-pytz", specifier = ">=2025.2.0.20251108" },
     { name = "types-pyyaml", specifier = ">=6.0.12.20250915" },
     { name = "yamale", specifier = ">=6.1.0" },
     { name = "yamllint", specifier = ">=1.38.0" },
+]
+dev-tools = [
+    { name = "mypy", specifier = ">=1.19.1" },
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "ruff", specifier = ">=0.15.4" },
+    { name = "types-pyyaml", specifier = ">=6.0.12.20250915" },
 ]
 
 [[package]]
@@ -777,6 +790,29 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/1f/2c/a4213cdbbc43b8fdf34b6e2afb415fd5d46e171d32a4bb92e7924548aa9f/dpath-2.1.3.tar.gz", hash = "sha256:d1a7a0e6427d0a4156c792c82caf1f0109603f68ace792e36ca4596fd2cb8d9d", size = 24016, upload-time = "2022-12-13T07:27:22.108Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c9/12/02fdb87afeab1987442164a2db470a995122c800f15265e9b7a5103a3fd9/dpath-2.1.3-py3-none-any.whl", hash = "sha256:d9560e03ccd83b3c6f29988b0162ce9b34fd28b9d8dbda46663b20c68d9cdae3", size = 17232, upload-time = "2022-12-13T07:27:20.023Z" },
+]
+
+[[package]]
+name = "ess-migration-tool"
+version = "0.1.0"
+source = { editable = "packages/ess-migration-tool" }
+
+[package.dev-dependencies]
+dev = [
+    { name = "mypy" },
+    { name = "pytest" },
+    { name = "ruff" },
+    { name = "types-pyyaml" },
+]
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "mypy", specifier = ">=1.19.1" },
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "ruff", specifier = ">=0.15.4" },
+    { name = "types-pyyaml", specifier = ">=6.0.12.20250915" },
 ]
 
 [[package]]

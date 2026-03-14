@@ -4,9 +4,8 @@
 
 import logging
 
-from scripts.migration.secrets import SecretDiscovery
-
-from ..mas import MASSecretDiscovery
+from ess_migration_tool.mas import MASSecretDiscovery
+from ess_migration_tool.secrets import SecretDiscovery
 
 
 def test_discover_secrets_from_mas_config(basic_mas_config):
@@ -36,7 +35,7 @@ def test_key_detection_utility(
     ecdsa_secp384r1_key_der,
 ):
     """Test the key type detection utility function."""
-    from ..utils import detect_key_type
+    from ess_migration_tool.utils import detect_key_type
 
     # Test RSA PEM
     assert detect_key_type(rsa_key_pem) == "rsa"

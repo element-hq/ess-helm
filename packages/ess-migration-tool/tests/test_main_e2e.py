@@ -14,8 +14,7 @@ from unittest.mock import patch
 
 import pytest
 import yaml
-
-from .. import __main__
+from ess_migration_tool import __main__
 
 
 def test_main_e2e_synapse_only(

@@ -10,7 +10,6 @@ Main CLI entry point for the migration script.
 
 import argparse
 import logging
-import sys
 from dataclasses import dataclass, field
 
 from .engine import MigrationEngine
@@ -281,9 +280,3 @@ Examples:
         reporter.report_failure(str(e))
         logging.error(f"Migration failed: {e}")
         return 1
-
-
-if __name__ == "__main__":
-    # Run the main function
-    exit_code = main()
-    sys.exit(exit_code)
