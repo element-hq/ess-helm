@@ -10,7 +10,7 @@ version = "0.1.0"
 license = "AGPL-3.0-Only, Element Commercial"
 readme = "README.md"
 package-mode = false
-requires-python = ">=3.12,<4.0"
+requires-python = ">=3.14,<4.0"
 dependencies = []
 
 [tool.uv]
