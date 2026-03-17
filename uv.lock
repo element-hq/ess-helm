@@ -37,6 +37,7 @@ dev = [
     { name = "pytest-kubernetes" },
     { name = "python-on-whales" },
     { name = "pytz" },
+    { name = "pyyaml" },
     { name = "rapidfuzz" },
     { name = "reuse" },
     { name = "ruamel-yaml" },
@@ -84,6 +85,7 @@ dev = [
     { name = "pytest-kubernetes", specifier = ">=0.7.2" },
     { name = "python-on-whales", specifier = ">=0.80.0" },
     { name = "pytz", specifier = ">=2025.2" },
+    { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "rapidfuzz", specifier = ">=3.14.3" },
     { name = "reuse", specifier = ">=6.2.0" },
     { name = "ruamel-yaml", specifier = ">=0.19.1" },
@@ -855,6 +857,7 @@ name = "ess-migration-tool"
 version = "0.1.0"
 source = { editable = "packages/ess-migration-tool" }
 dependencies = [
+    { name = "pyyaml" },
     { name = "rapidfuzz" },
 ]
 
@@ -864,11 +867,15 @@ dev = [
     { name = "pytest" },
     { name = "ruff" },
     { name = "types-cryptography" },
+    { name = "types-jsonschema" },
     { name = "types-pyyaml" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "rapidfuzz", specifier = ">=3.14.3" }]
+requires-dist = [
+    { name = "pyyaml", specifier = ">=6.0.3" },
+    { name = "rapidfuzz", specifier = ">=3.14.3" },
+]
 
 [package.metadata.requires-dev]
 dev = [
@@ -876,6 +883,7 @@ dev = [
     { name = "pytest", specifier = ">=8.4.2" },
     { name = "ruff", specifier = ">=0.15.4" },
     { name = "types-cryptography", specifier = ">=3.3.23.2" },
+    { name = "types-jsonschema", specifier = ">=4.26.0.20260202" },
     { name = "types-pyyaml", specifier = ">=6.0.12.20250915" },
 ]
 

@@ -55,6 +55,7 @@ dev = [
   "frozendict>=2.4.7",
   "types-jsonschema>=4.26.0.20260202",
   "rapidfuzz>=3.14.3",
+  "pyyaml>=6.0.3",
 ]
 
 [tool.uv.workspace]
