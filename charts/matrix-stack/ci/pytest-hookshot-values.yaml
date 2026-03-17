@@ -85,7 +85,7 @@ synapse:
       value: "1"
   ingress:
     host: synapse.{{ $.Values.serverName }}
-    tlsSecret: '{{ $.Release.Name }}-synapse-web-tls'
+    tlsSecret: "{{ $.Release.Name }}-synapse-web-tls"
   podSecurityContext:
     runAsGroup: 0
 wellKnownDelegation:

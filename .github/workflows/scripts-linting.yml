@@ -22,6 +22,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
+      with:
+        persist-credentials: false
 
     - name: Run ShellCheck
       run: shellcheck scripts/*.sh
@@ -31,14 +33,17 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
-
-    - uses: matrix-org/setup-python-poetry@5bbf6603c5c930615ec8a29f1b5d7d258d905aa4  # v2
       with:
-        python-version: "3.x"
+        persist-credentials: false
 
-    - name: Load poetry path
-      run: |
-        echo "$(poetry env info -p)/bin" >> "${GITHUB_PATH}"
+    - name: Install uv
+      uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a  # v7
+      with:
+        enable-cache: true
+        activate-environment: true
+
+    - name: Set up UV environment
+      run: uv sync
 
     - name: Run ruff check
       run: |
@@ -62,5 +67,7 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
+      with:
+        persist-credentials: false
 
-    - uses: streetsidesoftware/cspell-action@d5d910b521ad408f1e7383c24609079f5a88bdca  # v8
+    - uses: streetsidesoftware/cspell-action@9cd41bb518a24fefdafd9880cbab8f0ceba04d28  # v8

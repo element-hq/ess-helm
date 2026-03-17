@@ -36,7 +36,7 @@ matrixRTC:
         domain: turn.{{ $.Values.serverName }}
         enabled: true
         port: 31002
-        tlsSecret: '{{ $.Release.Name }}-turn-tls'
+        tlsSecret: "{{ $.Release.Name }}-turn-tls"
 synapse:
   enabled: false
 wellKnownDelegation:

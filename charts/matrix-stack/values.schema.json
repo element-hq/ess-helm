@@ -2517,6 +2517,9 @@
                     "tlsSecret": {
                       "type": "string"
                     },
+                    "tlsTerminationOnPod": {
+                      "type": "boolean"
+                    },
                     "externalIPs": {
                       "type": "array",
                       "items": {

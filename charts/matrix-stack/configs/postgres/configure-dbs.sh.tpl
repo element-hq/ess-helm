@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2024-2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -10,6 +10,26 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 #!/bin/sh
 set -e;
+# Function to create or ensure a user and database
+create_or_ensure_db() {
+  user="$1"
+  db="$2"
+  password="$3"
+  admin_password="$4"
+
+  # Check if user exists, if so update password; otherwise create user
+  if echo -n "$admin_password" | psql -W -U postgres -tc "SELECT 1 FROM pg_catalog.pg_roles WHERE rolname = '$user'" | grep -q 1; then
+    echo -n "$admin_password" | psql -W -U postgres -c "ALTER USER $user PASSWORD '$password'"
+  else
+    echo -n "$admin_password" | psql -W -U postgres -c "CREATE ROLE $user LOGIN PASSWORD '$password'"
+  fi
+
+  # Check if database exists, if not create it
+  if ! echo -n "$admin_password" | psql -W -U postgres -tc "SELECT 1 FROM pg_database WHERE datname = '$db'" | grep -q 1; then
+    echo -n "$admin_password" | createdb --encoding=UTF8 --locale=C --template=template0 --owner=$user $db -U postgres
+  fi
+}
+
 export POSTGRES_PASSWORD=`cat /secrets/{{
     include "element-io.ess-library.init-secret-path" (
   dict "root" $root "context" (
@@ -19,6 +39,7 @@ export POSTGRES_PASSWORD=`cat /secrets/{{
           "defaultSecretKey" "ADMIN_PASSWORD"
     )
 ) }}`;
+
 {{- range $key := (.essPasswords | keys | uniq | sortAlpha) -}}
 {{- if (index $root.Values $key).enabled -}}
 {{- $prop := index $root.Values.postgres.essPasswords $key }}
@@ -31,13 +52,7 @@ dict "root" $root "context" (
         "defaultSecretKey" (printf "ESS_PASSWORD_%s" ($key | upper))
   )
 ) }}`;
-(
-  (echo -n $POSTGRES_PASSWORD | psql -W -U postgres -tc "SELECT 1 FROM pg_catalog.pg_roles WHERE rolname = '{{ $key | lower }}_user'" | grep -q 1) && \
-  (echo -n $POSTGRES_PASSWORD | psql -W -U postgres -c "ALTER USER {{ $key | lower }}_user PASSWORD '"$ESS_PASSWORD"'")
-) || \
-  (echo -n $POSTGRES_PASSWORD | psql -W -U postgres -c "CREATE ROLE {{ $key | lower }}_user LOGIN PASSWORD '"$ESS_PASSWORD"'");
-(echo -n $POSTGRES_PASSWORD | psql -W -U postgres -tc "SELECT 1 FROM pg_database WHERE datname = '{{ $key | lower }}'" | grep -q 1) || \
-(echo -n $POSTGRES_PASSWORD | createdb --encoding=UTF8 --locale=C --template=template0 --owner={{ $key | lower }}_user {{ $key | lower }} -U postgres)
+create_or_ensure_db "{{ $key | lower }}_user" "{{ $key | lower }}" "$ESS_PASSWORD" "$POSTGRES_PASSWORD"
 {{- end -}}
 {{- end -}}
 {{- end -}}

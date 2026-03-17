@@ -47,7 +47,7 @@ spec:
       hostAliases:
         {{- tpl (toYaml . | nindent 8) $ }}
 {{- end }}
-{{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "matrix-authentication-service" "deployment" true "usesMatrixTools" true)) | nindent 6 }}
+{{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "matrix-authentication-service" "kind" "Deployment" "usesMatrixTools" true)) | nindent 6 }}
       initContainers:
       {{ include "element-io.matrix-authentication-service.render-config-container" (dict "root" $ "context" (mustMergeOverwrite . (dict "isHook" false))) | nindent 6 }}
       - name: db-wait

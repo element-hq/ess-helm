@@ -21,7 +21,7 @@ matrixTools:
 
     ## The tag of the container image to use.
     ## One of tag or digest must be provided.
-    tag: "0.7.2"
+    tag: "0.7.3"
 
     ## Container digest to use. Used to pull the image instead of the image tag if set
     ## The tag will still be set as the app.kubernetes.io/version label
@@ -514,7 +514,7 @@ matrixRTC:
 
     ## The tag of the container image to use.
     ## One of tag or digest must be provided.
-    tag: "0.3.0"
+    tag: "0.4.1"
 
     ## Container digest to use. Used to pull the image instead of the image tag if set
     ## The tag will still be set as the app.kubernetes.io/version label
@@ -794,7 +794,7 @@ matrixRTC:
         # Either Local or Cluster
         internalTrafficPolicy: Cluster
         externalTrafficPolicy: Cluster
-        port: 30881
+        port: 30001
 
       rtcMuxedUdp:
         enabled: true
@@ -813,7 +813,7 @@ matrixRTC:
         # Either Local or Cluster
         internalTrafficPolicy: Cluster
         externalTrafficPolicy: Cluster
-        port: 30882
+        port: 30002
 
       rtcUdp:
         enabled: false
@@ -856,12 +856,16 @@ matrixRTC:
         # Either Local or Cluster
         internalTrafficPolicy: Cluster
         externalTrafficPolicy: Cluster
-        port: 31443
+        port: 30003
 
         # The domain of the service
         domain: ""
         # The TLS secret used to expose this service
+        # Optional when tlsTerminationOnPod is false (external termination) or when certManager is configured
         tlsSecret: ""
+        # Whether TLS termination should happen on the pod (true) or externally (false)
+        # When false, TLS termination is handled by an external load balancer or proxy
+        tlsTerminationOnPod: true
 
       turn:
         enabled: false
@@ -880,7 +884,7 @@ matrixRTC:
         # Either Local or Cluster
         internalTrafficPolicy: Cluster
         externalTrafficPolicy: Cluster
-        port: 31478
+        port: 30004
 
     # Details of the image to be used
     image:
@@ -893,7 +897,7 @@ matrixRTC:
 
       ## The tag of the container image to use.
       ## One of tag or digest must be provided.
-      tag: "v1.9.1"
+      tag: "v1.9.12"
 
       ## Container digest to use. Used to pull the image instead of the image tag if set
       ## The tag will still be set as the app.kubernetes.io/version label
@@ -1383,7 +1387,7 @@ elementWeb:
 
     ## The tag of the container image to use.
     ## One of tag or digest must be provided.
-    tag: "v1.12.9"
+    tag: "v1.12.12"
 
     ## Container digest to use. Used to pull the image instead of the image tag if set
     ## The tag will still be set as the app.kubernetes.io/version label
@@ -2223,7 +2227,7 @@ matrixAuthenticationService:
 
     ## The tag of the container image to use.
     ## One of tag or digest must be provided.
-    tag: "1.10.0"
+    tag: "1.13.0"
 
     ## Container digest to use. Used to pull the image instead of the image tag if set
     ## The tag will still be set as the app.kubernetes.io/version label
@@ -2650,7 +2654,7 @@ matrixAuthenticationService:
 
       ## The tag of the container image to use.
       ## One of tag or digest must be provided.
-      tag: "1.10.0-debug"
+      tag: "1.13.0-debug"
 
       ## Container digest to use. Used to pull the image instead of the image tag if set
       ## The tag will still be set as the app.kubernetes.io/version label
@@ -4852,7 +4856,7 @@ synapse:
 
     ## The tag of the container image to use.
     ## One of tag or digest must be provided.
-    tag: "v1.146.0-ess.1"
+    tag: "v1.149.1-ess.1"
 
     ## Container digest to use. Used to pull the image instead of the image tag if set
     ## The tag will still be set as the app.kubernetes.io/version label

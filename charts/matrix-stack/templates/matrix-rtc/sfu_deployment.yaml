@@ -39,7 +39,7 @@ spec:
       hostAliases:
         {{- tpl (toYaml . | nindent 8) $ }}
 {{- end }}
-{{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "matrix-rtc-sfu" "deployment" true "usesMatrixTools" true)) | nindent 6 }}
+{{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "matrix-rtc-sfu" "kind" "Deployment" "usesMatrixTools" true)) | nindent 6 }}
       hostNetwork: {{ .hostNetwork }}
       initContainers:
 {{- if not (.livekitAuth).keysYaml }}
@@ -93,11 +93,13 @@ spec:
 {{- with .exposedServices }}
   {{- with .turnTLS }}
   {{- if .enabled }}
-        - containerPort: {{ .port }}
+        - name: turn-tls-tcp
     {{- if eq .portType "HostPort" }}
           hostPort: {{ .port }}
+          containerPort: {{ .port }}
+    {{- else }}
+          containerPort: 5349
     {{- end }}
-          name: turn-tls-tcp
           protocol: TCP
   {{- end }}
   {{- end }}
@@ -178,7 +180,7 @@ spec:
 {{- range .extraVolumeMounts }}
         - {{ (. | toYaml) | nindent 10 }}
 {{- end }}
-{{- if .exposedServices.turnTLS.enabled }}
+{{- if and .exposedServices.turnTLS.enabled .exposedServices.turnTLS.tlsTerminationOnPod }}
         - mountPath: /turn-tls/tls.crt
           name: secret-turn-tls
           subPath: tls.crt
@@ -192,7 +194,7 @@ spec:
 {{- range .extraVolumes }}
       - {{- (tpl (. | toYaml) $) | nindent 8 }}
 {{- end }}
-{{- if .exposedServices.turnTLS.enabled }}
+{{- if and .exposedServices.turnTLS.enabled .exposedServices.turnTLS.tlsTerminationOnPod }}
 {{- if .exposedServices.turnTLS.tlsSecret }}
       - name: secret-turn-tls
         secret:

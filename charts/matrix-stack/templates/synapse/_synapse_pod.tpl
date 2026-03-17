@@ -38,15 +38,12 @@ template:
       {{- toYaml . | nindent 6 }}
 {{- end }}
   spec:
-{{- if $isHook }}
-    restartPolicy: Never
-{{- end }}
 {{- include "element-io.ess-library.pods.commonSpec"
             (dict "root" $root "context"
                                     (dict "componentValues" .
                                           "instanceSuffix" ($isHook | ternary "synapse-check-config" (printf "synapse-%s" $processType))
                                           "serviceAccountNameSuffix" ($isHook | ternary "synapse-check-config" "synapse")
-                                          "deployment" false
+                                          "kind" ($isHook | ternary "Job" "StatefulSet")
                                           "usesMatrixTools" true)
                                     ) | nindent 4 }}
 {{- if not $isHook }}

@@ -23,11 +23,11 @@ matrixAuthenticationService:
 matrixRTC:
   enabled: false
 # To check that templating works against the ingress
-serverName: '{{ $.Values.global.baseDomain }}'
+serverName: "{{ $.Values.global.baseDomain }}"
 synapse:
   enabled: false
 wellKnownDelegation:
   baseDomainRedirect:
-    url: https://redirect.localhost/path
+    url: "https://redirect.localhost/path"
   ingress:
-    tlsSecret: '{{ $.Release.Name }}-well-known-web-tls'
+    tlsSecret: "{{ $.Release.Name }}-well-known-web-tls"

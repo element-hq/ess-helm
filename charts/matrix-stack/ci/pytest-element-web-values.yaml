@@ -28,7 +28,7 @@ elementWeb:
     has-no-service-monitor: "true"
   ingress:
     host: element.{{ $.Values.serverName }}
-    tlsSecret: '{{ $.Release.Name }}-element-web-tls'
+    tlsSecret: "{{ $.Release.Name }}-element-web-tls"
   podSecurityContext:
     runAsGroup: 0
   replicas: 2

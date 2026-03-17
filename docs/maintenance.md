@@ -1,6 +1,6 @@
 <!--
 Copyright 2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 -->
@@ -125,3 +125,83 @@ As it is generated & managed with pre-install / pre-upgrade / post-upgrade Hooks
 This is to prevent invalid states being entered on reinstallation, given that the default chart behaviour is to keep the Postgres database between reinstallations.
 
 The deployment markers functionality can be turned off by setting `deploymentMarkers.enabled: false` and the chart will not protect you from various invalid changes to the values.
+
+## Fixing `CVE-2026-24044`/`ELEMENTSEC-2025-1670` manually
+
+If you initially deployed ESS Community with the chart secrets initialization hook enabled (`initSecrets.enabled` not set to `false`), your Synapse signing key will be vulnerable if it was not set explicitly in `synapse.signingKey`. If you later specified its content in `synapse.signingKey` in the values files, the chart will not be able to generate a new key automatically. You will be using the vulnerable signing key until you change it manually.
+
+1. Install `signedjson` and `pyyaml` using `pip` : `pip install signedjson pyyaml`
+2. Generate your new signing key with the key id `ed25519:1` using the following command :
+
+  ```
+  $ python3 -c "import signedjson.key; signing_key = signedjson.key.generate_signing_key(1); print(f\"{signing_key.alg} {signing_key.version} {signedjson.key.encode_signing_key_base64(signing_key)}\")"
+  ed25519 1 BUIaPW...
+  ```
+
+3. Specify this value as the new secret content under `synapse.signingKey` :
+
+  ```yml
+  synapse:
+    signingKey:
+      ## Adjust according to how you configure your signing key in the chart
+      ## It can either be provided inline in the Helm chart e.g.:
+      ## value: ed25519 1 BUIaPW...
+      ##
+      ## Or it can be provided via an existing Secret e.g.:
+      ## secret: existing-secret
+      ## secretKey: key-in-secret
+  ```
+
+4. To invalidate the old signing key, you will have to construct Synapse `old_signing_key` configuration. Generate a throwaway verifying key using the key id `ed25519:0` with the following command :
+
+  ```bash
+  $ python3 -c "import yaml; import time; import signedjson.key; signing_key = signedjson.key.generate_signing_key(0); revoke_time = int(time.time()*1000); result = {\"old_signing_keys\": {\"ed25519:0\": {\"key\": signedjson.key.encode_verify_key_base64(signing_key), \"expired_ts\": revoke_time}}}; print(f\"{yaml.dump(result)}\")"
+  old_signing_keys:
+    ed25519:0:
+      expired_ts: 1770625043432
+      key: x1YFkPUwoKBnS69Yfxhpjc5Y8cd2nLPElJFdqCcJk4E
+  ```
+
+5. Inject this in synapse additional settings in your values, under a new `synapse.additional` section :
+
+  ```yaml
+  synapse:
+    additional:
+      revoke_bad_signing_key.yml:
+        config: |
+          old_signing_keys:
+            ed25519:0:
+              key: <throwaway verifying key>
+              expired_ts: <current ts>
+  ```
+
+  This will make sure that :
+  - The old key id ed25519:0 is not accepted any more by the federation, and because the verifying key has been randomly generated during revocation, the old key signatures are all invalid.
+  - The new key ed25519:1 is accepted by the federation
+
+6. Apply the new values using `helm` and wait for Synapse to be restarted. Run the following command to check that the new signing key `ed25519:1` is now advertised properly by Synapse, and the old key id `ed25519:0` is marked as revoked:
+
+  ```json
+  curl -s https://<your synapse host>/_matrix/key/v2/server | jq
+  {
+    "old_verify_keys": {
+      "ed25519:0": {
+        "expired_ts": 1769001790846,
+        "key": "tt+JkcqGzTxt..."
+      }
+    },
+    "server_name": "<your server name>",
+    "signatures": {
+      "<your server name>": {
+        "ed25519:1": "gahd4eeGh..."
+      }
+    },
+    "valid_until_ts": ...,
+    "verify_keys": {
+      "ed25519:1": {
+        "key": "BUIaPW..."
+      }
+    }
+  }
+
+  ```

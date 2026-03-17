@@ -71,7 +71,7 @@ A full comparison between the editions can be found [here](https://element.io/pr
 - [Getting started](#getting-started)
    - [Resource requirements](#resource-requirements)
    - [Prerequisites](#prerequisites)
-- [Quick setup](#installation)
+- [Quick setup](#quick-setup)
   - [Preparing the environment](#preparing-the-environment)
     - [DNS](#dns)
     - [K3S - Kubernetes single node setup](#kubernetes-single-node-setup-with-k3s)
@@ -179,8 +179,8 @@ You need to create DNS records (A or CNAME, for example) to set up ESS Community
 For this simple setup you need to open the following ports:
  - TCP 80: This port will be used for the HTTP connections of all services, which will redirect to the HTTPS connection.
  - TCP 443: This port will be used for the HTTPS connections of all services.
- - TCP 30881: This port will be used for the TCP WebRTC connections of Matrix RTC Backend.
- - UDP 30882: This port will be used for the Muxed WebRTC connections of Matrix RTC Backend.
+ - TCP 30001: This port will be used for the TCP WebRTC connections of Matrix RTC Backend.
+ - UDP 30002: This port will be used for the Muxed WebRTC connections of Matrix RTC Backend.
 
 These ports will be exposed by default on a running ESS Community deployment. You can change that as needed, for instance if you have another service occupying 80/443. See the [Using an existing reverse proxy](#using-an-existing-reverse-proxy) section below.
 
@@ -452,6 +452,31 @@ server {
 ```
 </details>
 
+<details><summary>Caddy</summary>
+
+Below are two examples of a Caddy reverse proxy config for ESS Community with TLS termination.
+* The first is for when you don't use anything else on the domain except ESS
+* The second illustrates how you would add ESS to an already established Caddy installation where you have other sites on the base domain as well
+```
+example.com matrix.example.com account.example.com mrtc.example.com chat.example.com admin.example.com {
+  reverse_proxy http://127.0.0.1:8080
+}
+```
+
+```
+example.com {
+  # Other directives or matcher definitions i.e. your personal homepage or a blog under example.com/blog/ could be in here as well
+  #
+  reverse_proxy /.well-known/matrix/* http://127.0.0.1:8080
+}
+
+admin.example.com chat.example.com account.example.com mrtc.example.com matrix.example.com {
+  reverse_proxy http://127.0.0.1:8080
+}
+```
+
+</details>
+
 ### Configuring the database
 
 You can either use the database provided with ESS Community or you use a dedicated PostgreSQL Server. We recommend [using a PostgreSQL server](./docs/advanced.md#using-a-dedicated-postgresql-database) installed with your own distribution packages. For a quick set up, feel free to use the internal PostgreSQL database, which the chart will configure automatically for you by default with no required configuration.
@@ -496,8 +521,8 @@ This should give you the following output:
 Defaulted container "matrix-authentication-service" out of: matrix-authentication-service, render-config (init), db-wait (init), config (init)
 ✔ Username · alice
 User attributes
-    	Username: alice
-   	Matrix ID: @alice:thisservername.tld
+         Username: alice
+        Matrix ID: @alice:thisservername.tld
 No email address provided, user will be prompted to add one
 No password or upstream provider mapping provided, user will not be able to log in
 
@@ -508,9 +533,9 @@ Non-interactive equivalent to create this user:
 ✔ What do you want to do next? (<Esc> to abort) · Set a password
 ✔ Password · ********
 User attributes
-    	Username: alice
-   	Matrix ID: @alice:thisservername.tld
-    	Password: ********
+         Username: alice
+        Matrix ID: @alice:thisservername.tld
+         Password: ********
 No email address provided, user will be prompted to add one
 ```
 

@@ -7,19 +7,25 @@ import asyncio
 import base64
 import json
 import os
-from collections.abc import AsyncGenerator
+import shutil
+from collections.abc import AsyncGenerator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from pathlib import Path
 from ssl import SSLContext
 from typing import Any
 from urllib.parse import urlparse
 
 import aiohttp
+import pyhelm3
 import yaml
 from aiohttp_retry import JitterRetry, RetryClient
 from lightkube import AsyncClient
-from lightkube.generic_resource import async_load_in_cluster_generic_resources, get_generic_resource
+from lightkube.generic_resource import (
+    async_load_in_cluster_generic_resources,
+    get_generic_resource,
+)
 from lightkube.resources.apiextensions_v1 import CustomResourceDefinition
 from lightkube.resources.core_v1 import Pod
 from pytest_kubernetes.providers import AClusterManager
@@ -255,3 +261,73 @@ async def forward_matching_logs(input_logs_queue: asyncio.Queue, output_matchers
         for matcher, output_logs_queue in output_matchers_to_logs_queues:
             if matcher(log_line):
                 output_logs_queue.put_nowait(log_line)
+
+
+async def chart_from_ci_cache(helm_client: pyhelm3.Client, chart_ref: str) -> pyhelm3.Chart:
+    project_root = Path(__file__).parent.parent.parent.parent
+    if os.environ.get("CI"):
+        helm_cache = project_root / ".pyhelm_cache"
+        helm_cache.mkdir(parents=True, exist_ok=True)
+        chart_name = chart_ref.split("/")[-1]
+        cached_ref = helm_cache / chart_name
+        try:
+            # Always try to fetch the remote chart first
+            async with helm_client.pull_chart(chart_ref) as chart:
+                if cached_ref.exists():
+                    shutil.rmtree(cached_ref)
+                # pull_chart returns a Chart object, not a Path, type annotation is wrong
+                chart.ref.copy(cached_ref)  # type: ignore
+                # pull_chart removes the pulled chart, we return the cached one
+                return await helm_client.get_chart(cached_ref)  # type: ignore
+        except Exception as e:
+            # Fall back to cache if remote fetch fails
+            if cached_ref.exists():
+                return await helm_client.get_chart(cached_ref)
+            else:
+                raise FileNotFoundError(
+                    f"Could not find chart {chart_ref} in cache at {cached_ref}. "
+                    f"Remote fetch also failed with error: {e}"
+                ) from e
+    else:
+        return await helm_client.get_chart(chart_ref)
+
+
+async def async_retry_with_timeout(
+    retriable_callable: Callable[[], Awaitable[Any]],
+    max_retries=15,
+    timeout_seconds=60,
+    delay=1,
+    should_retry: Callable[[BaseException], bool] | None = None,
+):
+    begin_time = datetime.now()
+    last_exception = None
+    attempts_ts: list[datetime] = []
+
+    for attempt in range(max_retries):
+        # Check if timeout has been exceeded
+        if datetime.now() > begin_time + timedelta(seconds=timeout_seconds):
+            raise TimeoutError(
+                f"Timeout of {timeout_seconds} seconds exceeded. "
+                f"Last exception: {last_exception if last_exception else 'None'}"
+                f"Tried attempts: {[a.strftime('%H:%M:%S') for a in attempts_ts]}"
+            )
+
+        try:
+            attempts_ts.append(datetime.now())
+            return await retriable_callable()
+        except BaseException as e:
+            last_exception = e
+            # If no should_retry function is provided, retry on all exceptions
+            if should_retry is None or should_retry(e):
+                print(f"Attempt {attempt}/{max_retries} failed: {e}")
+                if attempt < max_retries:
+                    await asyncio.sleep(delay)
+                    continue  # Explicitly continue to the next attempt
+            raise  # Re-raise if should_retry returns False
+
+    if last_exception:
+        raise RuntimeError(
+            f"All {max_retries} attempts failed"
+            f"Last exception: {last_exception if last_exception else 'None'}"
+            f"Tried attempts: {[a.strftime('%H:%M:%S') for a in attempts_ts]}"
+        )  # Re-raise the last exception if all retries fail

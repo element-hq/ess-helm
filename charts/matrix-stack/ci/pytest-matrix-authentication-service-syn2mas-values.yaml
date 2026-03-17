@@ -27,8 +27,8 @@ initSecrets:
 matrixAuthenticationService:
   additional:
     000-pytest-admin:
-      configSecret: '{{ $.Release.Name }}-pytest-admin'
-      configSecretKey: admin.yaml
+      configSecret: "{{ $.Release.Name }}-pytest-admin"
+      configSecretKey: "admin.yaml"
     password-scheme.yml:
       config: |
         passwords:
@@ -43,7 +43,7 @@ matrixAuthenticationService:
       value: "1"
   ingress:
     host: mas.{{ $.Values.serverName }}
-    tlsSecret: '{{ $.Release.Name }}-mas-web-tls'
+    tlsSecret: "{{ $.Release.Name }}-mas-web-tls"
   podSecurityContext:
     runAsGroup: 0
   replicas: 2
@@ -71,7 +71,7 @@ synapse:
       value: "1"
   ingress:
     host: synapse.{{ $.Values.serverName }}
-    tlsSecret: '{{ $.Release.Name }}-synapse-web-tls'
+    tlsSecret: "{{ $.Release.Name }}-synapse-web-tls"
   podSecurityContext:
     runAsGroup: 0
 wellKnownDelegation:

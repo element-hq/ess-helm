@@ -1,0 +1,16 @@
+# Copyright 2026 Element Creations Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# UV workspace configuration for scripts
+# This allows scripts to have their own isolated environment if needed
+
+[workspace]
+members = ["scripts"]
+
+# If scripts need their own dependencies, they can be specified here
+# [dependencies]
+# script-specific-package = ">=1.0.0"
+
+# Inherit from parent project's dependencies
+inherit = true

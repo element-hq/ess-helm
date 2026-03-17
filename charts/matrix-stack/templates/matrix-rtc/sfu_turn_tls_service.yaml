@@ -32,7 +32,9 @@ spec:
   - name: "turn-tls-tcp"
     protocol: "TCP"
     port: {{ .exposedServices.turnTLS.port }}
-    targetPort: {{ .exposedServices.turnTLS.port }}
+  {{- /* LiveKit will advertise the port 443 regardless of the port configured.
+    We hardcode it to 5349 and rely on Kubernetes routing to expose a port of 443 using a LoadBalancer service */}}
+    targetPort: 5349
     {{- with .exposedServices.turnTLS.nodePort }}
     nodePort: {{ tpl . (dict "context" $.Values.matrixRTC.sfu.exposedServices.turnTLS "root" $) }}
     {{- end }}

@@ -1,5 +1,5 @@
 # Copyright 2024-2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -23,15 +23,17 @@ jobs:
     - name: Checkout
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
       with:
+        persist-credentials: false
         fetch-depth: 0
 
-    - uses: matrix-org/setup-python-poetry@5bbf6603c5c930615ec8a29f1b5d7d258d905aa4  # v2
+    - name: Install uv
+      uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a  # v7
       with:
-        python-version: "3.x"
+        enable-cache: true
+        activate-environment: true
 
-    - name: Load poetry path
-      run: |
-        echo "$(poetry env info -p)/bin" >> "${GITHUB_PATH}"
+    - name: Set up UV environment
+      run: uv sync
 
     - name: reuse-lint
       run: |
@@ -56,7 +58,7 @@ jobs:
         fi
 
     - name: Copyright dates
-      if: ${{ github.event_name == 'pull_request' }}
+      if: ${{ github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' }}
       env:
         BASE_REF: ${{ github.event.pull_request.base.sha }}
         HEAD_REF: ${{ github.event.pull_request.head.sha }}

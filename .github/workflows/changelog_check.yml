@@ -1,5 +1,5 @@
 # Copyright 2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -22,15 +22,17 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
         with:
+          persist-credentials: false
           fetch-depth: 0
 
-      - uses: matrix-org/setup-python-poetry@5bbf6603c5c930615ec8a29f1b5d7d258d905aa4  # v2
+      - name: Install uv
+        uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a  # v7
         with:
-          python-version: "3.x"
+          enable-cache: true
+          activate-environment: true
 
-      - name: Load poetry path
-        run: |
-          echo "$(poetry env info -p)/bin" >> "${GITHUB_PATH}"
+      - name: Set up UV environment
+        run: uv sync
 
       - name: Run towncrier check
         env:
@@ -44,14 +46,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
-
-      - uses: matrix-org/setup-python-poetry@5bbf6603c5c930615ec8a29f1b5d7d258d905aa4  # v2
         with:
-          python-version: "3.x"
+          persist-credentials: false
 
-      - name: Load poetry path
-        run: |
-          echo "$(poetry env info -p)/bin" >> "${GITHUB_PATH}"
+      - name: Install uv
+        uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a  # v7
+        with:
+          enable-cache: true
+          activate-environment: true
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a  # v7
+        with:
+          enable-cache: true
+
+      - name: Set up UV environment
+        run: uv sync
 
       - name: Run towncrier build --draft
         run: |

@@ -24,7 +24,7 @@ from lightkube.resources.core_v1 import Namespace, Secret, Service
 from pytest_kubernetes.options import ClusterOptions
 from pytest_kubernetes.providers import K3dManagerBase
 
-from ..lib.utils import b64encode
+from ..lib.utils import async_retry_with_timeout, b64encode, chart_from_ci_cache
 from .data import ESSData
 
 ClusterIssuer = create_global_resource(
@@ -100,7 +100,8 @@ async def cluster():
     # Both these names must match what `setup_test_cluster.sh` would create
     this_cluster = PotentiallyExistingK3dCluster("ess-helm")
     this_cluster.create(
-        ClusterOptions(cluster_name="ess-helm", provider_config=Path(__file__).parent / Path("files/clusters/k3d.yml"))
+        ClusterOptions(cluster_name="ess-helm", provider_config=Path(__file__).parent / Path("files/clusters/k3d.yml")),
+        options=os.environ.get("K3D_EXTRA_OPTIONS", "").split(" "),
     )
 
     yield this_cluster
@@ -130,7 +131,7 @@ async def kube_client(cluster):
 @pytest.fixture(scope="session")
 async def ingress(cluster, kube_client):
     attempt = 0
-    while attempt < 120:
+    while attempt < 180:
         try:
             # We can't just kubectl wait as that doesn't work with non-existent objects
             # This can be setup before the LB port is accessible externally, so we do it afterwards
@@ -145,22 +146,22 @@ async def ingress(cluster, kube_client):
         except ApiError:
             await asyncio.sleep(1)
             attempt += 1
-    raise Exception("Couldn't fetch Trafeik Service IP afrter 120s")
+    raise Exception("Couldn't fetch Trafeik Service IP after 180s")
 
 
-@pytest.fixture(autouse=True, scope="session")
+@pytest.fixture(scope="session")
 async def cert_manager(helm_client, kube_client):
     if os.environ.get("SKIP_CERT_MANAGER", "false") != "false":
         return
 
-    chart = await helm_client.get_chart("oci://quay.io/jetstack/charts/cert-manager")
+    chart = await chart_from_ci_cache(helm_client, "oci://quay.io/jetstack/charts/cert-manager")
     await helm_client.install_or_upgrade_release(
         "cert-manager",
         chart,
         yaml.safe_load((Path(__file__).parent / "files/charts/cert-manager.yml").open()),
         namespace="cert-manager",
         create_namespace=True,
-        atomic=True,
+        atomic="CI" not in os.environ,
         wait=True,
     )
 
@@ -227,19 +228,34 @@ async def cert_manager(helm_client, kube_client):
 
 
 @pytest.fixture(scope="session")
-async def prometheus_operator_crds(helm_client):
+async def prometheus_operator_crds(helm_client: pyhelm3.Client):
     if os.environ.get("SKIP_SERVICE_MONITORS_CRDS", "false") == "false":
-        chart = await helm_client.get_chart("oci://ghcr.io/prometheus-community/charts/prometheus-operator-crds")
+        chart = await chart_from_ci_cache(
+            helm_client,
+            "oci://ghcr.io/prometheus-community/charts/prometheus-operator-crds",
+        )
 
-        # Install or upgrade a release
-        await helm_client.install_or_upgrade_release(
-            "prometheus-operator-crds",
-            chart,
-            {},
-            namespace="prometheus-operator",
-            create_namespace=True,
-            atomic=True,
-            wait=True,
+        async def _setup_prometheus_operator_crds():
+            # Install or upgrade a release
+            await helm_client.install_or_upgrade_release(
+                "prometheus-operator-crds",
+                chart,
+                {},
+                namespace="prometheus-operator",
+                create_namespace=True,
+                atomic="CI" not in os.environ,
+                timeout="1m",
+                wait=True,
+            )
+
+        # We retry 5 times, maximum for 5m
+        # Each helm install timeouts after 1m so that we early fail if the CRDs fail to setup
+        # This should be revised when https://github.com/helm/helm/issues/31824 gets resolved
+        await async_retry_with_timeout(
+            _setup_prometheus_operator_crds,
+            should_retry=lambda e: type(e) is pyhelm3.errors.Error,
+            max_retries=5,
+            timeout_seconds=300,
         )
 
 

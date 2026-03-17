@@ -14,7 +14,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 ## The matrix-tools image, used in multiple components
 matrixTools:
-{{ image(registry="ghcr.io", repository="element-hq/ess-helm/matrix-tools", tag="0.7.2") | indent(2) }}
+{{ image(registry="ghcr.io", repository="element-hq/ess-helm/matrix-tools", tag="0.7.3") | indent(2) }}
 
 ## CertManager Issuer to configure by default automatically on all ingresses
 ## If configured, the chart will automatically generate the tlsSecret name for all ingresses
@@ -501,7 +501,11 @@ extraInitContainers: []
   # The domain of the service
   domain: ""
   # The TLS secret used to expose this service
+  # Optional when tlsTerminationOnPod is false (external termination) or when certManager is configured
   tlsSecret: ""
+  # Whether TLS termination should happen on the pod (true) or externally (false)
+  # When false, TLS termination is handled by an external load balancer or proxy
+  tlsTerminationOnPod: true
 {% endif %}
 {%- endmacro %}
 

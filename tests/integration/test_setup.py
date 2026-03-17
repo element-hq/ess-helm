@@ -8,5 +8,5 @@ import pytest
 # this test is only here to setup the environment using `--env-setup` arg
 @pytest.mark.env_setup
 @pytest.mark.asyncio_cooperative
-async def test_setup():
+async def test_setup(cert_manager, prometheus_operator_crds):
     pytest.exit("k3d environment and dependent helm charts successfully setup", 0)

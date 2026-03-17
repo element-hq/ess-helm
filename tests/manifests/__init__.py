@@ -551,8 +551,24 @@ all_components_details = [
         has_credentials=False,
         has_service_monitor=False,
         makes_outbound_requests=False,
+        ignore_paths_mismatches={
+            "element-admin": (
+                # Various paths / path prefixes in the nginx config for adjusting headers.
+                # Files provided by the base image
+                "/50x.html",
+                "/health",
+                "/index.html",
+                "/index.runtime.html",
+                "/assets",
+            )
+        },
         ignore_unreferenced_mounts={
-            "element-admin": ("/tmp",),
+            "element-admin": (
+                # Explicitly mounted but wildcard included by the base-image
+                "/etc/nginx/conf.d/default.conf",
+                "/etc/nginx/conf.d/http_customisations.conf",
+                "/tmp",
+            )
         },
     ),
     ComponentDetails(
@@ -745,6 +761,7 @@ _extra_secret_values_files_to_test = [
 _extra_services_values_files_to_test = [
     "matrix-rtc-exposed-services-tls-values.yaml",
     "matrix-rtc-exposed-services-cert-manager-values.yaml",
+    "matrix-rtc-turn-tls-external-values.yaml",
 ]
 
 secret_values_files_to_test = set(
