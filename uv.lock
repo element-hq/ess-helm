@@ -58,6 +58,7 @@ dev-tools = [
     { name = "pytest" },
     { name = "ruff" },
     { name = "types-cryptography" },
+    { name = "types-jsonschema" },
     { name = "types-pyyaml" },
 ]
 
@@ -104,6 +105,7 @@ dev-tools = [
     { name = "pytest", specifier = ">=8.4.2" },
     { name = "ruff", specifier = ">=0.15.4" },
     { name = "types-cryptography", specifier = ">=3.3.23.2" },
+    { name = "types-jsonschema", specifier = ">=4.26.0.20260202" },
     { name = "types-pyyaml", specifier = ">=6.0.12.20250915" },
 ]
 
@@ -852,6 +854,9 @@ wheels = [
 name = "ess-migration-tool"
 version = "0.1.0"
 source = { editable = "packages/ess-migration-tool" }
+dependencies = [
+    { name = "rapidfuzz" },
+]
 
 [package.dev-dependencies]
 dev = [
@@ -863,6 +868,7 @@ dev = [
 ]
 
 [package.metadata]
+requires-dist = [{ name = "rapidfuzz", specifier = ">=3.14.3" }]
 
 [package.metadata.requires-dev]
 dev = [
