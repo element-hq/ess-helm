@@ -16,7 +16,7 @@ SPDX-FileCopyrightText = ["Copyright 2026 Element Creations Ltd"]
 SPDX-License-Identifier = "AGPL-3.0-only"
 
 [[annotations]]
-path = ".python-version"
+path = "**/.python-version"
 SPDX-FileCopyrightText = ["Copyright 2026 Element Creations Ltd"]
 SPDX-License-Identifier = "AGPL-3.0-only"
 
