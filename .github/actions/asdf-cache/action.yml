@@ -22,7 +22,7 @@ runs:
 
   - name: Cache ASDF for a week
     id: asdf-cache
-    uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5
+    uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5.0.3
     env:
       gh_cache_prefix: ${{ runner.os }}-${{ runner.arch }}-asdf-
     with:
@@ -31,7 +31,7 @@ runs:
         ${{ steps.cache-input.outputs.runner-home }}/.asdf/bin
 
   - name: set up ASDF
-    uses: asdf-vm/actions/setup@b7bcd026f18772e44fe1026d729e1611cc435d47  # v4
+    uses: asdf-vm/actions/setup@b7bcd026f18772e44fe1026d729e1611cc435d47  # v4.0.1
     with:
       skip_install: ${{ steps.asdf-cache.outputs.cache-hit == 'true' }}
 
@@ -46,7 +46,7 @@ runs:
 
   - name: Restore ASDF tools from cache
     id: asdf-tools-cache
-    uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5
+    uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5.0.3
     env:
       gh_cache_prefix: ${{ runner.os }}-${{ runner.arch }}-asdf-tools-
     with:
@@ -56,7 +56,7 @@ runs:
         ${{ env.ASDF_DIR }}/installs
 
   - name: Install ASDF tools
-    uses: asdf-vm/actions/install@b7bcd026f18772e44fe1026d729e1611cc435d47  # v4
+    uses: asdf-vm/actions/install@b7bcd026f18772e44fe1026d729e1611cc435d47  # v4.0.1
 
   - name: Reshim installed ASDF tools
     shell: bash
