@@ -857,6 +857,7 @@ name = "ess-migration-tool"
 version = "0.1.0"
 source = { editable = "packages/ess-migration-tool" }
 dependencies = [
+    { name = "cryptography" },
     { name = "pyyaml" },
     { name = "rapidfuzz" },
 ]
@@ -873,6 +874,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "cryptography", specifier = ">=46.0.5" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "rapidfuzz", specifier = ">=3.14.3" },
 ]

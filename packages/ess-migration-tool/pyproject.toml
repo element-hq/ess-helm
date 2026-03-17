@@ -7,6 +7,7 @@ name = "ess-migration-tool"
 version = "0.1.0"
 requires-python = ">=3.11.7,<4.0"
 dependencies = [
+  "cryptography>=46.0.5",
   "pyyaml>=6.0.3",
   "rapidfuzz>=3.14.3",
 ]
