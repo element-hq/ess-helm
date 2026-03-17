@@ -5,7 +5,7 @@
 [project]
 name = "ess-migration-tool"
 version = "0.1.0"
-requires-python = ">=3.10,<4.0"
+requires-python = ">=3.11.7,<4.0"
 
 [build-system]
 requires = ["uv_build>=0.10.9,<0.11.0"]
@@ -26,4 +26,5 @@ dev = [
         "pytest>=8.4.2",
         "mypy>=1.19.1",
         "types-pyyaml>=6.0.12.20250915",
+        "types-cryptography>=3.3.23.2",
 ]
