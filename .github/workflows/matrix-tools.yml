@@ -126,7 +126,6 @@ jobs:
           cwd://${{ steps.meta.outputs.bake-file }}
         targets: matrix-tools
         set: |
-          *.output=type=image
           *.platform=linux/amd64,linux/arm64
         # https://docs.zizmor.sh/audits/#cache-poisoning
         # This is not catched by zizmor but arguably we need to disable cache for docker builds
