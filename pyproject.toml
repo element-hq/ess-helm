@@ -15,17 +15,13 @@ dependencies = []
 
 [tool.uv]
 [dependency-groups]
-# This should be kept in sync with packages/ess-migration-tool
-dev-tools = [
-        "ruff>=0.15.4",
-        "pytest>=8.4.2",
-        "mypy>=1.19.1",
-        "types-pyyaml>=6.0.12.20250915",
-        "types-cryptography>=3.3.23.2",
-        "types-jsonschema>=4.26.0.20260202",
-]
 dev = [
-  {include-group = "dev-tools"},
+  "ruff>=0.15.4",
+  "pytest>=8.4.2",
+  "mypy>=1.19.1",
+  "types-pyyaml>=6.0.12.20250915",
+  "types-cryptography>=3.3.23.2",
+  "types-jsonschema>=4.26.0.20260202",
   # For https://github.com/azimuth-cloud/pyhelm3/pull/36 & https://github.com/azimuth-cloud/pyhelm3/pull/37 & https://github.com/azimuth-cloud/pyhelm3/pull/39
   "pyhelm3 @ git+https://github.com/element-hq/pyhelm3.git@efa509e7501edeb9d04f2a9e688f6e0088305954",
   "lightkube>=0.19.1",

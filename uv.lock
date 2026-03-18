@@ -54,14 +54,6 @@ dev = [
     { name = "yamale" },
     { name = "yamllint" },
 ]
-dev-tools = [
-    { name = "mypy" },
-    { name = "pytest" },
-    { name = "ruff" },
-    { name = "types-cryptography" },
-    { name = "types-jsonschema" },
-    { name = "types-pyyaml" },
-]
 
 [package.metadata]
 
@@ -101,14 +93,6 @@ dev = [
     { name = "types-pyyaml", specifier = ">=6.0.12.20250915" },
     { name = "yamale", specifier = ">=6.1.0" },
     { name = "yamllint", specifier = ">=1.38.0" },
-]
-dev-tools = [
-    { name = "mypy", specifier = ">=1.19.1" },
-    { name = "pytest", specifier = ">=8.4.2" },
-    { name = "ruff", specifier = ">=0.15.4" },
-    { name = "types-cryptography", specifier = ">=3.3.23.2" },
-    { name = "types-jsonschema", specifier = ">=4.26.0.20260202" },
-    { name = "types-pyyaml", specifier = ">=6.0.12.20250915" },
 ]
 
 [[package]]
@@ -863,32 +847,12 @@ dependencies = [
     { name = "rapidfuzz" },
 ]
 
-[package.dev-dependencies]
-dev = [
-    { name = "mypy" },
-    { name = "pytest" },
-    { name = "ruff" },
-    { name = "types-cryptography" },
-    { name = "types-jsonschema" },
-    { name = "types-pyyaml" },
-]
-
 [package.metadata]
 requires-dist = [
     { name = "cryptography", specifier = ">=46.0.5" },
     { name = "jsonschema", specifier = ">=4.26.0" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "rapidfuzz", specifier = ">=3.14.3" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "mypy", specifier = ">=1.19.1" },
-    { name = "pytest", specifier = ">=8.4.2" },
-    { name = "ruff", specifier = ">=0.15.4" },
-    { name = "types-cryptography", specifier = ">=3.3.23.2" },
-    { name = "types-jsonschema", specifier = ">=4.26.0.20260202" },
-    { name = "types-pyyaml", specifier = ">=6.0.12.20250915" },
 ]
 
 [[package]]

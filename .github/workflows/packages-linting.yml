@@ -41,7 +41,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Set up UV environment
-      run: uv sync --package ess-migration-tool
+      run: uv sync --all-packages
 
     - name: Run ruff check
       run: |
