@@ -7,6 +7,155 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.3.0 (2026-03-18)
+
+## Removed / Breaking Changes
+
+- Matrix RTC: Change the default ports to move them to the proper default Kubernetes static range.
+
+  Kubernetes default static range contains ports 30000-30085. The new Matrix RTC exposed services have been moved to :
+  - Matrix RTC TCP : 30001
+  - Matrix RTC UDP : 30002
+  - Matrix RTC Turn TLS: 30003
+  - Matrix RTC Turn: 30004
+
+  If you want to keep using the previously set static ports, you can do so by adding the following to your values files :
+
+  ```yml
+  matrixRTC:
+    sfu:
+      exposedServices:
+        rtcTcp:
+          port: 30881
+        rtcMuxedUdp:
+          port: 30882
+        turnTLS:
+          port: 31443
+        turn:
+          port: 31748
+  ```
+
+  (#1118, #1123)
+
+## Added
+
+- Add support for Matrix Authentication Service to migration scripts. (#1083)
+- Add example config for Caddy reverse proxy. (#1087)
+- Added support for external Redis configuration (`synapse.redis`, `hookshot.redis`) allowing use of managed Redis services (AWS Elasticache, Azure Cache for Redis, etc.) instead of the internal Redis deployment. Each Redis-using component uses the chart Redis unless it has been independently configured with an external Redis. When external Redis is configured for all components, the internal Redis Deployment, Service, ConfigMap, and ServiceAccount are automatically skipped. (#1143)
+
+## Changed
+
+- Remove unstable MSC2965 details from Well Known Files.
+
+  Native OIDC (Matrix Authentication Service) support is advertised through `/auth_metadata` availability.
+
+  The classic Element applications need to be upgraded to the following versions:
+  - Element Android: [v1.6.50](https://github.com/element-hq/element-android/releases/tag/v1.6.50)
+  - Element iOS: [v1.11.34](https://github.com/element-hq/element-ios/releases/tag/v1.11.34)
+
+  (#898)
+- Migration script : Add supports automatically discovering extra files referenced by Synapse configuration and outputs them to Kubernetes ConfigMaps manifests. (#1067, #1085, #1117)
+- Add support for Synapse workers discovery in migration script. (#1080, #1106)
+- Use double quotes string-scalar in `Chart.yaml` for consistency with CI values files. (#1081, #1084)
+- Add optional file pattern argument to `scripts/ct-lint.sh` to allow selective linting of files, similar to `scripts/assemble_ci_values_files_from_fragments.sh`. (#1103)
+- Matrix Authentication Service: Remove hardcoded `kid` from secret keys in the config file, and let Matrix Authentication Service automatically derive them.
+
+  Matrix Authentication Service includes the `kid` it used when signing JWTs, like `id_tokens`, which helps consumers verify using the right key. The Matrix specifications doesn't make use of `id_tokens`, so there is no impact changing the `kid` and letting it derive one automatically at runtime. (#1112)
+- Upgrade Element Web to v1.12.12.
+
+  Highlights:
+  - Add stable support for MSC4380 invite blocking
+  - Hide the names of banned users behind a spoiler tag
+
+  Full Changelogs:
+  - [v1.12.12](https://github.com/element-hq/element-web/releases/tag/v1.12.12)
+
+  (#1120)
+- Upgrade Matrix Authentication Service to v1.13.0.
+
+  Highlights:
+  - Support MSC4198 login_hint in account management URI
+
+  Full Changelogs:
+  - [v1.13.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.13.0)
+
+  (#1121)
+- Upgrade Synapse to v1.149.1.
+
+  Highlights:
+  - Add stable support for [MSC4380](https://github.com/matrix-org/matrix-spec-proposals/pull/4380) invite blocking
+  - Add experimental support for [MSC4388: Secure out-of-band channel for sign in with QR](https://github.com/matrix-org/matrix-spec-proposals/pull/4388)
+  - Fix `/sync` missing membership event in `state_after` (experimental [MSC4222](https://github.com/matrix-org/matrix-spec-proposals/pull/4222) implementation) in some scenarios
+
+  Full Changelogs:
+  - [v1.149.0](https://github.com/element-hq/synapse/releases/tag/v1.149.0)
+  - [v1.149.1](https://github.com/element-hq/synapse/releases/tag/v1.149.1)
+
+  (#1122)
+- Upgrade Matrix RTC SFU to 1.9.12.
+
+  Full Changelogs:
+  - [v1.9.2](https://github.com/livekit/livekit/releases/tag/v1.9.2)
+  - [v1.9.3](https://github.com/livekit/livekit/releases/tag/v1.9.3)
+  - [v1.9.4](https://github.com/livekit/livekit/releases/tag/v1.9.4)
+  - [v1.9.6](https://github.com/livekit/livekit/releases/tag/v1.9.6)
+  - [v1.9.7](https://github.com/livekit/livekit/releases/tag/v1.9.7)
+  - [v1.9.8](https://github.com/livekit/livekit/releases/tag/v1.9.8)
+  - [v1.9.9](https://github.com/livekit/livekit/releases/tag/v1.9.9)
+  - [v1.9.10](https://github.com/livekit/livekit/releases/tag/v1.9.10)
+  - [v1.9.11](https://github.com/livekit/livekit/releases/tag/v1.9.11)
+  - [v1.9.12](https://github.com/livekit/livekit/releases/tag/v1.9.12)
+
+  (#1127)
+- Upgrade MatrixRTC authoriser to v0.4.1 for [MSC4195](https://github.com/matrix-org/matrix-spec-proposals/pull/4195) compliance.
+
+  Highlights:
+  - Introduces the new [MSC4195](https://github.com/matrix-org/matrix-spec-proposals/pull/4195)-compliant request flow
+
+  Full Changelogs:
+  - [v0.4.0](https://github.com/element-hq/lk-jwt-service/releases/tag/v0.4.0)
+  - [v0.4.1](https://github.com/element-hq/lk-jwt-service/releases/tag/v0.4.1)
+
+  (#1128)
+
+## Fixed
+
+- Matrix RTC: Fix an issue where LiveKit would crash if setting `exposedServices.turnTLS.port` to `443` when not using `HostPort` `portType`. (#1079)
+- Fix HAProxy memory leak in dual-stack clusters.
+
+  In dual-stack clusters the IP of the backend server for each Synapse `Pod`
+  flaps between the IPv4 & IPv6 address every second or so. This causes a memory leak.
+
+  Configure HAProxy to only use the IPv4 or IPv6 address based on the value of
+  `networking.ipFamily`. In the case of `dual-stack` (the default value), the IPv4
+  address is used. As such IPv6 only clusters must now set `networking.ipFamily: ipv6`. (#1124)
+- Fix Element Admin not starting in an IPv6 only cluster. (#1125)
+- Fix Hookshot not starting in an IPv6 only cluster. (#1126)
+
+## Documentation
+
+- Fix the link to the "Quick setup" section in the README. (#1136)
+
+## Internal
+
+- CI: Verify nested values behaviour in migration scripts. (#1077)
+- CI: Log the last exception happening when waiting for an ingress to become ready. (#1078)
+- CI: Use a composite action to share the ASDF cache run steps. (#1082)
+- CI: Cache asdf in manifests tests. (#1082)
+- Use helm standard function to transform string to env var name. (#1094)
+- CI: Fix `KeyError` being raised when logging the reason a volume could not be found in configuration consistency tests. (#1095)
+- CI: exempt dependabot from copyright-dates check. (#1096)
+- CI: skip trying to login to DockerHub on forks. (#1096)
+- Scripts: Do not escape strings automatically in our Jinja files. (#1097)
+- Rewrite postgres databases handling to make enhance the script readability. (#1101)
+- Improve error messages in `chart_from_ci_cache` to include specific details about missing charts and cache locations. (#1102)
+- CI: Run zizmor security scan against ess-helm github action workflows. (#1107, #1114, #1115, #1116, #1119, #1140)
+- CI: Document manifests tests with docstring and better assertion messages. (#1108)
+- CI: Matrix RTC pytest now uses DynamicNodePort to avoid port conflicts. (#1118)
+- CI: Replace `poetry` with `uv` for python package manager. (#1129)
+- CI: Fix an issue with `matrix-tools` image sometimes not being pushed until we retry the job. (#1142)
+
+
 # ESS Community Helm Chart 26.2.3 (2026-02-26)
 
 ## Added
