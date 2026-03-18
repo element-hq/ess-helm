@@ -63,7 +63,7 @@ jobs:
         pytest packages
 
     - name: Build with lowest resolution
-      run: uv build --package ess-migration-tool --resolution lowest
+      run: uv build --package ess-migration-tool
 
     - name: pytest packages (wheel)
       run: uv run --isolated --no-project --with dist/*.whl pytest packages/ess-migration-tool/tests
@@ -94,12 +94,12 @@ jobs:
         activate-environment: true
 
     - name: Build
-      run: uv build --package ess-migration-tool --resolution lowest
+      run: uv build --package ess-migration-tool
     # Check that basic features work and we didn't miss to include crucial files
     - name: Smoke test (wheel)
-      run: uv run --isolated --no-project --with dist/*.whl packages/ess-migration-tool/tests/uv/smoke.py
+      run: uv run --isolated --resolution lowest --no-project --with dist/*.whl ess-migration-tool --help
     - name: Smoke test (source distribution)
-      run: uv run --isolated --no-project --with dist/*.tar.gz packages/ess-migration-tool/tests/uv/smoke.py
+      run: uv run --isolated --resolution lowest --no-project --with dist/*.tar.gz ess-migration-tool --help
     - name: Publish
       run: uv publish "${DRY_RUN}" dist/*
       env:
