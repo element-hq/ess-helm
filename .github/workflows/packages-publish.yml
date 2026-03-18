@@ -1,0 +1,43 @@
+name: "Publish ESS Migration Tool"
+
+on:
+  pull_request:
+  push:
+    branches:
+    - main
+    - 'maintenance/*'
+    tags:
+      # Publish on any tag starting with a `v`, e.g., v0.1.0
+      - ess-migration-tool-v*
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+    - name: Checkout
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      with:
+        persist-credentials: false
+    - name: Install uv
+      uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a  # v7.4.0
+      with:
+        # We disable cache for releases to avoid cache poisoning
+        enable-cache: false
+        activate-environment: true
+
+    - name: Build
+      run: uv build --package ess-migration-tool
+    # Check that basic features work and we didn't miss to include crucial files
+    - name: Smoke test (wheel)
+      run: uv run --isolated --no-project --with dist/*.whl packages/ess-migration-tool/tests/uv/smoke.py
+    - name: Smoke test (source distribution)
+      run: uv run --isolated --no-project --with dist/*.tar.gz packages/ess-migration-tool/tests/uv/smoke.py
+    - name: Publish
+      run: uv publish ${DRY_RUN} dist/*
+      env:
+        DRY_RUN: ${{ github.ref_type == 'tag' && '' || '--dry-run' }}
