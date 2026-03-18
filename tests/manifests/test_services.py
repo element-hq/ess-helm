@@ -503,7 +503,7 @@ async def test_references_to_services_are_anchored_by_the_cluster_domain(values,
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_references_to_services_exist(namespace, templates):
+async def test_references_to_services_exist(namespace: str, templates: list[dict]) -> None:
     """
     All service references must point to existing services.
 

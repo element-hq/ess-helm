@@ -14,9 +14,8 @@ from pathlib import Path
 
 import jsonschema
 import pytest
-
-from ..engine import MigrationEngine
-from ..inputs import InputProcessor
+from ess_migration_tool.engine import MigrationEngine
+from ess_migration_tool.inputs import InputProcessor
 
 # Path to the Helm chart schema
 SCHEMA_PATH = Path("charts/matrix-stack/values.schema.json")

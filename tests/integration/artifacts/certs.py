@@ -1,5 +1,5 @@
 # Copyright 2024-2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -12,7 +12,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-import pytz
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
@@ -87,7 +86,7 @@ def get_ca(name, issuing_ca=None) -> CertKey:
                 raise ValueError("Expected RSA private key")
         with open(cert_path, "rb") as pem_in:
             cert = x509.load_pem_x509_certificate(pem_in.read(), default_backend())
-        if cert.not_valid_after_utc > pytz.UTC.localize(datetime.datetime.now()):
+        if cert.not_valid_after > datetime.datetime.now():
             certkey = CertKey(ca=issuing_ca, cert=cert, key=private_key)
 
     if not certkey:

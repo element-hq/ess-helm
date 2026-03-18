@@ -11,10 +11,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
-
-from ..extra_files import ExtraFilesDiscovery, ExtraFilesError
-from ..interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
-from ..models import DiscoveredPath, SecretConfig
+from ess_migration_tool.extra_files import ExtraFilesDiscovery, ExtraFilesError
+from ess_migration_tool.interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
+from ess_migration_tool.models import DiscoveredPath, SecretConfig
 
 
 def test_validate_extra_files_success(tmp_path):

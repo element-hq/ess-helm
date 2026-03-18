@@ -10,12 +10,12 @@ Tests for missing secrets and extra files handling.
 import asyncio
 import base64
 import logging
+import shutil
 from io import StringIO
 
 import pytest
-
-from ..engine import MigrationEngine
-from ..inputs import InputProcessor
+from ess_migration_tool.engine import MigrationEngine
+from ess_migration_tool.inputs import InputProcessor
 
 
 def test_migration_with_missing_secrets_prompt(
@@ -186,7 +186,7 @@ def test_migration_with_missing_extra_files_prompt(
     )
     ess_values = {}
 
-    (tmp_path / "email_templates").move(tmp_path / "moved")
+    shutil.move(tmp_path / "email_templates", tmp_path / "moved")
 
     log_capture_string = StringIO()
     pretty_logger = logging.getLogger(test_migration_with_missing_extra_files_prompt.__name__)

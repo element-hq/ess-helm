@@ -8,10 +8,10 @@
 import logging
 from pathlib import Path
 
-from ..extra_files import ExtraFilesDiscovery
-from ..interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
-from ..migration import ConfigValueTransformer, TransformationSpec
-from ..models import DiscoveredPath
+from ess_migration_tool.extra_files import ExtraFilesDiscovery
+from ess_migration_tool.interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
+from ess_migration_tool.migration import ConfigValueTransformer, TransformationSpec
+from ess_migration_tool.models import DiscoveredPath
 
 
 def test_config_value_tracker_basic():
