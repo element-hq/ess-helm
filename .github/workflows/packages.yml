@@ -44,7 +44,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Set up UV environment
-      run: uv sync --package ess-migration-tool
+      run: uv sync --all-packages
 
     - name: Run ruff check
       run: |
@@ -62,6 +62,14 @@ jobs:
       run: |
         pytest packages
 
+    - name: Build with lowest resolution
+      run: uv build --package ess-migration-tool --resolution lowest
+
+    - name: pytest packages (wheel)
+      run: uv run --isolated --no-project --with dist/*.whl pytest packages/ess-migration-tool/tests
+
+    - name: pytest packages (source distribution)
+      run: uv run --isolated --no-project --with dist/*.tar.gz pytest packages/ess-migration-tool/tests
 
   publish:
     runs-on: ubuntu-latest
@@ -84,7 +92,7 @@ jobs:
         activate-environment: true
 
     - name: Build
-      run: uv build --package ess-migration-tool
+      run: uv build --package ess-migration-tool --resolution lowest
     # Check that basic features work and we didn't miss to include crucial files
     - name: Smoke test (wheel)
       run: uv run --isolated --no-project --with dist/*.whl packages/ess-migration-tool/tests/uv/smoke.py
