@@ -76,6 +76,8 @@ class SecretDiscovery:
                         logging.info(f"Found file value for {secret_key}")
                     except FileNotFoundError:
                         logger.warning(f"File not found: {file_path}")
+                    except PermissionError:
+                        logger.warning(f"Permission denied when reading file: {file_path}")
 
             # Apply transformer if available and we have a value
             if discovered_value is not None and secret_config.transformer is not None:
