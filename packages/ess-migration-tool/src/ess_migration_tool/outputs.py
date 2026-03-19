@@ -40,13 +40,16 @@ def write_outputs(
     secrets: list[Secret],
     configmaps: list[ConfigMap],
     output_dir: str = "output",
-) -> None:
+) -> tuple[str, list[str], list[str]]:
     """
     Write migration outputs to files.
 
     Args:
         helm_values: Helm values YAML content
         output_dir: Directory to write outputs to
+
+    Returns:
+        Tuple of (values_path, secret_paths, configmap_paths)
     """
     # Validate and create output directory
     _create_output_dir(output_dir)
@@ -67,6 +70,8 @@ def write_outputs(
 
     for configmap_path in written_configmaps:
         logging.info(f"- ConfigMap: {configmap_path}")
+
+    return values_path, written_secrets, written_configmaps
 
 
 def _create_output_dir(output_dir: str) -> None:
