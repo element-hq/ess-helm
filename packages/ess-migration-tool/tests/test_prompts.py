@@ -15,7 +15,9 @@ from io import StringIO
 
 import pytest
 from ess_migration_tool.engine import MigrationEngine
+from ess_migration_tool.extra_files import ExtraFilesError
 from ess_migration_tool.inputs import InputProcessor
+from ess_migration_tool.secrets import SecretsError
 
 
 def test_migration_with_missing_secrets_prompt(
@@ -101,6 +103,76 @@ def test_migration_with_missing_secrets_prompt(
             raise
     finally:
         log_capture_string.close()
+
+
+def test_quiet_mode_fails_on_missing_secrets(tmp_path, synapse_config_with_signing_key, write_synapse_config):
+    """Test that migration fails in quiet mode when secrets are missing."""
+    # Create Synapse configuration with missing secrets
+    synapse_config = synapse_config_with_signing_key.copy()
+    # Remove password to simulate missing secret
+    del synapse_config["database"]["args"]["password"]
+    del synapse_config["macaroon_secret_key"]
+
+    # Write Synapse config
+    synapse_config_file = write_synapse_config(synapse_config)
+
+    # Load migration input
+    input_processor = InputProcessor()
+    input_processor.load_migration_input(
+        config_path=str(synapse_config_file),
+        name="synapse",
+    )
+
+    # Create logger in quiet mode (CRITICAL level)
+    pretty_logger = logging.getLogger(test_quiet_mode_fails_on_missing_secrets.__name__)
+    pretty_logger.propagate = False
+    pretty_logger.setLevel(logging.CRITICAL)  # This simulates --quiet mode
+    pretty_logger.addHandler(logging.StreamHandler())
+
+    engine = MigrationEngine(input_processor, pretty_logger=pretty_logger)
+
+    # Test that it raises SecretsError in quiet mode
+    with pytest.raises(SecretsError) as exc_info:
+        engine.run_migration()
+
+    # Verify the error message
+    assert "quiet mode" in str(exc_info.value)
+    assert "Cannot prompt for secrets when --quiet is enabled" in str(exc_info.value)
+    assert "synapse.postgres.password" in str(exc_info.value)
+
+
+def test_quiet_mode_fails_on_missing_extra_files(
+    tmp_path, synapse_config_with_signing_key, synapse_config_with_email_templates, write_synapse_config
+):
+    """Test that migration fails in quiet mode when extra files are missing."""
+    # Write Synapse config
+    synapse_config_file = write_synapse_config(synapse_config_with_signing_key | synapse_config_with_email_templates)
+
+    # Remove the email templates directory to simulate missing files
+    shutil.rmtree(tmp_path / "email_templates")
+
+    # Load migration input
+    input_processor = InputProcessor()
+    input_processor.load_migration_input(
+        config_path=str(synapse_config_file),
+        name="synapse",
+    )
+
+    # Create logger in quiet mode (CRITICAL level)
+    pretty_logger = logging.getLogger(test_quiet_mode_fails_on_missing_extra_files.__name__)
+    pretty_logger.propagate = False
+    pretty_logger.setLevel(logging.CRITICAL)  # This simulates --quiet mode
+    pretty_logger.addHandler(logging.StreamHandler())
+
+    engine = MigrationEngine(input_processor, pretty_logger=pretty_logger)
+
+    # Test that it raises ExtraFilesError in quiet mode
+    with pytest.raises(ExtraFilesError) as exc_info:
+        engine.run_migration()
+
+    # Verify the error message
+    assert "quiet mode" in str(exc_info.value)
+    assert "Cannot prompt for files when --quiet is enabled" in str(exc_info.value)
 
 
 def test_migration_with_unknown_workers_prompt(

@@ -15,6 +15,7 @@ from urllib.parse import urlparse
 
 from .interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
 from .models import DiscoveredExtraFile, DiscoveredPath, SecretConfig
+from .utils import is_quiet_mode
 
 logger = logging.getLogger("migration")
 
@@ -219,6 +220,14 @@ class ExtraFilesDiscovery:
         """
         Prompt user for alternative paths when files are missing.
         """
+        # Check if quiet mode is enabled
+        if is_quiet_mode(self.pretty_logger) and self.missing_file_paths:
+            missing_files = [str(fp.source_path) for fp in self.missing_file_paths]
+            raise ExtraFilesError(
+                f"Missing extra files in quiet mode: {', '.join(missing_files)}. "
+                "Cannot prompt for files when --quiet is enabled."
+            )
+
         self.pretty_logger.info("\n" + "=" * 60)
         self.pretty_logger.info("📁 EXTRA FILES DISCOVERY")
         self.pretty_logger.info("=" * 60)
