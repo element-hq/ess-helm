@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-name: Packages linting & releasing
+name: Packages linting, testing & releasing
 
 on:
   pull_request:
@@ -71,13 +71,8 @@ jobs:
     - name: pytest packages (source distribution)
       run: uv run --isolated --no-project --with dist/*.tar.gz pytest packages/ess-migration-tool/tests
 
-  publish:
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: pypi
-    permissions:
-      id-token: write
-      contents: read
     needs:
     - python
     steps:
@@ -93,6 +88,19 @@ jobs:
         enable-cache: ${{ github.ref_type != 'tag' }}
         activate-environment: true
 
+    - name: Set up UV environment
+      run: uv sync --all-packages --resolution lowest-direct
+
+    - name: Set version
+      env:
+        GITHUB_RUN_ID: "${{ github.run_id }}"
+      run: |
+        if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+          uv --directory packages/ess-migration-tool version "$GITHUB_REF_NAME"
+        else
+          uv version --directory packages/ess-migration-tool --bump "dev=$GITHUB_RUN_ID"
+        fi
+
     - name: Build
       run: uv build --package ess-migration-tool
     # Check that basic features work and we didn't miss to include crucial files
@@ -100,7 +108,83 @@ jobs:
       run: uv run --isolated --resolution lowest --no-project --with dist/*.whl ess-migration-tool --help
     - name: Smoke test (source distribution)
       run: uv run --isolated --resolution lowest --no-project --with dist/*.tar.gz ess-migration-tool --help
+
+    - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f  # v7.0.0
+      with:
+        name: ess-migration-tool-dist
+        path: |
+          dist/*
+        retention-days: 1
+
+
+  publish:
+    needs:
+    - build
+    environment:
+      name: pypi
+    permissions:
+      id-token: write
+      contents: write
+      packages: read
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      with:
+        # We are creating a commit changing the chart version for the next version PR
+        persist-credentials: true
+
+    - name: Grab packaged dists
+      uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3  # v8.0.0
+      with:
+        name: ess-migration-tool-dist
+        path: ./dist
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a  # v7.4.0
+      with:
+        enable-cache: true
+        activate-environment: true
+
+    - name: Set up UV environment
+      run: uv sync
+
+    - name: Generate changelog
+      run: |
+        version=$(uv --directory packages/ess-migration-tool version)
+        # Add changes to CHANGELOG.md
+        uv run towncrier build --version "$version" --yes --dir packages/ess-migration-tool
+        echo "CHANGELOG.md will look like:"
+        cat packages/ess-migration-tool/CHANGELOG.md
+        echo ""
+
+    - name: Bump version for next PR
+      id: versions
+      run: |
+        this_version=$(uv --directory packages/ess-migration-tool version)
+        uv --directory packages/ess-migration-tool version --bump patch --bump dev=1
+        next_version=$(uv --directory packages/ess-migration-tool version)
+        echo "this-version=$this_version" | tee -a "$GITHUB_OUTPUT"
+        echo "next-version=$next_version" | tee -a "$GITHUB_OUTPUT"
+
     - name: Publish
       run: uv publish "${DRY_RUN}" dist/*
       env:
         DRY_RUN: ${{ github.ref_type == 'tag' && '' || '--dry-run' }}
+
+    - name: Create PR for next patch version
+      uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0  # v8.1.0
+      if: github.ref_type == 'tag'
+      with:
+        branch: "gha/bump-ess-migration-tool-to-${{ steps.versions.outputs.next-version }}"
+        base: "main"
+        commit-message: "Bump ess-migration-tool version to ${{ steps.versions.outputs.next-version }}"
+        title: "Bump ess-migration-tool version to ${{ steps.versions.outputs.next-version }} after release"
+        labels: automated,version-bump
+        body: |
+          ${{ steps.versions.outputs.this-version }} has just been released.
+          This PR prepares ess-migration-tool package for the next release:
+          ${{ steps.versions.outputs.next-version }}.
+
+          The target branch may be wrong. In which case this PR should be taken over and manually adjusted.
