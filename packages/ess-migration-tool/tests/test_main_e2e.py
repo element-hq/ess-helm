@@ -10,7 +10,6 @@ Tests the complete workflow from input to output generation.
 
 import base64
 import sys
-from unittest.mock import patch
 
 import pytest
 import yaml
@@ -18,6 +17,7 @@ from ess_migration_tool import __main__
 
 
 def test_main_e2e_synapse_only(
+    monkeypatch,
     tmp_path,
     synapse_config_with_signing_key,
     synapse_config_with_email_templates,
@@ -45,9 +45,9 @@ def test_main_e2e_synapse_only(
         "--verbose",
     ]
 
-    # Run the main function with mocked sys.argv
-    with patch.object(sys, "argv", test_args):
-        exit_code = __main__.main()
+    # Mock sys.argv to simulate CLI arguments
+    monkeypatch.setattr(sys, "argv", test_args)
+    exit_code = __main__.main()
 
     # Verify successful execution
     assert exit_code == 0
@@ -165,7 +165,12 @@ def test_main_e2e_synapse_only(
 
 
 def test_main_e2e_synapse_with_mas(
-    tmp_path, synapse_config_with_signing_key, basic_mas_config_with_keys, write_synapse_config, write_mas_config
+    monkeypatch,
+    tmp_path,
+    synapse_config_with_signing_key,
+    basic_mas_config_with_keys,
+    write_synapse_config,
+    write_mas_config,
 ):
     """Test the complete end-to-end migration workflow with Synapse and MAS."""
     # Write configuration files
@@ -187,9 +192,9 @@ def test_main_e2e_synapse_with_mas(
         str(output_dir),
     ]
 
-    # Run the main function with mocked sys.argv
-    with patch.object(sys, "argv", test_args):
-        exit_code = __main__.main()
+    # Mock sys.argv to simulate CLI arguments
+    monkeypatch.setattr(sys, "argv", test_args)
+    exit_code = __main__.main()
 
     # Verify successful execution
     assert exit_code == 0
