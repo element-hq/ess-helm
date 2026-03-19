@@ -14,6 +14,7 @@ from dataclasses import dataclass, field
 
 from .engine import MigrationEngine
 from .inputs import InputProcessor, ValidationError
+from .mas import parse_postgres_uri
 from .models import MigrationError
 from .outputs import generate_helm_values, write_outputs
 
@@ -320,15 +321,58 @@ Examples:
             pretty_logger.info("Since you chose to use ESS-managed Postgres, you'll need to import your")
             pretty_logger.info("existing database schema after deployment. Here are the steps:")
             pretty_logger.info("")
-            pretty_logger.info("1. After ESS is deployed, create a database dump from your existing PostgreSQL:")
-            pretty_logger.info("   pg_dumpall -U postgres > dump.sql")
+            
+            # Get source database configuration from input files
+            synapse_input = engine.input_processor.input_for_component("synapse")
+            mas_input = engine.input_processor.input_for_component("matrixAuthenticationService")
+
+            # Extract source database info from Synapse configuration
+            if synapse_input and synapse_input.config.get("database", {}).get("args"):
+                source_synapse_db = synapse_input.config["database"]["args"].get("database", "<source_synapse_db>")
+                source_synapse_user = synapse_input.config["database"]["args"].get("user", "<source_synapse_user>")
+            else:
+                source_synapse_db = "<source_synapse_db>"
+                source_synapse_user = "<source_synapse_user>"
+
+            # Extract source database info from MAS configuration using existing helper
+            if mas_input and mas_input.config.get("database", {}).get("uri"):
+                mas_uri = mas_input.config["database"]["uri"]
+                parsed_mas = parse_postgres_uri(mas_uri)
+                source_mas_db = parsed_mas.get("name", "<source_mas_db>")
+                source_mas_user = parsed_mas.get("user", "<source_mas_user>")
+            else:
+                source_mas_db = "<source_mas_db>"
+                source_mas_user = "<source_mas_user>"
+
+            # Get target database names and users from ESS configuration
+            # These are the standard ESS target database names from the helm chart
+            target_synapse_db = "synapse"
+            target_synapse_user = "synapse_user"
+            target_mas_db = "matrixauthenticationservice"
+            target_mas_user = "matrixauthenticationservice_user"
+
+            pretty_logger.info("1. After ESS is deployed, create database dumps for Synapse and MAS:")
+            pretty_logger.info(f"   pg_dump -U {source_synapse_user} -d {source_synapse_db} > synapse.sql")
+            pretty_logger.info(f"   pg_dump -U {source_mas_user} -d {source_mas_db} > mas.sql")
             pretty_logger.info("")
-            pretty_logger.info("2. Copy the dump to the ESS Postgres pod:")
-            pretty_logger.info("   kubectl cp dump.sql ess-postgres-0:/tmp -n ess")
+            pretty_logger.info("2. Transform the dumps to match ESS database names and owners:")
+            pretty_logger.info("   # Replace source database names with ESS database names")
+            pretty_logger.info(f"   sed -i 's/CREATE DATABASE {source_synapse_db}/-- CREATE DATABASE {source_synapse_db}/' synapse.sql")
+            pretty_logger.info(f"   sed -i 's/DATABASE {source_mas_db}/DATABASE {target_mas_db}/' mas.sql")
+            pretty_logger.info("   # Replace source owners with ESS owners")
+            pretty_logger.info(f"   sed -i 's/OWNER TO.*{source_synapse_user}/OWNER TO {target_synapse_user}/' synapse.sql")
+            pretty_logger.info(f"   sed -i 's/OWNER TO.*{source_mas_user}/OWNER TO {target_mas_user}/' mas.sql")
             pretty_logger.info("")
-            pretty_logger.info("3. Import the dump into the ESS-managed Postgres:")
+            pretty_logger.info("3. Copy the dumps to the ESS Postgres pod:")
+            pretty_logger.info("   kubectl cp synapse.sql ess-postgres-0:/tmp -n ess")
+            pretty_logger.info("   kubectl cp mas.sql ess-postgres-0:/tmp -n ess")
+            pretty_logger.info("")
+            pretty_logger.info("4. Import the dumps into the ESS-managed Postgres:")
             pretty_logger.info(
-                '   kubectl exec -n ess sts/ess-postgres -- bash -c "psql -U postgres -d postgres < /tmp/dump.sql"'
+                '   kubectl exec -n ess sts/ess-postgres -- bash -c "psql -U postgres -d synapse < /tmp/synapse.sql"'
+            )
+            pretty_logger.info(
+                '   kubectl exec -n ess sts/ess-postgres -- bash -c "psql -U postgres -d matrixauthenticationservice < /tmp/mas.sql"'
             )
             pretty_logger.info("")
             pretty_logger.info("4. Restart Synapse and MAS to use the imported data:")

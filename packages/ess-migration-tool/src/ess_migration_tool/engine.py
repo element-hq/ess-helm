@@ -75,7 +75,7 @@ class MigrationEngine:
         self.pretty_logger.info("")
         self.pretty_logger.info("2. 🆕 Install Postgres with ESS and import database later")
         self.pretty_logger.info("   - Let ESS deploy and manage PostgreSQL")
-        self.pretty_logger.info("   - Import your database schema after deployment")
+        self.pretty_logger.info("   - Import your Synapse and MAS database schemas after deployment")
         self.pretty_logger.info("   - Recommended for testing/new installations")
         self.pretty_logger.info("")
 
