@@ -406,6 +406,9 @@ class ExtraFilesDiscovery:
         if self._is_binary_file(file_path):
             extra_file.cleartext = False
 
-        with open(file_path):
-            extra_file.content = file_path.read_bytes()
+        try:
+            with open(file_path):
+                extra_file.content = file_path.read_bytes()
+        except PermissionError as err:
+            raise ExtraFilesError(f"Permission denied when reading file: {file_path}") from err
         return extra_file

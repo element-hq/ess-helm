@@ -49,3 +49,32 @@ def test_discover_extra_files_from_synapse_config(tmp_path, synapse_config_with_
     assert tmp_path / "email_templates" / "password_reset.html" in discovery.discovered_extra_files
     assert tmp_path / "email_templates" / "registration.html" in discovery.discovered_extra_files
     assert len(discovery.discovered_extra_files) == 2
+
+
+def test_permission_error_handling_for_secrets(tmp_path, basic_synapse_config):
+    """Test that permission errors are handled gracefully for secret files."""
+    # Create a restricted signing key file
+    restricted_key = tmp_path / "signing.key"
+    restricted_key.write_text("restricted_signing_key_content")
+    restricted_key.chmod(0o200)  # Write-only for owner
+
+    # Create config with restricted file reference
+    synapse_config = basic_synapse_config.copy()
+    synapse_config["signing_key_path"] = str(restricted_key)
+    synapse_config["database"]["args"]["password"] = "test_password"
+    synapse_config["macaroon_secret_key"] = "test_macaroon_key"
+
+    # Test secret discovery
+    synapse_secrets = SynapseSecretDiscovery()
+    discovery = SecretDiscovery(synapse_secrets, logging.getLogger(), "synapse.yaml")
+    discovery.discover_secrets(synapse_config)
+
+    # Signing key should be in missing required secrets due to permission error
+    assert "synapse.signingKey" in discovery.missing_required_secrets
+
+    # Other secrets should be discovered normally
+    assert "synapse.postgres.password" in discovery.discovered_secrets
+    assert "synapse.macaroon" in discovery.discovered_secrets
+
+    # Clean up: restore permissions for cleanup
+    restricted_key.chmod(0o644)

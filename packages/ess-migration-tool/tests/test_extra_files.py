@@ -412,3 +412,46 @@ def test_ignored_config_keys():
         assert expected_skipped_file not in discovered_files, (
             f"Ignored file {expected_skipped_file} should not be in discovered files"
         )
+
+
+def test_permission_error_handling(tmp_path):
+    """Test that permission errors are handled gracefully for extra files."""
+    # Create a file with no read permissions
+    restricted_file = tmp_path / "restricted.txt"
+    restricted_file.write_text("restricted content")
+    restricted_file.chmod(0o200)  # Write-only for owner
+
+    @dataclass
+    class TestStrategy(ExtraFilesDiscoveryStrategy):
+        @property
+        def ignored_config_keys(self):
+            return []
+
+    @dataclass
+    class TestSecretStrategy(SecretDiscoveryStrategy):
+        @property
+        def ess_secret_schema(self):
+            return {}
+
+    # Create discovery instance
+    discovery = ExtraFilesDiscovery(
+        strategy=TestStrategy(),
+        pretty_logger=logging.getLogger(),
+        secrets_strategy=TestSecretStrategy(),
+        source_file="test.yaml",
+    )
+
+    # Discover file paths
+    config_data = {"restricted_file_path": str(restricted_file)}
+    discovery.discover_extra_files_from_config(config_data)
+
+    # File should be in missing file paths due to permission error
+    assert len(discovery.missing_file_paths) == 1
+    missing_path = discovery.missing_file_paths[0]
+    assert missing_path.source_path == restricted_file
+
+    # File should not be in discovered extra files
+    assert len(discovery.discovered_extra_files) == 0
+
+    # Clean up: restore permissions for cleanup
+    restricted_file.chmod(0o644)
