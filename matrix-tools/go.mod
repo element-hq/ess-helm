@@ -12,9 +12,9 @@ require gopkg.in/yaml.v3 v3.0.1
 require (
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.11.1
-	go.yaml.in/yaml/v2 v2.4.3
+	go.yaml.in/yaml/v2 v2.4.4
 	k8s.io/api v0.35.2
-	k8s.io/apimachinery v0.35.2
+	k8s.io/apimachinery v0.35.3
 	k8s.io/client-go v0.35.2
 )
 
