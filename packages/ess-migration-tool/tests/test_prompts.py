@@ -161,6 +161,9 @@ def test_quiet_mode_fails_on_missing_secrets(tmp_path, synapse_config_with_signi
 
     engine = MigrationEngine(input_processor, pretty_logger=pretty_logger)
 
+    # Set database mode directly to avoid prompting (simulate --database-mode existing)
+    engine.global_options.use_existing_database = True
+
     # Test that it raises SecretsError in quiet mode
     with pytest.raises(SecretsError) as exc_info:
         engine.run_migration()
@@ -195,6 +198,9 @@ def test_quiet_mode_fails_on_missing_extra_files(
     pretty_logger.addHandler(logging.StreamHandler())
 
     engine = MigrationEngine(input_processor, pretty_logger=pretty_logger)
+
+    # Set database mode directly to avoid prompting (simulate --database-mode existing)
+    engine.global_options.use_existing_database = True
 
     # Test that it raises ExtraFilesError in quiet mode
     with pytest.raises(ExtraFilesError) as exc_info:

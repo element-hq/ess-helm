@@ -106,8 +106,10 @@ class MigrationEngine:
         """
         logger.info("Starting migration process")
 
-        # Prompt for database choice
-        self.global_options.use_existing_database = self.prompt_for_database_choice()
+        # Prompt for database choice only if not already set via command line
+        # Check if use_existing_database is None (not set) to determine if we need to prompt
+        if self.global_options.use_existing_database is None:
+            self.global_options.use_existing_database = self.prompt_for_database_choice()
 
         for migrator in self.migrators:
             migrator.migrate()

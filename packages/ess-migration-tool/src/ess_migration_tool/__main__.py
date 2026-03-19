@@ -128,6 +128,16 @@ Examples:
         help="Disable migration summary output.",
     )
 
+    parser.add_argument(
+        "--database-mode",
+        choices=["existing", "ess-managed"],
+        help=(
+            "Database migration mode. "
+            "'existing' to use existing database, 'ess-managed' to use ESS-managed Postgres. "
+            "If not specified, user will be prompted."
+        ),
+    )
+
     # Parse arguments
     args = parser.parse_args()
 
@@ -180,6 +190,14 @@ Examples:
         # Run migration
         reporter.report_step(MIGRATING_STEP)
         engine = MigrationEngine(input_processor=input_processor, pretty_logger=pretty_logger)
+
+        # Set database mode if provided via command line
+        if args.database_mode:
+            if args.database_mode == "existing":
+                engine.global_options.use_existing_database = True
+            elif args.database_mode == "ess-managed":
+                engine.global_options.use_existing_database = False
+
         ess_values = engine.run_migration()
 
         # Generate outputs
@@ -321,7 +339,7 @@ Examples:
             pretty_logger.info("Since you chose to use ESS-managed Postgres, you'll need to import your")
             pretty_logger.info("existing database schema after deployment. Here are the steps:")
             pretty_logger.info("")
-            
+
             # Get source database configuration from input files
             synapse_input = engine.input_processor.input_for_component("synapse")
             mas_input = engine.input_processor.input_for_component("matrixAuthenticationService")
@@ -346,7 +364,6 @@ Examples:
 
             # Get target database names and users from ESS configuration
             # These are the standard ESS target database names from the helm chart
-            target_synapse_db = "synapse"
             target_synapse_user = "synapse_user"
             target_mas_db = "matrixauthenticationservice"
             target_mas_user = "matrixauthenticationservice_user"
@@ -357,10 +374,14 @@ Examples:
             pretty_logger.info("")
             pretty_logger.info("2. Transform the dumps to match ESS database names and owners:")
             pretty_logger.info("   # Replace source database names with ESS database names")
-            pretty_logger.info(f"   sed -i 's/CREATE DATABASE {source_synapse_db}/-- CREATE DATABASE {source_synapse_db}/' synapse.sql")
+            pretty_logger.info(
+                f"   sed -i 's/CREATE DATABASE {source_synapse_db}/-- CREATE DATABASE {source_synapse_db}/' synapse.sql"
+            )
             pretty_logger.info(f"   sed -i 's/DATABASE {source_mas_db}/DATABASE {target_mas_db}/' mas.sql")
             pretty_logger.info("   # Replace source owners with ESS owners")
-            pretty_logger.info(f"   sed -i 's/OWNER TO.*{source_synapse_user}/OWNER TO {target_synapse_user}/' synapse.sql")
+            pretty_logger.info(
+                f"   sed -i 's/OWNER TO.*{source_synapse_user}/OWNER TO {target_synapse_user}/' synapse.sql"
+            )
             pretty_logger.info(f"   sed -i 's/OWNER TO.*{source_mas_user}/OWNER TO {target_mas_user}/' mas.sql")
             pretty_logger.info("")
             pretty_logger.info("3. Copy the dumps to the ESS Postgres pod:")
@@ -372,7 +393,8 @@ Examples:
                 '   kubectl exec -n ess sts/ess-postgres -- bash -c "psql -U postgres -d synapse < /tmp/synapse.sql"'
             )
             pretty_logger.info(
-                '   kubectl exec -n ess sts/ess-postgres -- bash -c "psql -U postgres -d matrixauthenticationservice < /tmp/mas.sql"'
+                '   kubectl exec -n ess sts/ess-postgres -- bash -c "psql -U postgres -d '
+                'matrixauthenticationservice < /tmp/mas.sql"'
             )
             pretty_logger.info("")
             pretty_logger.info("4. Restart Synapse and MAS to use the imported data:")
