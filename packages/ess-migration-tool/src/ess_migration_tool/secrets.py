@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 
 from .interfaces import SecretDiscoveryStrategy
 from .models import DiscoveredSecret
-from .utils import get_nested_value
+from .utils import get_nested_value, is_quiet_mode
 
 logger = logging.getLogger("migration")
 
@@ -117,6 +117,15 @@ class SecretDiscovery:
         """Prompt user to provide missing required secrets."""
         if not self.missing_required_secrets:
             return
+
+        # Check if quiet mode is enabled
+        if is_quiet_mode(self.pretty_logger):
+            missing_list = ", ".join(self.missing_required_secrets)
+            raise SecretsError(
+                f"Missing required {self.strategy.component_name} secrets in quiet mode: {missing_list}. "
+                "Cannot prompt for secrets when --quiet is enabled."
+            )
+
         component_name = self.strategy.component_name.upper()
         self.pretty_logger.info("\n" + "=" * 60)
         self.pretty_logger.info(f"🔐 {component_name} SECRETS REQUIRED FOR MIGRATION")

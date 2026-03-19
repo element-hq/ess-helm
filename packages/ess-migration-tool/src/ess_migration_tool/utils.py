@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 
+import logging
 import urllib.parse
 from typing import Any
 
@@ -225,3 +226,19 @@ def detect_key_type(content: bytes) -> str:
     except Exception:
         # Any other error (invalid format, corrupted data, etc.)
         return "unknown"
+
+
+def is_quiet_mode(pretty_logger: logging.Logger) -> bool:
+    """
+    Check if quiet mode is enabled by examining the logger level.
+
+    In the migration tool, quiet mode is indicated by setting the pretty_logger
+    level to logging.CRITICAL, which suppresses all summary output.
+
+    Args:
+        pretty_logger: The pretty logger instance to check
+
+    Returns:
+        True if quiet mode is enabled (logger level is CRITICAL), False otherwise
+    """
+    return pretty_logger.level == logging.CRITICAL
