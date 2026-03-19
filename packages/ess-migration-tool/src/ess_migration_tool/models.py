@@ -15,6 +15,16 @@ from typing import Any
 
 
 @dataclass
+class GlobalOptions:
+    """
+    Global migration options that affect transformation behavior.
+    """
+
+    use_existing_database: bool = True
+    # Future global options can be added here
+
+
+@dataclass
 class Secret:
     """Represents a Kubernetes Secret resource."""
 

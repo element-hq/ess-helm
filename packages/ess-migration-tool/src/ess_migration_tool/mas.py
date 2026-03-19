@@ -10,12 +10,11 @@ Synapse-specific migration strategy.
 import logging
 import os
 import urllib
-from dataclasses import dataclass
 from typing import Any
 
 from .interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
 from .migration import MigrationStrategy, TransformationSpec
-from .models import DiscoveredSecret, SecretConfig
+from .models import DiscoveredSecret, GlobalOptions, SecretConfig
 from .utils import detect_key_type, extract_hostname_from_url
 
 logger = logging.getLogger("migration")
@@ -83,9 +82,11 @@ def extract_port_from_uri(_, uri: str) -> int | None:
     return int(port) if port is not None else None
 
 
-@dataclass
 class MASMigration(MigrationStrategy):
     """MAS-specific migration implementation."""
+
+    def __init__(self, global_options: GlobalOptions):
+        self.global_options = global_options
 
     @property
     def component_root_key(self) -> str:
@@ -100,43 +101,60 @@ class MASMigration(MigrationStrategy):
 
     @property
     def transformations(self) -> list[TransformationSpec]:
-        return [
-            TransformationSpec(
-                src_key="database.uri",
-                target_key="matrixAuthenticationService.postgres.host",
-                transformer=lambda _, uri: parse_postgres_uri(uri).get("host"),
-                required=True,
-            ),
-            TransformationSpec(
-                src_key="database.uri",
-                target_key="matrixAuthenticationService.postgres.port",
-                transformer=extract_port_from_uri,
-                required=False,
-            ),
-            TransformationSpec(
-                src_key="database.uri",
-                target_key="matrixAuthenticationService.postgres.user",
-                transformer=lambda _, uri: parse_postgres_uri(uri).get("user"),
-                required=True,
-            ),
-            TransformationSpec(
-                src_key="database.uri",
-                target_key="matrixAuthenticationService.postgres.database",
-                transformer=lambda _, uri: parse_postgres_uri(uri).get("name"),
-                required=True,
-            ),
-            TransformationSpec(
-                src_key="database.uri",
-                target_key="matrixAuthenticationService.postgres.sslMode",
-                transformer=lambda _, uri: parse_postgres_uri(uri).get("ssl"),
-                required=False,
-            ),
+        """Get transformations based on database choice."""
+        base_transformations = [
             TransformationSpec(
                 src_key="http.public_base",
                 target_key="matrixAuthenticationService.ingress.host",
                 transformer=extract_hostname_from_url,
             ),  # Extract hostname from http.public_base for ingress host
+            # ... other non-database transformations ...
         ]
+
+        if self.global_options.use_existing_database:
+            # External database: import database configuration
+            return base_transformations + [
+                TransformationSpec(
+                    src_key="database.uri",
+                    target_key="matrixAuthenticationService.postgres.host",
+                    transformer=lambda _, uri: parse_postgres_uri(uri).get("host"),
+                    required=True,
+                ),
+                TransformationSpec(
+                    src_key="database.uri",
+                    target_key="matrixAuthenticationService.postgres.port",
+                    transformer=extract_port_from_uri,
+                    required=False,
+                ),
+                TransformationSpec(
+                    src_key="database.uri",
+                    target_key="matrixAuthenticationService.postgres.user",
+                    transformer=lambda _, uri: parse_postgres_uri(uri).get("user"),
+                    required=True,
+                ),
+                TransformationSpec(
+                    src_key="database.uri",
+                    target_key="matrixAuthenticationService.postgres.database",
+                    transformer=lambda _, uri: parse_postgres_uri(uri).get("name"),
+                    required=True,
+                ),
+                TransformationSpec(
+                    src_key="database.uri",
+                    target_key="matrixAuthenticationService.postgres.sslMode",
+                    transformer=lambda _, uri: parse_postgres_uri(uri).get("ssl"),
+                    required=False,
+                ),
+                # ... other database property transformations ...
+            ]
+        else:
+            # ESS-managed: set postgres.enabled flag
+            return base_transformations + [
+                TransformationSpec(
+                    src_key="database",  # Trigger on database section
+                    target_key="postgres.enabled",
+                    transformer=lambda _, __: True,  # Set to True for ESS-managed Postgres
+                )
+            ]
 
 
 class MASSecretDiscovery(SecretDiscoveryStrategy):

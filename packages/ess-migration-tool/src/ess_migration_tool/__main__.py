@@ -313,6 +313,39 @@ Examples:
         pretty_logger.info("📚 For more details on deployment and data migration, refer to the ESS documentation.")
         pretty_logger.info("")
 
+        # Add database-specific instructions
+        if not engine.global_options.use_existing_database:
+            pretty_logger.info("📋 DATABASE IMPORT INSTRUCTIONS")
+            pretty_logger.info("=" * 60)
+            pretty_logger.info("Since you chose to use ESS-managed Postgres, you'll need to import your")
+            pretty_logger.info("existing database schema after deployment. Here are the steps:")
+            pretty_logger.info("")
+            pretty_logger.info("1. After ESS is deployed, create a database dump from your existing PostgreSQL:")
+            pretty_logger.info("   pg_dumpall -U postgres > dump.sql")
+            pretty_logger.info("")
+            pretty_logger.info("2. Copy the dump to the ESS Postgres pod:")
+            pretty_logger.info("   kubectl cp dump.sql ess-postgres-0:/tmp -n ess")
+            pretty_logger.info("")
+            pretty_logger.info("3. Import the dump into the ESS-managed Postgres:")
+            pretty_logger.info(
+                '   kubectl exec -n ess sts/ess-postgres -- bash -c "psql -U postgres -d postgres < /tmp/dump.sql"'
+            )
+            pretty_logger.info("")
+            pretty_logger.info("4. Restart Synapse and MAS to use the imported data:")
+            pretty_logger.info(
+                '   kubectl scale sts -l "app.kubernetes.io/component=matrix-server" -n ess --replicas=0'
+            )
+            pretty_logger.info(
+                '   kubectl scale deploy -l "app.kubernetes.io/component=matrix-authentication" -n ess --replicas=0'
+            )
+            pretty_logger.info(
+                '   kubectl scale sts -l "app.kubernetes.io/component=matrix-server" -n ess --replicas=1'
+            )
+            pretty_logger.info(
+                '   kubectl scale deploy -l "app.kubernetes.io/component=matrix-authentication" -n ess --replicas=1'
+            )
+            pretty_logger.info("")
+
         pretty_logger.info("=" * 60)
 
         reporter.report_success(args.output_dir)
