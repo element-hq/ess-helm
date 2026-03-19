@@ -838,7 +838,7 @@ wheels = [
 
 [[package]]
 name = "ess-migration-tool"
-version = "0.1.0"
+version = "0.1.0.dev1"
 source = { editable = "packages/ess-migration-tool" }
 dependencies = [
     { name = "cryptography" },
