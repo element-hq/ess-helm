@@ -250,6 +250,7 @@ class SynapseExtraFileDiscovery(ExtraFilesDiscoveryStrategy):
         return [
             "media_store_path",  # Synapse media store path should be ignored
             "log_config",  # Log configuration is handled by the chart
+            "pid_file",  # We do not care of importing pid files
         ]
 
     @property
