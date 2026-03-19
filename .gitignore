@@ -9,3 +9,4 @@ __pycache__
 *.tgz
 charts/*/user_values/*.yaml
 .pyhelm_cache
+dist/

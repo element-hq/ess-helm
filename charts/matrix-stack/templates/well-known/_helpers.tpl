@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2024-2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -49,14 +49,6 @@ k8s.element.io/target-instance: {{ $root.Release.Name }}-haproxy
 {{- with required "WellKnownDelegation requires synapse.ingress.host set" $root.Values.synapse.ingress.host -}}
 {{- $mHomeserver := dict "base_url" (printf "https://%s" .) -}}
 {{- $_ := set $config "m.homeserver" $mHomeserver -}}
-{{- end -}}
-{{- end -}}
-{{- if include "element-io.matrix-authentication-service.readyToHandleAuth" (dict "root" $root) }}
-{{- with required "WellKnownDelegation requires matrixAuthenticationService.ingress.host set" $root.Values.matrixAuthenticationService.ingress.host -}}
-{{- $msc2965 := dict "issuer" (printf "https://%s/" .)
-                     "account" (printf "https://%s/account" .)
--}}
-{{- $_ := set $config "org.matrix.msc2965.authentication" $msc2965 -}}
 {{- end -}}
 {{- end -}}
 {{- if $root.Values.matrixRTC.enabled -}}

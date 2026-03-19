@@ -4,8 +4,7 @@ Copyright 2026 Element Creations Ltd
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 
-{{- if or (and $.Values.synapse.enabled ((include "element-io.synapse.enabledWorkers" (dict "root" $)) | fromJson))
-          $.Values.hookshot.enabled -}}
+{{- if (include "element-io.redis.internalRedisEnabled" (dict "root" $)) -}}
 {{- with $.Values.redis -}}
 apiVersion: v1
 kind: Service

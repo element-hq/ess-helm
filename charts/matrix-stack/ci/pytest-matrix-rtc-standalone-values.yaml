@@ -34,14 +34,17 @@ matrixRTC:
   replicas: 2
   sfu:
     exposedServices:
+      rtcMuxedUdp:
+        nodePort: ""
+        portType: NodePort
       rtcTcp:
-        portType: LoadBalancer
-      rtcUdp:
-        portType: LoadBalancer
+        nodePort: ""
+        portType: NodePort
       turnTLS:
         domain: turn.{{ $.Values.serverName }}
         enabled: true
-        portType: LoadBalancer
+        nodePort: ""
+        portType: NodePort
         tlsSecret: '{{ $.Release.Name }}-turn-tls'
     extraEnv:
       - name: DEBUG_RENDERING

@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -106,8 +106,7 @@ secrets:
                     ) }}
   keys:
 {{- with required "privateKeys is required for Matrix Authentication Service" .privateKeys }}
-  - kid: rsa
-    key_file: /secrets/{{
+  - key_file: /secrets/{{
                 include "element-io.ess-library.init-secret-path" (
                       dict "root" $root
                       "context" (dict
@@ -117,8 +116,7 @@ secrets:
                         "defaultSecretKey" "RSA_PRIVATE_KEY"
                       )
                     ) }}
-  - kid: prime256v1
-    key_file: /secrets/{{
+  - key_file: /secrets/{{
                 include "element-io.ess-library.init-secret-path" (
                       dict "root" $root
                       "context" (dict
@@ -129,8 +127,7 @@ secrets:
                       )
                   ) }}
 {{ with .ecdsaSecp256k1 }}
-  - kid: secp256k1
-    key_file: /secrets/{{
+  - key_file: /secrets/{{
                 include "element-io.ess-library.provided-secret-path" (
                         dict "root" $root
                         "context" (dict
@@ -141,8 +138,7 @@ secrets:
                     ) }}
 {{- end }}
 {{ with .ecdsaSecp384r1 }}
-  - kid: secp384r1
-    key_file: /secrets/{{
+  - key_file: /secrets/{{
                 include "element-io.ess-library.provided-secret-path" (
                         dict "root" $root
                         "context" (dict

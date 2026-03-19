@@ -13,7 +13,8 @@ bridge:
   url: "http://{{ include "element-io.synapse.internal-hostport" (dict "root" $root "context" (dict "targetProcessType" "")) }}"
 {{- end }}
   port: 9993
-  bindAddress: 0.0.0.0
+  {{- /* We can only bind to 1 and so in the dual-stack case we bind :: and rely on the lack of IPV6_V6ONLY on the socket options */}}
+  bindAddress: {{ ( has $root.Values.networking.ipFamily (list "ipv6" "dual-stack")) | ternary "::" "0.0.0.0" | quote }}
 
 passFile: /secrets/{{
                 include "element-io.ess-library.init-secret-path" (
@@ -32,7 +33,14 @@ encryption:
 {{- end }}
 
 cache:
+{{- if .redis }}
+  redisUri: "redis{{ if .redis.tls }}s{{ end }}://{{ tpl .redis.host $root }}:{{ .redis.port | default 6379 }}/{{ .redis.db | default 0 }}"
+{{- if .redis.password }}
+  redisPassword: "${HOOKSHOT_REDIS_PASSWORD}"
+{{- end }}
+{{- else }}
   redisUri: "redis://{{ $root.Release.Name }}-redis.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:6379"
+{{- end }}
 
 logging:
   level: {{ .logging.level }}
@@ -42,18 +50,21 @@ metrics:
 
 listeners:
   - port: 7775
-    bindAddress: 0.0.0.0
+    {{- /* We can only bind to 1 and so in the dual-stack case we bind :: and rely on the lack of IPV6_V6ONLY on the socket options */}}
+    bindAddress: {{ ( has $root.Values.networking.ipFamily (list "ipv6" "dual-stack")) | ternary "::" "0.0.0.0" | quote }}
     resources:
       - webhooks
 {{- if and $root.Values.synapse.enabled (not .ingress.host) }}
     prefix: "/_matrix/hookshot"
 {{- end }}
   - port: 7777
-    bindAddress: 0.0.0.0
+    {{- /* We can only bind to 1 and so in the dual-stack case we bind :: and rely on the lack of IPV6_V6ONLY on the socket options */}}
+    bindAddress: {{ ( has $root.Values.networking.ipFamily (list "ipv6" "dual-stack")) | ternary "::" "0.0.0.0" | quote }}
     resources:
       - metrics
   - port: 7778
-    bindAddress: 0.0.0.0
+    {{- /* We can only bind to 1 and so in the dual-stack case we bind :: and rely on the lack of IPV6_V6ONLY on the socket options */}}
+    bindAddress: {{ ( has $root.Values.networking.ipFamily (list "ipv6" "dual-stack")) | ternary "::" "0.0.0.0" | quote }}
     resources:
       - widgets
 {{- if and $root.Values.synapse.enabled (not .ingress.host) }}

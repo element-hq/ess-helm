@@ -34,7 +34,7 @@ jobs:
       manifestTests: ${{ steps.data.outputs.manifestTests }}
       upgradeFrom: ${{ steps.data.outputs.upgradeFrom }}
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
       with:
         persist-credentials: false
         fetch-depth: 0
@@ -60,19 +60,20 @@ jobs:
       MATRIX_TEST_COMPONENT: ${{ matrix.test-component }}
       MATRIX_TEST_FROM_REF: ${{ matrix.test-from-ref }}
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
       with:
         persist-credentials: false
         fetch-depth: 0
         fetch-tags: true
 
-    - uses: matrix-org/setup-python-poetry@5bbf6603c5c930615ec8a29f1b5d7d258d905aa4  # v2
+    - name: Install uv
+      uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a  # v7.4.0
       with:
-        python-version: "3.x"
+        enable-cache: true
+        activate-environment: true
 
-    - name: Load poetry path
-      run: |
-        echo "$(poetry env info -p)/bin" >> "${GITHUB_PATH}"
+    - name: Set up UV environment
+      run: uv sync
 
     - name: Get current week number and home dir
       id: cache-input
@@ -82,7 +83,7 @@ jobs:
 
     - name: Restore pyhelm cache
       id: cache-pyhelm
-      uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5
+      uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5.0.3
       with:
         path: .pyhelm_cache
         key: pyhelm-integration-cache-${{ hashFiles('tests/integration/fixtures/cluster.py') }}-week-${{ steps.cache-input.outputs.week }}
@@ -95,7 +96,7 @@ jobs:
         ls -la .pyhelm_cache || echo "Cache directory does not exist or is empty"
 
     - name: Login to Dockerhub
-      uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9  # v3
+      uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2  # v4.0.0
       if: ${{ github.event.pull_request.head.repo.full_name == 'element-hq/ess-helm' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
       with:
         registry: docker.io
@@ -117,11 +118,14 @@ jobs:
     - name: Deploy with pytest once
       env:
         PYTEST_CI_FIRST_STEP: "1"
+      # Drop me after releasing next 26.3.x
+      # We are changing the k3d ports range, so we cannot setup matrix-rtc with the old values
+      if: ${{ env.MATRIX_TEST_FROM_REF == '26.2.3' && !contains(env.MATRIX_TEST_COMPONENT, 'matrix-rtc') || env.MATRIX_TEST_FROM_REF != '26.2.3' }}
       run: |
         if [ -f "tests/integration/env/${MATRIX_TEST_COMPONENT}.rc" ]; then
           # shellcheck source=/dev/null
           . "tests/integration/env/${MATRIX_TEST_COMPONENT}.rc"
-          PYTEST_KEEP_CLUSTER=1 poetry run pytest -vv tests/integration
+          PYTEST_KEEP_CLUSTER=1 pytest -vv tests/integration
         else
           echo "The integration test does not exist in previous ref, skipping..."
         fi
@@ -141,13 +145,13 @@ jobs:
       run: |
         # shellcheck source=/dev/null
         . "tests/integration/env/${MATRIX_TEST_COMPONENT}.rc"
-        PYTEST_KEEP_CLUSTER=1 poetry run pytest -vv tests/integration
+        PYTEST_KEEP_CLUSTER=1 pytest -vv tests/integration
       # syn2mas is a special case that cannot run twice by design
       if: ${{ matrix.test-component != 'matrix-authentication-service-syn2mas' }}
 
     - name: Save pyhelm cache
       if: always() && steps.cache-pyhelm.outputs.cache-hit != 'true'
-      uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5
+      uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5.0.3
       with:
         key: pyhelm-integration-cache-${{ hashFiles('tests/integration/fixtures/cluster.py') }}-week-${{ steps.cache-input.outputs.week }}
         path: .pyhelm_cache
@@ -198,17 +202,18 @@ jobs:
         manifest-test: ${{ fromJSON(needs.pytest-setup.outputs.manifestTests).manifestTests }}
     steps:
     - name: Checkout
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
       with:
         persist-credentials: false
 
-    - uses: matrix-org/setup-python-poetry@5bbf6603c5c930615ec8a29f1b5d7d258d905aa4  # v2
+    - name: Install uv
+      uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a  # v7.4.0
       with:
-        python-version: "3.x"
+        enable-cache: true
+        activate-environment: true
 
-    - name: Load poetry path
-      run: |
-        echo "$(poetry env info -p)/bin" >> "${GITHUB_PATH}"
+    - name: Set up UV environment
+      run: uv sync
 
     # Helm >= 3.19.5 (including Helm v4) have https://github.com/helm/helm/issues/31643
     # which breaks one of the Ingress tests
@@ -219,7 +224,7 @@ jobs:
           helm 3.19.4
 
     - name: Restore pytest cache
-      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5
+      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5.0.3
       with:
         path: .pytest_cache
         key: pytest-manifests-cache-${{ matrix.manifest-test }}-${{ hashFiles('charts/matrix-stack/values.yaml') }}
@@ -229,4 +234,4 @@ jobs:
     - name: Run our manifest test
       env:
         MANIFEST_TEST: ${{ matrix.manifest-test }}
-      run: poetry run pytest -vv "tests/manifests/${MANIFEST_TEST}.py"
+      run: pytest -vv "tests/manifests/${MANIFEST_TEST}.py"

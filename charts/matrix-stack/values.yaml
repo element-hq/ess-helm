@@ -514,7 +514,7 @@ matrixRTC:
 
     ## The tag of the container image to use.
     ## One of tag or digest must be provided.
-    tag: "0.3.0"
+    tag: "0.4.1"
 
     ## Container digest to use. Used to pull the image instead of the image tag if set
     ## The tag will still be set as the app.kubernetes.io/version label
@@ -794,7 +794,7 @@ matrixRTC:
         # Either Local or Cluster
         internalTrafficPolicy: Cluster
         externalTrafficPolicy: Cluster
-        port: 30881
+        port: 30001
 
       rtcMuxedUdp:
         enabled: true
@@ -813,7 +813,7 @@ matrixRTC:
         # Either Local or Cluster
         internalTrafficPolicy: Cluster
         externalTrafficPolicy: Cluster
-        port: 30882
+        port: 30002
 
       rtcUdp:
         enabled: false
@@ -856,7 +856,7 @@ matrixRTC:
         # Either Local or Cluster
         internalTrafficPolicy: Cluster
         externalTrafficPolicy: Cluster
-        port: 31443
+        port: 30003
 
         # The domain of the service
         domain: ""
@@ -884,7 +884,7 @@ matrixRTC:
         # Either Local or Cluster
         internalTrafficPolicy: Cluster
         externalTrafficPolicy: Cluster
-        port: 31478
+        port: 30004
 
     # Details of the image to be used
     image:
@@ -897,7 +897,7 @@ matrixRTC:
 
       ## The tag of the container image to use.
       ## One of tag or digest must be provided.
-      tag: "v1.9.1"
+      tag: "v1.9.12"
 
       ## Container digest to use. Used to pull the image instead of the image tag if set
       ## The tag will still be set as the app.kubernetes.io/version label
@@ -1387,7 +1387,7 @@ elementWeb:
 
     ## The tag of the container image to use.
     ## One of tag or digest must be provided.
-    tag: "v1.12.11"
+    tag: "v1.12.12"
 
     ## Container digest to use. Used to pull the image instead of the image tag if set
     ## The tag will still be set as the app.kubernetes.io/version label
@@ -1919,6 +1919,34 @@ hookshot:
   ##   secretKey: key-in-secret
   passkey: {}
 
+  ## Details of the external Redis to use
+  ## Does not need to be set if the internal Redis should be used
+  ## This is useful for production environments where you want to use
+  ## managed Redis services (AWS Elasticache, Azure Cache for Redis, etc.)
+  # redis:
+    ## Redis host
+    # host:
+
+    ## Redis port
+    # port: 6379
+
+    ## Redis database number (0-15)
+    # db: 0
+
+    ## Redis password (optional - many managed services require auth)
+    ## It can either be provided inline in the Helm chart e.g.:
+    ## password:
+    ##   value: SecretValue
+    ##
+    ## Or it can be provided via an existing Secret e.g.:
+    ## password:
+    ##   secret: existing-secret
+    ##   secretKey: key-in-secret
+    # password: {}
+
+    ## Enable TLS for Redis connection
+    # tls: false
+
   ## How this ingress should be constructed
   ingress:
     ## What hostname should be used for this Ingress
@@ -2227,7 +2255,7 @@ matrixAuthenticationService:
 
     ## The tag of the container image to use.
     ## One of tag or digest must be provided.
-    tag: "1.12.0"
+    tag: "1.13.0"
 
     ## Container digest to use. Used to pull the image instead of the image tag if set
     ## The tag will still be set as the app.kubernetes.io/version label
@@ -2654,7 +2682,7 @@ matrixAuthenticationService:
 
       ## The tag of the container image to use.
       ## One of tag or digest must be provided.
-      tag: "1.12.0-debug"
+      tag: "1.13.0-debug"
 
       ## Container digest to use. Used to pull the image instead of the image tag if set
       ## The tag will still be set as the app.kubernetes.io/version label
@@ -3552,6 +3580,33 @@ synapse:
   ##   secret: existing-secret
   ##   secretKey: key-in-secret
   macaroon: {}
+  ## Details of the external Redis to use
+  ## Does not need to be set if the internal Redis should be used
+  ## This is useful for production environments where you want to use
+  ## managed Redis services (AWS Elasticache, Azure Cache for Redis, etc.)
+  # redis:
+    ## Redis host
+    # host:
+
+    ## Redis port
+    # port: 6379
+
+    ## Redis database number (0-15)
+    # db: 0
+
+    ## Redis password (optional - many managed services require auth)
+    ## It can either be provided inline in the Helm chart e.g.:
+    ## password:
+    ##   value: SecretValue
+    ##
+    ## Or it can be provided via an existing Secret e.g.:
+    ## password:
+    ##   secret: existing-secret
+    ##   secretKey: key-in-secret
+    # password: {}
+
+    ## Enable TLS for Redis connection
+    # tls: false
 
   ## Additional configuration to provide to all Synapse processes.
   ## Each key under additional is an additional config to merge into synapse homeserver.yaml
@@ -4856,7 +4911,7 @@ synapse:
 
     ## The tag of the container image to use.
     ## One of tag or digest must be provided.
-    tag: "v1.148.0-ess.1"
+    tag: "v1.149.1-ess.1"
 
     ## Container digest to use. Used to pull the image instead of the image tag if set
     ## The tag will still be set as the app.kubernetes.io/version label

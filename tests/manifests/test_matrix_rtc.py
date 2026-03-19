@@ -20,7 +20,7 @@ async def test_log_level_overrides(values, make_templates):
         ):
             log_yaml = yaml.safe_load(template["data"]["config-overrides.yaml"])
             tcp_port = log_yaml["rtc"]["tcp_port"]
-            assert tcp_port == 30881
+            assert tcp_port == 30001
             break
     else:
         raise RuntimeError("Could not find config-overrides.yaml")

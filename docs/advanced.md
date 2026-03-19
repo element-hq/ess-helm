@@ -93,7 +93,7 @@ These configuration options usually fall into one of the following categories:
 
 Attempting to change these configuration options by the mechanism described below will appear to have no effect.
 
-**If you have created new values files for custom configuration, make sure to apply them by passing them with the helm upgrade command (see [Setting up the stack](#setting-up-the-stack)).**
+**If you have created new values files for custom configuration, make sure to apply them by passing them with the helm upgrade command (see [Setting up the stack](../README.md#setting-up-the-stack)).**
 
 ### Configuring Element Web
 
@@ -244,7 +244,7 @@ Note that using NodePorts implies using a port allowed in the Kubernetes range. 
 
 #### Enable Turn-TLS behind Traefik
 
-The SFU can enable Turn-TLS. By default it will listen on the port `31443/TCP` and advertise the turn address `<turn domain>:443`. The advertised port cannot be changed and must be properly forwarded to the SFU Pod.
+The SFU can enable Turn-TLS. By default it will listen on the port `30003/TCP` and advertise the turn address `<turn domain>:443`. The advertised port cannot be changed and must be properly forwarded to the SFU Pod.
 
 This is so that the traffic looks like HTTPS for firewalls. In practice, the traffic must be forwarded as-is to the SFU Pod, with TLS passthrough enabled.
 

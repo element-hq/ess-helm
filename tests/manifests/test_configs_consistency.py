@@ -643,14 +643,15 @@ class ValidatedContainerConfig(ValidatedConfig):
                         break
                 else:
                     paths_not_found.append((str(MountPath(parent_mount, mount_node)), source))
+        newline = chr(10)
         assert paths_not_found == [], (
             f"{self.template_id}/{self.name} : "
-            f"No consumer found for paths: \n- "
+            f"No consumer found for paths: {newline}- "
             f"{
-                '\n- '.join(
-                    [f'{path_and_source[0]} ({path_and_source[1].name()})' for path_and_source in paths_not_found]
+                newline.join(
+                    [f'- {path_and_source[0]} ({path_and_source[1].name()})' for path_and_source in paths_not_found]
                 )
-            }\n"
+            }{newline}"
             f"Skipped paths: {skipped_paths}"
         )
 

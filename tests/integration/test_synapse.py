@@ -1,5 +1,5 @@
 # Copyright 2024-2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -180,9 +180,10 @@ async def test_routes_to_synapse_workers_correctly(
 
             attempts += 1
             await asyncio.sleep(1)
+        newline = chr(10)
         raise AssertionError(
             f"Requests to {path} did not end up at synapse-{backend} over 30s/attempts. "
-            f"Log lines={'\n*'.join(matching_lines)}"
+            f"Log lines={newline.join([f'*{line}' for line in matching_lines])}"
         )
 
     async with asyncio.TaskGroup() as task_group:

@@ -1,0 +1,106 @@
+# Copyright 2024-2025 New Vector Ltd
+# Copyright 2025-2026 Element Creations Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+name: Packages linting & releasing
+
+on:
+  pull_request:
+  push:
+    branches:
+    - main
+    - 'maintenance/*'
+    tags:
+      # Publish on any tag starting with a `v`, e.g., v0.1.0
+      - ess-migration-tool-v*
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          - "3.11"
+          - "3.12"
+          - "3.13"
+          - "3.14"
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      with:
+        persist-credentials: false
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a  # v7.4.0
+      with:
+        enable-cache: true
+        activate-environment: true
+        python-version: ${{ matrix.python-version }}
+
+    - name: Set up UV environment
+      run: uv sync --all-packages --resolution lowest-direct
+
+    - name: Run ruff check
+      run: |
+        ruff check
+
+    - name: Run ruff format
+      run: |
+        ruff format --check
+
+    - name: mypy
+      run: |
+        mypy packages/ess-migration-tool
+
+    - name: pytest packages
+      run: |
+        pytest packages
+
+    - name: Build with lowest resolution
+      run: uv build --package ess-migration-tool
+
+    - name: pytest packages (wheel)
+      run: uv run --isolated --no-project --with dist/*.whl pytest packages/ess-migration-tool/tests
+
+    - name: pytest packages (source distribution)
+      run: uv run --isolated --no-project --with dist/*.tar.gz pytest packages/ess-migration-tool/tests
+
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+    permissions:
+      id-token: write
+      contents: read
+    needs:
+    - python
+    steps:
+    - name: Checkout
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      with:
+        persist-credentials: false
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a  # v7.4.0
+      with:
+        # We disable cache for releases to avoid cache poisoning
+        enable-cache: ${{ github.ref_type != 'tag' }}
+        activate-environment: true
+
+    - name: Build
+      run: uv build --package ess-migration-tool
+    # Check that basic features work and we didn't miss to include crucial files
+    - name: Smoke test (wheel)
+      run: uv run --isolated --resolution lowest --no-project --with dist/*.whl ess-migration-tool --help
+    - name: Smoke test (source distribution)
+      run: uv run --isolated --resolution lowest --no-project --with dist/*.tar.gz ess-migration-tool --help
+    - name: Publish
+      run: uv publish "${DRY_RUN}" dist/*
+      env:
+        DRY_RUN: ${{ github.ref_type == 'tag' && '' || '--dry-run' }}
