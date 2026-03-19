@@ -48,14 +48,14 @@ https://github.com/kubernetes/kubernetes/issues/129043 / https://github.com/kube
 {{- if .postgres }}
     user: {{ .postgres.user }}
     password: ${SYNAPSE_POSTGRES_PASSWORD}
-    database: {{ .postgres.database }}
+    dbname: {{ .postgres.database }}
     host: {{ (tpl .postgres.host $root) }}
     port: {{ .postgres.port | default 5432 }}
     sslmode: {{ .postgres.sslMode | default "prefer" }}
 {{- else if $root.Values.postgres.enabled }}
     user: "synapse_user"
     password: ${SYNAPSE_POSTGRES_PASSWORD}
-    database: "synapse"
+    dbname: "synapse"
     host: "{{ $root.Release.Name }}-postgres.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}"
     port: 5432
     sslmode: prefer

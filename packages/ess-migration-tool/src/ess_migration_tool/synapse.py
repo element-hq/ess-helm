@@ -107,6 +107,17 @@ def extract_workers_from_instance_map(pretty_logger: logging.Logger, instance_ma
     return selected_workers
 
 
+def extract_database_name(pretty_logger: logging.Logger, database_args: dict[str, Any]) -> str:
+    """Extract database name from the database arguments."""
+    database_name = database_args.get("dbname")
+    if not database_name:
+        database_name = database_args.get("database")
+    if not database_name:
+        pretty_logger.info("   ❌ Synapse database name could not be found")
+        raise MigrationError("No synapse database name found")
+    return database_name
+
+
 @dataclass
 class SynapseMigration(MigrationStrategy):
     """Synapse-specific migration implementation."""
@@ -156,15 +167,15 @@ class SynapseMigration(MigrationStrategy):
     @property
     def transformations(self) -> list[TransformationSpec]:
         return [
-            TransformationSpec(src_key="server_name", target_key="serverName"),  # Required by default
-            TransformationSpec(src_key="database.args.host", target_key="synapse.postgres.host"),  # Required by default
+            TransformationSpec(src_key="server_name", target_key="serverName"),
+            TransformationSpec(src_key="database.args.host", target_key="synapse.postgres.host"),
             TransformationSpec(
                 src_key="database.args.port", target_key="synapse.postgres.port", required=False
             ),  # Optional - defaults to 5432
-            TransformationSpec(src_key="database.args.user", target_key="synapse.postgres.user"),  # Required by default
+            TransformationSpec(src_key="database.args.user", target_key="synapse.postgres.user"),
             TransformationSpec(
-                src_key="database.args.database", target_key="synapse.postgres.database"
-            ),  # Required by default
+                src_key="database.args", target_key="synapse.postgres.database", transformer=extract_database_name
+            ),
             TransformationSpec(
                 src_key="database.args.sslmode", target_key="synapse.postgres.sslMode", required=False
             ),  # Optional security feature
