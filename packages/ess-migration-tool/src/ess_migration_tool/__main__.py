@@ -187,7 +187,7 @@ Examples:
 
         # Write outputs
         reporter.report_step(WRITING_OUTPUTS_STEP)
-        write_outputs(
+        values_path, secret_paths, configmap_paths = write_outputs(
             helm_values=helm_values,
             secrets=engine.secrets,
             configmaps=engine.configmaps,
@@ -264,6 +264,54 @@ Examples:
             pretty_logger.info("🎉 CLEAN MIGRATION: No unexpected overrides detected!")
             pretty_logger.info("   All configurations have been properly migrated to ESS.")
             pretty_logger.info("")
+
+        # Show next steps for deployment
+        pretty_logger.info("🚀 NEXT STEPS TO DEPLOY ELEMENT SERVER SUITE:")
+        pretty_logger.info("")
+
+        # Use incremental step numbering
+        step_number = 1
+
+        pretty_logger.info(f"{step_number}. Create Kubernetes namespace:")
+        step_number += 1
+        pretty_logger.info("   kubectl create namespace ess")
+
+        # Check if there are configmaps or secrets to apply
+        has_configmaps = len(configmap_paths) > 0
+        has_secrets = len(secret_paths) > 0
+
+        if has_configmaps or has_secrets:
+            pretty_logger.info(f"{step_number}. Apply generated Kubernetes resources:")
+            step_number += 1
+            if has_configmaps:
+                for configmap_path in configmap_paths:
+                    pretty_logger.info(f"   kubectl apply -f {configmap_path} -n ess")
+            if has_secrets:
+                for secret_path in secret_paths:
+                    pretty_logger.info(f"   kubectl apply -f {secret_path} -n ess")
+            pretty_logger.info("")
+
+        pretty_logger.info(f"{step_number}.Install ESS using Helm with the generated values:")
+        step_number += 1
+        pretty_logger.info(
+            f'   helm upgrade --install --namespace "ess" ess '
+            f"oci://ghcr.io/element-hq/ess-helm/matrix-stack -f {values_path} --wait"
+        )
+        pretty_logger.info("")
+
+        # Get the original media path from Synapse configuration
+        synapse_input = engine.input_processor.input_for_component("synapse")
+        original_media_path = None
+        if synapse_input and synapse_input.config.get("media_store_path"):
+            original_media_path = synapse_input.config["media_store_path"]
+
+        if original_media_path:
+            pretty_logger.info(f"{step_number}. Copy media from your existing setup to ESS persistent volume:")
+            pretty_logger.info(f"   kubectl cp {original_media_path} ess-synapse-0:/media/media_store -n ess")
+            pretty_logger.info("")
+
+        pretty_logger.info("📚 For more details on deployment and data migration, refer to the ESS documentation.")
+        pretty_logger.info("")
 
         pretty_logger.info("=" * 60)
 
