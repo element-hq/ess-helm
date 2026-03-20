@@ -22,13 +22,25 @@ def test_main_e2e_synapse_only(
     synapse_config_with_signing_key,
     synapse_config_with_email_templates,
     synapse_config_with_ca_federation_list,
+    synapse_config_without_public_baseurl,
     write_synapse_config,
 ):
     """Test the complete end-to-end migration workflow with Synapse only."""
 
-    # Write Synapse config
+    # Mock the input function to provide the ingress host when prompted
+    def mock_input(prompt):
+        if "ingress host" in prompt.lower():
+            return "matrix.example.com"
+        return ""
+
+    monkeypatch.setattr("builtins.input", mock_input)
+
+    # Write Synapse config without public_baseurl to test prompt functionality
     synapse_config_file = write_synapse_config(
-        synapse_config_with_signing_key | synapse_config_with_email_templates | synapse_config_with_ca_federation_list
+        synapse_config_without_public_baseurl
+        | synapse_config_with_signing_key
+        | synapse_config_with_email_templates
+        | synapse_config_with_ca_federation_list
     )
 
     # Create output directory
@@ -68,6 +80,11 @@ def test_main_e2e_synapse_only(
     # Verify Synapse configuration was migrated
     synapse_config = generated_values["synapse"]
     assert synapse_config["enabled"] is True
+
+    # Verify ingress host was set from prompt (not from public_baseurl)
+    assert "ingress" in synapse_config
+    assert "host" in synapse_config["ingress"]
+    assert synapse_config["ingress"]["host"] == "matrix.example.com"
 
     # Verify postgres configuration (nested under synapse)
     assert "postgres" in synapse_config

@@ -82,10 +82,15 @@ def prompt_user_for_worker(
             raise MigrationError("End of input reached during worker prompt") from err
 
 
-def extract_workers_from_instance_map(pretty_logger: logging.Logger, instance_map: dict[str, Any]) -> dict[str, Any]:
+def extract_workers_from_instance_map(
+    pretty_logger: logging.Logger, instance_map: dict[str, Any] | None
+) -> dict[str, Any] | None:
     """Extract workers from the instance map."""
 
     selected_workers = {}
+    if instance_map is None:
+        return None
+
     for instance_name in instance_map:
         matches = process.extract(instance_name, worker_types, scorer=fuzz.WRatio, limit=3)
         very_high_probable_matches = [m[0] for m in matches if m[1] > 90]
