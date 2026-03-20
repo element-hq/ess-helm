@@ -10,12 +10,11 @@ Synapse-specific migration strategy.
 import logging
 import os
 import urllib
-from dataclasses import dataclass
 from typing import Any
 
 from .interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
 from .migration import MigrationStrategy, TransformationSpec
-from .models import DiscoveredSecret, SecretConfig
+from .models import DiscoveredSecret, GlobalOptions, SecretConfig
 from .utils import detect_key_type, extract_hostname_from_url
 
 logger = logging.getLogger("migration")
@@ -83,9 +82,11 @@ def extract_port_from_uri(_, uri: str) -> int | None:
     return int(port) if port is not None else None
 
 
-@dataclass
 class MASMigration(MigrationStrategy):
     """MAS-specific migration implementation."""
+
+    def __init__(self, global_options: GlobalOptions):
+        self.global_options = global_options
 
     @property
     def component_root_key(self) -> str:
@@ -100,47 +101,67 @@ class MASMigration(MigrationStrategy):
 
     @property
     def transformations(self) -> list[TransformationSpec]:
-        return [
-            TransformationSpec(
-                src_key="database.uri",
-                target_key="matrixAuthenticationService.postgres.host",
-                transformer=lambda _, uri: parse_postgres_uri(uri).get("host"),
-                required=True,
-            ),
-            TransformationSpec(
-                src_key="database.uri",
-                target_key="matrixAuthenticationService.postgres.port",
-                transformer=extract_port_from_uri,
-                required=False,
-            ),
-            TransformationSpec(
-                src_key="database.uri",
-                target_key="matrixAuthenticationService.postgres.user",
-                transformer=lambda _, uri: parse_postgres_uri(uri).get("user"),
-                required=True,
-            ),
-            TransformationSpec(
-                src_key="database.uri",
-                target_key="matrixAuthenticationService.postgres.database",
-                transformer=lambda _, uri: parse_postgres_uri(uri).get("name"),
-                required=True,
-            ),
-            TransformationSpec(
-                src_key="database.uri",
-                target_key="matrixAuthenticationService.postgres.sslMode",
-                transformer=lambda _, uri: parse_postgres_uri(uri).get("ssl"),
-                required=False,
-            ),
+        """Get transformations based on database choice."""
+        base_transformations = [
             TransformationSpec(
                 src_key="http.public_base",
                 target_key="matrixAuthenticationService.ingress.host",
                 transformer=extract_hostname_from_url,
             ),  # Extract hostname from http.public_base for ingress host
+            # ... other non-database transformations ...
         ]
+
+        if self.global_options.use_existing_database:
+            # External database: import database configuration
+            return base_transformations + [
+                TransformationSpec(
+                    src_key="database.uri",
+                    target_key="matrixAuthenticationService.postgres.host",
+                    transformer=lambda _, uri: parse_postgres_uri(uri).get("host"),
+                    required=True,
+                ),
+                TransformationSpec(
+                    src_key="database.uri",
+                    target_key="matrixAuthenticationService.postgres.port",
+                    transformer=extract_port_from_uri,
+                    required=False,
+                ),
+                TransformationSpec(
+                    src_key="database.uri",
+                    target_key="matrixAuthenticationService.postgres.user",
+                    transformer=lambda _, uri: parse_postgres_uri(uri).get("user"),
+                    required=True,
+                ),
+                TransformationSpec(
+                    src_key="database.uri",
+                    target_key="matrixAuthenticationService.postgres.database",
+                    transformer=lambda _, uri: parse_postgres_uri(uri).get("name"),
+                    required=True,
+                ),
+                TransformationSpec(
+                    src_key="database.uri",
+                    target_key="matrixAuthenticationService.postgres.sslMode",
+                    transformer=lambda _, uri: parse_postgres_uri(uri).get("ssl"),
+                    required=False,
+                ),
+                # ... other database property transformations ...
+            ]
+        else:
+            # ESS-managed: set postgres.enabled flag
+            return base_transformations + [
+                TransformationSpec(
+                    src_key="database",  # Trigger on database section
+                    target_key="postgres.enabled",
+                    transformer=lambda _, __: True,  # Set to True for ESS-managed Postgres
+                )
+            ]
 
 
 class MASSecretDiscovery(SecretDiscoveryStrategy):
     """MAS-specific secret discovery implementation."""
+
+    def __init__(self, global_options: GlobalOptions):
+        self.global_options = global_options
 
     @property
     def component_name(self) -> str:
@@ -149,59 +170,70 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
     @property
     def ess_secret_schema(self) -> dict[str, SecretConfig]:
         """Get the ESS secret schema for MAS."""
-        return {
+        schema = {
             # MAS secrets
-            "matrixAuthenticationService.postgres.password": SecretConfig(
+        }
+
+        # Only include PostgreSQL password when using existing database
+        if self.global_options.use_existing_database:
+            schema["matrixAuthenticationService.postgres.password"] = SecretConfig(
                 init_if_missing_from_source_cfg=True,  # Must be provided
                 description="MAS database password",
                 config_inline="database.uri",
                 config_path=None,
                 transformer=lambda uri: parse_postgres_uri(uri).get("password"),
-            ),
-            "matrixAuthenticationService.synapseSharedSecret": SecretConfig(
-                init_if_missing_from_source_cfg=True,  # Can be auto-generated
-                description="MAS Synapse shared secret",
-                config_inline="matrix.secret",
-                config_path="matrix.secret_file",
-            ),
-            "matrixAuthenticationService.encryptionSecret": SecretConfig(
-                init_if_missing_from_source_cfg=True,  # Must be provided
-                description="MAS encryption secret",
-                config_inline="secrets.encryption",
-                config_path="secrets.encryption_file",
-            ),
-            # Key secrets - these will be discovered through special key processing
-            "matrixAuthenticationService.keys.rsa": SecretConfig(
-                init_if_missing_from_source_cfg=True,
-                description="MAS RSA private key for signing operations",
-                config_inline=None,
-                config_path=None,
-                transformer=None,
-            ),
-            "matrixAuthenticationService.keys.ecdsaPrime256v1": SecretConfig(
-                init_if_missing_from_source_cfg=True,
-                description="MAS ECDSA Prime256v1 private key for signing operations",
-                config_inline=None,
-                config_path=None,
-                transformer=None,
-            ),
-            "matrixAuthenticationService.keys.ecdsaSecp256k1": SecretConfig(
-                init_if_missing_from_source_cfg=False,
-                description="MAS ECDSA Secp256k1 private key for signing operations",
-                config_inline=None,
-                config_path=None,
-                optional=True,  # This key type is optional
-                transformer=None,
-            ),
-            "matrixAuthenticationService.keys.ecdsaSecp384r1": SecretConfig(
-                init_if_missing_from_source_cfg=False,
-                description="MAS ECDSA Secp384r1 private key for signing operations",
-                config_inline=None,
-                config_path=None,
-                optional=True,  # This key type is optional
-                transformer=None,
-            ),
-        }
+            )
+
+        # Other MAS secrets (always included)
+        schema.update(
+            {
+                "matrixAuthenticationService.synapseSharedSecret": SecretConfig(
+                    init_if_missing_from_source_cfg=True,  # Can be auto-generated
+                    description="MAS Synapse shared secret",
+                    config_inline="matrix.secret",
+                    config_path="matrix.secret_file",
+                ),
+                "matrixAuthenticationService.encryptionSecret": SecretConfig(
+                    init_if_missing_from_source_cfg=True,  # Must be provided
+                    description="MAS encryption secret",
+                    config_inline="secrets.encryption",
+                    config_path="secrets.encryption_file",
+                ),
+                # Key secrets - these will be discovered through special key processing
+                "matrixAuthenticationService.keys.rsa": SecretConfig(
+                    init_if_missing_from_source_cfg=True,
+                    description="MAS RSA private key for signing operations",
+                    config_inline=None,
+                    config_path=None,
+                    transformer=None,
+                ),
+                "matrixAuthenticationService.keys.ecdsaPrime256v1": SecretConfig(
+                    init_if_missing_from_source_cfg=True,
+                    description="MAS ECDSA Prime256v1 private key for signing operations",
+                    config_inline=None,
+                    config_path=None,
+                    transformer=None,
+                ),
+                "matrixAuthenticationService.keys.ecdsaSecp256k1": SecretConfig(
+                    init_if_missing_from_source_cfg=False,
+                    description="MAS ECDSA Secp256k1 private key for signing operations",
+                    config_inline=None,
+                    config_path=None,
+                    optional=True,  # This key type is optional
+                    transformer=None,
+                ),
+                "matrixAuthenticationService.keys.ecdsaSecp384r1": SecretConfig(
+                    init_if_missing_from_source_cfg=False,
+                    description="MAS ECDSA Secp384r1 private key for signing operations",
+                    config_inline=None,
+                    config_path=None,
+                    optional=True,  # This key type is optional
+                    transformer=None,
+                ),
+            }
+        )
+
+        return schema
 
     def discover_component_specific_secrets(self, config_data: dict) -> dict[str, DiscoveredSecret]:
         """

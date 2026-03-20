@@ -9,12 +9,16 @@ Interfaces for the migration system.
 
 from typing import Protocol, runtime_checkable
 
-from .models import DiscoveredSecret, SecretConfig, TransformationSpec
+from .models import DiscoveredSecret, GlobalOptions, SecretConfig, TransformationSpec
 
 
 @runtime_checkable
 class MigrationStrategy(Protocol):
     """Interface for migration strategies."""
+
+    def __init__(self, global_options: GlobalOptions):
+        """Initialize with global options."""
+        ...
 
     @property
     def component_root_key(self) -> str:
@@ -28,13 +32,17 @@ class MigrationStrategy(Protocol):
 
     @property
     def transformations(self) -> list[TransformationSpec]:
-        """Get component-specific transformations."""
+        """Get component-specific transformations based on global options."""
         ...
 
 
 @runtime_checkable
 class SecretDiscoveryStrategy(Protocol):
     """Minimal interface for secret discovery strategies."""
+
+    def __init__(self, global_options: GlobalOptions):
+        """Initialize with global options."""
+        ...
 
     @property
     def ess_secret_schema(self) -> dict[str, SecretConfig]:

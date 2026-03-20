@@ -15,7 +15,15 @@ from typing import Any
 
 from .extra_files import ExtraFilesDiscovery
 from .interfaces import ExtraFilesDiscoveryStrategy, MigrationStrategy, SecretDiscoveryStrategy
-from .models import ConfigMap, DiscoveredExtraFile, DiscoveredSecret, MigrationInput, Secret, TransformationSpec
+from .models import (
+    ConfigMap,
+    DiscoveredExtraFile,
+    DiscoveredSecret,
+    GlobalOptions,
+    MigrationInput,
+    Secret,
+    TransformationSpec,
+)
 from .secrets import SecretDiscovery
 from .utils import (
     get_nested_value,
@@ -319,6 +327,7 @@ class MigrationService:
     override_configs: set[str] = field(default_factory=set)  # Set of configurations that are managed by ESS
     component_root_key: str = field(init=False)  # Root key for the component (e.g., 'synapse')
     results: list[TransformationResult] = field(default_factory=list)  # List of transformation results
+    global_options: GlobalOptions = field(default_factory=GlobalOptions)  # Global migration options
 
     def __post_init__(self):
         self.component_root_key = self.migration.component_root_key
@@ -380,6 +389,7 @@ class MigrationService:
             strategy=self.secret_discovery_strategy,
             source_file=self.input.config_path,
             pretty_logger=self.pretty_logger,
+            global_options=self.global_options,
         )
         secret_discovery.discover_secrets(self.input.config)
         # Prompt for missing secrets then validate

@@ -15,7 +15,7 @@ from rapidfuzz import fuzz, process
 
 from .interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
 from .migration import MigrationStrategy, TransformationSpec
-from .models import DiscoveredSecret, MigrationError, SecretConfig
+from .models import DiscoveredSecret, GlobalOptions, MigrationError, SecretConfig
 from .utils import extract_hostname_from_url
 
 logger = logging.getLogger("migration")
@@ -165,6 +165,9 @@ def prompt_for_ingress_host(pretty_logger: logging.Logger, public_baseurl: str |
 class SynapseMigration(MigrationStrategy):
     """Synapse-specific migration implementation."""
 
+    def __init__(self, global_options: GlobalOptions):
+        self.global_options = global_options
+
     @property
     def component_root_key(self) -> str:
         return "synapse"
@@ -209,19 +212,9 @@ class SynapseMigration(MigrationStrategy):
 
     @property
     def transformations(self) -> list[TransformationSpec]:
-        return [
+        """Get transformations based on database choice."""
+        base_transformations = [
             TransformationSpec(src_key="server_name", target_key="serverName"),
-            TransformationSpec(src_key="database.args.host", target_key="synapse.postgres.host"),
-            TransformationSpec(
-                src_key="database.args.port", target_key="synapse.postgres.port", required=False
-            ),  # Optional - defaults to 5432
-            TransformationSpec(src_key="database.args.user", target_key="synapse.postgres.user"),
-            TransformationSpec(
-                src_key="database.args", target_key="synapse.postgres.database", transformer=extract_database_name
-            ),
-            TransformationSpec(
-                src_key="database.args.sslmode", target_key="synapse.postgres.sslMode", required=False
-            ),  # Optional security feature
             TransformationSpec(
                 src_key="public_baseurl",
                 target_key="synapse.ingress.host",
@@ -233,7 +226,32 @@ class SynapseMigration(MigrationStrategy):
                 transformer=extract_workers_from_instance_map,
                 required=False,
             ),  # Extract workers from synapse instance_map
+            # ... other non-database transformations ...
         ]
+
+        if self.global_options.use_existing_database:
+            # External database: import all database configuration
+            return base_transformations + [
+                TransformationSpec(src_key="database.args.host", target_key="synapse.postgres.host"),
+                TransformationSpec(src_key="database.args.port", target_key="synapse.postgres.port", required=False),
+                TransformationSpec(src_key="database.args.user", target_key="synapse.postgres.user"),
+                TransformationSpec(
+                    src_key="database.args", target_key="synapse.postgres.database", transformer=extract_database_name
+                ),
+                TransformationSpec(
+                    src_key="database.args.sslmode", target_key="synapse.postgres.sslMode", required=False
+                ),  # Optional security feature
+                # ... other database property transformations ...
+            ]
+        else:
+            # ESS-managed: set postgres.enabled flag
+            return base_transformations + [
+                TransformationSpec(
+                    src_key="database",  # Trigger on database section
+                    target_key="postgres.enabled",
+                    transformer=lambda _, __: True,  # Set to True for ESS-managed Postgres
+                )
+            ]
 
     @property
     def component_config_extras(self) -> dict[str, Any]:
@@ -243,37 +261,51 @@ class SynapseMigration(MigrationStrategy):
 class SynapseSecretDiscovery(SecretDiscoveryStrategy):
     """Synapse-specific secret discovery implementation."""
 
+    def __init__(self, global_options: GlobalOptions):
+        self.global_options = global_options
+
     @property
     def ess_secret_schema(self) -> dict[str, SecretConfig]:
         """Get the ESS secret schema for Synapse."""
-        return {
+        schema = {
             # Synapse secrets
-            "synapse.postgres.password": SecretConfig(
+        }
+
+        # Only include PostgreSQL password when using existing database
+        if self.global_options.use_existing_database:
+            schema["synapse.postgres.password"] = SecretConfig(
                 init_if_missing_from_source_cfg=False,  # Must be provided
                 description="Synapse database password",
                 config_inline="database.args.password",
                 config_path=None,
-            ),
-            "synapse.macaroon": SecretConfig(
-                init_if_missing_from_source_cfg=False,  # This would break user tokens if changing after migrating
-                description="Synapse macaroon secret",
-                config_inline="macaroon_secret_key",
-                config_path="macaroon_secret_key_path",
-            ),
-            "synapse.registrationSharedSecret": SecretConfig(
-                init_if_missing_from_source_cfg=True,  # Would break external scripts
-                # if changing after migrating. Just warn about it, dont break.
-                description="Registration shared secret",
-                config_inline="registration_shared_secret",
-                config_path="registration_shared_secret_path",
-            ),
-            "synapse.signingKey": SecretConfig(
-                init_if_missing_from_source_cfg=False,  # This would break federation if changing after migrating
-                description="Signing key",
-                config_inline="signing_key",
-                config_path="signing_key_path",
-            ),
-        }
+            )
+
+        # Other Synapse secrets (always included)
+        schema.update(
+            {
+                "synapse.macaroon": SecretConfig(
+                    init_if_missing_from_source_cfg=False,  # This would break user tokens if changing after migrating
+                    description="Synapse macaroon secret",
+                    config_inline="macaroon_secret_key",
+                    config_path="macaroon_secret_key_path",
+                ),
+                "synapse.registrationSharedSecret": SecretConfig(
+                    init_if_missing_from_source_cfg=True,  # Would break external scripts
+                    # if changing after migrating. Just warn about it, dont break.
+                    description="Registration shared secret",
+                    config_inline="registration_shared_secret",
+                    config_path="registration_shared_secret_path",
+                ),
+                "synapse.signingKey": SecretConfig(
+                    init_if_missing_from_source_cfg=False,  # This would break federation if changing after migrating
+                    description="Signing key",
+                    config_inline="signing_key",
+                    config_path="signing_key_path",
+                ),
+            }
+        )
+
+        return schema
 
     @property
     def component_name(self) -> str:

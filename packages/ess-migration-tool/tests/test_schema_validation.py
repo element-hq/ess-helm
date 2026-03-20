@@ -56,6 +56,10 @@ def test_migration_output_schema_validation(tmp_path, synapse_config_with_signin
 
     # Create and run migration engine
     engine = MigrationEngine(input_processor=input_processor, pretty_logger=logging.getLogger())
+
+    # Set database mode directly to avoid prompting (simulate --database-mode existing)
+    engine.global_options.use_existing_database = True
+
     ess_values = engine.run_migration()
 
     # Validate the output against the schema

@@ -51,6 +51,9 @@ def test_migration_with_missing_secrets_prompt(
 
     engine = MigrationEngine(input_processor, pretty_logger=pretty_logger)
 
+    # Set database mode directly
+    engine.global_options.use_existing_database = True
+
     # Mock user input for missing secrets
     side_effect = (n for n in ("test_db_password", "test_macaroon", "test_registration"))
     monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
@@ -161,6 +164,9 @@ def test_quiet_mode_fails_on_missing_secrets(tmp_path, synapse_config_with_signi
 
     engine = MigrationEngine(input_processor, pretty_logger=pretty_logger)
 
+    # Set database mode directly to avoid prompting (simulate --database-mode existing)
+    engine.global_options.use_existing_database = True
+
     # Test that it raises SecretsError in quiet mode
     with pytest.raises(SecretsError) as exc_info:
         engine.run_migration()
@@ -195,6 +201,9 @@ def test_quiet_mode_fails_on_missing_extra_files(
     pretty_logger.addHandler(logging.StreamHandler())
 
     engine = MigrationEngine(input_processor, pretty_logger=pretty_logger)
+
+    # Set database mode directly to avoid prompting (simulate --database-mode existing)
+    engine.global_options.use_existing_database = True
 
     # Test that it raises ExtraFilesError in quiet mode
     with pytest.raises(ExtraFilesError) as exc_info:
@@ -232,8 +241,11 @@ def test_migration_with_unknown_workers_prompt(
 
     engine = MigrationEngine(input_processor, pretty_logger=pretty_logger)
 
+    # Set database mode directly
+    engine.global_options.use_existing_database = True
+
     # Mock user input for workers
-    side_effect = (n for n in ("8"))
+    side_effect = (n for n in ("8",))
     monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
 
     # Test with async timeout to prevent hanging
@@ -298,6 +310,9 @@ def test_migration_with_missing_extra_files_prompt(
 
     engine = MigrationEngine(input_processor, pretty_logger=pretty_logger)
 
+    # Set database mode directly
+    engine.global_options.use_existing_database = True
+
     # Mock user input for extra files discovery
     side_effect = (n for n in ("3", str(tmp_path / "moved")))
     monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
@@ -332,6 +347,201 @@ def test_migration_with_missing_extra_files_prompt(
             pytest.fail(f"Async test failed: {e}")
         else:
             # Re-raise the original exception
+            raise
+    finally:
+        log_capture_string.close()
+
+
+def test_database_choice_prompt_existing_database(
+    monkeypatch,
+    tmp_path,
+    synapse_config_with_signing_key,
+    write_synapse_config,
+):
+    """Test database choice prompt when user selects existing database."""
+    # Write Synapse config
+    synapse_config_file = write_synapse_config(synapse_config_with_signing_key)
+
+    # Load migration input
+    input_processor = InputProcessor()
+    input_processor.load_migration_input(
+        config_path=str(synapse_config_file),
+        name="synapse",
+    )
+
+    log_capture_string = StringIO()
+    pretty_logger = logging.getLogger(test_database_choice_prompt_existing_database.__name__)
+    pretty_logger.propagate = False
+    pretty_logger.setLevel(logging.INFO)
+    pretty_logger.addHandler(logging.StreamHandler(log_capture_string))
+
+    engine = MigrationEngine(input_processor, pretty_logger=pretty_logger)
+
+    # Mock user input for database choice (select option 1 - existing database)
+    side_effect = (n for n in ("1",))  # Just database choice, no missing secrets
+    monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
+
+    # Test database choice prompt directly
+    from ess_migration_tool.utils import prompt_for_database_choice
+
+    engine.global_options.use_existing_database = prompt_for_database_choice(pretty_logger)
+
+    # Test with async timeout to prevent hanging
+    async def test_with_timeout():
+        engine.run_migration()
+
+    # Run the async test with timeout
+    try:
+        asyncio.run(asyncio.wait_for(test_with_timeout(), timeout=10.0))
+
+        # Capture the output after the test runs
+        output = log_capture_string.getvalue()
+
+        # Verify database choice prompt was shown
+        assert "🗃️  DATABASE CONFIGURATION CHOICE" in output
+        assert "How would you like to handle the database for your ESS deployment?" in output
+        assert "1. 🔗 Connect to existing database" in output
+        assert "2. 🆕 Install Postgres with ESS and import database later" in output
+        assert "   ✅ Using existing database configuration" in output
+
+        # Verify that the global option was set correctly
+        assert engine.global_options.use_existing_database is True
+
+    except TimeoutError:
+        pytest.fail("Test timed out - prompt may be hanging")
+    except Exception as e:
+        if "TimeoutError" in str(e) or "asyncio" in str(e):
+            pytest.fail(f"Async test failed: {e}")
+        else:
+            raise
+    finally:
+        log_capture_string.close()
+
+
+def test_database_choice_prompt_ess_managed(
+    monkeypatch,
+    tmp_path,
+    synapse_config_with_signing_key,
+    write_synapse_config,
+):
+    """Test database choice prompt when user selects ESS-managed Postgres."""
+    # Write Synapse config
+    synapse_config_file = write_synapse_config(synapse_config_with_signing_key)
+
+    # Load migration input
+    input_processor = InputProcessor()
+    input_processor.load_migration_input(
+        config_path=str(synapse_config_file),
+        name="synapse",
+    )
+
+    log_capture_string = StringIO()
+    pretty_logger = logging.getLogger(test_database_choice_prompt_ess_managed.__name__)
+    pretty_logger.propagate = False
+    pretty_logger.setLevel(logging.INFO)
+    pretty_logger.addHandler(logging.StreamHandler(log_capture_string))
+
+    engine = MigrationEngine(input_processor, pretty_logger=pretty_logger)
+
+    # Mock user input for database choice (select option 2 - ESS-managed Postgres)
+    side_effect = (n for n in ("2",))  # Just database choice, no missing secrets
+    monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
+
+    # Test database choice prompt directly
+    from ess_migration_tool.utils import prompt_for_database_choice
+
+    engine.global_options.use_existing_database = prompt_for_database_choice(pretty_logger)
+
+    # Test with async timeout to prevent hanging
+    async def test_with_timeout():
+        engine.run_migration()
+
+    # Run the async test with timeout
+    try:
+        asyncio.run(asyncio.wait_for(test_with_timeout(), timeout=10.0))
+
+        # Capture the output after the test runs
+        output = log_capture_string.getvalue()
+
+        # Verify database choice prompt was shown
+        assert "🗃️  DATABASE CONFIGURATION CHOICE" in output
+        assert "How would you like to handle the database for your ESS deployment?" in output
+        assert "1. 🔗 Connect to existing database" in output
+        assert "2. 🆕 Install Postgres with ESS and import database later" in output
+        assert "   ✅ Using ESS-managed Postgres (import database later)" in output
+
+        # Verify that the global option was set correctly
+        assert engine.global_options.use_existing_database is False
+
+    except TimeoutError:
+        pytest.fail("Test timed out - prompt may be hanging")
+    except Exception as e:
+        if "TimeoutError" in str(e) or "asyncio" in str(e):
+            pytest.fail(f"Async test failed: {e}")
+        else:
+            raise
+    finally:
+        log_capture_string.close()
+
+
+def test_database_choice_prompt_default(
+    monkeypatch,
+    tmp_path,
+    synapse_config_with_signing_key,
+    write_synapse_config,
+):
+    """Test database choice prompt when user presses Enter (default choice)."""
+    # Write Synapse config
+    synapse_config_file = write_synapse_config(synapse_config_with_signing_key)
+
+    # Load migration input
+    input_processor = InputProcessor()
+    input_processor.load_migration_input(
+        config_path=str(synapse_config_file),
+        name="synapse",
+    )
+
+    log_capture_string = StringIO()
+    pretty_logger = logging.getLogger(test_database_choice_prompt_default.__name__)
+    pretty_logger.propagate = False
+    pretty_logger.setLevel(logging.INFO)
+    pretty_logger.addHandler(logging.StreamHandler(log_capture_string))
+
+    engine = MigrationEngine(input_processor, pretty_logger=pretty_logger)
+
+    # Mock user input for database choice (press Enter for default - option 1)
+    side_effect = (n for n in ("",))  # Empty string for default choice
+    monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
+
+    # Test database choice prompt directly
+    from ess_migration_tool.utils import prompt_for_database_choice
+
+    engine.global_options.use_existing_database = prompt_for_database_choice(pretty_logger)
+
+    # Test with async timeout to prevent hanging
+    async def test_with_timeout():
+        engine.run_migration()
+
+    # Run the async test with timeout
+    try:
+        asyncio.run(asyncio.wait_for(test_with_timeout(), timeout=10.0))
+
+        # Capture the output after the test runs
+        output = log_capture_string.getvalue()
+
+        # Verify database choice prompt was shown
+        assert "🗃️  DATABASE CONFIGURATION CHOICE" in output
+        assert "   ✅ Using existing database configuration" in output
+
+        # Verify that the global option was set to default (True - existing database)
+        assert engine.global_options.use_existing_database is True
+
+    except TimeoutError:
+        pytest.fail("Test timed out - prompt may be hanging")
+    except Exception as e:
+        if "TimeoutError" in str(e) or "asyncio" in str(e):
+            pytest.fail(f"Async test failed: {e}")
+        else:
             raise
     finally:
         log_capture_string.close()

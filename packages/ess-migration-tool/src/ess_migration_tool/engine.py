@@ -14,7 +14,7 @@ from typing import Any
 from .inputs import InputProcessor
 from .mas import MASExtraFileDiscovery, MASMigration, MASSecretDiscovery
 from .migration import MigrationService
-from .models import ConfigMap, DiscoveredSecret, Secret
+from .models import ConfigMap, DiscoveredSecret, GlobalOptions, Secret
 from .synapse import SynapseExtraFileDiscovery, SynapseMigration, SynapseSecretDiscovery
 
 logger = logging.getLogger("migration")
@@ -33,12 +33,17 @@ class MigrationEngine:
     discovered_secrets: list[DiscoveredSecret] = field(default_factory=list)
     init_by_ess_secrets: list[str] = field(default_factory=list)
     migrators: list[MigrationService] = field(default_factory=list)
+    global_options: GlobalOptions = field(default_factory=GlobalOptions)
 
     def __post_init__(self) -> None:
         """Initialize the migration engine."""
         for migration, secret_discovery_strategy, extra_file_strategy in [
-            (SynapseMigration(), SynapseSecretDiscovery(), SynapseExtraFileDiscovery()),
-            (MASMigration(), MASSecretDiscovery(), MASExtraFileDiscovery()),
+            (
+                SynapseMigration(self.global_options),
+                SynapseSecretDiscovery(self.global_options),
+                SynapseExtraFileDiscovery(),
+            ),
+            (MASMigration(self.global_options), MASSecretDiscovery(self.global_options), MASExtraFileDiscovery()),
         ]:
             migration_input = self.input_processor.input_for_component(migration.component_root_key)
             if migration_input:
@@ -52,6 +57,7 @@ class MigrationEngine:
                         secret_discovery_strategy=secret_discovery_strategy,
                         configmaps=self.configmaps,
                         extra_files_strategy=extra_file_strategy,
+                        global_options=self.global_options,
                     )
                 )
 
@@ -63,8 +69,6 @@ class MigrationEngine:
             ESS values dictionary
         """
         logger.info("Starting migration process")
-
-        # Initialize the ESS config with basic structure
         for migrator in self.migrators:
             migrator.migrate()
 

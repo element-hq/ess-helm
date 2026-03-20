@@ -58,8 +58,10 @@ def test_main_e2e_synapse_only(
         "--verbose",
     ]
 
-    # Mock sys.argv to simulate CLI arguments
+    # Mock user input for database choice (select option 1 - existing database, default)
+    side_effect = (n for n in ("",))  # Empty string for default choice (existing database)
     monkeypatch.setattr(sys, "argv", test_args)
+    monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
     exit_code = __main__.main()
 
     # Verify successful execution
@@ -223,8 +225,10 @@ def test_main_e2e_synapse_with_mas(
         str(output_dir),
     ]
 
-    # Mock sys.argv to simulate CLI arguments
+    # Mock user input for database choice (select option 1 - existing database, default)
+    side_effect = (n for n in ("",))  # Empty string for default choice (existing database)
     monkeypatch.setattr(sys, "argv", test_args)
+    monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
     exit_code = __main__.main()
 
     # Verify successful execution
@@ -327,3 +331,123 @@ def test_main_e2e_synapse_with_mas(
                 pytest.fail(f"Unexpected secret file: {secret_file.name}")
     mas_additional_config = yaml.safe_load(mas_config["additional"]["00-imported.yaml"]["config"])
     assert "keys_dir" not in mas_additional_config["secrets"]
+
+
+def test_main_e2e_synapse_existing_database(
+    monkeypatch,
+    tmp_path,
+    synapse_config_with_signing_key,
+    write_synapse_config,
+):
+    """Test the complete end-to-end migration workflow with Synapse using existing database."""
+    # Write Synapse config
+    synapse_config_file = write_synapse_config(synapse_config_with_signing_key)
+
+    # Create output directory
+    output_dir = tmp_path / "output"
+    output_dir.mkdir()
+
+    # Mock sys.argv to simulate CLI arguments
+    test_args = [
+        "migration",
+        "--synapse-config",
+        str(synapse_config_file),
+        "--output-dir",
+        str(output_dir),
+        "--verbose",
+    ]
+
+    # Mock user input for database choice (select option 1 - existing database)
+    side_effect = (n for n in ("1",))  # Just database choice, no missing secrets
+    monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
+    monkeypatch.setattr(sys, "argv", test_args)
+    exit_code = __main__.main()
+
+    # Verify successful execution
+    assert exit_code == 0
+
+    # Check that output files were created
+    values_file = output_dir / "values.yaml"
+    assert values_file.exists(), "values.yaml should be created"
+
+    # Load and verify the generated values
+    with open(values_file) as f:
+        generated_values = yaml.safe_load(f)
+
+    # Verify Synapse configuration was migrated with existing database settings
+    assert "synapse" in generated_values
+    synapse_config = generated_values["synapse"]
+    assert synapse_config["enabled"] is True
+
+    # Verify postgres configuration (should have full database details for existing database)
+    assert "postgres" in synapse_config
+    postgres_config = synapse_config["postgres"]
+    assert postgres_config["database"] == "synapse"
+    assert postgres_config["user"] == "synapse"
+    assert postgres_config["host"] == "postgres"
+    assert postgres_config["port"] == 5432
+
+    # Verify that postgres.enabled is NOT set (should use existing database)
+    assert "enabled" not in postgres_config
+
+
+def test_main_e2e_synapse_ess_managed_database(
+    monkeypatch,
+    tmp_path,
+    synapse_config_with_signing_key,
+    write_synapse_config,
+):
+    """Test the complete end-to-end migration workflow with Synapse using ESS-managed Postgres."""
+    # Write Synapse config
+    synapse_config_file = write_synapse_config(synapse_config_with_signing_key)
+
+    # Create output directory
+    output_dir = tmp_path / "output"
+    output_dir.mkdir()
+
+    # Mock sys.argv to simulate CLI arguments
+    test_args = [
+        "migration",
+        "--synapse-config",
+        str(synapse_config_file),
+        "--output-dir",
+        str(output_dir),
+        "--verbose",
+    ]
+
+    # Mock user input for database choice (select option 2 - ESS-managed Postgres)
+    side_effect = (n for n in ("2",))  # Just database choice, no missing secrets
+    monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
+    monkeypatch.setattr(sys, "argv", test_args)
+    exit_code = __main__.main()
+
+    # Verify successful execution
+    assert exit_code == 0
+
+    # Check that output files were created
+    values_file = output_dir / "values.yaml"
+    assert values_file.exists(), "values.yaml should be created"
+
+    # Load and verify the generated values
+    with open(values_file) as f:
+        generated_values = yaml.safe_load(f)
+
+    # Verify Synapse configuration was migrated with ESS-managed database settings
+    assert "synapse" in generated_values
+    synapse_config = generated_values["synapse"]
+    assert synapse_config["enabled"] is True
+
+    # Verify postgres configuration (should have minimal settings for ESS-managed Postgres)
+    # For ESS-managed Postgres, postgres.enabled should be set at the global level
+    assert "postgres" in generated_values
+    postgres_config = generated_values["postgres"]
+
+    # For ESS-managed Postgres, we should have postgres.enabled = True at global level
+    assert postgres_config.get("enabled") is True
+
+    # Synapse should not have detailed database connection info (host, port, user, etc.)
+    synapse_postgres_config = synapse_config.get("postgres", {})
+    assert "host" not in synapse_postgres_config
+    assert "port" not in synapse_postgres_config
+    assert "user" not in synapse_postgres_config
+    assert "database" not in synapse_postgres_config
