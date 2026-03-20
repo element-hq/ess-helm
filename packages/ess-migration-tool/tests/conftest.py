@@ -21,6 +21,20 @@ def basic_synapse_config():
     return {
         "server_name": "test.example.com",
         "public_baseurl": "https://matrix.example.com",
+        "listeners": [
+            {
+                "port": 8008,
+                "tls": False,
+                "type": "http",
+                "x_forwarded": False,
+                "resources": [
+                    {
+                        "names": ["client", "federation"],
+                        "compression": False,
+                    }
+                ],
+            }
+        ],
         "database": {
             "args": {"database": "synapse", "user": "synapse", "host": "postgres", "port": 5432, "password": "test"}
         },
