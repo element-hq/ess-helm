@@ -17,6 +17,7 @@ from .inputs import InputProcessor, ValidationError
 from .mas import parse_postgres_uri
 from .models import MigrationError
 from .outputs import generate_helm_values, write_outputs
+from .utils import prompt_for_database_choice
 
 LOADING_STEP = "Loading and validating input files"
 MIGRATING_STEP = "Migrating configuration to ESS values"
@@ -197,6 +198,9 @@ Examples:
                 engine.global_options.use_existing_database = True
             elif args.database_mode == "ess-managed":
                 engine.global_options.use_existing_database = False
+        else:
+            # Prompt for database choice only if not already set via command line
+            engine.global_options.use_existing_database = prompt_for_database_choice(pretty_logger)
 
         ess_values = engine.run_migration()
 

@@ -14,7 +14,7 @@ from typing import Any
 from .inputs import InputProcessor
 from .mas import MASExtraFileDiscovery, MASMigration, MASSecretDiscovery
 from .migration import MigrationService
-from .models import ConfigMap, DiscoveredSecret, GlobalOptions, MigrationError, Secret
+from .models import ConfigMap, DiscoveredSecret, GlobalOptions, Secret
 from .synapse import SynapseExtraFileDiscovery, SynapseMigration, SynapseSecretDiscovery
 
 logger = logging.getLogger("migration")
@@ -57,46 +57,6 @@ class MigrationEngine:
                     )
                 )
 
-    def prompt_for_database_choice(self) -> bool:
-        """
-        Prompt user to choose between using existing database or ESS-managed Postgres.
-
-        Returns:
-            True if user wants to use existing database, False for ESS-managed Postgres
-        """
-        self.pretty_logger.info("\n" + "=" * 60)
-        self.pretty_logger.info("🗃️  DATABASE CONFIGURATION CHOICE")
-        self.pretty_logger.info("=" * 60)
-        self.pretty_logger.info("How would you like to handle the database for your ESS deployment?")
-        self.pretty_logger.info("")
-        self.pretty_logger.info("1. 🔗 Connect to existing database (recommended for production)")
-        self.pretty_logger.info("   - Import your current database settings into ESS")
-        self.pretty_logger.info("   - Continue using your existing PostgreSQL instance")
-        self.pretty_logger.info("")
-        self.pretty_logger.info("2. 🆕 Install Postgres with ESS and import database later")
-        self.pretty_logger.info("   - Let ESS deploy and manage PostgreSQL")
-        self.pretty_logger.info("   - Import your Synapse and MAS database schemas after deployment")
-        self.pretty_logger.info("   - Recommended for testing/new installations")
-        self.pretty_logger.info("")
-
-        while True:
-            try:
-                choice = input("   Please select an option [1/2] (default: 1): ").strip()
-                if choice == "" or choice == "1":
-                    self.pretty_logger.info("   ✅ Using existing database configuration")
-                    return True
-                elif choice == "2":
-                    self.pretty_logger.info("   ✅ Using ESS-managed Postgres (import database later)")
-                    return False
-                else:
-                    self.pretty_logger.info("   ❌ Invalid choice. Please enter 1 or 2.")
-            except KeyboardInterrupt as err:
-                self.pretty_logger.info("\n   ❌ Operation cancelled by user")
-                raise MigrationError("User cancelled database choice") from err
-            except EOFError as err:
-                self.pretty_logger.info("\n   ❌ End of input reached")
-                raise MigrationError("End of input during database choice") from err
-
     def run_migration(self) -> dict[str, Any]:
         """
         Main migration entry point that orchestrates the entire process.
@@ -105,12 +65,6 @@ class MigrationEngine:
             ESS values dictionary
         """
         logger.info("Starting migration process")
-
-        # Prompt for database choice only if not already set via command line
-        # Check if use_existing_database is None (not set) to determine if we need to prompt
-        if self.global_options.use_existing_database is None:
-            self.global_options.use_existing_database = self.prompt_for_database_choice()
-
         for migrator in self.migrators:
             migrator.migrate()
 

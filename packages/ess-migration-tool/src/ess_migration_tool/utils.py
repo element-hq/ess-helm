@@ -14,6 +14,8 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec, rsa
 
+from .models import MigrationError
+
 
 def yaml_dump_with_pipe_for_multiline(data: Any) -> str:
     """
@@ -242,3 +244,44 @@ def is_quiet_mode(pretty_logger: logging.Logger) -> bool:
         True if quiet mode is enabled (logger level is CRITICAL), False otherwise
     """
     return pretty_logger.level == logging.CRITICAL
+
+
+def prompt_for_database_choice(pretty_logger) -> bool:
+    """
+    Prompt user to choose between using existing database or ESS-managed Postgres.
+
+    Returns:
+        True if user wants to use existing database, False for ESS-managed Postgres
+    """
+    pretty_logger.info("\n" + "=" * 60)
+    pretty_logger.info("🗃️  DATABASE CONFIGURATION CHOICE")
+    pretty_logger.info("=" * 60)
+    pretty_logger.info("How would you like to handle the database for your ESS deployment?")
+    pretty_logger.info("")
+    pretty_logger.info("1. 🔗 Connect to existing database (recommended for production)")
+    pretty_logger.info("   - Import your current database settings into ESS")
+    pretty_logger.info("   - Continue using your existing PostgreSQL instance")
+    pretty_logger.info("")
+    pretty_logger.info("2. 🆕 Install Postgres with ESS and import database later")
+    pretty_logger.info("   - Let ESS deploy and manage PostgreSQL")
+    pretty_logger.info("   - Import your Synapse and MAS database schemas after deployment")
+    pretty_logger.info("   - Recommended for testing/new installations")
+    pretty_logger.info("")
+
+    while True:
+        try:
+            choice = input("   Please select an option [1/2] (default: 1): ").strip()
+            if choice == "" or choice == "1":
+                pretty_logger.info("   ✅ Using existing database configuration")
+                return True
+            elif choice == "2":
+                pretty_logger.info("   ✅ Using ESS-managed Postgres (import database later)")
+                return False
+            else:
+                pretty_logger.info("   ❌ Invalid choice. Please enter 1 or 2.")
+        except KeyboardInterrupt as err:
+            pretty_logger.info("\n   ❌ Operation cancelled by user")
+            raise MigrationError("User cancelled database choice") from err
+        except EOFError as err:
+            pretty_logger.info("\n   ❌ End of input reached")
+            raise MigrationError("End of input during database choice") from err

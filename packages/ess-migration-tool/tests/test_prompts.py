@@ -51,8 +51,11 @@ def test_migration_with_missing_secrets_prompt(
 
     engine = MigrationEngine(input_processor, pretty_logger=pretty_logger)
 
-    # Mock user input for database choice and missing secrets
-    side_effect = (n for n in ("1", "test_db_password", "test_macaroon", "test_registration"))
+    # Set database mode directly
+    engine.global_options.use_existing_database = True
+
+    # Mock user input for missing secrets
+    side_effect = (n for n in ("test_db_password", "test_macaroon", "test_registration"))
     monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
 
     # Test with async timeout to prevent hanging
@@ -238,8 +241,11 @@ def test_migration_with_unknown_workers_prompt(
 
     engine = MigrationEngine(input_processor, pretty_logger=pretty_logger)
 
-    # Mock user input for database choice and workers
-    side_effect = (n for n in ("1", "8"))
+    # Set database mode directly
+    engine.global_options.use_existing_database = True
+
+    # Mock user input for workers
+    side_effect = (n for n in ("8",))
     monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
 
     # Test with async timeout to prevent hanging
@@ -304,8 +310,11 @@ def test_migration_with_missing_extra_files_prompt(
 
     engine = MigrationEngine(input_processor, pretty_logger=pretty_logger)
 
-    # Mock user input for database choice and extra files discovery
-    side_effect = (n for n in ("1", "3", str(tmp_path / "moved")))
+    # Set database mode directly
+    engine.global_options.use_existing_database = True
+
+    # Mock user input for extra files discovery
+    side_effect = (n for n in ("3", str(tmp_path / "moved")))
     monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
 
     # Test with async timeout to prevent hanging
@@ -372,6 +381,11 @@ def test_database_choice_prompt_existing_database(
     side_effect = (n for n in ("1",))  # Just database choice, no missing secrets
     monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
 
+    # Test database choice prompt directly
+    from ess_migration_tool.utils import prompt_for_database_choice
+
+    engine.global_options.use_existing_database = prompt_for_database_choice(pretty_logger)
+
     # Test with async timeout to prevent hanging
     async def test_with_timeout():
         engine.run_migration()
@@ -433,6 +447,11 @@ def test_database_choice_prompt_ess_managed(
     side_effect = (n for n in ("2",))  # Just database choice, no missing secrets
     monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
 
+    # Test database choice prompt directly
+    from ess_migration_tool.utils import prompt_for_database_choice
+
+    engine.global_options.use_existing_database = prompt_for_database_choice(pretty_logger)
+
     # Test with async timeout to prevent hanging
     async def test_with_timeout():
         engine.run_migration()
@@ -493,6 +512,11 @@ def test_database_choice_prompt_default(
     # Mock user input for database choice (press Enter for default - option 1)
     side_effect = (n for n in ("",))  # Empty string for default choice
     monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
+
+    # Test database choice prompt directly
+    from ess_migration_tool.utils import prompt_for_database_choice
+
+    engine.global_options.use_existing_database = prompt_for_database_choice(pretty_logger)
 
     # Test with async timeout to prevent hanging
     async def test_with_timeout():
