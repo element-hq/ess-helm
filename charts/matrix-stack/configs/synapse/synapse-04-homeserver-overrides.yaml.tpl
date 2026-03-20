@@ -218,7 +218,7 @@ redis:
   dbid: {{ .redis.db }}
 {{- end }}
 {{- if .redis.password }}
-  password: "${SYNAPSE_REDIS_PASSWORD}"
+  password: ${SYNAPSE_REDIS_PASSWORD}
 {{- end }}
 {{- if .redis.tls }}
   use_tls: true
