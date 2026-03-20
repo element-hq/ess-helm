@@ -178,9 +178,9 @@ You need to create DNS records (A or CNAME, for example) to set up ESS Community
 
 For this simple setup you need to open the following ports:
  - TCP 80: This port will be used for the HTTP connections of all services, which will redirect to the HTTPS connection.
- - TCP 443: This port will be used for the HTTPS connections of all services.
- - TCP 30001: This port will be used for the TCP WebRTC connections of Matrix RTC Backend.
- - UDP 30002: This port will be used for the Muxed WebRTC connections of Matrix RTC Backend.
+ - TCP 443: This port will be used for the HTTPS connections of all services (including Matrix RTC for authentication).
+ - TCP 30881: This port will be used for the TCP WebRTC connections of Matrix RTC Backend.
+ - UDP 30882: This port will be used for the Muxed WebRTC connections of Matrix RTC Backend.
 
 These ports will be exposed by default on a running ESS Community deployment. You can change that as needed, for instance if you have another service occupying 80/443. See the [Using an existing reverse proxy](#using-an-existing-reverse-proxy) section below.
 
@@ -348,10 +348,6 @@ spec:
         exposedPort: 8080
       websecure:
         exposedPort: 8443
-    service:
-      spec:
-        externalIPs:
-        - `<external IP returned by the command above>`
 ```
 
 3. K3s will apply the file content automatically. You can verify its ports using the command :
