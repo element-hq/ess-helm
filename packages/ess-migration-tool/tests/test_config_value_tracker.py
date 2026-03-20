@@ -11,7 +11,7 @@ from pathlib import Path
 from ess_migration_tool.extra_files import ExtraFilesDiscovery
 from ess_migration_tool.interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
 from ess_migration_tool.migration import ConfigValueTransformer, TransformationSpec
-from ess_migration_tool.models import DiscoveredPath
+from ess_migration_tool.models import DiscoveredPath, GlobalOptions
 
 
 def test_config_value_tracker_basic():
@@ -184,6 +184,9 @@ def test_update_paths_in_config_basic():
             return []
 
     class MockSecretStrategy(SecretDiscoveryStrategy):
+        def __init__(self, global_options):
+            self.global_options = global_options
+
         @property
         def ess_secret_schema(self):
             return {}
@@ -219,7 +222,7 @@ def test_update_paths_in_config_basic():
     extra_files_discovery = ExtraFilesDiscovery(
         strategy=MockStrategy(),
         pretty_logger=logging.Logger(__name__),
-        secrets_strategy=MockSecretStrategy(),
+        secrets_strategy=MockSecretStrategy(global_options=GlobalOptions()),
         source_file="test.yaml",
         discovered_file_paths=discovered_paths,
     )
@@ -246,6 +249,9 @@ def test_update_paths_in_config_with_skipped_paths():
             return []
 
     class MockSecretStrategy(SecretDiscoveryStrategy):
+        def __init__(self, global_options):
+            self.global_options = global_options
+
         @property
         def ess_secret_schema(self):
             return {}
@@ -279,7 +285,7 @@ def test_update_paths_in_config_with_skipped_paths():
     extra_files_discovery = ExtraFilesDiscovery(
         strategy=MockStrategy(),
         pretty_logger=logging.Logger(__name__),
-        secrets_strategy=MockSecretStrategy(),
+        secrets_strategy=MockSecretStrategy(global_options=GlobalOptions()),
         source_file="test.yaml",
         discovered_file_paths=discovered_paths,
     )
@@ -306,6 +312,9 @@ def test_update_paths_in_config_empty_discovery():
             return []
 
     class MockSecretStrategy(SecretDiscoveryStrategy):
+        def __init__(self, global_options):
+            self.global_options = global_options
+
         @property
         def ess_secret_schema(self):
             return {}
@@ -322,7 +331,7 @@ def test_update_paths_in_config_empty_discovery():
     extra_files_discovery = ExtraFilesDiscovery(
         strategy=MockStrategy(),
         pretty_logger=logging.Logger(__name__),
-        secrets_strategy=MockSecretStrategy(),
+        secrets_strategy=MockSecretStrategy(global_options=GlobalOptions()),
         source_file="test.yaml",
         discovered_file_paths=[],
     )
@@ -345,6 +354,9 @@ def test_update_paths_in_config_nested_config():
             return []
 
     class MockSecretStrategy(SecretDiscoveryStrategy):
+        def __init__(self, global_options):
+            self.global_options = global_options
+
         @property
         def ess_secret_schema(self):
             return {}
@@ -383,7 +395,7 @@ def test_update_paths_in_config_nested_config():
     extra_files_discovery = ExtraFilesDiscovery(
         strategy=MockStrategy(),
         pretty_logger=logging.Logger(__name__),
-        secrets_strategy=MockSecretStrategy(),
+        secrets_strategy=MockSecretStrategy(global_options=GlobalOptions()),
         source_file="test.yaml",
         discovered_file_paths=discovered_paths,
     )

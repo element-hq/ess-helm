@@ -40,6 +40,10 @@ class MigrationStrategy(Protocol):
 class SecretDiscoveryStrategy(Protocol):
     """Minimal interface for secret discovery strategies."""
 
+    def __init__(self, global_options: GlobalOptions):
+        """Initialize with global options."""
+        ...
+
     @property
     def ess_secret_schema(self) -> dict[str, SecretConfig]:
         """Get the ESS secret schema for this component."""

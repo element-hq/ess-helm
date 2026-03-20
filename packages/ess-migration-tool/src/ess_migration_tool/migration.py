@@ -389,6 +389,7 @@ class MigrationService:
             strategy=self.secret_discovery_strategy,
             source_file=self.input.config_path,
             pretty_logger=self.pretty_logger,
+            global_options=self.global_options,
         )
         secret_discovery.discover_secrets(self.input.config)
         # Prompt for missing secrets then validate

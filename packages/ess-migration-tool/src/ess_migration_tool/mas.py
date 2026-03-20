@@ -160,6 +160,9 @@ class MASMigration(MigrationStrategy):
 class MASSecretDiscovery(SecretDiscoveryStrategy):
     """MAS-specific secret discovery implementation."""
 
+    def __init__(self, global_options: GlobalOptions):
+        self.global_options = global_options
+
     @property
     def component_name(self) -> str:
         return "Matrix Authentication Service"
@@ -167,59 +170,70 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
     @property
     def ess_secret_schema(self) -> dict[str, SecretConfig]:
         """Get the ESS secret schema for MAS."""
-        return {
+        schema = {
             # MAS secrets
-            "matrixAuthenticationService.postgres.password": SecretConfig(
+        }
+
+        # Only include PostgreSQL password when using existing database
+        if self.global_options.use_existing_database:
+            schema["matrixAuthenticationService.postgres.password"] = SecretConfig(
                 init_if_missing_from_source_cfg=True,  # Must be provided
                 description="MAS database password",
                 config_inline="database.uri",
                 config_path=None,
                 transformer=lambda uri: parse_postgres_uri(uri).get("password"),
-            ),
-            "matrixAuthenticationService.synapseSharedSecret": SecretConfig(
-                init_if_missing_from_source_cfg=True,  # Can be auto-generated
-                description="MAS Synapse shared secret",
-                config_inline="matrix.secret",
-                config_path="matrix.secret_file",
-            ),
-            "matrixAuthenticationService.encryptionSecret": SecretConfig(
-                init_if_missing_from_source_cfg=True,  # Must be provided
-                description="MAS encryption secret",
-                config_inline="secrets.encryption",
-                config_path="secrets.encryption_file",
-            ),
-            # Key secrets - these will be discovered through special key processing
-            "matrixAuthenticationService.keys.rsa": SecretConfig(
-                init_if_missing_from_source_cfg=True,
-                description="MAS RSA private key for signing operations",
-                config_inline=None,
-                config_path=None,
-                transformer=None,
-            ),
-            "matrixAuthenticationService.keys.ecdsaPrime256v1": SecretConfig(
-                init_if_missing_from_source_cfg=True,
-                description="MAS ECDSA Prime256v1 private key for signing operations",
-                config_inline=None,
-                config_path=None,
-                transformer=None,
-            ),
-            "matrixAuthenticationService.keys.ecdsaSecp256k1": SecretConfig(
-                init_if_missing_from_source_cfg=False,
-                description="MAS ECDSA Secp256k1 private key for signing operations",
-                config_inline=None,
-                config_path=None,
-                optional=True,  # This key type is optional
-                transformer=None,
-            ),
-            "matrixAuthenticationService.keys.ecdsaSecp384r1": SecretConfig(
-                init_if_missing_from_source_cfg=False,
-                description="MAS ECDSA Secp384r1 private key for signing operations",
-                config_inline=None,
-                config_path=None,
-                optional=True,  # This key type is optional
-                transformer=None,
-            ),
-        }
+            )
+
+        # Other MAS secrets (always included)
+        schema.update(
+            {
+                "matrixAuthenticationService.synapseSharedSecret": SecretConfig(
+                    init_if_missing_from_source_cfg=True,  # Can be auto-generated
+                    description="MAS Synapse shared secret",
+                    config_inline="matrix.secret",
+                    config_path="matrix.secret_file",
+                ),
+                "matrixAuthenticationService.encryptionSecret": SecretConfig(
+                    init_if_missing_from_source_cfg=True,  # Must be provided
+                    description="MAS encryption secret",
+                    config_inline="secrets.encryption",
+                    config_path="secrets.encryption_file",
+                ),
+                # Key secrets - these will be discovered through special key processing
+                "matrixAuthenticationService.keys.rsa": SecretConfig(
+                    init_if_missing_from_source_cfg=True,
+                    description="MAS RSA private key for signing operations",
+                    config_inline=None,
+                    config_path=None,
+                    transformer=None,
+                ),
+                "matrixAuthenticationService.keys.ecdsaPrime256v1": SecretConfig(
+                    init_if_missing_from_source_cfg=True,
+                    description="MAS ECDSA Prime256v1 private key for signing operations",
+                    config_inline=None,
+                    config_path=None,
+                    transformer=None,
+                ),
+                "matrixAuthenticationService.keys.ecdsaSecp256k1": SecretConfig(
+                    init_if_missing_from_source_cfg=False,
+                    description="MAS ECDSA Secp256k1 private key for signing operations",
+                    config_inline=None,
+                    config_path=None,
+                    optional=True,  # This key type is optional
+                    transformer=None,
+                ),
+                "matrixAuthenticationService.keys.ecdsaSecp384r1": SecretConfig(
+                    init_if_missing_from_source_cfg=False,
+                    description="MAS ECDSA Secp384r1 private key for signing operations",
+                    config_inline=None,
+                    config_path=None,
+                    optional=True,  # This key type is optional
+                    transformer=None,
+                ),
+            }
+        )
+
+        return schema
 
     def discover_component_specific_secrets(self, config_data: dict) -> dict[str, DiscoveredSecret]:
         """

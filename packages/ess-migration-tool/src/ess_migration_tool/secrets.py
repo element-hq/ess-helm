@@ -10,7 +10,7 @@ import logging
 from dataclasses import dataclass, field
 
 from .interfaces import SecretDiscoveryStrategy
-from .models import DiscoveredSecret
+from .models import DiscoveredSecret, GlobalOptions
 from .utils import get_nested_value, is_quiet_mode
 
 logger = logging.getLogger("migration")
@@ -29,6 +29,7 @@ class SecretDiscovery:
     strategy: SecretDiscoveryStrategy = field(init=True)  # Strategy for component-specific secret discovery
     pretty_logger: logging.Logger = field(init=True)
     source_file: str = field(init=True)  # Source configuration file name
+    global_options: GlobalOptions = field(init=True)  # Global migration options
 
     discovered_secrets: dict[str, DiscoveredSecret] = field(default_factory=dict)  # Secrets with source tracking
     init_by_ess_secrets: list[str] = field(default_factory=list)  # Secrets to be initialized by ESS

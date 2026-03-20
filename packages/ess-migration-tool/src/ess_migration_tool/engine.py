@@ -38,8 +38,12 @@ class MigrationEngine:
     def __post_init__(self) -> None:
         """Initialize the migration engine."""
         for migration, secret_discovery_strategy, extra_file_strategy in [
-            (SynapseMigration(self.global_options), SynapseSecretDiscovery(), SynapseExtraFileDiscovery()),
-            (MASMigration(self.global_options), MASSecretDiscovery(), MASExtraFileDiscovery()),
+            (
+                SynapseMigration(self.global_options),
+                SynapseSecretDiscovery(self.global_options),
+                SynapseExtraFileDiscovery(),
+            ),
+            (MASMigration(self.global_options), MASSecretDiscovery(self.global_options), MASExtraFileDiscovery()),
         ]:
             migration_input = self.input_processor.input_for_component(migration.component_root_key)
             if migration_input:
