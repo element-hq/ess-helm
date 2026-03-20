@@ -267,6 +267,7 @@ Examples:
 
         # Show next steps for deployment
         pretty_logger.info("🚀 NEXT STEPS TO DEPLOY ELEMENT SERVER SUITE:")
+        pretty_logger.info("=" * 60)
         pretty_logger.info("")
 
         # Use incremental step numbering
