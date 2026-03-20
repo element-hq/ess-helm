@@ -30,6 +30,15 @@ def basic_synapse_config():
 
 
 @pytest.fixture
+def synapse_config_without_public_baseurl(basic_synapse_config):
+    """Synapse configuration without public_baseurl for testing prompt functionality."""
+    config = basic_synapse_config.copy()
+    # Remove public_baseurl to test prompt functionality
+    del config["public_baseurl"]
+    return config
+
+
+@pytest.fixture
 def write_synapse_config(tmp_path):
     """Helper fixture to write a Synapse config file."""
 

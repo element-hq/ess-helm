@@ -65,27 +65,35 @@ class ConfigValueTransformer:
             # Get the value from the source configuration
             value = get_nested_value(source_config, transformation.src_key)
 
-            if value is not None:
-                # Apply transformer function if provided
+            # Handle transformer if provided
+            if transformation.transformer is not None:
+                # If transformer is provided, always call it (even if value is None)
+                # This allows transformers to handle missing values (e.g., by prompting for input)
+                transformed_value = transformation.transformer(self.pretty_logger, value)
+            else:
+                # No transformer provided, use the raw value
                 transformed_value = value
-                if transformation.transformer is not None:
-                    transformed_value = transformation.transformer(self.pretty_logger, value)
 
-                # Track the source path if not already tracked
-                if transformation.src_key not in self.tracked_values:
-                    self.tracked_values.append(transformation.src_key)
-
-                # Create TransformationResult using the current transformation spec
-                result = TransformationResult(spec=transformation, value=transformed_value)
-                self.results.append(result)
-
-                # Set the transformed value in the ESS config
-                set_nested_value(self.ess_config, transformation.target_key, transformed_value)
-            elif transformation.required:
+            # Check if we should skip this transformation
+            if transformed_value is None and transformation.required:
                 # If the transformation is required but the value is missing, raise an error
                 raise MigrationError(
                     f"Required configuration value '{transformation.src_key}' is missing from the source configuration"
                 )
+            elif transformed_value is None:
+                # Skip this transformation (value is None and not required)
+                continue
+
+            # Track the source path if not already tracked
+            if transformation.src_key not in self.tracked_values:
+                self.tracked_values.append(transformation.src_key)
+
+            # Create TransformationResult using the current transformation spec
+            result = TransformationResult(spec=transformation, value=transformed_value)
+            self.results.append(result)
+
+            # Set the transformed value in the ESS config
+            set_nested_value(self.ess_config, transformation.target_key, transformed_value)
 
     def get_component_config(self, component_key: str) -> dict[str, Any]:
         """
