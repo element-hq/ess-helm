@@ -53,6 +53,45 @@ class ConfigValueTransformer:
     results: list[TransformationResult] = field(default_factory=list)  # List of transformation results
     tracked_values: list[str] = field(default_factory=list)  # Source paths that have been processed
 
+    def _apply_transformation_recursive(
+        self, transformation: TransformationSpec, source_config: dict[str, Any], attempted_keys: list[str]
+    ) -> tuple[Any, list[str]]:
+        """
+        Recursively apply a transformation with fallbacks.
+
+        Args:
+            transformation: The transformation specification
+            source_config: Source configuration dictionary
+            attempted_keys: List to collect all attempted source keys
+
+        Returns:
+            Tuple of (transformed_value, attempted_keys) or (None, attempted_keys) if not found
+        """
+        # Track that we're attempting this key
+        if transformation.src_key not in attempted_keys:
+            attempted_keys.append(transformation.src_key)
+
+        # Try current transformation
+        value = get_nested_value(source_config, transformation.src_key)
+
+        # Treat empty strings and None as missing values
+        if value is not None and value != "":
+            # Apply transformer if provided
+            if transformation.transformer is not None:
+                transformed_value = transformation.transformer(self.pretty_logger, value)
+                # If transformer returns None, continue to fallback
+                if transformed_value is not None:
+                    return transformed_value
+                # Otherwise, continue to fallback
+            else:
+                return value
+
+        # Try fallback if available
+        if transformation.fallback:
+            return self._apply_transformation_recursive(transformation.fallback, source_config, attempted_keys)
+
+        return None
+
     def transform_from_config(self, source_config: dict[str, Any], transformations: list[TransformationSpec]) -> None:
         """
         Transform values from a source configuration using explicit source and target path mappings.
@@ -62,15 +101,11 @@ class ConfigValueTransformer:
             transformations: List of TransformationSpec objects
         """
         for transformation in transformations:
-            # Get the value from the source configuration
-            value = get_nested_value(source_config, transformation.src_key)
+            # Apply transformation with recursive fallback
+            attempted_keys = []
+            transformed_value = self._apply_transformation_recursive(transformation, source_config, attempted_keys)
 
-            if value is not None:
-                # Apply transformer function if provided
-                transformed_value = value
-                if transformation.transformer is not None:
-                    transformed_value = transformation.transformer(self.pretty_logger, value)
-
+            if transformed_value is not None:
                 # Track the source path if not already tracked
                 if transformation.src_key not in self.tracked_values:
                     self.tracked_values.append(transformation.src_key)
@@ -83,9 +118,9 @@ class ConfigValueTransformer:
                 set_nested_value(self.ess_config, transformation.target_key, transformed_value)
             elif transformation.required:
                 # If the transformation is required but the value is missing, raise an error
-                raise MigrationError(
-                    f"Required configuration value '{transformation.src_key}' is missing from the source configuration"
-                )
+                # Include all attempted keys in the error message
+                attempted_str = ", ".join(attempted_keys)
+                raise MigrationError(f"Required source configuration value missing. Tried: {attempted_str}")
 
     def get_component_config(self, component_key: str) -> dict[str, Any]:
         """

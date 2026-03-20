@@ -60,8 +60,9 @@ class TransformationSpec:
 
     src_key: str  # Source configuration path
     target_key: str  # Target ESS configuration path
-    required: bool = True  # Whether this transformation is required
+    required: bool = True  # Whether this transformation is required. Ignored in fallbacks.
     transformer: Callable[[logging.Logger, Any], Any] | None = None  # Optional transformation function
+    fallback: "TransformationSpec | None" = None  # Fallback transformation to try if primary fails
 
 
 @dataclass

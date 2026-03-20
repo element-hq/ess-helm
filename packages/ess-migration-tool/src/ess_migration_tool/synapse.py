@@ -183,7 +183,8 @@ class SynapseMigration(MigrationStrategy):
                 src_key="public_baseurl",
                 target_key="synapse.ingress.host",
                 transformer=extract_hostname_from_url,
-            ),  # Extract hostname from public_baseurl for ingress host
+                fallback=TransformationSpec(src_key="server_name", target_key="synapse.ingress.host"),
+            ),  # Extract hostname from public_baseurl for ingress host, fallback to server_name
             TransformationSpec(
                 src_key="instance_map",
                 target_key="synapse.workers",
