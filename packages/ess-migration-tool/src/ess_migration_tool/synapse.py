@@ -118,6 +118,44 @@ def extract_database_name(pretty_logger: logging.Logger, database_args: dict[str
     return database_name
 
 
+def prompt_for_ingress_host(pretty_logger: logging.Logger, public_baseurl: str | None) -> str:
+    """
+    Prompt user for ingress host when public_baseurl is missing.
+
+    Args:
+        pretty_logger: Logger for user-friendly output
+        public_baseurl: The public base URL from source config (may be None or empty)
+
+    Returns:
+        The ingress host (hostname extracted from public_baseurl or user input)
+
+    Raises:
+        MigrationError: If user cancels the operation
+    """
+    # If public_baseurl is provided, extract hostname from it (existing behavior)
+    if public_baseurl:
+        return extract_hostname_from_url(pretty_logger, public_baseurl)
+
+    # If public_baseurl is missing, prompt user for ingress host directly
+    pretty_logger.info("\n   ❌ Synapse public_baseurl not found in configuration")
+    pretty_logger.info("   ❌ The chart requires Synapse Public BaseURL to be distinct from the server name")
+    pretty_logger.info("   ❌ Please provide Synapse ingress host (e.g., matrix.example.com):")
+
+    while True:
+        try:
+            ingress_host = input("   Enter ingress host: ").strip()
+            if ingress_host:
+                return ingress_host
+            else:
+                pretty_logger.info("   ❌ Ingress host cannot be empty. Please try again.")
+        except KeyboardInterrupt as err:
+            pretty_logger.info("\n   ❌ Operation cancelled by user")
+            raise MigrationError("User cancelled ingress host input") from err
+        except EOFError as err:
+            pretty_logger.info("\n   ❌ End of input reached")
+            raise MigrationError("End of input reached during ingress host prompt") from err
+
+
 @dataclass
 class SynapseMigration(MigrationStrategy):
     """Synapse-specific migration implementation."""
@@ -182,8 +220,8 @@ class SynapseMigration(MigrationStrategy):
             TransformationSpec(
                 src_key="public_baseurl",
                 target_key="synapse.ingress.host",
-                transformer=extract_hostname_from_url,
-            ),  # Extract hostname from public_baseurl for ingress host
+                transformer=prompt_for_ingress_host,
+            ),  # Prompt for ingress host if public_baseurl is missing
             TransformationSpec(
                 src_key="instance_map",
                 target_key="synapse.workers",

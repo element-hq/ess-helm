@@ -18,6 +18,7 @@ from ess_migration_tool.engine import MigrationEngine
 from ess_migration_tool.extra_files import ExtraFilesError
 from ess_migration_tool.inputs import InputProcessor
 from ess_migration_tool.secrets import SecretsError
+from ess_migration_tool.synapse import prompt_for_ingress_host
 
 
 def test_migration_with_missing_secrets_prompt(
@@ -101,6 +102,35 @@ def test_migration_with_missing_secrets_prompt(
         else:
             # Re-raise the original exception
             raise
+    finally:
+        log_capture_string.close()
+
+
+def test_prompt_for_ingress_host_with_missing_public_baseurl(monkeypatch):
+    """Test that missing public_baseurl triggers user prompt for ingress host."""
+    pretty_logger = logging.getLogger(test_prompt_for_ingress_host_with_missing_public_baseurl.__name__)
+    pretty_logger.propagate = False
+    pretty_logger.setLevel(logging.INFO)
+
+    log_capture_string = StringIO()
+    pretty_logger.addHandler(logging.StreamHandler(log_capture_string))
+
+    # Mock user input using monkeypatch
+    monkeypatch.setattr("builtins.input", lambda _: "matrix.example.com")
+
+    try:
+        # Test with missing public_baseurl
+        result = prompt_for_ingress_host(pretty_logger, None)
+
+        # Verify the result
+        assert result == "matrix.example.com"
+
+        # Verify prompt messages were shown
+        output = log_capture_string.getvalue()
+        assert "❌ Synapse public_baseurl not found in configuration" in output
+        assert "The chart requires Synapse Public BaseURL to be distinct from the server name" in output
+        assert "Please provide Synapse ingress host (e.g., matrix.example.com):" in output
+
     finally:
         log_capture_string.close()
 
