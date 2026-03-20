@@ -291,10 +291,9 @@ def test_update_paths_in_config_with_skipped_paths():
     assert updated_config["templates"]["password_reset"] == "/path/to/password_reset.html"  # Unchanged
     assert updated_config["templates"]["registration"] == "/etc/synapse/extra/registration.html"  # Updated
 
-    # Verify tracked values (only skipped paths are tracked)
-    assert "templates.password_reset" in transformer.tracked_values
+    assert "templates.password_reset" not in transformer.tracked_values
     assert "templates.registration" not in transformer.tracked_values
-    assert len(transformer.tracked_values) == 1
+    assert len(transformer.tracked_values) == 0
 
 
 def test_update_paths_in_config_empty_discovery():

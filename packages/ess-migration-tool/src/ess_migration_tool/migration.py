@@ -164,7 +164,6 @@ class ConfigValueTransformer:
         updated_config = copy.deepcopy(source_config)
         for discovered_path in extra_files_discovery.discovered_file_paths:
             if discovered_path.skipped_reason:
-                self.tracked_values.append(discovered_path.config_key)
                 continue
             # If it is a directory, files will be mounted as child of the directory name
             # If it is a file, files will be mounted as child of the `extra` folder
@@ -259,6 +258,11 @@ class ConfigValueTransformer:
 
         configmap = ConfigMap(name=configmap_name, data=configmap_data)
 
+        # Add skipped paths to tracked_values for override detection
+        for discovered_path in extra_files_discovery.discovered_file_paths:
+            if discovered_path.skipped_reason:
+                self.tracked_values.append(discovered_path.config_key)
+
         for extra_file in extra_files_discovery.discovered_extra_files.values():
             for discovered_path in extra_file.discovered_source_paths:
                 if discovered_path.skipped_reason:
@@ -320,7 +324,7 @@ class MigrationService:
         self.component_root_key = self.migration.component_root_key
         self.override_configs = self.migration.override_configs
 
-    def _check_overrides(self, config: dict[str, Any]) -> None:
+    def _check_overrides(self, config: dict[str, Any], config_to_ess_transformer: ConfigValueTransformer) -> None:
         """
         Check if the configuration contains any override configurations
         that are managed by ESS and cannot be overridden.
@@ -330,6 +334,7 @@ class MigrationService:
 
         Args:
             config: Configuration to check
+            config_to_ess_transformer: Transformer containing tracked values for filtering
         """
         override_warnings = []
 
@@ -337,8 +342,6 @@ class MigrationService:
         transformed_configs = set()
         for transformation in self.migration.transformations:
             transformed_configs.add(transformation.src_key)
-
-        config_to_ess_transformer = ConfigValueTransformer(self.pretty_logger, self.ess_config)
 
         # Use the filtered configuration (with migrated values removed) for override detection
         # This automatically excludes values that are tracked by the transformer,
@@ -424,7 +427,7 @@ class MigrationService:
         )
 
         # Step 7: Check for override configurations and warn user
-        self._check_overrides(self.input.config)
+        self._check_overrides(self.input.config, config_to_ess_transformer)
 
         # Step 8: Add filtered additional configurations
         config_to_ess_transformer.add_additional_config_to_component(

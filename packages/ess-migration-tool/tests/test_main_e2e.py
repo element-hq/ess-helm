@@ -24,6 +24,7 @@ def test_main_e2e_synapse_only(
     synapse_config_with_ca_federation_list,
     synapse_config_without_public_baseurl,
     write_synapse_config,
+    capsys,
 ):
     """Test the complete end-to-end migration workflow with Synapse only."""
 
@@ -63,6 +64,18 @@ def test_main_e2e_synapse_only(
 
     # Verify successful execution
     assert exit_code == 0
+
+    # Get captured stderr output (where logging goes)
+    captured = capsys.readouterr()
+    log_output = captured.err
+
+    # Verify override detection behavior
+    # listeners should be detected as override for Synapse
+    assert "'listeners' found in synapse.additional[\"00-imported.yaml\"].config" in log_output
+    # signing_key_path should NOT be detected (filtered out)
+    assert "'signing_key_path' found in synapse.additional[\"00-imported.yaml\"].config" not in log_output
+    # database.args.password should NOT be detected (filtered out as it's a secret)
+    assert "'database.args.password' found in synapse.additional[\"00-imported.yaml\"].config" not in log_output
 
     # Check that output files were created
     values_file = output_dir / "values.yaml"
@@ -188,6 +201,7 @@ def test_main_e2e_synapse_with_mas(
     basic_mas_config_with_keys,
     write_synapse_config,
     write_mas_config,
+    capsys,
 ):
     """Test the complete end-to-end migration workflow with Synapse and MAS."""
     # Write configuration files
@@ -215,6 +229,20 @@ def test_main_e2e_synapse_with_mas(
 
     # Verify successful execution
     assert exit_code == 0
+
+    # Get captured stderr output (where logging goes)
+    captured = capsys.readouterr()
+    log_output = captured.err
+
+    # Verify override detection behavior for MAS
+    # http should be detected as override for MAS
+    assert "'http' found in matrixAuthenticationService.additional[\"00-imported.yaml\"].config" in log_output
+    # listeners should be detected as override for Synapse
+    assert "'listeners' found in synapse.additional[\"00-imported.yaml\"].config" in log_output
+    # signing_key_path should NOT be detected (filtered out)
+    assert "'signing_key_path' found in synapse.additional[\"00-imported.yaml\"].config" not in log_output
+    # database.args.password should NOT be detected (filtered out as it's a secret)
+    assert "'database.args.password' found in synapse.additional[\"00-imported.yaml\"].config" not in log_output
 
     # Check that output files were created
     values_file = output_dir / "values.yaml"
