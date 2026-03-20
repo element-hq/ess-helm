@@ -72,6 +72,11 @@ def test_permission_error_handling_for_secrets(tmp_path, basic_synapse_config):
     # Signing key should be in missing required secrets due to permission error
     assert "synapse.signingKey" in discovery.missing_required_secrets
 
+    # Check that the failure information is stored
+    assert "synapse.signingKey" in discovery.secret_discovery_failures
+    assert "Permission denied reading file:" in discovery.secret_discovery_failures["synapse.signingKey"]
+    assert str(restricted_key) in discovery.secret_discovery_failures["synapse.signingKey"]
+
     # Other secrets should be discovered normally
     assert "synapse.postgres.password" in discovery.discovered_secrets
     assert "synapse.macaroon" in discovery.discovered_secrets

@@ -33,6 +33,7 @@ class SecretDiscovery:
     discovered_secrets: dict[str, DiscoveredSecret] = field(default_factory=dict)  # Secrets with source tracking
     init_by_ess_secrets: list[str] = field(default_factory=list)  # Secrets to be initialized by ESS
     missing_required_secrets: list[str] = field(default_factory=list)  # Secrets missing from configuration
+    secret_discovery_failures: dict[str, str] = field(default_factory=dict)  # secret_key -> failure_reason
 
     def discover_secrets(self, config_data: dict) -> None:
         """Discover secrets from configuration data."""
@@ -76,8 +77,10 @@ class SecretDiscovery:
                         logging.info(f"Found file value for {secret_key}")
                     except FileNotFoundError:
                         logger.warning(f"File not found: {file_path}")
+                        self.secret_discovery_failures[secret_key] = f"File not found: {file_path}"
                     except PermissionError:
                         logger.warning(f"Permission denied when reading file: {file_path}")
+                        self.secret_discovery_failures[secret_key] = f"Permission denied reading file: {file_path}"
 
             # Apply transformer if available and we have a value
             if discovered_value is not None and secret_config.transformer is not None:
@@ -141,6 +144,12 @@ class SecretDiscovery:
 
             self.pretty_logger.info(f"📝 {secret_info.description}")
             self.pretty_logger.info(f"   Secret path: {secret_key}")
+
+            # Add failure reason if available
+            if secret_key in self.secret_discovery_failures:
+                self.pretty_logger.info(f"   ⚠️  {self.secret_discovery_failures[secret_key]}")
+                if "Permission denied" in self.secret_discovery_failures[secret_key]:
+                    self.pretty_logger.info("   💡 Use elevated privileges to read this file")
 
             # The config key that will be injected in the configuration is preferably the path to the secret
             # But we fallback to the config_inline in needed
