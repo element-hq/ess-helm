@@ -44,6 +44,22 @@ def basic_synapse_config():
 
 
 @pytest.fixture
+def synapse_config_with_custom_listeners(basic_synapse_config):
+    """Synapse configuration with custom listeners for testing."""
+    config = basic_synapse_config.copy()
+    # Replace the chart-managed listener with a custom one
+    config["listeners"] = [
+        {
+            "port": 9010,
+            "tls": True,
+            "type": "http",
+            "resources": [{"names": ["custom_api"], "compress": False}],
+        }
+    ]
+    return config
+
+
+@pytest.fixture
 def synapse_config_without_public_baseurl(basic_synapse_config):
     """Synapse configuration without public_baseurl for testing prompt functionality."""
     config = basic_synapse_config.copy()

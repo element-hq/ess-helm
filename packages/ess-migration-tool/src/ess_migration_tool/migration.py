@@ -89,7 +89,9 @@ class ConfigValueTransformer:
                     f"Required configuration value '{transformation.src_key}' is missing from the source configuration"
                 )
             elif transformed_value is None:
-                # Skip this transformation (value is None and not required)
+                # Even if transformation returns None, track the source key so it gets filtered out
+                if transformation.src_key not in self.tracked_values:
+                    self.tracked_values.append(transformation.src_key)
                 continue
 
             # Track the source path if not already tracked
@@ -157,8 +159,12 @@ class ConfigValueTransformer:
 
         # Add to additional section if there's anything to add
         if filtered_config:
-            component_config["additional"] = {
-                "00-imported.yaml": {"config": yaml_dump_with_pipe_for_multiline(filtered_config)}
+            # Preserve any existing additional configs (e.g., from transformations)
+            if "additional" not in component_config:
+                component_config["additional"] = {}
+            # Add the filtered config to the existing additional section²
+            component_config["additional"]["00-imported.yaml"] = {
+                "config": yaml_dump_with_pipe_for_multiline(filtered_config)
             }
 
     def update_paths_in_config(
