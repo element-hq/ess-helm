@@ -350,22 +350,18 @@ Examples:
             mas_input = engine.input_processor.input_for_component("matrixAuthenticationService")
 
             # Extract source database info from Synapse configuration
-            if synapse_input and synapse_input.config.get("database", {}).get("args"):
+            assert synapse_input
+            source_synapse_db = synapse_input.config["database"]["args"].get("dbname", "<source_synapse_db>")
+            if not source_synapse_db:
                 source_synapse_db = synapse_input.config["database"]["args"].get("database", "<source_synapse_db>")
-                source_synapse_user = synapse_input.config["database"]["args"].get("user", "<source_synapse_user>")
-            else:
-                source_synapse_db = "<source_synapse_db>"
-                source_synapse_user = "<source_synapse_user>"
+            source_synapse_user = synapse_input.config["database"]["args"].get("user", "<source_synapse_user>")
 
             # Extract source database info from MAS configuration using existing helper
-            if mas_input and mas_input.config.get("database", {}).get("uri"):
+            if mas_input:
                 mas_uri = mas_input.config["database"]["uri"]
                 parsed_mas = parse_postgres_uri(mas_uri)
                 source_mas_db = parsed_mas.get("name", "<source_mas_db>")
                 source_mas_user = parsed_mas.get("user", "<source_mas_user>")
-            else:
-                source_mas_db = "<source_mas_db>"
-                source_mas_user = "<source_mas_user>"
 
             # Get target database names and users from ESS configuration
             # These are the standard ESS target database names from the helm chart
@@ -380,9 +376,10 @@ Examples:
             pretty_logger.info(
                 '   kubectl scale sts -l "app.kubernetes.io/component=matrix-server" -n ess --replicas=0'
             )
-            pretty_logger.info(
-                '   kubectl scale deploy -l "app.kubernetes.io/component=matrix-authentication" -n ess --replicas=0'
-            )
+            if mas_input:
+                pretty_logger.info(
+                    '   kubectl scale deploy -l "app.kubernetes.io/component=matrix-authentication" -n ess --replicas=0'
+                )
             pretty_logger.info("")
 
             step_number += 1
