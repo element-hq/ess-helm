@@ -306,6 +306,13 @@ def test_main_e2e_synapse_with_mas(
     assert "secretKey" in synapse_shared_secret_config
     assert synapse_shared_secret_config["secretKey"] == "matrixAuthenticationService.synapseSharedSecret"
 
+    # Verify that listeners.yml is absent when only ESS-managed listeners exist
+    # (basic_mas_config_with_keys doesn't have custom listeners)
+    assert "additional" in mas_config, "MAS should have additional config"
+    assert "listeners.yml" not in mas_config["additional"], (
+        'matrixAuthenticationService.additional."listeners.yml" should be absent when only ESS-managed listeners exist'
+    )
+
     # Check for Secret files (should be created for both Synapse and MAS secrets)
     secret_files = list(output_dir.glob("*secret.yaml"))
     # Should have at least two secret files (one for Synapse, one for MAS)
@@ -361,6 +368,115 @@ def test_main_e2e_synapse_with_mas(
                 pytest.fail(f"Unexpected secret file: {secret_file.name}")
     mas_additional_config = yaml.safe_load(mas_config["additional"]["00-imported.yaml"]["config"])
     assert "keys_dir" not in mas_additional_config["secrets"]
+
+
+def test_main_e2e_mas_with_custom_listeners(
+    monkeypatch,
+    tmp_path,
+    synapse_config_with_signing_key,
+    basic_mas_config_with_keys,
+    write_synapse_config,
+    write_mas_config,
+    capsys,
+):
+    """Test that custom MAS listeners are preserved in additional config."""
+    # Add listeners structure to MAS config (it doesn't have one by default)
+    mas_config = basic_mas_config_with_keys.copy()
+    mas_config["http"]["listeners"] = [
+        {
+            "name": "web",
+            "binds": [{"port": 8080, "host": "0.0.0.0"}],
+            "resources": [
+                {"name": "human"},
+                {"name": "discovery"},
+                {"name": "oauth"},
+                {"name": "compat"},
+                {"name": "assets"},
+                {"name": "graphql"},
+                {"name": "adminapi"},
+            ],
+        },
+        {
+            "name": "internal",
+            "binds": [{"port": 8081, "host": "0.0.0.0"}],
+            "resources": [{"name": "health"}, {"name": "prometheus"}, {"name": "connection-info"}],
+        },
+        {
+            "name": "custom",
+            "binds": [{"port": 9000, "host": "0.0.0.0"}],
+            "resources": [{"name": "custom-api"}, {"name": "special-endpoint"}],
+        },
+    ]
+
+    # Write configuration files
+    synapse_config_file = write_synapse_config(synapse_config_with_signing_key)
+    mas_config_file = write_mas_config(mas_config)
+
+    # Create output directory
+    output_dir = tmp_path / "output"
+    output_dir.mkdir()
+
+    # Mock sys.argv to simulate CLI arguments
+    test_args = [
+        "migration",
+        "--synapse-config",
+        str(synapse_config_file),
+        "--mas-config",
+        str(mas_config_file),
+        "--output-dir",
+        str(output_dir),
+    ]
+
+    # Mock user input for database choice (select option 1 - existing database, default)
+    side_effect = (n for n in ("",))  # Empty string for default choice (existing database)
+    monkeypatch.setattr(sys, "argv", test_args)
+    monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
+    exit_code = __main__.main()
+
+    # Verify successful execution
+    assert exit_code == 0
+
+    # Check that output files were created
+    values_file = output_dir / "values.yaml"
+    assert values_file.exists(), "values.yaml should be created"
+
+    # Load and verify the generated values
+    with open(values_file) as f:
+        generated_values = yaml.safe_load(f)
+
+    # Verify MAS configuration was migrated
+    assert "matrixAuthenticationService" in generated_values
+    mas_config = generated_values["matrixAuthenticationService"]
+    assert mas_config["enabled"] is True
+
+    # Verify that custom listeners are preserved in additional config
+    assert "additional" in mas_config, "Additional config should be created for custom listeners"
+    additional_config = mas_config["additional"]
+
+    # Verify that listeners.yml is present in the additional config
+    assert "listeners.yml" in additional_config, (
+        'matrixAuthenticationService.additional."listeners.yml" should be present when custom listeners exist'
+    )
+
+    # Verify the content of listeners.yml
+    listeners_config_content = yaml.safe_load(additional_config["listeners.yml"]["config"])
+    assert "http" in listeners_config_content, "HTTP section should be present in the config"
+    assert "listeners" in listeners_config_content["http"], "Listeners should be present in the HTTP config"
+    listeners = listeners_config_content["http"]["listeners"]
+    assert len(listeners) == 1, "Should have exactly one custom listener"
+    assert listeners[0]["name"] == "custom", "Should preserve custom listener name"
+    assert listeners[0]["binds"][0]["port"] == 9000, "Should preserve custom listener port"
+    assert len(listeners[0]["resources"]) == 2, "Should preserve both custom resources"
+    resource_names = [r["name"] for r in listeners[0]["resources"]]
+    assert "custom-api" in resource_names, "Should preserve custom-api resource"
+    assert "special-endpoint" in resource_names, "Should preserve special-endpoint resource"
+    # Verify ESS-managed listeners are NOT present
+    assert not any(lstn.get("binds", [{}])[0].get("port") == 8080 for lstn in listeners), (
+        "ESS-managed port 8080 should be filtered out"
+    )
+    assert not any(lstn.get("binds", [{}])[0].get("port") == 8081 for lstn in listeners), (
+        "ESS-managed port 8081 should be filtered out"
+    )
 
 
 def test_main_e2e_synapse_existing_database(

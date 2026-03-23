@@ -15,7 +15,7 @@ from typing import Any
 from .interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
 from .migration import MigrationStrategy, TransformationSpec
 from .models import DiscoveredSecret, GlobalOptions, SecretConfig
-from .utils import detect_key_type, extract_hostname_from_url
+from .utils import detect_key_type, extract_hostname_from_url, yaml_dump_with_pipe_for_multiline
 
 logger = logging.getLogger("migration")
 
@@ -82,6 +82,125 @@ def extract_port_from_uri(_, uri: str) -> int | None:
     return int(port) if port is not None else None
 
 
+def filter_mas_listeners(pretty_logger: logging.Logger, listeners: list[dict] | None) -> dict[str, Any] | None:
+    """
+    Filter out listeners that are managed by the ESS chart for MAS.
+
+    The chart manages listeners that serve specific resources on specific ports.
+    This function removes listeners that serve only ESS-managed resources and keeps custom listeners,
+    returning them as a dictionary structure for additional config.
+
+    Args:
+        pretty_logger: Logger for user-friendly output
+        listeners: List of listener configurations from source MAS config
+
+    Returns:
+        Dictionary with listeners.yml config structure, or None if no custom listeners remain
+    """
+    if not listeners:
+        return None
+
+    # Resources managed by the ESS chart that should be filtered out
+    chart_managed_resources = {
+        "human",
+        "discovery",
+        "oauth",
+        "compat",
+        "assets",
+        "graphql",
+        "adminapi",
+        "health",
+        "prometheus",
+        "connection-info",
+    }
+
+    # Ports managed by the ESS chart that should be filtered out
+    chart_managed_ports = {8080, 8081}
+
+    filtered_listeners = []
+    for listener in listeners:
+        # Get the listener binds
+        binds = listener.get("binds", [])
+
+        # Check if any of the binds use chart-managed ports
+        any_managed_port = False
+        has_incompatible_binds = False
+        listener_port = None
+
+        for bind in binds:
+            # Format 1: address with port (e.g., "[::]:8080")
+            if "address" in bind:
+                address = bind["address"]
+                try:
+                    last_colon_pos = address.rfind(":")
+                    if last_colon_pos != -1:
+                        port_str = address[last_colon_pos + 1 :]
+                        if port_str:
+                            listener_port = int(port_str)
+                except ValueError:
+                    # Log invalid port format and skip this bind
+                    logger.debug("Invalid port format in address: %s", address)
+                    continue
+
+            # Format 2: host and port combination
+            elif "port" in bind:
+                listener_port = bind["port"]
+
+            # Format 3: UNIX socket - incompatible with ESS
+            elif "socket" in bind:
+                has_incompatible_binds = True
+                logger.debug("Filtered out listener using UNIX socket: %s", bind["socket"])
+                break
+
+            # Format 4: file descriptor - incompatible with ESS
+            elif "fd" in bind:
+                has_incompatible_binds = True
+                logger.debug("Filtered out listener using file descriptor: %s", bind["fd"])
+                break
+
+            # Check if this port is managed
+            if listener_port is not None and listener_port in chart_managed_ports:
+                any_managed_port = True
+                logger.debug("Filtered out listener using managed port: %s", listener_port)
+                break
+
+        # Filter out listeners that use chart-managed ports or incompatible binds
+        if any_managed_port or has_incompatible_binds:
+            continue
+
+        # Skip listeners that have no valid binds (all binds had invalid ports)
+        if listener_port is None:
+            logger.debug("Filtered out listener with no valid binds")
+            continue
+
+        # Filter resources: keep only non-chart-managed resources
+        filtered_resources = []
+        original_resources = listener.get("resources", [])
+
+        for resource in original_resources:
+            resource_name = resource.get("name")
+            if resource_name and resource_name not in chart_managed_resources:
+                filtered_resources.append(resource)
+
+        # Keep listener only if it has any custom resources left
+        if filtered_resources:
+            new_listener = listener.copy()
+            new_listener["resources"] = filtered_resources
+            filtered_listeners.append(new_listener)
+            logger.debug(
+                f"Importing listener {listener_port} with filtered resources:"
+                f"{','.join([r['name'] for r in filtered_resources])}"
+            )
+        else:
+            logger.debug(f"Filtered out listener port {listener_port} with only chart-managed resources")
+
+    if not filtered_listeners:
+        return None
+
+    # Return the structure for additional config
+    return {"listeners.yml": {"config": yaml_dump_with_pipe_for_multiline({"http": {"listeners": filtered_listeners}})}}
+
+
 class MASMigration(MigrationStrategy):
     """MAS-specific migration implementation."""
 
@@ -108,6 +227,12 @@ class MASMigration(MigrationStrategy):
                 target_key="matrixAuthenticationService.ingress.host",
                 transformer=extract_hostname_from_url,
             ),  # Extract hostname from http.public_base for ingress host
+            TransformationSpec(
+                src_key="http.listeners",
+                target_key="matrixAuthenticationService.additional",
+                transformer=filter_mas_listeners,
+                required=False,
+            ),  # Filter out chart-managed listeners and output to additional config
             # ... other non-database transformations ...
         ]
 
