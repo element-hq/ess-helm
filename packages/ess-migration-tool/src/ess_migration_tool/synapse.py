@@ -16,7 +16,7 @@ from rapidfuzz import fuzz, process
 from .interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
 from .migration import MigrationStrategy, TransformationSpec
 from .models import DiscoveredSecret, GlobalOptions, MigrationError, SecretConfig
-from .utils import extract_hostname_from_url
+from .utils import extract_hostname_from_url, yaml_dump_with_pipe_for_multiline
 
 logger = logging.getLogger("migration")
 
@@ -161,6 +161,55 @@ def prompt_for_ingress_host(pretty_logger: logging.Logger, public_baseurl: str |
             raise MigrationError("End of input reached during ingress host prompt") from err
 
 
+def filter_listeners(pretty_logger: logging.Logger, listeners: list[dict] | None) -> dict[str, Any] | None:
+    """
+    Filter out listeners that are managed by the ESS chart.
+
+    The chart manages listeners that serve specific resources: client, federation, replication, metrics, health.
+    This function removes listeners that serve only ESS-managed resources and keeps custom listeners,
+    returning them as a dictionary structure for additional config.
+
+    Args:
+        pretty_logger: Logger for user-friendly output
+        listeners: List of listener configurations from source Synapse config
+
+    Returns:
+        Dictionary with listeners.yml config structure, or None if no custom listeners remain
+    """
+    if not listeners:
+        return None
+
+    # Resources managed by the ESS chart that should be filtered out
+    chart_managed_resources = {"client", "federation", "replication", "metrics", "health"}
+
+    filtered_listeners = []
+    for listener in listeners:
+        # Get all resource names from the listener
+        resource_names = set()
+        resources = listener.get("resources", [])
+        for resource in resources:
+            names = resource.get("names", [])
+            if isinstance(names, list):
+                resource_names.update(names)
+            elif isinstance(names, str):
+                resource_names.add(names)
+
+        # Check if this listener serves any non-chart-managed resources
+        has_custom_resources = any(resource not in chart_managed_resources for resource in resource_names)
+
+        if has_custom_resources:
+            filtered_listeners.append(listener)
+            logger.debug("Kept listener with custom resources: %s", resource_names)
+        else:
+            logger.debug("Filtered out chart-managed listener with resources: %s", resource_names)
+
+    if not filtered_listeners:
+        return None
+
+    # Return the structure for additional config
+    return {"listeners.yml": {"config": yaml_dump_with_pipe_for_multiline({"listeners": filtered_listeners})}}
+
+
 @dataclass
 class SynapseMigration(MigrationStrategy):
     """Synapse-specific migration implementation."""
@@ -208,6 +257,7 @@ class SynapseMigration(MigrationStrategy):
             "worker_replication_secret_path",
             "form_secret_path",
             "listeners",  # Listeners are also managed by ESS
+            'synapse.additional."listeners.yml".config',  # Additional listeners config
         }
 
     @property
@@ -226,6 +276,12 @@ class SynapseMigration(MigrationStrategy):
                 transformer=extract_workers_from_instance_map,
                 required=False,
             ),  # Extract workers from synapse instance_map
+            TransformationSpec(
+                src_key="listeners",
+                target_key="synapse.additional",
+                transformer=filter_listeners,
+                required=False,
+            ),  # Filter out chart-managed listeners and output to additional config
             # ... other non-database transformations ...
         ]
 

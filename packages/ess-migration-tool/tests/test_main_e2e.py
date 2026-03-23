@@ -72,8 +72,10 @@ def test_main_e2e_synapse_only(
     log_output = captured.err
 
     # Verify override detection behavior
-    # listeners should be detected as override for Synapse
-    assert "'listeners' found in synapse.additional[\"00-imported.yaml\"].config" in log_output
+    # listeners should be filtered out (they serve chart-managed resources)
+    assert "'listeners' found in synapse.additional" not in log_output, (
+        "Listeners with chart-managed resources should be filtered out, not detected as overrides"
+    )
     # signing_key_path should NOT be detected (filtered out)
     assert "'signing_key_path' found in synapse.additional[\"00-imported.yaml\"].config" not in log_output
     # database.args.password should NOT be detected (filtered out as it's a secret)
@@ -95,6 +97,13 @@ def test_main_e2e_synapse_only(
     # Verify Synapse configuration was migrated and is explicitly enabled
     synapse_config = generated_values["synapse"]
     assert synapse_config["enabled"] is True, "synapse.enabled should be True"
+
+    # Verify that listeners.yml is absent when only chart-managed listeners exist
+    if "additional" in synapse_config:
+        additional_config = synapse_config["additional"]
+        assert "listeners.yml" not in additional_config, (
+            'synapse.additional."listeners.yml" should be absent when only chart-managed listeners exist'
+        )
 
     # Verify all other components are explicitly disabled when only Synapse is configured
     other_components = ["matrixAuthenticationService", "elementWeb", "elementAdmin", "matrixRTC"]
@@ -247,8 +256,10 @@ def test_main_e2e_synapse_with_mas(
     # Verify override detection behavior for MAS
     # http should be detected as override for MAS
     assert "'http' found in matrixAuthenticationService.additional[\"00-imported.yaml\"].config" in log_output
-    # listeners should be detected as override for Synapse
-    assert "'listeners' found in synapse.additional[\"00-imported.yaml\"].config" in log_output
+    # listeners should be filtered out for Synapse (they serve chart-managed resources)
+    assert "'listeners' found in synapse.additional" not in log_output, (
+        "Listeners with chart-managed resources should be filtered out, not detected as overrides"
+    )
     # signing_key_path should NOT be detected (filtered out)
     assert "'signing_key_path' found in synapse.additional[\"00-imported.yaml\"].config" not in log_output
     # database.args.password should NOT be detected (filtered out as it's a secret)
@@ -266,6 +277,13 @@ def test_main_e2e_synapse_with_mas(
     assert "synapse" in generated_values
     synapse_config = generated_values["synapse"]
     assert synapse_config["enabled"] is True, "synapse.enabled should be True"
+
+    # Verify that listeners.yml is absent when only chart-managed listeners exist
+    if "additional" in synapse_config:
+        additional_config = synapse_config["additional"]
+        assert "listeners.yml" not in additional_config, (
+            'synapse.additional."listeners.yml" should be absent when only chart-managed listeners exist'
+        )
 
     # Verify MAS configuration was migrated and is explicitly enabled
     assert "matrixAuthenticationService" in generated_values
@@ -463,3 +481,70 @@ def test_main_e2e_synapse_ess_managed_database(
     assert "port" not in synapse_postgres_config
     assert "user" not in synapse_postgres_config
     assert "database" not in synapse_postgres_config
+
+
+def test_main_e2e_synapse_listeners_with_custom_listeners(
+    monkeypatch,
+    tmp_path,
+    synapse_config_with_custom_listeners,
+    synapse_config_with_signing_key,
+    write_synapse_config,
+):
+    """Test that custom listeners are preserved in additional config."""
+    # Use config with custom listeners that should be preserved
+    custom_config = synapse_config_with_custom_listeners.copy()
+    custom_config["signing_key_path"] = synapse_config_with_signing_key["signing_key_path"]
+    synapse_config_file = write_synapse_config(custom_config)
+
+    # Create output directory
+    output_dir = tmp_path / "output"
+    output_dir.mkdir()
+
+    # Mock sys.argv to simulate CLI arguments
+    test_args = [
+        "migration",
+        "--synapse-config",
+        str(synapse_config_file),
+        "--output-dir",
+        str(output_dir),
+        "--verbose",
+    ]
+
+    # Mock user input for database choice (select option 1 - existing database, default)
+    side_effect = (n for n in ("",))  # Empty string for default choice (existing database)
+    monkeypatch.setattr(sys, "argv", test_args)
+    monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
+    exit_code = __main__.main()
+
+    # Verify successful execution
+    assert exit_code == 0
+
+    # Check that output files were created
+    values_file = output_dir / "values.yaml"
+    assert values_file.exists(), "values.yaml should be created"
+
+    # Load and verify the generated values
+    with open(values_file) as f:
+        generated_values = yaml.safe_load(f)
+
+    # Verify Synapse configuration was migrated
+    assert "synapse" in generated_values
+    synapse_config = generated_values["synapse"]
+    assert synapse_config["enabled"] is True
+
+    # Verify that custom listeners are preserved in additional config
+    # The config has custom listeners (custom_api resource) which should be preserved
+    assert "additional" in synapse_config, "Additional config should be created for custom listeners"
+    additional_config = synapse_config["additional"]
+
+    # Verify that listeners.yml is present in the additional config
+    assert "listeners.yml" in additional_config, (
+        'synapse.additional."listeners.yml" should be present when custom listeners exist'
+    )
+
+    # Verify the content of listeners.yml
+    listeners_config_content = yaml.safe_load(additional_config["listeners.yml"]["config"])
+    assert "listeners" in listeners_config_content, "Listeners should be present in the config"
+    listeners = listeners_config_content["listeners"]
+    assert len(listeners) == 1, "Should have exactly one custom listener"
+    assert listeners[0]["resources"][0]["names"] == ["custom_api"], "Should preserve custom_api resource"
