@@ -4,6 +4,8 @@
 
 
 import logging
+import random
+import time
 import urllib.parse
 from typing import Any
 
@@ -285,3 +287,9 @@ def prompt_for_database_choice(pretty_logger) -> bool:
         except EOFError as err:
             pretty_logger.info("\n   ❌ End of input reached")
             raise MigrationError("End of input during database choice") from err
+
+
+def delay_next_steps(pretty_logger: logging.Logger) -> None:
+    if not is_quiet_mode(pretty_logger):
+        time.sleep(random.uniform(0.2, 1.5))
+        pretty_logger.info("")
