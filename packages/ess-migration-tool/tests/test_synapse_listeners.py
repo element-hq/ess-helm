@@ -52,7 +52,7 @@ def test_filter_listeners_with_custom_resources():
             "resources": [{"names": ["client", "federation"], "compress": False}],
         },
         {
-            "port": 8448,
+            "port": 1200,
             "tls": True,
             "type": "http",
             "resources": [{"names": ["custom_api"], "compress": False}],
@@ -83,7 +83,7 @@ def test_filter_listeners_with_custom_resources():
     assert parsed_result == {
         "listeners": [
             {
-                "port": 8448,
+                "port": 1200,
                 "tls": True,
                 "type": "http",
                 "resources": [{"names": ["custom_api"], "compress": False}],
@@ -104,50 +104,6 @@ def test_filter_listeners_with_empty_list():
     assert result is None
 
 
-def test_filter_listeners_with_only_custom_resources():
-    """Test that filter_listeners keeps all listeners with custom resources."""
-    listeners = [
-        {
-            "port": 8448,
-            "tls": True,
-            "type": "http",
-            "resources": [{"names": ["custom_api"], "compress": False}],
-        },
-        {
-            "port": 8449,
-            "tls": True,
-            "type": "http",
-            "resources": [{"names": ["another_custom"], "compress": False}],
-        },
-    ]
-
-    result = filter_listeners(logging.getLogger(), listeners)
-
-    # Should keep all listeners with custom resources
-    assert result is not None
-    assert isinstance(result, dict)
-    assert "listeners.yml" in result
-    assert "config" in result["listeners.yml"]
-    # Parse the YAML config to verify content
-    parsed_result = yaml.safe_load(result["listeners.yml"]["config"])
-    assert parsed_result == {
-        "listeners": [
-            {
-                "port": 8448,
-                "tls": True,
-                "type": "http",
-                "resources": [{"names": ["custom_api"], "compress": False}],
-            },
-            {
-                "port": 8449,
-                "tls": True,
-                "type": "http",
-                "resources": [{"names": ["another_custom"], "compress": False}],
-            },
-        ]
-    }
-
-
 def test_filter_listeners_with_mixed_resources():
     """Test that filter_listeners correctly filters mixed chart-managed and custom resources."""
     listeners = [
@@ -161,7 +117,7 @@ def test_filter_listeners_with_mixed_resources():
             "port": 8448,
             "tls": True,
             "type": "http",
-            "resources": [{"names": ["custom_api"], "compress": False}],
+            "resources": [{"names": ["dropped_as_conflicting_port"], "compress": False}],
         },
         {
             "port": 9093,
@@ -196,7 +152,7 @@ def test_filter_listeners_with_mixed_resources():
 
     result = filter_listeners(logging.getLogger(), listeners)
 
-    # Should keep only the listeners with custom resources
+    # Should keep only the listeners with custom resources and no ESS-managed port
     assert result is not None
     assert isinstance(result, dict)
     assert "listeners.yml" in result
@@ -205,12 +161,6 @@ def test_filter_listeners_with_mixed_resources():
     parsed_result = yaml.safe_load(result["listeners.yml"]["config"])
     assert parsed_result == {
         "listeners": [
-            {
-                "port": 8448,
-                "tls": True,
-                "type": "http",
-                "resources": [{"names": ["custom_api"], "compress": False}],
-            },
             {
                 "port": 8449,
                 "tls": True,
@@ -237,7 +187,7 @@ def test_filter_listeners_with_string_resource_names():
             "resources": [{"names": "client", "compress": False}],  # String instead of list
         },
         {
-            "port": 8448,
+            "port": 1200,
             "tls": True,
             "type": "http",
             "resources": [{"names": "custom_api", "compress": False}],  # String instead of list
@@ -256,10 +206,10 @@ def test_filter_listeners_with_string_resource_names():
     assert parsed_result == {
         "listeners": [
             {
-                "port": 8448,
+                "port": 1200,
                 "tls": True,
                 "type": "http",
-                "resources": [{"names": "custom_api", "compress": False}],
+                "resources": [{"names": ["custom_api"], "compress": False}],
             }
         ]
     }

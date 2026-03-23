@@ -50,7 +50,7 @@ def synapse_config_with_custom_listeners(basic_synapse_config):
     # Replace the chart-managed listener with a custom one
     config["listeners"] = [
         {
-            "port": 8448,
+            "port": 9010,
             "tls": True,
             "type": "http",
             "resources": [{"names": ["custom_api"], "compress": False}],

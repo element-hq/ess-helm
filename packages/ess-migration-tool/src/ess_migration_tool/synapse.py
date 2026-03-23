@@ -180,28 +180,50 @@ def filter_listeners(pretty_logger: logging.Logger, listeners: list[dict] | None
         return None
 
     # Resources managed by the ESS chart that should be filtered out
-    chart_managed_resources = {"client", "federation", "replication", "metrics", "health"}
+    chart_managed_resources = {"client", "federation", "replication", "metrics"}
+
+    # Ports managed by the ESS chart that should be filtered out
+    chart_managed_ports = {8008, 8080, 8448, 9093, 9001}
 
     filtered_listeners = []
     for listener in listeners:
-        # Get all resource names from the listener
-        resource_names = set()
-        resources = listener.get("resources", [])
-        for resource in resources:
+        # Get the listener port
+        listener_port = listener.get("port")
+
+        # Check if this listener uses a chart-managed port
+        uses_managed_port = listener_port in chart_managed_ports
+
+        # Filter out listeners that use chart-managed ports
+        if uses_managed_port:
+            logger.debug("Filtered out listener using managed port: %s", listener_port)
+            continue
+
+        # Filter resources: keep only non-chart-managed resources
+        filtered_resources = []
+        original_resources = listener.get("resources", [])
+
+        for resource in original_resources:
             names = resource.get("names", [])
-            if isinstance(names, list):
-                resource_names.update(names)
-            elif isinstance(names, str):
-                resource_names.add(names)
+            name_set = set(names) if isinstance(names, list) else {names}
 
-        # Check if this listener serves any non-chart-managed resources
-        has_custom_resources = any(resource not in chart_managed_resources for resource in resource_names)
+            # Remove chart-managed resources, keep only custom ones
+            unmanaged_names = name_set - chart_managed_resources
+            if unmanaged_names:
+                new_resource = resource.copy()
+                new_resource["names"] = list(unmanaged_names)
+                filtered_resources.append(new_resource)
 
-        if has_custom_resources:
-            filtered_listeners.append(listener)
-            logger.debug("Kept listener with custom resources: %s", resource_names)
+        # Keep listener only if it has any custom resources left
+        if filtered_resources:
+            new_listener = listener.copy()
+            new_listener["resources"] = filtered_resources
+            filtered_listeners.append(new_listener)
+            logger.debug(
+                f"Importing listener port {listener_port} with filtered resources:"
+                f"{','.join(*[r['names'] for r in filtered_resources])}"
+            )
         else:
-            logger.debug("Filtered out chart-managed listener with resources: %s", resource_names)
+            logger.debug(f"Filtered out listener port {listener_port} with only chart-managed resources")
 
     if not filtered_listeners:
         return None
