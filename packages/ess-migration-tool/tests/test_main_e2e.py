@@ -92,9 +92,15 @@ def test_main_e2e_synapse_only(
     assert "serverName" in generated_values
     assert generated_values["serverName"] == "test.example.com"
 
-    # Verify Synapse configuration was migrated
+    # Verify Synapse configuration was migrated and is explicitly enabled
     synapse_config = generated_values["synapse"]
-    assert synapse_config["enabled"] is True
+    assert synapse_config["enabled"] is True, "synapse.enabled should be True"
+
+    # Verify all other components are explicitly disabled when only Synapse is configured
+    other_components = ["matrixAuthenticationService", "elementWeb", "elementAdmin", "matrixRTC"]
+    for component in other_components:
+        assert component in generated_values, f"{component} should be present in generated values"
+        assert generated_values[component]["enabled"] is False, f"{component}.enabled should be False"
 
     # Verify ingress host was set from prompt (not from public_baseurl)
     assert "ingress" in synapse_config
@@ -256,15 +262,21 @@ def test_main_e2e_synapse_with_mas(
     with open(values_file) as f:
         generated_values = yaml.safe_load(f)
 
-    # Verify Synapse configuration was migrated
+    # Verify Synapse configuration was migrated and is explicitly enabled
     assert "synapse" in generated_values
     synapse_config = generated_values["synapse"]
-    assert synapse_config["enabled"] is True
+    assert synapse_config["enabled"] is True, "synapse.enabled should be True"
 
-    # Verify MAS configuration was migrated
+    # Verify MAS configuration was migrated and is explicitly enabled
     assert "matrixAuthenticationService" in generated_values
     mas_config = generated_values["matrixAuthenticationService"]
-    assert mas_config["enabled"] is True
+    assert mas_config["enabled"] is True, "matrixAuthenticationService.enabled should be True"
+
+    # Verify other components are explicitly disabled when not migrated
+    other_components = ["elementWeb", "elementAdmin", "matrixRTC"]
+    for component in other_components:
+        assert component in generated_values, f"{component} should be present in generated values"
+        assert generated_values[component]["enabled"] is False, f"{component}.enabled should be False"
 
     # Verify MAS secrets were handled (using credential schema)
     assert "synapseSharedSecret" in mas_config
