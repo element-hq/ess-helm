@@ -95,7 +95,8 @@ A test cluster can be constructed with `./scripts/setup_test_cluster.sh`. It wil
     `<namespace>.localhost` will be created
 
 The test cluster can then be deployed to with
-`helm -n <namespace> upgrade -i ess charts/matrix-stack -f charts/matrix-stack/ci/test-cluster-mixin.yaml -f <your values file>`.
+`helm -n <namespace> upgrade -i ess charts/matrix-stack -f charts/matrix-stack/ci/test-cluster-mixin.yaml( -f <additional values file>)+`.
+e.g. `helm -n ess upgrade -i ess charts/matrix-stack -f charts/matrix-stack/ci/test-cluster-mixin.yaml -f charts/matrix-stack/ci/example-default-enabled-components-values.yaml`
 
 The test cluster can be taken down by running `./scripts/destroy_test_cluster.sh`.
 
