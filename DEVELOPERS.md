@@ -9,7 +9,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 # Developing
 
 Requirements for development:
-* Python 3.11, 3.12 or 3.13
+* Python 3.11, 3.12, 3.13 or 3.14
   * [`uv`](https://docs.astral.sh/uv/)
 * [`helm`](https://helm.sh/docs/intro/install/)
 * [`yq`](https://github.com/mikefarah/yq)
@@ -19,9 +19,17 @@ Optional Tools:
 * [`k3d`](https://k3d.io/stable/) for running the test cluster
 * [`kubeconform`](https://github.com/yannh/kubeconform) for Kubernetes manifest validation
 * [`shellcheck`](https://www.shellcheck.net/)
-* Managed via uv and so should be available after `uv sync`
+* Managed via `uv` and so should be available after `uv sync`
   * [`checkov`](https://www.checkov.io/)
+  * [`pytest](https://docs.pytest.org/en/stable/)
+  * [`mypy`](https://mypy.readthedocs.io/en/stable/)
   * [`reuse`](https://reuse.software/)
+  * [`ruff`](https://docs.astral.sh/ruff/)
+  * [`towncrier`](https://towncrier.readthedocs.io/en/stable/)
+
+The `uv` managed virtual environment must be activated so that the tools it manages
+are in your `PATH`. The various scripts are not tested or used against any other version
+of these tools other than the versions installed by `uv`.
 
 Changes to the chart templates are directly made to `charts/matrix-stack/templates`.
 
@@ -87,7 +95,8 @@ A test cluster can be constructed with `./scripts/setup_test_cluster.sh`. It wil
     `<namespace>.localhost` will be created
 
 The test cluster can then be deployed to with
-`helm -n <namespace> upgrade -i ess charts/matrix-stack -f charts/matrix-stack/ci/test-cluster-mixin.yaml -f <your values file>`.
+`helm -n <namespace> upgrade -i ess charts/matrix-stack -f charts/matrix-stack/ci/test-cluster-mixin.yaml( -f <additional values file>)+`.
+e.g. `helm -n ess upgrade -i ess charts/matrix-stack -f charts/matrix-stack/ci/test-cluster-mixin.yaml -f charts/matrix-stack/ci/example-default-enabled-components-values.yaml`
 
 The test cluster can be taken down by running `./scripts/destroy_test_cluster.sh`.
 
