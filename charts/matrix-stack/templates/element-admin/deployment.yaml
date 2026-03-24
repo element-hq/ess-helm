@@ -15,7 +15,6 @@ metadata:
 {{- end }}
   labels:
     {{- include "element-io.element-admin.labels" (dict "root" $ "context" .) | nindent 4 }}
-    k8s.element.io/element-admin-config-hash: "{{( include "element-io.element-admin.configmap-data" (dict "root" $ "context" .)) | sha1sum }}"
   name: {{ $.Release.Name }}-element-admin
   namespace: {{ $.Release.Namespace }}
 spec:
@@ -24,7 +23,6 @@ spec:
     metadata:
       labels:
         {{- include "element-io.element-admin.labels" (dict "root" $ "context" (dict "image" .image "labels" .labels "withChartVersion" false)) | nindent 8 }}
-        k8s.element.io/element-admin-config-hash: "{{( include "element-io.element-admin.configmap-data" (dict "root" $ "context" .)) | sha1sum }}"
 {{- with .annotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
@@ -67,28 +65,12 @@ spec:
           {{- toYaml . | nindent 10 }}
 {{- end }}
         volumeMounts:
-        - mountPath: /etc/nginx/conf.d/default.conf
-          name: nginx-config
-          readOnly: true
-          subPath: default.conf
-        - mountPath: /etc/nginx/conf.d/http_customisations.conf
-          name: nginx-config
-          readOnly: true
-          subPath: http_customisations.conf
-        - mountPath: /etc/nginx/security_headers.conf
-          name: nginx-config
-          readOnly: true
-          subPath: security_headers.conf
         - mountPath: /tmp
           name: nginx-tmp
 {{- range .extraVolumeMounts }}
         - {{ (. | toYaml) | nindent 10 }}
 {{- end }}
       volumes:
-      - configMap:
-          defaultMode: 420
-          name: {{ $.Release.Name }}-element-admin
-        name: nginx-config
       - emptyDir:
           medium: Memory
         name: nginx-tmp
