@@ -129,7 +129,7 @@ async def kube_client(cluster):
 
 
 @pytest.fixture(scope="session")
-async def ingress(cluster, kube_client):
+async def ingress(cluster, kube_client: AsyncClient):
     attempt = 0
     while attempt < 180:
         try:
@@ -142,6 +142,16 @@ async def ingress(cluster, kube_client):
                 waitfor="jsonpath='{.status.loadBalancer.ingress[0].ip}'",
                 namespace="kube-system",
             )
+
+            assert service
+            assert service.spec
+            assert service.spec.clusterIP
+
+            # So that we see the real connecting IP
+            # As per https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip
+            service.spec.externalTrafficPolicy = "Local"
+            await kube_client.patch(Service, name="traefik", namespace="kube-system", obj=service)
+
             return service.spec.clusterIP
         except ApiError:
             await asyncio.sleep(1)
