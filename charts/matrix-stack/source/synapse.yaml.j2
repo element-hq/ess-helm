@@ -15,6 +15,7 @@ checkConfigHook:
   {{- sub_schema_values.labels() | indent(2) }}
   {{- sub_schema_values.workloadAnnotations() | indent(2) }}
   {{- sub_schema_values.serviceAccount() | indent(2) }}
+  {{- sub_schema_values.resources(requests_memory='50Mi', requests_cpu='50m', limits_memory='200Mi') | indent(2) }}
 
 {{- sub_schema_values.postgresLibPQ() }}
 ## Configures the media store for Synapse

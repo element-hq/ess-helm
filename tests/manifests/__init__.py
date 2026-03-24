@@ -694,7 +694,6 @@ all_components_details = [
                     PropertyType.LivenessProbe: ValuesFilePath.not_supported(),
                     PropertyType.NodeSelector: ValuesFilePath.read_elsewhere("synapse", "nodeSelector"),
                     PropertyType.PodSecurityContext: ValuesFilePath.read_elsewhere("synapse", "podSecurityContext"),
-                    PropertyType.Resources: ValuesFilePath.read_elsewhere("synapse", "resources"),
                     # Job so no readinessProbe
                     PropertyType.ReadinessProbe: ValuesFilePath.not_supported(),
                     PropertyType.ServiceMonitor: ValuesFilePath.read_elsewhere("synapse", "serviceMonitor"),

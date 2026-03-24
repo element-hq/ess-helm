@@ -3491,6 +3491,16 @@ synapse:
 
       ## Annotations to add to the service account
       annotations: {}
+    ## Kubernetes resources to allocate to each instance.
+    resources:
+      ## Requests describes the minimum amount of compute resources required. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+      requests:
+        memory: 50Mi
+        cpu: 50m
+
+      ## Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+      limits:
+        memory: 200Mi
   ## Details of the external Postgres Database to use
   ## Does not need to be set if postgres.enabled=True
   # postgres:

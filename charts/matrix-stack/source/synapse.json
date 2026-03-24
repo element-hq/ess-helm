@@ -20,6 +20,9 @@
         },
         "serviceAccount": {
           "$ref": "file://common/serviceAccount.json"
+        },
+        "resources": {
+          "$ref": "file://common/resources.json"
         }
       }
     },
