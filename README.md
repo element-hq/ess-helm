@@ -161,6 +161,8 @@ Setting up a basic environment involves only **6 steps**:
 
 The below instructions will guide you through each of the steps.
 
+Instructions on setting up a development environment can be found in [DEVELOPERS.md](DEVELOPERS.md#running-a-test-cluster)
+
 ## Preparing the environment
 
 ### DNS
