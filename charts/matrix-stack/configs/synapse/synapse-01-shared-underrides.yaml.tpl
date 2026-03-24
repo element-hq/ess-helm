@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -14,6 +14,12 @@ federation_client_minimum_tls_version: '1.2'
 
 experimental_features:
   msc4028_push_encrypted_events: true
+
+database:
+  args:
+    # Synapse has no defaults, so up from Twisted's defaults of 3-5
+    cp_min: 5
+    cp_max: 10
 
 {{- if $root.Values.matrixRTC.enabled }}
 # The maximum allowed duration by which sent events can be delayed, as
