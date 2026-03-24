@@ -16,7 +16,7 @@ SPDX-FileCopyrightText = ["Copyright 2026 Element Creations Ltd"]
 SPDX-License-Identifier = "AGPL-3.0-only"
 
 [[annotations]]
-path = "**/.python-version"
+path = ".python-version"
 SPDX-FileCopyrightText = ["Copyright 2026 Element Creations Ltd"]
 SPDX-License-Identifier = "AGPL-3.0-only"
 
@@ -36,6 +36,7 @@ path = "packages/ess-migration-tool/newsfragments/*.md"
 SPDX-FileCopyrightText = ["Copyright 2026 Element Creations Ltd"]
 SPDX-License-Identifier = "AGPL-3.0-only"
 precedence = "aggregate"
+
 [[annotations]]
 path = "packages/ess-migration-tool/assets/*.gif"
 SPDX-FileCopyrightText = ["Copyright 2026 Element Creations Ltd"]
