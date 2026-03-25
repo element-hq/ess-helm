@@ -6,6 +6,18 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Migration Script ess-migration-tool 0.1.0.dev1 (2026-03-25)
+
+## Features
+
+- Allow the user to migrate its data to ESS-managed databases and describe the migration steps to take. (#1155, #1166)
+- Prompt the user for Synapse ingress host if `public_baseurl` is not set. (#1159)
+
+## Misc
+
+- #1131, #1147, #1149, #1150, #1152, #1153, #1154, #1160, #1161, #1162, #1165, #1168, #1169, #1178
+
+
 # ESS Migration Tool - Prerelease
 
 ## Added
