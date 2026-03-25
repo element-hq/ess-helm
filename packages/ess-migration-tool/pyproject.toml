@@ -28,3 +28,19 @@ filename = "CHANGELOG.md"
 [tool.towncrier.fragment.misc]
 name = "Misc"
 showcontent = true
+
+[tool.towncrier.fragment.feature]
+name = "Features"
+showcontent = true
+
+[tool.towncrier.fragment.bugfix]
+name = "Bugfixes"
+showcontent = true
+
+[tool.towncrier.fragment.removal]
+name = "Removed"
+showcontent = true
+
+[tool.towncrier.fragment.doc]
+name = "Documentation"
+showcontent = true
