@@ -9,6 +9,7 @@ Provides functions to validate generated values files against Helm templates.
 """
 
 import logging
+import os
 import subprocess
 import tempfile
 from pathlib import Path
@@ -37,6 +38,13 @@ def validate_helm_template(values: dict[str, Any]) -> tuple[bool, str]:
             yaml.safe_dump(values, f)
             values_file = f.name
 
+        if os.environ.get("CHART_PATH"):
+            chart_path = Path(os.environ["CHART_PATH"])
+        else:
+            chart_path = Path(__file__).parent.parent.parent.parent / "charts/matrix-stack"
+        if not chart_path.exists():
+            raise FileNotFoundError(f"Chart path {chart_path} does not exist")
+
         try:
             # Run helm template command using subprocess
             # This avoids async complexity while still validating templates
@@ -45,7 +53,7 @@ def validate_helm_template(values: dict[str, Any]) -> tuple[bool, str]:
                     "helm",
                     "template",
                     "test-validation",
-                    "charts/matrix-stack",
+                    chart_path,
                     "--namespace",
                     "test-validation",
                     "--values",
@@ -60,6 +68,7 @@ def validate_helm_template(values: dict[str, Any]) -> tuple[bool, str]:
             )
 
             # Check if command succeeded
+            error_msg = ""
             if result.returncode != 0:
                 error_msg = f"Helm template failed with return code {result.returncode}"
                 if result.stderr:
