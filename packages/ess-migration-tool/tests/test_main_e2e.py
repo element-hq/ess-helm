@@ -91,7 +91,7 @@ def test_main_e2e_synapse_only(
         generated_values = yaml.safe_load(f)
 
     # Validate generated values against Helm templates
-    
+
     success, message = helm_validator(generated_values)
     assert success, f"Helm template validation failed: {message}"
 
@@ -281,7 +281,7 @@ def test_main_e2e_synapse_with_mas(
         generated_values = yaml.safe_load(f)
 
     # Validate generated values against Helm templates
-    
+
     success, message = helm_validator(generated_values)
     assert success, f"Helm template validation failed: {message}"
 
@@ -363,12 +363,12 @@ def test_main_e2e_synapse_with_mas(
                     == b"mas_password"
                 )
                 # Check that RSA and ECDSA keys were imported
-                assert "matrixAuthenticationService.keys.rsa" in secret_content["data"]
-                assert "matrixAuthenticationService.keys.ecdsaPrime256v1" in secret_content["data"]
+                assert "matrixAuthenticationService.privateKeys.rsa" in secret_content["data"]
+                assert "matrixAuthenticationService.privateKeys.ecdsaPrime256v1" in secret_content["data"]
                 # Verify keys are not empty and have different content
-                rsa_key_data = base64.b64decode(secret_content["data"]["matrixAuthenticationService.keys.rsa"])
+                rsa_key_data = base64.b64decode(secret_content["data"]["matrixAuthenticationService.privateKeys.rsa"])
                 ecdsa_key_data = base64.b64decode(
-                    secret_content["data"]["matrixAuthenticationService.keys.ecdsaPrime256v1"]
+                    secret_content["data"]["matrixAuthenticationService.privateKeys.ecdsaPrime256v1"]
                 )
                 assert len(rsa_key_data) > 0
                 assert len(ecdsa_key_data) > 0
@@ -535,7 +535,7 @@ def test_main_e2e_synapse_existing_database(
         generated_values = yaml.safe_load(f)
 
     # Validate generated values against Helm templates
-    
+
     success, message = helm_validator(generated_values)
     assert success, f"Helm template validation failed: {message}"
 
@@ -599,7 +599,7 @@ def test_main_e2e_synapse_ess_managed_database(
         generated_values = yaml.safe_load(f)
 
     # Validate generated values against Helm templates
-    
+
     success, message = helm_validator(generated_values)
     assert success, f"Helm template validation failed: {message}"
 
@@ -670,7 +670,7 @@ def test_main_e2e_synapse_listeners_with_custom_listeners(
         generated_values = yaml.safe_load(f)
 
     # Validate generated values against Helm templates
-    
+
     success, message = helm_validator(generated_values)
     assert success, f"Helm template validation failed: {message}"
 

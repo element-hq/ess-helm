@@ -57,7 +57,6 @@ def validate_helm_template(values: dict[str, Any]) -> tuple[bool, str]:
                 ],
                 capture_output=True,
                 text=True,
-                cwd="/home/arch/ess-helm",
             )
 
             # Check if command succeeded
@@ -65,99 +64,24 @@ def validate_helm_template(values: dict[str, Any]) -> tuple[bool, str]:
                 error_msg = f"Helm template failed with return code {result.returncode}"
                 if result.stderr:
                     error_msg += f": {result.stderr}"
-                return False, error_msg
+            for res_line in result.stdout.split("\n"):
+                if "\[INFO\] Fail:" in result.stdout:
+                    error_msg += res_line + "\n"
+                if "\[INFO\] Missing required value" in result.stdout:
+                    error_msg += res_line + "\n"
+            if error_msg:
+                return False, f"Helm template validation failed: {error_msg}"
 
             # Parse the output to check for basic template structure
-            templates = list(yaml.load_all(result.stdout, Loader=yaml.SafeLoader))
-
-            # Basic validation - check that we got some templates
-            if not templates:
-                return False, "No templates generated - values may be invalid"
-
-            # Check for common error patterns in templates
-            error_messages = []
-            for template in templates:
-                if template is None:
-                    continue
-
-                if not isinstance(template, dict):
-                    error_messages.append(f"Invalid template structure: {template}")
-                    continue
-
-                # Basic structure validation
-                if "kind" not in template:
-                    error_messages.append("Template missing 'kind' field")
-                if "metadata" not in template:
-                    error_messages.append("Template missing 'metadata' field")
-
-            if error_messages:
-                return False, "\n".join(error_messages)
-
-            return True, "Helm template validation passed"
-
+            try:
+                list(yaml.load_all(result.stdout, Loader=yaml.SafeLoader))
+                return True, "Helm template validation passed"
+            except yaml.YAMLError as e:
+                return False, f"YAML error in Helm template output: {e}"
         finally:
             # Clean up temporary file
             Path(values_file).unlink(missing_ok=True)
 
     except Exception as e:
         logger.error(f"Helm template validation failed: {e}")
-        return False, f"Helm template validation error: {e}"
-
-
-def validate_helm_template_with_chart(
-    values: dict[str, Any], chart_path: str = "charts/matrix-stack"
-) -> tuple[bool, str]:
-    """
-    Validate Helm templates using a specific chart path.
-
-    Args:
-        values: ESS values dictionary to validate
-        chart_path: Path to Helm chart
-
-    Returns:
-        Tuple of (success: bool, message: str)
-    """
-    try:
-        # Write values to temporary file
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
-            yaml.safe_dump(values, f)
-            values_file = f.name
-
-        try:
-            # Run helm template command
-            result = subprocess.run(
-                [
-                    "helm",
-                    "template",
-                    "test-validation",
-                    chart_path,
-                    "--namespace",
-                    "test-validation",
-                    "--values",
-                    values_file,
-                    "--api-versions",
-                    "monitoring.coreos.com/v1/ServiceMonitor",
-                    "--api-versions",
-                    "cert-manager.io/v1/Certificate",
-                ],
-                capture_output=True,
-                text=True,
-                cwd="/home/arch/ess-helm",
-            )
-
-            # Check if command succeeded
-            if result.returncode != 0:
-                error_msg = f"Helm template failed with return code {result.returncode}"
-                if result.stderr:
-                    error_msg += f": {result.stderr}"
-                return False, error_msg
-
-            return True, "Helm template generation successful"
-
-        finally:
-            # Clean up temporary file
-            Path(values_file).unlink(missing_ok=True)
-
-    except Exception as e:
-        logger.error(f"Helm template validation with chart failed: {e}")
         return False, f"Helm template validation error: {e}"

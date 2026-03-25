@@ -325,21 +325,21 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
                     config_path="secrets.encryption_file",
                 ),
                 # Key secrets - these will be discovered through special key processing
-                "matrixAuthenticationService.keys.rsa": SecretConfig(
+                "matrixAuthenticationService.privateKeys.rsa": SecretConfig(
                     init_if_missing_from_source_cfg=True,
                     description="MAS RSA private key for signing operations",
                     config_inline=None,
                     config_path=None,
                     transformer=None,
                 ),
-                "matrixAuthenticationService.keys.ecdsaPrime256v1": SecretConfig(
+                "matrixAuthenticationService.privateKeys.ecdsaPrime256v1": SecretConfig(
                     init_if_missing_from_source_cfg=True,
                     description="MAS ECDSA Prime256v1 private key for signing operations",
                     config_inline=None,
                     config_path=None,
                     transformer=None,
                 ),
-                "matrixAuthenticationService.keys.ecdsaSecp256k1": SecretConfig(
+                "matrixAuthenticationService.privateKeys.ecdsaSecp256k1": SecretConfig(
                     init_if_missing_from_source_cfg=False,
                     description="MAS ECDSA Secp256k1 private key for signing operations",
                     config_inline=None,
@@ -347,7 +347,7 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
                     optional=True,  # This key type is optional
                     transformer=None,
                 ),
-                "matrixAuthenticationService.keys.ecdsaSecp384r1": SecretConfig(
+                "matrixAuthenticationService.privateKeys.ecdsaSecp384r1": SecretConfig(
                     init_if_missing_from_source_cfg=False,
                     description="MAS ECDSA Secp384r1 private key for signing operations",
                     config_inline=None,
@@ -411,7 +411,7 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
                             content = f.read()
                         key_type = detect_key_type(content)
                         if key_type in ["rsa", "ecdsaPrime256v1", "ecdsaSecp256k1", "ecdsaSecp384r1"]:
-                            secret_key = f"matrixAuthenticationService.keys.{key_type}"
+                            secret_key = f"matrixAuthenticationService.privateKeys.{key_type}"
                             # Only set if not already discovered (prefer individual keys over directory)
                             if secret_key not in discovered_secrets:
                                 discovered_secret = DiscoveredSecret(
@@ -450,7 +450,7 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
                 try:
                     with open(key_config["key_file"], "rb") as f:
                         content = f.read()
-                    config_key = f"secrets.keys.{index}"
+                    config_key = f"secrets.privateKeys.{index}"
                     logger.info(f"Read key from file: {key_config['key_file']}")
                 except Exception as e:
                     logger.warning(f"Failed to read key file {key_config['key_file']}: {e}")
@@ -459,13 +459,13 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
             # Try inline key content
             elif "key" in key_config:
                 content = key_config["key"].encode("utf-8")
-                config_key = f"secrets.keys.{index}"
+                config_key = f"secrets.privateKeys.{index}"
                 logger.info("Read key from inline content")
 
             if content and config_key:
                 key_type = detect_key_type(content)
                 if key_type in ["rsa", "ecdsaPrime256v1", "ecdsaSecp256k1", "ecdsaSecp384r1"]:
-                    secret_key = f"matrixAuthenticationService.keys.{key_type}"
+                    secret_key = f"matrixAuthenticationService.privateKeys.{key_type}"
                     # Only set if not already discovered (prefer individual keys over directory)
                     if secret_key not in discovered_secrets:
                         discovered_secret = DiscoveredSecret(

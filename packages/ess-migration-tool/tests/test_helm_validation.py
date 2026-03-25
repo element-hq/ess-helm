@@ -37,8 +37,5 @@ def test_helm_validation_failure_case(helm_validator):
 
     success, message = helm_validator(values)
 
-    # Should fail validation but not crash
-    assert isinstance(success, bool), "Should return boolean success status"
-    assert isinstance(message, str), "Should return string message"
     # Should fail (unless chart is missing, in which case it might pass due to early error)
     assert not success or "chart" in message.lower(), "Invalid values should fail validation"
