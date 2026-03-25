@@ -24,3 +24,7 @@ ess-migration-tool = "ess_migration_tool.__main__:main"
 directory = "newsfragments"
 name = "ESS Migration Script"
 filename = "CHANGELOG.md"
+
+[tool.towncrier.fragment.misc]
+name = "Misc"
+showcontent = true
