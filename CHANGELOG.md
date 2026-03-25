@@ -7,6 +7,76 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.3.1 (2026-03-25)
+
+## Changed
+
+- Synapse: Change `database.args.database` and replace with `database.args.dbname`. (#1151)
+- Upgrade Element Admin to v0.1.11.
+
+  Highlights:
+  - Rename `Moderation` to `Supervision`
+  - Use upstream `nginx` configuration
+
+  Full Changelogs:
+  - [v0.1.11](https://github.com/element-hq/element-admin/releases/tag/v0.1.11)
+
+  (#1170)
+- Raise the default size of Synapse's connection pool.
+
+  Goes from 3-5 (min-max) to 5-10.
+  These settings can be overridden with additional Synapse configuration. (#1171)
+- Upgrade Element Web to v1.12.13.
+
+  Highlights:
+  - Upgrade Element Call for new picture-in-picture designs
+  - Fix "key storage out of sync" appearing when key storage is actually fine
+
+  Full Changelogs:
+  - [v1.12.13](https://github.com/element-hq/element-web/releases/tag/v1.12.13)
+
+  (#1173)
+- Allow configuration of the resources for Synapse's check config `Job`.
+
+  Rather than using the resources for the Synapse `main` process. (#1174)
+- Upgrade Synapse to v1.150.0.
+
+  Highlights:
+  - When Matrix Authentication Service (MAS) integration is enabled, allow MAS to set the user locked status in Synapse
+  - Fix a bug introduced in v1.26.0 that caused deactivated, erased users to not be removed from the user directory
+  - Allow caching of the `/versions` and `/auth_metadata` public endpoints
+
+  Full Changelogs:
+  - [v1.150.0](https://github.com/element-hq/synapse/releases/tag/v1.150.0)
+
+  (#1175)
+- Upgrade Matrix Authentication Service to v1.14.0.
+
+  Highlights:
+  - Synchronise the user `locked` flag to Synapse
+  - Respect HTTP Proxy environment variables in outgoing HTTP requests
+
+  Full Changelogs:
+  - [v1.14.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.14.0)
+
+  (#1176)
+
+## Fixed
+
+- Fix extra quotes being added around the Redis password in the Synapse configuration template. (#1164)
+- Element Web: Fix `Cache-Control` header on `/i18n`. (#1167)
+
+## Documentation
+
+- Migration: Adjust Migrating documentation to use the new `ess-migration-tool` command. (#1147)
+- Improve developer documentation. (#1172)
+
+## Internal
+
+- CI: Separate the ingress manifests tests in 3 test runs. (#1144)
+- Ensure the test cluster can see the external IP correctly. (#1177)
+
+
 # ESS Community Helm Chart 26.3.0 (2026-03-18)
 
 ## Removed / Breaking Changes
