@@ -96,7 +96,7 @@ jobs:
         GITHUB_RUN_ID: "${{ github.run_id }}"
       run: |
         if [ "$GITHUB_REF_TYPE" = "tag" ]; then
-          uv --directory packages/ess-migration-tool version "$GITHUB_REF_NAME"
+          uv --directory packages/ess-migration-tool version "${GITHUB_REF_NAME#ess-migration-tool-v}"
         else
           uv version --directory packages/ess-migration-tool --bump "dev=$GITHUB_RUN_ID"
         fi
