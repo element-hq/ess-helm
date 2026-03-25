@@ -14,6 +14,8 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec, rsa
 
+from .helm_validation import validate_helm_template
+
 
 @pytest.fixture
 def basic_synapse_config():
@@ -300,3 +302,18 @@ def ecdsa_secp384r1_key_der():
         format=serialization.PrivateFormat.TraditionalOpenSSL,
         encryption_algorithm=serialization.NoEncryption(),
     )
+
+
+@pytest.fixture
+def helm_validator():
+    """
+    Fixture for validating generated values against Helm templates.
+
+    Returns:
+        A callable that takes values dict and returns (success, message) tuple
+    """
+
+    def _validate(values: dict) -> tuple[bool, str]:
+        return validate_helm_template(values)
+
+    return _validate
