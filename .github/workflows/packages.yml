@@ -96,7 +96,7 @@ jobs:
         GITHUB_RUN_ID: "${{ github.run_id }}"
       run: |
         if [ "$GITHUB_REF_TYPE" = "tag" ]; then
-          uv --directory packages/ess-migration-tool version "$GITHUB_REF_NAME"
+          uv --directory packages/ess-migration-tool version "${GITHUB_REF_NAME#ess-migration-tool-v}"
         else
           uv version --directory packages/ess-migration-tool --bump "dev=$GITHUB_RUN_ID"
         fi
@@ -152,7 +152,7 @@ jobs:
 
     - name: Generate changelog
       run: |
-        version=$(uv --directory packages/ess-migration-tool version)
+        version=$(find dist -name 'ess_migration_tool-*.tar.gz' | sed 's/.*ess_migration_tool-//;s/.tar.gz//')
         # Add changes to CHANGELOG.md
         uv run towncrier build --version "$version" --yes --dir packages/ess-migration-tool
         echo "CHANGELOG.md will look like:"
@@ -162,9 +162,9 @@ jobs:
     - name: Bump version for next PR
       id: versions
       run: |
-        this_version=$(uv --directory packages/ess-migration-tool version)
+        this_version=$(uv --directory packages/ess-migration-tool version --short)
         uv --directory packages/ess-migration-tool version --bump patch --bump dev=1
-        next_version=$(uv --directory packages/ess-migration-tool version)
+        next_version=$(uv --directory packages/ess-migration-tool version --short)
         echo "this-version=$this_version" | tee -a "$GITHUB_OUTPUT"
         echo "next-version=$next_version" | tee -a "$GITHUB_OUTPUT"
 
