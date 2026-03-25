@@ -152,7 +152,7 @@ jobs:
 
     - name: Generate changelog
       run: |
-        version=$(uv --directory packages/ess-migration-tool version)
+        version=$(find dist -name 'ess_migration_tool-*.tar.gz' | sed 's/.*ess_migration_tool-//;s/.tar.gz//')
         # Add changes to CHANGELOG.md
         uv run towncrier build --version "$version" --yes --dir packages/ess-migration-tool
         echo "CHANGELOG.md will look like:"
