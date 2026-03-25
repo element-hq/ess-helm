@@ -119,13 +119,15 @@ def test_keys_dir_discovery(tmp_path, rsa_key_pem, ecdsa_key_pem):
     discovery.discover_secrets(mas_config)
 
     # Verify RSA key was discovered
-    assert "matrixAuthenticationService.keys.rsa" in discovery.discovered_secrets
-    assert discovery.discovered_secrets["matrixAuthenticationService.keys.rsa"].value == rsa_key_pem.decode("utf-8")
-    assert discovery.discovered_secrets["matrixAuthenticationService.keys.rsa"].config_key == "secrets.keys_dir"
+    assert "matrixAuthenticationService.privateKeys.rsa" in discovery.discovered_secrets
+    assert discovery.discovered_secrets["matrixAuthenticationService.privateKeys.rsa"].value == rsa_key_pem.decode(
+        "utf-8"
+    )
+    assert discovery.discovered_secrets["matrixAuthenticationService.privateKeys.rsa"].config_key == "secrets.keys_dir"
 
     # Verify ECDSA key was discovered
-    ecdsa_secret = discovery.discovered_secrets["matrixAuthenticationService.keys.ecdsaPrime256v1"]
-    assert "matrixAuthenticationService.keys.ecdsaPrime256v1" in discovery.discovered_secrets
+    ecdsa_secret = discovery.discovered_secrets["matrixAuthenticationService.privateKeys.ecdsaPrime256v1"]
+    assert "matrixAuthenticationService.privateKeys.ecdsaPrime256v1" in discovery.discovered_secrets
     assert ecdsa_secret.value == ecdsa_key_pem.decode("utf-8")
     assert ecdsa_secret.config_key == "secrets.keys_dir"
 
@@ -160,15 +162,20 @@ def test_individual_keys_discovery(tmp_path, rsa_key_pem, ecdsa_key_pem):
     discovery.discover_secrets(mas_config)
 
     # Verify RSA key was discovered from file
-    assert "matrixAuthenticationService.keys.rsa" in discovery.discovered_secrets
-    assert discovery.discovered_secrets["matrixAuthenticationService.keys.rsa"].value == rsa_key_pem.decode("utf-8")
-    assert discovery.discovered_secrets["matrixAuthenticationService.keys.rsa"].config_key == "secrets.keys.0"
+    assert "matrixAuthenticationService.privateKeys.rsa" in discovery.discovered_secrets
+    assert discovery.discovered_secrets["matrixAuthenticationService.privateKeys.rsa"].value == rsa_key_pem.decode(
+        "utf-8"
+    )
+    assert (
+        discovery.discovered_secrets["matrixAuthenticationService.privateKeys.rsa"].config_key
+        == "secrets.privateKeys.0"
+    )
 
     # Verify ECDSA key was discovered from inline content
-    ecdsa_secret = discovery.discovered_secrets["matrixAuthenticationService.keys.ecdsaPrime256v1"]
-    assert "matrixAuthenticationService.keys.ecdsaPrime256v1" in discovery.discovered_secrets
+    ecdsa_secret = discovery.discovered_secrets["matrixAuthenticationService.privateKeys.ecdsaPrime256v1"]
+    assert "matrixAuthenticationService.privateKeys.ecdsaPrime256v1" in discovery.discovered_secrets
     assert ecdsa_secret.value == ecdsa_key_pem.decode("utf-8")
-    assert ecdsa_secret.config_key == "secrets.keys.1"
+    assert ecdsa_secret.config_key == "secrets.privateKeys.1"
 
 
 def test_mixed_key_sources(tmp_path, rsa_key_pem, ecdsa_key_pem):
@@ -206,13 +213,18 @@ def test_mixed_key_sources(tmp_path, rsa_key_pem, ecdsa_key_pem):
     discovery.discover_secrets(mas_config)
 
     # Verify both keys were discovered
-    assert "matrixAuthenticationService.keys.rsa" in discovery.discovered_secrets
-    assert "matrixAuthenticationService.keys.ecdsaPrime256v1" in discovery.discovered_secrets
+    assert "matrixAuthenticationService.privateKeys.rsa" in discovery.discovered_secrets
+    assert "matrixAuthenticationService.privateKeys.ecdsaPrime256v1" in discovery.discovered_secrets
 
     # Individual keys should take precedence over directory keys
-    assert discovery.discovered_secrets["matrixAuthenticationService.keys.rsa"].value == rsa_key_pem.decode("utf-8")
-    assert discovery.discovered_secrets["matrixAuthenticationService.keys.rsa"].config_key == "secrets.keys.0"
-    ecdsa_secret = discovery.discovered_secrets["matrixAuthenticationService.keys.ecdsaPrime256v1"]
+    assert discovery.discovered_secrets["matrixAuthenticationService.privateKeys.rsa"].value == rsa_key_pem.decode(
+        "utf-8"
+    )
+    assert (
+        discovery.discovered_secrets["matrixAuthenticationService.privateKeys.rsa"].config_key
+        == "secrets.privateKeys.0"
+    )
+    ecdsa_secret = discovery.discovered_secrets["matrixAuthenticationService.privateKeys.ecdsaPrime256v1"]
     assert ecdsa_secret.value == ecdsa_key_pem.decode("utf-8")
     assert ecdsa_secret.config_key == "secrets.keys_dir"
 
@@ -228,18 +240,18 @@ def test_no_keys_config(basic_mas_config):
     discovery.discover_secrets(mas_config)
 
     # Original key types should be marked for initialization since they're not required
-    assert "matrixAuthenticationService.keys.rsa" in discovery.init_by_ess_secrets
-    assert "matrixAuthenticationService.keys.ecdsaPrime256v1" in discovery.init_by_ess_secrets
+    assert "matrixAuthenticationService.privateKeys.rsa" in discovery.init_by_ess_secrets
+    assert "matrixAuthenticationService.privateKeys.ecdsaPrime256v1" in discovery.init_by_ess_secrets
 
     # New key types should NOT be marked for initialization (they're optional)
-    assert "matrixAuthenticationService.keys.ecdsaSecp256k1" not in discovery.init_by_ess_secrets
-    assert "matrixAuthenticationService.keys.ecdsaSecp384r1" not in discovery.init_by_ess_secrets
+    assert "matrixAuthenticationService.privateKeys.ecdsaSecp256k1" not in discovery.init_by_ess_secrets
+    assert "matrixAuthenticationService.privateKeys.ecdsaSecp384r1" not in discovery.init_by_ess_secrets
 
     # Should not be in discovered secrets
-    assert "matrixAuthenticationService.keys.rsa" not in discovery.discovered_secrets
-    assert "matrixAuthenticationService.keys.ecdsaPrime256v1" not in discovery.discovered_secrets
-    assert "matrixAuthenticationService.keys.ecdsaSecp256k1" not in discovery.discovered_secrets
-    assert "matrixAuthenticationService.keys.ecdsaSecp384r1" not in discovery.discovered_secrets
+    assert "matrixAuthenticationService.privateKeys.rsa" not in discovery.discovered_secrets
+    assert "matrixAuthenticationService.privateKeys.ecdsaPrime256v1" not in discovery.discovered_secrets
+    assert "matrixAuthenticationService.privateKeys.ecdsaSecp256k1" not in discovery.discovered_secrets
+    assert "matrixAuthenticationService.privateKeys.ecdsaSecp384r1" not in discovery.discovered_secrets
 
 
 def test_all_key_types_discovery(
@@ -274,16 +286,16 @@ def test_all_key_types_discovery(
     discovery.discover_secrets(mas_config)
 
     # Verify all key types were discovered
-    assert "matrixAuthenticationService.keys.rsa" in discovery.discovered_secrets
-    assert "matrixAuthenticationService.keys.ecdsaPrime256v1" in discovery.discovered_secrets
-    assert "matrixAuthenticationService.keys.ecdsaSecp256k1" in discovery.discovered_secrets
-    assert "matrixAuthenticationService.keys.ecdsaSecp384r1" in discovery.discovered_secrets
+    assert "matrixAuthenticationService.privateKeys.rsa" in discovery.discovered_secrets
+    assert "matrixAuthenticationService.privateKeys.ecdsaPrime256v1" in discovery.discovered_secrets
+    assert "matrixAuthenticationService.privateKeys.ecdsaSecp256k1" in discovery.discovered_secrets
+    assert "matrixAuthenticationService.privateKeys.ecdsaSecp384r1" in discovery.discovered_secrets
 
     # Verify key values
-    rsa_secret = discovery.discovered_secrets["matrixAuthenticationService.keys.rsa"]
-    ecdsa_prime256v1_secret = discovery.discovered_secrets["matrixAuthenticationService.keys.ecdsaPrime256v1"]
-    ecdsa_secp256k1_secret = discovery.discovered_secrets["matrixAuthenticationService.keys.ecdsaSecp256k1"]
-    ecdsa_secp384r1_secret = discovery.discovered_secrets["matrixAuthenticationService.keys.ecdsaSecp384r1"]
+    rsa_secret = discovery.discovered_secrets["matrixAuthenticationService.privateKeys.rsa"]
+    ecdsa_prime256v1_secret = discovery.discovered_secrets["matrixAuthenticationService.privateKeys.ecdsaPrime256v1"]
+    ecdsa_secp256k1_secret = discovery.discovered_secrets["matrixAuthenticationService.privateKeys.ecdsaSecp256k1"]
+    ecdsa_secp384r1_secret = discovery.discovered_secrets["matrixAuthenticationService.privateKeys.ecdsaSecp384r1"]
 
     assert rsa_secret.value == rsa_key_pem.decode("utf-8")
     assert ecdsa_prime256v1_secret.value == ecdsa_key_pem.decode("utf-8")
@@ -292,5 +304,5 @@ def test_all_key_types_discovery(
 
     # Verify config keys
     for secret_key in discovery.discovered_secrets:
-        if secret_key.startswith("matrixAuthenticationService.keys."):
+        if secret_key.startswith("matrixAuthenticationService.privateKeys."):
             assert discovery.discovered_secrets[secret_key].config_key == "secrets.keys_dir"
