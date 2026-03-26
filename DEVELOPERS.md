@@ -162,13 +162,13 @@ From the project root: `shellcheck scripts/*.sh`
 
 Verifies that the deployed workloads behave as expected and integrates well together.
 
-From the project root : `pytest test`
+From the project root : `pytest-ess`
 
 Pytest caches the namespace name and created user tokens between run. To start a run from scratch,
-run `pytest test --cache-clear`.
+run `pytest-ess -- --cache-clear`.
 
-#### Special env variables
-- `PYTEST_KEEP_CLUSTER=1` : Do not destroy the cluster at the end of the test run.
+#### Special arguments
+- `pytest-ess --keep` : Do not destroy the cluster at the end of the test run.
 You must delete it using `k3d cluster delete ess-helm` manually before running any other test run.
 
 #### Usage
