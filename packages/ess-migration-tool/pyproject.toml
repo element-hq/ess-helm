@@ -6,6 +6,11 @@
 name = "ess-migration-tool"
 version = "0.1.2.dev1"
 requires-python = ">=3.11.7,<4.0"
+readme = "README.md"
+authors = [
+  { name = "Element Creations Ltd", email = "contact@element.io" },
+]
+license = "AGPL-3.0-only"
 dependencies = [
   "cryptography>=46.0.5",
   "jsonschema>=4.26.0",
