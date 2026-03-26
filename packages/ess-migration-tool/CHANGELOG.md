@@ -6,6 +6,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Migration Tool 0.1.2 (2026-03-26)
+
+## Misc
+
+- Add readme and license informations. (#1188)
+
+
 # ESS Migration Tool 0.1.1 (2026-03-26)
 
 ## Bugfixes
