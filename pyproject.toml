@@ -52,10 +52,14 @@ dev = [
   "types-jsonschema>=4.26.0.20260202",
   "rapidfuzz>=3.14.3",
   "pyyaml>=6.0.3",
+  "ess-community-integration-tests"
 ]
 
 [tool.uv.workspace]
 members = ["packages/*", "tests"]
+
+[tool.uv.sources]
+ess-community-integration-tests = { workspace = true }
 
 [tool.pytest.ini_options]
 # we use asyncio-cooperative

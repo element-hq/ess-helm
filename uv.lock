@@ -24,6 +24,7 @@ dev = [
     { name = "aiohttp-retry" },
     { name = "checkov" },
     { name = "cryptography" },
+    { name = "ess-community-integration-tests" },
     { name = "frozendict" },
     { name = "httpx-retries" },
     { name = "jinja2" },
@@ -64,6 +65,7 @@ dev = [
     { name = "aiohttp-retry", specifier = ">=2.9.1" },
     { name = "checkov", specifier = ">=3.2.506" },
     { name = "cryptography", specifier = ">=46.0.5" },
+    { name = "ess-community-integration-tests", editable = "tests" },
     { name = "frozendict", specifier = ">=2.4.7" },
     { name = "httpx-retries", specifier = ">=0.4.6" },
     { name = "jinja2", specifier = ">=3.1.6" },
@@ -848,13 +850,18 @@ dependencies = [
     { name = "httpx-retries" },
     { name = "jsonschema" },
     { name = "lightkube" },
+    { name = "platformdirs" },
     { name = "prometheus-client" },
     { name = "pyhelm3" },
     { name = "pytest" },
+    { name = "pytest-asyncio-cooperative" },
+    { name = "pytest-kubernetes" },
     { name = "python-on-whales" },
     { name = "pyyaml" },
     { name = "rapidfuzz" },
+    { name = "semver" },
     { name = "signedjson" },
+    { name = "typer" },
 ]
 
 [package.metadata]
@@ -865,13 +872,18 @@ requires-dist = [
     { name = "httpx-retries", specifier = ">=0.4.6" },
     { name = "jsonschema", specifier = ">=4.26.0" },
     { name = "lightkube", specifier = ">=0.19.1" },
+    { name = "platformdirs", specifier = ">=4.9.2" },
     { name = "prometheus-client", specifier = ">=0.24.1" },
     { name = "pyhelm3", git = "https://github.com/element-hq/pyhelm3.git?rev=efa509e7501edeb9d04f2a9e688f6e0088305954" },
     { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest-asyncio-cooperative", specifier = ">=0.40.0" },
+    { name = "pytest-kubernetes", specifier = ">=0.7.2" },
     { name = "python-on-whales", specifier = ">=0.80.0" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "rapidfuzz", specifier = ">=3.14.3" },
+    { name = "semver", specifier = ">=3.0.4" },
     { name = "signedjson", specifier = ">=1.1.4" },
+    { name = "typer", specifier = ">=0.24.1" },
 ]
 
 [[package]]

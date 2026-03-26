@@ -20,6 +20,7 @@ dependencies = [
   "jsonschema>=4.26.0",
   "prometheus-client>=0.24.1",
   "httpx-retries>=0.4.6",
+  "typer>=0.24.1",
   "pyyaml>=6.0.3",
   "semver>=3.0.4",
   "rapidfuzz>=3.14.3",
