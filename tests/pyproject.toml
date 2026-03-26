@@ -4,7 +4,7 @@
 
 [project]
 name = "ess-community-integration-tests"
-version = "0.1.0.dev1"
+version = "26.3.2.dev1"
 requires-python = ">=3.11.7,<4.0"
 dependencies = [
   "pytest>=8.4.2",
