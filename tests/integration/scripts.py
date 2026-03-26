@@ -1,3 +1,7 @@
+# Copyright 2026 Element Creations Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
 import sys
 from pathlib import Path
 from typing import Annotated, Literal
@@ -27,7 +31,7 @@ def run_tests():
         import yaml
         from dotenv import load_dotenv
 
-        __version__ = version("mypackage")
+        __version__ = version("ess-community-integration-tests")
         if not args:
             args = []
 
