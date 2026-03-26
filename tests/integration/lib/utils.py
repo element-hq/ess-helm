@@ -205,6 +205,10 @@ def value_file_has(property_path, expected=None):
     ):
         data = merge(yaml.safe_load(base_value_file), yaml.safe_load(test_value_file))
 
+    if os.environ.get("ADDITIONAL_TEST_VALUES_FILE"):
+        with open(os.environ["ADDITIONAL_TEST_VALUES_FILE"]) as additional_test_value_file:
+            data = merge(data, yaml.safe_load(additional_test_value_file))
+
     keys = property_path.split(".")
     for key in keys:
         if isinstance(data, dict) and key in data:
