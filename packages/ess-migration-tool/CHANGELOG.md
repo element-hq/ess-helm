@@ -6,6 +6,23 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Migration Tool 0.1.1 (2026-03-26)
+
+## Bugfixes
+
+- Fix an issue with invalid values schema when importing Matrix Authentication Service private keys. (#1184)
+
+## Features
+
+- Allow the user to migrate its data to ESS-managed databases and describe the migration steps to take. (#1155, #1166)
+- Prompt the user for Synapse ingress host if `public_baseurl` is not set. (#1159)
+
+## Misc
+
+- Prepare `ess-migration-tool` for pypi publishing. (#1178)
+- CI: Fix publishing to pypi. (#1186)
+
+
 # ESS Migration Tool 0.1.0 (2026-03-25)
 
 ## Features

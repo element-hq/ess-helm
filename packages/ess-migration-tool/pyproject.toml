@@ -4,7 +4,7 @@
 
 [project]
 name = "ess-migration-tool"
-version = "0.1.1.dev1"
+version = "0.1.2.dev1"
 requires-python = ">=3.11.7,<4.0"
 dependencies = [
   "cryptography>=46.0.5",
