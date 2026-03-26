@@ -18,12 +18,13 @@ def run_tests():
         import os
 
         import pytest
+        from dotenv import load_dotenv
 
         if not args:
             args = []
 
-        test_values_file = HERE / "env" / f"{test_suite}.rc"
-        os.environ["TEST_VALUES_FILE"] = str(test_values_file)
+        test_suite_rc = HERE / "env" / f"{test_suite}.rc"
+        load_dotenv(test_suite_rc)
 
         if additional_test_values_file:
             os.environ["ADDITIONAL_TEST_VALUES_FILE"] = additional_test_values_file

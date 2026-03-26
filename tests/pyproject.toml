@@ -25,6 +25,7 @@ dependencies = [
   "semver>=3.0.4",
   "rapidfuzz>=3.14.3",
   "pytest-asyncio-cooperative>=0.40.0",
+  "python-dotenv>=1.2.2",
 ]
 
 
