@@ -13,13 +13,17 @@ dependencies = [
   "python-on-whales>=0.80.0",
   "aiohttp>=3.13.3",
   "cryptography>=46.0.5",
+  "platformdirs>=4.9.2",
+  "pytest-kubernetes>=0.7.2",
   "signedjson>=1.1.4",
   "aiohttp-retry>=2.9.1",
   "jsonschema>=4.26.0",
   "prometheus-client>=0.24.1",
   "httpx-retries>=0.4.6",
   "pyyaml>=6.0.3",
+  "semver>=3.0.4",
   "rapidfuzz>=3.14.3",
+  "pytest-asyncio-cooperative>=0.40.0",
 ]
 
 
