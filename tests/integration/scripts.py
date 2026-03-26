@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Annotated, Literal
 
 import typer
+import yaml
 
 HERE = Path(__file__).resolve().parent
 
@@ -86,6 +87,7 @@ def collect_ess_logs():
                     f"kubectl --context=k3d-ess-helm -n {ns} logs --all-containers --prefix --timestamps "
                     f"--ignore-errors {pod}",
                     f"{destination}/{ns}/{pod}.logs",
+                    check=False,
                 )
 
             # Get resources
@@ -138,7 +140,6 @@ def run_tests():
 
         import pytest
         import semver
-        import yaml
         from dotenv import load_dotenv
 
         __version__ = version("ess-community-integration-tests")
@@ -157,11 +158,12 @@ def run_tests():
 
             # Call helm pull to get the latest chart version
             subprocess.run(
-                ["helm", "pull", f"oci://ghcr.io/element-hq/ess-helm/matrix-stack:{chart_version}"],
+                f"helm pull oci://ghcr.io/element-hq/ess-helm/matrix-stack:{chart_version}",
+                shell=True,
                 check=True,
             )
 
-            subprocess.run(["tar", "xvf", f"matrix-stack-{chart_version}.tgz", "-C", "charts"])
+            subprocess.run(f"tar xvf matrix-stack-{chart_version}.tgz -C charts", shell=True, check=True)
 
         if chart_version:
             with open("charts/matrix-stack/Chart.yaml") as f:
