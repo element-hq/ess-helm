@@ -55,7 +55,7 @@ dev = [
 ]
 
 [tool.uv.workspace]
-members = ["packages/*"]
+members = ["packages/*", "tests"]
 
 [tool.pytest.ini_options]
 # we use asyncio-cooperative

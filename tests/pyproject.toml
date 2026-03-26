@@ -1,0 +1,33 @@
+# Copyright 2026 Element Creations Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[project]
+name = "ess-community-integration-tests"
+version = "0.1.0.dev1"
+requires-python = ">=3.11.7,<4.0"
+dependencies = [
+  "pytest>=8.4.2",
+  "pyhelm3 @ git+https://github.com/element-hq/pyhelm3.git@efa509e7501edeb9d04f2a9e688f6e0088305954",
+  "lightkube>=0.19.1",
+  "python-on-whales>=0.80.0",
+  "aiohttp>=3.13.3",
+  "cryptography>=46.0.5",
+  "signedjson>=1.1.4",
+  "aiohttp-retry>=2.9.1",
+  "jsonschema>=4.26.0",
+  "prometheus-client>=0.24.1",
+  "httpx-retries>=0.4.6",
+  "pyyaml>=6.0.3",
+  "rapidfuzz>=3.14.3",
+]
+
+
+[tool.uv.build-backend]
+    module-name = "integration"
+    module-root = ""
+
+
+[build-system]
+requires = ["uv_build>=0.10.9,<0.11.0"]
+build-backend = "uv_build"
