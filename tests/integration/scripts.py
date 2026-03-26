@@ -13,22 +13,22 @@ def run_tests():
     def _run_tests(
         test_suite: Annotated[Literal[*existing_test_suites], typer.Option()],
         additional_test_values_file: str | None = None,
+        args: Annotated[list[str] | None, typer.Argument(allow_dash=True)] = None,
     ):
         import os
 
         import pytest
 
-        argv_base_index = 1
+        if not args:
+            args = []
 
         test_values_file = HERE / "env" / f"{test_suite}.rc"
         os.environ["TEST_VALUES_FILE"] = str(test_values_file)
-        argv_base_index += 2
 
         if additional_test_values_file:
             os.environ["ADDITIONAL_TEST_VALUES_FILE"] = additional_test_values_file
-            argv_base_index += 2
 
-        errcode = pytest.main([str(HERE)] + sys.argv[argv_base_index:])
+        errcode = pytest.main([str(HERE)] + args)
         sys.exit(errcode)
 
     typer.run(_run_tests)

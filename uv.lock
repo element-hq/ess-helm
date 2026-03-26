@@ -841,7 +841,7 @@ wheels = [
 
 [[package]]
 name = "ess-community-integration-tests"
-version = "0.1.0.dev1"
+version = "26.3.2.dev1"
 source = { editable = "tests" }
 dependencies = [
     { name = "aiohttp" },
