@@ -169,9 +169,14 @@ jobs:
         echo "next-version=$next_version" | tee -a "$GITHUB_OUTPUT"
 
     - name: Publish
-      run: uv publish "${DRY_RUN}" dist/*
       env:
-        DRY_RUN: ${{ github.ref_type == 'tag' && '' || '--dry-run' }}
+        REF_TYPE: ${{ github.ref_type }}
+      run: |
+        if [ "${REF_TYPE}" = "tag" ]; then
+          uv publish dist/*
+        else
+          uv publish --dry-run dist/*
+        fi
 
     - name: Create PR for next patch version
       uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0  # v8.1.0
