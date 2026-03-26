@@ -32,8 +32,8 @@ dependencies = [
     module-root = ""
 
 [project.scripts]
-setup-cluster = "integration:scripts.setup_cluster"
-run-tests = "integration:scripts.run_tests"
+setup-ess-cluster = "integration:scripts.setup_cluster"
+run-ess-tests = "integration:scripts.run_tests"
 
 [build-system]
 requires = ["uv_build>=0.10.9,<0.11.0"]
