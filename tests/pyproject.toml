@@ -5,6 +5,11 @@
 [project]
 name = "ess-community-integration-tests"
 version = "26.3.2.dev1"
+readme = "README.md"
+authors = [
+  { name = "Element Creations Ltd", email = "contact@element.io" },
+]
+license = { text = "AGPL-3.0-only" }
 requires-python = ">=3.11.7,<4.0"
 dependencies = [
   "pytest>=8.4.2",
