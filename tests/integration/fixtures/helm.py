@@ -19,7 +19,7 @@ from lightkube.resources.networking_v1 import Ingress
 
 from ..artifacts.certs import CertKey, generate_cert
 from ..lib.helpers import kubernetes_docker_secret, kubernetes_tls_secret, wait_for_endpoint_ready
-from ..lib.utils import DockerAuth, docker_config_json, value_file_has
+from ..lib.utils import DockerAuth, docker_config_json, merge, value_file_has
 from .data import ESSData
 
 
@@ -195,6 +195,10 @@ async def matrix_stack(
         }
     ]
     values["synapse"]["hostAliases"] = values["matrixRTC"]["hostAliases"]
+
+    if os.environ.get("ADDITIONAL_TEST_VALUES_FILE"):
+        with open(os.environ["ADDITIONAL_TEST_VALUES_FILE"]) as additional_test_value_file:
+            values = merge(values, yaml.safe_load(additional_test_value_file))
 
     chart = await helm_client.get_chart("charts/matrix-stack")
 

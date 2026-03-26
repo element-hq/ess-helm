@@ -16,7 +16,7 @@ root_folder="$(git rev-parse --show-toplevel)"
 ca_folder="$root_folder/.ca"
 mkdir -p "$ca_folder"
 
-PYTEST_KEEP_CLUSTER=1 pytest tests/integration --env-setup
+uv run setup-cluster
 
 k3d kubeconfig merge ess-helm -ds
 

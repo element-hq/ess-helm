@@ -125,7 +125,7 @@ jobs:
         if [ -f "tests/integration/env/${MATRIX_TEST_COMPONENT}.rc" ]; then
           # shellcheck source=/dev/null
           . "tests/integration/env/${MATRIX_TEST_COMPONENT}.rc"
-          PYTEST_KEEP_CLUSTER=1 pytest -vv tests/integration
+          pytest-ess --test-suite "${MATRIX_TEST_COMPONENT}" --keep -- -vv
         else
           echo "The integration test does not exist in previous ref, skipping..."
         fi
@@ -145,7 +145,7 @@ jobs:
       run: |
         # shellcheck source=/dev/null
         . "tests/integration/env/${MATRIX_TEST_COMPONENT}.rc"
-        PYTEST_KEEP_CLUSTER=1 pytest -vv tests/integration
+        pytest-ess --test-suite "${MATRIX_TEST_COMPONENT}" --keep -- -vv
       # syn2mas is a special case that cannot run twice by design
       if: ${{ matrix.test-component != 'matrix-authentication-service-syn2mas' }}
 
