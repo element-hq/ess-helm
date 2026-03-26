@@ -16,6 +16,9 @@ on:
 
 jobs:
   test-suite-package:
+    permissions:
+      contents: read
+      packages: write
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -145,6 +148,7 @@ jobs:
       contents: write
       packages: read
       pull-requests: write
+      id-token: write
     needs:
     - helm-package
     - test-suite-package
