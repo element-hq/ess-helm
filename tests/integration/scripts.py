@@ -12,6 +12,7 @@ existing_test_suites = [file.stem for file in (HERE / "env").glob("*.rc")]
 def run_tests():
     def _run_tests(
         test_suite: Annotated[Literal[*existing_test_suites], typer.Option()],
+        keep: bool = False,
         additional_test_values_file: str | None = None,
         args: Annotated[list[str] | None, typer.Argument(allow_dash=True)] = None,
     ):
@@ -25,6 +26,9 @@ def run_tests():
 
         test_suite_rc = HERE / "env" / f"{test_suite}.rc"
         load_dotenv(test_suite_rc)
+
+        if keep:
+            os.environ["PYTEST_KEEP_CLUSTER"] = "1"
 
         if additional_test_values_file:
             os.environ["ADDITIONAL_TEST_VALUES_FILE"] = additional_test_values_file
