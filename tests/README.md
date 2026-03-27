@@ -34,7 +34,7 @@ You can also install it from the git repository :
 ```sh
 # You can also use any ESS Community version
 VERSION=main
-uvx git+https://github.com/element-hq/ess-helm.git@$VERSION$#subdirectory=tests
+uvx git+https://github.com/element-hq/ess-helm.git@$VERSION#subdirectory=tests
 ```
 
 Example:
