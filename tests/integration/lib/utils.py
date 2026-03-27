@@ -268,9 +268,8 @@ async def forward_matching_logs(input_logs_queue: asyncio.Queue, output_matchers
 
 
 async def chart_from_ci_cache(helm_client: pyhelm3.Client, chart_ref: str) -> pyhelm3.Chart:
-    project_root = Path(__file__).parent.parent.parent.parent
-    if os.environ.get("CI"):
-        helm_cache = project_root / ".pyhelm_cache"
+    if os.environ.get("GITHUB_WORKSPACE"):
+        helm_cache = Path(os.environ["GITHUB_WORKSPACE"]) / ".pyhelm_cache"
         helm_cache.mkdir(parents=True, exist_ok=True)
         chart_name = chart_ref.split("/")[-1]
         cached_ref = helm_cache / chart_name

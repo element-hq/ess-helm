@@ -12,10 +12,6 @@ k3d_context_name="k3d-$k3d_cluster_name"
 # Space separated list of namespaces to use
 ess_namespaces=${ESS_NAMESPACES:-ess}
 
-root_folder="$(git rev-parse --show-toplevel)"
-ca_folder="$root_folder/.ca"
-mkdir -p "$ca_folder"
-
 uv run setup-ess-cluster
 
 k3d kubeconfig merge ess-helm -ds
