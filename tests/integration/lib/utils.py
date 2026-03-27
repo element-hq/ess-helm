@@ -289,6 +289,7 @@ async def chart_from_ci_cache(helm_client: pyhelm3.Client, chart_ref: str) -> py
             else:
                 raise FileNotFoundError(
                     f"Could not find chart {chart_ref} in cache at {cached_ref}. "
+                    f"The cache {helm_cache} contains : {helm_cache.glob('*')}"
                     f"Remote fetch also failed with error: {e}"
                 ) from e
     else:
