@@ -13,6 +13,7 @@ license = { text = "AGPL-3.0-only" }
 requires-python = ">=3.11.7,<4.0"
 dependencies = [
   "pytest>=8.4.2",
+  # For https://github.com/azimuth-cloud/pyhelm3/pull/36 & https://github.com/azimuth-cloud/pyhelm3/pull/37 & https://github.com/azimuth-cloud/pyhelm3/pull/39
   "pyhelm3 @ git+https://github.com/element-hq/pyhelm3.git@efa509e7501edeb9d04f2a9e688f6e0088305954",
   "lightkube>=0.19.1",
   "python-on-whales>=0.80.0",
