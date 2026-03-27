@@ -50,9 +50,9 @@ jobs:
       run: uv build --package ess-community-integration-tests
     # Check that basic features work and we didn't miss to include crucial files
     - name: Smoke test (wheel)
-      run: uv run --isolated --no-project --with dist/*.whl pytest-ess --help
+      run: uv run --isolated --no-project --with dist/*.whl pytest-ess --test-suite synapse -- --setup-plan
     - name: Smoke test (source distribution)
-      run: uv run --isolated --no-project --with dist/*.tar.gz pytest-ess --help
+      run: uv run --isolated --no-project --with dist/*.tar.gz pytest-ess --test-suite synapse -- --setup-plan
 
     - name: Dry-run Publish ESS test suite to Pypi
       run: uv publish --dry-run dist/*
