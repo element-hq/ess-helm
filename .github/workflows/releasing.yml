@@ -148,7 +148,6 @@ jobs:
       contents: write
       packages: read
       pull-requests: write
-      id-token: write
     needs:
     - helm-package
     - test-suite-package
