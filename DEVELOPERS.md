@@ -86,7 +86,7 @@ A test cluster can be constructed with `./scripts/setup_test_cluster.sh`. It wil
   that `http://anything.localhost` or `https://anything.localhost` both work.
 * Install `metrics-server` into the cluster
 * Install `cert-manager` into the cluster
-* Construct a self-signed CA and puts its cert and key in `./.ca`.
+* Construct a self-signed CA and puts its cert and key in `~/.config/ess-helm-ca`.
   This will be persisted over cluster recreation so you can trust it once and use it repeatedly.
 * Construct a set of application namespaces.
   * This defaults to `ess` but can be controlled with the `ESS_NAMESPACES` environment variable
