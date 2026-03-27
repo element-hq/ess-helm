@@ -16,7 +16,7 @@ root_folder="$(git rev-parse --show-toplevel)"
 ca_folder="$root_folder/.ca"
 mkdir -p "$ca_folder"
 
-uv run setup-cluster
+uv run setup-ess-cluster
 
 k3d kubeconfig merge ess-helm -ds
 

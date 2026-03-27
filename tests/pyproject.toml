@@ -41,6 +41,7 @@ dependencies = [
 [project.scripts]
 setup-ess-cluster = "integration:scripts.setup_cluster"
 pytest-ess = "integration:scripts.run_tests"
+collect-ess-logs = "integration:scripts.collect_ess_logs"
 
 [build-system]
 requires = ["uv_build>=0.10.9,<0.11.0"]
