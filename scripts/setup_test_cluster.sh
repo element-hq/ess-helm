@@ -14,8 +14,6 @@ ess_namespaces=${ESS_NAMESPACES:-ess}
 
 uv run setup-ess-cluster
 
-k3d kubeconfig merge ess-helm -ds
-
 for namespace in $ess_namespaces; do
   echo "Constructing ESS dependencies in $namespace"
   server_version=$(kubectl --context $k3d_context_name version | grep Server | sed 's/.*v/v/' | awk -F. '{print $1"."$2}')

@@ -34,22 +34,18 @@ You can also install it from the git repository :
 ```sh
 # You can also use any ESS Community version
 VERSION=main
-uvx git+https://github.com/element-hq/ess-helm.git@$VERSION#subdirectory=tests
+uv tool install git+https://github.com/element-hq/ess-helm.git@$VERSION#subdirectory=tests
 ```
 
 Example:
 
 ```sh
 VERSION=main
-uvx git+https://github.com/element-hq/ess-helm.git@$VERSION#subdirectory=tests
+uv tool install git+https://github.com/element-hq/ess-helm.git@$VERSION#subdirectory=tests
     Updated https://github.com/element-hq/ess-helm.git (d6d33a7f7051a0b6bbdcc609a059ae328feee269)
       Built ess-community-integration-tests @ git+https://github.com/element-hq/ess-helm.git@d6d33a7f7051a0b6bbdcc609a059ae328feee269#subdirectory=tests
-Installed 60 packages in 5ms
-An executable named `ess-community-integration-tests` is not provided by package `ess-community-integration-tests`.
-The following executables are available:
-- collect-ess-logs
-- pytest-ess
-- setup-ess-cluster
+...
+Installed 3 executables: collect-ess-logs, pytest-ess, setup-ess-cluster
 ```
 
 ## Usage
