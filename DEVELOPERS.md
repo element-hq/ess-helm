@@ -172,8 +172,6 @@ run `pytest-ess -- --cache-clear`.
 You must delete it using `k3d cluster delete ess-helm` manually before running any other test run.
 
 #### Usage
-Use `k3d kubeconfig merge ess-helm -ds` to get access to the cluster.
-
 The tests will use the cluster constructed by `scripts/setup_test_cluster.sh` if that is
 running. If the tests use an existing cluster, they won't destroy the cluster afterwards.
 
