@@ -175,7 +175,7 @@ async def cert_manager(helm_client, kube_client):
         wait=True,
     )
 
-    ca_folder = os.environ.get("HOME") / ".config" / "ess-helm-ca"
+    ca_folder = Path(os.environ.get("HOME")) / ".config" / "ess-helm-ca"
     if not ca_folder.exists():
         ca_folder.mkdir()
     ca_crt_path = Path(ca_folder) / "ca.crt"
