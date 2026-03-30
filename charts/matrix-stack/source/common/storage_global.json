@@ -1,0 +1,15 @@
+{
+  "type": "object",
+  "properties": {
+    "storageClassName": {
+      "type": "string"
+    },
+    "resourcePolicy": {
+      "type": "string",
+      "enum": [
+        "keep",
+        "delete"
+      ]
+    }
+  }
+}

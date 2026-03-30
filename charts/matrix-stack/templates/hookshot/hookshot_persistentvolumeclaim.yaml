@@ -12,13 +12,13 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   annotations:
-    helm.sh/resource-policy: {{ .storage.resourcePolicy }}
+    helm.sh/resource-policy: {{ .storage.resourcePolicy | default $.Values.storage.resourcePolicy }}
   labels:
     {{- include "element-io.hookshot.labels" (dict "root" $ "context" .) | nindent 4 }}
   name: {{ $.Release.Name }}-hookshot
   namespace: {{ $.Release.Namespace }}
 spec:
-{{- with .storage.storageClassName }}
+{{- with coalesce .storage.storageClassName $.Values.storage.storageClassName }}
   storageClassName: {{ . }}
 {{- end }}
   accessModes:

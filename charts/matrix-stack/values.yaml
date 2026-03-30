@@ -91,6 +91,17 @@ image:
   ## - name: ess-pull-secret
   pullSecrets: []
 
+## Configures the defaults for all constructed PersistentVolumeClaims
+storage:
+
+  ## The StorageClass to be used by all constructed PersistentVolumeClaims by default.
+  ## The top-level storage.storageClassName value is used, if not provided (or the cluster default if neither are provided).
+  ## If changed after initial usage the PersistentVolumeClaim could be recreated causing data-loss.
+  # storageClassName:
+
+  ## Whether to instruct Helm to keep or delete all constructed PersistentVolumeClaims by default when uninstalling the chart
+  resourcePolicy: keep
+
 ## Workload tolerations allows Pods that are part of a (sub)component to 'tolerate' any taint that matches the triple <key,value,effect> using the matching operator <operator>.
 ##
 ## * effect indicates the taint effect to match. Empty means match all taint effects. When specified, allowed values are NoSchedule, PreferNoSchedule and NoExecute.
@@ -2007,14 +2018,15 @@ hookshot:
     size: 10Gi
 
     ## The StorageClass to be used by the constructed PersistentVolumeClaim.
-    ## Will use the cluster default if not provided.
+    ## The top-level storage.storageClassName value is used, if not provided (or the cluster default if neither are provided).
     ## If changed after initial usage the PersistentVolumeClaim could be recreated causing data-loss.
     ## Ignored if existingClaim is provided
     # storageClassName:
 
     ## Whether to instruct Helm to keep or delete the constructed PersistentVolumeClaim when uninstalling the chart
-    ## Ignored if existingClaim is provided
-    resourcePolicy: keep
+    ## The top-level storage.resourcePolicy value is used, if not provided.
+    ## Ignored if existingClaim is provided.
+    # resourcePolicy: keep
 
   ## Kubernetes resources to allocate to each instance.
   resources:
@@ -3016,14 +3028,15 @@ postgres:
     size: 10Gi
 
     ## The StorageClass to be used by the constructed PersistentVolumeClaim.
-    ## Will use the cluster default if not provided.
+    ## The top-level storage.storageClassName value is used, if not provided (or the cluster default if neither are provided).
     ## If changed after initial usage the PersistentVolumeClaim could be recreated causing data-loss.
     ## Ignored if existingClaim is provided
     # storageClassName:
 
     ## Whether to instruct Helm to keep or delete the constructed PersistentVolumeClaim when uninstalling the chart
-    ## Ignored if existingClaim is provided
-    resourcePolicy: keep
+    ## The top-level storage.resourcePolicy value is used, if not provided.
+    ## Ignored if existingClaim is provided.
+    # resourcePolicy: keep
   # Details of the image to be used
   image:
     ## The host and (optional) port of the container image registry for this component.
@@ -3541,14 +3554,15 @@ synapse:
       size: 10Gi
 
       ## The StorageClass to be used by the constructed PersistentVolumeClaim.
-      ## Will use the cluster default if not provided.
+      ## The top-level storage.storageClassName value is used, if not provided (or the cluster default if neither are provided).
       ## If changed after initial usage the PersistentVolumeClaim could be recreated causing data-loss.
       ## Ignored if existingClaim is provided
       # storageClassName:
 
       ## Whether to instruct Helm to keep or delete the constructed PersistentVolumeClaim when uninstalling the chart
-      ## Ignored if existingClaim is provided
-      resourcePolicy: keep
+      ## The top-level storage.resourcePolicy value is used, if not provided.
+      ## Ignored if existingClaim is provided.
+      # resourcePolicy: keep
 
     ## The maximum size (in bytes ending in M or K) that Synapse will accept for media uploads
     ## You may need to adjust your ingress controller to also allow uploads of this size
