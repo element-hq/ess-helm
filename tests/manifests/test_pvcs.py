@@ -43,7 +43,19 @@ async def test_pvcs_marked_as_being_kept_on_helm_uninstall_by_default(templates)
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_pvcs_can_be_marked_as_to_be_deleted_on_helm_uninstall(values, make_templates):
+async def test_all_pvcs_can_be_marked_as_to_be_deleted_on_helm_uninstall(values, make_templates):
+    values.setdefault("storage", {})["resourcePolicy"] = "delete"
+
+    for template in await make_templates(values):
+        if template["kind"] == "PersistentVolumeClaim":
+            assert "helm.sh/resource-policy" in template["metadata"]["annotations"]
+            assert template["metadata"]["annotations"]["helm.sh/resource-policy"] == "delete"
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_individual_pvcs_can_be_marked_as_to_be_deleted_on_helm_uninstall(values, make_templates):
+    values.setdefault("storage", {})["resourcePolicy"] = "keep"
     iterate_deployables_parts(
         lambda deployable_details: deployable_details.set_helm_values(
             values, PropertyType.Storage, {"resourcePolicy": "delete"}
@@ -99,7 +111,36 @@ async def test_size_passed_through_to_created_pvcs(values, make_templates):
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_storageClassName_passed_through_to_created_pvcs(values, make_templates):
+async def test_no_storageClassName_by_default(values, make_templates):
+    for template in await make_templates(values):
+        if template["kind"] == "PersistentVolumeClaim":
+            assert "storageClassName" not in template["spec"], (
+                f"{template_id(template)} set spec.storageClassName when it shouldn't"
+            )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_global_storageClassName_passed_through_to_created_pvcs(values, make_templates):
+    values.setdefault("storage", {})["storageClassName"] = "global-" + "".join(
+        random.choices(string.ascii_lowercase, k=10)
+    )
+    for template in await make_templates(values):
+        if template["kind"] == "PersistentVolumeClaim":
+            assert "storageClassName" in template["spec"], (
+                f"{template_id(template)} did not set spec.storageClassName despite being configured to"
+            )
+            assert values["storage"]["storageClassName"] == template["spec"]["storageClassName"], (
+                f"{template_id(template)} didn't respect the configured global storageClassName"
+            )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_individual_storageClassName_passed_through_to_created_pvcs(values, make_templates):
+    values.setdefault("storage", {})["storageClassName"] = "global-" + "".join(
+        random.choices(string.ascii_lowercase, k=10)
+    )
     iterate_deployables_parts(
         lambda deployable_details: deployable_details.set_helm_values(
             values, PropertyType.Storage, {"storageClassName": "".join(random.choices(string.ascii_lowercase, k=10))}

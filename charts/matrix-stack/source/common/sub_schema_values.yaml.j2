@@ -42,6 +42,7 @@ image:
   ## pullSecrets:
   ## - name: ess-pull-secret
   pullSecrets: []
+{{ persistentVolumeClaim(key="storage", global=true)}}
 {{ tolerations(global=true) }}
 {{ topologySpreadConstraints(global=true) }}
 
@@ -214,25 +215,34 @@ networking:
 {{ key }}: {}
 {%- endmacro %}
 
-{% macro persistentVolumeClaim(key) %}
-## Configures the PersistentVolumeClaim to be used for storage
+{% macro persistentVolumeClaim(key, global=false) %}
+## Configures the {{ 'defaults for all constructed PersistentVolumeClaims' if global else 'PersistentVolumeClaim to be used for storage' }}
 {{ key }}:
+{%- if not global %}
   ## Name of an existing PersistentVolumeClaim in this namespace that should be used
   # existingClaim:
 
   ## The size of a PersistentVolumeClaim to be constructed
   ## Ignored if existingClaim is provided
   size: 10Gi
+{%- endif %}
 
-  ## The StorageClass to be used by the constructed PersistentVolumeClaim.
-  ## Will use the cluster default if not provided.
+  ## The StorageClass to be used by {{ 'all constructed PersistentVolumeClaims by default' if global else 'the constructed PersistentVolumeClaim' }}.
+  ## The top-level storage.storageClassName value is used, if not provided (or the cluster default if neither are provided).
   ## If changed after initial usage the PersistentVolumeClaim could be recreated causing data-loss.
+{%- if not global %}
   ## Ignored if existingClaim is provided
+{%- endif %}
   # storageClassName:
 
-  ## Whether to instruct Helm to keep or delete the constructed PersistentVolumeClaim when uninstalling the chart
-  ## Ignored if existingClaim is provided
+  ## Whether to instruct Helm to keep or delete {{ 'all constructed PersistentVolumeClaims by default' if global else 'the constructed PersistentVolumeClaim' }} when uninstalling the chart
+{%- if global %}
   resourcePolicy: keep
+{%- else %}
+  ## The top-level storage.resourcePolicy value is used, if not provided.
+  ## Ignored if existingClaim is provided.
+  # resourcePolicy: keep
+{%- endif %}
 {%- endmacro %}
 
 {% macro podSecurityContext(user_id, group_id, filesystem_group_id=-1, key='podSecurityContext') %}
