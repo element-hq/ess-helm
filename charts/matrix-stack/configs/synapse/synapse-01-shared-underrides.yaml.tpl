@@ -17,6 +17,16 @@ experimental_features:
 
 database:
   args:
+{{- with $root.Values.synapse.postgres }}
+{{- if eq (.sslMode | default "prefer") "verify-full" }}
+    {{- /*
+    Use the system CA trust store if verify-full is set
+    As per https://www.postgresql.org/docs/18/libpq-connect.html#LIBPQ-CONNECT-SSLROOTCERT
+    it is an error to set this on 'weaker' sslmodes
+    */}}
+    sslrootcert: system
+{{- end }}
+{{- end }}
     # Synapse has no defaults, so up from Twisted's defaults of 3-5
     cp_min: 5
     cp_max: 10
