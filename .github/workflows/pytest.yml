@@ -93,6 +93,7 @@ jobs:
     - name: List pyhelm cache contents
       run: |
         echo "Listing contents of .pyhelm_cache:"
+        echo "GITHUB_WORKSPACE is $GITHUB_WORKSPACE, pwd is $(pwd)"
         ls -la .pyhelm_cache || echo "Cache directory does not exist or is empty"
 
     - name: Login to Dockerhub
