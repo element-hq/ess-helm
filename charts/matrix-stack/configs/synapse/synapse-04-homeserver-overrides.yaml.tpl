@@ -103,6 +103,7 @@ matrix_authentication_service:
                       )
                   ) }}
   endpoint: http://{{ $root.Release.Name }}-matrix-authentication-service.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:8080/
+  force_http2: true
 {{- end }}
 
 {{- if or (include "element-io.matrix-authentication-service.readyToHandleAuth" (dict "root" $root)) $root.Values.matrixRTC.enabled $root.Values.hookshot.enabled }}
