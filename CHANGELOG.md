@@ -7,6 +7,46 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.3.2 (2026-04-01)
+
+## Added
+
+- Allow configuration of `storage.storageClassName` and `storage.resourcePolicy` as defaults across all constructed `PersistentVolumeClaims`.
+
+  The individual values can still be overridden on a per-`PersistentVolumeClaim` basis as before. (#1203)
+
+## Changed
+
+- Upgrade Matrix RTC SFU to 1.10.0.
+
+  Resolves CVE-2026-33186.
+
+  Full Changelogs:
+  - [v1.10.0](https://github.com/livekit/livekit/releases/tag/v1.10.0)
+
+  (#1191)
+- Configure Synapse to use the system CA trust store for Postgres connections if `sslMode: verify-full`. (#1202)
+- Upgrade Matrix RTC LiveKit JWT Service to v0.4.2.
+
+  Resolves CVE-2026-26014 and CVE-2026-33186.
+
+  Full Changelogs:
+  - [v0.4.2](https://github.com/element-hq/lk-jwt-service/releases/tag/v0.4.2)
+
+  (#1205)
+- Switch back to ESS Synapse variant.
+
+  Regression in 26.3.1. (#1210)
+
+## Internal
+
+- CI: Publish ESS tests as a python package for use in external projects and developers environments. (#1185, #1192, #1193, #1196, #1197, #1199)
+- CI: Use a python script to generate logs. (#1192)
+- CI: Cache `pyhelm` pulled chart relatively to the runner directory, not to the script install path. (#1198)
+- Developers: Move `.ca` to `~/.config/ess-helm-ca`. (#1198, #1201)
+- CI: Log the content of the cache when `pyhelm` cache fails to hit. (#1200)
+
+
 # ESS Community Helm Chart 26.3.1 (2026-03-25)
 
 ## Changed
