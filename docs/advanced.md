@@ -42,6 +42,18 @@ You need to create 2 databases:
 
 To configure your own PostgreSQL Database in your installation, copy the file `charts/matrix-stack/ci/fragments/quick-setup-postgresql.yaml` to `postgresql.yaml` in your ESS configuration values directory and configure it accordingly.
 
+## Configuring the storage path when using K3s
+
+K3s by default deploys the storage in `/var/lib/rancher/k3s/storage/`. If you want to change the path, you will have to run the K3s setup with the parameter `--default-local-storage-path <your path>`.
+
+
+If you do not mind modifying the you storage path for the entirey of K3s you can also adjust the `K3S_DATA_DIR` environment variable before installing K3s using
+```
+export K3S_DATA_DIR=/your/path
+```
+
+If the goal is to have a drive dedicated to K3s one may also mount an external drive to `/var` during installation of the OS.
+
 
 ## Configuring Traefik ingress timeouts when using K3s
 

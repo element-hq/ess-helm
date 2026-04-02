@@ -193,12 +193,6 @@ This guide suggests using K3s as the Kubernetes node hosting ESS Community. Othe
 The following will install K3s on the node, and configure its Traefik proxy automatically. If you want to configure K3s behind an existing reverse proxy on the same node, please see the [dedicated section](#using-an-existing-reverse-proxy).
 
 If you have a firewall running on your server, please follow the [K3s official recommendations](https://docs.k3s.io/installation/requirements?os=debian#operating-systems).
-
-If you want to specify the K3s Data Storage Path directory you can do so now by adjusting the `K3S_DATA_DIR` environment variable
-```
-export K3S_DATA_DIR=/your/path
-```
-
 1. Run the following command to install K3s:
 
 ```
