@@ -24,6 +24,10 @@ Install the migration tool, ideally using pipx:
 ```bash
 pipx install ess-migration-tool
 ```
+or by using uv:
+```bash
+uv tool install ess-migration-tool
+```
 
 ## Prerequisites
 
