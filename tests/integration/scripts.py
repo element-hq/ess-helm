@@ -92,10 +92,12 @@ def collect_ess_logs():
 
             # Get resources
             for resource in resources:
-                output_file = f"{destination}/{ns}/{resource}.txt"
-                run_command_to_file(f"kubectl --context=k3d-ess-helm get {resource} -n {ns}", output_file)
+                output_file_prefix = f"{destination}/{ns}/{resource}"
                 run_command_to_file(
-                    f"kubectl --context=k3d-ess-helm get {resource} -o yaml -n {ns}", f"{output_file}.yaml"
+                    f"kubectl --context=k3d-ess-helm get {resource} -n {ns}", f"{output_file_prefix}.txt"
+                )
+                run_command_to_file(
+                    f"kubectl --context=k3d-ess-helm get {resource} -o yaml -n {ns}", f"{output_file_prefix}.yaml"
                 )
 
             # Get events
