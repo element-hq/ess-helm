@@ -30,7 +30,7 @@ data:
 {{- end }}
 {{- end }}
 {{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "synapse.macaroon" "initIfAbsent" true)) -}}
-{{- with .macaroon.value }}
+{{- with (.macaroon).value }}
   MACAROON: {{ . | b64enc }}
 {{- end }}
 {{- with (.postgres).password }}
@@ -40,19 +40,15 @@ data:
 {{- end }}
 {{- end }}
 {{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "synapse.registrationSharedSecret" "initIfAbsent" true)) -}}
-{{- with .registrationSharedSecret.value }}
+{{- with (.registrationSharedSecret).value }}
   REGISTRATION_SHARED_SECRET: {{ . | b64enc }}
 {{- end }}
 {{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "synapse.signingKey" "initIfAbsent" true)) -}}
-{{- with .signingKey.value }}
+{{- with (.signingKey).value }}
   SIGNING_KEY: {{ .| b64enc }}
 {{- end }}
-{{- if .redis }}
-{{- if .redis.password }}
-{{- if .redis.password.value }}
-  REDIS_PASSWORD: {{ .redis.password.value | b64enc | quote }}
-{{- end }}
-{{- end }}
+{{- with ((.redis).password).value }}
+  REDIS_PASSWORD: {{ . | b64enc | quote }}
 {{- end }}
 {{- end }}
 {{- end }}

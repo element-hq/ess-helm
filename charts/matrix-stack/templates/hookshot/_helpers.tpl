@@ -137,18 +137,14 @@ config-override.yaml: |
 {{- define "element-io.hookshot.secret-data" -}}
 {{- $root := .root -}}
 {{- with required "element-io.hookshot.secret-data" .context -}}
-  {{- with .passkey.value }}
+  {{- with (.passkey).value }}
 RSA_PASSKEY: {{ . | b64enc }}
   {{- end }}
-  {{- with .appserviceRegistration.value }}
+  {{- with (.appserviceRegistration).value }}
 REGISTRATION: {{ . | b64enc }}
   {{- end }}
-{{- if .redis }}
-{{- if .redis.password }}
-{{- if .redis.password.value }}
-REDIS_PASSWORD: {{ .redis.password.value | b64enc | quote }}
-{{- end }}
-{{- end }}
+{{- with ((.redis).password).value }}
+REDIS_PASSWORD: {{ . | b64enc | quote }}
 {{- end }}
   {{- with .additional }}
     {{- range $key := (. | keys | uniq | sortAlpha) }}

@@ -63,10 +63,10 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{ $configSecrets = append $configSecrets (tpl $value.secret $root) }}
 {{- end -}}
 {{- end -}}
-{{- with .synapseSharedSecret.secret -}}
+{{- with (.synapseSharedSecret).secret -}}
 {{ $configSecrets = append $configSecrets (tpl . $root) }}
 {{- end -}}
-{{- with .encryptionSecret.secret -}}
+{{- with (.encryptionSecret).secret -}}
 {{ $configSecrets = append $configSecrets (tpl . $root) }}
 {{- end -}}
 {{- with .additional -}}
@@ -153,7 +153,7 @@ env:
 {{- with required "element-io.matrix-authentication-service.synapse-secret-data" .context -}}
 {{- if $root.Values.synapse.enabled }}
 {{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "matrixAuthenticationService.synapseSharedSecret" "initIfAbsent" true)) }}
-{{- with .synapseSharedSecret.value }}
+{{- with (.synapseSharedSecret).value }}
 SYNAPSE_SHARED_SECRET: {{ . | b64enc }}
 {{- end }}
 {{- end -}}

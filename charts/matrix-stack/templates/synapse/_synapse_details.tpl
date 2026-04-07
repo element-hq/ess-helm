@@ -159,21 +159,17 @@ responsibleForMedia
 {{- end -}}
 {{- end -}}
 {{- with $root.Values.synapse -}}
-{{- with .macaroon.secret -}}
+{{- with (.macaroon).secret -}}
 {{ $configSecrets = append $configSecrets (tpl . $root) }}
 {{- end -}}
-{{- with .registrationSharedSecret.secret -}}
+{{- with (.registrationSharedSecret).secret -}}
 {{ $configSecrets = append $configSecrets (tpl . $root) }}
 {{- end -}}
-{{- with .signingKey.secret -}}
+{{- with (.signingKey).secret -}}
 {{ $configSecrets = append $configSecrets (tpl . $root) }}
 {{- end -}}
-{{- if .redis }}
-{{- if .redis.password }}
-{{- if .redis.password.secret }}
-{{ $configSecrets = append $configSecrets (tpl .redis.password.secret $root) }}
-{{- end }}
-{{- end }}
+{{- with ((.redis).password).secret }}
+{{ $configSecrets = append $configSecrets (tpl . $root) }}
 {{- end }}
 {{- with .additional -}}
 {{- range $key := (. | keys | uniq | sortAlpha) -}}

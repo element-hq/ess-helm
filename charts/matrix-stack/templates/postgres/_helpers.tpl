@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -69,10 +69,10 @@ true
 {{- $root := .root -}}
 {{- with required "element-io.postgres.configSecrets missing context" .context -}}
 {{- $configSecrets := list }}
-{{- if or .adminPassword.value (include "element-io.postgres.anyEssPasswordHasValue" (dict "root" $root "context" .)) }}
+{{- if or (.adminPassword).value (include "element-io.postgres.anyEssPasswordHasValue" (dict "root" $root "context" .)) }}
 {{- $configSecrets = append $configSecrets  (printf "%s-postgres" $root.Release.Name) }}
 {{- end }}
-{{- with .adminPassword.secret -}}
+{{- with (.adminPassword).secret -}}
 {{ $configSecrets = append $configSecrets (tpl . $root) }}
 {{- end -}}
 {{- range $key := (.essPasswords | keys | uniq | sortAlpha) -}}

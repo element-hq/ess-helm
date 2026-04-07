@@ -1289,6 +1289,30 @@
           "properties": {
             "keysYaml": {
               "type": "object",
+              "oneOf": [
+                {
+                  "required": [
+                    "value"
+                  ],
+                  "not": {
+                    "required": [
+                      "secret",
+                      "secretKey"
+                    ]
+                  }
+                },
+                {
+                  "required": [
+                    "secret",
+                    "secretKey"
+                  ],
+                  "not": {
+                    "required": [
+                      "value"
+                    ]
+                  }
+                }
+              ],
               "properties": {
                 "value": {
                   "type": "string"
@@ -1307,6 +1331,30 @@
             },
             "secret": {
               "type": "object",
+              "oneOf": [
+                {
+                  "required": [
+                    "value"
+                  ],
+                  "not": {
+                    "required": [
+                      "secret",
+                      "secretKey"
+                    ]
+                  }
+                },
+                {
+                  "required": [
+                    "secret",
+                    "secretKey"
+                  ],
+                  "not": {
+                    "required": [
+                      "value"
+                    ]
+                  }
+                }
+              ],
               "properties": {
                 "value": {
                   "type": "string"
@@ -5087,6 +5135,30 @@
         },
         "appserviceRegistration": {
           "type": "object",
+          "oneOf": [
+            {
+              "required": [
+                "value"
+              ],
+              "not": {
+                "required": [
+                  "secret",
+                  "secretKey"
+                ]
+              }
+            },
+            {
+              "required": [
+                "secret",
+                "secretKey"
+              ],
+              "not": {
+                "required": [
+                  "value"
+                ]
+              }
+            }
+          ],
           "properties": {
             "value": {
               "type": "string"
@@ -5128,6 +5200,30 @@
             },
             "password": {
               "type": "object",
+              "oneOf": [
+                {
+                  "required": [
+                    "value"
+                  ],
+                  "not": {
+                    "required": [
+                      "secret",
+                      "secretKey"
+                    ]
+                  }
+                },
+                {
+                  "required": [
+                    "secret",
+                    "secretKey"
+                  ],
+                  "not": {
+                    "required": [
+                      "value"
+                    ]
+                  }
+                }
+              ],
               "properties": {
                 "value": {
                   "type": "string"
@@ -5150,6 +5246,30 @@
         },
         "passkey": {
           "type": "object",
+          "oneOf": [
+            {
+              "required": [
+                "value"
+              ],
+              "not": {
+                "required": [
+                  "secret",
+                  "secretKey"
+                ]
+              }
+            },
+            {
+              "required": [
+                "secret",
+                "secretKey"
+              ],
+              "not": {
+                "required": [
+                  "value"
+                ]
+              }
+            }
+          ],
           "properties": {
             "value": {
               "type": "string"
@@ -6023,6 +6143,30 @@
         },
         "encryptionSecret": {
           "type": "object",
+          "oneOf": [
+            {
+              "required": [
+                "value"
+              ],
+              "not": {
+                "required": [
+                  "secret",
+                  "secretKey"
+                ]
+              }
+            },
+            {
+              "required": [
+                "secret",
+                "secretKey"
+              ],
+              "not": {
+                "required": [
+                  "value"
+                ]
+              }
+            }
+          ],
           "properties": {
             "value": {
               "type": "string"
@@ -6038,6 +6182,30 @@
         },
         "synapseSharedSecret": {
           "type": "object",
+          "oneOf": [
+            {
+              "required": [
+                "value"
+              ],
+              "not": {
+                "required": [
+                  "secret",
+                  "secretKey"
+                ]
+              }
+            },
+            {
+              "required": [
+                "secret",
+                "secretKey"
+              ],
+              "not": {
+                "required": [
+                  "value"
+                ]
+              }
+            }
+          ],
           "properties": {
             "value": {
               "type": "string"
@@ -6086,6 +6254,30 @@
             },
             "password": {
               "type": "object",
+              "oneOf": [
+                {
+                  "required": [
+                    "value"
+                  ],
+                  "not": {
+                    "required": [
+                      "secret",
+                      "secretKey"
+                    ]
+                  }
+                },
+                {
+                  "required": [
+                    "secret",
+                    "secretKey"
+                  ],
+                  "not": {
+                    "required": [
+                      "value"
+                    ]
+                  }
+                }
+              ],
               "properties": {
                 "value": {
                   "type": "string"
@@ -6109,6 +6301,30 @@
           "properties": {
             "ecdsaPrime256v1": {
               "type": "object",
+              "oneOf": [
+                {
+                  "required": [
+                    "value"
+                  ],
+                  "not": {
+                    "required": [
+                      "secret",
+                      "secretKey"
+                    ]
+                  }
+                },
+                {
+                  "required": [
+                    "secret",
+                    "secretKey"
+                  ],
+                  "not": {
+                    "required": [
+                      "value"
+                    ]
+                  }
+                }
+              ],
               "properties": {
                 "value": {
                   "type": "string"
@@ -6124,6 +6340,30 @@
             },
             "ecdsaSecp256k1": {
               "type": "object",
+              "oneOf": [
+                {
+                  "required": [
+                    "value"
+                  ],
+                  "not": {
+                    "required": [
+                      "secret",
+                      "secretKey"
+                    ]
+                  }
+                },
+                {
+                  "required": [
+                    "secret",
+                    "secretKey"
+                  ],
+                  "not": {
+                    "required": [
+                      "value"
+                    ]
+                  }
+                }
+              ],
               "properties": {
                 "value": {
                   "type": "string"
@@ -6139,6 +6379,30 @@
             },
             "ecdsaSecp384r1": {
               "type": "object",
+              "oneOf": [
+                {
+                  "required": [
+                    "value"
+                  ],
+                  "not": {
+                    "required": [
+                      "secret",
+                      "secretKey"
+                    ]
+                  }
+                },
+                {
+                  "required": [
+                    "secret",
+                    "secretKey"
+                  ],
+                  "not": {
+                    "required": [
+                      "value"
+                    ]
+                  }
+                }
+              ],
               "properties": {
                 "value": {
                   "type": "string"
@@ -6154,6 +6418,30 @@
             },
             "rsa": {
               "type": "object",
+              "oneOf": [
+                {
+                  "required": [
+                    "value"
+                  ],
+                  "not": {
+                    "required": [
+                      "secret",
+                      "secretKey"
+                    ]
+                  }
+                },
+                {
+                  "required": [
+                    "secret",
+                    "secretKey"
+                  ],
+                  "not": {
+                    "required": [
+                      "value"
+                    ]
+                  }
+                }
+              ],
               "properties": {
                 "value": {
                   "type": "string"
@@ -7829,6 +8117,30 @@
         },
         "adminPassword": {
           "type": "object",
+          "oneOf": [
+            {
+              "required": [
+                "value"
+              ],
+              "not": {
+                "required": [
+                  "secret",
+                  "secretKey"
+                ]
+              }
+            },
+            {
+              "required": [
+                "secret",
+                "secretKey"
+              ],
+              "not": {
+                "required": [
+                  "value"
+                ]
+              }
+            }
+          ],
           "properties": {
             "value": {
               "type": "string"
@@ -7847,6 +8159,30 @@
           "properties": {
             "synapse": {
               "type": "object",
+              "oneOf": [
+                {
+                  "required": [
+                    "value"
+                  ],
+                  "not": {
+                    "required": [
+                      "secret",
+                      "secretKey"
+                    ]
+                  }
+                },
+                {
+                  "required": [
+                    "secret",
+                    "secretKey"
+                  ],
+                  "not": {
+                    "required": [
+                      "value"
+                    ]
+                  }
+                }
+              ],
               "properties": {
                 "value": {
                   "type": "string"
@@ -7862,6 +8198,30 @@
             },
             "matrixAuthenticationService": {
               "type": "object",
+              "oneOf": [
+                {
+                  "required": [
+                    "value"
+                  ],
+                  "not": {
+                    "required": [
+                      "secret",
+                      "secretKey"
+                    ]
+                  }
+                },
+                {
+                  "required": [
+                    "secret",
+                    "secretKey"
+                  ],
+                  "not": {
+                    "required": [
+                      "value"
+                    ]
+                  }
+                }
+              ],
               "properties": {
                 "value": {
                   "type": "string"
@@ -9196,6 +9556,30 @@
             },
             "password": {
               "type": "object",
+              "oneOf": [
+                {
+                  "required": [
+                    "value"
+                  ],
+                  "not": {
+                    "required": [
+                      "secret",
+                      "secretKey"
+                    ]
+                  }
+                },
+                {
+                  "required": [
+                    "secret",
+                    "secretKey"
+                  ],
+                  "not": {
+                    "required": [
+                      "value"
+                    ]
+                  }
+                }
+              ],
               "properties": {
                 "value": {
                   "type": "string"
@@ -9236,6 +9620,30 @@
             },
             "password": {
               "type": "object",
+              "oneOf": [
+                {
+                  "required": [
+                    "value"
+                  ],
+                  "not": {
+                    "required": [
+                      "secret",
+                      "secretKey"
+                    ]
+                  }
+                },
+                {
+                  "required": [
+                    "secret",
+                    "secretKey"
+                  ],
+                  "not": {
+                    "required": [
+                      "value"
+                    ]
+                  }
+                }
+              ],
               "properties": {
                 "value": {
                   "type": "string"
@@ -9290,6 +9698,30 @@
         },
         "macaroon": {
           "type": "object",
+          "oneOf": [
+            {
+              "required": [
+                "value"
+              ],
+              "not": {
+                "required": [
+                  "secret",
+                  "secretKey"
+                ]
+              }
+            },
+            {
+              "required": [
+                "secret",
+                "secretKey"
+              ],
+              "not": {
+                "required": [
+                  "value"
+                ]
+              }
+            }
+          ],
           "properties": {
             "value": {
               "type": "string"
@@ -9305,6 +9737,30 @@
         },
         "registrationSharedSecret": {
           "type": "object",
+          "oneOf": [
+            {
+              "required": [
+                "value"
+              ],
+              "not": {
+                "required": [
+                  "secret",
+                  "secretKey"
+                ]
+              }
+            },
+            {
+              "required": [
+                "secret",
+                "secretKey"
+              ],
+              "not": {
+                "required": [
+                  "value"
+                ]
+              }
+            }
+          ],
           "properties": {
             "value": {
               "type": "string"
@@ -9320,6 +9776,30 @@
         },
         "signingKey": {
           "type": "object",
+          "oneOf": [
+            {
+              "required": [
+                "value"
+              ],
+              "not": {
+                "required": [
+                  "secret",
+                  "secretKey"
+                ]
+              }
+            },
+            {
+              "required": [
+                "secret",
+                "secretKey"
+              ],
+              "not": {
+                "required": [
+                  "value"
+                ]
+              }
+            }
+          ],
           "properties": {
             "value": {
               "type": "string"
