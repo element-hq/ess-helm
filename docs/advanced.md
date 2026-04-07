@@ -47,7 +47,7 @@ To configure your own PostgreSQL Database in your installation, copy the file `c
 K3s by default deploys the storage in `/var/lib/rancher/k3s/storage/`. If you want to change the path, you will have to run the K3s setup with the parameter `--default-local-storage-path <your path>`.
 
 
-If you do not mind modifying the you storage path for the entirey of K3s you can also adjust the `K3S_DATA_DIR` environment variable before installing K3s using
+If you do not mind modifying the you storage path for the entirety of K3s you can also adjust the `K3S_DATA_DIR` environment variable before installing K3s using
 ```
 export K3S_DATA_DIR=/your/path
 ```
