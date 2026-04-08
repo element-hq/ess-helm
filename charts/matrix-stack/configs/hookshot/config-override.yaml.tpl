@@ -36,7 +36,7 @@ cache:
 {{- if .redis }}
   redisUri: "redis{{ if .redis.tls }}s{{ end }}://{{ tpl .redis.host $root }}:{{ .redis.port | default 6379 }}/{{ .redis.db | default 0 }}"
 {{- if .redis.password }}
-  redisPassword: "${HOOKSHOT_REDIS_PASSWORD}"
+  redisPassword: ${HOOKSHOT_REDIS_PASSWORD}
 {{- end }}
 {{- else }}
   redisUri: "redis://{{ $root.Release.Name }}-redis.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:6379"
