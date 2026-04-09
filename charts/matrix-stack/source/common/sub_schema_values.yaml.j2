@@ -333,17 +333,7 @@ networking:
 
   ## Redis database number (0-15)
   # db: 0
-
-  ## Redis password (optional - many managed services require auth)
-  ## It can either be provided inline in the Helm chart e.g.:
-  ## password:
-  ##   value: SecretValue
-  ##
-  ## Or it can be provided via an existing Secret e.g.:
-  ## password:
-  ##   secret: existing-secret
-  ##   secretKey: key-in-secret
-  # password: {}
+{{ (credential("Redis password (optional - many managed services require auth)", "password") | indent(2)) }}
 
   ## Enable TLS for Redis connection
   # tls: false

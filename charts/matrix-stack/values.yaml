@@ -1944,7 +1944,7 @@ hookshot:
     ## Redis database number (0-15)
     # db: 0
 
-    ## Redis password (optional - many managed services require auth)
+    ## Redis password (optional - many managed services require auth).
     ## It can either be provided inline in the Helm chart e.g.:
     ## password:
     ##   value: SecretValue
@@ -3618,7 +3618,7 @@ synapse:
     ## Redis database number (0-15)
     # db: 0
 
-    ## Redis password (optional - many managed services require auth)
+    ## Redis password (optional - many managed services require auth).
     ## It can either be provided inline in the Helm chart e.g.:
     ## password:
     ##   value: SecretValue
