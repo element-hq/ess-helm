@@ -40,7 +40,7 @@ export POSTGRES_PASSWORD=`cat /secrets/{{
     )
 ) }}`;
 
-{{- range $key := (.essPasswords | keys | uniq | sortAlpha) -}}
+{{- range $key := list "matrixAuthenticationService" "synapse" -}}
 {{- if (index $root.Values $key).enabled -}}
 {{- $prop := index $root.Values.postgres.essPasswords $key }}
 export ESS_PASSWORD=`cat /secrets/{{
