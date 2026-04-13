@@ -105,7 +105,6 @@ secrets:
                       )
                     ) }}
   keys:
-{{- with required "privateKeys is required for Matrix Authentication Service" .privateKeys }}
   - key_file: /secrets/{{
                 include "element-io.ess-library.init-secret-path" (
                       dict "root" $root
@@ -126,7 +125,7 @@ secrets:
                         "defaultSecretKey" "ECDSA_PRIME256V1_PRIVATE_KEY"
                       )
                   ) }}
-{{ with .ecdsaSecp256k1 }}
+{{ if (.privateKeys).ecdsaSecp256k1 }}
   - key_file: /secrets/{{
                 include "element-io.ess-library.provided-secret-path" (
                         dict "root" $root
@@ -137,7 +136,7 @@ secrets:
                         )
                     ) }}
 {{- end }}
-{{ with .ecdsaSecp384r1 }}
+{{ if (.privateKeys).ecdsaSecp384r1 }}
   - key_file: /secrets/{{
                 include "element-io.ess-library.provided-secret-path" (
                         dict "root" $root
@@ -147,7 +146,6 @@ secrets:
                           "defaultSecretKey" "ECDSA_SECP384R1_PRIVATE_KEY"
                         )
                     ) }}
-{{- end }}
 {{- end }}
 
 {{- end -}}

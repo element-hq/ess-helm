@@ -137,19 +137,20 @@ config-override.yaml: |
 {{- define "element-io.hookshot.secret-data" -}}
 {{- $root := .root -}}
 {{- with required "element-io.hookshot.secret-data" .context -}}
-  {{- with .passkey.value }}
+  {{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "hookshot.passkey" "initIfAbsent" true)) -}}
+  {{- with (.passkey).value }}
 RSA_PASSKEY: {{ . | b64enc }}
   {{- end }}
-  {{- with .appserviceRegistration.value }}
+  {{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "hookshot.appserviceRegistration" "initIfAbsent" true)) -}}
+  {{- with (.appserviceRegistration).value }}
 REGISTRATION: {{ . | b64enc }}
   {{- end }}
-{{- if .redis }}
-{{- if .redis.password }}
-{{- if .redis.password.value }}
-REDIS_PASSWORD: {{ .redis.password.value | b64enc | quote }}
-{{- end }}
-{{- end }}
-{{- end }}
+  {{- with (.redis).password }}
+  {{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "hookshot.redis.password" "initIfAbsent" false)) -}}
+  {{- with .value }}
+REDIS_PASSWORD: {{ . | b64enc | quote }}
+  {{- end }}
+  {{- end }}
   {{- with .additional }}
     {{- range $key := (. | keys | uniq | sortAlpha) }}
       {{- $prop := index $root.Values.hookshot.additional $key }}
