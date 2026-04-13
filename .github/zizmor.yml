@@ -12,9 +12,9 @@ rules:
       # This job do not release any artifact, we do not care about cache poisoning
       - releasing.yml:30
       # This job do not release any artifact, we do not care about cache poisoning
-      - releasing.yml:79
+      - releasing.yml:81
       # This job do not release any artifact, we do not care about cache poisoning
-      - releasing.yml:170
+      - releasing.yml:171
       # This job do not release any artifact, we do not care about cache poisoning
       - releasing.yml:238
       # We disable cache on releases
@@ -25,4 +25,3 @@ rules:
       - packages.yml:85
       # This job do not release any artifact, we do not care about cache poisoning
       - packages.yml:145
-
