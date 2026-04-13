@@ -22,11 +22,7 @@ strategy:
   type: RollingUpdate
   rollingUpdate:
     maxSurge: 2
-{{- if hasKey . "replicas" }}
-    maxUnavailable: {{ min (max 0 (sub .replicas 1)) 1 }}
-{{- else }}
-    maxUnavailable: 0
-{{- end }}
+    maxUnavailable: {{ min (max 0 (sub (.replicas | default 1) 1)) 1 }}
 {{- else }}
 serviceName: {{ $root.Release.Name }}-{{ $serviceNameSuffix }}
 updateStrategy:
