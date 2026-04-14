@@ -7,6 +7,63 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.4.0 (2026-04-14)
+
+## Changed
+
+- Use HTTP2 for Synapse to Matrix Authentication Service traffic.
+
+  This reduces the overhead of token introspection, as Synapse will be able to use a single HTTP/2 connection to Matrix Authentication Service. (#1207)
+- Upgrade Synapse to v1.151.0.
+
+  Highlights:
+  - Add stable support for [MSC4284](https://github.com/matrix-org/matrix-spec-proposals/pull/4284) Policy Servers
+  - Update and stabilize support for [MSC2666](https://github.com/matrix-org/matrix-spec-proposals/pull/2666): Get rooms in common with another user
+  - Allow Synapse to start up even when discovery fails for an OpenID Connect provider
+
+  Full Changelogs:
+  - [v1.151.0](https://github.com/element-hq/synapse/releases/tag/v1.151.0)
+
+  (#1207)
+- Upgrade Matrix Authentication Service to v1.15.0.
+
+  Highlights:
+  - Fix scheduled jobs automatic cleanup not working in some conditions
+
+  Full Changelogs:
+  - [v1.15.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.15.0)
+
+  (#1208)
+- Upgrade Element Web to v1.12.14.
+
+  Highlights:
+  - Improve performance of the room list
+  - Hide the names of banned users behind a spoiler tag
+
+  Full Changelogs:
+  - [v1.12.14](https://github.com/element-hq/element-web/releases/tag/v1.12.14)
+
+  (#1209)
+- Improve the schema validation for chart credentials. (#1217)
+- Simplify the `maxUnavailable` calculation for `Deployments`. (#1225)
+- Configure `web_client_location` in Synapse with the URL of the Element Web. (#1226)
+
+## Fixed
+
+- Add missing credential checks for Hookshot credentials and Synapse external Redis. (#1217)
+- Fix extra quotes being added around the Redis password in the Hookshot configuration. (#1222)
+
+## Documentation
+
+- Added some text to the advanced instructions on how to configure the storage settings for K3s (see https://github.com/element-hq/ess-helm/pull/1206 for details). (#1206)
+- Add uv example to install ess-migration-tool. (#1212)
+
+## Internal
+
+- Fix releasing of the ESS Community integration tests package to PyPI. (#1218)
+- CI: output the YAML of resources into `.yaml` files rather than `.txt.yaml` files. (#1220)
+
+
 # ESS Community Helm Chart 26.3.2 (2026-04-01)
 
 ## Added
