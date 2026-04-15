@@ -78,7 +78,7 @@ sfu:
     {{- sub_schema_values.exposedServicePort('turn', 30004, 'NodePort', defaultEnabled=False, nodePortTemplate="{{ .context.port }}") | indent(4) }}
 
 
-{{- sub_schema_values.image(registry='docker.io', repository='livekit/livekit-server', tag='v1.10.0') | indent(2) }}
+{{- sub_schema_values.image(registry='docker.io', repository='livekit/livekit-server', tag='v1.10.1') | indent(2) }}
 {{- sub_schema_values.extraEnv() | indent(2) }}
 {{- sub_schema_values.extraVolumes("Matrix RTC SFU") | indent(2) }}
 {{- sub_schema_values.extraVolumeMounts("Matrix RTC SFU") | indent(2) }}
