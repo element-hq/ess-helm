@@ -53,7 +53,7 @@ database:
 https://github.com/kubernetes/kubernetes/issues/129043 / https://github.com/kubernetes/kubernetes/issues/81089 */}}
 {{- if .postgres }}
 {{- with .postgres }}
-  uri: "postgresql://{{ include "element-io.ess-library.postgres-field-value" (dict "root" $root "field" .user "envVar" "POSTGRES_USER") }}:${POSTGRES_PASSWORD}@{{ include "element-io.ess-library.postgres-field-value" (dict "root" $root "field" .host "envVar" "POSTGRES_HOST") }}:{{ .port | default 5432 }}/{{ include "element-io.ess-library.postgres-field-value" (dict "root" $root "field" .database "envVar" "POSTGRES_DATABASE") }}?{{ with .sslMode }}sslmode={{ . }}&{{ end }}application_name=matrix-authentication-service"
+  uri: "postgresql://{{ include "element-io.ess-library.postgres-field-value" (dict "root" $root "field" .user "envVar" "POSTGRES_USER") }}:${POSTGRES_PASSWORD}@{{ include "element-io.ess-library.postgres-field-value" (dict "root" $root "field" .host "envVar" "POSTGRES_HOST") }}:{{ include "element-io.ess-library.postgres-field-value" (dict "root" $root "field" (.port | default 5432) "envVar" "POSTGRES_PORT") }}/{{ include "element-io.ess-library.postgres-field-value" (dict "root" $root "field" .database "envVar" "POSTGRES_DATABASE") }}?{{ with .sslMode }}sslmode={{ . }}&{{ end }}application_name=matrix-authentication-service"
 {{- end }}
 {{- else if $root.Values.postgres.enabled }}
   uri: "postgresql://matrixauthenticationservice_user:${POSTGRES_PASSWORD}@{{ $root.Release.Name }}-postgres.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:5432/matrixauthenticationservice?sslmode=prefer&application_name=matrix-authentication-service"

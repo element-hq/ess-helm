@@ -115,19 +115,30 @@ spec:
         securityContext:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-{{- if and $masContext.postgres (not (kindIs "string" $masContext.postgres.host)) $masContext.postgres.host.secret }}
+{{- $masHostSecret := and $masContext.postgres (not (kindIs "string" $masContext.postgres.host)) $masContext.postgres.host.secret }}
+{{- $masPortSecret := and $masContext.postgres (kindIs "map" $masContext.postgres.port) $masContext.postgres.port.secret }}
+{{- if or $masHostSecret $masPortSecret }}
         env:
+{{- if $masHostSecret }}
         - name: POSTGRES_HOST
           valueFrom:
             secretKeyRef:
               name: {{ tpl $masContext.postgres.host.secret $ }}
               key: {{ $masContext.postgres.host.secretKey }}
 {{- end }}
+{{- if $masPortSecret }}
+        - name: POSTGRES_PORT
+          valueFrom:
+            secretKeyRef:
+              name: {{ tpl $masContext.postgres.port.secret $ }}
+              key: {{ $masContext.postgres.port.secretKey }}
+{{- end }}
+{{- end }}
         args:
         - tcpwait
-{{- if and $masContext.postgres (not (kindIs "string" $masContext.postgres.host)) $masContext.postgres.host.secret }}
+{{- if or $masHostSecret $masPortSecret }}
         - -address
-        - "$(POSTGRES_HOST):{{ $masContext.postgres.port | default 5432 }}"
+        - "{{ ternary "$(POSTGRES_HOST)" (include "element-io.ess-library.postgres-host-value" (dict "root" $ "context" (dict "postgres" $masContext.postgres))) $masHostSecret }}:{{ ternary "$(POSTGRES_PORT)" ($masContext.postgres.port | default 5432 | toString) $masPortSecret }}"
 {{- else }}
         - -address
         - {{ include "element-io.ess-library.postgres-host-port" (dict "root" $ "context" (dict "postgres" $masContext.postgres)) | quote }}
@@ -148,19 +159,30 @@ spec:
         securityContext:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-{{- if and $synapseContext.postgres (not (kindIs "string" $synapseContext.postgres.host)) $synapseContext.postgres.host.secret }}
+{{- $synHostSecret := and $synapseContext.postgres (not (kindIs "string" $synapseContext.postgres.host)) $synapseContext.postgres.host.secret }}
+{{- $synPortSecret := and $synapseContext.postgres (kindIs "map" $synapseContext.postgres.port) $synapseContext.postgres.port.secret }}
+{{- if or $synHostSecret $synPortSecret }}
         env:
+{{- if $synHostSecret }}
         - name: POSTGRES_HOST
           valueFrom:
             secretKeyRef:
               name: {{ tpl $synapseContext.postgres.host.secret $ }}
               key: {{ $synapseContext.postgres.host.secretKey }}
 {{- end }}
+{{- if $synPortSecret }}
+        - name: POSTGRES_PORT
+          valueFrom:
+            secretKeyRef:
+              name: {{ tpl $synapseContext.postgres.port.secret $ }}
+              key: {{ $synapseContext.postgres.port.secretKey }}
+{{- end }}
+{{- end }}
         args:
         - tcpwait
-{{- if and $synapseContext.postgres (not (kindIs "string" $synapseContext.postgres.host)) $synapseContext.postgres.host.secret }}
+{{- if or $synHostSecret $synPortSecret }}
         - -address
-        - "$(POSTGRES_HOST):{{ $synapseContext.postgres.port | default 5432 }}"
+        - "{{ ternary "$(POSTGRES_HOST)" (include "element-io.ess-library.postgres-host-value" (dict "root" $ "context" (dict "postgres" $synapseContext.postgres))) $synHostSecret }}:{{ ternary "$(POSTGRES_PORT)" ($synapseContext.postgres.port | default 5432 | toString) $synPortSecret }}"
 {{- else }}
         - -address
         - {{ include "element-io.ess-library.postgres-host-port" (dict "root" $ "context" (dict "postgres" $synapseContext.postgres)) | quote }}

@@ -197,6 +197,13 @@ env:
       name: {{ tpl .database.secret $root }}
       key: {{ .database.secretKey }}
 {{- end }}
+{{- if and (kindIs "map" .port) .port.secret }}
+- name: SYNAPSE_POSTGRES_PORT
+  valueFrom:
+    secretKeyRef:
+      name: {{ tpl .port.secret $root }}
+      key: {{ .port.secretKey }}
+{{- end }}
 {{- end }}
 {{- if $root.Values.synapse.redis }}
 {{- if $root.Values.synapse.redis.password }}

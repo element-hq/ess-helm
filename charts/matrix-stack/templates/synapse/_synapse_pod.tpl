@@ -68,19 +68,30 @@ We have an init container to render & merge the config for several reasons:
       securityContext:
         {{- toYaml . | nindent 8 }}
 {{- end }}
-{{- if and .postgres (not (kindIs "string" .postgres.host)) .postgres.host.secret }}
+{{- $hostSecret := and .postgres (not (kindIs "string" .postgres.host)) .postgres.host.secret }}
+{{- $portSecret := and .postgres (kindIs "map" .postgres.port) .postgres.port.secret }}
+{{- if or $hostSecret $portSecret }}
       env:
+{{- if $hostSecret }}
       - name: POSTGRES_HOST
         valueFrom:
           secretKeyRef:
             name: {{ tpl .postgres.host.secret $root }}
             key: {{ .postgres.host.secretKey }}
 {{- end }}
+{{- if $portSecret }}
+      - name: POSTGRES_PORT
+        valueFrom:
+          secretKeyRef:
+            name: {{ tpl .postgres.port.secret $root }}
+            key: {{ .postgres.port.secretKey }}
+{{- end }}
+{{- end }}
       args:
       - tcpwait
-{{- if and .postgres (not (kindIs "string" .postgres.host)) .postgres.host.secret }}
+{{- if or $hostSecret $portSecret }}
       - -address
-      - "$(POSTGRES_HOST):{{ .postgres.port | default 5432 }}"
+      - "{{ ternary "$(POSTGRES_HOST)" (include "element-io.ess-library.postgres-host-value" (dict "root" $root "context" (dict "postgres" .postgres))) $hostSecret }}:{{ ternary "$(POSTGRES_PORT)" (.postgres.port | default 5432 | toString) $portSecret }}"
 {{- else }}
       - -address
       - {{ include "element-io.ess-library.postgres-host-port" (dict "root" $root "context" (dict "postgres" .postgres)) | quote }}

@@ -10,9 +10,10 @@
       "anyOf": [{"type": "string"}, {"$ref": "file://common/credential.json"}]
     },
     "port": {
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 65535
+      "anyOf": [
+        {"type": "integer", "minimum": 0, "maximum": 65535},
+        {"$ref": "file://common/credential.json"}
+      ]
     },
     "user": {
       "anyOf": [{"type": "string"}, {"$ref": "file://common/credential.json"}]

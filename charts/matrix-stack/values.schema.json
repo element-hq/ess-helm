@@ -6082,9 +6082,28 @@
               ]
             },
             "port": {
-              "type": "integer",
-              "minimum": 0,
-              "maximum": 65535
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 65535
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "string"
+                    },
+                    "secret": {
+                      "type": "string"
+                    },
+                    "secretKey": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              ]
             },
             "user": {
               "anyOf": [
@@ -9249,9 +9268,28 @@
               ]
             },
             "port": {
-              "type": "integer",
-              "minimum": 0,
-              "maximum": 65535
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 65535
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "string"
+                    },
+                    "secret": {
+                      "type": "string"
+                    },
+                    "secretKey": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              ]
             },
             "user": {
               "anyOf": [

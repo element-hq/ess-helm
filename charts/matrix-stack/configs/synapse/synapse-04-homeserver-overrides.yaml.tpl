@@ -50,7 +50,7 @@ https://github.com/kubernetes/kubernetes/issues/129043 / https://github.com/kube
     password: ${SYNAPSE_POSTGRES_PASSWORD}
     dbname: {{ include "element-io.ess-library.postgres-field-value" (dict "root" $root "field" .postgres.database "envVar" "SYNAPSE_POSTGRES_DATABASE") }}
     host: {{ include "element-io.ess-library.postgres-field-value" (dict "root" $root "field" .postgres.host "envVar" "SYNAPSE_POSTGRES_HOST") }}
-    port: {{ .postgres.port | default 5432 }}
+    port: {{ include "element-io.ess-library.postgres-field-value" (dict "root" $root "field" (.postgres.port | default 5432) "envVar" "SYNAPSE_POSTGRES_PORT") }}
     sslmode: {{ .postgres.sslMode | default "prefer" }}
 {{- else if $root.Values.postgres.enabled }}
     user: "synapse_user"
