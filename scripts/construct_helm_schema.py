@@ -39,6 +39,11 @@ def schema_walker(schema_part: dict[Any], callable: Callable[[dict[any]], dict[a
     # This is an array so look at the definition of the array items
     elif "items" in result:
         result["items"] = schema_walker(result["items"], callable)
+
+    # Walk anyOf sub-schemas
+    if "anyOf" in result:
+        result["anyOf"] = [schema_walker(sub_schema, callable) for sub_schema in result["anyOf"]]
+
     return result
 
 
@@ -79,7 +84,7 @@ def inline_sub_schemas(source_schema: Path, schema_part: dict[Any]) -> dict[Any]
 # https://json-schema.org/understanding-json-schema/reference/object#additionalproperties:
 # "By default any additional properties are allowed."
 def default_additionalProperties_to_off(_: Path, schema_part: dict[Any]) -> dict[Any]:
-    if schema_part["type"] == "object" and "additionalProperties" not in schema_part:
+    if schema_part.get("type") == "object" and "additionalProperties" not in schema_part:
         schema_part["additionalProperties"] = False
 
     return schema_part

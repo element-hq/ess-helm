@@ -159,6 +159,17 @@ responsibleForMedia
 {{- end -}}
 {{- end -}}
 {{- with $root.Values.synapse -}}
+{{- with .postgres -}}
+{{- if and (not (kindIs "string" .host)) .host.secret -}}
+{{ $configSecrets = append $configSecrets (tpl .host.secret $root) }}
+{{- end -}}
+{{- if and (not (kindIs "string" .user)) .user.secret -}}
+{{ $configSecrets = append $configSecrets (tpl .user.secret $root) }}
+{{- end -}}
+{{- if and (not (kindIs "string" .database)) .database.secret -}}
+{{ $configSecrets = append $configSecrets (tpl .database.secret $root) }}
+{{- end -}}
+{{- end -}}
 {{- with .macaroon.secret -}}
 {{ $configSecrets = append $configSecrets (tpl . $root) }}
 {{- end -}}

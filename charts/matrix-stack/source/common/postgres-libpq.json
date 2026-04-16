@@ -7,7 +7,7 @@
   ],
   "properties": {
     "host": {
-      "type": "string"
+      "anyOf": [{"type": "string"}, {"$ref": "file://common/credential.json"}]
     },
     "port": {
       "type": "integer",
@@ -15,10 +15,10 @@
       "maximum": 65535
     },
     "user": {
-      "type": "string"
+      "anyOf": [{"type": "string"}, {"$ref": "file://common/credential.json"}]
     },
     "database": {
-      "type": "string"
+      "anyOf": [{"type": "string"}, {"$ref": "file://common/credential.json"}]
     },
     "sslMode": {
       "type": "string",

@@ -6,9 +6,22 @@
 package tcpwait
 
 import (
+	"fmt"
+	"os"
+	"strings"
+
 	executor "github.com/element-hq/ess-helm/matrix-tools/internal/pkg/tcpwait"
 )
 
 func Run(options *TcpWaitOptions) {
-	executor.WaitForTCP(options.Address)
+	address := options.Address
+	if options.AddressFile != "" {
+		hostBytes, err := os.ReadFile(options.AddressFile)
+		if err != nil {
+			fmt.Println("Failed to read address file:", err)
+			os.Exit(1)
+		}
+		address = strings.TrimSpace(string(hostBytes)) + ":" + options.Port
+	}
+	executor.WaitForTCP(address)
 }

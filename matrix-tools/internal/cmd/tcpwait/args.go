@@ -12,19 +12,25 @@ const (
 )
 
 type TcpWaitOptions struct {
-	Address string
+	Address     string
+	AddressFile string
+	Port        string
 }
 
 func ParseArgs(args []string) (*TcpWaitOptions, error) {
 	var options TcpWaitOptions
 
 	tcpWaitSet := flag.NewFlagSet(FlagSetName, flag.ExitOnError)
-	address := tcpWaitSet.String("address", "", "Address to listen on for TCP connections")
+	address := tcpWaitSet.String("address", "", "Address (host:port) to wait on for TCP connections")
+	addressFile := tcpWaitSet.String("address-file", "", "File containing host to wait on for TCP connections (use with -port)")
+	port := tcpWaitSet.String("port", "", "Port to use with -address-file")
 
 	err := tcpWaitSet.Parse(args)
 	if err != nil {
 		return nil, err
 	}
 	options.Address = *address
+	options.AddressFile = *addressFile
+	options.Port = *port
 	return &options, nil
 }

@@ -175,6 +175,23 @@ env:
 - name: APPLICATION_NAME
   value: >-
     {{ printf "{{ hostname }}" }}
+{{- with .postgres }}
+{{- if and (not (kindIs "string" .host)) .host.secret }}
+- name: SYNAPSE_POSTGRES_HOST
+  value: >-
+    {{ printf "{{ readfile \"/secrets/%s\" }}" (printf "%s/%s" (tpl .host.secret $root) .host.secretKey) }}
+{{- end }}
+{{- if and (not (kindIs "string" .user)) .user.secret }}
+- name: SYNAPSE_POSTGRES_USER
+  value: >-
+    {{ printf "{{ readfile \"/secrets/%s\" }}" (printf "%s/%s" (tpl .user.secret $root) .user.secretKey) }}
+{{- end }}
+{{- if and (not (kindIs "string" .database)) .database.secret }}
+- name: SYNAPSE_POSTGRES_DATABASE
+  value: >-
+    {{ printf "{{ readfile \"/secrets/%s\" }}" (printf "%s/%s" (tpl .database.secret $root) .database.secretKey) }}
+{{- end }}
+{{- end }}
 {{- if $root.Values.synapse.redis }}
 {{- if $root.Values.synapse.redis.password }}
 - name: SYNAPSE_REDIS_PASSWORD

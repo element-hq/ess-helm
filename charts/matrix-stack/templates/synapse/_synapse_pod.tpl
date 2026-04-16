@@ -70,15 +70,27 @@ We have an init container to render & merge the config for several reasons:
 {{- end }}
       args:
       - tcpwait
+{{- if and .postgres (not (kindIs "string" .postgres.host)) .postgres.host.secret }}
+      - -address-file
+      - /secrets/{{ tpl .postgres.host.secret $root }}/{{ .postgres.host.secretKey }}
+      - -port
+      - {{ .postgres.port | default 5432 | quote }}
+{{- else }}
       - -address
       - {{ include "element-io.ess-library.postgres-host-port" (dict "root" $root "context" (dict "postgres" .postgres)) | quote }}
+{{- end }}
 {{- with .resources }}
       resources:
         {{- toYaml . | nindent 8 }}
 {{- end }}
-{{- with .extraVolumeMounts }}
+{{- if or (and .postgres (not (kindIs "string" .postgres.host)) .postgres.host.secret) .extraVolumeMounts }}
       volumeMounts:
-{{- range . }}
+{{- if and .postgres (not (kindIs "string" .postgres.host)) .postgres.host.secret }}
+      - mountPath: /secrets/{{ tpl .postgres.host.secret $root }}
+        name: "secret-{{ (tpl .postgres.host.secret $root) | sha256sum | trunc 12 }}"
+        readOnly: true
+{{- end }}
+{{- range .extraVolumeMounts }}
 {{- if or (and $isHook ((list "hook" "both") | has (.mountContext | default "both")))
           (and (not $isHook) ((list "runtime" "both") | has (.mountContext | default "both"))) -}}
 {{- $extraVolumeMount := . | deepCopy }}

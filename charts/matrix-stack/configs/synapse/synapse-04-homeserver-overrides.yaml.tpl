@@ -46,10 +46,10 @@ database:
 {{- /* We don't attempt to use passfile and mount the Secret directly due to
 https://github.com/kubernetes/kubernetes/issues/129043 / https://github.com/kubernetes/kubernetes/issues/81089 */}}
 {{- if .postgres }}
-    user: {{ .postgres.user }}
+    user: {{ include "element-io.ess-library.postgres-field-value" (dict "root" $root "field" .postgres.user "envVar" "SYNAPSE_POSTGRES_USER") }}
     password: ${SYNAPSE_POSTGRES_PASSWORD}
-    dbname: {{ .postgres.database }}
-    host: {{ (tpl .postgres.host $root) }}
+    dbname: {{ include "element-io.ess-library.postgres-field-value" (dict "root" $root "field" .postgres.database "envVar" "SYNAPSE_POSTGRES_DATABASE") }}
+    host: {{ include "element-io.ess-library.postgres-field-value" (dict "root" $root "field" .postgres.host "envVar" "SYNAPSE_POSTGRES_HOST") }}
     port: {{ .postgres.port | default 5432 }}
     sslmode: {{ .postgres.sslMode | default "prefer" }}
 {{- else if $root.Values.postgres.enabled }}

@@ -58,15 +58,27 @@ spec:
 {{- end }}
         args:
         - tcpwait
+{{- if and .postgres (not (kindIs "string" .postgres.host)) .postgres.host.secret }}
+        - -address-file
+        - /secrets/{{ tpl .postgres.host.secret $ }}/{{ .postgres.host.secretKey }}
+        - -port
+        - {{ .postgres.port | default 5432 | quote }}
+{{- else }}
         - -address
         - {{ include "element-io.ess-library.postgres-host-port" (dict "root" $ "context" (dict "postgres" .postgres)) | quote }}
+{{- end }}
 {{- with .resources }}
         resources:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-{{- with .extraVolumeMounts }}
+{{- if or (and .postgres (not (kindIs "string" .postgres.host)) .postgres.host.secret) .extraVolumeMounts }}
         volumeMounts:
-{{- range . }}
+{{- if and .postgres (not (kindIs "string" .postgres.host)) .postgres.host.secret }}
+        - mountPath: /secrets/{{ tpl .postgres.host.secret $ }}
+          name: "secret-{{ (tpl .postgres.host.secret $) | sha256sum | trunc 12 }}"
+          readOnly: true
+{{- end }}
+{{- range .extraVolumeMounts }}
         - {{ (. | toYaml) | nindent 10 }}
 {{- end }}
 {{- end }}

@@ -58,6 +58,17 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
                                             )
                                         ) -}}
 {{- with $root.Values.matrixAuthenticationService }}
+{{- with .postgres -}}
+{{- if and (not (kindIs "string" .host)) .host.secret -}}
+{{ $configSecrets = append $configSecrets (tpl .host.secret $root) }}
+{{- end -}}
+{{- if and (not (kindIs "string" .user)) .user.secret -}}
+{{ $configSecrets = append $configSecrets (tpl .user.secret $root) }}
+{{- end -}}
+{{- if and (not (kindIs "string" .database)) .database.secret -}}
+{{ $configSecrets = append $configSecrets (tpl .database.secret $root) }}
+{{- end -}}
+{{- end -}}
 {{- range $privateKey, $value := .privateKeys -}}
 {{- if $value.secret }}
 {{ $configSecrets = append $configSecrets (tpl $value.secret $root) }}
@@ -118,6 +129,23 @@ env:
           )
         )
     }}
+{{- with .postgres }}
+{{- if and (not (kindIs "string" .host)) .host.secret }}
+- name: POSTGRES_HOST
+  value: >-
+    {{ printf "{{ readfile \"/secrets/%s\" | urlencode }}" (printf "%s/%s" (tpl .host.secret $root) .host.secretKey) }}
+{{- end }}
+{{- if and (not (kindIs "string" .user)) .user.secret }}
+- name: POSTGRES_USER
+  value: >-
+    {{ printf "{{ readfile \"/secrets/%s\" | urlencode }}" (printf "%s/%s" (tpl .user.secret $root) .user.secretKey) }}
+{{- end }}
+{{- if and (not (kindIs "string" .database)) .database.secret }}
+- name: POSTGRES_DATABASE
+  value: >-
+    {{ printf "{{ readfile \"/secrets/%s\" | urlencode }}" (printf "%s/%s" (tpl .database.secret $root) .database.secretKey) }}
+{{- end }}
+{{- end }}
 {{- end }}
 {{- end }}
 
