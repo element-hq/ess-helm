@@ -178,18 +178,24 @@ env:
 {{- with .postgres }}
 {{- if and (not (kindIs "string" .host)) .host.secret }}
 - name: SYNAPSE_POSTGRES_HOST
-  value: >-
-    {{ printf "{{ readfile \"/secrets/%s\" }}" (printf "%s/%s" (tpl .host.secret $root) .host.secretKey) }}
+  valueFrom:
+    secretKeyRef:
+      name: {{ tpl .host.secret $root }}
+      key: {{ .host.secretKey }}
 {{- end }}
 {{- if and (not (kindIs "string" .user)) .user.secret }}
 - name: SYNAPSE_POSTGRES_USER
-  value: >-
-    {{ printf "{{ readfile \"/secrets/%s\" }}" (printf "%s/%s" (tpl .user.secret $root) .user.secretKey) }}
+  valueFrom:
+    secretKeyRef:
+      name: {{ tpl .user.secret $root }}
+      key: {{ .user.secretKey }}
 {{- end }}
 {{- if and (not (kindIs "string" .database)) .database.secret }}
 - name: SYNAPSE_POSTGRES_DATABASE
-  value: >-
-    {{ printf "{{ readfile \"/secrets/%s\" }}" (printf "%s/%s" (tpl .database.secret $root) .database.secretKey) }}
+  valueFrom:
+    secretKeyRef:
+      name: {{ tpl .database.secret $root }}
+      key: {{ .database.secretKey }}
 {{- end }}
 {{- end }}
 {{- if $root.Values.synapse.redis }}

@@ -115,13 +115,19 @@ spec:
         securityContext:
           {{- toYaml . | nindent 10 }}
 {{- end }}
+{{- if and $masContext.postgres (not (kindIs "string" $masContext.postgres.host)) $masContext.postgres.host.secret }}
+        env:
+        - name: POSTGRES_HOST
+          valueFrom:
+            secretKeyRef:
+              name: {{ tpl $masContext.postgres.host.secret $ }}
+              key: {{ $masContext.postgres.host.secretKey }}
+{{- end }}
         args:
         - tcpwait
 {{- if and $masContext.postgres (not (kindIs "string" $masContext.postgres.host)) $masContext.postgres.host.secret }}
-        - -address-file
-        - /secrets/{{ tpl $masContext.postgres.host.secret $ }}/{{ $masContext.postgres.host.secretKey }}
-        - -port
-        - {{ $masContext.postgres.port | default 5432 | quote }}
+        - -address
+        - "$(POSTGRES_HOST):{{ $masContext.postgres.port | default 5432 }}"
 {{- else }}
         - -address
         - {{ include "element-io.ess-library.postgres-host-port" (dict "root" $ "context" (dict "postgres" $masContext.postgres)) | quote }}
@@ -130,14 +136,9 @@ spec:
         resources:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-{{- if or (and $masContext.postgres (not (kindIs "string" $masContext.postgres.host)) $masContext.postgres.host.secret) .extraVolumeMounts }}
+{{- with .extraVolumeMounts }}
         volumeMounts:
-{{- if and $masContext.postgres (not (kindIs "string" $masContext.postgres.host)) $masContext.postgres.host.secret }}
-        - mountPath: /secrets/{{ tpl $masContext.postgres.host.secret $ }}
-          name: "secret-{{ (tpl $masContext.postgres.host.secret $) | sha256sum | trunc 12 }}"
-          readOnly: true
-{{- end }}
-{{- range .extraVolumeMounts }}
+{{- range . }}
         - {{ (. | toYaml) | nindent 10 }}
 {{- end }}
 {{- end }}
@@ -147,13 +148,19 @@ spec:
         securityContext:
           {{- toYaml . | nindent 10 }}
 {{- end }}
+{{- if and $synapseContext.postgres (not (kindIs "string" $synapseContext.postgres.host)) $synapseContext.postgres.host.secret }}
+        env:
+        - name: POSTGRES_HOST
+          valueFrom:
+            secretKeyRef:
+              name: {{ tpl $synapseContext.postgres.host.secret $ }}
+              key: {{ $synapseContext.postgres.host.secretKey }}
+{{- end }}
         args:
         - tcpwait
 {{- if and $synapseContext.postgres (not (kindIs "string" $synapseContext.postgres.host)) $synapseContext.postgres.host.secret }}
-        - -address-file
-        - /secrets/{{ tpl $synapseContext.postgres.host.secret $ }}/{{ $synapseContext.postgres.host.secretKey }}
-        - -port
-        - {{ $synapseContext.postgres.port | default 5432 | quote }}
+        - -address
+        - "$(POSTGRES_HOST):{{ $synapseContext.postgres.port | default 5432 }}"
 {{- else }}
         - -address
         - {{ include "element-io.ess-library.postgres-host-port" (dict "root" $ "context" (dict "postgres" $synapseContext.postgres)) | quote }}
@@ -162,14 +169,9 @@ spec:
         resources:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-{{- if or (and $synapseContext.postgres (not (kindIs "string" $synapseContext.postgres.host)) $synapseContext.postgres.host.secret) .extraVolumeMounts }}
+{{- with .extraVolumeMounts }}
         volumeMounts:
-{{- if and $synapseContext.postgres (not (kindIs "string" $synapseContext.postgres.host)) $synapseContext.postgres.host.secret }}
-        - mountPath: /secrets/{{ tpl $synapseContext.postgres.host.secret $ }}
-          name: "secret-{{ (tpl $synapseContext.postgres.host.secret $) | sha256sum | trunc 12 }}"
-          readOnly: true
-{{- end }}
-{{- range .extraVolumeMounts }}
+{{- range . }}
         - {{ (. | toYaml) | nindent 10 }}
 {{- end }}
 {{- end }}

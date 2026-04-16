@@ -16,7 +16,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- else if .postgres.host.value -}}
 {{ .postgres.host.value }}:{{ .postgres.port | default 5432 }}
 {{- else -}}
-{{- fail "postgres-host-port: host is from a secret and cannot be resolved at render time; use -address-file in db-wait instead" -}}
+{{- fail "postgres-host-port: host is from a secret and cannot be resolved at Helm render time" -}}
 {{- end -}}
 {{- else if $root.Values.postgres.enabled -}}
 {{ $root.Release.Name }}-postgres.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:5432
