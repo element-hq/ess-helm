@@ -34,10 +34,7 @@ encryption:
 
 cache:
 {{- if .redis }}
-  redisUri: "redis{{ if .redis.tls }}s{{ end }}://{{ tpl .redis.host $root }}:{{ .redis.port | default 6379 }}/{{ .redis.db | default 0 }}"
-{{- if .redis.password }}
-  redisPassword: ${HOOKSHOT_REDIS_PASSWORD}
-{{- end }}
+  redisUri: "redis{{ if .redis.tls }}s{{ end }}://{{ if .redis.password }}:${HOOKSHOT_REDIS_PASSWORD}@{{ end }}{{ tpl .redis.host $root }}:{{ .redis.port | default 6379 }}/{{ .redis.db | default 0 }}"
 {{- else }}
   redisUri: "redis://{{ $root.Release.Name }}-redis.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:6379"
 {{- end }}
