@@ -105,7 +105,7 @@ env:
 - name: HOOKSHOT_REDIS_PASSWORD
   value: >-
     {{
-      printf "{{ readfile \"/secrets/%s\" | quote }}"
+      printf "{{ readfile \"/secrets/%s\" | urlencode }}"
         (
           include "element-io.ess-library.provided-secret-path" (
             dict "root" $root
