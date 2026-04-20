@@ -14,9 +14,10 @@ from dataclasses import dataclass, field
 
 from .engine import MigrationEngine
 from .inputs import InputProcessor, ValidationError
-from .mas import parse_postgres_uri
+from .mas import MAS_STRATEGY_NAME, parse_postgres_uri
 from .models import MigrationError
 from .outputs import generate_helm_values, write_outputs
+from .synapse import SYNAPSE_STRATEGY_NAME
 from .utils import delay_next_steps, prompt_for_database_choice
 
 LOADING_STEP = "Loading and validating input files"
@@ -179,13 +180,13 @@ Examples:
         reporter.report_step(LOADING_STEP)
         input_processor = InputProcessor()
         input_processor.load_migration_input(
-            name="synapse",
+            name=SYNAPSE_STRATEGY_NAME,
             config_path=args.synapse_config,
         )
 
         if args.mas_config:
             input_processor.load_migration_input(
-                name="matrixAuthenticationService",
+                name=MAS_STRATEGY_NAME,
                 config_path=args.mas_config,
             )
 
@@ -228,7 +229,7 @@ Examples:
 
         # Process migrations
         for migrator in engine.migrators:
-            migration_input = engine.input_processor.input_for_component(migrator.component_root_key)
+            migration_input = engine.input_processor.input_for_strategy(migrator.name)
             # Migrators are created according to discovered input for components, we do not expect NoneTypes here
             assert migration_input
             source_file = migration_input.config_path
@@ -331,7 +332,7 @@ Examples:
         delay_next_steps(pretty_logger)
 
         # Get the original media path from Synapse configuration
-        synapse_input = engine.input_processor.input_for_component("synapse")
+        synapse_input = engine.input_processor.input_for_strategy(SYNAPSE_STRATEGY_NAME)
         original_media_path = None
         if synapse_input and synapse_input.config.get("media_store_path"):
             original_media_path = synapse_input.config["media_store_path"]
@@ -353,8 +354,8 @@ Examples:
             delay_next_steps(pretty_logger)
 
             # Get source database configuration from input files
-            synapse_input = engine.input_processor.input_for_component("synapse")
-            mas_input = engine.input_processor.input_for_component("matrixAuthenticationService")
+            synapse_input = engine.input_processor.input_for_strategy(SYNAPSE_STRATEGY_NAME)
+            mas_input = engine.input_processor.input_for_strategy(MAS_STRATEGY_NAME)
 
             # Extract source database info from Synapse configuration
             assert synapse_input

@@ -46,6 +46,8 @@ worker_types = [
     "user-dir",
 ]
 
+SYNAPSE_STRATEGY_NAME = "Synapse"
+
 
 def prompt_user_for_worker(
     pretty_logger: logging.Logger, instance_name: str, instance_props: Any, matched_worker_types: list[str]
@@ -240,8 +242,8 @@ class SynapseMigration(MigrationStrategy):
         self.global_options = global_options
 
     @property
-    def component_root_key(self) -> str:
-        return "synapse"
+    def name(self) -> str:
+        return SYNAPSE_STRATEGY_NAME
 
     @property
     def override_configs(self) -> set[str]:
@@ -331,10 +333,6 @@ class SynapseMigration(MigrationStrategy):
                 )
             ]
 
-    @property
-    def component_config_extras(self) -> dict[str, Any]:
-        return {"enabled": True}
-
 
 class SynapseSecretDiscovery(SecretDiscoveryStrategy):
     """Synapse-specific secret discovery implementation."""
@@ -386,8 +384,8 @@ class SynapseSecretDiscovery(SecretDiscoveryStrategy):
         return schema
 
     @property
-    def component_name(self) -> str:
-        return "Synapse"
+    def name(self) -> str:
+        return SYNAPSE_STRATEGY_NAME
 
     def discover_component_specific_secrets(self, config_data: dict) -> dict[str, DiscoveredSecret]:
         """
@@ -406,8 +404,8 @@ class SynapseSecretDiscovery(SecretDiscoveryStrategy):
 
 class SynapseExtraFileDiscovery(ExtraFilesDiscoveryStrategy):
     @property
-    def component_name(self) -> str:
-        return "Synapse"
+    def name(self) -> str:
+        return SYNAPSE_STRATEGY_NAME
 
     @property
     def ignored_config_keys(self) -> list[str]:

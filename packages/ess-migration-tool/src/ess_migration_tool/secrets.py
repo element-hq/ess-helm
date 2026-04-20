@@ -38,7 +38,7 @@ class SecretDiscovery:
 
     def discover_secrets(self, config_data: dict) -> None:
         """Discover secrets from configuration data."""
-        logging.info(f"Discovering {self.strategy.component_name} secrets from configuration")
+        logging.info(f"Discovering {self.strategy.name} secrets from configuration")
 
         # Common discovery using strategy's schema
         self._discover_secrets_from_schema(config_data)
@@ -116,8 +116,8 @@ class SecretDiscovery:
         """Validate that all required secrets are present."""
         if self.missing_required_secrets:
             missing_list = ", ".join(self.missing_required_secrets)
-            raise SecretsError(f"Missing required {self.strategy.component_name} secrets: {missing_list}")
-        logging.info(f"All required {self.strategy.component_name} secrets are present")
+            raise SecretsError(f"Missing required {self.strategy.name} secrets: {missing_list}")
+        logging.info(f"All required {self.strategy.name} secrets are present")
 
     def prompt_for_missing_secrets(self) -> None:
         """Prompt user to provide missing required secrets."""
@@ -128,15 +128,15 @@ class SecretDiscovery:
         if is_quiet_mode(self.pretty_logger):
             missing_list = ", ".join(self.missing_required_secrets)
             raise SecretsError(
-                f"Missing required {self.strategy.component_name} secrets in quiet mode: {missing_list}. "
+                f"Missing required {self.strategy.name} secrets in quiet mode: {missing_list}. "
                 "Cannot prompt for secrets when --quiet is enabled."
             )
 
-        component_name = self.strategy.component_name.upper()
+        name = self.strategy.name.upper()
         self.pretty_logger.info("\n" + "=" * 60)
-        self.pretty_logger.info(f"🔐 {component_name} SECRETS REQUIRED FOR MIGRATION")
+        self.pretty_logger.info(f"🔐 {name} SECRETS REQUIRED FOR MIGRATION")
         self.pretty_logger.info("=" * 60)
-        self.pretty_logger.info(f"The following {component_name} secrets are required but could not be automatically")
+        self.pretty_logger.info(f"The following {name} secrets are required but could not be automatically")
         self.pretty_logger.info("discovered from your configuration files. Please provide them:")
 
         for secret_key in self.missing_required_secrets[:]:
@@ -182,5 +182,5 @@ class SecretDiscovery:
                     self.pretty_logger.info("\n   ❌ End of input reached")
                     raise SecretsError("End of input reached during secret prompt") from err
 
-        self.pretty_logger.info(f"\n✅ All required {component_name} secrets have been provided")
+        self.pretty_logger.info(f"\n✅ All required {name} secrets have been provided")
         self.pretty_logger.info("=" * 60)

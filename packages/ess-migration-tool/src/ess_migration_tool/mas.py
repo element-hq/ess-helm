@@ -20,6 +20,9 @@ from .utils import detect_key_type, extract_hostname_from_url, yaml_dump_with_pi
 logger = logging.getLogger("migration")
 
 
+MAS_STRATEGY_NAME = "Matrix Authentication Service"
+
+
 def parse_postgres_uri(uri: str) -> dict[str, Any]:
     """
     Parse a PostgreSQL connection URI and extract database configuration.
@@ -208,8 +211,8 @@ class MASMigration(MigrationStrategy):
         self.global_options = global_options
 
     @property
-    def component_root_key(self) -> str:
-        return "matrixAuthenticationService"
+    def name(self) -> str:
+        return MAS_STRATEGY_NAME
 
     @property
     def override_configs(self) -> set[str]:
@@ -289,8 +292,8 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
         self.global_options = global_options
 
     @property
-    def component_name(self) -> str:
-        return "Matrix Authentication Service"
+    def name(self) -> str:
+        return MAS_STRATEGY_NAME
 
     @property
     def ess_secret_schema(self) -> dict[str, SecretConfig]:
@@ -482,8 +485,8 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
 
 class MASExtraFileDiscovery(ExtraFilesDiscoveryStrategy):
     @property
-    def component_name(self) -> str:
-        return "Matrix Authentication Service"
+    def name(self) -> str:
+        return MAS_STRATEGY_NAME
 
     @property
     def ignored_config_keys(self) -> list[str]:
