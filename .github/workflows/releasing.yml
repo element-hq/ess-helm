@@ -83,6 +83,9 @@ jobs:
         # Copy the pyhelm3 source into the extracted package
         mv pyhelm3/pyhelm3 "extracted/$EXTRACTED_DIR/"
 
+        # Step 6: Remove the Requires-Dist line from PKG-INFO
+        sed -i "/Requires-Dist: pyhelm3 @ git+https:\/\/github.com\/element-hq\/pyhelm3.git@$PYHELM_GIT_REF/d" "extracted/$EXTRACTED_DIR/PKG-INFO"
+
         # Repack the tarball
         cd extracted
         PATCHED_TARBALL="patched_$(basename "$TARBALL")"
