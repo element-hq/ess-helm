@@ -21,8 +21,8 @@ class MigrationStrategy(Protocol):
         ...
 
     @property
-    def component_root_key(self) -> str:
-        """Get the component root key (e.g., 'synapse', 'matrixAuthenticationService')."""
+    def name(self) -> str:
+        """Get the strategy name (e.g., 'synapse', 'matrixAuthenticationService')."""
         ...
 
     @property
@@ -50,8 +50,8 @@ class SecretDiscoveryStrategy(Protocol):
         ...
 
     @property
-    def component_name(self) -> str:
-        """Get the component name for user-facing messages."""
+    def name(self) -> str:
+        """Get the strategy name for user-facing messages."""
         ...
 
     def discover_component_specific_secrets(self, config_data: dict) -> dict[str, DiscoveredSecret]:
@@ -82,6 +82,6 @@ class ExtraFilesDiscoveryStrategy(Protocol):
         ...
 
     @property
-    def component_name(self) -> str:
-        """Get the component name for user-facing messages."""
+    def name(self) -> str:
+        """Get the strategy name for user-facing messages."""
         ...

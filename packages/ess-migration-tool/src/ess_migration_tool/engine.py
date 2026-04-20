@@ -45,7 +45,7 @@ class MigrationEngine:
             ),
             (MASMigration(self.global_options), MASSecretDiscovery(self.global_options), MASExtraFileDiscovery()),
         ]:
-            migration_input = self.input_processor.input_for_component(migration.component_root_key)
+            migration_input = self.input_processor.input_for_strategy(migration.name)
             if migration_input:
                 self.migrators.append(
                     MigrationService(
@@ -77,16 +77,13 @@ class MigrationEngine:
             self.discovered_secrets.extend(migrator.discovered_secrets)
             self.init_by_ess_secrets.extend(migrator.init_by_ess_secrets)
 
-        # Handle component-specific relationships after migration
-        migrated_components = {migrator.component_root_key for migrator in self.migrators}
-
         # Define all known ESS components
         # These are components that can be managed by ESS Helm chart
         ALL_ESS_COMPONENTS = {"synapse", "matrixAuthenticationService", "elementWeb", "elementAdmin", "matrixRTC"}
 
         # Disable any ESS component that was not migrated
         for component in ALL_ESS_COMPONENTS:
-            if component not in migrated_components:
+            if component not in self.ess_config:
                 self.ess_config.setdefault(component, {})["enabled"] = False
 
         logger.info("Migration process completed successfully")

@@ -208,7 +208,7 @@ class MASMigration(MigrationStrategy):
         self.global_options = global_options
 
     @property
-    def component_root_key(self) -> str:
+    def name(self) -> str:
         return "matrixAuthenticationService"
 
     @property
@@ -289,7 +289,7 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
         self.global_options = global_options
 
     @property
-    def component_name(self) -> str:
+    def name(self) -> str:
         return "Matrix Authentication Service"
 
     @property
@@ -482,7 +482,7 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
 
 class MASExtraFileDiscovery(ExtraFilesDiscoveryStrategy):
     @property
-    def component_name(self) -> str:
+    def name(self) -> str:
         return "Matrix Authentication Service"
 
     @property

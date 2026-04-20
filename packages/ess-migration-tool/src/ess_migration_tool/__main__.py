@@ -228,7 +228,7 @@ Examples:
 
         # Process migrations
         for migrator in engine.migrators:
-            migration_input = engine.input_processor.input_for_component(migrator.component_root_key)
+            migration_input = engine.input_processor.input_for_strategy(migrator.name)
             # Migrators are created according to discovered input for components, we do not expect NoneTypes here
             assert migration_input
             source_file = migration_input.config_path
@@ -331,7 +331,7 @@ Examples:
         delay_next_steps(pretty_logger)
 
         # Get the original media path from Synapse configuration
-        synapse_input = engine.input_processor.input_for_component("synapse")
+        synapse_input = engine.input_processor.input_for_strategy("synapse")
         original_media_path = None
         if synapse_input and synapse_input.config.get("media_store_path"):
             original_media_path = synapse_input.config["media_store_path"]
@@ -353,8 +353,8 @@ Examples:
             delay_next_steps(pretty_logger)
 
             # Get source database configuration from input files
-            synapse_input = engine.input_processor.input_for_component("synapse")
-            mas_input = engine.input_processor.input_for_component("matrixAuthenticationService")
+            synapse_input = engine.input_processor.input_for_strategy("synapse")
+            mas_input = engine.input_processor.input_for_strategy("matrixAuthenticationService")
 
             # Extract source database info from Synapse configuration
             assert synapse_input

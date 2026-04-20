@@ -240,7 +240,7 @@ class SynapseMigration(MigrationStrategy):
         self.global_options = global_options
 
     @property
-    def component_root_key(self) -> str:
+    def name(self) -> str:
         return "synapse"
 
     @property
@@ -331,10 +331,6 @@ class SynapseMigration(MigrationStrategy):
                 )
             ]
 
-    @property
-    def component_config_extras(self) -> dict[str, Any]:
-        return {"enabled": True}
-
 
 class SynapseSecretDiscovery(SecretDiscoveryStrategy):
     """Synapse-specific secret discovery implementation."""
@@ -386,7 +382,7 @@ class SynapseSecretDiscovery(SecretDiscoveryStrategy):
         return schema
 
     @property
-    def component_name(self) -> str:
+    def name(self) -> str:
         return "Synapse"
 
     def discover_component_specific_secrets(self, config_data: dict) -> dict[str, DiscoveredSecret]:
@@ -406,7 +402,7 @@ class SynapseSecretDiscovery(SecretDiscoveryStrategy):
 
 class SynapseExtraFileDiscovery(ExtraFilesDiscoveryStrategy):
     @property
-    def component_name(self) -> str:
+    def name(self) -> str:
         return "Synapse"
 
     @property
