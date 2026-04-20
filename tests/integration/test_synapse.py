@@ -5,6 +5,8 @@
 
 import asyncio
 import hashlib
+import ipaddress
+import re
 import uuid
 from pathlib import Path
 
@@ -55,10 +57,7 @@ async def test_synapse_exposes_chart_version_edition(
 @pytest.mark.skipif(value_file_has("synapse.enabled", False), reason="Synapse not deployed")
 @pytest.mark.asyncio_cooperative
 async def test_synapse_can_access_client_api(
-    ingress_ready,
-    ssl_context,
-    generated_data: ESSData,
-    helm_client: pyhelm3.Client,
+    ingress_ready, ssl_context, generated_data: ESSData, kube_client: AsyncClient
 ):
     await ingress_ready("synapse")
 
@@ -72,6 +71,27 @@ async def test_synapse_can_access_client_api(
 
     # Push notifications for encrypted messages
     assert json_content["unstable_features"]["org.matrix.msc4028"]
+
+    # Validate that Traefik -> HAProxy -> Synapse is honouring the external IP address and
+    # not overwriting it with a cluster-internal IP address
+    async for line in kube_client.log(
+        f"{generated_data.release_name}-synapse-main-0", namespace=generated_data.ess_namespace, newlines=False
+    ):
+        versions_log_line = re.search(r"INFO - GET-\d+ - ([^\s]+) - .*\"GET /_matrix/client/versions ", line)
+        if versions_log_line is None:
+            continue
+        client_ip_address = ipaddress.ip_address(versions_log_line.group(1))
+        assert client_ip_address, f"{versions_log_line} did not have a client IP address"
+        # These CIDRs are k3s' default as per https://docs.k3s.io/networking/basic-network-options
+        assert client_ip_address not in ipaddress.IPv4Network("10.42.0.0/16"), (
+            f"{versions_log_line} showed request was inside the k3s IPv4 CIDR not external"
+        )
+        assert client_ip_address not in ipaddress.IPv6Network("2001:db8:42::/56"), (
+            f"{versions_log_line} showed request was inside the k3s IPv6 CIDR not external"
+        )
+        break
+    else:
+        raise AssertionError("Couldn't find a /_matrix/client_versions log line to test")
 
 
 @pytest.mark.skipif(value_file_has("synapse.enabled", False), reason="Synapse not deployed")

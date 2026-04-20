@@ -49,6 +49,9 @@ files:
 - source: audit-policy.yml
   destination: /etc/kubernetes/policies/audit-policy.yaml
   nodeFilters: [servers:*]
+- source: traefik.yml
+  destination: /var/lib/rancher/k3s/server/manifests/traefik-config.yaml
+  nodeFilters: [servers:*]
 registries:
   create:
     name: k3d-ess-helm-registry

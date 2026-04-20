@@ -1,0 +1,39 @@
+# Copyright 2026 Element Creations Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    service:
+      spec:
+        # So that we see the real connecting IP
+        # As per https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip
+        externalTrafficPolicy: Local
+    ports:
+      web:
+        forwardedHeaders:
+          trustedIPs:
+            - "10.42.0.0/16"
+            - "2001:db8:42::/56"
+        http:
+          # These don't do anything at present as k3d embeds Traefik Helm 37.1.1
+          # Will be needed on Traefik Helm >=38.0.0
+          encodedCharacters:
+            allowEncodedHash: true
+            allowEncodedSlash: true
+      websecure:
+        forwardedHeaders:
+          trustedIPs:
+            - "10.42.0.0/16"
+            - "2001:db8:42::/56"
+        http:
+          # These don't do anything at present as k3d embeds Traefik Helm 37.1.1
+          # Will be needed on Traefik Helm >=38.0.0
+          encodedCharacters:
+            allowEncodedHash: true
+            allowEncodedSlash: true
