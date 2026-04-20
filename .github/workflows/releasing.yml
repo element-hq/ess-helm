@@ -86,7 +86,7 @@ jobs:
         # Repack the tarball
         cd extracted
         PATCHED_TARBALL="patched_$(basename "$TARBALL")"
-        tar -czf "../dist/$PATCHED_TARBALL" *
+        tar -czf "../dist/$PATCHED_TARBALL  " -- .
         cd ..
         mv "dist/$PATCHED_TARBALL" "dist/$(basename "$TARBALL")"
 
