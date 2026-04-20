@@ -68,7 +68,7 @@ jobs:
         git clone https://github.com/element-hq/pyhelm3.git
         cd pyhelm3
         git checkout "$PYHELM_GIT_REF"
-        cd ..
+        cd -
 
         # Extract the ess-community-integration-tests tarball
         mkdir extracted
@@ -86,8 +86,8 @@ jobs:
         # Repack the tarball
         cd extracted
         PATCHED_TARBALL="patched_$(basename "$TARBALL")"
-        tar -czf "../dist/$PATCHED_TARBALL  " -- .
-        cd ..
+        tar -czf "../dist/$PATCHED_TARBALL" -- .
+        cd -
         mv "dist/$PATCHED_TARBALL" "dist/$(basename "$TARBALL")"
 
         # Clean up
