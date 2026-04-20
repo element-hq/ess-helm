@@ -50,6 +50,7 @@ jobs:
     # because the pyhelm3 package we use is a git ref
     # and Pypi rejects packages with git refs dependencies
     - name: Build
+      shell: bash
       run: |
         # Build the ess-community-integration-tests package
         uv build --package ess-community-integration-tests
