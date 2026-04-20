@@ -46,17 +46,10 @@ jobs:
           uv version --directory tests/ --bump "dev=$GITHUB_RUN_ID"
         fi
 
-    # We have to go through some hoops to build the package
-    # because the pyhelm3 package we use is a git ref
-    # and Pypi rejects packages with git refs dependencies
-    - name: Build
-      shell: bash
+    # Because pyhelm3 is a git ref, the package cannot use it as direct dependencies when pushing to Pypi
+    # Instead we manually vendor pyhelm3 in the package when releasing it in CI
+    - name: Fetch pyhelm3
       run: |
-        # Build the ess-community-integration-tests package
-        uv build --package ess-community-integration-tests --sdist
-        TARBALL=$(ls dist/ess_community_integration_tests-*.tar.gz)
-        echo "Built tarball: $TARBALL"
-
         # Extract the Git reference for pyhelm3 from pyproject.toml
         PYHELM_GIT_REF=$(grep -oP 'pyhelm3 @ git\+https://github.com/element-hq/pyhelm3.git@\K[^"]+' tests/pyproject.toml)
         if [ -z "$PYHELM_GIT_REF" ]; then
@@ -70,32 +63,15 @@ jobs:
         cd pyhelm3
         git checkout "$PYHELM_GIT_REF"
         cd -
-
-        # Extract the ess-community-integration-tests tarball
-        mkdir extracted
-        tar -xzf "$TARBALL" -C extracted
-        EXTRACTED_DIR=$(ls extracted)
-        echo "Extracted to: $EXTRACTED_DIR"
+        mv pyhelm3/pyhelm3 tests/pyhelm3
+        rm -rf pyhelm3
 
         # Patch pyproject.toml to remove pyhelm3 dependency
-        sed -i '/pyhelm3 @ git+https:\/\/github.com\/element-hq\/pyhelm3.git@efa509e7501edeb9d04f2a9e688f6e0088305954/d' "extracted/$EXTRACTED_DIR/pyproject.toml"
-        sed -i 's/\(module-name = "integration"\)/module-name = ["pyhelm3", "integration"]/' "extracted/$EXTRACTED_DIR/pyproject.toml"
+        sed -i '/pyhelm3 @ git+https:\/\/github.com\/element-hq\/pyhelm3.git@'"$PYHELM_GIT_REF/d" "tests/pyproject.toml"
+        sed -i 's/\(module-name = "integration"\)/module-name = ["pyhelm3", "integration"]/' "tests/pyproject.toml"
 
-        # Copy the pyhelm3 source into the extracted package
-        mv pyhelm3/pyhelm3 "extracted/$EXTRACTED_DIR/"
-
-        # Step 6: Remove the Requires-Dist line from PKG-INFO
-        sed -i "/Requires-Dist: pyhelm3 @ git+https:\/\/github.com\/element-hq\/pyhelm3.git@$PYHELM_GIT_REF/d" "extracted/$EXTRACTED_DIR/PKG-INFO"
-
-        # Repack the tarball
-        cd extracted
-        PATCHED_TARBALL="patched_$(basename "$TARBALL")"
-        tar -czf "../dist/$PATCHED_TARBALL" -- .
-        cd -
-        mv "dist/$PATCHED_TARBALL" "dist/$(basename "$TARBALL")"
-
-        # Clean up
-        rm -rf extracted pyhelm3
+    - name: Build
+      run: uv build --package ess-community-integration-tests
 
     # Check that basic features work and we didn't miss to include crucial files
     - name: Smoke test (source distribution)
