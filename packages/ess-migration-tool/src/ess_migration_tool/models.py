@@ -7,7 +7,6 @@
 Data models for the migration script using Python dataclasses.
 """
 
-import logging
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -70,7 +69,7 @@ class TransformationSpec:
     src_key: str  # Source configuration path
     target_key: str  # Target ESS configuration path
     required: bool = True  # Whether this transformation is required
-    transformer: Callable[[logging.Logger, Any], Any] | None = None  # Optional transformation function
+    transformer: Callable[..., Any] | None = None  # Optional transformation function
 
 
 @dataclass

@@ -96,13 +96,12 @@ def get_nested_value(config: dict[str, Any], path: str) -> Any:
 
     Args:
         config: Configuration dictionary
-        path: Dot-separated path to the value. Empty string returns entire config.
+        path: Dot-separated path to the value. Single dot "." returns entire config.
 
     Returns:
         The value at the specified path, or None if not found
     """
-    if not path:
-        # Empty path returns the entire config
+    if path == ".":
         return config
     if "." in path:
         # Nested path
@@ -167,12 +166,13 @@ def remove_nested_value(config: dict[str, Any], path: str) -> None:
             del config[path]
 
 
-def extract_hostname_from_url(_, url: str) -> str:
+def extract_hostname_from_url(_, url: str, **kwargs: Any) -> str:
     """
     Extract hostname from a URL string.
 
     Args:
         url: URL string to parse
+        **kwargs: Optional context parameters (unused)
 
     Returns:
         Hostname as string if successful, None otherwise

@@ -13,7 +13,7 @@ import urllib
 from typing import Any
 
 from .interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
-from .migration import MigrationStrategy, TransformationSpec
+from .migration import MigrationStrategy, TransformationSpec, additional_config_transformer
 from .models import DiscoveredSecret, GlobalOptions, SecretConfig
 from .utils import detect_key_type, extract_hostname_from_url, yaml_dump_with_pipe_for_multiline
 
@@ -67,12 +67,13 @@ def parse_postgres_uri(uri: str) -> dict[str, Any]:
         return {}
 
 
-def extract_port_from_uri(_, uri: str) -> int | None:
+def extract_port_from_uri(_, uri: str, **kwargs: Any) -> int | None:
     """
     Extract port from PostgreSQL URI, returning None if not present.
 
     Args:
         uri: PostgreSQL connection URI
+        **kwargs: Optional context parameters (unused)
 
     Returns:
         Port as integer if present, None otherwise
@@ -82,7 +83,9 @@ def extract_port_from_uri(_, uri: str) -> int | None:
     return int(port) if port is not None else None
 
 
-def filter_mas_listeners(pretty_logger: logging.Logger, listeners: list[dict] | None) -> dict[str, Any] | None:
+def filter_mas_listeners(
+    pretty_logger: logging.Logger, listeners: list[dict] | None, **kwargs: Any
+) -> dict[str, Any] | None:
     """
     Filter out listeners that are managed by the ESS chart for MAS.
 
@@ -93,6 +96,7 @@ def filter_mas_listeners(pretty_logger: logging.Logger, listeners: list[dict] | 
     Args:
         pretty_logger: Logger for user-friendly output
         listeners: List of listener configurations from source MAS config
+        **kwargs: Optional context parameters (unused)
 
     Returns:
         Dictionary with listeners.yml config structure, or None if no custom listeners remain
@@ -233,6 +237,12 @@ class MASMigration(MigrationStrategy):
                 transformer=filter_mas_listeners,
                 required=False,
             ),  # Filter out chart-managed listeners and output to additional config
+            TransformationSpec(
+                src_key=".",
+                target_key="matrixAuthenticationService.additional",
+                transformer=additional_config_transformer,
+                required=False,
+            ),  # Generic additional config generation
             # ... other non-database transformations ...
         ]
 
@@ -242,7 +252,7 @@ class MASMigration(MigrationStrategy):
                 TransformationSpec(
                     src_key="database.uri",
                     target_key="matrixAuthenticationService.postgres.host",
-                    transformer=lambda _, uri: parse_postgres_uri(uri).get("host"),
+                    transformer=lambda _, uri, **kw: parse_postgres_uri(uri).get("host"),
                     required=True,
                 ),
                 TransformationSpec(
@@ -254,19 +264,19 @@ class MASMigration(MigrationStrategy):
                 TransformationSpec(
                     src_key="database.uri",
                     target_key="matrixAuthenticationService.postgres.user",
-                    transformer=lambda _, uri: parse_postgres_uri(uri).get("user"),
+                    transformer=lambda _, uri, **kw: parse_postgres_uri(uri).get("user"),
                     required=True,
                 ),
                 TransformationSpec(
                     src_key="database.uri",
                     target_key="matrixAuthenticationService.postgres.database",
-                    transformer=lambda _, uri: parse_postgres_uri(uri).get("name"),
+                    transformer=lambda _, uri, **kw: parse_postgres_uri(uri).get("name"),
                     required=True,
                 ),
                 TransformationSpec(
                     src_key="database.uri",
                     target_key="matrixAuthenticationService.postgres.sslMode",
-                    transformer=lambda _, uri: parse_postgres_uri(uri).get("ssl"),
+                    transformer=lambda _, uri, **kw: parse_postgres_uri(uri).get("ssl"),
                     required=False,
                 ),
                 # ... other database property transformations ...
@@ -277,7 +287,7 @@ class MASMigration(MigrationStrategy):
                 TransformationSpec(
                     src_key="database",  # Trigger on database section
                     target_key="postgres.enabled",
-                    transformer=lambda _, __: True,  # Set to True for ESS-managed Postgres
+                    transformer=lambda _, __, **kw: True,  # Set to True for ESS-managed Postgres
                 )
             ]
 
@@ -306,7 +316,7 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
                 description="MAS database password",
                 config_inline="database.uri",
                 config_path=None,
-                transformer=lambda uri: parse_postgres_uri(uri).get("password"),
+                transformer=lambda uri, **kw: parse_postgres_uri(uri).get("password"),
             )
 
         # Other MAS secrets (always included)

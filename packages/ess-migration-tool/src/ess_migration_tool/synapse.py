@@ -14,7 +14,7 @@ from typing import Any
 from rapidfuzz import fuzz, process
 
 from .interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
-from .migration import MigrationStrategy, TransformationSpec
+from .migration import MigrationStrategy, TransformationSpec, additional_config_transformer
 from .models import DiscoveredSecret, GlobalOptions, MigrationError, SecretConfig
 from .utils import extract_hostname_from_url, yaml_dump_with_pipe_for_multiline
 
@@ -83,7 +83,7 @@ def prompt_user_for_worker(
 
 
 def extract_workers_from_instance_map(
-    pretty_logger: logging.Logger, instance_map: dict[str, Any] | None
+    pretty_logger: logging.Logger, instance_map: dict[str, Any] | None, **kwargs: Any
 ) -> dict[str, Any] | None:
     """Extract workers from the instance map."""
 
@@ -112,7 +112,7 @@ def extract_workers_from_instance_map(
     return selected_workers
 
 
-def extract_database_name(pretty_logger: logging.Logger, database_args: dict[str, Any]) -> str:
+def extract_database_name(pretty_logger: logging.Logger, database_args: dict[str, Any], **kwargs: Any) -> str:
     """Extract database name from the database arguments."""
     database_name = database_args.get("dbname")
     if not database_name:
@@ -123,13 +123,14 @@ def extract_database_name(pretty_logger: logging.Logger, database_args: dict[str
     return database_name
 
 
-def prompt_for_ingress_host(pretty_logger: logging.Logger, public_baseurl: str | None) -> str:
+def prompt_for_ingress_host(pretty_logger: logging.Logger, public_baseurl: str | None, **kwargs: Any) -> str:
     """
     Prompt user for ingress host when public_baseurl is missing.
 
     Args:
         pretty_logger: Logger for user-friendly output
         public_baseurl: The public base URL from source config (may be None or empty)
+        **kwargs: Optional context parameters (unused)
 
     Returns:
         The ingress host (hostname extracted from public_baseurl or user input)
@@ -161,7 +162,9 @@ def prompt_for_ingress_host(pretty_logger: logging.Logger, public_baseurl: str |
             raise MigrationError("End of input reached during ingress host prompt") from err
 
 
-def filter_listeners(pretty_logger: logging.Logger, listeners: list[dict] | None) -> dict[str, Any] | None:
+def filter_listeners(
+    pretty_logger: logging.Logger, listeners: list[dict] | None, **kwargs: Any
+) -> dict[str, Any] | None:
     """
     Filter out listeners that are managed by the ESS chart.
 
@@ -172,6 +175,7 @@ def filter_listeners(pretty_logger: logging.Logger, listeners: list[dict] | None
     Args:
         pretty_logger: Logger for user-friendly output
         listeners: List of listener configurations from source Synapse config
+        **kwargs: Optional context parameters (unused)
 
     Returns:
         Dictionary with listeners.yml config structure, or None if no custom listeners remain
@@ -304,6 +308,12 @@ class SynapseMigration(MigrationStrategy):
                 transformer=filter_listeners,
                 required=False,
             ),  # Filter out chart-managed listeners and output to additional config
+            TransformationSpec(
+                src_key=".",
+                target_key="synapse.additional",
+                transformer=additional_config_transformer,
+                required=False,
+            ),  # Generic additional config generation
             # ... other non-database transformations ...
         ]
 
@@ -327,7 +337,7 @@ class SynapseMigration(MigrationStrategy):
                 TransformationSpec(
                     src_key="database",  # Trigger on database section
                     target_key="postgres.enabled",
-                    transformer=lambda _, __: True,  # Set to True for ESS-managed Postgres
+                    transformer=lambda _, __, **kw: True,  # Set to True for ESS-managed Postgres
                 )
             ]
 
