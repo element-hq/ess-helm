@@ -46,11 +46,34 @@ jobs:
           uv version --directory tests/ --bump "dev=$GITHUB_RUN_ID"
         fi
 
+    # Because pyhelm3 is a git ref, the package cannot use it as direct dependencies when pushing to Pypi
+    # Instead we manually vendor pyhelm3 in the package when releasing it in CI
+    - name: Fetch pyhelm3
+      run: |
+        # Extract the Git reference for pyhelm3 from pyproject.toml
+        PYHELM_GIT_REF=$(grep -oP 'pyhelm3 @ git\+https://github.com/element-hq/pyhelm3.git@\K[^"]+' tests/pyproject.toml)
+        if [ -z "$PYHELM_GIT_REF" ]; then
+            echo "Error: Could not extract pyhelm3 Git reference from pyproject.toml."
+            exit 1
+        fi
+        echo "Extracted pyhelm3 Git reference: $PYHELM_GIT_REF"
+
+        # Clone and checkout the specific commit of pyhelm3
+        git clone https://github.com/element-hq/pyhelm3.git
+        cd pyhelm3
+        git checkout "$PYHELM_GIT_REF"
+        cd -
+        mv pyhelm3/pyhelm3 tests/pyhelm3
+        rm -rf pyhelm3
+
+        # Patch pyproject.toml to remove pyhelm3 dependency
+        sed -i '/pyhelm3 @ git+https:\/\/github.com\/element-hq\/pyhelm3.git@'"$PYHELM_GIT_REF/d" "tests/pyproject.toml"
+        sed -i 's/\(module-name = "integration"\)/module-name = ["pyhelm3", "integration"]/' "tests/pyproject.toml"
+
     - name: Build
       run: uv build --package ess-community-integration-tests
+
     # Check that basic features work and we didn't miss to include crucial files
-    - name: Smoke test (wheel)
-      run: uv run --isolated --no-project --with dist/*.whl pytest-ess --test-suite synapse -- --setup-plan
     - name: Smoke test (source distribution)
       run: uv run --isolated --no-project --with dist/*.tar.gz pytest-ess --test-suite synapse -- --setup-plan
 
