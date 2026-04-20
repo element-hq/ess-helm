@@ -211,19 +211,50 @@ chown "$USER:$USER" "$KUBECONFIG"
 
 3. Add `export KUBECONFIG=~/.kube/config` to `~/.bashrc` to make it persistent
 
-4. Install Helm, the Kubernetes Package Manager. You can use your [OS repository](https://helm.sh/docs/intro/install/) or call the following command:
+4. Customise Traefik by creating the file `traefik-config.yaml` in `/var/lib/rancher/k3s/server/manifests`
+
+```yaml
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    ports:
+      web:
+        forwardedHeaders:
+          trustedIPs:
+            - "10.42.0.0/16"
+            - "2001:db8:42::/56"
+        http:
+          encodedCharacters:
+            allowEncodedHash: true
+            allowEncodedSlash: true
+      websecure
+        forwardedHeaders:
+          trustedIPs:
+            - "10.42.0.0/16"
+            - "2001:db8:42::/56"
+        http:
+          encodedCharacters:
+            allowEncodedHash: true
+            allowEncodedSlash: true
+```
+
+5. Install Helm, the Kubernetes Package Manager. You can use your [OS repository](https://helm.sh/docs/intro/install/) or call the following command:
 
 ```
 curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 ```
 
-5. Create your Kubernetes namespace where you will deploy the Element Server Suite Community:
+6. Create your Kubernetes namespace where you will deploy the Element Server Suite Community:
 
 ```
 kubectl create namespace ess
 ```
 
-6. Create a directory containing your Element Server Suite configuration values:
+7. Create a directory containing your Element Server Suite configuration values:
 
 ```
 mkdir ~/ess-config-values
