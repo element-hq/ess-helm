@@ -57,7 +57,7 @@ If the goal is to have a drive dedicated to K3s one may also mount an external d
 
 ## Configuring Traefik ingress timeouts when using K3s
 
-If you are experiencing timeouts when uploading large files to ESS, you will want to customize Traefik timeouts creating the file `traefik-config.yaml` in `/var/lib/rancher/k3s/server/manifests`. If the file already exists because you have configured custom ports for Traefik, add the example below to the existing file.
+If you are experiencing timeouts when uploading large files to ESS, you will want to customize Traefik timeouts creating the file `traefik-config.yaml` in `/var/lib/rancher/k3s/server/manifests`. If the file already exists because you have configured custom ports or trusted IPs as per the [README](../README.md#kubernetes-single-node-setup-with-k3s) for Traefik, add the example below to the existing file.
 
 ```yml
 apiVersion: helm.cattle.io/v1
