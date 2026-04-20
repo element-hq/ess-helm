@@ -53,7 +53,7 @@ jobs:
       shell: bash
       run: |
         # Build the ess-community-integration-tests package
-        uv build --package ess-community-integration-tests
+        uv build --package ess-community-integration-tests --sdist
         TARBALL=$(ls dist/ess_community_integration_tests-*.tar.gz)
         echo "Built tarball: $TARBALL"
 
