@@ -78,9 +78,10 @@ jobs:
 
         # Patch pyproject.toml to remove pyhelm3 dependency
         sed -i '/pyhelm3 @ git+https:\/\/github.com\/element-hq\/pyhelm3.git@efa509e7501edeb9d04f2a9e688f6e0088305954/d' "extracted/$EXTRACTED_DIR/pyproject.toml"
+        sed -i 's/\(module-name = "integration"\)/module-name = ["pyhelm3", "integration"]/' "extracted/$EXTRACTED_DIR/pyproject.toml"
 
         # Copy the pyhelm3 source into the extracted package
-        cp -r pyhelm3 "extracted/$EXTRACTED_DIR/"
+        mv pyhelm3/pyhelm3 "extracted/$EXTRACTED_DIR/"
 
         # Repack the tarball
         cd extracted
