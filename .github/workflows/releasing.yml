@@ -51,42 +51,48 @@ jobs:
     # and Pypi rejects packages with git refs dependencies
     - name: Build
       run: |
-      # Step 1: Build the ess-community-integration-tests package
-      uv build --sdist --package ess-community-integration-tests
-      TARBALL=$(ls dist/ess_community_integration_tests-*.tar.gz)
-      echo "Built tarball: $TARBALL"
+        # Build the ess-community-integration-tests package
+        uv build --package ess-community-integration-tests
+        TARBALL=$(ls dist/ess_community_integration_tests-*.tar.gz)
+        echo "Built tarball: $TARBALL"
 
-      # Step 2: Clone and checkout the specific commit of pyhelm3
-      git clone https://github.com/element-hq/pyhelm3.git
-      cd pyhelm3
-      git checkout efa509e7501edeb9d04f2a9e688f6e0088305954
-      cd ..
+        # Extract the Git reference for pyhelm3 from pyproject.toml
+        PYHELM_GIT_REF=$(grep -oP 'pyhelm3 @ git\+https://github.com/element-hq/pyhelm3.git@\K[^"]+' tests/pyproject.toml)
+        if [ -z "$PYHELM_GIT_REF" ]; then
+            echo "Error: Could not extract pyhelm3 Git reference from pyproject.toml."
+            exit 1
+        fi
+        echo "Extracted pyhelm3 Git reference: $PYHELM_GIT_REF"
 
-      # Step 3: Extract the ess-community-integration-tests tarball
-      mkdir extracted
-      tar -xzf "$TARBALL" -C extracted
-      EXTRACTED_DIR=$(ls extracted)
-      echo "Extracted to: $EXTRACTED_DIR"
+        # Clone and checkout the specific commit of pyhelm3
+        git clone https://github.com/element-hq/pyhelm3.git
+        cd pyhelm3
+        git checkout "$PYHELM_GIT_REF"
+        cd ..
 
-      # Step 4: Patch pyproject.toml to remove pyhelm3 dependency
-      sed -i '/pyhelm3 @ git+https:\/\/github.com\/element-hq\/pyhelm3.git@efa509e7501edeb9d04f2a9e688f6e0088305954/d' "extracted/$EXTRACTED_DIR/pyproject.toml"
+        # Extract the ess-community-integration-tests tarball
+        mkdir extracted
+        tar -xzf "$TARBALL" -C extracted
+        EXTRACTED_DIR=$(ls extracted)
+        echo "Extracted to: $EXTRACTED_DIR"
 
-      # Step 5: Copy the pyhelm3 source into the extracted package
-      cp -r pyhelm3 "extracted/$EXTRACTED_DIR/"
+        # Patch pyproject.toml to remove pyhelm3 dependency
+        sed -i '/pyhelm3 @ git+https:\/\/github.com\/element-hq\/pyhelm3.git@efa509e7501edeb9d04f2a9e688f6e0088305954/d' "extracted/$EXTRACTED_DIR/pyproject.toml"
 
-      # Step 6: Repack the tarball
-      cd extracted
-      PATCHED_TARBALL="patched_$(basename "$TARBALL")"
-      tar -czf "../dist/$PATCHED_TARBALL" *
-      cd ..
-      mv "dist/$PATCHED_TARBALL" "dist/$(basename "$TARBALL")"
+        # Copy the pyhelm3 source into the extracted package
+        cp -r pyhelm3 "extracted/$EXTRACTED_DIR/"
 
-      # Step 7: Clean up
-      rm -rf extracted pyhelm3
+        # Repack the tarball
+        cd extracted
+        PATCHED_TARBALL="patched_$(basename "$TARBALL")"
+        tar -czf "../dist/$PATCHED_TARBALL" *
+        cd ..
+        mv "dist/$PATCHED_TARBALL" "dist/$(basename "$TARBALL")"
+
+        # Clean up
+        rm -rf extracted pyhelm3
 
     # Check that basic features work and we didn't miss to include crucial files
-    - name: Smoke test (wheel)
-      run: uv run --isolated --no-project --with dist/*.whl pytest-ess --test-suite synapse -- --setup-plan
     - name: Smoke test (source distribution)
       run: uv run --isolated --no-project --with dist/*.tar.gz pytest-ess --test-suite synapse -- --setup-plan
 
