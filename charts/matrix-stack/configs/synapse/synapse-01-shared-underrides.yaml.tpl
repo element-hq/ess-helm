@@ -31,6 +31,11 @@ database:
     sslrootcert: system
 {{- end }}
 {{- end }}
+    keepalives: 1
+    keepalives_idle: 10
+    keepalives_interval: 10
+    keepalives_count: 3
+
     # Synapse has no defaults, so up from Twisted's defaults of 3-5
     cp_min: 5
     cp_max: 10

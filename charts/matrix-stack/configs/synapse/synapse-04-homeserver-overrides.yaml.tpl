@@ -62,10 +62,6 @@ https://github.com/kubernetes/kubernetes/issues/129043 / https://github.com/kube
 {{ end }}
 
     application_name: ${APPLICATION_NAME}
-    keepalives: 1
-    keepalives_idle: 10
-    keepalives_interval: 10
-    keepalives_count: 3
 
 # The default as of 1.27.0
 ip_range_blacklist:
