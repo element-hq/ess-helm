@@ -19,6 +19,28 @@ federation_client_minimum_tls_version: '1.2'
 experimental_features:
   msc4028_push_encrypted_events: true
 
+url_preview_enabled: true
+# Both these lists are append only. If there are specific ranges within the denylist
+# that should be allowed, then add them to the allowlist.
+url_preview_ip_range_whitelist: []
+url_preview_ip_range_blacklist:
+- '192.168.0.0/16'
+- '100.64.0.0/10'
+- '192.0.0.0/24'
+- '169.254.0.0/16'
+- '192.88.99.0/24'
+- '198.18.0.0/15'
+- '192.0.2.0/24'
+- '198.51.100.0/24'
+- '203.0.113.0/24'
+- '224.0.0.0/4'
+- '::1/128'
+- 'fe80::/10'
+- 'fc00::/7'
+- '2001:db8::/32'
+- 'ff00::/8'
+- 'fec0::/10'
+
 database:
   args:
 {{- with $root.Values.synapse.postgres }}
