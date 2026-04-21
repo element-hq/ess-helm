@@ -13,13 +13,14 @@ import urllib
 from typing import Any
 
 from .interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
-from .migration import MigrationStrategy, TransformationSpec, additional_config_transformer
+from .migration import ConfigValueTransformer, MigrationStrategy, TransformationSpec, additional_config_transformer
 from .models import DiscoveredSecret, GlobalOptions, SecretConfig
 from .utils import detect_key_type, extract_hostname_from_url, yaml_dump_with_pipe_for_multiline
 
 logger = logging.getLogger("migration")
 
 MAS_STRATEGY_NAME = "Matrix Authentication Service"
+MAS_COMPONENT_ROOT_KEY = "matrixAuthenticationService"
 
 
 def parse_postgres_uri(uri: str) -> dict[str, Any]:
@@ -224,7 +225,29 @@ class MASMigration(MigrationStrategy):
     @property
     def transformations(self) -> list[TransformationSpec]:
         """Get transformations based on database choice."""
+
+        # Lambda to wrap additional_config_transformer with MAS-specific context
+        def mas_additional_transformer(
+            config_value_transformer: "ConfigValueTransformer",
+            value: Any,
+            **kwargs: Any,
+        ) -> dict[str, Any]:
+            return additional_config_transformer(
+                config_value_transformer,
+                value,
+                component_root_key=MAS_COMPONENT_ROOT_KEY,
+                override_configs=self.override_configs,
+                component_name=MAS_STRATEGY_NAME,
+                **kwargs,
+            )
+
         base_transformations = [
+            # Enable MAS component
+            TransformationSpec(
+                src_key=None,
+                target_key="matrixAuthenticationService.enabled",
+                transformer=lambda *_, **__: True,
+            ),
             TransformationSpec(
                 src_key="http.public_base",
                 target_key="matrixAuthenticationService.ingress.host",
@@ -239,7 +262,7 @@ class MASMigration(MigrationStrategy):
             TransformationSpec(
                 src_key=None,
                 target_key="matrixAuthenticationService.additional",
-                transformer=additional_config_transformer,
+                transformer=mas_additional_transformer,
                 required=False,
             ),  # Generic additional config generation (src_key=None passes full config)
             # ... other non-database transformations ...

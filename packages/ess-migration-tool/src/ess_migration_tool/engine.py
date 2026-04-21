@@ -39,20 +39,19 @@ class MigrationEngine:
         """Initialize the migration engine."""
         components = [
             (
-                "synapse",
                 SynapseMigration(self.global_options),
                 SynapseSecretDiscovery(self.global_options),
                 SynapseExtraFileDiscovery(),
             ),
             (
-                "matrixAuthenticationService",
                 MASMigration(self.global_options),
                 MASSecretDiscovery(self.global_options),
                 MASExtraFileDiscovery(),
             ),
         ]
-        for component_key, migration, secret_discovery_strategy, extra_file_strategy in components:
-            migration_input = self.input_processor.input_for_component(component_key)
+        for migration, secret_discovery_strategy, extra_file_strategy in components:
+            strategy_name = migration.name
+            migration_input = self.input_processor.input_for_strategy(strategy_name)
             if migration_input:
                 self.migrators.append(
                     MigrationService(
@@ -62,7 +61,6 @@ class MigrationEngine:
                         migration=migration,
                         extra_files_strategy=extra_file_strategy,
                         secret_discovery_strategy=secret_discovery_strategy,
-                        component_root_key=component_key,
                         secrets=self.secrets,
                         configmaps=self.configmaps,
                         global_options=self.global_options,

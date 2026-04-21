@@ -38,7 +38,6 @@ line3""",
     transformer.transform_from_config(
         source_config,
         [spec],
-        component_root_key="synapse",
         extra_files_discovery=None,
     )
 
@@ -70,7 +69,6 @@ def test_additional_config_transformer_single_line_no_unnecessary_pipe():
     transformer.transform_from_config(
         source_config,
         [spec],
-        component_root_key="synapse",
         extra_files_discovery=None,
     )
 
@@ -107,7 +105,6 @@ formatters:
     transformer.transform_from_config(
         source_config,
         [spec],
-        component_root_key="synapse",
         extra_files_discovery=None,
     )
 
@@ -163,7 +160,6 @@ def test_additional_config_transformer_filters_tracked_values():
     transformer.transform_from_config(
         source_config,
         [spec1, spec2, spec3],
-        component_root_key="synapse",
         extra_files_discovery=None,
     )
 
@@ -215,7 +211,6 @@ def test_additional_config_transformer_empty_when_all_tracked():
     transformer.transform_from_config(
         source_config,
         [spec1, spec2, spec3],
-        component_root_key="synapse",
         extra_files_discovery=None,
     )
 
@@ -246,8 +241,8 @@ def test_additional_config_transformer_preserves_existing_additional():
     transformer.transform_from_config(
         source_config,
         [spec],
-        component_root_key="synapse",
         extra_files_discovery=None,
+        component_root_key="synapse",
     )
 
     result = transformer.ess_config

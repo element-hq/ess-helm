@@ -18,7 +18,7 @@ from ess_migration_tool.engine import MigrationEngine
 from ess_migration_tool.extra_files import ExtraFilesError
 from ess_migration_tool.inputs import InputProcessor
 from ess_migration_tool.secrets import SecretsError
-from ess_migration_tool.synapse import prompt_for_ingress_host
+from ess_migration_tool.synapse import SYNAPSE_STRATEGY_NAME, prompt_for_ingress_host
 
 
 def test_migration_with_missing_secrets_prompt(
@@ -39,7 +39,7 @@ def test_migration_with_missing_secrets_prompt(
     input_processor = InputProcessor()
     input_processor.load_migration_input(
         config_path=str(synapse_config_file),
-        name="synapse",
+        name=SYNAPSE_STRATEGY_NAME,
     )
     ess_values = {}
 
@@ -155,7 +155,7 @@ def test_quiet_mode_fails_on_missing_secrets(tmp_path, synapse_config_with_signi
     input_processor = InputProcessor()
     input_processor.load_migration_input(
         config_path=str(synapse_config_file),
-        name="synapse",
+        name=SYNAPSE_STRATEGY_NAME,
     )
 
     # Create logger in quiet mode (CRITICAL level)
@@ -193,7 +193,7 @@ def test_quiet_mode_fails_on_missing_extra_files(
     input_processor = InputProcessor()
     input_processor.load_migration_input(
         config_path=str(synapse_config_file),
-        name="synapse",
+        name=SYNAPSE_STRATEGY_NAME,
     )
 
     # Create logger in quiet mode (CRITICAL level)
@@ -231,7 +231,7 @@ def test_migration_with_unknown_workers_prompt(
     input_processor = InputProcessor()
     input_processor.load_migration_input(
         config_path=str(synapse_config_file),
-        name="synapse",
+        name=SYNAPSE_STRATEGY_NAME,
     )
     ess_values = {}
 
@@ -298,7 +298,7 @@ def test_migration_with_missing_extra_files_prompt(
     input_processor = InputProcessor()
     input_processor.load_migration_input(
         config_path=str(synapse_config_file),
-        name="synapse",
+        name=SYNAPSE_STRATEGY_NAME,
     )
     ess_values = {}
 
@@ -368,7 +368,7 @@ def test_database_choice_prompt_existing_database(
     input_processor = InputProcessor()
     input_processor.load_migration_input(
         config_path=str(synapse_config_file),
-        name="synapse",
+        name=SYNAPSE_STRATEGY_NAME,
     )
 
     log_capture_string = StringIO()
@@ -434,7 +434,7 @@ def test_database_choice_prompt_ess_managed(
     input_processor = InputProcessor()
     input_processor.load_migration_input(
         config_path=str(synapse_config_file),
-        name="synapse",
+        name=SYNAPSE_STRATEGY_NAME,
     )
 
     log_capture_string = StringIO()
@@ -500,7 +500,7 @@ def test_database_choice_prompt_default(
     input_processor = InputProcessor()
     input_processor.load_migration_input(
         config_path=str(synapse_config_file),
-        name="synapse",
+        name=SYNAPSE_STRATEGY_NAME,
     )
 
     log_capture_string = StringIO()

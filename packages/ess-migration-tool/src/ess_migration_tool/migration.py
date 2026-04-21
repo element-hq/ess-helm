@@ -51,13 +51,16 @@ def additional_config_transformer(
 
     kwargs uses:
     - extra_files_discovery: ExtraFilesDiscovery | None containing the extra files discovery service
+    - component_root_key: str - Internal ESS config key (e.g., "synapse")
+    - override_configs: set[str] - Set of configuration paths managed by ESS
+    - component_name: str - User-facing strategy name (e.g., "Synapse")
     """
     source_config = value  # value is the source config (when src_key is None)
+
+    # Get context from kwargs
+    component_root_key = kwargs.get("component_root_key", "")
+    override_configs = kwargs.get("override_configs", set())
     extra_files_discovery = kwargs.get("extra_files_discovery")
-    if extra_files_discovery:
-        component_root_key = extra_files_discovery.strategy.component_root_key
-    else:
-        component_root_key = kwargs.get("component_root_key", "")
 
     filtered_config = copy.deepcopy(source_config)
 
@@ -65,11 +68,20 @@ def additional_config_transformer(
     for source_path in config_value_transformer.tracked_values:
         remove_nested_value(filtered_config, source_path)
 
+    # Note: This runs after filtering so we check the remaining config
+    # Get all src_keys from transformations that have been processed
+    # Store warnings for future engine logging
+    if override_configs and component_root_key:
+        for override_config in override_configs:
+            if get_nested_value(filtered_config, override_config) is not None:
+                warning = (
+                    f"⚠️  '{override_config}' found in {component_root_key}.additional[\"00-imported.yaml\"].config"
+                )
+                config_value_transformer.override_warnings.append(warning)
+
     # Update file paths if extra files were discovered
     if extra_files_discovery:
-        filtered_config = config_value_transformer.update_paths_in_config(
-            filtered_config, extra_files_discovery, component_root_key
-        )
+        filtered_config = config_value_transformer.update_paths_in_config(filtered_config, extra_files_discovery)
 
     # Return in the expected additional config format
     # Also preserve any existing entries in additional (like listeners.yml from other transformers)
@@ -111,13 +123,14 @@ class ConfigValueTransformer:
     ess_config: dict[str, Any] = field(init=True)  # Target ESS configuration dictionary
     results: list[TransformationResult] = field(default_factory=list)  # List of transformation results
     tracked_values: list[str] = field(default_factory=list)  # Source paths that have been processed
+    override_warnings: list[str] = field(default_factory=list)  # Warnings about ESS-managed overrides
 
     def transform_from_config(
         self,
         source_config: dict[str, Any],
         transformations: list[TransformationSpec],
-        component_root_key: str = "",
         extra_files_discovery: ExtraFilesDiscovery | None = None,
+        **kwargs: Any,
     ) -> None:
         """
         Transform values from a source configuration using explicit source and target path mappings.
@@ -125,8 +138,8 @@ class ConfigValueTransformer:
         Args:
             source_config: Source configuration dictionary
             transformations: List of TransformationSpec objects
-            component_root_key: Component root key for context (e.g., "synapse")
             extra_files_discovery: ExtraFilesDiscovery instance for context
+            **kwargs: Additional context to pass to transformer functions
         """
         for transformation in transformations:
             # Get the value from the source configuration
@@ -143,8 +156,8 @@ class ConfigValueTransformer:
                 transformed_value = transformation.transformer(
                     self,
                     value,
-                    component_root_key=component_root_key,
                     extra_files_discovery=extra_files_discovery,
+                    **kwargs,
                 )
             else:
                 # No transformer provided, use the raw value
@@ -207,10 +220,9 @@ class ConfigValueTransformer:
         self,
         source_config: dict[str, Any],
         extra_files_discovery: ExtraFilesDiscovery,
-        component_root_key: str,
     ):
         # Get the base mount path for the component
-        base_mount_path = f"/etc/{component_root_key}/extra"
+        base_mount_path = f"/etc/{extra_files_discovery.strategy.component_root_key}/extra"
         updated_config = copy.deepcopy(source_config)
         for discovered_path in extra_files_discovery.discovered_file_paths:
             if discovered_path.skipped_reason:
@@ -360,7 +372,6 @@ class MigrationService:
     migration: MigrationStrategy = field(init=True)  # Migration strategy
     extra_files_strategy: ExtraFilesDiscoveryStrategy = field(init=True)  # Extra files discovery service
     secret_discovery_strategy: SecretDiscoveryStrategy = field(init=True)  # Secret discovery service
-    component_root_key: str = field(init=True)  # Root key for the component (e.g., 'synapse')
     override_warnings: list[str] = field(default_factory=list)  # Warnings about overridden configurations
     init_by_ess_secrets: list[str] = field(default_factory=list)  # List of secrets that will be initialized by ESS
     discovered_secrets: list[DiscoveredSecret] = field(default_factory=list)  # List of discovered secrets
@@ -374,56 +385,13 @@ class MigrationService:
     def __post_init__(self):
         self.override_configs = self.migration.override_configs
 
-    def _check_overrides(self, config: dict[str, Any], config_to_ess_transformer: ConfigValueTransformer) -> None:
-        """
-        Check if the configuration contains any override configurations
-        that are managed by ESS and cannot be overridden.
-
-        Only shows overrides that are managed by ESS chart (no direct transformation).
-        Settings with transformations are already shown in "Successfully migrated" section.
-
-        Args:
-            config: Configuration to check
-            config_to_ess_transformer: Transformer containing tracked values for filtering
-        """
-        override_warnings = []
-
-        # Build set of transformed config paths for filtering
-        transformed_configs = set()
-        for transformation in self.migration.transformations:
-            transformed_configs.add(transformation.src_key)
-
-        # Use the filtered configuration (with migrated values removed) for override detection
-        # This automatically excludes values that are tracked by the transformer,
-        # including both regular transformations and secrets (which are added to tracked_values during handle_secrets)
-        filtered_config = config_to_ess_transformer.filter_config(config)
-
-        for override_config in self.override_configs:
-            # Check if the override config path exists in the filtered configuration
-            # and is managed by ESS chart (no direct transformation)
-            if (
-                get_nested_value(filtered_config, override_config) is not None
-                and override_config not in transformed_configs
-            ):
-                override_warnings.append(
-                    f"⚠️  '{override_config}' found in {self.component_root_key}.additional[\"00-imported.yaml\"].config"
-                )
-
-        if override_warnings:
-            self.override_warnings.extend(override_warnings)
-            logger.warning(f"{self.component_root_key} configuration contains ESS-managed overrides:")
-            for warning in override_warnings:
-                logger.warning(warning)
-
     def migrate(self) -> None:
         """
         Perform migration using the injected strategy.
 
         Migration steps:
-        1. Enable component
         1. Apply component transformations
-        2. Check for override configurations
-        3. Add filtered additional configurations
+        2. Add filtered additional configurations
         """
         # Step 1: Discover secrets
         secret_discovery = SecretDiscovery(
@@ -454,37 +422,32 @@ class MigrationService:
         self.discovered_file_paths = extra_files_discovery.discovered_file_paths
         self.missing_file_paths = extra_files_discovery.missing_file_paths
 
-        # Step 3: Enable component
-        self.ess_config.setdefault(self.component_root_key, {})["enabled"] = True
-
         config_to_ess_transformer = ConfigValueTransformer(self.pretty_logger, self.ess_config)
 
-        # Step 4: Handle secrets for the component using the transformer's method
+        # Step 3: Handle secrets for the component using the transformer's method
         # This will update the root ESS config directly and create Kubernetes Secrets
         config_to_ess_transformer.handle_secrets(
             secret_discovery,
-            self.component_root_key,
+            self.extra_files_strategy.component_root_key,
             self.secrets,
         )
 
-        # Step 5: Handle extra files mounts for the component using the transformer's method
+        # Step 4: Handle extra files mounts for the component using the transformer's method
         # This will update the root ESS config directly and create Kubernetes ConfigMaps
         config_to_ess_transformer.handle_extra_files_mounts(
             extra_files_discovery,
-            self.component_root_key,
+            self.extra_files_strategy.component_root_key,
             self.configmaps,
         )
 
-        # Step 6: Apply component transformations
+        # Step 5: Apply component transformations
+        # Note: component_root_key and other context are passed through TransformationSpec lambdas
         config_to_ess_transformer.transform_from_config(
             self.input.config,
             self.migration.transformations,
-            component_root_key=self.component_root_key,
             extra_files_discovery=extra_files_discovery,
         )
 
-        # Step 7: Check for override configurations and warn user
-        self._check_overrides(self.input.config, config_to_ess_transformer)
-
-        # Step 8: Store results
+        # Step 6: Store results and override warnings
         self.results.extend(config_to_ess_transformer.results)
+        self.override_warnings.extend(config_to_ess_transformer.override_warnings)
