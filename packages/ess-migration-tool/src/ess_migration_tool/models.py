@@ -64,9 +64,10 @@ class TransformationSpec:
     Specification for a configuration transformation.
 
     Defines how to map from a source configuration path to a target ESS path.
+    When src_key is None, the full config is passed to the transformer.
     """
 
-    src_key: str  # Source configuration path
+    src_key: str | None  # Source configuration path (None means full config)
     target_key: str  # Target ESS configuration path
     required: bool = True  # Whether this transformation is required
     transformer: Callable[..., Any] | None = None  # Optional transformation function

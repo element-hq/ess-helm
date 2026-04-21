@@ -35,6 +35,7 @@ from .utils import (
 
 logger = logging.getLogger("migration")
 
+
 def additional_config_transformer(
     logger: logging.Logger,
     value: Any,
@@ -48,7 +49,7 @@ def additional_config_transformer(
     - component_root_key: str from kwargs
     - extra_files_discovery: ExtraFilesDiscovery | None from kwargs
     """
-    source_config = value  # value is the source config (when src_key=".")
+    source_config = value  # value is the source config (when src_key is None)
     config_to_ess_transformer = kwargs["config_to_ess_transformer"]
     component_root_key = kwargs["component_root_key"]
     extra_files_discovery = kwargs.get("extra_files_discovery")
@@ -71,9 +72,9 @@ def additional_config_transformer(
         # Check if there are existing entries in the component's additional section
         component_config = config_to_ess_transformer.ess_config.get(component_root_key, {})
         existing_additional = component_config.get("additional", {})
-        
+
         result = {"00-imported.yaml": {"config": yaml_dump_with_pipe_for_multiline(filtered_config)}}
-        
+
         # Merge with existing entries - existing entries take precedence
         # This preserves listeners.yml, etc. added by other transformers
         merged = {**result, **existing_additional}
@@ -124,7 +125,10 @@ class ConfigValueTransformer:
         """
         for transformation in transformations:
             # Get the value from the source configuration
-            value = get_nested_value(source_config, transformation.src_key)
+            if transformation.src_key is None:
+                value = source_config
+            else:
+                value = get_nested_value(source_config, transformation.src_key)
 
             # Handle transformer if provided
             if transformation.transformer is not None:
@@ -150,12 +154,13 @@ class ConfigValueTransformer:
                 )
             elif transformed_value is None:
                 # Even if transformation returns None, track the source key so it gets filtered out
-                if transformation.src_key not in self.tracked_values:
+                # Skip tracking if src_key is None (it represents the full config, not a specific path)
+                if transformation.src_key is not None and transformation.src_key not in self.tracked_values:
                     self.tracked_values.append(transformation.src_key)
                 continue
 
-            # Track the source path if not already tracked
-            if transformation.src_key not in self.tracked_values:
+            # Track the source path if not already tracked (skip None as it's not a filterable path)
+            if transformation.src_key is not None and transformation.src_key not in self.tracked_values:
                 self.tracked_values.append(transformation.src_key)
 
             # Create TransformationResult using the current transformation spec
@@ -483,27 +488,8 @@ class MigrationService:
         self.ess_config.setdefault(self.component_root_key, {})["enabled"] = True
 
         config_to_ess_transformer = ConfigValueTransformer(self.pretty_logger, self.ess_config)
-        
-        # Add skipped paths from extra files discovery to tracked_values before transformation
-        # This ensures they are filtered out by the additional_config_transformer
-        for discovered_path in extra_files_discovery.discovered_file_paths:
-            if discovered_path.skipped_reason:
-                config_to_ess_transformer.tracked_values.append(discovered_path.config_key)
-        
-        # Add secret config keys to tracked_values before transformation
-        # This ensures they are filtered out by the additional_config_transformer
-        for discover_secret in secret_discovery.discovered_secrets.values():
-            config_to_ess_transformer.tracked_values.append(discover_secret.config_key)
-        
-        # Step 4: Apply component transformations
-        config_to_ess_transformer.transform_from_config(
-            self.input.config,
-            self.migration.transformations,
-            component_root_key=self.component_root_key,
-            extra_files_discovery=extra_files_discovery,
-        )
 
-        # Step 5: Handle secrets for the component using the transformer's method
+        # Step 4: Handle secrets for the component using the transformer's method
         # This will update the root ESS config directly and create Kubernetes Secrets
         config_to_ess_transformer.handle_secrets(
             secret_discovery,

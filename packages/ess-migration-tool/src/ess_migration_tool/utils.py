@@ -96,13 +96,11 @@ def get_nested_value(config: dict[str, Any], path: str) -> Any:
 
     Args:
         config: Configuration dictionary
-        path: Dot-separated path to the value. Single dot "." returns entire config.
+        path: Dot-separated path to the value
 
     Returns:
         The value at the specified path, or None if not found
     """
-    if path == ".":
-        return config
     if "." in path:
         # Nested path
         parts = path.split(".")

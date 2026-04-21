@@ -238,11 +238,11 @@ class MASMigration(MigrationStrategy):
                 required=False,
             ),  # Filter out chart-managed listeners and output to additional config
             TransformationSpec(
-                src_key=".",
+                src_key=None,
                 target_key="matrixAuthenticationService.additional",
                 transformer=additional_config_transformer,
                 required=False,
-            ),  # Generic additional config generation
+            ),  # Generic additional config generation (src_key=None passes full config)
             # ... other non-database transformations ...
         ]
 
