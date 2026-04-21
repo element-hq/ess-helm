@@ -235,7 +235,9 @@ Examples:
             for transformation_result in migrator.results:
                 source_path = transformation_result.spec.src_key
                 target_path = transformation_result.spec.target_key
-                migration_mapping[source_path] = (source_file, target_path)
+                # Skip None src_key as it represents full config, not a specific path
+                if source_path is not None:
+                    migration_mapping[source_path] = (source_file, target_path)
 
         # Show successfully migrated values with source and target mapping
         if migration_mapping:

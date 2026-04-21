@@ -14,7 +14,7 @@ from typing import Any
 from rapidfuzz import fuzz, process
 
 from .interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
-from .migration import MigrationStrategy, TransformationSpec
+from .migration import ConfigValueTransformer, MigrationStrategy, TransformationSpec, additional_config_transformer
 from .models import DiscoveredSecret, GlobalOptions, MigrationError, SecretConfig
 from .utils import extract_hostname_from_url, yaml_dump_with_pipe_for_multiline
 
@@ -48,16 +48,21 @@ worker_types = [
 
 
 def prompt_user_for_worker(
-    pretty_logger: logging.Logger, instance_name: str, instance_props: Any, matched_worker_types: list[str]
+    config_value_transformer: ConfigValueTransformer,
+    instance_name: str,
+    instance_props: Any,
+    matched_worker_types: list[str],
 ) -> str:
     if not matched_worker_types:
         matched_worker_types = worker_types
 
     logger.info("   No worker type found for instance %s (host: %s)", instance_name, instance_props["host"])
-    pretty_logger.info(f"\n   ❌ No worker type found for instance {instance_name} (host: {instance_props['host']})")
-    pretty_logger.info("   ❌ Available worker types")
+    config_value_transformer.pretty_logger.info(
+        f"\n   ❌ No worker type found for instance {instance_name} (host: {instance_props['host']})"
+    )
+    config_value_transformer.pretty_logger.info("   ❌ Available worker types")
     for i, worker_type in enumerate(matched_worker_types):
-        pretty_logger.info(f"   ❌   {i + 1}. {worker_type}")
+        config_value_transformer.pretty_logger.info(f"   ❌   {i + 1}. {worker_type}")
 
     while True:
         try:
@@ -69,21 +74,21 @@ def prompt_user_for_worker(
                     if worker_index in range(len(matched_worker_types)):
                         return matched_worker_types[worker_index]
                     else:
-                        pretty_logger.info(f"Invalid worker type: {value}")
+                        config_value_transformer.pretty_logger.info(f"Invalid worker type: {value}")
                 except ValueError:
-                    pretty_logger.info("   ❌ Please select a valid worker type.")
+                    config_value_transformer.pretty_logger.info("   ❌ Please select a valid worker type.")
             else:
-                pretty_logger.info("   ❌ Value cannot be empty. Please try again.")
+                config_value_transformer.pretty_logger.info("   ❌ Value cannot be empty. Please try again.")
         except KeyboardInterrupt as err:
-            pretty_logger.info("\n   ❌ Operation cancelled by user")
+            config_value_transformer.pretty_logger.info("\n   ❌ Operation cancelled by user")
             raise MigrationError("User cancelled worker input") from err
         except EOFError as err:
-            pretty_logger.info("\n   ❌ End of input reached")
+            config_value_transformer.pretty_logger.info("\n   ❌ End of input reached")
             raise MigrationError("End of input reached during worker prompt") from err
 
 
 def extract_workers_from_instance_map(
-    pretty_logger: logging.Logger, instance_map: dict[str, Any] | None
+    config_value_transformer: ConfigValueTransformer, instance_map: dict[str, Any] | None, **kwargs: Any
 ) -> dict[str, Any] | None:
     """Extract workers from the instance map."""
 
@@ -96,7 +101,9 @@ def extract_workers_from_instance_map(
         very_high_probable_matches = [m[0] for m in matches if m[1] > 90]
         probable_matches = [m[0] for m in matches if m[1] > 60]
         selected_worker = (
-            prompt_user_for_worker(pretty_logger, instance_name, instance_map[instance_name], probable_matches)
+            prompt_user_for_worker(
+                config_value_transformer, instance_name, instance_map[instance_name], probable_matches
+            )
             if len(very_high_probable_matches) != 1
             else very_high_probable_matches[0]
         )
@@ -112,24 +119,29 @@ def extract_workers_from_instance_map(
     return selected_workers
 
 
-def extract_database_name(pretty_logger: logging.Logger, database_args: dict[str, Any]) -> str:
+def extract_database_name(
+    config_value_transformer: ConfigValueTransformer, database_args: dict[str, Any], **kwargs: Any
+) -> str:
     """Extract database name from the database arguments."""
     database_name = database_args.get("dbname")
     if not database_name:
         database_name = database_args.get("database")
     if not database_name:
-        pretty_logger.info("   ❌ Synapse database name could not be found")
+        config_value_transformer.pretty_logger.info("   ❌ Synapse database name could not be found")
         raise MigrationError("No synapse database name found")
     return database_name
 
 
-def prompt_for_ingress_host(pretty_logger: logging.Logger, public_baseurl: str | None) -> str:
+def prompt_for_ingress_host(
+    config_value_transformer: ConfigValueTransformer, public_baseurl: str | None, **kwargs: Any
+) -> str:
     """
     Prompt user for ingress host when public_baseurl is missing.
 
     Args:
-        pretty_logger: Logger for user-friendly output
+        config_value_transformer: ConfigValueTransformer instance
         public_baseurl: The public base URL from source config (may be None or empty)
+        **kwargs: Optional context parameters (unused)
 
     Returns:
         The ingress host (hostname extracted from public_baseurl or user input)
@@ -139,12 +151,14 @@ def prompt_for_ingress_host(pretty_logger: logging.Logger, public_baseurl: str |
     """
     # If public_baseurl is provided, extract hostname from it (existing behavior)
     if public_baseurl:
-        return extract_hostname_from_url(pretty_logger, public_baseurl)
+        return extract_hostname_from_url(config_value_transformer, public_baseurl)
 
     # If public_baseurl is missing, prompt user for ingress host directly
-    pretty_logger.info("\n   ❌ Synapse public_baseurl not found in configuration")
-    pretty_logger.info("   ❌ The chart requires Synapse Public BaseURL to be distinct from the server name")
-    pretty_logger.info("   ❌ Please provide Synapse ingress host (e.g., matrix.example.com):")
+    config_value_transformer.pretty_logger.info("\n   ❌ Synapse public_baseurl not found in configuration")
+    config_value_transformer.pretty_logger.info(
+        "   ❌ The chart requires Synapse Public BaseURL to be distinct from the server name"
+    )
+    config_value_transformer.pretty_logger.info("   ❌ Please provide Synapse ingress host (e.g., matrix.example.com):")
 
     while True:
         try:
@@ -152,16 +166,16 @@ def prompt_for_ingress_host(pretty_logger: logging.Logger, public_baseurl: str |
             if ingress_host:
                 return ingress_host
             else:
-                pretty_logger.info("   ❌ Ingress host cannot be empty. Please try again.")
+                config_value_transformer.pretty_logger.info("   ❌ Ingress host cannot be empty. Please try again.")
         except KeyboardInterrupt as err:
-            pretty_logger.info("\n   ❌ Operation cancelled by user")
+            config_value_transformer.pretty_logger.info("\n   ❌ Operation cancelled by user")
             raise MigrationError("User cancelled ingress host input") from err
         except EOFError as err:
-            pretty_logger.info("\n   ❌ End of input reached")
+            config_value_transformer.pretty_logger.info("\n   ❌ End of input reached")
             raise MigrationError("End of input reached during ingress host prompt") from err
 
 
-def filter_listeners(pretty_logger: logging.Logger, listeners: list[dict] | None) -> dict[str, Any] | None:
+def filter_listeners(_, listeners: list[dict] | None, **kwargs: Any) -> dict[str, Any] | None:
     """
     Filter out listeners that are managed by the ESS chart.
 
@@ -170,8 +184,8 @@ def filter_listeners(pretty_logger: logging.Logger, listeners: list[dict] | None
     returning them as a dictionary structure for additional config.
 
     Args:
-        pretty_logger: Logger for user-friendly output
         listeners: List of listener configurations from source Synapse config
+        **kwargs: Optional context parameters (unused)
 
     Returns:
         Dictionary with listeners.yml config structure, or None if no custom listeners remain
@@ -304,6 +318,12 @@ class SynapseMigration(MigrationStrategy):
                 transformer=filter_listeners,
                 required=False,
             ),  # Filter out chart-managed listeners and output to additional config
+            TransformationSpec(
+                src_key=None,
+                target_key="synapse.additional",
+                transformer=additional_config_transformer,
+                required=False,
+            ),  # Generic additional config generation (src_key=None passes full config)
             # ... other non-database transformations ...
         ]
 
@@ -327,7 +347,7 @@ class SynapseMigration(MigrationStrategy):
                 TransformationSpec(
                     src_key="database",  # Trigger on database section
                     target_key="postgres.enabled",
-                    transformer=lambda _, __: True,  # Set to True for ESS-managed Postgres
+                    transformer=lambda _, __, **kw: True,  # Set to True for ESS-managed Postgres
                 )
             ]
 

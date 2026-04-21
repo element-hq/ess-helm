@@ -10,10 +10,7 @@ Tests that multi-line strings in additional configurations are properly formatte
 using the pipe (|) character for better readability in Helm charts.
 """
 
-import logging
-
 import yaml
-from ess_migration_tool.migration import ConfigValueTransformer
 from ess_migration_tool.outputs import generate_helm_values
 from ess_migration_tool.utils import yaml_dump_with_pipe_for_multiline
 
@@ -128,85 +125,6 @@ def test_config_with_lists():
 
     assert parsed == config, "Configs with lists should work correctly"
     assert "|" in result, "Multi-line strings should still use pipe even with lists"
-
-
-def test_additional_config_uses_pipe_for_multiline():
-    """Test that additional config generation uses pipe for multi-line strings."""
-    transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config={})
-    source_config = {
-        "log_config": """line1
-line2
-line3""",
-        "simple_setting": "value1",
-    }
-
-    # Add additional config
-    transformer.add_additional_config_to_component("synapse", source_config, None)
-
-    # Get the generated YAML
-    result = transformer.ess_config
-    yaml_content = result["synapse"]["additional"]["00-imported.yaml"]["config"]
-
-    # Verify pipe character is used
-    assert "|" in yaml_content, "Additional config should use pipe for multi-line strings"
-
-    # Verify it can be parsed back
-    parsed = yaml.safe_load(yaml_content)
-    assert parsed == source_config, "Additional config should round-trip correctly"
-
-
-def test_additional_config_single_line_no_pipe():
-    """Test that additional config with single-line strings doesn't force pipe usage."""
-    transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config={})
-
-    source_config = {"simple_setting": "value1", "path_setting": "/path/to/file.yaml"}
-
-    # Add additional config
-    transformer.add_additional_config_to_component("synapse", source_config, None)
-
-    # Get the generated YAML
-    result = transformer.ess_config
-    yaml_content = result["synapse"]["additional"]["00-imported.yaml"]["config"]
-
-    # Verify it can be parsed back (this is the main requirement)
-    parsed = yaml.safe_load(yaml_content)
-    assert parsed == source_config, "Single-line config should round-trip correctly"
-
-
-def test_additional_config_mixed_content():
-    """Test additional config with mixed single-line and multi-line content."""
-    transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config={})
-
-    source_config = {
-        "enable_metrics": True,
-        "log_config": '''# Log config
-version: 1
-formatters:
-  simple:
-    format: "%(message)s"''',
-        "database": {"host": "localhost", "port": 5432},
-        "simple_setting": "value1",
-    }
-
-    # Add additional config
-    transformer.add_additional_config_to_component("synapse", source_config, None)
-
-    # Get the generated YAML
-    result = transformer.ess_config
-    yaml_content = result["synapse"]["additional"]["00-imported.yaml"]["config"]
-
-    # Verify pipe character is used for multi-line content
-    assert "|" in yaml_content, "Pipe should be used for multi-line content"
-
-    # Verify all content is preserved
-    parsed = yaml.safe_load(yaml_content)
-    assert parsed == source_config, "Mixed content should be fully preserved"
-
-    # Verify specific values
-    assert parsed["enable_metrics"]
-    assert parsed["log_config"] == source_config["log_config"]
-    assert parsed["database"]["host"] == "localhost"
-    assert parsed["simple_setting"] == "value1"
 
 
 def test_helm_values_preserves_pipe_formatting():
