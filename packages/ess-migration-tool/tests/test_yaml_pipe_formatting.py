@@ -10,10 +10,7 @@ Tests that multi-line strings in additional configurations are properly formatte
 using the pipe (|) character for better readability in Helm charts.
 """
 
-import logging
-
 import yaml
-from ess_migration_tool.migration import ConfigValueTransformer
 from ess_migration_tool.outputs import generate_helm_values
 from ess_migration_tool.utils import yaml_dump_with_pipe_for_multiline
 
