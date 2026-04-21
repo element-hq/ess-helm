@@ -37,32 +37,35 @@ logger = logging.getLogger("migration")
 
 
 def additional_config_transformer(
-    logger: logging.Logger,
+    config_value_transformer: "ConfigValueTransformer",
     value: Any,
     **kwargs: Any,
 ) -> dict[str, Any]:
     """
     Generic transformer for additional config generation.
 
-    All transformers accept **kwargs. This one uses:
-    - config_to_ess_transformer: ConfigValueTransformer from kwargs
-    - component_root_key: str from kwargs
-    - extra_files_discovery: ExtraFilesDiscovery | None from kwargs
+    Args:
+        config_value_transformer: ConfigValueTransformer calling the transformer
+        value: The value to transform
+        **kwargs: Context parameters. See below.
+
+    kwargs uses:
+    - component_root_key: str containing the root key of the component
+    - extra_files_discovery: ExtraFilesDiscovery | None containing the extra files discovery service
     """
     source_config = value  # value is the source config (when src_key is None)
-    config_to_ess_transformer = kwargs["config_to_ess_transformer"]
     component_root_key = kwargs["component_root_key"]
     extra_files_discovery = kwargs.get("extra_files_discovery")
 
     filtered_config = copy.deepcopy(source_config)
 
     # Filter out values already processed by other transformations
-    for source_path in config_to_ess_transformer.tracked_values:
+    for source_path in config_value_transformer.tracked_values:
         remove_nested_value(filtered_config, source_path)
 
     # Update file paths if extra files were discovered
     if extra_files_discovery:
-        filtered_config = config_to_ess_transformer.update_paths_in_config(
+        filtered_config = config_value_transformer.update_paths_in_config(
             filtered_config, extra_files_discovery, component_root_key
         )
 
@@ -70,7 +73,7 @@ def additional_config_transformer(
     # Also preserve any existing entries in additional (like listeners.yml from other transformers)
     if filtered_config:
         # Check if there are existing entries in the component's additional section
-        component_config = config_to_ess_transformer.ess_config.get(component_root_key, {})
+        component_config = config_value_transformer.ess_config.get(component_root_key, {})
         existing_additional = component_config.get("additional", {})
 
         result = {"00-imported.yaml": {"config": yaml_dump_with_pipe_for_multiline(filtered_config)}}
@@ -134,11 +137,10 @@ class ConfigValueTransformer:
             if transformation.transformer is not None:
                 # If transformer is provided, always call it (even if value is None)
                 # This allows transformers to handle missing values (e.g., by prompting for input)
-                # Pass context using named kwargs - all transformers now accept **kwargs
+                # Pass self (ConfigValueTransformer) as first arg, context via named kwargs
                 transformed_value = transformation.transformer(
-                    self.pretty_logger,
+                    self,
                     value,
-                    config_to_ess_transformer=self,
                     component_root_key=component_root_key,
                     extra_files_discovery=extra_files_discovery,
                 )

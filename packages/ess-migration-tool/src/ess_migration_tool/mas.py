@@ -83,9 +83,7 @@ def extract_port_from_uri(_, uri: str, **kwargs: Any) -> int | None:
     return int(port) if port is not None else None
 
 
-def filter_mas_listeners(
-    pretty_logger: logging.Logger, listeners: list[dict] | None, **kwargs: Any
-) -> dict[str, Any] | None:
+def filter_mas_listeners(_, listeners: list[dict] | None, **kwargs: Any) -> dict[str, Any] | None:
     """
     Filter out listeners that are managed by the ESS chart for MAS.
 
@@ -94,7 +92,6 @@ def filter_mas_listeners(
     returning them as a dictionary structure for additional config.
 
     Args:
-        pretty_logger: Logger for user-friendly output
         listeners: List of listener configurations from source MAS config
         **kwargs: Optional context parameters (unused)
 

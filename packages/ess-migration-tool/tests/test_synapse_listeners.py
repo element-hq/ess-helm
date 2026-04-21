@@ -5,6 +5,7 @@
 import logging
 
 import yaml
+from ess_migration_tool.migration import ConfigValueTransformer
 from ess_migration_tool.synapse import filter_listeners
 
 
@@ -36,7 +37,7 @@ def test_filter_listeners_with_chart_managed_resources():
         },
     ]
 
-    result = filter_listeners(logging.getLogger(), listeners)
+    result = filter_listeners(ConfigValueTransformer(logging.getLogger(), {}), listeners)
 
     # Should return None since all listeners serve only chart-managed resources
     assert result is None
@@ -71,7 +72,7 @@ def test_filter_listeners_with_custom_resources():
         },
     ]
 
-    result = filter_listeners(logging.getLogger(), listeners)
+    result = filter_listeners(ConfigValueTransformer(logging.getLogger(), {}), listeners)
 
     # Should keep only the listener with custom resource
     assert result is not None
@@ -94,13 +95,13 @@ def test_filter_listeners_with_custom_resources():
 
 def test_filter_listeners_with_no_listeners():
     """Test that filter_listeners handles None input."""
-    result = filter_listeners(logging.getLogger(), None)
+    result = filter_listeners(ConfigValueTransformer(logging.getLogger(), {}), None)
     assert result is None
 
 
 def test_filter_listeners_with_empty_list():
     """Test that filter_listeners handles empty list."""
-    result = filter_listeners(logging.getLogger(), [])
+    result = filter_listeners(ConfigValueTransformer(logging.getLogger(), {}), [])
     assert result is None
 
 
@@ -150,7 +151,7 @@ def test_filter_listeners_with_mixed_resources():
         },
     ]
 
-    result = filter_listeners(logging.getLogger(), listeners)
+    result = filter_listeners(ConfigValueTransformer(logging.getLogger(), {}), listeners)
 
     # Should keep only the listeners with custom resources and no ESS-managed port
     assert result is not None
@@ -194,7 +195,7 @@ def test_filter_listeners_with_string_resource_names():
         },
     ]
 
-    result = filter_listeners(logging.getLogger(), listeners)
+    result = filter_listeners(ConfigValueTransformer(logging.getLogger(), {}), listeners)
 
     # Should keep only the listener with custom resource
     assert result is not None
