@@ -199,39 +199,6 @@ class ConfigValueTransformer:
 
         return filtered_config
 
-    def add_additional_config_to_component(
-        self, component_key: str, source_config: dict[str, Any], extra_files_discovery: ExtraFilesDiscovery | None
-    ) -> None:
-        """
-        Add filtered additional configurations to a specific component in the ESS config.
-
-        This method filters the source configuration to remove values that are passed to ESS,
-        then adds the filtered configuration to the component's 'additional' section.
-
-        Args:
-            component_key: The component key (e.g., "synapse", "matrixAuthenticationService")
-            source_config: Original configuration to filter and add
-        """
-        # Get or create the component config in the ESS config
-        component_config = self.ess_config.setdefault(component_key, {})
-        filtered_config = copy.deepcopy(source_config)
-        # Update references to extra files
-        if extra_files_discovery:
-            filtered_config = self.update_paths_in_config(filtered_config, extra_files_discovery, component_key)
-
-        # Filter the source config to remove tracked values
-        filtered_config = self.filter_config(filtered_config)
-
-        # Add to additional section if there's anything to add
-        if filtered_config:
-            # Preserve any existing additional configs (e.g., from transformations)
-            if "additional" not in component_config:
-                component_config["additional"] = {}
-            # Add the filtered config to the existing additional section²
-            component_config["additional"]["00-imported.yaml"] = {
-                "config": yaml_dump_with_pipe_for_multiline(filtered_config)
-            }
-
     def update_paths_in_config(
         self,
         source_config: dict[str, Any],
