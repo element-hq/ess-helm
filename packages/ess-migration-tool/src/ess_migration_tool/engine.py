@@ -37,26 +37,34 @@ class MigrationEngine:
 
     def __post_init__(self) -> None:
         """Initialize the migration engine."""
-        for migration, secret_discovery_strategy, extra_file_strategy in [
+        components = [
             (
+                "synapse",
                 SynapseMigration(self.global_options),
                 SynapseSecretDiscovery(self.global_options),
                 SynapseExtraFileDiscovery(),
             ),
-            (MASMigration(self.global_options), MASSecretDiscovery(self.global_options), MASExtraFileDiscovery()),
-        ]:
-            migration_input = self.input_processor.input_for_component(migration.component_root_key)
+            (
+                "matrixAuthenticationService",
+                MASMigration(self.global_options),
+                MASSecretDiscovery(self.global_options),
+                MASExtraFileDiscovery(),
+            ),
+        ]
+        for component_key, migration, secret_discovery_strategy, extra_file_strategy in components:
+            migration_input = self.input_processor.input_for_component(component_key)
             if migration_input:
                 self.migrators.append(
                     MigrationService(
                         input=migration_input,
-                        ess_config=self.ess_config,
                         pretty_logger=self.pretty_logger,
+                        ess_config=self.ess_config,
                         migration=migration,
-                        secrets=self.secrets,
-                        secret_discovery_strategy=secret_discovery_strategy,
-                        configmaps=self.configmaps,
                         extra_files_strategy=extra_file_strategy,
+                        secret_discovery_strategy=secret_discovery_strategy,
+                        component_root_key=component_key,
+                        secrets=self.secrets,
+                        configmaps=self.configmaps,
                         global_options=self.global_options,
                     )
                 )
@@ -77,17 +85,11 @@ class MigrationEngine:
             self.discovered_secrets.extend(migrator.discovered_secrets)
             self.init_by_ess_secrets.extend(migrator.init_by_ess_secrets)
 
-        # Handle component-specific relationships after migration
-        migrated_components = {migrator.component_root_key for migrator in self.migrators}
-
-        # Define all known ESS components
-        # These are components that can be managed by ESS Helm chart
+        # Disable any ESS component that was not migrated (absent from config)
         ALL_ESS_COMPONENTS = {"synapse", "matrixAuthenticationService", "elementWeb", "elementAdmin", "matrixRTC"}
-
-        # Disable any ESS component that was not migrated
         for component in ALL_ESS_COMPONENTS:
-            if component not in migrated_components:
-                self.ess_config.setdefault(component, {})["enabled"] = False
+            if component not in self.ess_config:
+                self.ess_config[component] = {"enabled": False}
 
         logger.info("Migration process completed successfully")
         return self.ess_config

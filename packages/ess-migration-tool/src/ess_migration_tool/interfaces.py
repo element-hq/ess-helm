@@ -21,8 +21,8 @@ class MigrationStrategy(Protocol):
         ...
 
     @property
-    def component_root_key(self) -> str:
-        """Get the component root key (e.g., 'synapse', 'matrixAuthenticationService')."""
+    def name(self) -> str:
+        """Get the user-facing name of the strategy (e.g., 'Synapse', 'Matrix Authentication Service')."""
         ...
 
     @property
@@ -84,4 +84,9 @@ class ExtraFilesDiscoveryStrategy(Protocol):
     @property
     def component_name(self) -> str:
         """Get the component name for user-facing messages."""
+        ...
+
+    @property
+    def component_root_key(self) -> str:
+        """Get the component root key for ESS config (e.g., 'synapse', 'matrixAuthenticationService')."""
         ...

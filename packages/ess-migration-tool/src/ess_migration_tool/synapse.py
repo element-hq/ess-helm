@@ -20,6 +20,8 @@ from .utils import extract_hostname_from_url, yaml_dump_with_pipe_for_multiline
 
 logger = logging.getLogger("migration")
 
+SYNAPSE_STRATEGY_NAME = "Synapse"
+
 worker_types = [
     "main",
     "account-data",
@@ -254,8 +256,8 @@ class SynapseMigration(MigrationStrategy):
         self.global_options = global_options
 
     @property
-    def component_root_key(self) -> str:
-        return "synapse"
+    def name(self) -> str:
+        return SYNAPSE_STRATEGY_NAME
 
     @property
     def override_configs(self) -> set[str]:
@@ -427,7 +429,11 @@ class SynapseSecretDiscovery(SecretDiscoveryStrategy):
 class SynapseExtraFileDiscovery(ExtraFilesDiscoveryStrategy):
     @property
     def component_name(self) -> str:
-        return "Synapse"
+        return SYNAPSE_STRATEGY_NAME
+
+    @property
+    def component_root_key(self) -> str:
+        return SYNAPSE_COMPONENT_ROOT_KEY
 
     @property
     def ignored_config_keys(self) -> list[str]:

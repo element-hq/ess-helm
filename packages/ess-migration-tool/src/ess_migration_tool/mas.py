@@ -4,7 +4,7 @@
 
 
 """
-Synapse-specific migration strategy.
+MAS-specific migration strategy.
 """
 
 import logging
@@ -18,6 +18,8 @@ from .models import DiscoveredSecret, GlobalOptions, SecretConfig
 from .utils import detect_key_type, extract_hostname_from_url, yaml_dump_with_pipe_for_multiline
 
 logger = logging.getLogger("migration")
+
+MAS_STRATEGY_NAME = "Matrix Authentication Service"
 
 
 def parse_postgres_uri(uri: str) -> dict[str, Any]:
@@ -209,8 +211,8 @@ class MASMigration(MigrationStrategy):
         self.global_options = global_options
 
     @property
-    def component_root_key(self) -> str:
-        return "matrixAuthenticationService"
+    def name(self) -> str:
+        return MAS_STRATEGY_NAME
 
     @property
     def override_configs(self) -> set[str]:
@@ -490,7 +492,11 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
 class MASExtraFileDiscovery(ExtraFilesDiscoveryStrategy):
     @property
     def component_name(self) -> str:
-        return "Matrix Authentication Service"
+        return MAS_STRATEGY_NAME
+
+    @property
+    def component_root_key(self) -> str:
+        return MAS_COMPONENT_ROOT_KEY
 
     @property
     def ignored_config_keys(self) -> list[str]:

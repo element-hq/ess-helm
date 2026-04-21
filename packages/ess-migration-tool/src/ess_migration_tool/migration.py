@@ -50,12 +50,14 @@ def additional_config_transformer(
         **kwargs: Context parameters. See below.
 
     kwargs uses:
-    - component_root_key: str containing the root key of the component
     - extra_files_discovery: ExtraFilesDiscovery | None containing the extra files discovery service
     """
     source_config = value  # value is the source config (when src_key is None)
-    component_root_key = kwargs["component_root_key"]
     extra_files_discovery = kwargs.get("extra_files_discovery")
+    if extra_files_discovery:
+        component_root_key = extra_files_discovery.strategy.component_root_key
+    else:
+        component_root_key = kwargs.get("component_root_key", "")
 
     filtered_config = copy.deepcopy(source_config)
 
@@ -358,6 +360,7 @@ class MigrationService:
     migration: MigrationStrategy = field(init=True)  # Migration strategy
     extra_files_strategy: ExtraFilesDiscoveryStrategy = field(init=True)  # Extra files discovery service
     secret_discovery_strategy: SecretDiscoveryStrategy = field(init=True)  # Secret discovery service
+    component_root_key: str = field(init=True)  # Root key for the component (e.g., 'synapse')
     override_warnings: list[str] = field(default_factory=list)  # Warnings about overridden configurations
     init_by_ess_secrets: list[str] = field(default_factory=list)  # List of secrets that will be initialized by ESS
     discovered_secrets: list[DiscoveredSecret] = field(default_factory=list)  # List of discovered secrets
@@ -365,12 +368,10 @@ class MigrationService:
     secrets: list[Secret] = field(default_factory=list)  # List of created Secrets
     configmaps: list[ConfigMap] = field(default_factory=list)  # List of created ConfigMaps
     override_configs: set[str] = field(default_factory=set)  # Set of configurations that are managed by ESS
-    component_root_key: str = field(init=False)  # Root key for the component (e.g., 'synapse')
     results: list[TransformationResult] = field(default_factory=list)  # List of transformation results
     global_options: GlobalOptions = field(default_factory=GlobalOptions)  # Global migration options
 
     def __post_init__(self):
-        self.component_root_key = self.migration.component_root_key
         self.override_configs = self.migration.override_configs
 
     def _check_overrides(self, config: dict[str, Any], config_to_ess_transformer: ConfigValueTransformer) -> None:

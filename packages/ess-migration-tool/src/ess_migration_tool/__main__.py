@@ -228,6 +228,8 @@ Examples:
 
         # Process migrations
         for migrator in engine.migrators:
+            # Get the input for this migrator's component
+            # The input name is the same as the component_root_key stored in the migrator
             migration_input = engine.input_processor.input_for_component(migrator.component_root_key)
             # Migrators are created according to discovered input for components, we do not expect NoneTypes here
             assert migration_input
