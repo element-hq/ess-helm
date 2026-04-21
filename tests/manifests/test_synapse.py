@@ -1,9 +1,10 @@
 # Copyright 2024-2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
 
+import pyhelm3
 import pytest
 import yaml
 
@@ -179,3 +180,14 @@ async def test_synapse_resources_shared_by_default(values, make_templates):
                     f"{template_id(template)} has container {container['name']} "
                     "which doesn't have the expected resources"
                 )
+
+
+@pytest.mark.parametrize("values_file", ["synapse-minimal-values.yaml"])
+@pytest.mark.asyncio_cooperative
+async def test_invalid_yaml_in_synapse_additional_fails(values, make_templates):
+    values["synapse"]["additional"] = {"invalid.yaml": {"config": "not yaml"}}
+
+    with pytest.raises(
+        pyhelm3.errors.FailedToRenderChartError, match="synapse.additional\\['invalid.yaml'\\] is invalid:"
+    ):
+        await make_templates(values)

@@ -1,5 +1,5 @@
 # Copyright 2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -12,6 +12,6 @@ matrixAuthenticationService:
           client_auth_method: client_secret_basic
           client_secret: CHANGEME-eiv6wae8shooPhie4ief8ru2egahbah0
         matrix:
-          homeserver: "external.localhost
+          homeserver: "external.localhost"
           secret: jaix6Am9Shut7zeiduu7ua5maengag3o
           endpoint: https://syn.external.localhost

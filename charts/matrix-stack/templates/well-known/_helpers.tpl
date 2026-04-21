@@ -12,6 +12,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- if not $root.Values.serverName -}}
 {{ $messages = append $messages "serverName is required when wellKnownDelegation.enabled=true" }}
 {{- end }}
+{{- with .additional }}
+  {{ range $key := list "client" "server" "support" }}
+    {{- with ($root.Values.wellKnownDelegation.additional | dig $key "{}") }}
+      {{- $additional := . | fromJson -}}
+      {{- if hasKey $additional "Error" }}
+{{ $messages = append $messages (printf "wellKnownDelegation.additional.%s is invalid: %s" $key $additional.Error) }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
 {{ $messages | toJson }}
 {{- end }}
 {{- end }}

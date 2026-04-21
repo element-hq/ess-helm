@@ -1,10 +1,11 @@
 # Copyright 2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
 import json
 
+import pyhelm3
 import pytest
 
 
@@ -55,3 +56,14 @@ async def test_config_json_override(values, make_templates):
             break
     else:
         raise RuntimeError("Could not find config.json")
+
+
+@pytest.mark.parametrize("values_file", ["element-web-minimal-values.yaml"])
+@pytest.mark.asyncio_cooperative
+async def test_invalid_json_in_element_web_additional_fails(values, make_templates):
+    values["elementWeb"]["additional"] = {"invalid.json": "// not json"}
+
+    with pytest.raises(
+        pyhelm3.errors.FailedToRenderChartError, match="elementWeb.additional\\['invalid.json'\\] is invalid:"
+    ):
+        await make_templates(values)

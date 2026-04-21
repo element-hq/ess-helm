@@ -22,7 +22,7 @@ matrixAuthenticationService:
           client_auth_method: client_secret_basic
           client_secret: CHANGEME-eiv6wae8shooPhie4ief8ru2egahbah0
         matrix:
-          homeserver: "external.localhost
+          homeserver: "external.localhost"
           secret: jaix6Am9Shut7zeiduu7ua5maengag3o
           endpoint: https://syn.external.localhost
   ingress:

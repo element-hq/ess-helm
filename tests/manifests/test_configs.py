@@ -1,5 +1,5 @@
 # Copyright 2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -76,14 +76,16 @@ async def test_user_provided_inline_configs_change_hashes(values, make_templates
         # be nice if they supported referencing `ConfigMaps`.
         # Well-Known delegation also restricts to providing additional config to 3 files and doesn't support merging
         if deployable_details.name == "element-web":
-            deployable_details.set_helm_values(values, PropertyType.AdditionalConfig, {"foo": "some additional config"})
+            deployable_details.set_helm_values(
+                values, PropertyType.AdditionalConfig, {"foo": '{"some": "additional config"}'}
+            )
         elif deployable_details.name == "well-known":
             deployable_details.set_helm_values(
-                values, PropertyType.AdditionalConfig, {"client": "some additional config"}
+                values, PropertyType.AdditionalConfig, {"client": '{"some": "additional config"}'}
             )
         else:
             deployable_details.set_helm_values(
-                values, PropertyType.AdditionalConfig, {"foo": {"config": "some additional config"}}
+                values, PropertyType.AdditionalConfig, {"foo": {"config": 'some: "additional config"'}}
             )
 
     iterate_deployables_parts(
