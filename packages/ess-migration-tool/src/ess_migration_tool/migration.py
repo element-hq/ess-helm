@@ -244,13 +244,8 @@ class ConfigValueTransformer:
             return
 
         # Create a Kubernetes Secret containing all discovered secrets
-        # Convert component_root_key to kebab-case for the secret name
-        # Replace camelCase with kebab-case (e.g., "matrixAuthenticationService" -> "matrix-authentication-service")
-        kebab_case_name = component_root_key
-        # Insert hyphens before uppercase letters and convert to lowercase
-        kebab_case_name = "".join(["-" + c.lower() if c.isupper() else c for c in kebab_case_name]).lstrip("-")
-
-        secret_name = f"imported-{kebab_case_name}"
+        # Use strategy's secret_name which is already in kebab-case
+        secret_name = f"imported-{secret_discovery.strategy.secret_name}"
         secret_data = {}
 
         for secret_key, discover_secret in secret_discovery.discovered_secrets.items():
@@ -262,7 +257,7 @@ class ConfigValueTransformer:
         secrets_list.append(secret)
         logging.info(
             f"Created Kubernetes Secret with {len(secret_discovery.discovered_secrets)}"
-            f" secrets for {component_root_key}"
+            f" secrets for {secret_discovery.strategy.secret_name}"
         )
 
         # Update ESS values to use credential schema instead of direct values
