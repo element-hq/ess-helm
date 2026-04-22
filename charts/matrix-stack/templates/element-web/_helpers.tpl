@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2024-2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -11,6 +11,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{ $messages := list }}
 {{- if not .ingress.host -}}
 {{ $messages = append $messages "elementWeb.ingress.host is required when elementWeb.enabled=true" }}
+{{- end }}
+{{- with .additional }}
+  {{- range $key := (. | keys | uniq | sortAlpha) }}
+    {{- $prop := index $root.Values.elementWeb.additional $key }}
+    {{- $fragment := (tpl $prop $root) | fromJson }}
+    {{- if hasKey $fragment "Error" }}
+{{ $messages = append $messages (printf "elementWeb.additional['%s'] is invalid: %s" $key $fragment.Error) }}
+    {{- end }}
+  {{- end }}
 {{- end }}
 {{ $messages | toJson }}
 {{- end }}

@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
+import pyhelm3
 import pytest
 import yaml
 
@@ -24,6 +25,17 @@ async def test_log_level_overrides(values, make_templates):
             break
     else:
         raise RuntimeError("Could not find config-overrides.yaml")
+
+
+@pytest.mark.parametrize("values_file", ["matrix-rtc-minimal-values.yaml"])
+@pytest.mark.asyncio_cooperative
+async def test_invalid_yaml_in_matrix_rtc_sfu_additional_fails(values, make_templates):
+    values["matrixRTC"].setdefault("sfu", {})["additional"] = {"invalid.yaml": {"config": "not yaml"}}
+
+    with pytest.raises(
+        pyhelm3.errors.FailedToRenderChartError, match="matrixRTC.sfu.additional\\['invalid.yaml'\\] is invalid"
+    ):
+        await make_templates(values)
 
 
 async def get_sfu_udp_port_range_services(start_port, end_point, values, make_templates):

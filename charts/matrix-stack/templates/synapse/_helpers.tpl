@@ -18,6 +18,17 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- if and (not $root.Values.postgres.enabled) (not .postgres) -}}
 {{ $messages = append $messages "synapse.postgres is required when synapse.enabled=true but postgres.enabled=false" }}
 {{- end }}
+{{- with .additional }}
+  {{- range $key := (. | keys | uniq | sortAlpha) }}
+    {{- $prop := index $root.Values.synapse.additional $key }}
+    {{- if $prop.config }}
+      {{- $fragment := $prop.config | fromYaml }}
+      {{- if hasKey $fragment "Error" }}
+{{- $messages = append $messages (printf "synapse.additional['%s'] is invalid: %s" $key $fragment.Error) }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
 {{ $messages | toJson }}
 {{- end }}
 {{- end }}

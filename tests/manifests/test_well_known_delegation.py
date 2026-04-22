@@ -6,6 +6,7 @@
 import json
 import re
 
+import pyhelm3
 import pytest
 
 from . import DeployableDetails, PropertyType
@@ -70,6 +71,33 @@ async def test_synapse_injected_in_server_and_client_well_known(release_name, va
     await assert_well_known_files(
         release_name, values, make_templates, expected_client=synapse_base_url, expected_server=synapse_federation
     )
+
+
+@pytest.mark.parametrize("values_file", ["well-known-minimal-values.yaml"])
+@pytest.mark.asyncio_cooperative
+async def test_invalid_json_in_wellKnown_additional_fails(values, make_templates):
+    values["wellKnownDelegation"]["additional"] = {}
+
+    values["wellKnownDelegation"]["additional"]["client"] = "// not json"
+    with pytest.raises(
+        pyhelm3.errors.FailedToRenderChartError, match="wellKnownDelegation.additional.client is invalid:"
+    ):
+        await make_templates(values)
+    del values["wellKnownDelegation"]["additional"]["client"]
+
+    values["wellKnownDelegation"]["additional"]["server"] = "// not json"
+    with pytest.raises(
+        pyhelm3.errors.FailedToRenderChartError, match="wellKnownDelegation.additional.server is invalid:"
+    ):
+        await make_templates(values)
+    del values["wellKnownDelegation"]["additional"]["server"]
+
+    values["wellKnownDelegation"]["additional"]["support"] = "// not json"
+    with pytest.raises(
+        pyhelm3.errors.FailedToRenderChartError, match="wellKnownDelegation.additional.support is invalid:"
+    ):
+        await make_templates(values)
+    del values["wellKnownDelegation"]["additional"]["support"]
 
 
 @pytest.mark.parametrize("values_file", ["well-known-element-web-values.yaml"])

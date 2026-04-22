@@ -17,6 +17,17 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- if and ($root.Values.matrixAuthenticationService.enabled) (.enableEncryption) -}}
 {{ $messages = append $messages "hookshot.enableEncryption cannot be enabled when matrixAuthenticationService.enabled=true" }}
 {{- end }}
+{{- with .additional }}
+  {{- range $key := (. | keys | uniq | sortAlpha) }}
+    {{- $prop := index $root.Values.hookshot.additional $key }}
+    {{- if $prop.config }}
+      {{- $fragment := (tpl $prop.config $root) | fromYaml }}
+      {{- if hasKey $fragment "Error" }}
+{{- $messages = append $messages (printf "hookshot.additional['%s'] is invalid: %s" $key $fragment.Error) }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
 {{ $messages | toJson }}
 {{- end }}
 {{- end }}

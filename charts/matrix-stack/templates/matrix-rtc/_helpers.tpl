@@ -18,6 +18,21 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- if and .sfu.exposedServices.turnTLS.enabled .sfu.exposedServices.turnTLS.tlsTerminationOnPod (not .sfu.exposedServices.turnTLS.tlsSecret) (not ($root.Capabilities.APIVersions.Has "cert-manager.io/v1/Certificate")) ($root.Values.certManager) -}}
 {{ $messages = append $messages "matrixRTC.sfu.exposedServices.turnTLS.enabled does not configure .sfu.exposedServices.turnTLS.tlsSecret. The chart has certManager enabled but the `cert-manager.io/v1/Certificate` API could not be found." }}
 {{- end }}
+{{- with .sfu }}
+  {{- if .enabled }}
+    {{- with .additional }}
+      {{- range $key := (. | keys | uniq | sortAlpha) }}
+        {{- $prop := index $root.Values.matrixRTC.sfu.additional $key }}
+        {{- if $prop.config }}
+          {{- $fragment := $prop.config | fromYaml }}
+          {{- if hasKey $fragment "Error" }}
+{{- $messages = append $messages (printf "matrixRTC.sfu.additional['%s'] is invalid: %s" $key $fragment.Error) }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
 {{ $messages | toJson }}
 {{- end }}
 {{- end }}
