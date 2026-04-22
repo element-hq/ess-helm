@@ -32,12 +32,18 @@ class InputProcessor:
 
     inputs: list[MigrationInput] = field(default_factory=list)
 
-    def input_for_component(self, component_root_key: str) -> MigrationInput | None:
+    def input_for_strategy(self, strategy_name: str) -> MigrationInput | None:
         """
-        Return the migration input for a component.
+        Return the migration input for a strategy.
+
+        Args:
+            strategy_name: The user-facing strategy name (e.g., "Synapse", "Matrix Authentication Service")
+
+        Returns:
+            MigrationInput for the strategy, or None if not found
         """
         for _input in self.inputs:
-            if _input.name == component_root_key:
+            if _input.name == strategy_name:
                 return _input
         return None
 

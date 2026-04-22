@@ -183,6 +183,10 @@ def test_update_paths_in_config_basic():
         def ignored_config_keys(self):
             return []
 
+        @property
+        def component_root_key(self):
+            return "some-component"
+
     class MockSecretStrategy(SecretDiscoveryStrategy):
         def __init__(self, global_options):
             self.global_options = global_options
@@ -228,11 +232,11 @@ def test_update_paths_in_config_basic():
     )
 
     # Test the update_paths_in_config method
-    updated_config = transformer.update_paths_in_config(source_config, extra_files_discovery, "synapse")
+    updated_config = transformer.update_paths_in_config(source_config, extra_files_discovery)
 
     # Verify paths are updated correctly
-    assert updated_config["templates"]["password_reset"] == "/etc/synapse/extra/password_reset.html"
-    assert updated_config["templates"]["registration"] == "/etc/synapse/extra/registration.html"
+    assert updated_config["templates"]["password_reset"] == "/etc/some-component/extra/password_reset.html"
+    assert updated_config["templates"]["registration"] == "/etc/some-component/extra/registration.html"
     assert updated_config["other_setting"] == "preserved"  # Non-file setting should be unchanged
 
     # Verify tracked values (only skipped paths are tracked)
@@ -247,6 +251,10 @@ def test_update_paths_in_config_with_skipped_paths():
         @property
         def ignored_config_keys(self):
             return []
+
+        @property
+        def component_root_key(self):
+            return "some-component"
 
     class MockSecretStrategy(SecretDiscoveryStrategy):
         def __init__(self, global_options):
@@ -291,11 +299,11 @@ def test_update_paths_in_config_with_skipped_paths():
     )
 
     # Test the update_paths_in_config method
-    updated_config = transformer.update_paths_in_config(source_config, extra_files_discovery, "synapse")
+    updated_config = transformer.update_paths_in_config(source_config, extra_files_discovery)
 
     # Verify skipped path is not updated but is tracked
     assert updated_config["templates"]["password_reset"] == "/path/to/password_reset.html"  # Unchanged
-    assert updated_config["templates"]["registration"] == "/etc/synapse/extra/registration.html"  # Updated
+    assert updated_config["templates"]["registration"] == "/etc/some-component/extra/registration.html"  # Updated
 
     assert "templates.password_reset" not in transformer.tracked_values
     assert "templates.registration" not in transformer.tracked_values
@@ -310,6 +318,10 @@ def test_update_paths_in_config_empty_discovery():
         @property
         def ignored_config_keys(self):
             return []
+
+        @property
+        def component_root_key(self):
+            return "some-component"
 
     class MockSecretStrategy(SecretDiscoveryStrategy):
         def __init__(self, global_options):
@@ -337,7 +349,7 @@ def test_update_paths_in_config_empty_discovery():
     )
 
     # Test the update_paths_in_config method
-    updated_config = transformer.update_paths_in_config(source_config, extra_files_discovery, "synapse")
+    updated_config = transformer.update_paths_in_config(source_config, extra_files_discovery)
 
     # Verify config is unchanged
     assert updated_config == source_config
@@ -352,6 +364,10 @@ def test_update_paths_in_config_nested_config():
         @property
         def ignored_config_keys(self):
             return []
+
+        @property
+        def component_root_key(self):
+            return "some-component"
 
     class MockSecretStrategy(SecretDiscoveryStrategy):
         def __init__(self, global_options):
@@ -401,13 +417,11 @@ def test_update_paths_in_config_nested_config():
     )
 
     # Test the update_paths_in_config method
-    updated_config = transformer.update_paths_in_config(
-        source_config, extra_files_discovery, "matrix-authentication-service"
-    )
+    updated_config = transformer.update_paths_in_config(source_config, extra_files_discovery)
 
     # Verify paths are updated correctly
-    assert updated_config["email"]["template_dir"] == "/etc/matrix-authentication-service/extra/templates"
-    assert updated_config["email"]["config"]["tls_cert"] == "/etc/matrix-authentication-service/extra/cert.pem"
+    assert updated_config["email"]["template_dir"] == "/etc/some-component/extra/templates"
+    assert updated_config["email"]["config"]["tls_cert"] == "/etc/some-component/extra/cert.pem"
     assert updated_config["email"]["smtp_host"] == "smtp.example.com"  # Unchanged
     assert updated_config["other_setting"] == "preserved"  # Unchanged
 

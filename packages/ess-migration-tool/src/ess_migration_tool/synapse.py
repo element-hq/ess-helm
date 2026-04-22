@@ -20,6 +20,9 @@ from .utils import extract_hostname_from_url, yaml_dump_with_pipe_for_multiline
 
 logger = logging.getLogger("migration")
 
+SYNAPSE_STRATEGY_NAME = "Synapse"
+SYNAPSE_COMPONENT_ROOT_KEY = "synapse"
+
 worker_types = [
     "main",
     "account-data",
@@ -254,8 +257,8 @@ class SynapseMigration(MigrationStrategy):
         self.global_options = global_options
 
     @property
-    def component_root_key(self) -> str:
-        return "synapse"
+    def name(self) -> str:
+        return SYNAPSE_STRATEGY_NAME
 
     @property
     def override_configs(self) -> set[str]:
@@ -299,7 +302,29 @@ class SynapseMigration(MigrationStrategy):
     @property
     def transformations(self) -> list[TransformationSpec]:
         """Get transformations based on database choice."""
+
+        # Lambda to wrap additional_config_transformer with Synapse-specific context
+        def synapse_additional_transformer(
+            config_value_transformer: "ConfigValueTransformer",
+            value: Any,
+            **kwargs: Any,
+        ) -> dict[str, Any]:
+            return additional_config_transformer(
+                config_value_transformer,
+                value,
+                component_root_key=SYNAPSE_COMPONENT_ROOT_KEY,
+                override_configs=self.override_configs,
+                component_name=SYNAPSE_STRATEGY_NAME,
+                **kwargs,
+            )
+
         base_transformations = [
+            # Enable Synapse component
+            TransformationSpec(
+                src_key=None,
+                target_key="synapse.enabled",
+                transformer=lambda *_, **__: True,
+            ),
             TransformationSpec(src_key="server_name", target_key="serverName"),
             TransformationSpec(
                 src_key="public_baseurl",
@@ -321,7 +346,7 @@ class SynapseMigration(MigrationStrategy):
             TransformationSpec(
                 src_key=None,
                 target_key="synapse.additional",
-                transformer=additional_config_transformer,
+                transformer=synapse_additional_transformer,
                 required=False,
             ),  # Generic additional config generation (src_key=None passes full config)
             # ... other non-database transformations ...
@@ -427,7 +452,11 @@ class SynapseSecretDiscovery(SecretDiscoveryStrategy):
 class SynapseExtraFileDiscovery(ExtraFilesDiscoveryStrategy):
     @property
     def component_name(self) -> str:
-        return "Synapse"
+        return SYNAPSE_STRATEGY_NAME
+
+    @property
+    def component_root_key(self) -> str:
+        return SYNAPSE_COMPONENT_ROOT_KEY
 
     @property
     def ignored_config_keys(self) -> list[str]:

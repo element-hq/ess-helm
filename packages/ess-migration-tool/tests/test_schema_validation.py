@@ -50,7 +50,7 @@ def test_migration_output_schema_validation(tmp_path, synapse_config_with_signin
     # Load migration input
     input_processor = InputProcessor()
     input_processor.load_migration_input(
-        name="synapse",
+        name="Synapse",
         config_path=synapse_path,
     )
 
