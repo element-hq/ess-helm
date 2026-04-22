@@ -238,16 +238,13 @@ class ConfigValueTransformer:
     def handle_secrets(
         self,
         secret_discovery: SecretDiscovery,
-        component_root_key: str,
         secrets_list: list[Secret],
     ) -> None:
         """
         Handle secrets for component using SecretDiscovery.
 
         Args:
-            config: Configuration to analyze for secrets
-            secret_service: SecretDiscoveryService instance
-            component_root_key: Name of the component (synapse or mas)
+            secret_discovery: SecretDiscovery instance
             secrets_list: List to append created secrets to
 
         Returns:
@@ -422,7 +419,6 @@ class MigrationService:
         # This will update the root ESS config directly and create Kubernetes Secrets
         config_to_ess_transformer.handle_secrets(
             secret_discovery,
-            self.extra_files_strategy.component_root_key,
             self.secrets,
         )
 
