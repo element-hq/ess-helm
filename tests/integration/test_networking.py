@@ -19,7 +19,7 @@ from .lib.utils import read_service_monitor_kind
 
 
 @pytest.mark.asyncio_cooperative
-async def test_services_have_matching_labels(kube_client: AsyncClient, generated_data: ESSData, matrix_stack):
+async def test_services_have_matching_labels(kube_client_factory, generated_data: ESSData, matrix_stack):
     ignored_labels = [
         "app.kubernetes.io/managed-by",
         "helm.sh/chart",
@@ -27,6 +27,7 @@ async def test_services_have_matching_labels(kube_client: AsyncClient, generated
         "k8s.element.io/synapse-instance",
         "replica",
     ]
+    kube_client: AsyncClient = kube_client_factory()
 
     async for service in kube_client.list(
         Service, namespace=generated_data.ess_namespace, labels={"app.kubernetes.io/part-of": op.in_(["matrix-stack"])}
@@ -79,7 +80,8 @@ async def test_services_have_matching_labels(kube_client: AsyncClient, generated
 
 
 @pytest.mark.asyncio_cooperative
-async def test_services_have_endpoints(cluster, kube_client: AsyncClient, generated_data: ESSData, matrix_stack):
+async def test_services_have_endpoints(cluster, kube_client_factory, generated_data: ESSData, matrix_stack):
+    kube_client: AsyncClient = kube_client_factory()
     # Helm will stop waiting when 1 of replicas are ready
     # We need to wait for all replicas to be ready to check that services all have endpoints
     await wait_for_all_deployments_rolled_out(kube_client, generated_data.ess_namespace)
@@ -124,9 +126,10 @@ async def test_services_have_endpoints(cluster, kube_client: AsyncClient, genera
 @pytest.mark.asyncio_cooperative
 @pytest.mark.usefixtures("matrix_stack")
 async def test_pods_monitored(
-    kube_client: AsyncClient,
+    kube_client_factory,
     generated_data: ESSData,
 ):
+    kube_client: AsyncClient = kube_client_factory()
     # Helm will stop waiting when 1 of replicas are ready
     # We need to wait for all replicas to be ready to be able to compute monitorable and monitored pods
     await wait_for_all_deployments_rolled_out(kube_client, generated_data.ess_namespace)
@@ -206,9 +209,10 @@ async def test_pods_monitored(
 @pytest.mark.asyncio_cooperative
 @pytest.mark.usefixtures("matrix_stack")
 async def test_service_monitors_point_to_metrics(
-    kube_client: AsyncClient,
+    kube_client_factory,
     generated_data: ESSData,
 ):
+    kube_client: AsyncClient = kube_client_factory()
     async for service_monitor in kube_client.list(
         await read_service_monitor_kind(kube_client),
         namespace=generated_data.ess_namespace,
@@ -235,9 +239,8 @@ async def test_service_monitors_point_to_metrics(
         )
 
 
-async def has_actual_metrics_on_endpoint(
-    kube_client: AsyncClient, generated_data: ESSData, service: Service, endpoints
-):
+async def has_actual_metrics_on_endpoint(kube_client_factory, generated_data: ESSData, service: Service, endpoints):
+    kube_client: AsyncClient = kube_client_factory()
     assert service.metadata
     assert service.spec
     assert service.spec.ports

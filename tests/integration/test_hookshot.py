@@ -22,7 +22,7 @@ from .lib.utils import aiohttp_client, aiohttp_get_json, aiohttp_post_json, aioh
 @pytest.mark.parametrize("users", [(User(name="hookshot-user"),)], indirect=True)
 @pytest.mark.asyncio_cooperative
 async def test_hookshot_webhook(
-    kube_client: AsyncClient,
+    kube_client_factory,
     ingress_ready,
     generated_data: ESSData,
     users,
@@ -267,7 +267,6 @@ async def test_hookshot_webhook(
 )
 @pytest.mark.asyncio_cooperative
 async def test_hookshot_widget(
-    kube_client: AsyncClient,
     ingress_ready,
     generated_data: ESSData,
     ssl_context,

@@ -115,21 +115,27 @@ async def helm_client(cluster):
 
 
 @pytest.fixture(scope="session")
-async def kube_client(cluster):
+async def kube_client_factory(cluster):
     kube_config = KubeConfig.from_file(cluster.kubeconfig)
     config = kube_config.get()
 
     # We've seen 429 errors with storage is (re)initializing. Let's retry those
     ssl_context = verify_cluster(config.cluster, config.user, config.abs_file)
-    wrapped_transport = httpx.AsyncHTTPTransport(verify=ssl_context)
-    transport = httpx_retries.RetryTransport(
-        transport=wrapped_transport, retry=httpx_retries.Retry(status_forcelist=[429])
-    )
-    return AsyncClient(config=kube_config, transport=transport)
+
+    def _kube_client() -> AsyncClient:
+        wrapped_transport = httpx.AsyncHTTPTransport(verify=ssl_context)
+        transport = httpx_retries.RetryTransport(
+            transport=wrapped_transport, retry=httpx_retries.Retry(status_forcelist=[429])
+        )
+
+        return AsyncClient(config=kube_config, transport=transport)
+
+    return _kube_client
 
 
 @pytest.fixture(scope="session")
-async def ingress(cluster, kube_client: AsyncClient):
+async def ingress(cluster, kube_client_factory):
+    kube_client: AsyncClient = kube_client_factory()
     attempt = 0
     while attempt < 180:
         try:
@@ -264,7 +270,8 @@ async def prometheus_operator_crds(helm_client: pyhelm3.Client):
 
 
 @pytest.fixture(scope="session")
-async def ess_namespace(cluster: PotentiallyExistingK3dCluster, kube_client: AsyncClient, generated_data: ESSData):
+async def ess_namespace(cluster: PotentiallyExistingK3dCluster, kube_client_factory, generated_data: ESSData):
+    kube_client: AsyncClient = kube_client_factory()
     (major_version, minor_version) = cluster.version()
     try:
         await kube_client.get(Namespace, name=generated_data.ess_namespace)

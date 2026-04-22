@@ -26,13 +26,14 @@ from .test_matrix_authentication_service import test_matrix_authentication_servi
 @pytest.mark.asyncio_cooperative
 async def test_run_syn2mas_upgrade(
     helm_client: pyhelm3.Client,
-    kube_client: AsyncClient,
+    kube_client_factory,
     users,
     ingress_ready,
     ssl_context,
     generated_data: ESSData,
     pytestconfig,
 ):
+    kube_client: AsyncClient = kube_client_factory()
     access_token = users[0].access_token
     await ingress_ready("synapse")
     assert await get_deployment_marker(kube_client, generated_data, "MATRIX_STACK_MSC3861") == "legacy_auth"

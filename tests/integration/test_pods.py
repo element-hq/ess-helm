@@ -14,10 +14,11 @@ from .fixtures.data import ESSData
 
 @pytest.mark.asyncio_cooperative
 async def test_pods_run_as_gid_0(
-    kube_client: AsyncClient,
+    kube_client_factory,
     generated_data: ESSData,
     matrix_stack,
 ):
+    kube_client: AsyncClient = kube_client_factory()
     async for pod in kube_client.list(
         Pod, namespace=generated_data.ess_namespace, labels={"app.kubernetes.io/part-of": op.in_(["matrix-stack"])}
     ):

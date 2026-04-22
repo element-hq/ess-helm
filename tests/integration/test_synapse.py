@@ -56,10 +56,9 @@ async def test_synapse_exposes_chart_version_edition(
 
 @pytest.mark.skipif(value_file_has("synapse.enabled", False), reason="Synapse not deployed")
 @pytest.mark.asyncio_cooperative
-async def test_synapse_can_access_client_api(
-    ingress_ready, ssl_context, generated_data: ESSData, kube_client: AsyncClient
-):
+async def test_synapse_can_access_client_api(ingress_ready, ssl_context, generated_data: ESSData, kube_client_factory):
     await ingress_ready("synapse")
+    kube_client: AsyncClient = kube_client_factory()
 
     json_content = await aiohttp_get_json(
         f"https://synapse.{generated_data.server_name}/_matrix/client/versions", {}, ssl_context
@@ -119,9 +118,10 @@ async def test_simplified_sliding_sync_syncs(ingress_ready, ssl_context, users, 
 )
 @pytest.mark.asyncio_cooperative
 async def test_routes_to_synapse_workers_correctly(
-    ingress_ready, kube_client: AsyncClient, ssl_context, generated_data: ESSData
+    ingress_ready, kube_client_factory, ssl_context, generated_data: ESSData
 ):
     await ingress_ready("synapse")
+    kube_client: AsyncClient = kube_client_factory()
 
     main_backend = "main/main"
     if value_file_has("synapse.workers.sliding-sync.enabled", True):

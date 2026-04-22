@@ -4,7 +4,15 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 from .ca import delegated_ca, root_ca, ssl_context
-from .cluster import cert_manager, cluster, ess_namespace, helm_client, ingress, kube_client, prometheus_operator_crds
+from .cluster import (
+    cert_manager,
+    cluster,
+    ess_namespace,
+    helm_client,
+    ingress,
+    kube_client_factory,
+    prometheus_operator_crds,
+)
 from .data import ESSData, generated_data
 from .helm import helm_prerequisites, ingress_ready, matrix_stack, secrets_generated
 from .matrix_tools import build_matrix_tools, loaded_matrix_tools
@@ -22,7 +30,7 @@ __all__ = [
     "helm_prerequisites",
     "ingress_ready",
     "ingress",
-    "kube_client",
+    "kube_client_factory",
     "loaded_matrix_tools",
     "matrix_stack",
     "prometheus_operator_crds",

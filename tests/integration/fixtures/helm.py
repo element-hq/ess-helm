@@ -25,7 +25,7 @@ from .data import ESSData
 
 @pytest.fixture(scope="session")
 async def helm_prerequisites(
-    kube_client: AsyncClient,
+    kube_client_factory,
     helm_client: pyhelm3.Client,
     delegated_ca: CertKey,
     ess_namespace,
@@ -34,6 +34,7 @@ async def helm_prerequisites(
     resources = []
     setups: list[Awaitable] = []
 
+    kube_client: AsyncClient = kube_client_factory()
     # On CI, public runners should login to dockerhub.io to avoid rate-limits
     if os.environ.get("CI") and ("DOCKERHUB_USERNAME" in os.environ) and ("DOCKERHUB_TOKEN" in os.environ):
         resources.append(
@@ -215,7 +216,9 @@ async def matrix_stack(
 
 
 @pytest.fixture(scope="session")
-def ingress_ready(cluster, kube_client: AsyncClient, matrix_stack, generated_data: ESSData, ssl_context: SSLContext):
+def ingress_ready(cluster, kube_client_factory, matrix_stack, generated_data: ESSData, ssl_context: SSLContext):
+    kube_client: AsyncClient = kube_client_factory()
+
     async def _ingress_ready(ingress_suffix):
         await asyncio.to_thread(
             cluster.wait,
@@ -260,7 +263,9 @@ def ingress_ready(cluster, kube_client: AsyncClient, matrix_stack, generated_dat
 
 
 @pytest.fixture(scope="session")
-def secrets_generated(cluster, kube_client: AsyncClient, matrix_stack, generated_data: ESSData):
+def secrets_generated(cluster, kube_client_factory, matrix_stack, generated_data: ESSData):
+    kube_client: AsyncClient = kube_client_factory()
+
     async def _secrets_generated(secret_key) -> str:
         await asyncio.to_thread(
             cluster.wait,

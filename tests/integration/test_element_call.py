@@ -57,8 +57,9 @@ async def test_element_call_livekit_jwt(ingress_ready, users, generated_data: ES
     not value_file_has("matrixRTC.sfu.exposedServices.turnTLS.enabled", True), reason="Matrix RTC TURN TLS not enabled"
 )
 @pytest.mark.asyncio_cooperative
-async def test_matrix_rtc_turn_tls(ingress_ready, generated_data: ESSData, ssl_context, kube_client: AsyncClient):
+async def test_matrix_rtc_turn_tls(ingress_ready, generated_data: ESSData, ssl_context, kube_client_factory):
     await ingress_ready("matrix-rtc")
+    kube_client: AsyncClient = kube_client_factory()
 
     # Get the turnTLS service to find the dynamically assigned NodePort
     turn_tls_service = await kube_client.get(
@@ -105,8 +106,9 @@ async def test_matrix_rtc_turn_tls(ingress_ready, generated_data: ESSData, ssl_c
     not value_file_has("matrixRTC.sfu.exposedServices.rtcTcp.enabled", True), reason="Matrix RTC TCP not enabled"
 )
 @pytest.mark.asyncio_cooperative
-async def test_matrix_rtc_rtc_tcp(ingress_ready, generated_data: ESSData, kube_client: AsyncClient):
+async def test_matrix_rtc_rtc_tcp(ingress_ready, generated_data: ESSData, kube_client_factory):
     await ingress_ready("matrix-rtc")
+    kube_client: AsyncClient = kube_client_factory()
 
     # Get the RTC TCP service to find the dynamically assigned NodePort
     rtc_tcp_service = await kube_client.get(
@@ -150,9 +152,10 @@ async def test_matrix_rtc_rtc_tcp(ingress_ready, generated_data: ESSData, kube_c
     not value_file_has("matrixRTC.sfu.exposedServices.rtcMuxedUdp.enabled", True), reason="Matrix RTC UDP not enabled"
 )
 @pytest.mark.asyncio_cooperative
-async def test_matrix_rtc_rtc_udp_service_exists(ingress_ready, generated_data: ESSData, kube_client: AsyncClient):
+async def test_matrix_rtc_rtc_udp_service_exists(ingress_ready, generated_data: ESSData, kube_client_factory):
     """Verify UDP service exists and has NodePort assigned (basic connectivity test)"""
     await ingress_ready("matrix-rtc")
+    kube_client: AsyncClient = kube_client_factory()
 
     # Get the RTC UDP service
     rtc_udp_service = await kube_client.get(
