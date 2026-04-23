@@ -321,8 +321,8 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
         self.global_options = global_options
 
     @property
-    def component_name(self) -> str:
-        return "Matrix Authentication Service"
+    def secret_name(self) -> str:
+        return "matrix-authentication-service"
 
     @property
     def ess_secret_schema(self) -> dict[str, SecretConfig]:

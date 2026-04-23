@@ -431,8 +431,8 @@ class SynapseSecretDiscovery(SecretDiscoveryStrategy):
         return schema
 
     @property
-    def component_name(self) -> str:
-        return "Synapse"
+    def secret_name(self) -> str:
+        return "synapse"
 
     def discover_component_specific_secrets(self, config_data: dict) -> dict[str, DiscoveredSecret]:
         """

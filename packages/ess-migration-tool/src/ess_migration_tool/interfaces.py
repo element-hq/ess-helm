@@ -50,8 +50,8 @@ class SecretDiscoveryStrategy(Protocol):
         ...
 
     @property
-    def component_name(self) -> str:
-        """Get the component name for user-facing messages."""
+    def secret_name(self) -> str:
+        """Get the secret/strategy name in kebab-case."""
         ...
 
     def discover_component_specific_secrets(self, config_data: dict) -> dict[str, DiscoveredSecret]:

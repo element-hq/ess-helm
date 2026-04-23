@@ -238,16 +238,13 @@ class ConfigValueTransformer:
     def handle_secrets(
         self,
         secret_discovery: SecretDiscovery,
-        component_root_key: str,
         secrets_list: list[Secret],
     ) -> None:
         """
         Handle secrets for component using SecretDiscovery.
 
         Args:
-            config: Configuration to analyze for secrets
-            secret_service: SecretDiscoveryService instance
-            component_root_key: Name of the component (synapse or mas)
+            secret_discovery: SecretDiscovery instance
             secrets_list: List to append created secrets to
 
         Returns:
@@ -258,13 +255,7 @@ class ConfigValueTransformer:
             return
 
         # Create a Kubernetes Secret containing all discovered secrets
-        # Convert component_root_key to kebab-case for the secret name
-        # Replace camelCase with kebab-case (e.g., "matrixAuthenticationService" -> "matrix-authentication-service")
-        kebab_case_name = component_root_key
-        # Insert hyphens before uppercase letters and convert to lowercase
-        kebab_case_name = "".join(["-" + c.lower() if c.isupper() else c for c in kebab_case_name]).lstrip("-")
-
-        secret_name = f"imported-{kebab_case_name}"
+        secret_name = f"imported-{secret_discovery.strategy.secret_name}"
         secret_data = {}
 
         for secret_key, discover_secret in secret_discovery.discovered_secrets.items():
@@ -276,7 +267,7 @@ class ConfigValueTransformer:
         secrets_list.append(secret)
         logging.info(
             f"Created Kubernetes Secret with {len(secret_discovery.discovered_secrets)}"
-            f" secrets for {component_root_key}"
+            f" secrets for {secret_discovery.strategy.secret_name}"
         )
 
         # Update ESS values to use credential schema instead of direct values
@@ -428,7 +419,6 @@ class MigrationService:
         # This will update the root ESS config directly and create Kubernetes Secrets
         config_to_ess_transformer.handle_secrets(
             secret_discovery,
-            self.extra_files_strategy.component_root_key,
             self.secrets,
         )
 
