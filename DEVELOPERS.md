@@ -21,7 +21,7 @@ Optional Tools:
 * [`shellcheck`](https://www.shellcheck.net/)
 * Managed via `uv` and so should be available after `uv sync`
   * [`checkov`](https://www.checkov.io/)
-  * [`pytest](https://docs.pytest.org/en/stable/)
+  * [`pytest`](https://docs.pytest.org/en/stable/)
   * [`mypy`](https://mypy.readthedocs.io/en/stable/)
   * [`reuse`](https://reuse.software/)
   * [`ruff`](https://docs.astral.sh/ruff/)
