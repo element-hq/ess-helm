@@ -4,6 +4,7 @@
 
 
 import logging
+import os
 import random
 import time
 import urllib.parse
@@ -291,6 +292,6 @@ def prompt_for_database_choice(pretty_logger) -> bool:
 
 
 def delay_next_steps(pretty_logger: logging.Logger) -> None:
-    if not is_quiet_mode(pretty_logger):
+    if not is_quiet_mode(pretty_logger) and not os.environ.get("PYTEST_CURRENT_TEST"):
         time.sleep(random.uniform(0.2, 1.5))
         pretty_logger.info("")
