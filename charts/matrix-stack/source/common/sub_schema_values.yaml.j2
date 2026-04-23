@@ -470,7 +470,7 @@ networking:
 {% macro additionalConfig(key='additional') %}
 ## This can be provided in-line in the Helm Chart and/or via an existing Secret
 ## e.g.
-## additional:
+## {{ key }}:
 ##   0-customConfig:
 ##     config: |
 ##       <any valid configuration>
