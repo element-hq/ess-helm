@@ -392,7 +392,9 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
 
         return schema
 
-    def discover_component_specific_secrets(self, config_data: dict) -> dict[str, DiscoveredSecret]:
+    def discover_component_specific_secrets(
+        self, config_data: dict
+    ) -> tuple[dict[str, DiscoveredSecret], dict[str, str]]:
         """
         Discover component-specific secrets from MAS configuration.
 
@@ -400,26 +402,31 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
             config_data: MAS configuration data
 
         Returns:
-            Dictionary mapping ESS secret keys to DiscoveredSecret objects
+            Tuple of (discovered_secrets, failed_secrets) where:
+            - discovered_secrets: Dictionary mapping ESS secret keys to DiscoveredSecret objects
+            - failed_secrets: Dictionary mapping failed ESS secret keys to error messages
         """
         discovered_secrets: dict[str, DiscoveredSecret] = {}
+        failed_secrets: dict[str, str] = {}
 
         # Handle keys_dir (directory scanning)
         keys_dir = config_data.get("secrets", {}).get("keys_dir")
         if keys_dir:
-            dir_secrets = self._process_keys_directory(keys_dir)
+            dir_secrets, dir_failures = self._process_keys_directory(keys_dir)
             discovered_secrets.update(dir_secrets)
+            failed_secrets.update(dir_failures)
 
         # Handle individual keys
         keys_config = config_data.get("secrets", {}).get("keys", [])
         if keys_config:
-            individual_secrets = self._process_individual_keys(keys_config)
+            individual_secrets, individual_failures = self._process_individual_keys(keys_config)
             # Individual keys take precedence over directory keys
             discovered_secrets.update(individual_secrets)
+            failed_secrets.update(individual_failures)
 
-        return discovered_secrets
+        return (discovered_secrets, failed_secrets)
 
-    def _process_keys_directory(self, keys_dir: str) -> dict[str, DiscoveredSecret]:
+    def _process_keys_directory(self, keys_dir: str) -> tuple[dict[str, DiscoveredSecret], dict[str, str]]:
         """
         Process all key files in a directory.
 
@@ -427,13 +434,14 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
             keys_dir: Path to directory containing key files
 
         Returns:
-            Dictionary mapping ESS secret keys to DiscoveredSecret objects
+            Tuple of (discovered_secrets, failed_secrets)
         """
         discovered_secrets: dict[str, DiscoveredSecret] = {}
+        failed_secrets: dict[str, str] = {}
         try:
             if not os.path.isdir(keys_dir):
                 logger.warning(f"Keys directory does not exist: {keys_dir}")
-                return discovered_secrets
+                return (discovered_secrets, failed_secrets)
 
             for filename in os.listdir(keys_dir):
                 filepath = os.path.join(keys_dir, filename)
@@ -455,13 +463,15 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
                                 discovered_secrets[secret_key] = discovered_secret
                                 logger.info(f"Discovered {key_type} key from file: {filepath}")
                     except Exception as e:
-                        logger.warning(f"Failed to process key file {filepath}: {e}")
+                        # For unrecognized key types, we don't add to discovered, but we also don't fail
+                        # This is expected behavior (non-key files in directory)
+                        logger.debug(f"Skipping non-key file {filepath}: {e}")
         except Exception as e:
             logger.warning(f"Failed to process keys directory {keys_dir}: {e}")
 
-        return discovered_secrets
+        return (discovered_secrets, failed_secrets)
 
-    def _process_individual_keys(self, keys_config: list) -> dict[str, DiscoveredSecret]:
+    def _process_individual_keys(self, keys_config: list) -> tuple[dict[str, DiscoveredSecret], dict[str, str]]:
         """
         Process individual key configurations.
 
@@ -469,9 +479,10 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
             keys_config: List of key configuration dictionaries
 
         Returns:
-            Dictionary mapping ESS secret keys to DiscoveredSecret objects
+            Tuple of (discovered_secrets, failed_secrets)
         """
         discovered_secrets: dict[str, DiscoveredSecret] = {}
+        failed_secrets: dict[str, str] = {}
 
         for index, key_config in enumerate(keys_config):
             content = None
@@ -485,7 +496,11 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
                     config_key = f"secrets.privateKeys.{index}"
                     logger.info(f"Read key from file: {key_config['key_file']}")
                 except Exception as e:
-                    logger.warning(f"Failed to read key file {key_config['key_file']}: {e}")
+                    # Track failure for prompting
+                    secret_key = f"matrixAuthenticationService.privateKeys.{index}"
+                    error_msg = f"Failed to read key file {key_config['key_file']}: {e}"
+                    failed_secrets[secret_key] = error_msg
+                    logger.warning(error_msg)
                     continue
 
             # Try inline key content
@@ -509,7 +524,7 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
                         discovered_secrets[secret_key] = discovered_secret
                         logger.info(f"Discovered {key_type} key from individual configuration")
 
-        return discovered_secrets
+        return (discovered_secrets, failed_secrets)
 
 
 class MASExtraFileDiscovery(ExtraFilesDiscoveryStrategy):

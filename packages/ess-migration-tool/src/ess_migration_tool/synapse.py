@@ -434,19 +434,21 @@ class SynapseSecretDiscovery(SecretDiscoveryStrategy):
     def secret_name(self) -> str:
         return "synapse"
 
-    def discover_component_specific_secrets(self, config_data: dict) -> dict[str, DiscoveredSecret]:
+    def discover_component_specific_secrets(
+        self, config_data: dict
+    ) -> tuple[dict[str, DiscoveredSecret], dict[str, str]]:
         """
         Discover component-specific secrets from configuration.
 
-        Synapse doesn't have specialized secret discovery, so this returns an empty dict.
+        Synapse doesn't have specialized secret discovery, so this returns empty dicts.
 
         Args:
             config_data: Synapse configuration data
 
         Returns:
-            Empty dictionary (no specialized secret discovery for Synapse)
+            Tuple of (empty dict, empty dict) - no specialized secret discovery for Synapse
         """
-        return {}
+        return ({}, {})
 
 
 class SynapseExtraFileDiscovery(ExtraFilesDiscoveryStrategy):
