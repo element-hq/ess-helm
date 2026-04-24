@@ -4,7 +4,14 @@
 
 
 import pytest
-from ess_migration_tool.utils import get_nested_value, remove_nested_value, set_nested_value
+from ess_migration_tool.utils import (
+    find_matching_schema_key,
+    get_nested_value,
+    is_wildcard_pattern,
+    path_matches_pattern,
+    remove_nested_value,
+    set_nested_value,
+)
 
 
 @pytest.fixture
@@ -111,3 +118,125 @@ def test_remove_nested_value_empty_config():
     config = {}
     remove_nested_value(config, "a.b.c")
     assert config == {}
+
+
+# Tests for set_nested_value list creation
+
+
+def test_set_nested_value_creates_list_from_scratch():
+    config = {}
+    set_nested_value(config, "a.0", "val")
+    assert config == {"a": ["val"]}
+
+
+def test_set_nested_value_creates_list_with_multiple_items():
+    config = {}
+    set_nested_value(config, "a.0", "first")
+    set_nested_value(config, "a.1", "second")
+    assert config == {"a": ["first", "second"]}
+
+
+def test_set_nested_value_creates_nested_list():
+    config = {}
+    set_nested_value(config, "a.0.b", "val")
+    assert config == {"a": [{"b": "val"}]}
+
+
+def test_set_nested_value_extends_list():
+    config = {"a": ["x"]}
+    set_nested_value(config, "a.1", "val")
+    assert config == {"a": ["x", "val"]}
+
+
+def test_set_nested_value_extends_list_with_gap():
+    config = {"a": ["x"]}
+    set_nested_value(config, "a.3", "val")
+    assert config == {"a": ["x", None, None, "val"]}
+
+
+def test_set_nested_value_deep_path_creates_lists():
+    config = {}
+    set_nested_value(config, "a.b.0.c.1.d", "val")
+    assert config["a"]["b"][0]["c"][1]["d"] == "val"
+
+
+# Tests for wildcard pattern matching
+
+
+def test_is_wildcard_pattern_true():
+    assert is_wildcard_pattern("a.*.c") is True
+    assert is_wildcard_pattern("*") is True
+    assert is_wildcard_pattern("a.*") is True
+
+
+def test_is_wildcard_pattern_false():
+    assert is_wildcard_pattern("a.b.c") is False
+    assert is_wildcard_pattern("normal.path") is False
+    assert is_wildcard_pattern("") is False
+
+
+def test_path_matches_pattern_basic():
+    assert path_matches_pattern("certificates.0.value", "certificates.*.value") is True
+    assert path_matches_pattern("certificates.1.value", "certificates.*.value") is True
+    assert path_matches_pattern("certificates.999.value", "certificates.*.value") is True
+
+
+def test_path_matches_pattern_no_match():
+    assert path_matches_pattern("certificates.0.name", "certificates.*.value") is False
+    assert path_matches_pattern("other.0.value", "certificates.*.value") is False
+    assert path_matches_pattern("certificates.value", "certificates.*.value") is False
+
+
+def test_path_matches_pattern_exact_components():
+    assert path_matches_pattern("a.1.c", "a.*.c") is True
+    assert path_matches_pattern("a.b.c", "a.*.c") is True
+    assert path_matches_pattern("a.x.c", "a.*.c") is True
+    assert path_matches_pattern("x.1.c", "a.*.c") is False
+    assert path_matches_pattern("a.1.x", "a.*.c") is False
+
+
+def test_path_matches_pattern_different_length():
+    assert path_matches_pattern("a.b", "a.*.c") is False
+    assert path_matches_pattern("a.b.c.d", "a.*.c") is False
+
+
+def test_path_matches_pattern_multiple_wildcards():
+    # path_matches_pattern doesn't support multiple wildcards in pattern
+    # It will just check component by component
+    assert path_matches_pattern("a.1.c.2", "a.*.c.*") is True
+
+
+# Tests for find_matching_schema_key
+
+
+def test_find_matching_schema_key_exact_match():
+    schema = {"a.b.c": "config"}
+    assert find_matching_schema_key("a.b.c", schema) == "a.b.c"
+
+
+def test_find_matching_schema_key_wildcard_match():
+    schema = {"a.*.c": "wildcard_config"}
+    assert find_matching_schema_key("a.999.c", schema) == "a.*.c"
+
+
+def test_find_matching_schema_key_wildcard_no_match():
+    schema = {"a.*.c": "wildcard_config"}
+    assert find_matching_schema_key("a.999.z", schema) is None
+
+
+def test_find_matching_schema_key_no_match():
+    schema = {"a.b.c": "config"}
+    assert find_matching_schema_key("x.y.z", schema) is None
+
+
+def test_find_matching_schema_key_prefers_exact():
+    # When both exact and wildcard match, exact takes precedence
+    schema = {"a.0.c": "exact_config", "a.*.c": "wildcard_config"}
+    assert find_matching_schema_key("a.0.c", schema) == "a.0.c"
+
+
+def test_find_matching_schema_key_multiple_patterns():
+    schema = {"a.*.c": "pattern1", "x.*.y": "pattern2"}
+    assert find_matching_schema_key("a.5.c", schema) == "a.*.c"
+    assert find_matching_schema_key("x.5.y", schema) == "x.*.y"
+    assert find_matching_schema_key("z.5.y", schema) is None

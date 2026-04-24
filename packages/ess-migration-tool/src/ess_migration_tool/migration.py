@@ -26,6 +26,7 @@ from .models import (
 )
 from .secrets import SecretDiscovery
 from .utils import (
+    find_matching_schema_key,
     get_nested_value,
     remove_nested_value,
     set_nested_value,
@@ -277,9 +278,9 @@ class ConfigValueTransformer:
             # Example: secret -> {"secret": "imported-synapse", "secretKey": "synapse.postgres.password"}
             credential_config = {"secret": secret.name, "secretKey": secret_key}
 
-            # Get the secret configuration from the schema
-            secret_config = secret_discovery.strategy.ess_secret_schema.get(secret_key)
-            if secret_config is None:
+            # Validate that the secret key matches a schema entry (supports wildcard patterns)
+            matching_key = find_matching_schema_key(secret_key, secret_discovery.strategy.ess_secret_schema)
+            if matching_key is None:
                 raise RuntimeError(f"No ESS configuration mapping found for secret key: {secret_key}")
 
             # Set the credential config in the ESS config under the component section
