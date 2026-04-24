@@ -12,11 +12,11 @@ rules:
       # This job do not release any artifact, we do not care about cache poisoning
       - releasing.yml:30
       # This job do not release any artifact, we do not care about cache poisoning
-      - releasing.yml:81
+      - releasing.yml:104
       # This job do not release any artifact, we do not care about cache poisoning
-      - releasing.yml:171
+      - releasing.yml:194
       # This job do not release any artifact, we do not care about cache poisoning
-      - releasing.yml:238
+      - releasing.yml:261
       # We disable cache on releases
       - releasing.yml:33
       # This job do not release any artifact, we do not care about cache poisoning
@@ -25,3 +25,7 @@ rules:
       - packages.yml:85
       # This job do not release any artifact, we do not care about cache poisoning
       - packages.yml:145
+  superfluous-actions:
+    ignore:
+      # The high-level action-gh-release is preferred over the CLI
+      - releasing.yml:213
