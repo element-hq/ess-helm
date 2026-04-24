@@ -219,6 +219,11 @@ def test_find_matching_schema_key_wildcard_match():
     assert find_matching_schema_key("a.999.c", schema) == "a.*.c"
 
 
+def test_find_matching_schema_key_wildcard_no_match():
+    schema = {"a.*.c": "wildcard_config"}
+    assert find_matching_schema_key("a.999.z", schema) is None
+
+
 def test_find_matching_schema_key_no_match():
     schema = {"a.b.c": "config"}
     assert find_matching_schema_key("x.y.z", schema) is None
