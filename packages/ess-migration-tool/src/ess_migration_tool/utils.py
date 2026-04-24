@@ -55,40 +55,124 @@ def yaml_dump_with_pipe_for_multiline(data: Any) -> str:
 def set_nested_value(config: dict[str, Any], path: str, value: Any) -> None:
     """
     Set a value in a nested configuration at the specified path.
+    Properly handles numeric indices to create/set values in arrays.
 
     Args:
         config: Configuration dictionary to modify
         path: Dot-separated path where to set the value
         value: Value to set
     """
-    if "." in path:
-        # Nested path
-        parts = path.split(".")
-        current = config
+    if "." not in path:
+        config[path] = value
+        return
 
-        # Navigate/create the path
-        for part in parts[:-1]:
-            if isinstance(current, dict):
-                if part not in current:
-                    current[part] = {}
-                current = current[part]
-            elif isinstance(current, list):
-                if int(part) > len(current):
-                    # Create missing list items
-                    current.extend([None] * (int(part) - len(current) + 1))
-                current = current[int(part)]
-            else:
-                # Can't navigate further, overwrite with dict
-                current = {}
-                config[parts[0]] = current
+    parts = path.split(".")
+    current: dict[str, Any] | list[Any] = config
+
+    for i, part in enumerate(parts[:-1]):
+        next_part = parts[i + 1] if i + 1 < len(parts) else None
 
         if isinstance(current, list):
-            current[int(parts[-1])] = value
+            # Current is a list, treat part as integer index
+            try:
+                idx = int(part)
+            except ValueError:
+                return  # Invalid index
+            # Extend list if needed
+            while idx >= len(current):
+                current.append(None)
+            if current[idx] is None:
+                # Create appropriate type for next level
+                current[idx] = [] if (next_part and next_part.isdigit()) else {}
+            current = current[idx]
+
+        elif isinstance(current, dict):
+            if part in current:
+                # Already exists, navigate to it
+                current = current[part]
+            else:
+                # Create new structure
+                # If next part is numeric, create a list here (for array indices)
+                # Otherwise create a dict
+                if next_part and next_part.isdigit():
+                    current[part] = []
+                else:
+                    current[part] = {}
+                current = current[part]
         else:
-            current[parts[-1]] = value
+            # Can't navigate further, start over
+            current = {}
+            config[parts[0]] = current
+
+    # Set final value
+    final_part = parts[-1]
+    if isinstance(current, list):
+        try:
+            idx = int(final_part)
+        except ValueError:
+            return
+        while idx >= len(current):
+            current.append(None)
+        current[idx] = value
     else:
-        # Direct key
-        config[path] = value
+        current[final_part] = value
+
+
+def is_wildcard_pattern(pattern: str) -> bool:
+    """Check if a path pattern contains a wildcard."""
+    return "*" in pattern
+
+
+def path_matches_pattern(path: str, pattern: str) -> bool:
+    """
+    Check if a concrete path matches a wildcard pattern.
+
+    The wildcard `*` in the pattern matches exactly one path component.
+    All other components must match exactly.
+
+    Args:
+        path: Concrete path like "certificates.0.value"
+        pattern: Pattern like "certificates.*.value"
+
+    Returns:
+        True if path matches pattern
+    """
+    path_parts = path.split(".")
+    pattern_parts = pattern.split(".")
+
+    if len(path_parts) != len(pattern_parts):
+        return False
+
+    for path_part, pattern_part in zip(path_parts, pattern_parts, strict=True):
+        if pattern_part == "*":
+            continue
+        elif path_part != pattern_part:
+            return False
+
+    return True
+
+
+def find_matching_schema_key(path: str, schema: dict[str, Any]) -> str | None:
+    """
+    Find a schema key that matches the given concrete path.
+
+    Checks for exact match first, then wildcard pattern match.
+
+    Args:
+        path: Concrete path like "matrixAuthenticationService.certificates.0.value"
+        schema: Dict of {schema_key: SecretConfig}
+
+    Returns:
+        The matching schema key (exact or wildcard pattern), or None
+    """
+    if path in schema:
+        return path
+
+    for schema_key in schema:
+        if is_wildcard_pattern(schema_key) and path_matches_pattern(path, schema_key):
+            return schema_key
+
+    return None
 
 
 def get_nested_value(config: dict[str, Any], path: str) -> Any:
