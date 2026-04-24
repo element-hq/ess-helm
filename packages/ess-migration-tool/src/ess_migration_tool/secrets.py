@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 
 from .interfaces import SecretDiscoveryStrategy
 from .models import DiscoveredSecret, GlobalOptions
-from .utils import get_nested_value, is_quiet_mode
+from .utils import find_matching_schema_key, get_nested_value, is_quiet_mode, is_wildcard_pattern
 
 logger = logging.getLogger("migration")
 
@@ -46,18 +46,19 @@ class SecretDiscovery:
         # Component-specific secret discovery (e.g., for MAS keys)
         component_secrets = self.strategy.discover_component_specific_secrets(config_data)
         for secret_key, discovered_secret in component_secrets.items():
-            if secret_key in self.strategy.ess_secret_schema:
-                # Add the discovered secret
-                self.discovered_secrets[secret_key] = discovered_secret
-                # Remove from missing list if it was there
-                if secret_key in self.missing_required_secrets:
-                    self.missing_required_secrets.remove(secret_key)
-            else:
+            # Check for exact match or wildcard pattern match
+            matching_schema_key = find_matching_schema_key(secret_key, self.strategy.ess_secret_schema)
+            if matching_schema_key is None:
                 raise RuntimeError(f"Discovered component-specific secret '{secret_key}' not found in schema")
+            # Add the discovered secret
+            self.discovered_secrets[secret_key] = discovered_secret
 
     def _discover_secrets_from_schema(self, config_data: dict) -> None:
         """Common discovery logic using the strategy's ess_secret_schema."""
         for secret_key, secret_config in self.strategy.ess_secret_schema.items():
+            # Skip wildcard patterns - these are handled by discover_component_specific_secrets
+            if is_wildcard_pattern(secret_key):
+                continue
             discovered_value = None
 
             if secret_config.config_inline:
