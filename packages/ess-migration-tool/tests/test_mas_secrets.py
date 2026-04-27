@@ -166,16 +166,13 @@ def test_individual_keys_discovery(tmp_path, rsa_key_pem, ecdsa_key_pem):
     assert discovery.discovered_secrets["matrixAuthenticationService.privateKeys.rsa"].value == rsa_key_pem.decode(
         "utf-8"
     )
-    assert (
-        discovery.discovered_secrets["matrixAuthenticationService.privateKeys.rsa"].config_key
-        == "secrets.privateKeys.0"
-    )
+    assert discovery.discovered_secrets["matrixAuthenticationService.privateKeys.rsa"].config_key == "secrets.keys.0"
 
     # Verify ECDSA key was discovered from inline content
     ecdsa_secret = discovery.discovered_secrets["matrixAuthenticationService.privateKeys.ecdsaPrime256v1"]
     assert "matrixAuthenticationService.privateKeys.ecdsaPrime256v1" in discovery.discovered_secrets
     assert ecdsa_secret.value == ecdsa_key_pem.decode("utf-8")
-    assert ecdsa_secret.config_key == "secrets.privateKeys.1"
+    assert ecdsa_secret.config_key == "secrets.keys.1"
 
 
 def test_mixed_key_sources(tmp_path, rsa_key_pem, ecdsa_key_pem):
@@ -220,10 +217,7 @@ def test_mixed_key_sources(tmp_path, rsa_key_pem, ecdsa_key_pem):
     assert discovery.discovered_secrets["matrixAuthenticationService.privateKeys.rsa"].value == rsa_key_pem.decode(
         "utf-8"
     )
-    assert (
-        discovery.discovered_secrets["matrixAuthenticationService.privateKeys.rsa"].config_key
-        == "secrets.privateKeys.0"
-    )
+    assert discovery.discovered_secrets["matrixAuthenticationService.privateKeys.rsa"].config_key == "secrets.keys.0"
     ecdsa_secret = discovery.discovered_secrets["matrixAuthenticationService.privateKeys.ecdsaPrime256v1"]
     assert ecdsa_secret.value == ecdsa_key_pem.decode("utf-8")
     assert ecdsa_secret.config_key == "secrets.keys_dir"
