@@ -213,6 +213,57 @@ def write_mas_config(tmp_path):
 
 
 @pytest.fixture
+def basic_mas_config_with_individual_keys(tmp_path):
+    """MAS configuration with individual keys in the secrets.keys array for testing config_key fix."""
+    # Create key files in tmp_path (which persists for the test duration)
+    tmpdir_path = tmp_path / "mas_keys"
+    tmpdir_path.mkdir(parents=True)
+
+    # Generate and save RSA key
+    rsa_key = rsa.generate_private_key(public_exponent=65537, key_size=2048, backend=default_backend())
+    rsa_pem = rsa_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+    rsa_key_file = tmpdir_path / "rsa_key.pem"
+    rsa_key_file.write_bytes(rsa_pem)
+
+    # Generate and save ECDSA key
+    ecdsa_key = ec.generate_private_key(ec.SECP256R1(), backend=default_backend())
+    ecdsa_pem = ecdsa_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+    ecdsa_key_file = tmpdir_path / "ecdsa_key.pem"
+    ecdsa_key_file.write_bytes(ecdsa_pem)
+
+    # Create a non-existent key file path for testing failure handling
+    missing_key_file = tmpdir_path / "missing_key.pem"
+
+    # Create MAS config with individual keys
+    config = {
+        "http": {"public_base": "https://auth.example.com", "bind": {"address": "0.0.0.0", "port": 8080}},
+        "database": {"uri": "postgresql://mas:mas_password@postgres:5432/mas?sslmode=prefer"},
+        "secrets": {
+            "encryption": "my_encryption_key",
+            "keys": [
+                {"key_file": str(rsa_key_file)},
+                {"key_file": str(missing_key_file)},  # This will fail
+                {"key_file": str(ecdsa_key_file)},
+            ],
+        },
+        "matrix": {
+            "homeserver": "test.example.com",
+            "secret": "synapse_shared_secret_abcdef",
+            "endpoint": "http://synapse:8008",
+        },
+    }
+    return config
+
+
+@pytest.fixture
 def rsa_key_pem():
     """Generate a sample RSA private key in PEM format using PKCS1."""
     key = rsa.generate_private_key(public_exponent=65537, key_size=2048, backend=default_backend())

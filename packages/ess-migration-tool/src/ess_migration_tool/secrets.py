@@ -33,8 +33,9 @@ class SecretDiscovery:
 
     discovered_secrets: dict[str, DiscoveredSecret] = field(default_factory=dict)  # Secrets with source tracking
     init_by_ess_secrets: list[str] = field(default_factory=list)  # Secrets to be initialized by ESS
-    missing_required_secrets: list[str] = field(default_factory=list)  # Secrets missing from configuration
-    secret_discovery_failures: dict[str, str] = field(default_factory=dict)  # secret_key -> failure_reason
+    missing_required_secrets: list[tuple[DiscoveredSecret, str | None]] = field(
+        default_factory=list
+    )  # (DiscoveredSecret, error_message) for required but missing/failed secrets
 
     def discover_secrets(self, config_data: dict) -> None:
         """Discover secrets from configuration data."""
@@ -44,7 +45,9 @@ class SecretDiscovery:
         self._discover_secrets_from_schema(config_data)
 
         # Component-specific secret discovery (e.g., for MAS keys)
-        component_secrets, component_failures = self.strategy.discover_component_specific_secrets(config_data)
+        component_secrets, component_failures = self.strategy.discover_component_specific_secrets(
+            self.source_file, config_data
+        )
         for secret_key, discovered_secret in component_secrets.items():
             # Check for exact match or wildcard pattern match
             matching_schema_key = find_matching_schema_key(secret_key, self.strategy.ess_secret_schema)
@@ -54,9 +57,8 @@ class SecretDiscovery:
             self.discovered_secrets[secret_key] = discovered_secret
 
         # Process component-specific discovery failures
-        for secret_key, error_message in component_failures.items():
-            # Track the failure
-            self.secret_discovery_failures[secret_key] = error_message
+        for discovered_secret, error_message in component_failures:
+            secret_key = discovered_secret.secret_key
 
             # Find matching schema key (could be wildcard pattern)
             matching_schema_key = find_matching_schema_key(secret_key, self.strategy.ess_secret_schema)
@@ -72,7 +74,7 @@ class SecretDiscovery:
             elif secret_config.init_if_missing_from_source_cfg:
                 self.init_by_ess_secrets.append(secret_key)
             else:
-                self.missing_required_secrets.append(secret_key)
+                self.missing_required_secrets.append((discovered_secret, error_message))
 
     def _discover_secrets_from_schema(self, config_data: dict) -> None:
         """Common discovery logic using the strategy's ess_secret_schema."""
@@ -81,6 +83,7 @@ class SecretDiscovery:
             if is_wildcard_pattern(secret_key):
                 continue
             discovered_value = None
+            error_msg: str | None = None
 
             if secret_config.config_inline:
                 # Direct value
@@ -100,10 +103,10 @@ class SecretDiscovery:
                         logging.info(f"Found file value for {secret_key}")
                     except FileNotFoundError:
                         logger.warning(f"File not found: {file_path}")
-                        self.secret_discovery_failures[secret_key] = f"File not found: {file_path}"
+                        error_msg = f"File not found: {file_path}"
                     except PermissionError:
                         logger.warning(f"Permission denied when reading file: {file_path}")
-                        self.secret_discovery_failures[secret_key] = f"Permission denied reading file: {file_path}"
+                        error_msg = f"Permission denied reading file: {file_path}"
 
             # Apply transformer if available and we have a value
             if discovered_value is not None and secret_config.transformer is not None:
@@ -129,15 +132,29 @@ class SecretDiscovery:
                 if secret_config.optional:
                     # Optional secrets are ignored if not found
                     continue
-                elif secret_config.init_if_missing_from_source_cfg:
+
+                # Build DiscoveredSecret with config_key from schema
+                # If there was an error reading from config_path, use that; otherwise prefer config_inline
+                config_key_for_missing = (
+                    secret_config.config_path if error_msg else secret_config.config_inline or secret_config.config_path
+                )
+                assert config_key_for_missing is not None
+                discovered_secret_still_missing = DiscoveredSecret(
+                    source_file=self.source_file,
+                    secret_key=secret_key,
+                    config_key=config_key_for_missing,
+                    value="",
+                )
+
+                if secret_config.init_if_missing_from_source_cfg:
                     self.init_by_ess_secrets.append(secret_key)
                 else:
-                    self.missing_required_secrets.append(secret_key)
+                    self.missing_required_secrets.append((discovered_secret_still_missing, error_msg))
 
     def validate_required_secrets(self) -> None:
         """Validate that all required secrets are present."""
         if self.missing_required_secrets:
-            missing_list = ", ".join(self.missing_required_secrets)
+            missing_list = ", ".join(ds.secret_key for ds, _ in self.missing_required_secrets)
             raise SecretsError(f"Missing required {self.strategy.secret_name} secrets: {missing_list}")
         logging.info(f"All required {self.strategy.secret_name} secrets are present")
 
@@ -146,9 +163,10 @@ class SecretDiscovery:
         if not self.missing_required_secrets:
             return
 
+        still_missing_secrets = []
         # Check if quiet mode is enabled
         if is_quiet_mode(self.pretty_logger):
-            missing_list = ", ".join(self.missing_required_secrets)
+            missing_list = ", ".join(ds.secret_key for ds, _ in self.missing_required_secrets)
             raise SecretsError(
                 f"Missing required {self.strategy.secret_name} secrets in quiet mode: {missing_list}. "
                 "Cannot prompt for secrets when --quiet is enabled."
@@ -161,7 +179,10 @@ class SecretDiscovery:
         self.pretty_logger.info(f"The following {component_name} secrets are required but could not be automatically")
         self.pretty_logger.info("discovered from your configuration files. Please provide them:")
 
-        for secret_key in self.missing_required_secrets[:]:
+        for discovered_secret, error_message in self.missing_required_secrets[:]:
+            secret_key = discovered_secret.secret_key
+            config_key = discovered_secret.config_key
+
             # Find matching schema key (supports wildcard patterns)
             matching_schema_key = find_matching_schema_key(secret_key, self.strategy.ess_secret_schema)
             assert matching_schema_key is not None
@@ -171,16 +192,11 @@ class SecretDiscovery:
             self.pretty_logger.info(f"   Secret path: {secret_key}")
 
             # Add failure reason if available
-            if secret_key in self.secret_discovery_failures:
-                self.pretty_logger.info(f"   ⚠️  {self.secret_discovery_failures[secret_key]}")
-                if "Permission denied" in self.secret_discovery_failures[secret_key]:
+            if error_message:
+                self.pretty_logger.info(f"   ⚠️  {error_message}")
+                if "Permission denied" in error_message:
                     self.pretty_logger.info("   💡 Use elevated privileges to read this file")
 
-            # The config key that will be injected in the configuration is preferably the path to the secret
-            # But we fallback to the config_inline in needed
-            config_key = secret_info.config_path
-            if not config_key:
-                config_key = secret_info.config_inline
             if not config_key:
                 raise RuntimeError(f"Missing configuration path for {secret_key}")
 
@@ -194,7 +210,6 @@ class SecretDiscovery:
                             config_key=config_key,
                             value=value,
                         )
-                        self.missing_required_secrets.remove(secret_key)
                         self.pretty_logger.info(f"   ✅ Secret stored for {secret_key}")
                         break
                     else:

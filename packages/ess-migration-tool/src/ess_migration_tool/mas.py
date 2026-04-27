@@ -393,55 +393,60 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
         return schema
 
     def discover_component_specific_secrets(
-        self, config_data: dict
-    ) -> tuple[dict[str, DiscoveredSecret], dict[str, str]]:
+        self, source_file: str, config_data: dict
+    ) -> tuple[dict[str, DiscoveredSecret], list[tuple[DiscoveredSecret, str]]]:
         """
         Discover component-specific secrets from MAS configuration.
 
         Args:
+            source_file: Source configuration file name
             config_data: MAS configuration data
 
         Returns:
             Tuple of (discovered_secrets, failed_secrets) where:
             - discovered_secrets: Dictionary mapping ESS secret keys to DiscoveredSecret objects
-            - failed_secrets: Dictionary mapping failed ESS secret keys to error messages
+            - failed_secrets: List of (DiscoveredSecret, error_message) tuples for secrets
+              that failed to be read. DiscoveredSecret includes config_key from the source config.
         """
         discovered_secrets: dict[str, DiscoveredSecret] = {}
-        failed_secrets: dict[str, str] = {}
+        failed_secrets: list[tuple[DiscoveredSecret, str]] = []
 
         # Handle keys_dir (directory scanning)
         keys_dir = config_data.get("secrets", {}).get("keys_dir")
         if keys_dir:
-            dir_secrets, dir_failures = self._process_keys_directory(keys_dir)
+            dir_secrets, dir_failures = self._process_keys_directory(source_file, keys_dir)
             discovered_secrets.update(dir_secrets)
-            failed_secrets.update(dir_failures)
+            # Directory failures are logged but not returned for prompting
 
         # Handle individual keys
         keys_config = config_data.get("secrets", {}).get("keys", [])
         if keys_config:
-            individual_secrets, individual_failures = self._process_individual_keys(keys_config)
+            individual_secrets, individual_failures = self._process_individual_keys(source_file, keys_config)
             # Individual keys take precedence over directory keys
             discovered_secrets.update(individual_secrets)
-            failed_secrets.update(individual_failures)
+            failed_secrets.extend(individual_failures)
 
         return (discovered_secrets, failed_secrets)
 
-    def _process_keys_directory(self, keys_dir: str) -> tuple[dict[str, DiscoveredSecret], dict[str, str]]:
+    def _process_keys_directory(
+        self, source_file: str, keys_dir: str
+    ) -> tuple[dict[str, DiscoveredSecret], list[tuple[DiscoveredSecret, str]]]:
         """
         Process all key files in a directory.
 
         Args:
+            source_file: Source configuration file name
             keys_dir: Path to directory containing key files
 
         Returns:
             Tuple of (discovered_secrets, failed_secrets)
+            Note: failed_secrets is always empty list as directory scan failures are only logged
         """
         discovered_secrets: dict[str, DiscoveredSecret] = {}
-        failed_secrets: dict[str, str] = {}
         try:
             if not os.path.isdir(keys_dir):
                 logger.warning(f"Keys directory does not exist: {keys_dir}")
-                return (discovered_secrets, failed_secrets)
+                return (discovered_secrets, [])
 
             for filename in os.listdir(keys_dir):
                 filepath = os.path.join(keys_dir, filename)
@@ -451,77 +456,86 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
                             content = f.read()
                         key_type = detect_key_type(content)
                         if key_type in ["rsa", "ecdsaPrime256v1", "ecdsaSecp256k1", "ecdsaSecp384r1"]:
-                            secret_key = f"matrixAuthenticationService.privateKeys.{key_type}"
+                            ess_secret_key = f"matrixAuthenticationService.privateKeys.{key_type}"
+                            source_config_key = "secrets.keys_dir"
                             # Only set if not already discovered (prefer individual keys over directory)
-                            if secret_key not in discovered_secrets:
+                            if ess_secret_key not in discovered_secrets:
                                 discovered_secret = DiscoveredSecret(
-                                    source_file="mas.yaml",
-                                    secret_key=secret_key,
-                                    config_key="secrets.keys_dir",
+                                    source_file=source_file,
+                                    secret_key=ess_secret_key,
+                                    config_key=source_config_key,
                                     value=content.decode("utf-8"),
                                 )
-                                discovered_secrets[secret_key] = discovered_secret
+                                discovered_secrets[ess_secret_key] = discovered_secret
                                 logger.info(f"Discovered {key_type} key from file: {filepath}")
                     except Exception as e:
-                        # For unrecognized key types, we don't add to discovered, but we also don't fail
-                        # This is expected behavior (non-key files in directory)
-                        logger.debug(f"Skipping non-key file {filepath}: {e}")
+                        # Only log failures for directory scanning; directory scan failures cannot be prompted
+                        logger.warning(f"Failed to process key file {filepath}: {e}")
         except Exception as e:
             logger.warning(f"Failed to process keys directory {keys_dir}: {e}")
 
-        return (discovered_secrets, failed_secrets)
+        return (discovered_secrets, [])
 
-    def _process_individual_keys(self, keys_config: list) -> tuple[dict[str, DiscoveredSecret], dict[str, str]]:
+    def _process_individual_keys(
+        self, source_file: str, keys_config: list
+    ) -> tuple[dict[str, DiscoveredSecret], list[tuple[DiscoveredSecret, str]]]:
         """
         Process individual key configurations.
 
         Args:
+            source_file: Source configuration file name
             keys_config: List of key configuration dictionaries
 
         Returns:
             Tuple of (discovered_secrets, failed_secrets)
         """
         discovered_secrets: dict[str, DiscoveredSecret] = {}
-        failed_secrets: dict[str, str] = {}
+        failed_secrets: list[tuple[DiscoveredSecret, str]] = []
 
         for index, key_config in enumerate(keys_config):
             content = None
-            config_key = None
+            source_config_key = None
 
             # Try key_file first
             if "key_file" in key_config:
+                source_config_key = f"secrets.keys.{index}"
                 try:
                     with open(key_config["key_file"], "rb") as f:
                         content = f.read()
-                    config_key = f"secrets.privateKeys.{index}"
                     logger.info(f"Read key from file: {key_config['key_file']}")
                 except Exception as e:
                     # Track failure for prompting
-                    secret_key = f"matrixAuthenticationService.privateKeys.{index}"
+                    ess_secret_key = f"matrixAuthenticationService.privateKeys.{index}"
                     error_msg = f"Failed to read key file {key_config['key_file']}: {e}"
-                    failed_secrets[secret_key] = error_msg
+                    failed_secret = DiscoveredSecret(
+                        source_file=source_file,
+                        secret_key=ess_secret_key,
+                        config_key=source_config_key,
+                        value="",
+                    )
+                    failed_secrets.append((failed_secret, error_msg))
                     logger.warning(error_msg)
                     continue
 
             # Try inline key content
             elif "key" in key_config:
                 content = key_config["key"].encode("utf-8")
-                config_key = f"secrets.privateKeys.{index}"
+                source_config_key = f"secrets.keys.{index}"
                 logger.info("Read key from inline content")
 
-            if content and config_key:
+            if content and source_config_key:
                 key_type = detect_key_type(content)
                 if key_type in ["rsa", "ecdsaPrime256v1", "ecdsaSecp256k1", "ecdsaSecp384r1"]:
-                    secret_key = f"matrixAuthenticationService.privateKeys.{key_type}"
+                    ess_secret_key = f"matrixAuthenticationService.privateKeys.{key_type}"
                     # Only set if not already discovered (prefer individual keys over directory)
-                    if secret_key not in discovered_secrets:
+                    if ess_secret_key not in discovered_secrets:
                         discovered_secret = DiscoveredSecret(
-                            source_file="mas.yaml",
-                            secret_key=secret_key,
-                            config_key=config_key,
+                            source_file=source_file,
+                            secret_key=ess_secret_key,
+                            config_key=source_config_key,
                             value=content.decode("utf-8"),
                         )
-                        discovered_secrets[secret_key] = discovered_secret
+                        discovered_secrets[ess_secret_key] = discovered_secret
                         logger.info(f"Discovered {key_type} key from individual configuration")
 
         return (discovered_secrets, failed_secrets)

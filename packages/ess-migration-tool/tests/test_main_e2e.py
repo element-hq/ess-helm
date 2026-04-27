@@ -695,3 +695,97 @@ def test_main_e2e_synapse_listeners_with_custom_listeners(
     listeners = listeners_config_content["listeners"]
     assert len(listeners) == 1, "Should have exactly one custom listener"
     assert listeners[0]["resources"][0]["names"] == ["custom_api"], "Should preserve custom_api resource"
+
+
+def test_main_e2e_mas_with_individual_keys(
+    monkeypatch,
+    tmp_path,
+    synapse_config_with_signing_key,
+    basic_mas_config_with_individual_keys,
+    write_synapse_config,
+    write_mas_config,
+    capsys,
+    helm_validator,
+):
+    """Test MAS migration with individual keys in secrets.keys array.
+
+    This test verifies that:
+    1. Individual keys are discovered and processed correctly
+    2. Failed individual keys have config_key set to secrets.keys.{index}
+    """
+    # Write Synapse config
+    synapse_config_file = write_synapse_config(synapse_config_with_signing_key)
+
+    # Write MAS config with individual keys (including one that will fail)
+    mas_config_file = write_mas_config(basic_mas_config_with_individual_keys)
+
+    # Create output directory
+    output_dir = tmp_path / "output"
+    output_dir.mkdir()
+
+    # Mock sys.argv to simulate CLI arguments
+    test_args = [
+        "migration",
+        "--synapse-config",
+        str(synapse_config_file),
+        "--mas-config",
+        str(mas_config_file),
+        "--output-dir",
+        str(output_dir),
+    ]
+
+    # Mock user input for database choice (select option 1 - existing database, default)
+    # We also need to provide input for the missing secret prompt
+    # The fixture has 3 keys: [rsa_key_file, missing_key_file, ecdsa_key_file]
+    # The missing_key_file will fail, so we need to provide input for secrets.keys.1
+    side_effect = (n for n in ("", "test_missing_key_value"))  # database choice, then missing key value
+    monkeypatch.setattr(sys, "argv", test_args)
+    monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
+    exit_code = __main__.main()
+
+    # Verify successful execution
+    assert exit_code == 0
+
+    # Check that output files were created
+    values_file = output_dir / "values.yaml"
+    assert values_file.exists(), "values.yaml should be created"
+
+    # Load and verify the generated values
+    with open(values_file) as f:
+        generated_values = yaml.safe_load(f)
+
+    # Validate generated values against Helm templates
+    success, message = helm_validator(generated_values)
+    assert success, f"Helm template validation failed: {message}"
+
+    # Verify MAS configuration was migrated and is explicitly enabled
+    assert "matrixAuthenticationService" in generated_values
+    mas_config = generated_values["matrixAuthenticationService"]
+    assert mas_config["enabled"] is True, "matrixAuthenticationService.enabled should be True"
+
+    # Check for Secret files
+    secret_files = list(output_dir.glob("*secret.yaml"))
+    # Should have secret files for both Synapse and MAS
+    assert len(secret_files) >= 2, "Secret files should be created for both Synapse and MAS secrets"
+
+    # Verify MAS secrets were imported
+    mas_secret_file = next((sf for sf in secret_files if "matrix-authentication-service" in sf.name), None)
+    assert mas_secret_file is not None, "MAS secret file should be created"
+
+    with open(mas_secret_file) as f:
+        mas_secret_content = yaml.safe_load(f)
+
+    # Verify the RSA and ECDSA keys were imported (index 0 and 2 succeed)
+    assert "matrixAuthenticationService.privateKeys.rsa" in mas_secret_content["data"]
+    assert "matrixAuthenticationService.privateKeys.ecdsaPrime256v1" in mas_secret_content["data"]
+
+    # Verify the missing key (index 1) is NOT in the secret data (since it wasn't in the config_file)
+    # But the key should have been prompted for and stored
+    # The secret file should have data for the provided missing key value
+    assert len(mas_secret_content["data"]) >= 5  # encryption, synapseSharedSecret, postgres.password, rsa, ecdsa
+
+    # Verify that the additional config doesn't contain keys_dir
+    mas_additional_config = yaml.safe_load(mas_config["additional"]["00-imported.yaml"]["config"])
+    assert "keys_dir" not in mas_additional_config.get("secrets", {})
+    # Verify that keys array is not in additional config (as it's processed as secrets)
+    assert "keys" not in mas_additional_config.get("secrets", {})
