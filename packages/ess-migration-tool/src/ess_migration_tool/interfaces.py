@@ -54,7 +54,9 @@ class SecretDiscoveryStrategy(Protocol):
         """Get the secret/strategy name in kebab-case."""
         ...
 
-    def discover_component_specific_secrets(self, config_data: dict) -> dict[str, DiscoveredSecret]:
+    def discover_component_specific_secrets(
+        self, config_data: dict
+    ) -> tuple[dict[str, DiscoveredSecret], dict[str, str]]:
         """
         Discover component-specific secrets from configuration.
 
@@ -62,7 +64,10 @@ class SecretDiscoveryStrategy(Protocol):
             config_data: Component configuration data
 
         Returns:
-            Dictionary mapping ESS secret keys to DiscoveredSecret objects
+            Tuple of (discovered_secrets, failed_secrets) where:
+            - discovered_secrets: Dictionary mapping ESS secret keys to DiscoveredSecret objects
+            - failed_secrets: Dictionary mapping ESS secret keys to error messages for
+              secrets that were discovered but could not be read
         """
         ...
 
