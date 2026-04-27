@@ -96,6 +96,8 @@ responsibleForMedia
 {{ list "to_device" | toJson }}
 {{- else if eq . "event-persister" }}
 {{ list "events" | toJson }}
+{{- else if eq . "media-repository" }}
+{{ list "quarantined_media_changes" | toJson }}
 {{- else if eq . "presence-writer" }}
 {{ list "presence" | toJson }}
 {{- else if eq . "push-rules" }}
