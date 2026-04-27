@@ -10,6 +10,7 @@ for future features that use wildcard notation in ess_secrets_schema.
 """
 
 import logging
+from typing import Any
 
 import pytest
 from ess_migration_tool.interfaces import SecretDiscoveryStrategy
@@ -42,8 +43,8 @@ class MockWildcardStrategy(SecretDiscoveryStrategy):
         return "test-component"
 
     def discover_component_specific_secrets(
-        self, config_data: dict
-    ) -> tuple[dict[str, DiscoveredSecret], dict[str, str]]:
+        self, source_file: str, config_data: dict[str, Any]
+    ) -> tuple[dict[str, DiscoveredSecret], list[tuple[DiscoveredSecret, str]]]:
         """
         Discover secrets with wildcard-expanded keys.
 
@@ -54,17 +55,18 @@ class MockWildcardStrategy(SecretDiscoveryStrategy):
             Tuple of (discovered_secrets, failed_secrets)
         """
         discovered: dict[str, DiscoveredSecret] = {}
-        failed: dict[str, str] = {}
+        failed: list[tuple[DiscoveredSecret, str]] = []
 
         # Simulate discovering certificate values from config
-        certs = config_data.get("certificates", [])
+        certs: list[dict[str, Any]] = config_data.get("certificates", [])
         for i, cert in enumerate(certs):
             if "value" in cert:
-                secret_key = f"certificates.{i}.value"
-                discovered[secret_key] = DiscoveredSecret(
-                    source_file="test.yaml",
-                    secret_key=secret_key,
-                    config_key=f"certificates.{i}.value",
+                ess_secret_key = f"certificates.{i}.value"  # ESS path
+                source_config_key = f"source.certificates.{i}.value"  # Source path - different
+                discovered[ess_secret_key] = DiscoveredSecret(
+                    source_file=source_file,
+                    secret_key=ess_secret_key,
+                    config_key=source_config_key,
                     value=cert["value"],
                 )
 
@@ -177,8 +179,8 @@ class MockWildcardStrategyWithFailures(SecretDiscoveryStrategy):
         return "test-component"
 
     def discover_component_specific_secrets(
-        self, config_data: dict
-    ) -> tuple[dict[str, DiscoveredSecret], dict[str, str]]:
+        self, source_file: str, config_data: dict[str, Any]
+    ) -> tuple[dict[str, DiscoveredSecret], list[tuple[DiscoveredSecret, str]]]:
         """
         Discover secrets with wildcard-expanded keys, including some failures.
 
@@ -186,32 +188,40 @@ class MockWildcardStrategyWithFailures(SecretDiscoveryStrategy):
             Tuple of (discovered_secrets, failed_secrets)
         """
         discovered: dict[str, DiscoveredSecret] = {}
-        failed: dict[str, str] = {}
+        failed: list[tuple[DiscoveredSecret, str]] = []
 
         # Simulate discovering certificate values from config (all succeed)
-        certs = config_data.get("certificates", [])
+        certs: list[dict[str, Any]] = config_data.get("certificates", [])
         for i, cert in enumerate(certs):
             if "value" in cert:
-                secret_key = f"certificates.{i}.value"
-                discovered[secret_key] = DiscoveredSecret(
-                    source_file="test.yaml",
-                    secret_key=secret_key,
-                    config_key=f"certificates.{i}.value",
+                ess_secret_key = f"certificates.{i}.value"
+                source_config_key = f"source.certificates.{i}.value"
+                discovered[ess_secret_key] = DiscoveredSecret(
+                    source_file=source_file,
+                    secret_key=ess_secret_key,
+                    config_key=source_config_key,
                     value=cert["value"],
                 )
 
         # Simulate some key failures
-        keys = config_data.get("keys", [])
+        keys: list[dict[str, Any]] = config_data.get("keys", [])
         for i, key in enumerate(keys):
-            secret_key = f"keys.{i}.private"
+            ess_secret_key = f"keys.{i}.private"
+            source_config_key = f"keys.{i}.private"
             # Simulate failure for keys without "private" field
             if "private" not in key:
-                failed[secret_key] = f"Failed to read key file for keys.{i}.private"
+                failed_secret = DiscoveredSecret(
+                    source_file=source_file,
+                    secret_key=ess_secret_key,
+                    config_key=source_config_key,
+                    value="",
+                )
+                failed.append((failed_secret, f"Failed to read key file for keys.{i}.private"))
             else:
-                discovered[secret_key] = DiscoveredSecret(
-                    source_file="test.yaml",
-                    secret_key=secret_key,
-                    config_key=f"keys.{i}.private",
+                discovered[ess_secret_key] = DiscoveredSecret(
+                    source_file=source_file,
+                    secret_key=ess_secret_key,
+                    config_key=source_config_key,
                     value=key["private"],
                 )
 
@@ -244,11 +254,15 @@ def test_wildcard_secret_prompt_for_missing(monkeypatch: pytest.MonkeyPatch):
     discovery.discover_secrets(component_config)
 
     # The failed secret should be in missing_required_secrets
-    assert "keys.0.private" in discovery.missing_required_secrets
-    assert "keys.0.private" in discovery.secret_discovery_failures
+    failed_secret_keys = [ds.secret_key for ds, _ in discovery.missing_required_secrets]
+    assert "keys.0.private" in failed_secret_keys
 
     # Verify failure message
-    assert "Failed to read key file" in discovery.secret_discovery_failures["keys.0.private"]
+    failure_tuples = [t for t in discovery.missing_required_secrets if t[0].secret_key == "keys.0.private"]
+    assert len(failure_tuples) == 1
+    error_message = failure_tuples[0][1]
+    assert error_message is not None
+    assert "Failed to read key file" in error_message
 
     # Use monkeypatch to provide input for the prompt
     monkeypatch.setattr("builtins.input", lambda _: "my-secret-value")

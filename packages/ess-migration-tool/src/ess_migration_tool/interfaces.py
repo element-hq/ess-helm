@@ -55,19 +55,21 @@ class SecretDiscoveryStrategy(Protocol):
         ...
 
     def discover_component_specific_secrets(
-        self, config_data: dict
-    ) -> tuple[dict[str, DiscoveredSecret], dict[str, str]]:
+        self, source_file: str, config_data: dict
+    ) -> tuple[dict[str, DiscoveredSecret], list[tuple[DiscoveredSecret, str]]]:
         """
         Discover component-specific secrets from configuration.
 
         Args:
+            source_file: Source configuration file name
             config_data: Component configuration data
 
         Returns:
             Tuple of (discovered_secrets, failed_secrets) where:
             - discovered_secrets: Dictionary mapping ESS secret keys to DiscoveredSecret objects
-            - failed_secrets: Dictionary mapping ESS secret keys to error messages for
-              secrets that were discovered but could not be read
+            - failed_secrets: List of (DiscoveredSecret, error_message) tuples for secrets
+              that were discovered but could not be read. DiscoveredSecret includes config_key
+              (the original configuration path from the source config).
         """
         ...
 
