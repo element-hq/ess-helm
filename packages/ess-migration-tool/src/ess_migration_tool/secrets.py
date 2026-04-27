@@ -138,7 +138,18 @@ class SecretDiscovery:
                 config_key_for_missing = (
                     secret_config.config_path if error_msg else secret_config.config_inline or secret_config.config_path
                 )
-                assert config_key_for_missing is not None
+
+                # If there's no way to discover this secret from the config (no config_inline or config_path),
+                # handle it specially:
+                # - If init_if_missing_from_source_cfg is True, add to init_by_ess_secrets
+                # - Otherwise, it will be discovered via component-specific discovery
+                if config_key_for_missing is None:
+                    if secret_config.init_if_missing_from_source_cfg:
+                        self.init_by_ess_secrets.append(secret_key)
+                    # In either case, we don't add to missing_required_secrets
+                    # because component-specific discovery will handle these
+                    continue
+
                 discovered_secret_still_missing = DiscoveredSecret(
                     source_file=self.source_file,
                     secret_key=secret_key,
@@ -163,7 +174,6 @@ class SecretDiscovery:
         if not self.missing_required_secrets:
             return
 
-        still_missing_secrets = []
         # Check if quiet mode is enabled
         if is_quiet_mode(self.pretty_logger):
             missing_list = ", ".join(ds.secret_key for ds, _ in self.missing_required_secrets)

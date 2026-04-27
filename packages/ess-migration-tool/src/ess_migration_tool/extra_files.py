@@ -89,6 +89,10 @@ class ExtraFilesDiscovery:
             # Build the full key path
             if not parent_key:
                 raise RuntimeError("ESS Migration does not handle source file with only a single list at root")
+            # Skip if parent_key is in ignored config keys
+            # This prevents discovery of file paths in ignored sections (e.g., secrets.keys)
+            if parent_key in self.strategy.ignored_config_keys:
+                return
             for i, value in enumerate(config_data):
                 full_key = f"{parent_key}.{i}"
                 if isinstance(value, str) and self._is_file_path(value):

@@ -552,9 +552,9 @@ class MASExtraFileDiscovery(ExtraFilesDiscoveryStrategy):
 
     @property
     def ignored_config_keys(self) -> list[str]:
-        # Keep secrets.keys_dir in ignored keys for extra files discovery
-        # as it's processed by specialized key discovery logic
-        return ["secrets.keys_dir"]
+        # Keep secrets.keys_dir and secrets.keys in ignored keys for extra files discovery
+        # as they are processed by specialized key discovery logic
+        return ["secrets.keys_dir", "secrets.keys"]
 
     @property
     def ignored_file_paths(self) -> list[str]:
