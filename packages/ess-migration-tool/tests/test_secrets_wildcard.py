@@ -273,4 +273,6 @@ def test_wildcard_secret_prompt_for_missing(monkeypatch: pytest.MonkeyPatch):
     # After prompting, the secret should be discovered
     assert "keys.0.private" in discovery.discovered_secrets
     assert discovery.discovered_secrets["keys.0.private"].value == "my-secret-value"
-    assert "keys.0.private" not in discovery.missing_required_secrets
+    # Check that the secret is no longer in missing_required_secrets
+    missing_secret_keys = {ds.secret_key for ds, _ in discovery.missing_required_secrets}
+    assert "keys.0.private" not in missing_secret_keys

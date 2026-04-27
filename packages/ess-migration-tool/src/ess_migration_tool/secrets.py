@@ -220,6 +220,8 @@ class SecretDiscovery:
                             config_key=config_key,
                             value=value,
                         )
+                        # Remove from missing_required_secrets after successful prompt
+                        self.missing_required_secrets.remove((discovered_secret, error_message))
                         self.pretty_logger.info(f"   ✅ Secret stored for {secret_key}")
                         break
                     else:
