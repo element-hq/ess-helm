@@ -8,6 +8,7 @@ import os
 import random
 import time
 import urllib.parse
+from collections import defaultdict
 from typing import Any
 
 import yaml
@@ -332,6 +333,43 @@ def is_quiet_mode(pretty_logger: logging.Logger) -> bool:
         True if quiet mode is enabled (logger level is CRITICAL), False otherwise
     """
     return pretty_logger.level == logging.CRITICAL
+
+
+def sort_tracked_values_for_filtering(tracked_values: list[str]) -> list[str]:
+    """
+    Sort tracked values so that list indices are processed in descending order.
+    This prevents the list shifting problem when removing indices sequentially.
+
+    For example: ['secrets.keys.0', 'secrets.keys.1', 'secrets.keys.2'] ->
+    ['secrets.keys.2', 'secrets.keys.1', 'secrets.keys.0']
+
+    Args:
+        tracked_values: List of dot-separated config paths
+
+    Returns:
+        Sorted list of paths with list indices in descending order within each parent
+    """
+    # Separate paths: regular paths and paths ending with numeric indices
+    regular_paths = []
+    indexed_paths_by_parent: dict[str, list] = defaultdict(list)
+
+    for path in tracked_values:
+        parts = path.rsplit(".", 1)
+        if len(parts) == 2 and parts[1].isdigit():
+            # This is a list index path like 'secrets.keys.2'
+            parent, index = parts
+            indexed_paths_by_parent[parent].append((int(index), path))
+        else:
+            regular_paths.append(path)
+
+    # Sort indexed paths by parent (sorted for determinism), then by index descending
+    sorted_indexed: list[str] = []
+    for parent in sorted(indexed_paths_by_parent.keys()):
+        sorted_indexed.extend(
+            path for _, path in sorted(indexed_paths_by_parent[parent], key=lambda x: x[0], reverse=True)
+        )
+
+    return regular_paths + sorted_indexed
 
 
 def prompt_for_database_choice(pretty_logger) -> bool:

@@ -787,5 +787,5 @@ def test_main_e2e_mas_with_individual_keys(
     # Verify that the additional config doesn't contain keys_dir
     mas_additional_config = yaml.safe_load(mas_config["additional"]["00-imported.yaml"]["config"])
     assert "keys_dir" not in mas_additional_config.get("secrets", {})
-    # Verify that keys array is not in additional config (as it's processed as secrets)
-    assert "keys" not in mas_additional_config.get("secrets", {})
+    # Verify that keys array is properly filtered out (all individual keys were imported as secrets)
+    assert mas_additional_config.get("secrets", {}).get("keys", []) == []

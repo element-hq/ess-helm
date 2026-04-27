@@ -30,6 +30,7 @@ from .utils import (
     get_nested_value,
     remove_nested_value,
     set_nested_value,
+    sort_tracked_values_for_filtering,
     to_kebab_case,
     yaml_dump_with_pipe_for_multiline,
 )
@@ -66,7 +67,9 @@ def additional_config_transformer(
     filtered_config = copy.deepcopy(source_config)
 
     # Filter out values already processed by other transformations
-    for source_path in config_value_transformer.tracked_values:
+    # Sort tracked values so list indices are removed in descending order to avoid shifting
+    sorted_tracked = sort_tracked_values_for_filtering(config_value_transformer.tracked_values)
+    for source_path in sorted_tracked:
         remove_nested_value(filtered_config, source_path)
 
     # Note: This runs after filtering so we check the remaining config
@@ -212,7 +215,9 @@ class ConfigValueTransformer:
         """
         filtered_config = copy.deepcopy(config)
 
-        for source_path in self.tracked_values:
+        # Sort tracked values so list indices are removed in descending order to avoid shifting
+        sorted_tracked = sort_tracked_values_for_filtering(self.tracked_values)
+        for source_path in sorted_tracked:
             remove_nested_value(filtered_config, source_path)
 
         return filtered_config
