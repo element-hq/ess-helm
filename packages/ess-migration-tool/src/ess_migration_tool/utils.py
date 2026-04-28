@@ -9,6 +9,7 @@ import random
 import time
 import urllib.parse
 from collections import defaultdict
+from collections.abc import Callable
 from typing import Any
 
 import yaml
@@ -372,7 +373,7 @@ def sort_tracked_values_for_filtering(tracked_values: list[str]) -> list[str]:
     return regular_paths + sorted_indexed
 
 
-def prompt_for_database_choice(pretty_logger) -> bool:
+def prompt_for_database_choice(pretty_logger: logging.Logger) -> bool:
     """
     Prompt user to choose between using existing database or ESS-managed Postgres.
 
@@ -391,29 +392,177 @@ def prompt_for_database_choice(pretty_logger) -> bool:
     pretty_logger.info("2. 🆕 Install Postgres with ESS and import database later")
     pretty_logger.info("   - Let ESS deploy and manage PostgreSQL")
     pretty_logger.info("   - Import your Synapse and MAS database schemas after deployment")
-    pretty_logger.info("   - Recommended for testing/new installations")
     pretty_logger.info("")
 
-    while True:
-        try:
-            choice = input("   Please select an option [1/2] (default: 1): ").strip()
-            if choice == "" or choice == "1":
-                pretty_logger.info("   ✅ Using existing database configuration")
-                return True
-            elif choice == "2":
-                pretty_logger.info("   ✅ Using ESS-managed Postgres (import database later)")
-                return False
-            else:
-                pretty_logger.info("   ❌ Invalid choice. Please enter 1 or 2.")
-        except KeyboardInterrupt as err:
-            pretty_logger.info("\n   ❌ Operation cancelled by user")
-            raise MigrationError("User cancelled database choice") from err
-        except EOFError as err:
-            pretty_logger.info("\n   ❌ End of input reached")
-            raise MigrationError("End of input during database choice") from err
+    choice = prompt_choice(
+        pretty_logger,
+        "Please select an option [1/2] (default: 1):",
+        ["Use existing database", "Install Postgres with ESS"],
+        default="Use existing database",
+    )
+
+    if choice == "Use existing database":
+        pretty_logger.info("   ✅ Using existing database configuration")
+        return True
+    else:
+        pretty_logger.info("   ✅ Using ESS-managed Postgres (import database later)")
+        return False
 
 
 def delay_next_steps(pretty_logger: logging.Logger) -> None:
     if not is_quiet_mode(pretty_logger) and not os.environ.get("PYTEST_CURRENT_TEST"):
         time.sleep(random.uniform(0.2, 1.5))
         pretty_logger.info("")
+
+
+def prompt_value(
+    pretty_logger: logging.Logger,
+    prompt: str,
+    validator: Callable[[str], tuple[bool, str]] | None = None,
+    default: str | None = None,
+) -> str:
+    """
+    Generic function to prompt user for a text value.
+
+    Args:
+        pretty_logger: Logger for displaying prompts and messages
+        prompt: The prompt message to display
+        validator: Optional function that takes input string and returns (is_valid, error_message)
+        default: Optional default value if user presses Enter
+
+    Returns:
+        The user's input value (stripped)
+
+    Raises:
+        MigrationError: If user cancels the operation (Ctrl+C or EOF)
+    """
+    while True:
+        try:
+            user_input = input(f"   {prompt}").strip()
+
+            # Handle default value
+            if user_input == "" and default is not None:
+                return default
+
+            # Handle empty input
+            if user_input == "":
+                pretty_logger.info("   ❌ Value cannot be empty. Please try again.")
+                continue
+
+            # Validate if validator is provided
+            if validator is not None:
+                is_valid, error_message = validator(user_input)
+                if not is_valid:
+                    pretty_logger.info(f"   ❌ {error_message}")
+                    continue
+
+            return user_input
+
+        except KeyboardInterrupt as err:
+            pretty_logger.info("\n   ❌ Operation cancelled by user")
+            raise MigrationError("User cancelled input") from err
+        except EOFError as err:
+            pretty_logger.info("\n   ❌ End of input reached")
+            raise MigrationError("End of input reached during prompt") from err
+
+
+def prompt_choice(
+    pretty_logger: logging.Logger,
+    prompt: str,
+    options: list[str],
+    default: str | None = None,
+) -> str:
+    """
+    Prompt user to select from a numbered list of options.
+
+    Args:
+        pretty_logger: Logger for displaying prompts and messages
+        prompt: The prompt message to display
+        options: List of option strings to choose from
+        default: Optional default choice (value, not index). If provided and user
+                 presses Enter, returns this value.
+
+    Returns:
+        The selected option string (not the index)
+
+    Raises:
+        MigrationError: If user cancels the operation (Ctrl+C or EOF)
+    """
+    while True:
+        try:
+            user_input = input(f"   {prompt}").strip()
+
+            # Handle default
+            if user_input == "" and default is not None:
+                return default
+
+            # Handle empty input without default
+            if user_input == "":
+                pretty_logger.info("   ❌ Please select a valid option.")
+                continue
+
+            # Try to parse as number
+            try:
+                choice_index = int(user_input) - 1
+                if 0 <= choice_index < len(options):
+                    return options[choice_index]
+                else:
+                    pretty_logger.info(f"   ❌ Invalid choice. Please enter a number between 1 and {len(options)}.")
+            except ValueError:
+                pretty_logger.info(f"   ❌ Please enter a number between 1 and {len(options)}.")
+
+        except KeyboardInterrupt as err:
+            pretty_logger.info("\n   ❌ Operation cancelled by user")
+            raise MigrationError("User cancelled input") from err
+        except EOFError as err:
+            pretty_logger.info("\n   ❌ End of input reached")
+            raise MigrationError("End of input reached during prompt") from err
+
+
+def prompt_yes_no(
+    pretty_logger: logging.Logger,
+    prompt: str,
+    default: bool | None = None,
+) -> bool:
+    """
+    Prompt user for a yes/no answer.
+
+    Args:
+        pretty_logger: Logger for displaying prompts and messages
+        prompt: The prompt message to display
+        default: Optional default value if user presses Enter
+
+    Returns:
+        True for yes, False for no
+
+    Raises:
+        MigrationError: If user cancels the operation (Ctrl+C or EOF)
+    """
+    while True:
+        try:
+            user_input = input(f"   {prompt}").strip().lower()
+
+            # Handle default
+            if user_input == "" and default is not None:
+                return default
+
+            # Handle empty input without default
+            if user_input == "":
+                pretty_logger.info("   ❌ Please enter 'yes' or 'no'.")
+                continue
+
+            # Check for yes variations
+            if user_input in ("yes", "y", "true", "t", "1"):
+                return True
+            # Check for no variations
+            elif user_input in ("no", "n", "false", "f", "0"):
+                return False
+            else:
+                pretty_logger.info("   ❌ Please enter 'yes' or 'no'.")
+
+        except KeyboardInterrupt as err:
+            pretty_logger.info("\n   ❌ Operation cancelled by user")
+            raise MigrationError("User cancelled input") from err
+        except EOFError as err:
+            pretty_logger.info("\n   ❌ End of input reached")
+            raise MigrationError("End of input reached during prompt") from err
