@@ -11,7 +11,13 @@ from dataclasses import dataclass, field
 
 from .interfaces import SecretDiscoveryStrategy
 from .models import DiscoveredSecret, GlobalOptions
-from .utils import find_matching_schema_key, get_nested_value, is_quiet_mode, is_wildcard_pattern
+from .utils import (
+    find_matching_schema_key,
+    get_nested_value,
+    is_quiet_mode,
+    is_wildcard_pattern,
+    prompt_value,
+)
 
 logger = logging.getLogger("migration")
 
@@ -210,28 +216,19 @@ class SecretDiscovery:
             if not config_key:
                 raise RuntimeError(f"Missing configuration path for {secret_key}")
 
-            while True:
-                try:
-                    value = input("   Please paste the secret value: ").strip()
-                    if value:
-                        self.discovered_secrets[secret_key] = DiscoveredSecret(
-                            source_file=self.source_file,
-                            secret_key=secret_key,
-                            config_key=config_key,
-                            value=value,
-                        )
-                        # Remove from missing_required_secrets after successful prompt
-                        self.missing_required_secrets.remove((discovered_secret, error_message))
-                        self.pretty_logger.info(f"   ✅ Secret stored for {secret_key}")
-                        break
-                    else:
-                        self.pretty_logger.info("   ❌ Value cannot be empty. Please try again.")
-                except KeyboardInterrupt as err:
-                    self.pretty_logger.info("\n   ❌ Operation cancelled by user")
-                    raise SecretsError("User cancelled secret input") from err
-                except EOFError as err:
-                    self.pretty_logger.info("\n   ❌ End of input reached")
-                    raise SecretsError("End of input reached during secret prompt") from err
+            value = prompt_value(
+                self.pretty_logger,
+                "Please paste the secret value:",
+            )
+            self.discovered_secrets[secret_key] = DiscoveredSecret(
+                source_file=self.source_file,
+                secret_key=secret_key,
+                config_key=config_key,
+                value=value,
+            )
+            # Remove from missing_required_secrets after successful prompt
+            self.missing_required_secrets.remove((discovered_secret, error_message))
+            self.pretty_logger.info(f"   ✅ Secret stored for {secret_key}")
 
         self.pretty_logger.info(f"\n✅ All required {component_name} secrets have been provided")
         self.pretty_logger.info("=" * 60)

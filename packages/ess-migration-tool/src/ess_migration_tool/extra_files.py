@@ -15,7 +15,7 @@ from urllib.parse import urlparse
 
 from .interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
 from .models import DiscoveredExtraFile, DiscoveredPath, SecretConfig
-from .utils import is_quiet_mode
+from .utils import is_quiet_mode, prompt_choice, prompt_value, prompt_yes_no
 
 logger = logging.getLogger("migration")
 
@@ -247,70 +247,65 @@ class ExtraFilesDiscovery:
             self.pretty_logger.info("  2. Skip these files and continue")
             self.pretty_logger.info("  3. Provide a directory to search for files")
 
-            while True:
-                try:
-                    choice = input("   Enter your choice (1/2/3): ").strip()
+            choice = prompt_choice(
+                self.pretty_logger,
+                "Enter your choice (1/2/3):",
+                [
+                    "Provide alternative path for this file",
+                    "Skip these files and continue",
+                    "Provide a directory to search for files",
+                ],
+            )
 
-                    if choice == "1":
-                        # Provide alternative paths
-                        self._prompt_for_individual_alternatives(file_path)
-                        break
-                    elif choice == "2":
-                        # Skip missing files
-                        self.pretty_logger.info("   ⚠️  Skipping missing files...")
-                        file_path.skipped_reason = "Skipped by user"
-                        break
-                    elif choice == "3":
-                        # Provide directory to search
-                        self._prompt_for_directory_search(file_path)
-                        break
-                    else:
-                        self.pretty_logger.info("   ❌ Invalid choice. Please enter 1, 2, or 3.")
-
-                except KeyboardInterrupt as err:
-                    self.pretty_logger.info("\n   ❌ Operation cancelled by user")
-                    raise ExtraFilesError("User cancelled file input") from err
-                except EOFError as err:
-                    self.pretty_logger.info("\n   ❌ End of input reached")
-                    raise ExtraFilesError("End of input reached during file prompt") from err
+            if choice == "Provide alternative path for this file":
+                # Provide alternative paths
+                self._prompt_for_individual_alternatives(file_path)
+            elif choice == "Skip these files and continue":
+                # Skip missing files
+                self.pretty_logger.info("   ⚠️  Skipping missing files...")
+                file_path.skipped_reason = "Skipped by user"
+            elif choice == "Provide a directory to search for files":
+                # Provide directory to search
+                self._prompt_for_directory_search(file_path)
 
     def _prompt_for_individual_alternatives(self, discovered_path: DiscoveredPath) -> None:
         """
         Prompt user for alternative paths for each missing file.
         """
-        while True:
+
+        def validate_file_path(path: str) -> tuple[bool, str]:
+            if path.lower() == "skip":
+                return True, ""  # Special case for skip
+            if not path:
+                return False, "File path cannot be empty. Please try again."
             try:
-                new_path = input("   Please enter the correct file path (or 'skip' to ignore): ").strip()
+                new_path_obj = Path(path)
+                if new_path_obj.is_dir():
+                    return False, "Targetted file is a directory."
+                discovered_extra_file = self._discover_extra_file(discovered_path, new_path_obj)
+                if not discovered_extra_file:
+                    return False, "File not found or invalid."
+                return True, ""
+            except ExtraFilesError as e:
+                return False, str(e)
 
-                if new_path.lower() == "skip":
-                    self.pretty_logger.info(f"   ⚠️  Skipping file: {discovered_path.source_path}")
-                    break
+        while True:
+            new_path = prompt_value(
+                self.pretty_logger,
+                "Please enter the correct file path (or 'skip' to ignore):",
+                validator=validate_file_path,
+            )
 
-                if not new_path:
-                    self.pretty_logger.info("   ❌ File path cannot be empty. Please try again.")
-                    continue
+            if new_path.lower() == "skip":
+                self.pretty_logger.info(f"   ⚠️  Skipping file: {discovered_path.source_path}")
+                break
 
-                # Validate the new path
-                try:
-                    new_path_obj = Path(new_path)
-                    if new_path_obj.is_dir():
-                        raise ExtraFilesError("Targetted file is a directory.")
-                    else:
-                        discovered_extra_file = self._discover_extra_file(discovered_path, new_path_obj)
-                        if discovered_extra_file:
-                            self.discovered_extra_files[new_path_obj] = discovered_extra_file
-                            self.pretty_logger.info(f"   ✅ File validated: {new_path}")
-                            break
-                except ExtraFilesError as e:
-                    self.pretty_logger.info(f"   ❌ Invalid file path: {e}")
-                    self.pretty_logger.info("   Please try again or enter 'skip' to ignore.")
-
-            except KeyboardInterrupt as err:
-                self.pretty_logger.info("\n   ❌ Operation cancelled by user")
-                raise ExtraFilesError("User cancelled file input") from err
-            except EOFError as err:
-                self.pretty_logger.info("\n   ❌ End of input reached")
-                raise ExtraFilesError("End of input reached during file prompt") from err
+            new_path_obj = Path(new_path)
+            discovered_extra_file = self._discover_extra_file(discovered_path, new_path_obj)
+            if discovered_extra_file:
+                self.discovered_extra_files[new_path_obj] = discovered_extra_file
+                self.pretty_logger.info(f"   ✅ File validated: {new_path}")
+                break
 
     def _prompt_for_directory_search(self, discovered_path: DiscoveredPath) -> None:
         """
@@ -318,46 +313,45 @@ class ExtraFilesDiscovery:
         """
         self.pretty_logger.info("\n📁 Please provide a directory to search for missing files:")
 
-        while True:
+        def validate_directory(path: str) -> tuple[bool, str]:
+            if not path:
+                return False, "Directory path cannot be empty. Please try again."
             try:
-                search_dir = input("   Enter directory path: ").strip()
+                dir_path = Path(path)
+                if not dir_path.is_dir():
+                    return False, f"Path is not a directory: {path}"
+                return True, ""
+            except Exception as e:
+                return False, str(e)
 
-                if not search_dir:
-                    self.pretty_logger.info("   ❌ Directory path cannot be empty. Please try again.")
-                    continue
+        while True:
+            search_dir = prompt_value(
+                self.pretty_logger,
+                "Enter directory path:",
+                validator=validate_directory,
+            )
 
-                # Validate the directory
-                try:
-                    dir_path = Path(search_dir)
-                    if not dir_path.is_dir():
-                        raise ExtraFilesError(f"Path is not a directory: {search_dir}")
+            dir_path = Path(search_dir)
 
-                    # Search for missing files in the directory
-                    found_files = self._handle_directory(discovered_path, dir_path)
+            # Search for missing files in the directory
+            found_files = self._handle_directory(discovered_path, dir_path)
 
-                    if found_files:
-                        self.pretty_logger.info(f"   ✅ Found {len(found_files)} matching files in {search_dir}")
-                        for file_path in found_files:
-                            self.pretty_logger.info(f"      📄 {Path(file_path).name}")
-                        break
-                    else:
-                        self.pretty_logger.info(f"   ⚠️  No matching files found in {search_dir}")
-                        self.pretty_logger.info("   Would you like to try another directory?")
-                        retry = input("   Enter 'yes' to try again or any other key to skip: ").strip().lower()
-                        if retry != "yes":
-                            self.pretty_logger.info("   ⚠️  Skipping directory search...")
-                            break
-
-                except Exception as e:
-                    self.pretty_logger.info(f"   ❌ Error searching directory: {e}")
-                    self.pretty_logger.info("   Please try again.")
-
-            except KeyboardInterrupt as err:
-                self.pretty_logger.info("\n   ❌ Operation cancelled by user")
-                raise ExtraFilesError("User cancelled file input") from err
-            except EOFError as err:
-                self.pretty_logger.info("\n   ❌ End of input reached")
-                raise ExtraFilesError("End of input reached during file prompt") from err
+            if found_files:
+                self.pretty_logger.info(f"   ✅ Found {len(found_files)} matching files in {search_dir}")
+                for file_path in found_files:
+                    self.pretty_logger.info(f"      📄 {Path(file_path).name}")
+                break
+            else:
+                self.pretty_logger.info(f"   ⚠️  No matching files found in {search_dir}")
+                self.pretty_logger.info("   Would you like to try another directory?")
+                retry = prompt_yes_no(
+                    self.pretty_logger,
+                    "Try another directory?",
+                    default=False,
+                )
+                if not retry:
+                    self.pretty_logger.info("   ⚠️  Skipping directory search...")
+                    break
 
     def validate_extra_files(self) -> None:
         """

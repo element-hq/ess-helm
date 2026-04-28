@@ -16,7 +16,7 @@ from rapidfuzz import fuzz, process
 from .interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
 from .migration import ConfigValueTransformer, MigrationStrategy, TransformationSpec, additional_config_transformer
 from .models import DiscoveredSecret, GlobalOptions, MigrationError, SecretConfig
-from .utils import extract_hostname_from_url, yaml_dump_with_pipe_for_multiline
+from .utils import extract_hostname_from_url, prompt_choice, prompt_value, yaml_dump_with_pipe_for_multiline
 
 logger = logging.getLogger("migration")
 
@@ -67,27 +67,12 @@ def prompt_user_for_worker(
     for i, worker_type in enumerate(matched_worker_types):
         config_value_transformer.pretty_logger.info(f"   ❌   {i + 1}. {worker_type}")
 
-    while True:
-        try:
-            value = input(f"   Please select the worker type of instance {instance_name}: ").strip()
-            if value:
-                # make sure user selected an valid integer
-                try:
-                    worker_index = int(value) - 1
-                    if worker_index in range(len(matched_worker_types)):
-                        return matched_worker_types[worker_index]
-                    else:
-                        config_value_transformer.pretty_logger.info(f"Invalid worker type: {value}")
-                except ValueError:
-                    config_value_transformer.pretty_logger.info("   ❌ Please select a valid worker type.")
-            else:
-                config_value_transformer.pretty_logger.info("   ❌ Value cannot be empty. Please try again.")
-        except KeyboardInterrupt as err:
-            config_value_transformer.pretty_logger.info("\n   ❌ Operation cancelled by user")
-            raise MigrationError("User cancelled worker input") from err
-        except EOFError as err:
-            config_value_transformer.pretty_logger.info("\n   ❌ End of input reached")
-            raise MigrationError("End of input reached during worker prompt") from err
+    selected_worker = prompt_choice(
+        config_value_transformer.pretty_logger,
+        f"Please select the worker type of instance {instance_name}:",
+        matched_worker_types,
+    )
+    return selected_worker
 
 
 def extract_workers_from_instance_map(
@@ -163,19 +148,10 @@ def prompt_for_ingress_host(
     )
     config_value_transformer.pretty_logger.info("   ❌ Please provide Synapse ingress host (e.g., matrix.example.com):")
 
-    while True:
-        try:
-            ingress_host = input("   Enter ingress host: ").strip()
-            if ingress_host:
-                return ingress_host
-            else:
-                config_value_transformer.pretty_logger.info("   ❌ Ingress host cannot be empty. Please try again.")
-        except KeyboardInterrupt as err:
-            config_value_transformer.pretty_logger.info("\n   ❌ Operation cancelled by user")
-            raise MigrationError("User cancelled ingress host input") from err
-        except EOFError as err:
-            config_value_transformer.pretty_logger.info("\n   ❌ End of input reached")
-            raise MigrationError("End of input reached during ingress host prompt") from err
+    return prompt_value(
+        config_value_transformer.pretty_logger,
+        "Enter ingress host:",
+    )
 
 
 def filter_listeners(_, listeners: list[dict] | None, **kwargs: Any) -> dict[str, Any] | None:
