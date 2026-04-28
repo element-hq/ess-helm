@@ -695,3 +695,105 @@ def test_main_e2e_synapse_listeners_with_custom_listeners(
     listeners = listeners_config_content["listeners"]
     assert len(listeners) == 1, "Should have exactly one custom listener"
     assert listeners[0]["resources"][0]["names"] == ["custom_api"], "Should preserve custom_api resource"
+
+
+def test_main_e2e_mas_with_individual_keys(
+    monkeypatch,
+    tmp_path,
+    synapse_config_with_signing_key,
+    basic_mas_config_with_individual_keys,
+    write_synapse_config,
+    write_mas_config,
+    capsys,
+    helm_validator,
+):
+    """Test MAS migration with individual keys in secrets.keys array.
+
+    This test verifies that:
+    1. Recognized key formats (RSA, ECDSA with supported curves) are imported into secrets
+    2. Unrecognized key formats (e.g., DSA) are NOT imported and remain in the additional config
+    3. Failed individual keys have config_key set to secrets.keys.{index}
+    """
+    # Get the DSA key file path from the fixture for assertion later
+    # The fixture creates files: dsa_key.pem (index 1), ecdsa_key.pem (index 2), rsa_key.pem (index 0)
+    dsa_key_file = tmp_path / "mas_keys" / "dsa_key.pem"
+
+    # Write Synapse config
+    synapse_config_file = write_synapse_config(synapse_config_with_signing_key)
+
+    # Write MAS config with individual keys (using the fixture)
+    mas_config_file = write_mas_config(basic_mas_config_with_individual_keys)
+
+    # Create output directory
+    output_dir = tmp_path / "output"
+    output_dir.mkdir()
+
+    # Mock sys.argv to simulate CLI arguments
+    test_args = [
+        "migration",
+        "--synapse-config",
+        str(synapse_config_file),
+        "--mas-config",
+        str(mas_config_file),
+        "--output-dir",
+        str(output_dir),
+    ]
+
+    # Mock user input for database choice (select option 1 - existing database, default)
+    # No missing key prompts needed since all key files exist
+    side_effect = (n for n in ("",))  # database choice only
+    monkeypatch.setattr(sys, "argv", test_args)
+    monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
+    exit_code = __main__.main()
+
+    # Verify successful execution
+    assert exit_code == 0
+
+    # Check that output files were created
+    values_file = output_dir / "values.yaml"
+    assert values_file.exists(), "values.yaml should be created"
+
+    # Load and verify the generated values
+    with open(values_file) as f:
+        generated_values = yaml.safe_load(f)
+
+    # Validate generated values against Helm templates
+    success, message = helm_validator(generated_values)
+    assert success, f"Helm template validation failed: {message}"
+
+    # Verify MAS configuration was migrated and is explicitly enabled
+    assert "matrixAuthenticationService" in generated_values
+    mas_config = generated_values["matrixAuthenticationService"]
+    assert mas_config["enabled"] is True, "matrixAuthenticationService.enabled should be True"
+
+    # Check for Secret files
+    secret_files = list(output_dir.glob("*secret.yaml"))
+    # Should have secret files for both Synapse and MAS
+    assert len(secret_files) >= 2, "Secret files should be created for both Synapse and MAS secrets"
+
+    # Verify MAS secrets were imported
+    mas_secret_file = next((sf for sf in secret_files if "matrix-authentication-service" in sf.name), None)
+    assert mas_secret_file is not None, "MAS secret file should be created"
+
+    with open(mas_secret_file) as f:
+        mas_secret_content = yaml.safe_load(f)
+
+    # Verify the RSA and ECDSA keys were imported (recognized formats at index 0 and 2)
+    assert "matrixAuthenticationService.privateKeys.rsa" in mas_secret_content["data"]
+    assert "matrixAuthenticationService.privateKeys.ecdsaPrime256v1" in mas_secret_content["data"]
+
+    # Verify the DSA key (unrecognized format at index 1) is NOT in the secret data
+    assert "matrixAuthenticationService.privateKeys.dsa" not in mas_secret_content["data"]
+    # Should have: encryption, synapseSharedSecret, postgres.password, rsa, ecdsaPrime256v1
+    assert len(mas_secret_content["data"]) == 5
+
+    # Verify that the additional config doesn't contain keys_dir
+    mas_additional_config = yaml.safe_load(mas_config["additional"]["00-imported.yaml"]["config"])
+    assert "keys_dir" not in mas_additional_config.get("secrets", {})
+
+    # Verify that the DSA key (unrecognized format, index 1) remains in the additional config
+    # Only recognized keys (index 0 and 2) should be filtered out, leaving index 1
+    secrets_keys = mas_additional_config.get("secrets", {}).get("keys", [])
+    assert len(secrets_keys) == 1, "Unrecognized key (DSA) should remain in additional config"
+    # The remaining key should be the DSA key at index 1
+    assert secrets_keys[0]["key_file"] == str(dsa_key_file)

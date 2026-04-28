@@ -11,6 +11,7 @@ from ess_migration_tool.utils import (
     path_matches_pattern,
     remove_nested_value,
     set_nested_value,
+    sort_tracked_values_for_filtering,
 )
 
 
@@ -240,3 +241,68 @@ def test_find_matching_schema_key_multiple_patterns():
     assert find_matching_schema_key("a.5.c", schema) == "a.*.c"
     assert find_matching_schema_key("x.5.y", schema) == "x.*.y"
     assert find_matching_schema_key("z.5.y", schema) is None
+
+
+# Tests for sort_tracked_values_for_filtering
+
+
+def test_sort_tracked_values_basic():
+    """Test basic sorting of list indices in descending order."""
+    tracked = ["a", "b.0", "b.1", "b.2"]
+    result = sort_tracked_values_for_filtering(tracked)
+    # Regular paths first (in their original order), then indexed paths sorted descending
+    assert result == ["a", "b.2", "b.1", "b.0"]
+
+
+def test_sort_tracked_values_multiple_parents():
+    """Test sorting with multiple parent groups."""
+    tracked = ["secrets.keys.0", "secrets.encryption", "secrets.keys.1", "other.value", "secrets.keys.2"]
+    result = sort_tracked_values_for_filtering(tracked)
+    # Regular paths first, then each parent's indices in descending order
+    assert result == ["secrets.encryption", "other.value", "secrets.keys.2", "secrets.keys.1", "secrets.keys.0"]
+
+
+def test_sort_tracked_values_no_indices():
+    """Test with no list indices."""
+    tracked = ["a", "b.c", "d.e.f"]
+    result = sort_tracked_values_for_filtering(tracked)
+    assert result == ["a", "b.c", "d.e.f"]
+
+
+def test_sort_tracked_values_nested_list_indices():
+    """Test with deeply nested paths where last part is an index."""
+    tracked = ["a.b.c.0", "a.b.c.1", "a.b.c.2"]
+    result = sort_tracked_values_for_filtering(tracked)
+    assert result == ["a.b.c.2", "a.b.c.1", "a.b.c.0"]
+
+
+def test_sort_tracked_values_mixed_numeric_non_numeric():
+    """Test with mixed paths - some ending in numbers, some not."""
+    tracked = ["a.0", "b.name", "a.1", "c.5", "b.other"]
+    result = sort_tracked_values_for_filtering(tracked)
+    # Regular paths first (in original order), then indexed paths sorted by parent then by index descending
+    assert result == ["b.name", "b.other", "a.1", "a.0", "c.5"]
+
+
+def test_sort_tracked_values_empty_list():
+    """Test with empty input."""
+    assert sort_tracked_values_for_filtering([]) == []
+
+
+def test_sort_tracked_values_single_element():
+    """Test with single element."""
+    assert sort_tracked_values_for_filtering(["a.0"]) == ["a.0"]
+
+
+def test_sort_tracked_values_index_zero():
+    """Test that index 0 is handled correctly."""
+    tracked = ["keys.0"]
+    result = sort_tracked_values_for_filtering(tracked)
+    assert result == ["keys.0"]
+
+
+def test_sort_tracked_values_real_world_mas_keys():
+    """Test the real-world case from MAS individual keys migration."""
+    tracked = ["secrets.encryption", "secrets.keys.0", "secrets.keys.1", "secrets.keys.2"]
+    result = sort_tracked_values_for_filtering(tracked)
+    assert result == ["secrets.encryption", "secrets.keys.2", "secrets.keys.1", "secrets.keys.0"]

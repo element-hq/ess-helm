@@ -12,7 +12,7 @@ import pytest
 import yaml
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import ec, rsa
+from cryptography.hazmat.primitives.asymmetric import dsa, ec, rsa
 
 from .helm_validation import validate_helm_template
 
@@ -210,6 +210,70 @@ def write_mas_config(tmp_path):
         return mas_config_file
 
     return _write_config
+
+
+@pytest.fixture
+def basic_mas_config_with_individual_keys(tmp_path):
+    """MAS configuration with individual keys in the secrets.keys array for testing.
+
+    This fixture creates three key files:
+    - RSA key (index 0): Recognized format, will be imported as secret
+    - DSA key (index 1): Unrecognized format, will NOT be imported as secret
+    - ECDSA key (index 2): Recognized format, will be imported as secret
+    """
+    # Create key files in tmp_path (which persists for the test duration)
+    tmpdir_path = tmp_path / "mas_keys"
+    tmpdir_path.mkdir(parents=True)
+
+    # Generate and save RSA key (recognized format)
+    rsa_key = rsa.generate_private_key(public_exponent=65537, key_size=2048, backend=default_backend())
+    rsa_pem = rsa_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+    rsa_key_file = tmpdir_path / "rsa_key.pem"
+    rsa_key_file.write_bytes(rsa_pem)
+
+    # Generate and save DSA key (unrecognized format - DSA is not supported by ESS)
+    dsa_key = dsa.generate_private_key(key_size=2048, backend=default_backend())
+    dsa_pem = dsa_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+    dsa_key_file = tmpdir_path / "dsa_key.pem"
+    dsa_key_file.write_bytes(dsa_pem)
+
+    # Generate and save ECDSA key (recognized format)
+    ecdsa_key = ec.generate_private_key(ec.SECP256R1(), backend=default_backend())
+    ecdsa_pem = ecdsa_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+    ecdsa_key_file = tmpdir_path / "ecdsa_key.pem"
+    ecdsa_key_file.write_bytes(ecdsa_pem)
+
+    # Create MAS config with individual keys
+    config = {
+        "http": {"public_base": "https://auth.example.com", "bind": {"address": "0.0.0.0", "port": 8080}},
+        "database": {"uri": "postgresql://mas:mas_password@postgres:5432/mas?sslmode=prefer"},
+        "secrets": {
+            "encryption": "my_encryption_key",
+            "keys": [
+                {"key_file": str(rsa_key_file)},  # Recognized: RSA
+                {"key_file": str(dsa_key_file)},  # Unrecognized: DSA - should NOT be imported
+                {"key_file": str(ecdsa_key_file)},  # Recognized: ECDSA with secp256r1
+            ],
+        },
+        "matrix": {
+            "homeserver": "test.example.com",
+            "secret": "synapse_shared_secret_abcdef",
+            "endpoint": "http://synapse:8008",
+        },
+    }
+    return config
 
 
 @pytest.fixture
