@@ -8,6 +8,7 @@ from ess_migration_tool.utils import (
     find_matching_schema_key,
     get_nested_value,
     is_wildcard_pattern,
+    parse_path,
     path_matches_pattern,
     remove_nested_value,
     set_nested_value,
@@ -19,6 +20,15 @@ from ess_migration_tool.utils import (
 def sample_config():
     """Fixture to provide a fresh config dictionary for each test."""
     return {"a": {"b": {"c": 42, "d": [10, 20, 30]}, "e": "hello"}, "f": [{"x": 1}, {"x": 2}, {"x": 3}]}
+
+
+# Tests for parse_path
+
+
+def test_parse_path():
+    assert parse_path("a.b.c") == ["a", "b", "c"]
+    assert parse_path("a.'my.key'.b") == ["a", "my.key", "b"]
+    assert parse_path("") == []
 
 
 def test_get_nested_value(sample_config):
@@ -306,3 +316,20 @@ def test_sort_tracked_values_real_world_mas_keys():
     tracked = ["secrets.encryption", "secrets.keys.0", "secrets.keys.1", "secrets.keys.2"]
     result = sort_tracked_values_for_filtering(tracked)
     assert result == ["secrets.encryption", "secrets.keys.2", "secrets.keys.1", "secrets.keys.0"]
+
+
+# Tests for quoted key support in nested value operations
+
+
+def test_nested_operations_with_quoted_keys():
+    config = {}
+    set_nested_value(config, "a.'my.key'.b", "value")
+    assert get_nested_value(config, "a.'my.key'.b") == "value"
+    remove_nested_value(config, "a.'my.key'.b")
+    assert get_nested_value(config, "a.'my.key'.b") is None
+
+
+def test_sort_tracked_values_with_quoted_keys():
+    tracked = ["a.'my.key'.0", "a.'my.key'.1"]
+    result = sort_tracked_values_for_filtering(tracked)
+    assert result == ["a.'my.key'.1", "a.'my.key'.0"]
