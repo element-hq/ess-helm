@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -11,6 +11,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $config := dict -}}
 {{- $mHomeserver := dict }}
 {{- $settingDefaults := dict -}}
+{{- $_ := set $settingDefaults "urlPreviewsEnabled" true -}}
 {{- if $root.Values.serverName }}
 {{- $_ := set $mHomeserver "server_name" (tpl $root.Values.serverName $root) }}
 {{- end }}
