@@ -13,6 +13,8 @@ SPDX-License-Identifier: AGPL-3.0-only
   - [Backup](#backup)
   - [Restore](#restore)
 - [Installation State](#installation-state)
+- [Fixing CVE-2025-24044 manually](#fixing-cve-2026-24044elementsec-2025-1670-manually)
+  - [Manually running the event resigning background job](#manually-running-the-event-resigning-background-job)
 
 ## Upgrading
 
@@ -130,6 +132,8 @@ The deployment markers functionality can be turned off by setting `deploymentMar
 
 If you initially deployed ESS Community with the chart secrets initialization hook enabled (`initSecrets.enabled` not set to `false`), your Synapse signing key will be vulnerable if it was not set explicitly in `synapse.signingKey`. If you later specified its content in `synapse.signingKey` in the values files, the chart will not be able to generate a new key automatically. You will be using the vulnerable signing key until you change it manually.
 
+Even if the above doesn't apply, if you never ran a version of ESS Community between 25.12.2 and 26.4.0 (inclusive), you will still need to [manually trigger the event resigning background job](#manually-running-the-event-resigning-background-job).
+
 1. Install `signedjson` and `pyyaml` using `pip` : `pip install signedjson pyyaml`
 2. Generate your new signing key with the key id `ed25519:1` using the following command :
 
@@ -205,3 +209,19 @@ If you initially deployed ESS Community with the chart secrets initialization ho
   }
 
   ```
+
+### Manually running the event resigning background job
+
+If you are upgrading from 25.12.1 or earlier to ESS Community 26.4.1 or later then the event resigning background job needs to be manually run.
+This applies if `initSecrets` was enabled (the default), regardless of whether you hard-coded the generated Synapse signing key into `synapse.signingKey` or not.
+
+If your deployment ever ran 25.12.2 to 26.4.0, and either generated the Synapse signing key externally or didn't hard-code the chart generated signing key, then this process does not need to run.
+
+The event resigning background job is triggered with
+
+```json
+curl -s https://<your synapse host>/_synapse/admin/v1/background_updates/start_job -H 'Authorization: Bearer <admin access token>' -H 'Content-type: application/json' -d '{"job_name": "event_resign"}'
+```
+
+The background job optionally takes `old_key` and `before_ts` JSON fields.
+Full documentation can be found in the [Synapse Admin API documentation](https://element-hq.github.io/synapse/latest/usage/administration/admin_api/background_updates.html#run)
