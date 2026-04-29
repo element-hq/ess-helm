@@ -11,6 +11,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $config := dict -}}
 {{- $mHomeserver := dict }}
 {{- $settingDefaults := dict -}}
+{{- $_ := set $settingDefaults "urlPreviewsEnabled" true -}}
 {{- if $root.Values.serverName }}
 {{- $_ := set $mHomeserver "server_name" (tpl $root.Values.serverName $root) }}
 {{- end }}
@@ -28,7 +29,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $_ := set $settingDefaults "UIFeature.registration" false -}}
 {{- $_ := set $settingDefaults "UIFeature.passwordReset" false  -}}
 {{- $_ := set $settingDefaults "UIFeature.deactivate" false -}}
-{{- $_ := set $settingDefaults "urlPreviewsEnabled" true -}}
 {{- $_ := set $config "embedded_pages" $embeddedPages -}}
 {{- $_ := set $config "sso_redirect_options" $ssoRedirectOptions -}}
 {{- end }}
