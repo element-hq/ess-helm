@@ -20,7 +20,9 @@ async def test_config_json_override(values, make_templates):
                 "default_server_config": {"m.homeserver": {}},
                 "map_style_url": "https://api.maptiler.com/maps/streets/style.json?key=fU3vlMsMn4Jb6dnEIFsx",
                 "mobile_guide_app_variant": "element",
-                "setting_defaults": {},
+                "setting_defaults": {
+                    "urlPreviewsEnabled": True,
+                },
             }
             break
     else:
@@ -48,7 +50,9 @@ async def test_config_json_override(values, make_templates):
                 "default_server_config": {"m.homeserver": {}},
                 "map_style_url": "https://api.maptiler.com/maps/streets/style.json?key=fU3vlMsMn4Jb6dnEIFsx",
                 "mobile_guide_app_variant": "element-classic",
-                "setting_defaults": {},
+                "setting_defaults": {
+                    "urlPreviewsEnabled": True,
+                },
                 "other_key": {"other_value": "value_second"},
                 "some_key": {"some_subkey": "override"},
                 "again_other_key": {"other_value": "value_third"},
