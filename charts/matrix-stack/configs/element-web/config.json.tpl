@@ -28,6 +28,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $_ := set $settingDefaults "UIFeature.registration" false -}}
 {{- $_ := set $settingDefaults "UIFeature.passwordReset" false  -}}
 {{- $_ := set $settingDefaults "UIFeature.deactivate" false -}}
+{{- $_ := set $settingDefaults "urlPreviewsEnabled" true -}}
 {{- $_ := set $config "embedded_pages" $embeddedPages -}}
 {{- $_ := set $config "sso_redirect_options" $ssoRedirectOptions -}}
 {{- end }}
