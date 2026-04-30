@@ -23,9 +23,11 @@ def test_element_web_additional_config_excludes_default_server_config():
 
     transformer.transform_from_config(config, migration.transformations)
 
-    import yaml
+    import json
 
-    additional_config = yaml.safe_load(transformer.ess_config["elementWeb"]["additional"]["00-imported.yaml"]["config"])
+    # Element Web's additional config uses direct string format: {"filename": string} (not wrapped in {"config": ...})
+    additional_config_str = transformer.ess_config["elementWeb"]["additional"]["00-imported.json"]
+    additional_config = json.loads(additional_config_str)
     # Verify that m.homeserver is empty (values extracted)
     assert additional_config["default_server_config"]["m.homeserver"] == {}
     assert "customTheme" in additional_config["setting_defaults"]

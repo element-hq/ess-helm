@@ -57,13 +57,24 @@ def additional_config_transformer(
     - component_root_key: str - Internal ESS config key (e.g., "synapse")
     - override_configs: set[str] - Set of configuration paths managed by ESS
     - component_name: str - User-facing strategy name (e.g., "Synapse")
+    - serialization_format: str - Format for additional config: "yaml" (default) or "json"
+    - use_file_object_format: bool - If True (default), return {"filename": {"config": string}} format.
+      If False, return {"filename": string} format (direct string without wrapper object).
+      Element Web uses False since its Helm template expects the value to be a JSON/YAML string directly.
     """
+    import json
+
     source_config = value  # value is the source config (when src_key is None)
 
     # Get context from kwargs
     component_root_key = kwargs.get("component_root_key", "")
     override_configs = kwargs.get("override_configs", set())
     extra_files_discovery = kwargs.get("extra_files_discovery")
+    serialization_format = kwargs.get("serialization_format", "yaml")
+    use_file_object_format = kwargs.get("use_file_object_format", True)
+
+    # Determine file name from serialization format
+    file_name = f"00-imported.{serialization_format}"
 
     # Get tracked source paths from value_source_tracking
     tracked_source_paths = config_value_transformer.value_source_tracking.get_tracked_source_paths()
@@ -79,11 +90,10 @@ def additional_config_transformer(
     # Note: This runs after filtering so we check the remaining config
     # Store warnings for future engine logging
     if override_configs and component_root_key:
+        config_path_suffix = f'"{file_name}"].config' if use_file_object_format else f'"{file_name}"]'
         for override_config in override_configs:
             if get_nested_value(filtered_config, override_config) is not None:
-                warning = (
-                    f"⚠️  '{override_config}' found in {component_root_key}.additional[\"00-imported.yaml\"].config"
-                )
+                warning = f"⚠️  '{override_config}' found in {component_root_key}.additional[{config_path_suffix}]"
                 config_value_transformer.override_warnings.append(warning)
 
     # Update file paths if extra files were discovered
@@ -92,18 +102,32 @@ def additional_config_transformer(
 
     # Return in the expected additional config format
     # Also preserve any existing entries in additional (like listeners.yml from other transformers)
-    if filtered_config:
-        # Check if there are existing entries in the component's additional section
-        component_config = config_value_transformer.ess_config.get(component_root_key, {})
-        existing_additional = component_config.get("additional", {})
+    if not filtered_config:
+        return {}
 
-        result = {"00-imported.yaml": {"config": yaml_dump_with_pipe_for_multiline(filtered_config)}}
+    # Check if there are existing entries in the component's additional section
+    component_config = config_value_transformer.ess_config.get(component_root_key, {})
+    existing_additional = component_config.get("additional", {})
 
-        # Merge with existing entries - existing entries take precedence
-        # This preserves listeners.yml, etc. added by other transformers
-        merged = {**result, **existing_additional}
-        return merged
-    return {}
+    # Serialize the config
+    if serialization_format == "json":
+        config_str = json.dumps(filtered_config, indent=2)
+    else:
+        config_str = yaml_dump_with_pipe_for_multiline(filtered_config)
+
+    # Build result based on format preference
+    if use_file_object_format:
+        # Wrapped format: {"filename": {"config": string}}
+        # Used by Synapse and MAS
+        result: dict[str, Any] = {file_name: {"config": config_str}}
+    else:
+        # Direct string format: {"filename": string}
+        # Used by Element Web, which expects the value to be a JSON/YAML string directly
+        result = {file_name: config_str}
+
+    # Merge with existing entries - existing entries take precedence
+    # This preserves listeners.yml, etc. added by other transformers
+    return {**result, **existing_additional}
 
 
 @dataclass

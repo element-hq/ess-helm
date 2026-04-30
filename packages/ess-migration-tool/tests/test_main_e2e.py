@@ -884,3 +884,99 @@ def test_main_e2e_synapse_with_mas_different_server_name(
     assert "CONFLICT for 'serverName'" in log_output
     assert "synapse.example.com" in log_output
     assert "mas.example.com" in log_output
+
+
+def test_main_e2e_synapse_with_element_web(
+    monkeypatch,
+    tmp_path,
+    synapse_config_with_signing_key,
+    synapse_config_with_web_client_location,
+    basic_element_web_config,
+    write_synapse_config,
+    write_element_web_config,
+    capsys,
+    helm_validator,
+):
+    """Test migration with Synapse and Element Web.
+
+    This test verifies that:
+    1. Synapse's web_client_location is extracted and mapped to elementWeb.ingress.host
+    2. Element Web's base_url is extracted and mapped to synapse.ingress.host
+    3. Helm validation passes because both ingress hosts are properly set
+    4. The Synapse template uses elementWeb.ingress.host for web_client_location
+    """
+    # Merge signing key and web_client_location into Synapse config
+    synapse_config = synapse_config_with_signing_key.copy()
+    synapse_config["web_client_location"] = "https://element.example.com/"
+
+    # Write configuration files
+    synapse_config_file = write_synapse_config(synapse_config)
+    element_web_config_file = write_element_web_config(basic_element_web_config)
+
+    # Create output directory
+    output_dir = tmp_path / "output"
+    output_dir.mkdir()
+
+    # Mock sys.argv to simulate CLI arguments
+    test_args = [
+        "migration",
+        "--synapse-config",
+        str(synapse_config_file),
+        "--element-web-config",
+        str(element_web_config_file),
+        "--output-dir",
+        str(output_dir),
+    ]
+
+    # Mock user input for database choice (select option 1 - existing database, default)
+    side_effect = (n for n in ("",))
+    monkeypatch.setattr(sys, "argv", test_args)
+    monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
+    exit_code = __main__.main()
+
+    # Verify successful execution
+    assert exit_code == 0
+
+    # Check that output files were created
+    values_file = output_dir / "values.yaml"
+    assert values_file.exists(), "values.yaml should be created"
+
+    # Load and verify the generated values
+    with open(values_file) as f:
+        generated_values = yaml.safe_load(f)
+
+    # Validate generated values against Helm templates
+    success, message = helm_validator(generated_values)
+    assert success, f"Helm template validation failed: {message}"
+
+    # Verify Synapse configuration was migrated and is explicitly enabled
+    assert "synapse" in generated_values
+    synapse_config = generated_values["synapse"]
+    assert synapse_config["enabled"] is True, "synapse.enabled should be True"
+
+    # Verify Element Web configuration was migrated and is explicitly enabled
+    assert "elementWeb" in generated_values
+    element_web_config = generated_values["elementWeb"]
+    assert element_web_config["enabled"] is True, "elementWeb.enabled should be True"
+
+    # Verify that elementWeb.ingress.host was set from Synapse's web_client_location
+    assert "ingress" in element_web_config, "elementWeb should have ingress config"
+    assert "host" in element_web_config["ingress"], "elementWeb.ingress should have host"
+    assert element_web_config["ingress"]["host"] == "element.example.com", (
+        f"elementWeb.ingress.host should be 'element.example.com' "
+        f"(from Synapse's web_client_location), got {element_web_config['ingress']['host']}"
+    )
+
+    # Verify that synapse.ingress.host was set from Synapse's public_baseurl
+    assert "ingress" in synapse_config, "synapse should have ingress config"
+    assert "host" in synapse_config["ingress"], "synapse.ingress should have host"
+    # Synapse's public_baseurl is https://matrix.example.com
+    assert synapse_config["ingress"]["host"] == "matrix.example.com", (
+        f"synapse.ingress.host should be 'matrix.example.com', got {synapse_config['ingress']['host']}"
+    )
+
+    # Verify other components are explicitly disabled when not migrated
+    other_components = ["matrixAuthenticationService", "elementAdmin", "matrixRTC"]
+    for component in other_components:
+        assert component in generated_values, f"{component} should be present in generated values"
+        assert generated_values[component]["enabled"] is False, f"{component}.enabled should be False"

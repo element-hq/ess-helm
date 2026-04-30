@@ -161,8 +161,8 @@ class InputProcessor:
             Exception: If any file loading fails
         """
         # Determine file type by extension and use appropriate loader
-        path_lower = config_path.lower()
-        if path_lower.endswith(".json"):
+        file_path = Path(config_path)
+        if file_path.suffix.lower() == ".json":
             config = InputProcessor.load_json_file(config_path)
         else:
             # Default to YAML for .yaml, .yml, or any other extension

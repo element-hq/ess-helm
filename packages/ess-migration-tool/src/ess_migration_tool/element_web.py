@@ -59,13 +59,22 @@ class ElementWebMigration(MigrationStrategy):
             value: Any,
             **kw: Any,
         ) -> dict[str, Any]:
-            """Transform Element Web config to additional config."""
+            """Transform Element Web config to additional config.
+
+            Element Web expects additional[$key] to be a JSON string directly,
+            not wrapped in a {"config": ...} object like Synapse and MAS.
+            We use the shared additional_config_transformer with:
+            - serialization_format="json" to output JSON
+            - use_file_object_format=False to return {"filename": string} instead of {"filename": {"config": string}}
+            """
             return additional_config_transformer(
                 config_value_transformer,
                 value,
                 component_root_key=ELEMENT_WEB_COMPONENT_ROOT_KEY,
                 override_configs=self.override_configs,
                 component_name=ELEMENT_WEB_STRATEGY_NAME,
+                serialization_format="json",
+                use_file_object_format=False,
                 **kw,
             )
 

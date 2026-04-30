@@ -240,6 +240,7 @@ class SynapseMigration(MigrationStrategy):
     def override_configs(self) -> set[str]:
         return {
             "public_baseurl",
+            "web_client_location",
             "server_name",
             "database.args.host",
             "database.args.port",
@@ -307,6 +308,12 @@ class SynapseMigration(MigrationStrategy):
                 target_key="synapse.ingress.host",
                 transformer=prompt_for_ingress_host,
             ),  # Prompt for ingress host if public_baseurl is missing
+            TransformationSpec(
+                src_key="web_client_location",
+                target_key="elementWeb.ingress.host",
+                transformer=lambda _, url, **kw: extract_hostname_from_url(_, url, **kw) if url else None,
+                required=False,
+            ),  # Extract Element Web ingress host from web_client_location
             TransformationSpec(
                 src_key="instance_map",
                 target_key="synapse.workers",
