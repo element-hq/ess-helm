@@ -231,6 +231,10 @@ stream_writers:
 {{- $workerTypeName := include "element-io.synapse.process.workerTypeName" (dict "root" $root "context" $workerType) }}
 {{- range $stream_writer := include "element-io.synapse.process.streamWriters" (dict "root" $root "context" $workerType) | fromJsonArray }}
   {{ $stream_writer }}:
+{{- /* Yes this is disgusting but until we have to handle either multiple workers sharing the same stream or more streams with main in them too, this is fine */}}
+{{- if eq $stream_writer "quarantined_media_changes" }}
+  - main
+{{- end }}
 {{- range $index := untilStep 0 ($workerDetails.replicas | int | default 1) 1 }}
   - {{ $root.Release.Name }}-synapse-{{ $workerTypeName }}-{{ $index }}
 {{- end }}
