@@ -8,6 +8,7 @@ Input processing module for the migration script.
 Handles loading and parsing of configuration files.
 """
 
+import json
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -80,6 +81,41 @@ class InputProcessor:
             raise
 
     @staticmethod
+    def load_json_file(path: str) -> dict[str, Any]:
+        """
+        Load and parse a JSON file.
+
+        Args:
+            path: Path to the JSON file
+
+        Returns:
+            Parsed JSON content as dictionary
+
+        Raises:
+            FileNotFoundError: If file doesn't exist
+            json.JSONDecodeError: If JSON parsing fails
+            ValidationError: If file validation fails
+        """
+        try:
+            # Validate file exists and is readable
+            InputProcessor._validate_file_path(path)
+
+            with open(path, encoding="utf-8") as f:
+                content = json.load(f) or {}
+
+            # Validate JSON content is not empty for required files
+            if not content:
+                logger.warning(f"JSON file {path} is empty")
+
+            return content
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse JSON file {path}: {e}")
+            raise ValidationError(f"Invalid JSON in file {path}: {e}") from e
+        except Exception as e:
+            logger.error(f"Failed to load JSON file {path}: {e}")
+            raise
+
+    @staticmethod
     def _validate_file_path(path: str) -> None:
         """
         Validate that a file path exists and is readable.
@@ -124,8 +160,13 @@ class InputProcessor:
             ValidationError: If input validation fails
             Exception: If any file loading fails
         """
-        # Load configuration
-        config = InputProcessor.load_yaml_file(config_path)
+        # Determine file type by extension and use appropriate loader
+        path_lower = config_path.lower()
+        if path_lower.endswith(".json"):
+            config = InputProcessor.load_json_file(config_path)
+        else:
+            # Default to YAML for .yaml, .yml, or any other extension
+            config = InputProcessor.load_yaml_file(config_path)
 
         logger.info(f"{name} : {config_path} loaded successfully")
 

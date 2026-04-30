@@ -327,10 +327,10 @@ def extract_hostname_from_url(_, url: str, **kwargs: Any) -> str:
         **kwargs: Optional context parameters (unused)
 
     Returns:
-        Hostname as string if successful, None otherwise
+        Hostname as string if successful, empty string otherwise
     """
     parsed_url = urllib.parse.urlparse(url)
-    return parsed_url.hostname if parsed_url.hostname else ""
+    return parsed_url.hostname or ""
 
 
 def to_kebab_case(name: str) -> str:

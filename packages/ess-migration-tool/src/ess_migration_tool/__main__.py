@@ -12,6 +12,7 @@ import argparse
 import logging
 from dataclasses import dataclass, field
 
+from .element_web import ELEMENT_WEB_STRATEGY_NAME
 from .engine import MigrationEngine
 from .inputs import InputProcessor, ValidationError
 from .mas import MAS_STRATEGY_NAME, parse_postgres_uri
@@ -105,6 +106,12 @@ Examples:
     )
 
     parser.add_argument(
+        "--element-web-config",
+        required=False,
+        help=("Path to Element Web config.json configuration file. "),
+    )
+
+    parser.add_argument(
         "--output-dir",
         default="output",
         help=(
@@ -188,6 +195,12 @@ Examples:
             input_processor.load_migration_input(
                 name=MAS_STRATEGY_NAME,
                 config_path=args.mas_config,
+            )
+
+        if args.element_web_config:
+            input_processor.load_migration_input(
+                name=ELEMENT_WEB_STRATEGY_NAME,
+                config_path=args.element_web_config,
             )
 
         # Run migration
