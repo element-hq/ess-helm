@@ -14,8 +14,9 @@ from typing import Any
 from .inputs import InputProcessor
 from .mas import MASExtraFileDiscovery, MASMigration, MASSecretDiscovery
 from .migration import MigrationService
-from .models import ConfigMap, DiscoveredSecret, GlobalOptions, Secret
+from .models import ConfigMap, DiscoveredSecret, GlobalOptions, Secret, ValueSourceTracking
 from .synapse import SynapseExtraFileDiscovery, SynapseMigration, SynapseSecretDiscovery
+from .utils import resolve_value_conflicts
 
 logger = logging.getLogger("migration")
 
@@ -34,6 +35,7 @@ class MigrationEngine:
     init_by_ess_secrets: list[str] = field(default_factory=list)
     migrators: list[MigrationService] = field(default_factory=list)
     global_options: GlobalOptions = field(default_factory=GlobalOptions)
+    value_source_tracking: ValueSourceTracking = field(default_factory=ValueSourceTracking)
 
     def __post_init__(self) -> None:
         """Initialize the migration engine."""
@@ -78,10 +80,18 @@ class MigrationEngine:
         for migrator in self.migrators:
             migrator.migrate()
 
-            # Collect override warnings
+            # Collect override warnings, secrets, and value sources
             self.override_warnings.extend(migrator.override_warnings)
             self.discovered_secrets.extend(migrator.discovered_secrets)
             self.init_by_ess_secrets.extend(migrator.init_by_ess_secrets)
+
+            # Collect value sources from this migrator
+            for path, sources in migrator.value_source_tracking.sources.items():
+                for source in sources:
+                    self.value_source_tracking.add_source(path, source.strategy_name, source.value, source.source_path)
+
+        # Resolve conflicts after all migrations
+        resolve_value_conflicts(self.pretty_logger, self.value_source_tracking, self.ess_config)
 
         # Disable any ESS component that was not migrated (absent from config)
         ALL_ESS_COMPONENTS = {"synapse", "matrixAuthenticationService", "elementWeb", "elementAdmin", "matrixRTC"}

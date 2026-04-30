@@ -23,6 +23,7 @@ from .models import (
     MigrationInput,
     Secret,
     TransformationSpec,
+    ValueSourceTracking,
 )
 from .secrets import SecretDiscovery
 from .utils import (
@@ -64,16 +65,18 @@ def additional_config_transformer(
     override_configs = kwargs.get("override_configs", set())
     extra_files_discovery = kwargs.get("extra_files_discovery")
 
+    # Get tracked source paths from value_source_tracking
+    tracked_source_paths = config_value_transformer.value_source_tracking.get_tracked_source_paths()
+
     filtered_config = copy.deepcopy(source_config)
 
     # Filter out values already processed by other transformations
     # Sort tracked values so list indices are removed in descending order to avoid shifting
-    sorted_tracked = sort_tracked_values_for_filtering(config_value_transformer.tracked_values)
+    sorted_tracked = sort_tracked_values_for_filtering(tracked_source_paths)
     for source_path in sorted_tracked:
         remove_nested_value(filtered_config, source_path)
 
     # Note: This runs after filtering so we check the remaining config
-    # Get all src_keys from transformations that have been processed
     # Store warnings for future engine logging
     if override_configs and component_root_key:
         for override_config in override_configs:
@@ -126,8 +129,9 @@ class ConfigValueTransformer:
     pretty_logger: logging.Logger = field(init=True)  # Pretty logger
     ess_config: dict[str, Any] = field(init=True)  # Target ESS configuration dictionary
     results: list[TransformationResult] = field(default_factory=list)  # List of transformation results
-    tracked_values: list[str] = field(default_factory=list)  # Source paths that have been processed
     override_warnings: list[str] = field(default_factory=list)  # Warnings about ESS-managed overrides
+    value_source_tracking: ValueSourceTracking = field(default_factory=ValueSourceTracking)
+    strategy_name: str = ""  # Name of the strategy (for source tracking)
 
     def transform_from_config(
         self,
@@ -174,15 +178,15 @@ class ConfigValueTransformer:
                     f"Required configuration value '{transformation.src_key}' is missing from the source configuration"
                 )
             elif transformed_value is None:
-                # Even if transformation returns None, track the source key so it gets filtered out
-                # Skip tracking if src_key is None (it represents the full config, not a specific path)
-                if transformation.src_key is not None and transformation.src_key not in self.tracked_values:
-                    self.tracked_values.append(transformation.src_key)
+                # Even if transformation returns None, track it so it gets filtered out
+                if transformation.src_key is not None:
+                    self.register_value_source(
+                        ess_path=transformation.target_key,
+                        strategy_name=self.strategy_name,
+                        value=None,
+                        source_path=transformation.src_key,
+                    )
                 continue
-
-            # Track the source path if not already tracked (skip None as it's not a filterable path)
-            if transformation.src_key is not None and transformation.src_key not in self.tracked_values:
-                self.tracked_values.append(transformation.src_key)
 
             # Create TransformationResult using the current transformation spec
             result = TransformationResult(spec=transformation, value=transformed_value)
@@ -190,6 +194,19 @@ class ConfigValueTransformer:
 
             # Set the transformed value in the ESS config
             set_nested_value(self.ess_config, transformation.target_key, transformed_value)
+
+            # Auto-register value source for target_key if it has a src_key
+            if transformation.src_key is not None:
+                self.register_value_source(
+                    ess_path=transformation.target_key,
+                    strategy_name=self.strategy_name,
+                    value=transformed_value,
+                    source_path=transformation.src_key,
+                )
+
+    def register_value_source(self, ess_path: str, strategy_name: str, value: Any | None, source_path: str) -> None:
+        """Register that a strategy provides a value for an ESS path."""
+        self.value_source_tracking.add_source(ess_path, strategy_name, value, source_path)
 
     def get_component_config(self, component_key: str) -> dict[str, Any]:
         """
@@ -215,8 +232,11 @@ class ConfigValueTransformer:
         """
         filtered_config = copy.deepcopy(config)
 
+        # Get tracked source paths from value_source_tracking
+        tracked_source_paths = self.value_source_tracking.get_tracked_source_paths()
+
         # Sort tracked values so list indices are removed in descending order to avoid shifting
-        sorted_tracked = sort_tracked_values_for_filtering(self.tracked_values)
+        sorted_tracked = sort_tracked_values_for_filtering(tracked_source_paths)
         for source_path in sorted_tracked:
             remove_nested_value(filtered_config, source_path)
 
@@ -293,7 +313,12 @@ class ConfigValueTransformer:
 
             # Track the config value that is being passed to ESS
             # We need to track the original config path so it gets filtered out later
-            self.tracked_values.append(discover_secret.config_key)
+            self.register_value_source(
+                ess_path=discover_secret.secret_key,
+                strategy_name=self.strategy_name,
+                value=None,
+                source_path=discover_secret.config_key,
+            )
 
     def handle_extra_files_mounts(
         self,
@@ -317,10 +342,15 @@ class ConfigValueTransformer:
 
         configmap = ConfigMap(name=configmap_name, data=configmap_data)
 
-        # Add skipped paths to tracked_values for override detection
+        # Add skipped paths to tracking for filtering
         for discovered_path in extra_files_discovery.discovered_file_paths:
             if discovered_path.skipped_reason:
-                self.tracked_values.append(discovered_path.config_key)
+                self.register_value_source(
+                    ess_path=discovered_path.config_key,
+                    strategy_name=self.strategy_name,
+                    value=None,
+                    source_path=discovered_path.config_key,
+                )
 
         for extra_file in extra_files_discovery.discovered_extra_files.values():
             for discovered_path in extra_file.discovered_source_paths:
@@ -378,6 +408,7 @@ class MigrationService:
     override_configs: set[str] = field(default_factory=set)  # Set of configurations that are managed by ESS
     results: list[TransformationResult] = field(default_factory=list)  # List of transformation results
     global_options: GlobalOptions = field(default_factory=GlobalOptions)  # Global migration options
+    value_source_tracking: ValueSourceTracking = field(default_factory=ValueSourceTracking)
 
     def __post_init__(self):
         self.override_configs = self.migration.override_configs
@@ -421,6 +452,9 @@ class MigrationService:
 
         config_to_ess_transformer = ConfigValueTransformer(self.pretty_logger, self.ess_config)
 
+        # Set strategy name for source tracking
+        config_to_ess_transformer.strategy_name = self.migration.name
+
         # Step 3: Handle secrets for the component using the transformer's method
         # This will update the root ESS config directly and create Kubernetes Secrets
         config_to_ess_transformer.handle_secrets(
@@ -444,6 +478,11 @@ class MigrationService:
             extra_files_discovery=extra_files_discovery,
         )
 
-        # Step 6: Store results and override warnings
+        # Step 6: Collect value sources from transformer
+        for path, sources in config_to_ess_transformer.value_source_tracking.sources.items():
+            for source in sources:
+                self.value_source_tracking.add_source(path, source.strategy_name, source.value, source.source_path)
+
+        # Step 7: Store results and override warnings
         self.results.extend(config_to_ess_transformer.results)
         self.override_warnings.extend(config_to_ess_transformer.override_warnings)
