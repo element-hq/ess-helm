@@ -54,21 +54,71 @@ def yaml_dump_with_pipe_for_multiline(data: Any) -> str:
     return yaml.dump(data, Dumper=CustomYAMLDumper, default_flow_style=False, sort_keys=False, width=float("inf"))
 
 
+def parse_path(path: str) -> list[str]:
+    """
+    Parse a path string that may contain single-quoted keys with dots.
+
+    Single-quoted keys are treated as single path components even if they contain dots.
+    This allows keys containing dots to be used in paths by wrapping them in single quotes.
+
+    Examples:
+        'a.b.c' -> ['a', 'b', 'c']
+        "a.'my.key'.b" -> ['a', 'my.key', 'b']
+        "a.'foo.bar'.'baz.mux'" -> ['a', 'foo.bar', 'baz.mux']
+        'a.b.' → ['a', 'b', '']
+
+    Args:
+        path: Path string, potentially containing single-quoted components
+
+    Returns:
+        List of path components, with quoted parts preserving their dots
+    """
+    if not path:
+        return []
+
+    parts: list[str] = []
+    current_part: list[str] = []
+    in_quotes = False
+
+    for char in path:
+        if char == "'":
+            # Toggle quotes
+            in_quotes = not in_quotes
+        elif char == "." and not in_quotes:
+            # End of current part (only split on dots outside quotes)
+            parts.append("".join(current_part))
+            current_part = []
+            continue
+        else:
+            current_part.append(char)
+
+    # Add the last part
+    parts.append("".join(current_part))
+
+    return parts
+
+
 def set_nested_value(config: dict[str, Any], path: str, value: Any) -> None:
     """
     Set a value in a nested configuration at the specified path.
     Properly handles numeric indices to create/set values in arrays.
+    Supports single-quoted keys containing dots (e.g., "a.'my.key'.b").
 
     Args:
         config: Configuration dictionary to modify
-        path: Dot-separated path where to set the value
+        path: Dot-separated path where to set the value. Use single quotes
+              to wrap keys containing dots (e.g., "a.'my.key'.b")
         value: Value to set
     """
-    if "." not in path:
-        config[path] = value
+    parts = parse_path(path)
+    if not parts:
         return
 
-    parts = path.split(".")
+    # Handle single-part path (no nesting)
+    if len(parts) == 1:
+        config[parts[0]] = value
+        return
+
     current: dict[str, Any] | list[Any] = config
 
     for i, part in enumerate(parts[:-1]):
@@ -131,16 +181,17 @@ def path_matches_pattern(path: str, pattern: str) -> bool:
 
     The wildcard `*` in the pattern matches exactly one path component.
     All other components must match exactly.
+    Supports single-quoted keys containing dots (e.g., "a.'my.key'.b").
 
     Args:
-        path: Concrete path like "certificates.0.value"
-        pattern: Pattern like "certificates.*.value"
+        path: Concrete path like "certificates.0.value" or "a.'my.key'.b"
+        pattern: Pattern like "certificates.*.value" or "a.'*'.b"
 
     Returns:
         True if path matches pattern
     """
-    path_parts = path.split(".")
-    pattern_parts = pattern.split(".")
+    path_parts = parse_path(path)
+    pattern_parts = parse_path(pattern)
 
     if len(path_parts) != len(pattern_parts):
         return False
@@ -180,75 +231,91 @@ def find_matching_schema_key(path: str, schema: dict[str, Any]) -> str | None:
 def get_nested_value(config: dict[str, Any], path: str) -> Any:
     """
     Get a value from a nested configuration using dot notation.
+    Supports single-quoted keys containing dots (e.g., "a.'my.key'.b").
 
     Args:
         config: Configuration dictionary
-        path: Dot-separated path to the value
+        path: Dot-separated path to the value. Use single quotes to wrap
+              keys containing dots (e.g., "a.'my.key'.b")
 
     Returns:
         The value at the specified path, or None if not found
     """
-    if "." in path:
-        # Nested path
-        parts = path.split(".")
-        current = config
+    parts = parse_path(path)
+    if not parts:
+        return None
 
-        # Navigate to the value
-        for part in parts:
-            if isinstance(current, dict):
-                if part not in current:
-                    return None
-                current = current[part]
-            elif isinstance(current, list):
-                try:
-                    current = current[int(part)]
-                except (IndexError, ValueError):
-                    return None
-            elif part != parts[-1]:
-                return None  # Can't navigate further
+    # Direct key (no nesting)
+    if len(parts) == 1:
+        return config.get(parts[0])
 
-        return current
-    else:
-        # Direct key
-        return config.get(path)
+    # Nested path
+    current = config
+
+    # Navigate to the value
+    for i, part in enumerate(parts):
+        if isinstance(current, dict):
+            if part not in current:
+                return None
+            current = current[part]
+        elif isinstance(current, list):
+            try:
+                current = current[int(part)]
+            except (IndexError, ValueError):
+                return None
+        elif i != len(parts) - 1:
+            return None  # Can't navigate further
+
+    return current
 
 
 def remove_nested_value(config: dict[str, Any], path: str) -> None:
     """
     Remove a config value by its dot-separated path.
+    Supports single-quoted keys containing dots (e.g., "a.'my.key'.b").
 
     Args:
         config: Configuration dictionary
-        path: Dot-separated path to the value to remove
+        path: Dot-separated path to the value to remove. Use single quotes
+              to wrap keys containing dots (e.g., "a.'my.key'.b")
     """
-    if "." in path:
-        # Nested path
-        parts = path.split(".")
-        current = config
+    parts = parse_path(path)
+    if not parts:
+        return
 
-        # Navigate to the parent
-        for part in parts[:-1]:
-            if isinstance(current, dict):
-                if part not in current:
-                    return
-                current = current[part]
-            elif isinstance(current, list):
-                try:
-                    current = current[int(part)]
-                except (IndexError, ValueError):
-                    return
+    # Direct key (no nesting)
+    if len(parts) == 1:
+        if parts[0] in config:
+            del config[parts[0]]
+        return
 
-        # Remove the final key
-        final_key = parts[-1]
+    # Nested path
+    current = config
 
-        if isinstance(current, dict) and final_key in current:
-            del current[final_key]
-        elif isinstance(current, list) and int(final_key) < len(current):
-            del current[int(final_key)]
-    else:
-        # Direct key
-        if path in config:
-            del config[path]
+    # Navigate to the parent (all parts except the last)
+    for part in parts[:-1]:
+        if isinstance(current, dict):
+            if part not in current:
+                return
+            current = current[part]
+        elif isinstance(current, list):
+            try:
+                current = current[int(part)]
+            except (IndexError, ValueError):
+                return
+
+    # Remove the final key
+    final_key = parts[-1]
+
+    if isinstance(current, dict) and final_key in current:
+        del current[final_key]
+    elif isinstance(current, list):
+        try:
+            idx = int(final_key)
+            if idx < len(current):
+                del current[idx]
+        except ValueError:
+            pass
 
 
 def extract_hostname_from_url(_, url: str, **kwargs: Any) -> str:
@@ -340,12 +407,14 @@ def sort_tracked_values_for_filtering(tracked_values: list[str]) -> list[str]:
     """
     Sort tracked values so that list indices are processed in descending order.
     This prevents the list shifting problem when removing indices sequentially.
+    Supports single-quoted keys containing dots (e.g., "a.'my.key'.0").
 
     For example: ['secrets.keys.0', 'secrets.keys.1', 'secrets.keys.2'] ->
     ['secrets.keys.2', 'secrets.keys.1', 'secrets.keys.0']
 
     Args:
-        tracked_values: List of dot-separated config paths
+        tracked_values: List of dot-separated config paths. Use single quotes
+              to wrap keys containing dots (e.g., "a.'my.key'.0")
 
     Returns:
         Sorted list of paths with list indices in descending order within each parent
@@ -355,10 +424,13 @@ def sort_tracked_values_for_filtering(tracked_values: list[str]) -> list[str]:
     indexed_paths_by_parent: dict[str, list] = defaultdict(list)
 
     for path in tracked_values:
-        parts = path.rsplit(".", 1)
-        if len(parts) == 2 and parts[1].isdigit():
-            # This is a list index path like 'secrets.keys.2'
-            parent, index = parts
+        parsed_parts = parse_path(path)
+        if len(parsed_parts) >= 1 and parsed_parts[-1].isdigit():
+            # This is a list index path like 'secrets.keys.2' or 'secrets.'my.key'.2'
+            # Reconstruct parent path from all parts except the last
+            parent_parts = parsed_parts[:-1]
+            parent = ".".join(parent_parts)
+            index = parsed_parts[-1]
             indexed_paths_by_parent[parent].append((int(index), path))
         else:
             regular_paths.append(path)
