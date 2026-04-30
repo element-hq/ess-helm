@@ -10,7 +10,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 web_client_location: https://{{ $root.Values.elementWeb.ingress.host }}/
 {{- end }}
 
-report_stats: false
+report_stats: true
 
 require_auth_for_profile_requests: true
 
