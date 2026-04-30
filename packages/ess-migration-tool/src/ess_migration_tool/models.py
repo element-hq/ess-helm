@@ -138,3 +138,39 @@ class SecretConfig:
     transformer: Callable[[str], str | None] | None = (
         None  # Optional transformer function for extracting secrets from complex values
     )
+
+
+@dataclass
+class ValueSource:
+    """Represents a source of a value for an ESS configuration path."""
+
+    strategy_name: str
+    source_path: str
+    value: Any | None
+
+
+@dataclass
+class ValueSourceTracking:
+    """Tracks all sources for ESS configuration values across strategies."""
+
+    sources: dict[str, list[ValueSource]] = field(default_factory=dict)
+
+    def add_source(self, ess_path: str, strategy_name: str, value: Any | None, source_path: str) -> None:
+        """Add a source for an ESS path."""
+        if ess_path not in self.sources:
+            self.sources[ess_path] = []
+        self.sources[ess_path].append(ValueSource(strategy_name=strategy_name, source_path=source_path, value=value))
+
+    def get_conflicts(self) -> dict[str, list[ValueSource]]:
+        """Get all ESS paths that have multiple sources from different strategies."""
+        conflicts = {}
+        for path, srcs in self.sources.items():
+            if len(srcs) > 1:
+                strategies = set(s.strategy_name for s in srcs)
+                if len(strategies) > 1:
+                    conflicts[path] = srcs
+        return conflicts
+
+    def get_tracked_source_paths(self) -> list[str]:
+        """Get all source paths that have been tracked (for filtering in additional config)."""
+        return [s.source_path for srcs in self.sources.values() for s in srcs if s.source_path is not None]

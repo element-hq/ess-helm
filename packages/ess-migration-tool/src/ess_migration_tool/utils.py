@@ -19,7 +19,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec, rsa
 
-from .models import MigrationError
+from .models import MigrationError, ValueSourceTracking
 
 
 def yaml_dump_with_pipe_for_multiline(data: Any) -> str:
@@ -638,3 +638,51 @@ def prompt_yes_no(
         except EOFError as err:
             pretty_logger.info("\n   ❌ End of input reached")
             raise MigrationError("End of input reached during prompt") from err
+
+
+def resolve_value_conflicts(
+    pretty_logger: logging.Logger,
+    value_source_tracking: ValueSourceTracking,
+    ess_config: dict[str, Any],
+) -> None:
+    """Resolve conflicts where multiple strategies provide different values for same ESS path."""
+    conflicts = value_source_tracking.get_conflicts()
+    if not conflicts:
+        return
+
+    for ess_path, sources in sorted(conflicts.items()):
+        first_value = sources[0].value
+        all_same = all(str(v.value) == str(first_value) for v in sources)
+
+        if all_same:
+            logging.debug(f"Consistent values for {ess_path}: {first_value}")
+            continue
+
+        if is_quiet_mode(pretty_logger):
+            logging.info(f"Conflict detected for {ess_path}, using first value: {first_value}")
+            continue
+
+        pretty_logger.info(f"\n⚠️  CONFLICT for '{ess_path}'")
+        pretty_logger.info("   Multiple configurations provide different values:")
+        for source in sources:
+            pretty_logger.info(f"   • {source.strategy_name} ({source.source_path}): {source.value}")
+
+        value_to_strategies: dict[str, list[str]] = {}
+        for source in sources:
+            value_str = str(source.value)
+            value_to_strategies.setdefault(value_str, []).append(source.strategy_name)
+
+        options = [f"{v} (from: {', '.join(ss)})" for v, ss in value_to_strategies.items()]
+        options.append("Enter custom value")
+
+        choice = prompt_choice(pretty_logger, f"Select value for '{ess_path}':", options)
+
+        if choice == "Enter custom value":
+            new_value = prompt_value(pretty_logger, "Enter custom value:")
+            set_nested_value(ess_config, ess_path, new_value)
+        else:
+            value_str = choice.split(" (")[0]
+            final_value = next((s.value for s in sources if str(s.value) == value_str), first_value)
+            set_nested_value(ess_config, ess_path, final_value)
+
+        logging.info(f"Resolved {ess_path} = {final_value}")

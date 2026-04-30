@@ -248,6 +248,12 @@ class MASMigration(MigrationStrategy):
                 target_key="matrixAuthenticationService.enabled",
                 transformer=lambda *_, **__: True,
             ),
+            # matrix.homeserver -> serverName (maps to same ESS path as Synapse's server_name)
+            TransformationSpec(
+                src_key="matrix.homeserver",
+                target_key="serverName",
+                required=True,
+            ),
             TransformationSpec(
                 src_key="http.public_base",
                 target_key="matrixAuthenticationService.ingress.host",

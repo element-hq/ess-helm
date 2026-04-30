@@ -17,6 +17,7 @@ from ess_migration_tool.models import DiscoveredPath, GlobalOptions
 def test_config_value_tracker_basic():
     """Test basic ConfigValueTransformer functionality with dict-based transformations."""
     transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config={"unchanged": "value"})
+    transformer.strategy_name = "TestStrategy"
 
     # Create a test config
     config = {
@@ -37,12 +38,12 @@ def test_config_value_tracker_basic():
         ],
     )
 
-    # Check tracked values
-    tracked_values = transformer.tracked_values
-    assert "database.host" in tracked_values
-    assert "database.port" in tracked_values
-    assert "server_name" in tracked_values
-    assert len(tracked_values) == 3
+    # Check tracked values via value_source_tracking
+    tracked_source_paths = transformer.value_source_tracking.get_tracked_source_paths()
+    assert "database.host" in tracked_source_paths
+    assert "database.port" in tracked_source_paths
+    assert "server_name" in tracked_source_paths
+    assert len(tracked_source_paths) == 3
 
     # Check transformations
     transformations = transformer.results
@@ -59,6 +60,7 @@ def test_config_value_tracker_basic():
 def test_config_value_tracker_filter_config():
     """Test ConfigValueTransformer filter_config functionality."""
     transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config={})
+    transformer.strategy_name = "TestStrategy"
 
     # Create a test config
     config = {
@@ -105,6 +107,7 @@ def test_config_value_tracker_filter_config():
 def test_config_value_tracker_nested_dict():
     """Test ConfigValueTransformer with nested dictionaries."""
     transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config={})
+    transformer.strategy_name = "TestStrategy"
 
     # Create a nested config
     config = {
@@ -134,13 +137,13 @@ def test_config_value_tracker_nested_dict():
         ],
     )
 
-    # Check tracked values
-    tracked_values = transformer.tracked_values
-    assert "database.connection.host" in tracked_values
-    assert "database.connection.port" in tracked_values
-    assert "database.credentials.user" in tracked_values
-    assert "server.name" in tracked_values
-    assert len(tracked_values) == 4
+    # Check tracked values via value_source_tracking
+    tracked_source_paths = transformer.value_source_tracking.get_tracked_source_paths()
+    assert "database.connection.host" in tracked_source_paths
+    assert "database.connection.port" in tracked_source_paths
+    assert "database.credentials.user" in tracked_source_paths
+    assert "server.name" in tracked_source_paths
+    assert len(tracked_source_paths) == 4
 
     # Check ESS config
     ess_config = transformer.ess_config
@@ -176,6 +179,7 @@ def test_config_value_tracker_empty():
 def test_update_paths_in_config_basic():
     """Test update_paths_in_config with basic file path updates."""
     transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config={})
+    transformer.strategy_name = "TestStrategy"
 
     # Create a mock ExtraFilesDiscovery with discovered file paths
     class MockStrategy(ExtraFilesDiscoveryStrategy):
@@ -240,12 +244,13 @@ def test_update_paths_in_config_basic():
     assert updated_config["other_setting"] == "preserved"  # Non-file setting should be unchanged
 
     # Verify tracked values (only skipped paths are tracked)
-    assert len(transformer.tracked_values) == 0  # No skipped paths in this test
+    assert len(transformer.value_source_tracking.get_tracked_source_paths()) == 0  # No skipped paths in this test
 
 
 def test_update_paths_in_config_with_skipped_paths():
     """Test update_paths_in_config with skipped file paths."""
     transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config={})
+    transformer.strategy_name = "TestStrategy"
 
     class MockStrategy(ExtraFilesDiscoveryStrategy):
         @property
@@ -305,14 +310,15 @@ def test_update_paths_in_config_with_skipped_paths():
     assert updated_config["templates"]["password_reset"] == "/path/to/password_reset.html"  # Unchanged
     assert updated_config["templates"]["registration"] == "/etc/some-component/extra/registration.html"  # Updated
 
-    assert "templates.password_reset" not in transformer.tracked_values
-    assert "templates.registration" not in transformer.tracked_values
-    assert len(transformer.tracked_values) == 0
+    assert "templates.password_reset" not in transformer.value_source_tracking.get_tracked_source_paths()
+    assert "templates.registration" not in transformer.value_source_tracking.get_tracked_source_paths()
+    assert len(transformer.value_source_tracking.get_tracked_source_paths()) == 0
 
 
 def test_update_paths_in_config_empty_discovery():
     """Test update_paths_in_config with no discovered files."""
     transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config={})
+    transformer.strategy_name = "TestStrategy"
 
     class MockStrategy(ExtraFilesDiscoveryStrategy):
         @property
@@ -353,12 +359,13 @@ def test_update_paths_in_config_empty_discovery():
 
     # Verify config is unchanged
     assert updated_config == source_config
-    assert len(transformer.tracked_values) == 0
+    assert len(transformer.value_source_tracking.get_tracked_source_paths()) == 0
 
 
 def test_update_paths_in_config_nested_config():
     """Test update_paths_in_config with nested configuration structures."""
     transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config={})
+    transformer.strategy_name = "TestStrategy"
 
     class MockStrategy(ExtraFilesDiscoveryStrategy):
         @property
@@ -426,4 +433,4 @@ def test_update_paths_in_config_nested_config():
     assert updated_config["other_setting"] == "preserved"  # Unchanged
 
     # Verify tracked values (only skipped paths are tracked)
-    assert len(transformer.tracked_values) == 0  # No skipped paths in this test
+    assert len(transformer.value_source_tracking.get_tracked_source_paths()) == 0  # No skipped paths in this test

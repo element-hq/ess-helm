@@ -797,3 +797,90 @@ def test_main_e2e_mas_with_individual_keys(
     assert len(secrets_keys) == 1, "Unrecognized key (DSA) should remain in additional config"
     # The remaining key should be the DSA key at index 1
     assert secrets_keys[0]["key_file"] == str(dsa_key_file)
+
+
+def test_main_e2e_synapse_with_mas_different_server_name(
+    monkeypatch,
+    tmp_path,
+    synapse_config_with_signing_key,
+    basic_mas_config_with_keys,
+    write_synapse_config,
+    write_mas_config,
+    capsys,
+    helm_validator,
+):
+    """Test conflict resolution when Synapse and MAS have different serverName values.
+
+    Synapse has server_name='synapse.example.com' -> serverName
+    MAS has matrix.homeserver='mas.example.com' -> serverName
+    This should trigger a conflict prompt.
+    """
+    # Patch Synapse config to use different server_name
+    synapse_config = synapse_config_with_signing_key.copy()
+    synapse_config["server_name"] = "synapse.example.com"
+
+    # Patch MAS config to use different homeserver
+    mas_config = basic_mas_config_with_keys.copy()
+    mas_config["matrix"]["homeserver"] = "mas.example.com"
+
+    # Write configuration files
+    synapse_config_file = write_synapse_config(synapse_config)
+    mas_config_file = write_mas_config(mas_config)
+
+    # Create output directory
+    output_dir = tmp_path / "output"
+    output_dir.mkdir()
+
+    # Mock sys.argv to simulate CLI arguments
+    test_args = [
+        "migration",
+        "--synapse-config",
+        str(synapse_config_file),
+        "--mas-config",
+        str(mas_config_file),
+        "--output-dir",
+        str(output_dir),
+    ]
+
+    # Mock user inputs:
+    # 1. Database choice - use existing database (default, empty string)
+    # 2. Conflict resolution - select option 1 (synapse.example.com)
+    #    The prompt will be: "Select value for 'serverName':"
+    #    Options:
+    #    - "synapse.example.com (from: Synapse)"
+    #    - "mas.example.com (from: Matrix Authentication Service)"
+    #    - "Enter custom value"
+    #    Selection "1" picks synapse.example.com
+    side_effect = (n for n in ("", "1"))
+    monkeypatch.setattr(sys, "argv", test_args)
+    monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
+    exit_code = __main__.main()
+
+    # Verify successful execution
+    assert exit_code == 0
+
+    # Check that output files were created
+    values_file = output_dir / "values.yaml"
+    assert values_file.exists(), "values.yaml should be created"
+
+    # Load and verify the generated values
+    with open(values_file) as f:
+        generated_values = yaml.safe_load(f)
+
+    # Validate generated values against Helm templates
+    success, message = helm_validator(generated_values)
+    assert success, f"Helm template validation failed: {message}"
+
+    # Verify the conflict was resolved to synapse.example.com (option 1)
+    assert generated_values["serverName"] == "synapse.example.com"
+
+    # Verify Synapse configuration was migrated
+    assert generated_values["synapse"]["enabled"] is True
+    assert generated_values["matrixAuthenticationService"]["enabled"] is True
+
+    # Verify the conflict prompt was shown in the output
+    captured = capsys.readouterr()
+    log_output = captured.err
+    assert "CONFLICT for 'serverName'" in log_output
+    assert "synapse.example.com" in log_output
+    assert "mas.example.com" in log_output
