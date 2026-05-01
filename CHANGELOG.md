@@ -7,6 +7,89 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.4.1 (2026-05-01)
+
+## Changed
+
+- Upgrade MatrixRTC SFU to v1.10.1.
+
+  Highlights:
+  - Fix TURN URL IP addresses
+
+  Full Changelogs:
+  - [v1.10.1](https://github.com/livekit/livekit/releases/tag/v1.10.1)
+
+  (#1230)
+- Upgrade MatrixRTC Authoriser to v0.4.4.
+
+  Highlights:
+  - Update [MSC4195](https://github.com/matrix-org/matrix-spec-proposals/pull/4195) identity hash to latest update
+  - Update [MSC4195](https://github.com/matrix-org/matrix-spec-proposals/pull/4195) JSON signature to latest update
+  - Update dependencies for security updates
+
+  Full Changelogs
+  - [v0.4.3](https://github.com/element-hq/lk-jwt-service/releases/tag/v0.4.3)
+  - [v0.4.4](https://github.com/element-hq/lk-jwt-service/releases/tag/v0.4.4)
+
+  (#1237, #1245)
+- Allow changing of the Synapse database `keepalive` settings that the chart configures. (#1239)
+- Upgrade Matrix Authentication Service to v1.16.0.
+
+  Highlights:
+  - Translation updates
+  - Dependency updates
+
+  Full Changelogs:
+  - [v1.16.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.16.0)
+
+  (#1240)
+- Default Synapse's URL preview support to on. (#1244)
+- Validate that additional configuration supplied directly to the chart is valid YAML/JSON.
+
+  Additional configuration loaded from a `Secret` in the cluster can only be validated at runtime. (#1247)
+- Upgrade Element Web to v1.12.16.
+
+  Highlights:
+  - Hide spoilers from desktop notifications
+  - Update URL Preview settings
+
+  Full Changelogs:
+  - [v1.12.15](https://github.com/element-hq/element-web/releases/tag/v1.12.15)
+  - [v1.12.16](https://github.com/element-hq/element-web/releases/tag/v1.12.16)
+
+  (#1249)
+- Upgrade Synapse to v1.152.0.
+
+  If upgrading directly from ESS Community 25.12.1 or earlier, the [`event_resign` background update](https://element-hq.github.io/synapse/latest/usage/administration/admin_api/background_updates.html) will need to be manually run.
+  If ESS Community 25.12.2 to 26.4.0 have been run on a deployment with `initSecrets` enabled (the default), this background update does not need to be manually run.
+  If upgrading from ESS Community 25.12.1 or earlier or `initSecrets` was later disabled, full [instructions are available](https://github.com/element-hq/ess-helm/blob/main/docs/maintenance.md#fixing-cve-2026-24044elementsec-2025-1670-manually)
+
+  Highlights:
+  - Add a ["Listing quarantined media changes" Admin API](https://element-hq.github.io/synapse/latest/admin_api/media_admin_api.html#listing-quarantined-media-changes) for retrieving a paginated record of when media became (un)quarantined
+  - Add a way to re-sign local events with a new signing key
+  - Reduce database disk space usage by pruning old rows from `device_lists_changes_in_room`
+
+  Full Changelogs:
+  - [v1.152.0](https://github.com/element-hq/synapse/releases/tag/v1.152.0)
+
+  (#1259, #1267)
+- Default Element Web's URL previews in unencrypted rooms to on. (#1262)
+
+## Fixed
+
+- Correctly set the external Redis password in Hookshot if configured. (#1236)
+
+## Documentation
+
+- Update `k3s` installation docs to trust the `X-Forwarded-For` header correctly. (#1242)
+
+## Internal
+
+- CI: Fix releasing of integration test suite. (#1241)
+- Configure the Traefik instance in `k3d` closer to how we document it. (#1242)
+- Fix additional values Jinja template. (#1252)
+
+
 # ESS Community Helm Chart 26.4.0 (2026-04-14)
 
 ## Changed
