@@ -949,6 +949,10 @@ def test_main_e2e_synapse_with_element_web(
     success, message = helm_validator(generated_values)
     assert success, f"Helm template validation failed: {message}"
 
+    # Get captured stderr output (where logging goes)
+    captured = capsys.readouterr()
+    log_output = captured.err
+
     # Verify Synapse configuration was migrated and is explicitly enabled
     assert "synapse" in generated_values
     synapse_config = generated_values["synapse"]
@@ -958,6 +962,18 @@ def test_main_e2e_synapse_with_element_web(
     assert "elementWeb" in generated_values
     element_web_config = generated_values["elementWeb"]
     assert element_web_config["enabled"] is True, "elementWeb.enabled should be True"
+
+    # Verify underride warnings for Element Web
+    # default_server_config is in underride_configs, so we should see an informational warning
+    assert "ESS DEFAULT CONFIGURATIONS FOUND:" in log_output, (
+        "Expected underride warnings section for Element Web defaults"
+    )
+    assert "These settings have ESS defaults that your values will override:" in log_output
+    # default_server_config is in underride_configs and should trigger a warning
+    assert "'default_server_config' found in elementWeb.additional" in log_output, (
+        "Expected underride warning for default_server_config"
+    )
+    assert "ESS default, your value overrides it" in log_output
 
     # Verify that elementWeb.ingress.host was set from Synapse's web_client_location
     assert "ingress" in element_web_config, "elementWeb should have ingress config"

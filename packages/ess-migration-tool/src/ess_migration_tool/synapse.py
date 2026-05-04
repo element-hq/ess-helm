@@ -277,6 +277,13 @@ class SynapseMigration(MigrationStrategy):
         }
 
     @property
+    def underride_configs(self) -> set[str]:
+        """Config keys that are ESS defaults (users can override these via additional config)."""
+        # Synapse primarily uses overrides (ESS-managed values).
+        # No underride configs currently defined.
+        return set()
+
+    @property
     def transformations(self) -> list[TransformationSpec]:
         """Get transformations based on database choice."""
 

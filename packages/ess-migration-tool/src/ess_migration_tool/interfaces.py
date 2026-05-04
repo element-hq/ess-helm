@@ -27,7 +27,12 @@ class MigrationStrategy(Protocol):
 
     @property
     def override_configs(self) -> set[str]:
-        """Get component-specific override configurations."""
+        """Get component-specific override configurations (ESS-managed values that users should not override)."""
+        ...
+
+    @property
+    def underride_configs(self) -> set[str]:
+        """Get component-specific underride configurations (ESS defaults that users can override)."""
         ...
 
     @property

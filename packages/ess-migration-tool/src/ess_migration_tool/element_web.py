@@ -32,7 +32,14 @@ class ElementWebMigration(MigrationStrategy):
 
     @property
     def override_configs(self) -> set[str]:
-        """Config keys that are managed by ESS and should be filtered out."""
+        """Config keys that are managed by ESS (users should not override these)."""
+        # Element Web uses underrides (defaults) rather than true overrides.
+        # All configs are ESS defaults that users can override via additional config.
+        return set()
+
+    @property
+    def underride_configs(self) -> set[str]:
+        """Config keys that are ESS defaults (users can override these via additional config)."""
         return {
             "setting_defaults.urlPreviewsEnabled",
             "setting_defaults.UIFeature.registration",
@@ -71,6 +78,7 @@ class ElementWebMigration(MigrationStrategy):
                 value,
                 component_root_key=ELEMENT_WEB_COMPONENT_ROOT_KEY,
                 override_configs=self.override_configs,
+                underride_configs=self.underride_configs,
                 component_name=ELEMENT_WEB_STRATEGY_NAME,
                 serialization_format="json",
                 use_file_object_format=False,
