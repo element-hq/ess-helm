@@ -36,7 +36,9 @@ class ExtraFilesDiscovery:
 
     pretty_logger: logging.Logger = field(init=True)
     strategy: ExtraFilesDiscoveryStrategy = field(init=True)  # Strategy for component-specific secret discovery
-    secrets_strategy: SecretDiscoveryStrategy | None = field(init=True)  # Strategy for component-specific secret discovery
+    secrets_strategy: SecretDiscoveryStrategy | None = field(
+        init=True
+    )  # Strategy for component-specific secret discovery
     source_file: str = field(init=True)  # Source file path
     discovered_extra_files: dict[Path, DiscoveredExtraFile] = field(
         default_factory=dict
@@ -421,3 +423,35 @@ class ExtraFilesDiscovery:
         except PermissionError as err:
             raise ExtraFilesError(f"Permission denied when reading file: {file_path}") from err
         return extra_file
+
+
+class GenericExtraFileDiscovery(ExtraFilesDiscoveryStrategy):
+    """Generic extra file discovery for components without special rules."""
+
+    def __init__(
+        self,
+        component_name: str,
+        component_root_key: str,
+        ignored_config_keys: list[str] | None = None,
+        ignored_file_paths: list[str] | None = None,
+    ):
+        self._component_name = component_name
+        self._component_root_key = component_root_key
+        self._ignored_config_keys = ignored_config_keys or []
+        self._ignored_file_paths = ignored_file_paths or []
+
+    @property
+    def component_name(self) -> str:
+        return self._component_name
+
+    @property
+    def component_root_key(self) -> str:
+        return self._component_root_key
+
+    @property
+    def ignored_config_keys(self) -> list[str]:
+        return self._ignored_config_keys
+
+    @property
+    def ignored_file_paths(self) -> list[str]:
+        return self._ignored_file_paths

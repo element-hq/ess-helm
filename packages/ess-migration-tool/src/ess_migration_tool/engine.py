@@ -11,7 +11,8 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any
 
-from .element_web import ElementWebExtraFileDiscovery, ElementWebMigration
+from .element_web import ElementWebMigration
+from .extra_files import GenericExtraFileDiscovery
 from .inputs import InputProcessor
 from .mas import MASExtraFileDiscovery, MASMigration, MASSecretDiscovery
 from .migration import MigrationService
@@ -54,7 +55,7 @@ class MigrationEngine:
             (
                 ElementWebMigration(self.global_options),
                 None,
-                ElementWebExtraFileDiscovery(),
+                GenericExtraFileDiscovery(component_name="Element Web", component_root_key="elementWeb"),
             ),
         ]
         for migration, secret_discovery_strategy, extra_file_strategy in components:
