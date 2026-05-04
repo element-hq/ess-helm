@@ -10,6 +10,7 @@ Tests that the additional_config_transformer correctly generates filtered
 additional configurations with proper YAML pipe formatting for multi-line strings.
 """
 
+import json
 import logging
 
 import yaml
@@ -258,3 +259,77 @@ def test_additional_config_transformer_preserves_existing_additional():
     yaml_content = result["synapse"]["additional"]["00-imported.yaml"]["config"]
     parsed = yaml.safe_load(yaml_content)
     assert parsed == {"extra_setting": "value1"}
+
+
+def test_additional_config_transformer_direct_string_format():
+    """Test that additional_config_transformer can output direct string format."""
+    transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config={})
+
+    source_config = {
+        "simple_setting": "value1",
+        "nested": {"key": "value2"},
+    }
+
+    spec = TransformationSpec(
+        src_key=None,
+        target_key="elementWeb.additional",
+        transformer=additional_config_transformer,
+        required=False,
+    )
+
+    transformer.transform_from_config(
+        source_config,
+        [spec],
+        extra_files_discovery=None,
+        component_root_key="elementWeb",
+        serialization_format="json",
+        use_file_object_format=False,
+    )
+
+    result = transformer.ess_config
+
+    # Verify the direct string format is used: {"filename": string} not {"filename": {"config": string}}
+    assert "00-imported.json" in result["elementWeb"]["additional"]
+    config_str = result["elementWeb"]["additional"]["00-imported.json"]
+
+    # The value should be a JSON string directly (not wrapped in {"config": ...})
+    assert isinstance(config_str, str)
+    parsed = json.loads(config_str)
+    assert parsed == source_config
+
+
+def test_additional_config_transformer_direct_string_format_yaml():
+    """Test that additional_config_transformer can output direct YAML string format."""
+    transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config={})
+
+    source_config = {
+        "simple_setting": "value1",
+        "nested": {"key": "value2"},
+    }
+
+    spec = TransformationSpec(
+        src_key=None,
+        target_key="synapse.additional",
+        transformer=additional_config_transformer,
+        required=False,
+    )
+
+    transformer.transform_from_config(
+        source_config,
+        [spec],
+        extra_files_discovery=None,
+        component_root_key="synapse",
+        serialization_format="yaml",
+        use_file_object_format=False,
+    )
+
+    result = transformer.ess_config
+
+    # Verify the direct string format is used: {"filename": string} not {"filename": {"config": string}}
+    assert "00-imported.yaml" in result["synapse"]["additional"]
+    yaml_str = result["synapse"]["additional"]["00-imported.yaml"]
+
+    # The value should be a YAML string directly (not wrapped in {"config": ...})
+    assert isinstance(yaml_str, str)
+    parsed = yaml.safe_load(yaml_str)
+    assert parsed == source_config

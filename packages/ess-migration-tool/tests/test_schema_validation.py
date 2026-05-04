@@ -12,7 +12,7 @@ import json
 import logging
 from pathlib import Path
 
-import jsonschema
+import jsonschema  # type: ignore[import-untyped]
 import pytest
 from ess_migration_tool.engine import MigrationEngine
 from ess_migration_tool.inputs import InputProcessor

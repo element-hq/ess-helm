@@ -55,15 +55,28 @@ def additional_config_transformer(
     kwargs uses:
     - extra_files_discovery: ExtraFilesDiscovery | None containing the extra files discovery service
     - component_root_key: str - Internal ESS config key (e.g., "synapse")
-    - override_configs: set[str] - Set of configuration paths managed by ESS
+    - override_configs: set[str] - Set of configuration paths managed by ESS (users should not override)
+    - underride_configs: set[str] - Set of configuration paths with ESS defaults (users can override)
     - component_name: str - User-facing strategy name (e.g., "Synapse")
+    - serialization_format: str - Format for additional config: "yaml" (default) or "json"
+    - use_file_object_format: bool - If True (default), return {"filename": {"config": string}} format.
+      If False, return {"filename": string} format (direct string without wrapper object).
+      Element Web uses False since its Helm template expects the value to be a JSON/YAML string directly.
     """
+    import json
+
     source_config = value  # value is the source config (when src_key is None)
 
     # Get context from kwargs
     component_root_key = kwargs.get("component_root_key", "")
     override_configs = kwargs.get("override_configs", set())
+    underride_configs = kwargs.get("underride_configs", set())
     extra_files_discovery = kwargs.get("extra_files_discovery")
+    serialization_format = kwargs.get("serialization_format", "yaml")
+    use_file_object_format = kwargs.get("use_file_object_format", True)
+
+    # Determine file name from serialization format
+    file_name = f"00-imported.{serialization_format}"
 
     # Get tracked source paths from value_source_tracking
     tracked_source_paths = config_value_transformer.value_source_tracking.get_tracked_source_paths()
@@ -78,13 +91,27 @@ def additional_config_transformer(
 
     # Note: This runs after filtering so we check the remaining config
     # Store warnings for future engine logging
+    config_path_suffix = f'"{file_name}"].config' if use_file_object_format else f'"{file_name}"]'
+
+    # Check for override configs (ESS-managed values that users should not override)
     if override_configs and component_root_key:
         for override_config in override_configs:
             if get_nested_value(filtered_config, override_config) is not None:
                 warning = (
-                    f"⚠️  '{override_config}' found in {component_root_key}.additional[\"00-imported.yaml\"].config"
+                    f"⚠️  '{override_config}' found in {component_root_key}.additional"
+                    f"[{config_path_suffix}] - ESS manages this, your setting may be ignored"
                 )
                 config_value_transformer.override_warnings.append(warning)
+
+    # Check for underride configs (ESS defaults that users can override)
+    if underride_configs and component_root_key:
+        for underride_config in underride_configs:
+            if get_nested_value(filtered_config, underride_config) is not None:
+                warning = (
+                    f"ℹ️  '{underride_config}' found in {component_root_key}.additional"
+                    f"[{config_path_suffix}] - ESS default, your value overrides it"
+                )
+                config_value_transformer.underride_warnings.append(warning)
 
     # Update file paths if extra files were discovered
     if extra_files_discovery:
@@ -92,18 +119,32 @@ def additional_config_transformer(
 
     # Return in the expected additional config format
     # Also preserve any existing entries in additional (like listeners.yml from other transformers)
-    if filtered_config:
-        # Check if there are existing entries in the component's additional section
-        component_config = config_value_transformer.ess_config.get(component_root_key, {})
-        existing_additional = component_config.get("additional", {})
+    if not filtered_config:
+        return {}
 
-        result = {"00-imported.yaml": {"config": yaml_dump_with_pipe_for_multiline(filtered_config)}}
+    # Check if there are existing entries in the component's additional section
+    component_config = config_value_transformer.ess_config.get(component_root_key, {})
+    existing_additional = component_config.get("additional", {})
 
-        # Merge with existing entries - existing entries take precedence
-        # This preserves listeners.yml, etc. added by other transformers
-        merged = {**result, **existing_additional}
-        return merged
-    return {}
+    # Serialize the config
+    if serialization_format == "json":
+        config_str = json.dumps(filtered_config, indent=2)
+    else:
+        config_str = yaml_dump_with_pipe_for_multiline(filtered_config)
+
+    # Build result based on format preference
+    if use_file_object_format:
+        # Wrapped format: {"filename": {"config": string}}
+        # Used by Synapse and MAS
+        result: dict[str, Any] = {file_name: {"config": config_str}}
+    else:
+        # Direct string format: {"filename": string}
+        # Used by Element Web, which expects the value to be a JSON/YAML string directly
+        result = {file_name: config_str}
+
+    # Merge with existing entries - existing entries take precedence
+    # This preserves listeners.yml, etc. added by other transformers
+    return {**result, **existing_additional}
 
 
 @dataclass
@@ -130,6 +171,7 @@ class ConfigValueTransformer:
     ess_config: dict[str, Any] = field(init=True)  # Target ESS configuration dictionary
     results: list[TransformationResult] = field(default_factory=list)  # List of transformation results
     override_warnings: list[str] = field(default_factory=list)  # Warnings about ESS-managed overrides
+    underride_warnings: list[str] = field(default_factory=list)  # Warnings about ESS default configurations
     value_source_tracking: ValueSourceTracking = field(default_factory=ValueSourceTracking)
     strategy_name: str = ""  # Name of the strategy (for source tracking)
 
@@ -263,7 +305,7 @@ class ConfigValueTransformer:
 
     def handle_secrets(
         self,
-        secret_discovery: SecretDiscovery,
+        secret_discovery: SecretDiscovery | None,
         secrets_list: list[Secret],
     ) -> None:
         """
@@ -398,20 +440,23 @@ class MigrationService:
     ess_config: dict[str, Any] = field(init=True)  # Target ESS configuration
     migration: MigrationStrategy = field(init=True)  # Migration strategy
     extra_files_strategy: ExtraFilesDiscoveryStrategy = field(init=True)  # Extra files discovery service
-    secret_discovery_strategy: SecretDiscoveryStrategy = field(init=True)  # Secret discovery service
+    secret_discovery_strategy: SecretDiscoveryStrategy | None = field(init=True)  # Secret discovery service
     override_warnings: list[str] = field(default_factory=list)  # Warnings about overridden configurations
+    underride_warnings: list[str] = field(default_factory=list)  # Warnings about ESS default configurations
     init_by_ess_secrets: list[str] = field(default_factory=list)  # List of secrets that will be initialized by ESS
     discovered_secrets: list[DiscoveredSecret] = field(default_factory=list)  # List of discovered secrets
     discovered_extra_files: list[DiscoveredExtraFile] = field(default_factory=list)  # List of discovered secrets
     secrets: list[Secret] = field(default_factory=list)  # List of created Secrets
     configmaps: list[ConfigMap] = field(default_factory=list)  # List of created ConfigMaps
     override_configs: set[str] = field(default_factory=set)  # Set of configurations that are managed by ESS
+    underride_configs: set[str] = field(default_factory=set)  # Set of configurations that are ESS defaults
     results: list[TransformationResult] = field(default_factory=list)  # List of transformation results
     global_options: GlobalOptions = field(default_factory=GlobalOptions)  # Global migration options
     value_source_tracking: ValueSourceTracking = field(default_factory=ValueSourceTracking)
 
     def __post_init__(self):
         self.override_configs = self.migration.override_configs
+        self.underride_configs = self.migration.underride_configs
 
     def migrate(self) -> None:
         """
@@ -422,18 +467,23 @@ class MigrationService:
         2. Add filtered additional configurations
         """
         # Step 1: Discover secrets
-        secret_discovery = SecretDiscovery(
-            strategy=self.secret_discovery_strategy,
-            source_file=self.input.config_path,
-            pretty_logger=self.pretty_logger,
-            global_options=self.global_options,
-        )
-        secret_discovery.discover_secrets(self.input.config)
-        # Prompt for missing secrets then validate
-        secret_discovery.prompt_for_missing_secrets()
-        secret_discovery.validate_required_secrets()
-        self.discovered_secrets = list(secret_discovery.discovered_secrets.values())
-        self.init_by_ess_secrets = secret_discovery.init_by_ess_secrets
+        secret_discovery = None
+        if self.secret_discovery_strategy:
+            secret_discovery = SecretDiscovery(
+                strategy=self.secret_discovery_strategy,
+                source_file=self.input.config_path,
+                pretty_logger=self.pretty_logger,
+                global_options=self.global_options,
+            )
+            secret_discovery.discover_secrets(self.input.config)
+            # Prompt for missing secrets then validate
+            secret_discovery.prompt_for_missing_secrets()
+            secret_discovery.validate_required_secrets()
+            self.discovered_secrets = list(secret_discovery.discovered_secrets.values())
+            self.init_by_ess_secrets = secret_discovery.init_by_ess_secrets
+        else:
+            self.discovered_secrets = []
+            self.init_by_ess_secrets = []
 
         # Step 2: Discover extra files
         extra_files_discovery = ExtraFilesDiscovery(
@@ -483,6 +533,7 @@ class MigrationService:
             for source in sources:
                 self.value_source_tracking.add_source(path, source.strategy_name, source.value, source.source_path)
 
-        # Step 7: Store results and override warnings
+        # Step 7: Store results and override/underride warnings
         self.results.extend(config_to_ess_transformer.results)
         self.override_warnings.extend(config_to_ess_transformer.override_warnings)
+        self.underride_warnings.extend(config_to_ess_transformer.underride_warnings)

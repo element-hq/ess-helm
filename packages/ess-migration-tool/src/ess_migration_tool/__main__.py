@@ -12,6 +12,7 @@ import argparse
 import logging
 from dataclasses import dataclass, field
 
+from .element_web import ELEMENT_WEB_STRATEGY_NAME
 from .engine import MigrationEngine
 from .inputs import InputProcessor, ValidationError
 from .mas import MAS_STRATEGY_NAME, parse_postgres_uri
@@ -105,6 +106,12 @@ Examples:
     )
 
     parser.add_argument(
+        "--element-web-config",
+        required=False,
+        help=("Path to Element Web config.json configuration file. "),
+    )
+
+    parser.add_argument(
         "--output-dir",
         default="output",
         help=(
@@ -188,6 +195,12 @@ Examples:
             input_processor.load_migration_input(
                 name=MAS_STRATEGY_NAME,
                 config_path=args.mas_config,
+            )
+
+        if args.element_web_config:
+            input_processor.load_migration_input(
+                name=ELEMENT_WEB_STRATEGY_NAME,
+                config_path=args.element_web_config,
             )
 
         # Run migration
@@ -280,8 +293,8 @@ Examples:
         # Show override warnings within the migration summary
         if engine.override_warnings:
             delay_next_steps(pretty_logger)
-            pretty_logger.info("\n⚠️  ESS-MANAGED CONFIGURATIONS FOUND:")
-            pretty_logger.info("   These settings are managed by ESS and will be overridden:")
+            pretty_logger.info("\n⚠️  ESS-MANAGED OVERRIDES FOUND:")
+            pretty_logger.info("   These settings are managed by ESS and your values may be ignored:")
             delay_next_steps(pretty_logger)
 
             for warning in engine.override_warnings:
@@ -293,8 +306,20 @@ Examples:
             pretty_logger.info("   They are now automatically managed by the ESS Helm chart.")
             delay_next_steps(pretty_logger)
 
+        # Show underride warnings within the migration summary
+        if engine.underride_warnings:
+            delay_next_steps(pretty_logger)
+            pretty_logger.info("\nℹ️  ESS DEFAULT CONFIGURATIONS FOUND:")
+            pretty_logger.info("   These settings have ESS defaults that your values will override:")
+            delay_next_steps(pretty_logger)
+
+            for warning in engine.underride_warnings:
+                pretty_logger.info(f"   • {warning}")
+
+            delay_next_steps(pretty_logger)
+
         # Show clean migration message
-        if not engine.override_warnings:
+        if not engine.override_warnings and not engine.underride_warnings:
             delay_next_steps(pretty_logger)
             pretty_logger.info("🎉 CLEAN MIGRATION: No unexpected overrides detected!")
             pretty_logger.info("   All configurations have been properly migrated to ESS.")

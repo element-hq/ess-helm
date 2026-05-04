@@ -11,6 +11,8 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any
 
+from .element_web import ElementWebMigration
+from .extra_files import GenericExtraFileDiscovery
 from .inputs import InputProcessor
 from .mas import MASExtraFileDiscovery, MASMigration, MASSecretDiscovery
 from .migration import MigrationService
@@ -31,6 +33,7 @@ class MigrationEngine:
     secrets: list[Secret] = field(default_factory=list)
     configmaps: list[ConfigMap] = field(default_factory=list)
     override_warnings: list[str] = field(default_factory=list)
+    underride_warnings: list[str] = field(default_factory=list)
     discovered_secrets: list[DiscoveredSecret] = field(default_factory=list)
     init_by_ess_secrets: list[str] = field(default_factory=list)
     migrators: list[MigrationService] = field(default_factory=list)
@@ -49,6 +52,11 @@ class MigrationEngine:
                 MASMigration(self.global_options),
                 MASSecretDiscovery(self.global_options),
                 MASExtraFileDiscovery(),
+            ),
+            (
+                ElementWebMigration(self.global_options),
+                None,
+                GenericExtraFileDiscovery(component_name="Element Web", component_root_key="elementWeb"),
             ),
         ]
         for migration, secret_discovery_strategy, extra_file_strategy in components:
@@ -80,8 +88,9 @@ class MigrationEngine:
         for migrator in self.migrators:
             migrator.migrate()
 
-            # Collect override warnings, secrets, and value sources
+            # Collect override and underride warnings, secrets, and value sources
             self.override_warnings.extend(migrator.override_warnings)
+            self.underride_warnings.extend(migrator.underride_warnings)
             self.discovered_secrets.extend(migrator.discovered_secrets)
             self.init_by_ess_secrets.extend(migrator.init_by_ess_secrets)
 

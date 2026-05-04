@@ -46,6 +46,35 @@ def basic_synapse_config():
 
 
 @pytest.fixture
+def basic_element_web_config():
+    """Basic Element Web configuration for testing."""
+    return {
+        "default_server_config": {
+            "m.homeserver": {
+                "base_url": "https://matrix.example.com/",
+                "server_name": "test.example.com",
+            }
+        },
+        "setting_defaults": {"customTheme": True},
+    }
+
+
+@pytest.fixture
+def write_element_web_config(tmp_path):
+    """Helper fixture to write an Element Web config file."""
+
+    def _write_config(config_data):
+        element_web_config_file = tmp_path / "element-web.json"
+        with open(element_web_config_file, "w") as f:
+            import json
+
+            json.dump(config_data, f, indent=2)
+        return element_web_config_file
+
+    return _write_config
+
+
+@pytest.fixture
 def synapse_config_with_custom_listeners(basic_synapse_config):
     """Synapse configuration with custom listeners for testing."""
     config = basic_synapse_config.copy()
@@ -94,6 +123,14 @@ def synapse_config_with_signing_key(tmp_path, basic_synapse_config):
     config = basic_synapse_config.copy()
     config["signing_key_path"] = str(signing_key_file)
 
+    return config
+
+
+@pytest.fixture
+def synapse_config_with_web_client_location(basic_synapse_config):
+    """Synapse configuration with web_client_location for Element Web."""
+    config = basic_synapse_config.copy()
+    config["web_client_location"] = "https://element.example.com/"
     return config
 
 
