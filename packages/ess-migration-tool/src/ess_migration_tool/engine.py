@@ -13,6 +13,7 @@ from typing import Any
 
 from .element_web import ElementWebMigration
 from .extra_files import GenericExtraFileDiscovery
+from .hookshot import HookshotExtraFileDiscovery, HookshotMigration, HookshotSecretDiscovery
 from .inputs import InputProcessor
 from .mas import MASExtraFileDiscovery, MASMigration, MASSecretDiscovery
 from .migration import MigrationService
@@ -57,6 +58,11 @@ class MigrationEngine:
                 ElementWebMigration(self.global_options),
                 None,
                 GenericExtraFileDiscovery(component_name="Element Web", component_root_key="elementWeb"),
+            ),
+            (
+                HookshotMigration(self.global_options),
+                HookshotSecretDiscovery(self.global_options),
+                HookshotExtraFileDiscovery(),
             ),
         ]
         for migration, secret_discovery_strategy, extra_file_strategy in components:
@@ -103,7 +109,14 @@ class MigrationEngine:
         resolve_value_conflicts(self.pretty_logger, self.value_source_tracking, self.ess_config)
 
         # Disable any ESS component that was not migrated (absent from config)
-        ALL_ESS_COMPONENTS = {"synapse", "matrixAuthenticationService", "elementWeb", "elementAdmin", "matrixRTC"}
+        ALL_ESS_COMPONENTS = {
+            "synapse",
+            "matrixAuthenticationService",
+            "elementWeb",
+            "elementAdmin",
+            "matrixRTC",
+            "hookshot",
+        }
         for component in ALL_ESS_COMPONENTS:
             if component not in self.ess_config:
                 self.ess_config[component] = {"enabled": False}

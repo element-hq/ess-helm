@@ -35,8 +35,10 @@ Before running the migration tool, ensure you have:
 
 1. **A Synapse configuration file**: Access to `homeserver.yaml` file from your current Synapse installation
 2. **A Matrix Authentication Service configuration file (optional)**: Access to `config.yaml` file if you're already using MAS
-3. **Python 3.11+**: The tool requires Python 3.11 or higher
-4. **Access to configuration files**: Make sure your configuration files are accessible and readable
+3. **An Element Web configuration file (optional)**: Access to `config.json` file if you have custom Element Web settings
+4. **A Hookshot configuration file (optional)**: Access to `hookshot-config.yaml` file if you're using Hookshot for webhooks and bots
+5. **Python 3.11+**: The tool requires Python 3.11 or higher
+6. **Access to configuration files**: Make sure your configuration files are accessible and readable
 
 If the tool has access to the secrets referenced in the configuration files, the tool will automatically discover and use them in
 the resulting output files. If it does not have access to the secrets, it will prompt you to provide them manually.
@@ -55,10 +57,23 @@ ess-migration-tool --synapse-config /path/to/synapse/homeserver.yaml
 ess-migration-tool --synapse-config /path/to/synapse/homeserver.yaml --mas-config /path/to/mas/config.yaml
 ```
 
+### Migration with Hookshot
+
+```bash
+ess-migration-tool --synapse-config /path/to/synapse/homeserver.yaml --hookshot-config /path/to/hookshot/hookshot-config.yaml
+```
+
+### Migration with Element Web
+
+```bash
+ess-migration-tool --synapse-config /path/to/synapse/homeserver.yaml --element-web-config /path/to/element-web/config.json
+```
+
 ### Advanced Options
 
 ```bash
 usage: ess-migration-tool [-h] --synapse-config SYNAPSE_CONFIG [--mas-config MAS_CONFIG]
+                          [--element-web-config ELEMENT_WEB_CONFIG] [--hookshot-config HOOKSHOT_CONFIG]
                           [--output-dir OUTPUT_DIR] [--verbose] [--debug] [--quiet]
                           [--database-mode {existing,ess-managed}]
 
@@ -71,6 +86,10 @@ options:
                         configuration that contains server_name, database, listeners, etc.
   --mas-config MAS_CONFIG
                         Path to Matrix Authentication Service config.yaml configuration file.
+  --element-web-config ELEMENT_WEB_CONFIG
+                        Path to Element Web config.json configuration file.
+  --hookshot-config HOOKSHOT_CONFIG
+                        Path to Hookshot hookshot-config.yaml configuration file.
   --output-dir OUTPUT_DIR
                         Output directory for generated files (default: output). The migration will create Helm
                         values.yaml and any ConfigMap files in this directory.

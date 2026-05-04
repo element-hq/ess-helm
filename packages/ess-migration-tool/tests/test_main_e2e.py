@@ -1009,3 +1009,94 @@ def test_main_e2e_synapse_with_element_web(
     for component in other_components:
         assert component in generated_values, f"{component} should be present in generated values"
         assert generated_values[component]["enabled"] is False, f"{component}.enabled should be False"
+
+
+def test_main_e2e_hookshot(
+    monkeypatch,
+    tmp_path,
+    basic_hookshot_config,
+    synapse_config_with_signing_key,
+    write_hookshot_config,
+    write_synapse_config,
+    capsys,
+    helm_validator,
+):
+    """Test the complete end-to-end migration workflow with Hookshot."""
+    # Write Hookshot config
+    # Note: We need to use a Hookshot config where bridge.url matches the synapse base URL
+    # to avoid conflicts with Synapse's public_baseurl
+    hookshot_config = basic_hookshot_config.copy()
+    hookshot_config["bridge"]["url"] = "https://matrix.example.com"
+    hookshot_config_file = write_hookshot_config(hookshot_config)
+
+    # Write Synapse config using the existing fixture
+    synapse_config_file = write_synapse_config(synapse_config_with_signing_key)
+
+    # Create output directory
+    output_dir = tmp_path / "output"
+    output_dir.mkdir()
+
+    # Mock sys.argv to simulate CLI arguments
+    test_args = [
+        "migration",
+        "--synapse-config",
+        str(synapse_config_file),
+        "--hookshot-config",
+        str(hookshot_config_file),
+        "--output-dir",
+        str(output_dir),
+    ]
+
+    # Mock user input for database choice (select option 1 - existing database)
+    # Also mock input for Synapse database password (it's already in config, so just database choice)
+    side_effect = (n for n in ("",))  # Empty string for default choice (existing database)
+    monkeypatch.setattr(sys, "argv", test_args)
+    monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
+    exit_code = __main__.main()
+
+    # Verify successful execution
+    assert exit_code == 0
+
+    # Get captured stderr output (where logging goes)
+    captured = capsys.readouterr()
+    log_output = captured.err
+
+    # Verify override detection behavior for Hookshot
+    # bridge configs should be detected as overrides (except domain and url which are mapped to global values)
+    assert "'bridge.port' found in hookshot.additional" in log_output
+    assert "'bridge.bindAddress' found in hookshot.additional" in log_output
+    # listeners are 100% managed by the chart
+    assert "'listeners' found in hookshot.additional" in log_output
+
+    # Check that output files were created
+    values_file = output_dir / "values.yaml"
+    assert values_file.exists(), "values.yaml should be created"
+
+    # Load and verify the generated values
+    with open(values_file) as f:
+        generated_values = yaml.safe_load(f)
+
+    # Validate generated values against Helm templates
+    success, message = helm_validator(generated_values)
+    assert success, f"Helm template validation failed: {message}"
+
+    # Verify basic structure
+    assert "hookshot" in generated_values
+    assert "serverName" in generated_values
+    assert generated_values["serverName"] == "test.example.com"
+
+    # Verify Hookshot configuration
+    hookshot_config = generated_values["hookshot"]
+    assert hookshot_config["enabled"] is True, "hookshot.enabled should be True"
+    assert hookshot_config["user"]["localpart"] == "hookshot"
+    assert hookshot_config["logging"]["level"] == "info"
+    assert hookshot_config["enableEncryption"] is False
+
+    # listeners are 100% managed by the chart, so they should be in additional config
+    # and will be detected as overrides
+
+    # Verify other components are explicitly disabled when not migrated
+    other_components = ["matrixAuthenticationService", "elementAdmin", "matrixRTC"]
+    for component in other_components:
+        assert component in generated_values, f"{component} should be present in generated values"
+        assert generated_values[component]["enabled"] is False, f"{component}.enabled should be False"
