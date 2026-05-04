@@ -112,6 +112,33 @@ Examples:
     )
 
     parser.add_argument(
+        "--well-known-dir",
+        required=False,
+        help=(
+            "Path to directory containing well-known files "
+            "(client, client.json, server, server.json, support, support.json)"
+        ),
+    )
+
+    parser.add_argument(
+        "--well-known-client",
+        required=False,
+        help=("Path to client or client.json well-known file"),
+    )
+
+    parser.add_argument(
+        "--well-known-server",
+        required=False,
+        help=("Path to server or server.json well-known file"),
+    )
+
+    parser.add_argument(
+        "--well-known-support",
+        required=False,
+        help=("Path to support or support.json well-known file"),
+    )
+
+    parser.add_argument(
         "--output-dir",
         default="output",
         help=(
@@ -201,6 +228,14 @@ Examples:
             input_processor.load_migration_input(
                 name=ELEMENT_WEB_STRATEGY_NAME,
                 config_path=args.element_web_config,
+            )
+
+        if args.well_known_dir or args.well_known_client or args.well_known_server or args.well_known_support:
+            input_processor.load_well_known_inputs(
+                dir_path=args.well_known_dir,
+                client_path=args.well_known_client,
+                server_path=args.well_known_server,
+                support_path=args.well_known_support,
             )
 
         # Run migration
