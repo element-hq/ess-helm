@@ -287,7 +287,7 @@ class ConfigValueTransformer:
 
     def handle_secrets(
         self,
-        secret_discovery: SecretDiscovery,
+        secret_discovery: SecretDiscovery | None,
         secrets_list: list[Secret],
     ) -> None:
         """
@@ -422,7 +422,7 @@ class MigrationService:
     ess_config: dict[str, Any] = field(init=True)  # Target ESS configuration
     migration: MigrationStrategy = field(init=True)  # Migration strategy
     extra_files_strategy: ExtraFilesDiscoveryStrategy = field(init=True)  # Extra files discovery service
-    secret_discovery_strategy: SecretDiscoveryStrategy = field(init=True)  # Secret discovery service
+    secret_discovery_strategy: SecretDiscoveryStrategy | None = field(init=True)  # Secret discovery service
     override_warnings: list[str] = field(default_factory=list)  # Warnings about overridden configurations
     init_by_ess_secrets: list[str] = field(default_factory=list)  # List of secrets that will be initialized by ESS
     discovered_secrets: list[DiscoveredSecret] = field(default_factory=list)  # List of discovered secrets
@@ -446,18 +446,23 @@ class MigrationService:
         2. Add filtered additional configurations
         """
         # Step 1: Discover secrets
-        secret_discovery = SecretDiscovery(
-            strategy=self.secret_discovery_strategy,
-            source_file=self.input.config_path,
-            pretty_logger=self.pretty_logger,
-            global_options=self.global_options,
-        )
-        secret_discovery.discover_secrets(self.input.config)
-        # Prompt for missing secrets then validate
-        secret_discovery.prompt_for_missing_secrets()
-        secret_discovery.validate_required_secrets()
-        self.discovered_secrets = list(secret_discovery.discovered_secrets.values())
-        self.init_by_ess_secrets = secret_discovery.init_by_ess_secrets
+        secret_discovery = None
+        if self.secret_discovery_strategy:
+            secret_discovery = SecretDiscovery(
+                strategy=self.secret_discovery_strategy,
+                source_file=self.input.config_path,
+                pretty_logger=self.pretty_logger,
+                global_options=self.global_options,
+            )
+            secret_discovery.discover_secrets(self.input.config)
+            # Prompt for missing secrets then validate
+            secret_discovery.prompt_for_missing_secrets()
+            secret_discovery.validate_required_secrets()
+            self.discovered_secrets = list(secret_discovery.discovered_secrets.values())
+            self.init_by_ess_secrets = secret_discovery.init_by_ess_secrets
+        else:
+            self.discovered_secrets = []
+            self.init_by_ess_secrets = []
 
         # Step 2: Discover extra files
         extra_files_discovery = ExtraFilesDiscovery(

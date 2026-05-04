@@ -11,7 +11,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any
 
-from .element_web import ElementWebExtraFileDiscovery, ElementWebMigration, ElementWebSecretDiscovery
+from .element_web import ElementWebExtraFileDiscovery, ElementWebMigration
 from .inputs import InputProcessor
 from .mas import MASExtraFileDiscovery, MASMigration, MASSecretDiscovery
 from .migration import MigrationService
@@ -53,7 +53,7 @@ class MigrationEngine:
             ),
             (
                 ElementWebMigration(self.global_options),
-                ElementWebSecretDiscovery(self.global_options),
+                None,
                 ElementWebExtraFileDiscovery(),
             ),
         ]

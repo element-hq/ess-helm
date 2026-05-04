@@ -10,9 +10,8 @@ Element Web-specific migration strategy.
 import logging
 from typing import Any
 
-from .interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
 from .migration import ConfigValueTransformer, MigrationStrategy, TransformationSpec, additional_config_transformer
-from .models import DiscoveredSecret, GlobalOptions, SecretConfig
+from .models import GlobalOptions
 from .utils import extract_hostname_from_url
 
 logger = logging.getLogger("migration")
@@ -110,65 +109,3 @@ class ElementWebMigration(MigrationStrategy):
     @property
     def component_config_extras(self) -> dict[str, Any]:
         return {"enabled": True}
-
-
-class ElementWebSecretDiscovery(SecretDiscoveryStrategy):
-    """Element Web-specific secret discovery implementation."""
-
-    def __init__(self, global_options: GlobalOptions):
-        self.global_options = global_options
-
-    @property
-    def ess_secret_schema(self) -> dict[str, SecretConfig]:
-        """
-        Get the ESS secret schema for Element Web.
-
-        Element Web configuration (config.json) typically doesn't contain secrets.
-        Secrets for Element Web are usually provided separately or through other means.
-        """
-        return {}
-
-    @property
-    def secret_name(self) -> str:
-        return "element-web"
-
-    def discover_component_specific_secrets(
-        self, source_file: str, config_data: dict
-    ) -> tuple[dict[str, DiscoveredSecret], list[tuple[DiscoveredSecret, str]]]:
-        """
-        Discover component-specific secrets from Element Web configuration.
-
-        Element Web doesn't have specialized secret discovery, so this returns empty.
-
-        Args:
-            source_file: Source configuration file name
-            config_data: Element Web configuration data
-
-        Returns:
-            Tuple of (empty dict, empty list) - no specialized secret discovery for Element Web
-        """
-        return ({}, [])
-
-
-class ElementWebExtraFileDiscovery(ExtraFilesDiscoveryStrategy):
-    """Element Web-specific extra file discovery implementation."""
-
-    @property
-    def component_name(self) -> str:
-        return ELEMENT_WEB_STRATEGY_NAME
-
-    @property
-    def component_root_key(self) -> str:
-        return ELEMENT_WEB_COMPONENT_ROOT_KEY
-
-    @property
-    def ignored_config_keys(self) -> list[str]:
-        """Config keys to ignore when discovering extra files."""
-        # Element Web doesn't have file path configurations in its config.json
-        # that need special handling
-        return []
-
-    @property
-    def ignored_file_paths(self) -> list[str]:
-        """Files paths to ignore when discovering extra files."""
-        return []

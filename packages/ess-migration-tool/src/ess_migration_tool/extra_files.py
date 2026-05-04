@@ -36,7 +36,7 @@ class ExtraFilesDiscovery:
 
     pretty_logger: logging.Logger = field(init=True)
     strategy: ExtraFilesDiscoveryStrategy = field(init=True)  # Strategy for component-specific secret discovery
-    secrets_strategy: SecretDiscoveryStrategy = field(init=True)  # Strategy for component-specific secret discovery
+    secrets_strategy: SecretDiscoveryStrategy | None = field(init=True)  # Strategy for component-specific secret discovery
     source_file: str = field(init=True)  # Source file path
     discovered_extra_files: dict[Path, DiscoveredExtraFile] = field(
         default_factory=dict
@@ -114,7 +114,9 @@ class ExtraFilesDiscovery:
                 if isinstance(value, str) and self._is_file_path(value):
                     skipped_reason = None
                     # Check if this key exactly matches any secret configuration paths
-                    if full_key in ess_schema_config_key_secret_paths(self.secrets_strategy.ess_secret_schema):
+                    if self.secrets_strategy and full_key in ess_schema_config_key_secret_paths(
+                        self.secrets_strategy.ess_secret_schema
+                    ):
                         skipped_reason = f"{key} = {value} is already managed by secret"
                         logger.info(f"Skipping {key} = {value}")
                     elif full_key in self.strategy.ignored_config_keys:
