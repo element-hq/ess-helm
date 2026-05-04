@@ -449,3 +449,40 @@ def helm_validator():
         return validate_helm_template(values)
 
     return _validate
+
+
+@pytest.fixture
+def basic_well_known_client_config():
+    """Basic well-known client configuration for testing."""
+    return {
+        "m.homeserver": {
+            "base_url": "https://matrix.example.com",
+            "server_name": "test.example.com",
+        }
+    }
+
+
+@pytest.fixture
+def basic_well_known_server_config():
+    """Basic well-known server configuration for testing."""
+    return {"m.server": "test.example.com:443"}
+
+
+@pytest.fixture
+def basic_well_known_support_config():
+    """Basic well-known support configuration for testing."""
+    return {"im.vector.matrix": {"room": "#support:element.io"}}
+
+
+@pytest.fixture
+def write_well_known_configs(tmp_path):
+    """Helper fixture to write well-known delegation config files."""
+    import json
+
+    def _write_configs(client_config, server_config, support_config):
+        (tmp_path / "client.json").write_text(json.dumps(client_config, indent=2))
+        (tmp_path / "server.json").write_text(json.dumps(server_config, indent=2))
+        (tmp_path / "support.json").write_text(json.dumps(support_config, indent=2))
+        return tmp_path
+
+    return _write_configs
