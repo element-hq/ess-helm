@@ -17,6 +17,7 @@ from typing import Any
 import yaml
 
 from .models import MigrationError, MigrationInput
+from .well_known import WELL_KNOWN_FILE_PATTERNS, WELL_KNOWN_STRATEGY_NAMES
 
 logger = logging.getLogger("migration")
 
@@ -177,3 +178,85 @@ class InputProcessor:
                 config=config,
             )
         )
+
+    def load_well_known_inputs(
+        self,
+        dir_path: str | None = None,
+        client_path: str | None = None,
+        server_path: str | None = None,
+        support_path: str | None = None,
+    ) -> None:
+        """Load well-known delegation files as migration inputs."""
+        file_results = self._load_well_known_files(dir_path, client_path, server_path, support_path)
+
+        for strategy_name, source_path, config in file_results:
+            self.inputs.append(
+                MigrationInput(
+                    name=strategy_name,
+                    config_path=source_path,
+                    config=config,
+                )
+            )
+            logger.info(f"{strategy_name}: loaded from {source_path}")
+
+    @staticmethod
+    def _load_well_known_files(
+        dir_path: str | None = None,
+        client_path: str | None = None,
+        server_path: str | None = None,
+        support_path: str | None = None,
+    ) -> list[tuple[str, str, dict[str, Any]]]:
+        """
+        Load well-known delegation files from directory and/or individual paths.
+
+        Args:
+            dir_path: Path to directory containing well-known files
+            client_path: Path to client or client.json file
+            server_path: Path to server or server.json file
+            support_path: Path to support or support.json file
+
+        Returns:
+            List of tuples: (strategy_name, source_path, config_dict)
+            Only includes files that were found and loaded
+        """
+        results: list[tuple[str, str, dict[str, Any]]] = []
+
+        # Mapping of CLI arg to well-known type
+        arg_to_type = {
+            client_path: "client",
+            server_path: "server",
+            support_path: "support",
+        }
+
+        # Load individual files from CLI args first (highest precedence)
+        for arg_path, wk_type in arg_to_type.items():
+            if arg_path:
+                try:
+                    config = InputProcessor.load_json_file(arg_path)
+                    strategy_name = WELL_KNOWN_STRATEGY_NAMES[wk_type]
+                    results.append((strategy_name, arg_path, config))
+                except Exception as e:
+                    logger.warning(f"Failed to load {wk_type} file {arg_path}: {e}")
+
+        # Load from directory (lower precedence, only if not already loaded via CLI arg)
+        if dir_path:
+            dir_path_obj = Path(dir_path)
+            loaded_strategies: set[str] = {r[0] for r in results}
+
+            for wk_type, file_names in WELL_KNOWN_FILE_PATTERNS.items():
+                strategy_name = WELL_KNOWN_STRATEGY_NAMES[wk_type]
+                if strategy_name in loaded_strategies:
+                    continue
+
+                for file_name in file_names:
+                    file_path = dir_path_obj / file_name
+                    if file_path.is_file():
+                        try:
+                            config = InputProcessor.load_json_file(str(file_path))
+                            results.append((strategy_name, str(file_path), config))
+                            break
+                        except Exception as e:
+                            logger.warning(f"Failed to load {file_name} from directory: {e}")
+                            break
+
+        return results

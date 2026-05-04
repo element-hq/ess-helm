@@ -19,6 +19,7 @@ from .migration import MigrationService
 from .models import ConfigMap, DiscoveredSecret, GlobalOptions, Secret, ValueSourceTracking
 from .synapse import SynapseExtraFileDiscovery, SynapseMigration, SynapseSecretDiscovery
 from .utils import resolve_value_conflicts
+from .well_known import WELL_KNOWN_COMPONENT_ROOT_KEY, WellKnownMigration
 
 logger = logging.getLogger("migration")
 
@@ -57,6 +58,30 @@ class MigrationEngine:
                 ElementWebMigration(self.global_options),
                 None,
                 GenericExtraFileDiscovery(component_name="Element Web", component_root_key="elementWeb"),
+            ),
+            (
+                WellKnownMigration(self.global_options, well_known_type="client"),
+                None,
+                GenericExtraFileDiscovery(
+                    component_name="Well Known Client",
+                    component_root_key=WELL_KNOWN_COMPONENT_ROOT_KEY,
+                ),
+            ),
+            (
+                WellKnownMigration(self.global_options, well_known_type="server"),
+                None,
+                GenericExtraFileDiscovery(
+                    component_name="Well Known Server",
+                    component_root_key=WELL_KNOWN_COMPONENT_ROOT_KEY,
+                ),
+            ),
+            (
+                WellKnownMigration(self.global_options, well_known_type="support"),
+                None,
+                GenericExtraFileDiscovery(
+                    component_name="Well Known Support",
+                    component_root_key=WELL_KNOWN_COMPONENT_ROOT_KEY,
+                ),
             ),
         ]
         for migration, secret_discovery_strategy, extra_file_strategy in components:
