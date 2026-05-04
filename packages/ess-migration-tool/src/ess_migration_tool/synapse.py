@@ -279,9 +279,28 @@ class SynapseMigration(MigrationStrategy):
     @property
     def underride_configs(self) -> set[str]:
         """Config keys that are ESS defaults (users can override these via additional config)."""
-        # Synapse primarily uses overrides (ESS-managed values).
-        # No underride configs currently defined.
-        return set()
+        return {
+            "web_client_location",
+            "report_stats",
+            "require_auth_for_profile_requests",
+            "federation_client_minimum_tls_version",
+            "experimental_features.msc4028_push_encrypted_events",
+            "url_preview_enabled",
+            "url_preview_ip_range_whitelist",
+            "url_preview_ip_range_blacklist",
+            "database.args.keepalives",
+            "database.args.keepalives_idle",
+            "database.args.keepalives_interval",
+            "database.args.keepalives_count",
+            "database.args.cp_min",
+            "database.args.cp_max",
+            "database.args.sslrootcert",
+            "max_event_delay_duration",
+            "rc_message.per_second",
+            "rc_message.burst_count",
+            "rc_delayed_event_mgmt.per_second",
+            "rc_delayed_event_mgmt.burst_count",
+        }
 
     @property
     def transformations(self) -> list[TransformationSpec]:
@@ -298,6 +317,7 @@ class SynapseMigration(MigrationStrategy):
                 value,
                 component_root_key=SYNAPSE_COMPONENT_ROOT_KEY,
                 override_configs=self.override_configs,
+                underride_configs=self.underride_configs,
                 component_name=SYNAPSE_STRATEGY_NAME,
                 **kwargs,
             )
