@@ -437,6 +437,89 @@ def ecdsa_secp384r1_key_der():
 
 
 @pytest.fixture
+def basic_hookshot_config():
+    """Basic Hookshot configuration for testing."""
+    return {
+        "bridge": {
+            "domain": "test.example.com",
+            "url": "http://synapse:8008",
+            "mediaUrl": "https://matrix.example.com",
+            "port": 9993,
+            "bindAddress": "0.0.0.0",
+        },
+        "logging": {
+            "level": "info",
+            "colorize": True,
+            "json": False,
+            "timestampFormat": "HH:mm:ss:SSS",
+        },
+        "user": {
+            "localpart": "hookshot",
+        },
+        "enableEncryption": False,
+        "listeners": [
+            {
+                "port": 9000,
+                "bindAddress": "0.0.0.0",
+                "resources": ["webhooks"],
+            },
+            {
+                "port": 9001,
+                "bindAddress": "0.0.0.0",
+                "resources": ["widgets"],
+            },
+        ],
+    }
+
+
+@pytest.fixture
+def hookshot_config_with_custom_listeners(basic_hookshot_config):
+    """Hookshot configuration with custom listeners for testing."""
+    config = basic_hookshot_config.copy()
+    # Replace the ESS-managed listeners with a custom one
+    config["listeners"] = [
+        {
+            "port": 9010,
+            "bindAddress": "0.0.0.0",
+            "resources": ["custom_service"],
+        }
+    ]
+    return config
+
+
+@pytest.fixture
+def hookshot_config_with_passfile(tmp_path, basic_hookshot_config):
+    """Hookshot configuration with a passkey file."""
+    # Create passkey file
+    passkey_file = tmp_path / "passkey.pem"
+    passkey_content = """-----BEGIN PRIVATE KEY-----
+MIIJQQIBADANBgkqhkiG9w0BAQEFAASCCSswggknAgEAAoICAQDLtjXE9gRU9GVE
+2Kt8VQORnOOlNlPvTwosXeSvJKl0llRW3ajDqpfbHfG2BOTvnHEqfO5KQGXCwBmx
+3a0sbQ0x4upx47vOpX+zpOaF3gor
+-----END PRIVATE KEY-----"""
+    passkey_file.write_text(passkey_content)
+
+    # Add passFile to config
+    config = basic_hookshot_config.copy()
+    config["passFile"] = str(passkey_file)
+
+    return config
+
+
+@pytest.fixture
+def write_hookshot_config(tmp_path):
+    """Helper fixture to write a Hookshot config file."""
+
+    def _write_config(config_data):
+        hookshot_config_file = tmp_path / "hookshot-config.yaml"
+        with open(hookshot_config_file, "w") as f:
+            yaml.dump(config_data, f)
+        return hookshot_config_file
+
+    return _write_config
+
+
+@pytest.fixture
 def helm_validator():
     """
     Fixture for validating generated values against Helm templates.

@@ -14,6 +14,7 @@ from dataclasses import dataclass, field
 
 from .element_web import ELEMENT_WEB_STRATEGY_NAME
 from .engine import MigrationEngine
+from .hookshot import HOOKSHOT_STRATEGY_NAME
 from .inputs import InputProcessor, ValidationError
 from .mas import MAS_STRATEGY_NAME, parse_postgres_uri
 from .models import MigrationError
@@ -112,6 +113,12 @@ Examples:
     )
 
     parser.add_argument(
+        "--hookshot-config",
+        required=False,
+        help=("Path to Hookshot hookshot-config.yaml configuration file. "),
+    )
+
+    parser.add_argument(
         "--output-dir",
         default="output",
         help=(
@@ -201,6 +208,12 @@ Examples:
             input_processor.load_migration_input(
                 name=ELEMENT_WEB_STRATEGY_NAME,
                 config_path=args.element_web_config,
+            )
+
+        if args.hookshot_config:
+            input_processor.load_migration_input(
+                name=HOOKSHOT_STRATEGY_NAME,
+                config_path=args.hookshot_config,
             )
 
         # Run migration
