@@ -272,6 +272,19 @@ def test_main_e2e_synapse_with_mas(
     # database.args.password should NOT be detected (filtered out as it's a secret)
     assert "'database.args.password' found in synapse.additional[\"00-imported.yaml\"].config" not in log_output
 
+    # Verify underride warnings for MAS
+    assert "ESS DEFAULT CONFIGURATIONS FOUND:" in log_output
+    assert "These settings have ESS defaults that your values will override:" in log_output
+    # Sample MAS policy config underride warnings
+    assert "'policy.data.admin_clients' found in" in log_output
+    assert 'matrixAuthenticationService.additional["00-imported.yaml"].config' in log_output
+    assert "'policy.data.client_registration.allow_host_mismatch' found in" in log_output
+    assert "ESS default, your value overrides it" in log_output
+
+    # Verify underride warnings for Synapse
+    assert "'report_stats' found in" in log_output
+    assert "'url_preview_enabled' found in" in log_output
+
     # Check that output files were created
     values_file = output_dir / "values.yaml"
     assert values_file.exists(), "values.yaml should be created"

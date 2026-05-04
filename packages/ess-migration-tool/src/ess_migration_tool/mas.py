@@ -225,9 +225,12 @@ class MASMigration(MigrationStrategy):
     @property
     def underride_configs(self) -> set[str]:
         """Config keys that are ESS defaults (users can override these via additional config)."""
-        # MAS primarily uses overrides (ESS-managed values).
-        # No underride configs currently defined.
-        return set()
+        return {
+            "policy.data.admin_clients",
+            "policy.data.admin_users",
+            "policy.data.client_registration.allow_host_mismatch",
+            "policy.data.client_registration.allow_insecure_uris",
+        }
 
     @property
     def transformations(self) -> list[TransformationSpec]:
@@ -244,6 +247,7 @@ class MASMigration(MigrationStrategy):
                 value,
                 component_root_key=MAS_COMPONENT_ROOT_KEY,
                 override_configs=self.override_configs,
+                underride_configs=self.underride_configs,
                 component_name=MAS_STRATEGY_NAME,
                 **kwargs,
             )

@@ -38,8 +38,29 @@ def basic_synapse_config():
             }
         ],
         "database": {
-            "args": {"database": "synapse", "user": "synapse", "host": "postgres", "port": 5432, "password": "test"}
+            "args": {
+                "database": "synapse",
+                "user": "synapse",
+                "host": "postgres",
+                "port": 5432,
+                "password": "test",
+                "keepalives": 1,
+                "keepalives_idle": 10,
+                "keepalives_interval": 10,
+                "keepalives_count": 3,
+                "cp_min": 5,
+                "cp_max": 10,
+            }
         },
+        "report_stats": False,
+        "require_auth_for_profile_requests": True,
+        "federation_client_minimum_tls_version": "1.2",
+        "experimental_features": {"msc4028_push_encrypted_events": True},
+        "url_preview_enabled": True,
+        "url_preview_ip_range_whitelist": [],
+        "url_preview_ip_range_blacklist": ["192.168.0.0/16", "10.0.0.0/8"],
+        "rc_message": {"per_second": 0.5, "burst_count": 30},
+        "rc_delayed_event_mgmt": {"per_second": 1, "burst_count": 20},
         "macaroon_secret_key": "test_macaroon_secret",
         "registration_shared_secret": "test_registration_secret",
     }
@@ -199,6 +220,16 @@ def basic_mas_config():
             "homeserver": "test.example.com",
             "secret": "synapse_shared_secret_abcdef",
             "endpoint": "http://synapse:8008",
+        },
+        "policy": {
+            "data": {
+                "admin_clients": ["test_client"],
+                "admin_users": ["@admin:test.example.com"],
+                "client_registration": {
+                    "allow_host_mismatch": False,
+                    "allow_insecure_uris": False,
+                },
+            }
         },
     }
 
