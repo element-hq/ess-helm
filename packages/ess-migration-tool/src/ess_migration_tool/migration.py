@@ -62,6 +62,8 @@ def additional_config_transformer(
     - use_file_object_format: bool - If True (default), return {"filename": {"config": string}} format.
       If False, return {"filename": string} format (direct string without wrapper object).
       Element Web uses False since its Helm template expects the value to be a JSON/YAML string directly.
+    - filename: str - Custom filename to use instead of the default "00-imported.{serialization_format}".
+      If provided, the file extension from serialization_format will be appended if not already present.
     """
     import json
 
@@ -75,8 +77,8 @@ def additional_config_transformer(
     serialization_format = kwargs.get("serialization_format", "yaml")
     use_file_object_format = kwargs.get("use_file_object_format", True)
 
-    # Determine file name from serialization format
-    file_name = f"00-imported.{serialization_format}"
+    # Determine file name from custom filename or default
+    file_name = kwargs.get("filename") or f"00-imported.{serialization_format}"
 
     # Get tracked source paths from value_source_tracking
     tracked_source_paths = config_value_transformer.value_source_tracking.get_tracked_source_paths()
@@ -117,14 +119,15 @@ def additional_config_transformer(
     if extra_files_discovery:
         filtered_config = config_value_transformer.update_paths_in_config(filtered_config, extra_files_discovery)
 
-    # Return in the expected additional config format
-    # Also preserve any existing entries in additional (like listeners.yml from other transformers)
-    if not filtered_config:
-        return {}
-
     # Check if there are existing entries in the component's additional section
     component_config = config_value_transformer.ess_config.get(component_root_key, {})
     existing_additional = component_config.get("additional", {})
+
+    # Return in the expected additional config format
+    # Also preserve any existing entries in additional (like listeners.yml from other transformers)
+    # If there's nothing to add, return existing entries without creating a new entry
+    if not filtered_config:
+        return existing_additional
 
     # Serialize the config
     if serialization_format == "json":

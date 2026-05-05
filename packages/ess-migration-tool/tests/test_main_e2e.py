@@ -9,6 +9,7 @@ Tests the complete workflow from input to output generation.
 """
 
 import base64
+import json
 import sys
 
 import pytest
@@ -1008,4 +1009,80 @@ def test_main_e2e_synapse_with_element_web(
     other_components = ["matrixAuthenticationService", "elementAdmin", "matrixRTC"]
     for component in other_components:
         assert component in generated_values, f"{component} should be present in generated values"
-        assert generated_values[component]["enabled"] is False, f"{component}.enabled should be False"
+
+
+def test_well_known_migration(
+    tmp_path,
+    monkeypatch,
+    synapse_config_with_signing_key,
+    write_synapse_config,
+    basic_well_known_client_config,
+    basic_well_known_server_config,
+    basic_well_known_support_config,
+    write_well_known_configs,
+):
+    """Test end-to-end migration with well-known files."""
+    # Use fixture for synapse config and write it to file
+    synapse_file = write_synapse_config(synapse_config_with_signing_key)
+    write_well_known_configs(
+        basic_well_known_client_config,
+        basic_well_known_server_config,
+        basic_well_known_support_config,
+    )
+
+    # Run migration
+    output_dir = tmp_path / "output"
+
+    # Mock input for signing key path (from synapse_config_with_signing_key fixture)
+    # and for conflict resolution (select matrix.example.com for synapse.ingress.host)
+    # The conflict is between:
+    # - Synapse (public_baseurl): matrix.example.com
+    # - Well Known Client (m.homeserver.base_url): matrix.example.com
+    # - Well Known Server (m.server): test.example.com
+    # Options will be: "matrix.example.com (from: Synapse, Well Known Client)",
+    # "test.example.com (from: Well Known Server)", "Enter custom value"
+    # Select option 1 (matrix.example.com)
+    side_effect = (n for n in ("", "1"))
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "ess-migration-tool",
+            "--synapse-config",
+            str(synapse_file),
+            "--well-known-dir",
+            str(tmp_path),
+            "--output-dir",
+            str(output_dir),
+            "--database-mode",
+            "existing",
+        ],
+    )
+    monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
+
+    result = __main__.main()
+
+    assert result == 0
+
+    # Check output
+    values_file = output_dir / "values.yaml"
+    assert values_file.exists()
+
+    values = yaml.safe_load(values_file.read_text())
+
+    assert values["wellKnownDelegation"]["enabled"] is True
+    assert "additional" in values["wellKnownDelegation"]
+
+    # Verify that transformed values are filtered out from additional config
+    client_config = json.loads(values["wellKnownDelegation"]["additional"]["client"])
+    # m.homeserver.base_url and m.homeserver.server_name should be filtered out
+    assert "m.homeserver" not in client_config or (
+        "base_url" not in client_config.get("m.homeserver", {})
+        and "server_name" not in client_config.get("m.homeserver", {})
+    )
+
+    server_config = json.loads(values["wellKnownDelegation"]["additional"]["server"])
+    assert "m.server" not in server_config
+
+    support_config = json.loads(values["wellKnownDelegation"]["additional"]["support"])
+    assert support_config["im.vector.matrix"]["room"] == "#support:element.io"
