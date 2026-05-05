@@ -29,6 +29,14 @@ SPDX-License-Identifier: AGPL-3.0-only
     {{- end }}
   {{- end }}
 {{- end }}
+{{- /* Deliberately not using element-io.matrix-authentication-service.readyToHandleAuth here as we want this to be enableable before syn2mas is initially run */}}
+{{- if and (dig "mas-helper" "enabled" false .workers) (not $root.Values.matrixAuthenticationService.enabled) }}
+{{ $messages = append $messages "synapse.workers.mas-helpers can't be enabled without matrixAuthenticationService.enabled=false" }}
+{{- end }}
+{{- /* Deliberately not using element-io.matrix-authentication-service.readyToHandleAuth here as we want this to be disabled before the actual migration */}}
+{{- if and (dig "sso-login" "enabled" false .workers) $root.Values.matrixAuthenticationService.enabled }}
+{{ $messages = append $messages "synapse.workers.sso-login can't be enabled when matrixAuthenticationService.enabled=true" }}
+{{- end }}
 {{ $messages | toJson }}
 {{- end }}
 {{- end }}
