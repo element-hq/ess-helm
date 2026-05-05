@@ -12,20 +12,40 @@ Validates that the Helm validation utilities work correctly.
 def test_helm_validation_success_case(helm_validator):
     """Test that valid values pass Helm validation."""
     # Basic valid values that should pass Helm template validation
+    # Note: Must include required fields for helm template to succeed
     values = {
+        "serverName": "test.example.com",
         "synapse": {
-            "enabled": True,
-            "serverName": "test.example.com",
+            "ingress": {
+                "host": "synapse.test.example.com",
+            },
         },
-        "postgres": {
-            "enabled": True,
+        "elementWeb": {
+            "ingress": {
+                "host": "element.test.example.com",
+            },
+        },
+        "matrixAuthenticationService": {
+            "ingress": {
+                "host": "mas.test.example.com",
+            },
+        },
+        "matrixRTC": {
+            "ingress": {
+                "host": "rtc.test.example.com",
+            },
+        },
+        "elementAdmin": {
+            "ingress": {
+                "host": "admin.test.example.com",
+            },
         },
     }
 
     success, message = helm_validator(values)
 
     # Should succeed (or fail with a meaningful error if chart is missing)
-    assert success or "chart" in message.lower(), f"Valid values should pass validation: {message}"
+    assert success, f"Valid values should pass validation: {message}"
 
 
 def test_helm_validation_failure_case(helm_validator):
@@ -38,4 +58,5 @@ def test_helm_validation_failure_case(helm_validator):
     success, message = helm_validator(values)
 
     # Should fail (unless chart is missing, in which case it might pass due to early error)
-    assert not success or "chart" in message.lower(), "Invalid values should fail validation"
+    assert not success
+    assert "don't meet the specifications" in message.lower()
