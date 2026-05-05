@@ -382,14 +382,17 @@ responsibleForMedia
   "^/_synapse/client/saml2/authn_response$"
   "^/_matrix/client/(api/v1|r0|v3|unstable)/login/cas/ticket$"
 ) }}
+{{- /*
+Commented out because these are only workerisable when using the experimental MAS config and not the stable one
 {{- if include "element-io.matrix-authentication-service.readyToHandleAuth" (dict "root" $root) }}
 {{ $workerPaths = concat $workerPaths (list
     "^/_synapse/admin/v2/users/[^/]+$"
     "^/_synapse/admin/v1/username_available$"
     "^/_synapse/admin/v1/users/[^/]+/_allow_cross_signing_replacement_without_uia$"
-    "^/_synapse/admin/v1/users/[^/]+/devices$"
+    "^/_synapse/admin/v2/users/[^/]+/devices(/|$)"
 ) }}
 {{- end }}
+*/}}
 {{- end }}
 
 {{- if eq . "synchrotron" }}
