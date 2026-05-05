@@ -189,6 +189,13 @@ class InputProcessor:
         """Load well-known delegation files as migration inputs."""
         file_results = self._load_well_known_files(dir_path, client_path, server_path, support_path)
 
+        if not file_results:
+            raise ValidationError(
+                "No well-known delegation files found. "
+                "Expected to find client, client.json, server, server.json, support, or support.json "
+                "in the provided directory or via individual file arguments."
+            )
+
         for strategy_name, source_path, config in file_results:
             self.inputs.append(
                 MigrationInput(
