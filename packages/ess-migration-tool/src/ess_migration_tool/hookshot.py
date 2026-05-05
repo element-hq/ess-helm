@@ -51,11 +51,7 @@ class HookshotMigration(MigrationStrategy):
     @property
     def underride_configs(self) -> set[str]:
         """Config keys that are ESS defaults (users can override these via additional config)."""
-        return {
-            "logging.level",
-            "user.localpart",
-            "enableEncryption",
-        }
+        return {"widgets.roomSetupWidget.addOnInvite", "permissions"}
 
     @property
     def transformations(self) -> list[TransformationSpec]:
