@@ -332,6 +332,12 @@ responsibleForMedia
 
 {{- /* initial-synchrotron routing is done in configs/synapse/partial-haproxy.cfg.tpl so that it can fallback -> synchrotron -> main */}}
 
+{{- if eq . "mas-helper" }}
+{{ $workerPaths = concat $workerPaths (list
+  "^/_synapse/mas/"
+) }}
+{{- end }}
+
 {{- if eq . "media-repository" }}
 {{ $workerPaths = concat $workerPaths (list
   "^/_matrix/media/"

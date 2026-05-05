@@ -235,6 +235,9 @@
         "initial-synchrotron": {
           "$ref": "file://synapse/scalable_worker.json"
         },
+        "mas-helper": {
+          "$ref": "file://synapse/scalable_worker.json"
+        },
         "media-repository": {
           "$ref": "file://synapse/single_worker.json"
         },
