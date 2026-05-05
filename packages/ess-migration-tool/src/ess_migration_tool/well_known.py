@@ -94,6 +94,19 @@ class WellKnownMigration(MigrationStrategy):
                 ]
             )
 
+        # For server well-known type, extract m.server and map to synapse.ingress.host
+        if self.well_known_type == "server":
+            transformations.extend(
+                [
+                    TransformationSpec(
+                        src_key="'m.server'",
+                        target_key="synapse.ingress.host",
+                        transformer=extract_hostname_from_url,
+                        required=False,
+                    ),
+                ]
+            )
+
         # Map the full config to additional.<type> as JSON string
         transformations.append(
             TransformationSpec(

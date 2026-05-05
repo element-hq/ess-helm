@@ -320,17 +320,23 @@ def remove_nested_value(config: dict[str, Any], path: str) -> None:
 
 def extract_hostname_from_url(_, url: str, **kwargs: Any) -> str:
     """
-    Extract hostname from a URL string.
+    Extract hostname from a URL string or host:port string.
 
     Args:
-        url: URL string to parse
+        url: URL string or host:port string to parse
         **kwargs: Optional context parameters (unused)
 
     Returns:
         Hostname as string if successful, empty string otherwise
     """
-    parsed_url = urllib.parse.urlparse(url)
-    return parsed_url.hostname or ""
+    if not url:
+        return ""
+    # Prepend // if no scheme and contains : (host:port format e.g., "example.com:443")
+    # or if no :// at all (bare hostname e.g., "example.com")
+    if "://" not in url:
+        url = f"//{url}"
+    parsed = urllib.parse.urlparse(url)
+    return parsed.hostname or ""
 
 
 def to_kebab_case(name: str) -> str:

@@ -1034,7 +1034,14 @@ def test_well_known_migration(
     output_dir = tmp_path / "output"
 
     # Mock input for signing key path (from synapse_config_with_signing_key fixture)
-    side_effect = (n for n in ("",))  # Empty string for default choice
+    # and for conflict resolution (select matrix.example.com for synapse.ingress.host)
+    # The conflict is between:
+    # - Synapse (public_baseurl): matrix.example.com
+    # - Well Known Client (m.homeserver.base_url): matrix.example.com
+    # - Well Known Server (m.server): test.example.com
+    # Options will be: "matrix.example.com (from: Synapse, Well Known Client)", "test.example.com (from: Well Known Server)", "Enter custom value"
+    # Select option 1 (matrix.example.com)
+    side_effect = (n for n in ("", "1"))
     monkeypatch.setattr(
         sys,
         "argv",
