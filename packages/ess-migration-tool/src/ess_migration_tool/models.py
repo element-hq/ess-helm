@@ -165,10 +165,12 @@ class ValueSourceTracking:
         """Get all ESS paths that have multiple sources from different strategies."""
         conflicts = {}
         for path, srcs in self.sources.items():
-            if len(srcs) > 1:
-                strategies = set(s.strategy_name for s in srcs)
+            # Filter out sources with None values
+            srcs_with_values = [s for s in srcs if s.value is not None]
+            if len(srcs_with_values) > 1:
+                strategies = set(s.strategy_name for s in srcs_with_values)
                 if len(strategies) > 1:
-                    conflicts[path] = srcs
+                    conflicts[path] = srcs_with_values
         return conflicts
 
     def get_tracked_source_paths(self) -> list[str]:

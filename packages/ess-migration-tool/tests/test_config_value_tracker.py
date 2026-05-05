@@ -11,7 +11,7 @@ from pathlib import Path
 from ess_migration_tool.extra_files import ExtraFilesDiscovery
 from ess_migration_tool.interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
 from ess_migration_tool.migration import ConfigValueTransformer, TransformationSpec
-from ess_migration_tool.models import DiscoveredPath, GlobalOptions
+from ess_migration_tool.models import DiscoveredPath, GlobalOptions, ValueSourceTracking
 
 
 def test_config_value_tracker_basic():
@@ -434,3 +434,30 @@ def test_update_paths_in_config_nested_config():
 
     # Verify tracked values (only skipped paths are tracked)
     assert len(transformer.value_source_tracking.get_tracked_source_paths()) == 0  # No skipped paths in this test
+
+
+def test_get_conflicts_filters_none_values():
+    """Test that get_conflicts() filters out sources with None values."""
+    tracking = ValueSourceTracking()
+
+    # Add sources where one has a real value and another has None
+    tracking.add_source("serverName", "Synapse", "synapse.example.com", "server_name")
+    tracking.add_source("serverName", "MAS", None, "matrix.homeserver")
+
+    # No conflict should be reported because MAS's None is filtered out
+    conflicts = tracking.get_conflicts()
+    assert conflicts == {}
+
+
+def test_get_conflicts_preserves_real_conflicts():
+    """Test that get_conflicts() still reports conflicts between non-None values."""
+    tracking = ValueSourceTracking()
+
+    # Add sources where both have real but different values
+    tracking.add_source("serverName", "Synapse", "synapse.example.com", "server_name")
+    tracking.add_source("serverName", "MAS", "mas.example.com", "matrix.homeserver")
+
+    # Conflict should be reported
+    conflicts = tracking.get_conflicts()
+    assert "serverName" in conflicts
+    assert len(conflicts["serverName"]) == 2
