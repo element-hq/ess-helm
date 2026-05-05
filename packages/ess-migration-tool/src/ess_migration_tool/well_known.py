@@ -8,7 +8,7 @@ import json
 import logging
 from typing import Any
 
-from .migration import ConfigValueTransformer, MigrationStrategy, TransformationSpec
+from .migration import ConfigValueTransformer, MigrationStrategy, TransformationSpec, additional_config_transformer
 from .models import GlobalOptions
 from .utils import extract_hostname_from_url
 
@@ -29,13 +29,6 @@ WELL_KNOWN_STRATEGY_NAMES: dict[str, str] = {
     "server": "Well Known Server",
     "support": "Well Known Support",
 }
-
-
-def to_json_string(_: ConfigValueTransformer, value: Any, **__: Any) -> str:
-    """Transform a value to a JSON string."""
-    if value is None:
-        return "{}"
-    return json.dumps(value)
 
 
 class WellKnownMigration(MigrationStrategy):
@@ -107,12 +100,26 @@ class WellKnownMigration(MigrationStrategy):
                 ]
             )
 
-        # Map the full config to additional.<type> as JSON string
+        # Map the full config to additional.<type> as JSON string, filtering out tracked values
+        # Use additional_config_transformer with serialization_format="json" and no file wrapper
+        # Then extract just the config string from the result
         transformations.append(
             TransformationSpec(
                 src_key=None,
                 target_key=f"wellKnownDelegation.additional.{self.well_known_type}",
-                transformer=to_json_string,
+                transformer=lambda config_value_transformer, value, **kw: (
+                    additional_config_transformer(
+                        config_value_transformer,
+                        value,
+                        component_root_key=WELL_KNOWN_COMPONENT_ROOT_KEY,
+                        override_configs=self.override_configs,
+                        underride_configs=self.underride_configs,
+                        component_name=self.name,
+                        serialization_format="json",
+                        use_file_object_format=False,
+                        **kw,
+                    ).get(f"00-imported.json", "{}")
+                ),
                 required=False,
             )
         )

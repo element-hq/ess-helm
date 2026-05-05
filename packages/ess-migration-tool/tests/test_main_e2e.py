@@ -1072,11 +1072,16 @@ def test_well_known_migration(
     assert values["wellKnownDelegation"]["enabled"] is True
     assert "additional" in values["wellKnownDelegation"]
 
+    # Verify that transformed values are filtered out from additional config
     client_config = json.loads(values["wellKnownDelegation"]["additional"]["client"])
-    assert client_config["m.homeserver"]["base_url"] == "https://matrix.example.com"
+    # m.homeserver.base_url and m.homeserver.server_name should be filtered out
+    assert "m.homeserver" not in client_config or (
+        "base_url" not in client_config.get("m.homeserver", {})
+        and "server_name" not in client_config.get("m.homeserver", {})
+    )
 
     server_config = json.loads(values["wellKnownDelegation"]["additional"]["server"])
-    assert server_config["m.server"] == "test.example.com:443"
+    assert "m.server" not in server_config
 
     support_config = json.loads(values["wellKnownDelegation"]["additional"]["support"])
     assert support_config["im.vector.matrix"]["room"] == "#support:element.io"
