@@ -44,17 +44,6 @@ def test_bridge_domain_to_server_name():
     assert transformer.ess_config["serverName"] == "test.example.com"
 
 
-def test_bridge_url_to_synapse_ingress_host():
-    """Test that bridge.url is mapped to synapse.ingress.host."""
-    transformer = ConfigValueTransformer(logging.getLogger(), ess_config={})
-    migration = HookshotMigration(GlobalOptions())
-
-    config = {"bridge": {"domain": "test.example.com", "url": "http://synapse:8008"}}
-    transformer.transform_from_config(config, migration.transformations)
-
-    assert transformer.ess_config["synapse"]["ingress"]["host"] == "synapse"
-
-
 def test_secret_discovery_schema():
     """Test that Hookshot has correct ESS secret schema for passFile."""
     secret_discovery = HookshotSecretDiscovery(GlobalOptions())

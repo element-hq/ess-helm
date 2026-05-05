@@ -13,7 +13,6 @@ from typing import TYPE_CHECKING, Any
 from .interfaces import ExtraFilesDiscoveryStrategy, MigrationStrategy, SecretDiscoveryStrategy
 from .migration import TransformationSpec, additional_config_transformer
 from .models import GlobalOptions, SecretConfig
-from .utils import extract_hostname_from_url
 
 if TYPE_CHECKING:
     from .migration import ConfigValueTransformer
@@ -91,13 +90,6 @@ class HookshotMigration(MigrationStrategy):
             TransformationSpec(
                 src_key="bridge.domain",
                 target_key="serverName",
-                required=True,
-            ),
-            # Map bridge.url to synapse.ingress.host
-            TransformationSpec(
-                src_key="bridge.url",
-                target_key="synapse.ingress.host",
-                transformer=extract_hostname_from_url,
                 required=True,
             ),
             # Map logging.level to hookshot.logging.level
