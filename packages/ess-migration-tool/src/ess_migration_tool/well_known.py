@@ -4,11 +4,9 @@
 
 """Well Known delegation migration strategy."""
 
-import json
 import logging
-from typing import Any
 
-from .migration import ConfigValueTransformer, MigrationStrategy, TransformationSpec, additional_config_transformer
+from .migration import MigrationStrategy, TransformationSpec, additional_config_transformer
 from .models import GlobalOptions
 from .utils import extract_hostname_from_url
 
@@ -102,23 +100,22 @@ class WellKnownMigration(MigrationStrategy):
 
         # Map the full config to additional.<type> as JSON string, filtering out tracked values
         # Use additional_config_transformer with serialization_format="json" and no file wrapper
-        # Then extract just the config string from the result
+        # Each well-known type writes to wellKnownDelegation.additional with its own filename
         transformations.append(
             TransformationSpec(
                 src_key=None,
-                target_key=f"wellKnownDelegation.additional.{self.well_known_type}",
-                transformer=lambda config_value_transformer, value, **kw: (
-                    additional_config_transformer(
-                        config_value_transformer,
-                        value,
-                        component_root_key=WELL_KNOWN_COMPONENT_ROOT_KEY,
-                        override_configs=self.override_configs,
-                        underride_configs=self.underride_configs,
-                        component_name=self.name,
-                        serialization_format="json",
-                        use_file_object_format=False,
-                        **kw,
-                    ).get(f"00-imported.json", "{}")
+                target_key="wellKnownDelegation.additional",
+                transformer=lambda config_value_transformer, value, **kw: additional_config_transformer(
+                    config_value_transformer,
+                    value,
+                    component_root_key=WELL_KNOWN_COMPONENT_ROOT_KEY,
+                    override_configs=self.override_configs,
+                    underride_configs=self.underride_configs,
+                    component_name=self.name,
+                    serialization_format="json",
+                    use_file_object_format=False,
+                    filename=self.well_known_type,
+                    **kw,
                 ),
                 required=False,
             )

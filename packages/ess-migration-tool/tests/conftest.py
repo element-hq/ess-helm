@@ -458,14 +458,20 @@ def basic_well_known_client_config():
         "m.homeserver": {
             "base_url": "https://matrix.example.com",
             "server_name": "test.example.com",
-        }
+        },
+        # Add an untracked value to ensure the client entry is created
+        "m.custom": {"setting": "value"},
     }
 
 
 @pytest.fixture
 def basic_well_known_server_config():
     """Basic well-known server configuration for testing."""
-    return {"m.server": "test.example.com:443"}
+    return {
+        "m.server": "test.example.com:443",
+        # Add an untracked value to ensure the server entry is created
+        "m.custom_server": "value",
+    }
 
 
 @pytest.fixture

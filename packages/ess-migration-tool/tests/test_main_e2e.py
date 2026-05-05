@@ -1039,7 +1039,8 @@ def test_well_known_migration(
     # - Synapse (public_baseurl): matrix.example.com
     # - Well Known Client (m.homeserver.base_url): matrix.example.com
     # - Well Known Server (m.server): test.example.com
-    # Options will be: "matrix.example.com (from: Synapse, Well Known Client)", "test.example.com (from: Well Known Server)", "Enter custom value"
+    # Options will be: "matrix.example.com (from: Synapse, Well Known Client)",
+    # "test.example.com (from: Well Known Server)", "Enter custom value"
     # Select option 1 (matrix.example.com)
     side_effect = (n for n in ("", "1"))
     monkeypatch.setattr(
