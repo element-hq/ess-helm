@@ -36,8 +36,10 @@ Before running the migration tool, ensure you have:
 1. **A Synapse configuration file**: Access to `homeserver.yaml` file from your current Synapse installation
 2. **A Matrix Authentication Service configuration file (optional)**: Access to `config.yaml` file if you're already using MAS
 3. **Well-Known delegation files (optional)**: Access to `.well-known/matrix/client`, `.well-known/matrix/server`, and `.well-known/matrix/support` files if you want to migrate Matrix delegation configuration
-4. **Python 3.11+**: The tool requires Python 3.11 or higher
-5. **Access to configuration files**: Make sure your configuration files are accessible and readable
+4. **An Element Web configuration file (optional)**: Access to `config.json` file if you have custom Element Web settings
+5. **A Hookshot configuration file (optional)**: Access to `hookshot-config.yaml` file if you're using Hookshot for webhooks and bots
+6. **Python 3.11+**: The tool requires Python 3.11 or higher
+7. **Access to configuration files**: Make sure your configuration files are accessible and readable
 
 If the tool has access to the secrets referenced in the configuration files, the tool will automatically discover and use them in
 the resulting output files. If it does not have access to the secrets, it will prompt you to provide them manually.
@@ -67,6 +69,16 @@ ess-migration-tool --synapse-config /path/to/synapse/homeserver.yaml \
   --well-known-client /path/to/client.json \
   --well-known-server /path/to/server.json \
   --well-known-support /path/to/support.json
+### Migration with Hookshot
+
+```bash
+ess-migration-tool --synapse-config /path/to/synapse/homeserver.yaml --hookshot-config /path/to/hookshot/hookshot-config.yaml
+```
+
+### Migration with Element Web
+
+```bash
+ess-migration-tool --synapse-config /path/to/synapse/homeserver.yaml --element-web-config /path/to/element-web/config.json
 ```
 
 ### Advanced Options
@@ -75,6 +87,7 @@ ess-migration-tool --synapse-config /path/to/synapse/homeserver.yaml \
 usage: ess-migration-tool [-h] --synapse-config SYNAPSE_CONFIG [--mas-config MAS_CONFIG]
                           [--well-known-dir WELL_KNOWN_DIR] [--well-known-client WELL_KNOWN_CLIENT]
                           [--well-known-server WELL_KNOWN_SERVER] [--well-known-support WELL_KNOWN_SUPPORT]
+                          [--element-web-config ELEMENT_WEB_CONFIG] [--hookshot-config HOOKSHOT_CONFIG]
                           [--output-dir OUTPUT_DIR] [--verbose] [--debug] [--quiet]
                           [--database-mode {existing,ess-managed}]
 
@@ -99,6 +112,10 @@ options:
   --well-known-support WELL_KNOWN_SUPPORT
                         Path to a well-known support delegation file (support or support.json). Takes precedence
                         over --well-known-dir if both are specified.
+  --element-web-config ELEMENT_WEB_CONFIG
+                        Path to Element Web config.json configuration file.
+  --hookshot-config HOOKSHOT_CONFIG
+                        Path to Hookshot hookshot-config.yaml configuration file.
   --output-dir OUTPUT_DIR
                         Output directory for generated files (default: output). The migration will create Helm
                         values.yaml and any ConfigMap files in this directory.
