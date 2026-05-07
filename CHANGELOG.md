@@ -7,6 +7,34 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.5.0 (2026-05-07)
+
+## Removed / Breaking Changes
+
+- Disallow the `sso-login` worker in Synapse when Matrix Authentication Service is in use or about to be migrated to. (#1279)
+
+## Added
+
+- Introduce the `mas-helper` worker to support the Matrix Authentication Service admin API endpoints in Synapse. (#1279)
+
+## Changed
+
+- Upgrade Synapse to v1.152.1.
+
+  Highlights:
+  - Prevent CPU starvation (Denial of Service) under worker lock contention, additionally capping the `WorkerLock` time out interval to a maximum of 60 seconds. Contributed by Famedly. ([#19394](https://github.com/element-hq/synapse/issues/19394), ELEMENTSEC-2026-1706, [GHSA-8q93-326v-3m7g](https://github.com/element-hq/synapse/security/advisories/GHSA-8q93-326v-3m7g), CVE pending)
+  - Prevent pagination ending when a page is full of rejected events. (ELEMENTSEC-2025-1636, [GHSA-6qf2-7x63-mm6v](https://github.com/element-hq/synapse/security/advisories/GHSA-6qf2-7x63-mm6v), CVE pending)
+
+  Full Changelogs:
+  - [v1.152.1](https://github.com/element-hq/synapse/releases/tag/v1.152.1)
+
+  (#1282)
+
+## Fixed
+
+- Fix various Synapse Admin APIs relating to users being incorrectly routed to workers if Matrix Authentication Service is enabled. (#1278)
+
+
 # ESS Community Helm Chart 26.4.1 (2026-05-01)
 
 ## Changed
