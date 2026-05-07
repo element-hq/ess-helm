@@ -11,6 +11,8 @@ deployables
 dialog
 Distroless
 dockerhub
+ELEMENTSEC
+Famedly
 Gematik
 GHSA
 homeserver
