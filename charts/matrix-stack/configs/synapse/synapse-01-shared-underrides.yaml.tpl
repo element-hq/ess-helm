@@ -18,7 +18,7 @@ federation_client_minimum_tls_version: '1.2'
 
 experimental_features:
   msc4028_push_encrypted_events: true
-  # Enables URL Preview configuration to appear in capabilities.
+  # Enables URL Preview configuration to appear in /capabilities.
   msc4452_enabled: true
 
 url_preview_enabled: true

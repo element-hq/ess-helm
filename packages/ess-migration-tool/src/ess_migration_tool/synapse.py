@@ -314,6 +314,7 @@ class SynapseMigration(MigrationStrategy):
             "require_auth_for_profile_requests",
             "federation_client_minimum_tls_version",
             "experimental_features.msc4028_push_encrypted_events",
+            "experimental_features.msc4452_enabled",
             "url_preview_enabled",
             "url_preview_ip_range_whitelist",
             "url_preview_ip_range_blacklist",
