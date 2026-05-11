@@ -134,10 +134,7 @@ class HookshotSecretDiscovery(SecretDiscoveryStrategy):
                 description="Hookshot appservice registration file",
                 optional=True,
                 init_if_missing_from_source_cfg=True,
-                discovery=SecretConfig(
-                    config_inline=None,
-                    config_path=None,
-                ),
+                discovery=None,
             ),
             "hookshot.passkey": DiscoverableSecret(
                 description="Hookshot passkey for token encryption",

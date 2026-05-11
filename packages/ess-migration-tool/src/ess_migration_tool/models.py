@@ -144,7 +144,7 @@ class DiscoverableSecret:
     """A discoverable secret with metadata and discovery configuration."""
 
     description: str  # User-friendly description of the secret
-    discovery: SecretConfig  # Discovery configuration
+    discovery: SecretConfig | None = None  # Discovery configuration (None if not discoverable from config)
     optional: bool = False  # Whether the secret is optional (not required for migration)
     init_if_missing_from_source_cfg: bool = False  # Whether to initialize secret if missing from source config
 

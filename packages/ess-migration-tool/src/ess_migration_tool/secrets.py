@@ -93,48 +93,54 @@ class SecretDiscovery:
             discovered_value = None
             error_msg: str | None = None
 
-            if discovery_config.config_inline:
-                # Direct value
-                value = get_nested_value(config_data, discovery_config.config_inline)
-                if value is not None:
-                    discovered_value = value
-                    logging.info(f"Found direct value for {secret_key}")
+            # If discovery is None, this secret cannot be discovered from config files
+            # It can only be discovered through component-specific discovery
+            if discovery_config is not None:
+                if discovery_config.config_inline:
+                    # Direct value
+                    value = get_nested_value(config_data, discovery_config.config_inline)
+                    if value is not None:
+                        discovered_value = value
+                        logging.info(f"Found direct value for {secret_key}")
 
-            # Also try file path if direct value wasn't found
-            if discovered_value is None and discovery_config.config_path:
-                # From file
-                file_path = get_nested_value(config_data, discovery_config.config_path)
-                if file_path is not None:
+                # Also try file path if direct value wasn't found
+                if discovered_value is None and discovery_config.config_path:
+                    # From file
+                    file_path = get_nested_value(config_data, discovery_config.config_path)
+                    if file_path is not None:
+                        try:
+                            with open(file_path) as f:
+                                discovered_value = f.read()
+                            logging.info(f"Found file value for {secret_key}")
+                        except FileNotFoundError:
+                            logger.warning(f"File not found: {file_path}")
+                            error_msg = f"File not found: {file_path}"
+                        except PermissionError:
+                            logger.warning(f"Permission denied when reading file: {file_path}")
+                            error_msg = f"Permission denied reading file: {file_path}"
+
+                # Apply transformer if available and we have a value
+                if discovered_value is not None and discovery_config.transformer is not None:
                     try:
-                        with open(file_path) as f:
-                            discovered_value = f.read()
-                        logging.info(f"Found file value for {secret_key}")
-                    except FileNotFoundError:
-                        logger.warning(f"File not found: {file_path}")
-                        error_msg = f"File not found: {file_path}"
-                    except PermissionError:
-                        logger.warning(f"Permission denied when reading file: {file_path}")
-                        error_msg = f"Permission denied reading file: {file_path}"
+                        discovered_value = discovery_config.transformer(discovered_value)
+                        logger.info(f"Applied transformer to {secret_key}")
+                    except Exception as e:
+                        logger.warning(f"Failed to apply transformer for {secret_key}: {e}")
+                        discovered_value = None
 
-            # Apply transformer if available and we have a value
-            if discovered_value is not None and discovery_config.transformer is not None:
-                try:
-                    discovered_value = discovery_config.transformer(discovered_value)
-                    logger.info(f"Applied transformer to {secret_key}")
-                except Exception as e:
-                    logger.warning(f"Failed to apply transformer for {secret_key}: {e}")
-                    discovered_value = None
+                if discovered_value is not None:
+                    # Track the source information
+                    config_key = discovery_config.config_inline or discovery_config.config_path
+                    if not config_key:
+                        raise RuntimeError(f"Missing configuration path for {secret_key}")
+                    discovered_secret = DiscoveredSecret(
+                        source_file=self.source_file,
+                        secret_key=secret_key,
+                        config_key=config_key,
+                        value=discovered_value,
+                    )
 
-            if discovered_value is not None:
-                # Track the source information
-                config_key = discovery_config.config_inline or discovery_config.config_path
-                if not config_key:
-                    raise RuntimeError(f"Missing configuration path for {secret_key}")
-                discovered_secret = DiscoveredSecret(
-                    source_file=self.source_file, secret_key=secret_key, config_key=config_key, value=discovered_value
-                )
-
-                self.discovered_secrets[secret_key] = discovered_secret
+                    self.discovered_secrets[secret_key] = discovered_secret
 
             if secret_key not in self.discovered_secrets:
                 if discoverable_secret.optional:
@@ -142,12 +148,15 @@ class SecretDiscovery:
                     continue
 
                 # Build DiscoveredSecret with config_key from schema
-                # If there was an error reading from config_path, use that; otherwise prefer config_inline
-                config_key_for_missing = (
-                    discovery_config.config_path
-                    if error_msg
-                    else discovery_config.config_inline or discovery_config.config_path
-                )
+                # If discovery is None or there was an error reading from config_path, use that
+                if discovery_config is None:
+                    config_key_for_missing = None
+                else:
+                    config_key_for_missing = (
+                        discovery_config.config_path
+                        if error_msg
+                        else discovery_config.config_inline or discovery_config.config_path
+                    )
 
                 # If there's no way to discover this secret from the config (no config_inline or config_path),
                 # handle it specially:

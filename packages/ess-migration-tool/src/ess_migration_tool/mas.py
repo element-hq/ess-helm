@@ -383,40 +383,24 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
                 "matrixAuthenticationService.privateKeys.rsa": DiscoverableSecret(
                     description="MAS RSA private key for signing operations",
                     init_if_missing_from_source_cfg=True,
-                    discovery=SecretConfig(
-                        config_inline=None,
-                        config_path=None,
-                        transformer=None,
-                    ),
+                    discovery=None,
                 ),
                 "matrixAuthenticationService.privateKeys.ecdsaPrime256v1": DiscoverableSecret(
                     description="MAS ECDSA Prime256v1 private key for signing operations",
                     init_if_missing_from_source_cfg=True,
-                    discovery=SecretConfig(
-                        config_inline=None,
-                        config_path=None,
-                        transformer=None,
-                    ),
+                    discovery=None,
                 ),
                 "matrixAuthenticationService.privateKeys.ecdsaSecp256k1": DiscoverableSecret(
                     description="MAS ECDSA Secp256k1 private key for signing operations",
                     optional=True,  # This key type is optional
                     init_if_missing_from_source_cfg=False,
-                    discovery=SecretConfig(
-                        config_inline=None,
-                        config_path=None,
-                        transformer=None,
-                    ),
+                    discovery=None,
                 ),
                 "matrixAuthenticationService.privateKeys.ecdsaSecp384r1": DiscoverableSecret(
                     description="MAS ECDSA Secp384r1 private key for signing operations",
                     optional=True,  # This key type is optional
                     init_if_missing_from_source_cfg=False,
-                    discovery=SecretConfig(
-                        config_inline=None,
-                        config_path=None,
-                        transformer=None,
-                    ),
+                    discovery=None,
                 ),
             }
         )

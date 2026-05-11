@@ -30,7 +30,7 @@ def ess_schema_config_key_secret_paths(ess_schema: dict[str, DiscoverableSecret]
     return [
         secret_config.discovery.config_path
         for secret_config in ess_schema.values()
-        if secret_config.discovery.config_path is not None
+        if secret_config.discovery is not None and secret_config.discovery.config_path is not None
     ]
 
 
