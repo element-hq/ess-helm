@@ -73,35 +73,37 @@ class SecretDiscovery:
                 continue
 
             # Check if this secret is required based on the matching schema
-            secret_config = self.strategy.ess_secret_schema[matching_schema_key]
-            if secret_config.optional:
+            discoverable_secret = self.strategy.ess_secret_schema[matching_schema_key]
+            if discoverable_secret.optional:
                 # Optional secrets are ignored if not found
                 continue
-            elif secret_config.init_if_missing_from_source_cfg:
+            elif discoverable_secret.init_if_missing_from_source_cfg:
                 self.init_by_ess_secrets.append(secret_key)
             else:
                 self.missing_required_secrets.append((discovered_secret, error_message))
 
     def _discover_secrets_from_schema(self, config_data: dict) -> None:
         """Common discovery logic using the strategy's ess_secret_schema."""
-        for secret_key, secret_config in self.strategy.ess_secret_schema.items():
+        for secret_key, discoverable_secret in self.strategy.ess_secret_schema.items():
             # Skip wildcard patterns - these are handled by discover_component_specific_secrets
             if is_wildcard_pattern(secret_key):
                 continue
+
+            discovery_config = discoverable_secret.discovery
             discovered_value = None
             error_msg: str | None = None
 
-            if secret_config.config_inline:
+            if discovery_config.config_inline:
                 # Direct value
-                value = get_nested_value(config_data, secret_config.config_inline)
+                value = get_nested_value(config_data, discovery_config.config_inline)
                 if value is not None:
                     discovered_value = value
                     logging.info(f"Found direct value for {secret_key}")
 
             # Also try file path if direct value wasn't found
-            if discovered_value is None and secret_config.config_path:
+            if discovered_value is None and discovery_config.config_path:
                 # From file
-                file_path = get_nested_value(config_data, secret_config.config_path)
+                file_path = get_nested_value(config_data, discovery_config.config_path)
                 if file_path is not None:
                     try:
                         with open(file_path) as f:
@@ -115,9 +117,9 @@ class SecretDiscovery:
                         error_msg = f"Permission denied reading file: {file_path}"
 
             # Apply transformer if available and we have a value
-            if discovered_value is not None and secret_config.transformer is not None:
+            if discovered_value is not None and discovery_config.transformer is not None:
                 try:
-                    discovered_value = secret_config.transformer(discovered_value)
+                    discovered_value = discovery_config.transformer(discovered_value)
                     logger.info(f"Applied transformer to {secret_key}")
                 except Exception as e:
                     logger.warning(f"Failed to apply transformer for {secret_key}: {e}")
@@ -125,7 +127,7 @@ class SecretDiscovery:
 
             if discovered_value is not None:
                 # Track the source information
-                config_key = secret_config.config_inline or secret_config.config_path
+                config_key = discovery_config.config_inline or discovery_config.config_path
                 if not config_key:
                     raise RuntimeError(f"Missing configuration path for {secret_key}")
                 discovered_secret = DiscoveredSecret(
@@ -135,14 +137,16 @@ class SecretDiscovery:
                 self.discovered_secrets[secret_key] = discovered_secret
 
             if secret_key not in self.discovered_secrets:
-                if secret_config.optional:
+                if discoverable_secret.optional:
                     # Optional secrets are ignored if not found
                     continue
 
                 # Build DiscoveredSecret with config_key from schema
                 # If there was an error reading from config_path, use that; otherwise prefer config_inline
                 config_key_for_missing = (
-                    secret_config.config_path if error_msg else secret_config.config_inline or secret_config.config_path
+                    discovery_config.config_path
+                    if error_msg
+                    else discovery_config.config_inline or discovery_config.config_path
                 )
 
                 # If there's no way to discover this secret from the config (no config_inline or config_path),
@@ -150,7 +154,7 @@ class SecretDiscovery:
                 # - If init_if_missing_from_source_cfg is True, add to init_by_ess_secrets
                 # - Otherwise, it will be discovered via component-specific discovery
                 if config_key_for_missing is None:
-                    if secret_config.init_if_missing_from_source_cfg:
+                    if discoverable_secret.init_if_missing_from_source_cfg:
                         self.init_by_ess_secrets.append(secret_key)
                     # In either case, we don't add to missing_required_secrets
                     # because component-specific discovery will handle these
@@ -163,7 +167,7 @@ class SecretDiscovery:
                     value="",
                 )
 
-                if secret_config.init_if_missing_from_source_cfg:
+                if discoverable_secret.init_if_missing_from_source_cfg:
                     self.init_by_ess_secrets.append(secret_key)
                 else:
                     self.missing_required_secrets.append((discovered_secret_still_missing, error_msg))
@@ -202,9 +206,9 @@ class SecretDiscovery:
             # Find matching schema key (supports wildcard patterns)
             matching_schema_key = find_matching_schema_key(secret_key, self.strategy.ess_secret_schema)
             assert matching_schema_key is not None
-            secret_info = self.strategy.ess_secret_schema[matching_schema_key]
+            discoverable_secret = self.strategy.ess_secret_schema[matching_schema_key]
 
-            self.pretty_logger.info(f"📝 {secret_info.description}")
+            self.pretty_logger.info(f"📝 {discoverable_secret.description}")
             self.pretty_logger.info(f"   Secret path: {secret_key}")
 
             # Add failure reason if available

@@ -13,7 +13,7 @@ from pathlib import Path
 import pytest
 from ess_migration_tool.extra_files import ExtraFilesDiscovery, ExtraFilesError
 from ess_migration_tool.interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
-from ess_migration_tool.models import DiscoveredPath, SecretConfig
+from ess_migration_tool.models import DiscoverableSecret, DiscoveredPath, SecretConfig
 
 
 def test_validate_extra_files_success(tmp_path):
@@ -217,17 +217,21 @@ def test_mixed_config_with_secrets_and_extra_files():
         def ess_secret_schema(self):
             return {
                 # Synapse secrets
-                "synapse.postgres.password": SecretConfig(
-                    init_if_missing_from_source_cfg=False,  # Must be provided
+                "synapse.postgres.password": DiscoverableSecret(
                     description="Synapse database password",
-                    config_inline="database.args.password",
-                    config_path=None,
+                    init_if_missing_from_source_cfg=False,  # Must be provided
+                    discovery=SecretConfig(
+                        config_inline="database.args.password",
+                        config_path=None,
+                    ),
                 ),
-                "synapse.signingKey": SecretConfig(
-                    init_if_missing_from_source_cfg=False,  # This would break federation if changing after migrating
+                "synapse.signingKey": DiscoverableSecret(
                     description="Signing key",
-                    config_inline="signing_key",
-                    config_path="signing_key_path",
+                    init_if_missing_from_source_cfg=False,  # This would break federation if changing after migrating
+                    discovery=SecretConfig(
+                        config_inline="signing_key",
+                        config_path="signing_key_path",
+                    ),
                 ),
             }
 

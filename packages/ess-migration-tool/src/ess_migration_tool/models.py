@@ -130,14 +130,23 @@ class ConfigMap:
 
 @dataclass
 class SecretConfig:
-    init_if_missing_from_source_cfg: bool  # Whether to initialize secret if missing from source config
-    description: str  # User-friendly description of the secret
+    """Configuration for discovering secrets from config files (inline or file path)."""
+
     config_inline: str | None  # Configuration path for inline secret values
     config_path: str | None  # Configuration path for secret file paths
-    optional: bool = False  # Whether the secret is optional (not required for migration)
     transformer: Callable[[str], str | None] | None = (
         None  # Optional transformer function for extracting secrets from complex values
     )
+
+
+@dataclass
+class DiscoverableSecret:
+    """A discoverable secret with metadata and discovery configuration."""
+
+    description: str  # User-friendly description of the secret
+    discovery: SecretConfig  # Discovery configuration
+    optional: bool = False  # Whether the secret is optional (not required for migration)
+    init_if_missing_from_source_cfg: bool = False  # Whether to initialize secret if missing from source config
 
 
 @dataclass
