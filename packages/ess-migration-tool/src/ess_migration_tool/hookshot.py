@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any
 
 from .interfaces import ExtraFilesDiscoveryStrategy, MigrationStrategy, SecretDiscoveryStrategy
 from .migration import TransformationSpec, additional_config_transformer
-from .models import GlobalOptions, SecretConfig
+from .models import DiscoverableSecret, GlobalOptions, SecretConfig
 
 if TYPE_CHECKING:
     from .migration import ConfigValueTransformer
@@ -127,22 +127,26 @@ class HookshotSecretDiscovery(SecretDiscoveryStrategy):
         self.global_options = global_options
 
     @property
-    def ess_secret_schema(self) -> dict[str, SecretConfig]:
+    def ess_secret_schema(self) -> dict[str, DiscoverableSecret]:
         """Get the ESS secret schema for Hookshot."""
         return {
-            "hookshot.appserviceRegistration": SecretConfig(
-                init_if_missing_from_source_cfg=True,
+            "hookshot.appserviceRegistration": DiscoverableSecret(
                 description="Hookshot appservice registration file",
-                config_inline=None,
-                config_path=None,
                 optional=True,
-            ),
-            "hookshot.passkey": SecretConfig(
                 init_if_missing_from_source_cfg=True,
+                discovery=SecretConfig(
+                    config_inline=None,
+                    config_path=None,
+                ),
+            ),
+            "hookshot.passkey": DiscoverableSecret(
                 description="Hookshot passkey for token encryption",
-                config_inline=None,
-                config_path="passFile",
                 optional=True,
+                init_if_missing_from_source_cfg=True,
+                discovery=SecretConfig(
+                    config_inline=None,
+                    config_path="passFile",
+                ),
             ),
         }
 

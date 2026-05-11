@@ -15,7 +15,7 @@ from typing import Any
 import pytest
 from ess_migration_tool.interfaces import SecretDiscoveryStrategy
 from ess_migration_tool.migration import ConfigValueTransformer
-from ess_migration_tool.models import DiscoveredSecret, GlobalOptions, Secret, SecretConfig
+from ess_migration_tool.models import DiscoverableSecret, DiscoveredSecret, GlobalOptions, Secret, SecretConfig
 from ess_migration_tool.secrets import SecretDiscovery
 
 
@@ -27,14 +27,16 @@ class MockWildcardStrategy(SecretDiscoveryStrategy):
         self.component_config = component_config
 
     @property
-    def ess_secret_schema(self) -> dict[str, SecretConfig]:
+    def ess_secret_schema(self) -> dict[str, DiscoverableSecret]:
         """Schema with wildcard pattern for certificates."""
         return {
-            "certificates.*.value": SecretConfig(
-                init_if_missing_from_source_cfg=False,
+            "certificates.*.value": DiscoverableSecret(
                 description="Certificate value",
-                config_inline=None,
-                config_path=None,
+                init_if_missing_from_source_cfg=False,
+                discovery=SecretConfig(
+                    config_inline=None,
+                    config_path=None,
+                ),
             ),
         }
 
@@ -156,21 +158,25 @@ class MockWildcardStrategyWithFailures(SecretDiscoveryStrategy):
         self.component_config = component_config
 
     @property
-    def ess_secret_schema(self) -> dict[str, SecretConfig]:
+    def ess_secret_schema(self) -> dict[str, DiscoverableSecret]:
         """Schema with wildcard pattern for certificates and keys."""
         return {
-            "certificates.*.value": SecretConfig(
-                init_if_missing_from_source_cfg=False,
+            "certificates.*.value": DiscoverableSecret(
                 description="Certificate value",
-                config_inline=None,
-                config_path=None,
-            ),
-            "keys.*.private": SecretConfig(
                 init_if_missing_from_source_cfg=False,
+                discovery=SecretConfig(
+                    config_inline=None,
+                    config_path=None,
+                ),
+            ),
+            "keys.*.private": DiscoverableSecret(
                 description="Private key",
-                config_inline="keys.*.private",
-                config_path=None,
                 optional=False,  # Required
+                init_if_missing_from_source_cfg=False,
+                discovery=SecretConfig(
+                    config_inline="keys.*.private",
+                    config_path=None,
+                ),
             ),
         }
 

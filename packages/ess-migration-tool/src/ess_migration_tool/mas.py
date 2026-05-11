@@ -14,7 +14,7 @@ from typing import Any
 
 from .interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
 from .migration import ConfigValueTransformer, MigrationStrategy, TransformationSpec, additional_config_transformer
-from .models import DiscoveredSecret, GlobalOptions, SecretConfig
+from .models import DiscoverableSecret, DiscoveredSecret, GlobalOptions, SecretConfig
 from .utils import detect_key_type, extract_hostname_from_url, yaml_dump_with_pipe_for_multiline
 
 logger = logging.getLogger("migration")
@@ -342,67 +342,81 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
         return "matrix-authentication-service"
 
     @property
-    def ess_secret_schema(self) -> dict[str, SecretConfig]:
+    def ess_secret_schema(self) -> dict[str, DiscoverableSecret]:
         """Get the ESS secret schema for MAS."""
-        schema = {
+        schema: dict[str, DiscoverableSecret] = {
             # MAS secrets
         }
 
         # Only include PostgreSQL password when using existing database
         if self.global_options.use_existing_database:
-            schema["matrixAuthenticationService.postgres.password"] = SecretConfig(
-                init_if_missing_from_source_cfg=True,  # Must be provided
+            schema["matrixAuthenticationService.postgres.password"] = DiscoverableSecret(
                 description="MAS database password",
-                config_inline="database.uri",
-                config_path=None,
-                transformer=lambda uri, **kw: parse_postgres_uri(uri).get("password"),
+                init_if_missing_from_source_cfg=True,  # Must be provided
+                discovery=SecretConfig(
+                    config_inline="database.uri",
+                    config_path=None,
+                    transformer=lambda uri, **kw: parse_postgres_uri(uri).get("password"),
+                ),
             )
 
         # Other MAS secrets (always included)
         schema.update(
             {
-                "matrixAuthenticationService.synapseSharedSecret": SecretConfig(
-                    init_if_missing_from_source_cfg=True,  # Can be auto-generated
+                "matrixAuthenticationService.synapseSharedSecret": DiscoverableSecret(
                     description="MAS Synapse shared secret",
-                    config_inline="matrix.secret",
-                    config_path="matrix.secret_file",
+                    init_if_missing_from_source_cfg=True,  # Can be auto-generated
+                    discovery=SecretConfig(
+                        config_inline="matrix.secret",
+                        config_path="matrix.secret_file",
+                    ),
                 ),
-                "matrixAuthenticationService.encryptionSecret": SecretConfig(
-                    init_if_missing_from_source_cfg=True,  # Must be provided
+                "matrixAuthenticationService.encryptionSecret": DiscoverableSecret(
                     description="MAS encryption secret",
-                    config_inline="secrets.encryption",
-                    config_path="secrets.encryption_file",
+                    init_if_missing_from_source_cfg=True,  # Must be provided
+                    discovery=SecretConfig(
+                        config_inline="secrets.encryption",
+                        config_path="secrets.encryption_file",
+                    ),
                 ),
                 # Key secrets - these will be discovered through special key processing
-                "matrixAuthenticationService.privateKeys.rsa": SecretConfig(
-                    init_if_missing_from_source_cfg=True,
+                "matrixAuthenticationService.privateKeys.rsa": DiscoverableSecret(
                     description="MAS RSA private key for signing operations",
-                    config_inline=None,
-                    config_path=None,
-                    transformer=None,
-                ),
-                "matrixAuthenticationService.privateKeys.ecdsaPrime256v1": SecretConfig(
                     init_if_missing_from_source_cfg=True,
+                    discovery=SecretConfig(
+                        config_inline=None,
+                        config_path=None,
+                        transformer=None,
+                    ),
+                ),
+                "matrixAuthenticationService.privateKeys.ecdsaPrime256v1": DiscoverableSecret(
                     description="MAS ECDSA Prime256v1 private key for signing operations",
-                    config_inline=None,
-                    config_path=None,
-                    transformer=None,
+                    init_if_missing_from_source_cfg=True,
+                    discovery=SecretConfig(
+                        config_inline=None,
+                        config_path=None,
+                        transformer=None,
+                    ),
                 ),
-                "matrixAuthenticationService.privateKeys.ecdsaSecp256k1": SecretConfig(
-                    init_if_missing_from_source_cfg=False,
+                "matrixAuthenticationService.privateKeys.ecdsaSecp256k1": DiscoverableSecret(
                     description="MAS ECDSA Secp256k1 private key for signing operations",
-                    config_inline=None,
-                    config_path=None,
                     optional=True,  # This key type is optional
-                    transformer=None,
-                ),
-                "matrixAuthenticationService.privateKeys.ecdsaSecp384r1": SecretConfig(
                     init_if_missing_from_source_cfg=False,
+                    discovery=SecretConfig(
+                        config_inline=None,
+                        config_path=None,
+                        transformer=None,
+                    ),
+                ),
+                "matrixAuthenticationService.privateKeys.ecdsaSecp384r1": DiscoverableSecret(
                     description="MAS ECDSA Secp384r1 private key for signing operations",
-                    config_inline=None,
-                    config_path=None,
                     optional=True,  # This key type is optional
-                    transformer=None,
+                    init_if_missing_from_source_cfg=False,
+                    discovery=SecretConfig(
+                        config_inline=None,
+                        config_path=None,
+                        transformer=None,
+                    ),
                 ),
             }
         )

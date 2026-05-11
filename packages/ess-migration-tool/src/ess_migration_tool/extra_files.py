@@ -14,7 +14,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from .interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
-from .models import DiscoveredExtraFile, DiscoveredPath, SecretConfig
+from .models import DiscoverableSecret, DiscoveredExtraFile, DiscoveredPath
 from .utils import is_quiet_mode, prompt_choice, prompt_value, prompt_yes_no
 
 logger = logging.getLogger("migration")
@@ -26,8 +26,12 @@ class ExtraFilesError(Exception):
     pass
 
 
-def ess_schema_config_key_secret_paths(ess_schema: dict[str, SecretConfig]):
-    return [secret_config.config_path for secret_config in ess_schema.values() if secret_config.config_path is not None]
+def ess_schema_config_key_secret_paths(ess_schema: dict[str, DiscoverableSecret]):
+    return [
+        secret_config.discovery.config_path
+        for secret_config in ess_schema.values()
+        if secret_config.discovery.config_path is not None
+    ]
 
 
 @dataclass

@@ -50,7 +50,7 @@ def test_secret_discovery_schema():
     schema = secret_discovery.ess_secret_schema
 
     assert "hookshot.passkey" in schema
-    assert schema["hookshot.passkey"].config_path == "passFile"
+    assert schema["hookshot.passkey"].discovery.config_path == "passFile"
 
 
 def test_extra_file_discovery_ignored_keys():

@@ -15,7 +15,7 @@ from rapidfuzz import fuzz, process
 
 from .interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
 from .migration import ConfigValueTransformer, MigrationStrategy, TransformationSpec, additional_config_transformer
-from .models import DiscoveredSecret, GlobalOptions, MigrationError, SecretConfig
+from .models import DiscoverableSecret, DiscoveredSecret, GlobalOptions, MigrationError, SecretConfig
 from .utils import extract_hostname_from_url, prompt_choice, prompt_value, yaml_dump_with_pipe_for_multiline
 
 logger = logging.getLogger("migration")
@@ -398,42 +398,50 @@ class SynapseSecretDiscovery(SecretDiscoveryStrategy):
         self.global_options = global_options
 
     @property
-    def ess_secret_schema(self) -> dict[str, SecretConfig]:
+    def ess_secret_schema(self) -> dict[str, DiscoverableSecret]:
         """Get the ESS secret schema for Synapse."""
-        schema = {
+        schema: dict[str, DiscoverableSecret] = {
             # Synapse secrets
         }
 
         # Only include PostgreSQL password when using existing database
         if self.global_options.use_existing_database:
-            schema["synapse.postgres.password"] = SecretConfig(
-                init_if_missing_from_source_cfg=False,  # Must be provided
+            schema["synapse.postgres.password"] = DiscoverableSecret(
                 description="Synapse database password",
-                config_inline="database.args.password",
-                config_path=None,
+                init_if_missing_from_source_cfg=False,  # Must be provided
+                discovery=SecretConfig(
+                    config_inline="database.args.password",
+                    config_path=None,
+                ),
             )
 
         # Other Synapse secrets (always included)
         schema.update(
             {
-                "synapse.macaroon": SecretConfig(
-                    init_if_missing_from_source_cfg=False,  # This would break user tokens if changing after migrating
+                "synapse.macaroon": DiscoverableSecret(
                     description="Synapse macaroon secret",
-                    config_inline="macaroon_secret_key",
-                    config_path="macaroon_secret_key_path",
+                    init_if_missing_from_source_cfg=False,  # This would break user tokens if changing after migrating
+                    discovery=SecretConfig(
+                        config_inline="macaroon_secret_key",
+                        config_path="macaroon_secret_key_path",
+                    ),
                 ),
-                "synapse.registrationSharedSecret": SecretConfig(
+                "synapse.registrationSharedSecret": DiscoverableSecret(
+                    description="Registration shared secret",
                     init_if_missing_from_source_cfg=True,  # Would break external scripts
                     # if changing after migrating. Just warn about it, dont break.
-                    description="Registration shared secret",
-                    config_inline="registration_shared_secret",
-                    config_path="registration_shared_secret_path",
+                    discovery=SecretConfig(
+                        config_inline="registration_shared_secret",
+                        config_path="registration_shared_secret_path",
+                    ),
                 ),
-                "synapse.signingKey": SecretConfig(
-                    init_if_missing_from_source_cfg=False,  # This would break federation if changing after migrating
+                "synapse.signingKey": DiscoverableSecret(
                     description="Signing key",
-                    config_inline="signing_key",
-                    config_path="signing_key_path",
+                    init_if_missing_from_source_cfg=False,  # This would break federation if changing after migrating
+                    discovery=SecretConfig(
+                        config_inline="signing_key",
+                        config_path="signing_key_path",
+                    ),
                 ),
             }
         )

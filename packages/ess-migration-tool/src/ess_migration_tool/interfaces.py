@@ -9,7 +9,7 @@ Interfaces for the migration system.
 
 from typing import Protocol, runtime_checkable
 
-from .models import DiscoveredSecret, GlobalOptions, SecretConfig, TransformationSpec
+from .models import DiscoverableSecret, DiscoveredSecret, GlobalOptions, TransformationSpec
 
 
 @runtime_checkable
@@ -50,7 +50,7 @@ class SecretDiscoveryStrategy(Protocol):
         ...
 
     @property
-    def ess_secret_schema(self) -> dict[str, SecretConfig]:
+    def ess_secret_schema(self) -> dict[str, DiscoverableSecret]:
         """Get the ESS secret schema for this component."""
         ...
 
