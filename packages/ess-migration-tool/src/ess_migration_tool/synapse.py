@@ -240,7 +240,6 @@ class SynapseMigration(MigrationStrategy):
     def override_configs(self) -> set[str]:
         return {
             "public_baseurl",
-            "web_client_location",
             "server_name",
             "database.args.host",
             "database.args.port",
@@ -249,10 +248,6 @@ class SynapseMigration(MigrationStrategy):
             "database.args.database",
             "database.args.sslmode",
             "database.args.application_name",
-            "database.args.keepalives",
-            "database.args.keepalives_idle",
-            "database.args.keepalives_interval",
-            "database.args.keepalives_count",
             "ip_range_blacklist",
             "signing_key_path",
             "start_pushers",
@@ -270,10 +265,7 @@ class SynapseMigration(MigrationStrategy):
             "log_config",
             "macaroon_secret_key_path",
             "registration_shared_secret_path",
-            "worker_replication_secret_path",
-            "form_secret_path",
             "listeners",  # Listeners are also managed by ESS
-            'synapse.additional."listeners.yml".config',  # Additional listeners config
         }
 
     @property
