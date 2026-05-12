@@ -373,9 +373,39 @@ class ConfigValueTransformer:
 
         configmap_data = {}
 
+        # Maximum file size to load into ConfigMap (1MB)
+        # Larger files are skipped to prevent memory issues
+        MAX_EXTRA_FILE_SIZE = 1 * 1024 * 1024
+
         for discovered_extra_file in extra_files_discovery.discovered_extra_files.values():
-            # Encode the file content
-            configmap_data[discovered_extra_file.filename] = discovered_extra_file.content.decode("utf-8")
+            # Skip non-cleartext files (binary files)
+            if not discovered_extra_file.cleartext:
+                logger.debug(f"Skipping non-cleartext file: {discovered_extra_file.filename}")
+                continue
+
+            # Skip files that are too large
+            if (
+                discovered_extra_file.source_path is not None
+                and discovered_extra_file.source_path.stat().st_size > MAX_EXTRA_FILE_SIZE
+            ):
+                logger.warning(
+                    f"Skipping large file {discovered_extra_file.source_path} "
+                    f"({discovered_extra_file.source_path.stat().st_size} bytes > {MAX_EXTRA_FILE_SIZE} bytes)"
+                )
+                continue
+
+            # Read content from source_path (lazy loading - content read once here, not during discovery)
+            if discovered_extra_file.source_path is not None:
+                try:
+                    with open(discovered_extra_file.source_path, encoding="utf-8") as f:
+                        content = f.read()
+                    configmap_data[discovered_extra_file.filename] = content
+                except Exception as e:
+                    logger.warning(f"Failed to read file {discovered_extra_file.source_path}: {e}")
+                    continue
+            else:
+                logger.warning(f"No source_path for discovered extra file: {discovered_extra_file.filename}")
+                continue
 
         configmap = ConfigMap(name=configmap_name, data=configmap_data)
 

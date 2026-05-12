@@ -400,32 +400,44 @@ class ExtraFilesDiscovery:
         Validate that a file path exists and is readable.
 
         Args:
-            path: Path to validate
+            discovered_path: The discovered path to validate
+            override_path: Optional path to use instead of discovered_path.source_path
 
         Returns:
-            True if file is valid, False if it's a binary file
+            DiscoveredExtraFile with source_path set (content NOT loaded to save memory)
 
         Raises:
             ExtraFilesError: If file doesn't exist or isn't readable
         """
         file_path = override_path or Path(discovered_path.source_path)
-        extra_file = DiscoveredExtraFile(filename=file_path.name, discovered_source_paths=[discovered_path])
+        extra_file = DiscoveredExtraFile(
+            filename=file_path.name,
+            discovered_source_paths=[discovered_path],
+            source_path=file_path,  # Store path for lazy loading
+        )
 
+        # Validate file exists
         if not file_path.exists():
             raise ExtraFilesError(f"Extra file does not exist: {file_path}")
 
+        # Validate it's a file (not a directory)
         if not file_path.is_file():
             raise ExtraFilesError(f"Extra file path is not a file: {file_path}")
 
-        # Check if file is binary
+        # Check if file is binary BEFORE attempting to read
         if self._is_binary_file(file_path):
             extra_file.cleartext = False
+            # Don't read binary files - they can't be ConfigMaps anyway
+            return extra_file
 
+        # Validate we have permission to read the file
         try:
             with open(file_path):
-                extra_file.content = file_path.read_bytes()
+                pass  # Just test opening, don't read content yet
         except PermissionError as err:
             raise ExtraFilesError(f"Permission denied when reading file: {file_path}") from err
+
+        # DON'T read content here - defer to when ConfigMap is created (saves memory)
         return extra_file
 
 

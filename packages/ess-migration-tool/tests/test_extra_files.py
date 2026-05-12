@@ -56,9 +56,12 @@ def test_validate_extra_files_success(tmp_path):
     assert len(discovery.discovered_extra_files) == 2
     for file in discovery.discovered_extra_files.values():
         if file.discovered_source_paths[0] == test1:
-            assert file.content == b"test content 1"
+            # Content is now lazy-loaded from source_path
+            assert file.source_path is not None
+            assert file.source_path.read_bytes() == b"test content 1"
         elif file.discovered_source_paths[0] == test2:
-            assert file.content == b"test: content 2"
+            assert file.source_path is not None
+            assert file.source_path.read_bytes() == b"test: content 2"
         else:
             pytest.fail("Unexpected file")
 
@@ -309,12 +312,15 @@ def test_duplicate_file_paths(tmp_path):
 
     for path, discovered_file in discovery.discovered_extra_files.items():
         if path == str(tmp_path / "templates"):
-            assert discovered_file.content == "header"
+            # Content is now lazy-loaded from source_path
+            assert discovered_file.source_path is not None
+            assert discovered_file.source_path.read_text() == "header"
             assert len(discovered_file.discovered_source_paths) == 3
             for discovered in discovered_file.discovered_source_paths:
                 assert discovered.source_path == str(tmp_path / "templates")
         elif path == str(tmp_path / "other"):
-            assert discovered_file.content == "other"
+            assert discovered_file.source_path is not None
+            assert discovered_file.source_path.read_text() == "other"
             assert discovered_file.discovered_source_paths[0].source_path == str(tmp_path / "other")
 
 
@@ -359,10 +365,14 @@ def test_binary_file_detection(tmp_path):
     for discovered_file in discovery.discovered_extra_files.values():
         if discovered_file.discovered_source_paths[0].source_path == text_file:
             assert discovered_file.cleartext
-            assert discovered_file.content == text_file.read_bytes()
+            # Text files have source_path set and can be read
+            assert discovered_file.source_path is not None
+            assert discovered_file.source_path.read_bytes() == text_file.read_bytes()
         if discovered_file.discovered_source_paths[0].source_path == binary_file:
             assert not discovered_file.cleartext
-            assert discovered_file.content == binary_file.read_bytes()
+            # Binary files have source_path set but cleartext=False
+            assert discovered_file.source_path is not None
+            assert discovered_file.source_path.read_bytes() == binary_file.read_bytes()
 
 
 def test_ignored_config_keys():
