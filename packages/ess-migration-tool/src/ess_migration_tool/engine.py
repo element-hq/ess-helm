@@ -127,6 +127,12 @@ class MigrationEngine:
                 self.discovered_secrets.extend(migrator.secret_discovery.discovered_secrets.values())
                 self.init_by_ess_secrets.extend(migrator.secret_discovery.init_by_ess_secrets)
 
+        # Filter out any secrets that were actually discovered by any strategy
+        # This ensures that secrets which were discovered (even by a different strategy)
+        # are not in the final init_by_ess_secrets list
+        all_discovered_keys = {secret.secret_key for secret in self.discovered_secrets}
+        self.init_by_ess_secrets = [key for key in self.init_by_ess_secrets if key not in all_discovered_keys]
+
         # Prompt for missing secrets and validate after all strategies have resolved their secrets
         # This allows strategies to find secrets that previous strategies may have missed
         for migrator in self.migrators:
