@@ -123,8 +123,18 @@ class MigrationEngine:
             # Collect override and underride warnings, secrets
             self.override_warnings.extend(migrator.override_warnings)
             self.underride_warnings.extend(migrator.underride_warnings)
-            self.discovered_secrets.extend(migrator.discovered_secrets)
-            self.init_by_ess_secrets.extend(migrator.init_by_ess_secrets)
+            if migrator.secret_discovery:
+                self.discovered_secrets.extend(migrator.secret_discovery.discovered_secrets.values())
+                self.init_by_ess_secrets.extend(migrator.secret_discovery.init_by_ess_secrets)
+
+        # Prompt for missing secrets and validate after all strategies have resolved their secrets
+        # This allows strategies to find secrets that previous strategies may have missed
+        for migrator in self.migrators:
+            if migrator.secret_discovery:
+                migrator.secret_discovery.prompt_for_missing_secrets()
+                migrator.secret_discovery.validate_required_secrets()
+                # Handle any secrets that were just prompted for
+                migrator.handle_secrets_phase()
 
         # Resolve conflicts after all migrations
         resolve_value_conflicts(self.pretty_logger, self.value_source_tracking, self.ess_config)
