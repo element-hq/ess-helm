@@ -4,20 +4,17 @@
 
 """Tests for MAS listeners filtering functionality."""
 
-import logging
-
 import yaml
 from ess_migration_tool.mas import filter_mas_listeners
-from ess_migration_tool.migration import ConfigValueTransformer
 
 
-def test_filter_mas_listeners_with_no_listeners():
+def test_filter_mas_listeners_with_no_listeners(config_value_transformer):
     """Test filtering when no listeners are provided."""
-    result = filter_mas_listeners(ConfigValueTransformer(logging.getLogger(), {}), None)
+    result = filter_mas_listeners(config_value_transformer(__name__), None)
     assert result is None
 
 
-def test_filter_mas_listeners_with_ess_managed_only():
+def test_filter_mas_listeners_with_ess_managed_only(config_value_transformer):
     """Test filtering when only ESS-managed listeners are provided."""
     listeners = [
         {
@@ -39,11 +36,11 @@ def test_filter_mas_listeners_with_ess_managed_only():
             "resources": [{"name": "health"}, {"name": "prometheus"}, {"name": "connection-info"}],
         },
     ]
-    result = filter_mas_listeners(ConfigValueTransformer(logging.getLogger(), {}), listeners)
+    result = filter_mas_listeners(config_value_transformer(__name__), listeners)
     assert result is None
 
 
-def test_filter_mas_listeners_with_custom_only():
+def test_filter_mas_listeners_with_custom_only(config_value_transformer):
     """Test filtering when only custom listeners are provided."""
     listeners = [
         {
@@ -52,7 +49,7 @@ def test_filter_mas_listeners_with_custom_only():
             "resources": [{"name": "custom-resource"}, {"name": "another-custom"}],
         }
     ]
-    result = filter_mas_listeners(ConfigValueTransformer(logging.getLogger(), {}), listeners)
+    result = filter_mas_listeners(config_value_transformer(__name__), listeners)
     assert result is not None
     assert "listeners.yml" in result
     assert "config" in result["listeners.yml"]
@@ -61,7 +58,7 @@ def test_filter_mas_listeners_with_custom_only():
     assert "custom-resource" in result["listeners.yml"]["config"]
 
 
-def test_filter_mas_listeners_with_mixed():
+def test_filter_mas_listeners_with_mixed(config_value_transformer):
     """Test filtering with mixed ESS-managed and custom listeners."""
     listeners = [
         {
@@ -74,7 +71,7 @@ def test_filter_mas_listeners_with_mixed():
         },
         {"name": "custom", "binds": [{"port": 9000, "host": "0.0.0.0"}], "resources": [{"name": "custom-only"}]},
     ]
-    result = filter_mas_listeners(ConfigValueTransformer(logging.getLogger(), {}), listeners)
+    result = filter_mas_listeners(config_value_transformer(__name__), listeners)
     assert result is not None
     assert "listeners.yml" in result
     # Should only contain the custom listener (port 9000)
@@ -84,21 +81,21 @@ def test_filter_mas_listeners_with_mixed():
     assert "port: 8080" not in result["listeners.yml"]["config"]
 
 
-def test_filter_mas_listeners_with_empty_resources():
+def test_filter_mas_listeners_with_empty_resources(config_value_transformer):
     """Test filtering when listener has no resources."""
     listeners = [{"name": "empty", "binds": [{"port": 8080, "host": "0.0.0.0"}], "resources": []}]
-    result = filter_mas_listeners(ConfigValueTransformer(logging.getLogger(), {}), listeners)
+    result = filter_mas_listeners(config_value_transformer(__name__), listeners)
     assert result is None  # Empty resources should be filtered out
 
 
-def test_filter_mas_listeners_with_no_binds():
+def test_filter_mas_listeners_with_no_binds(config_value_transformer):
     """Test filtering when listener has no binds."""
     listeners = [{"name": "no-binds", "binds": [], "resources": [{"name": "custom"}]}]
-    result = filter_mas_listeners(ConfigValueTransformer(logging.getLogger(), {}), listeners)
+    result = filter_mas_listeners(config_value_transformer(__name__), listeners)
     assert result is None  # No binds means no port, should be filtered out
 
 
-def test_filter_mas_listeners_with_multiple_binds():
+def test_filter_mas_listeners_with_multiple_binds(config_value_transformer):
     """Test filtering when listener has multiple binds, some managed and some custom."""
     listeners = [
         {
@@ -118,7 +115,7 @@ def test_filter_mas_listeners_with_multiple_binds():
             "resources": [{"name": "custom-api"}],
         },
     ]
-    result = filter_mas_listeners(ConfigValueTransformer(logging.getLogger(), {}), listeners)
+    result = filter_mas_listeners(config_value_transformer(__name__), listeners)
     assert result is not None
     assert "listeners.yml" in result
 
@@ -134,7 +131,7 @@ def test_filter_mas_listeners_with_multiple_binds():
     assert listeners[0]["binds"][1]["port"] == 9002
 
 
-def test_filter_mas_listeners_with_different_bind_formats():
+def test_filter_mas_listeners_with_different_bind_formats(config_value_transformer):
     """Test filtering with different bind formats (address, host/port, socket, fd)."""
     listeners = [
         {
@@ -168,7 +165,7 @@ def test_filter_mas_listeners_with_different_bind_formats():
             "resources": [{"name": "custom-api"}],
         },
     ]
-    result = filter_mas_listeners(ConfigValueTransformer(logging.getLogger(), {}), listeners)
+    result = filter_mas_listeners(config_value_transformer(__name__), listeners)
     assert result is not None
     assert "listeners.yml" in result
 

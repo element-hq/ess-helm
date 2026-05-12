@@ -8,13 +8,29 @@ Pytest fixtures for migration tests.
 Centralizes common test configurations to reduce duplication.
 """
 
+import logging
+
 import pytest
 import yaml
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import dsa, ec, rsa
+from ess_migration_tool.migration import ConfigValueTransformer
+from ess_migration_tool.models import ValueSourceTracking
 
 from .helm_validation import validate_helm_template
+
+
+@pytest.fixture
+def config_value_transformer():
+    """Fixture providing a generator of ConfigValueTransformer instances for a given name."""
+
+    def _gen(name: str):
+        return ConfigValueTransformer(
+            logging.getLogger(name), ess_config={}, value_source_tracking=ValueSourceTracking()
+        )
+
+    return _gen
 
 
 @pytest.fixture

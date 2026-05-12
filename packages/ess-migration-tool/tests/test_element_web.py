@@ -4,16 +4,13 @@
 
 """Tests for Element Web migration."""
 
-import logging
-
 from ess_migration_tool.element_web import ElementWebMigration
-from ess_migration_tool.migration import ConfigValueTransformer
 from ess_migration_tool.models import GlobalOptions
 
 
-def test_element_web_additional_config_excludes_default_server_config():
+def test_element_web_additional_config_excludes_default_server_config(config_value_transformer):
     """Test that default_server_config values are extracted and m.homeserver is empty in additional config."""
-    transformer = ConfigValueTransformer(logging.getLogger(), ess_config={})
+    transformer = config_value_transformer(__name__)
     migration = ElementWebMigration(GlobalOptions())
 
     config = {

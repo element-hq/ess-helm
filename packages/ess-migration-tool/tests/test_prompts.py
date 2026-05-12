@@ -109,10 +109,8 @@ def test_migration_with_missing_secrets_prompt(
         log_capture_string.close()
 
 
-def test_prompt_for_ingress_host_with_missing_public_baseurl(monkeypatch):
+def test_prompt_for_ingress_host_with_missing_public_baseurl(monkeypatch, config_value_transformer):
     """Test that missing public_baseurl triggers user prompt for ingress host."""
-    from ess_migration_tool.migration import ConfigValueTransformer
-
     pretty_logger = logging.getLogger(test_prompt_for_ingress_host_with_missing_public_baseurl.__name__)
     pretty_logger.propagate = False
     pretty_logger.setLevel(logging.INFO)
@@ -125,7 +123,9 @@ def test_prompt_for_ingress_host_with_missing_public_baseurl(monkeypatch):
 
     try:
         # Test with missing public_baseurl
-        result = prompt_for_ingress_host(ConfigValueTransformer(pretty_logger, {}), None)
+        result = prompt_for_ingress_host(
+            config_value_transformer(test_prompt_for_ingress_host_with_missing_public_baseurl.__name__), None
+        )
 
         # Verify the result
         assert result == "matrix.example.com"

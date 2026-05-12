@@ -57,7 +57,6 @@ def additional_config_transformer(
     - component_root_key: str - Internal ESS config key (e.g., "synapse")
     - override_configs: set[str] - Set of configuration paths managed by ESS (users should not override)
     - underride_configs: set[str] - Set of configuration paths with ESS defaults (users can override)
-    - component_name: str - User-facing strategy name (e.g., "Synapse")
     - serialization_format: str - Format for additional config: "yaml" (default) or "json"
     - use_file_object_format: bool - If True (default), return {"filename": {"config": string}} format.
       If False, return {"filename": string} format (direct string without wrapper object).
@@ -81,7 +80,9 @@ def additional_config_transformer(
     file_name = kwargs.get("filename") or f"00-imported.{serialization_format}"
 
     # Get tracked source paths from value_source_tracking
-    tracked_source_paths = config_value_transformer.value_source_tracking.get_tracked_source_paths()
+    tracked_source_paths = config_value_transformer.value_source_tracking.get_tracked_source_paths(
+        config_value_transformer.strategy_name
+    )
 
     filtered_config = copy.deepcopy(source_config)
 
@@ -172,10 +173,10 @@ class ConfigValueTransformer:
 
     pretty_logger: logging.Logger = field(init=True)  # Pretty logger
     ess_config: dict[str, Any] = field(init=True)  # Target ESS configuration dictionary
+    value_source_tracking: ValueSourceTracking = field(init=True)  # Shared value source tracking instance
     results: list[TransformationResult] = field(default_factory=list)  # List of transformation results
     override_warnings: list[str] = field(default_factory=list)  # Warnings about ESS-managed overrides
     underride_warnings: list[str] = field(default_factory=list)  # Warnings about ESS default configurations
-    value_source_tracking: ValueSourceTracking = field(default_factory=ValueSourceTracking)
     strategy_name: str = ""  # Name of the strategy (for source tracking)
 
     def transform_from_config(
@@ -278,7 +279,7 @@ class ConfigValueTransformer:
         filtered_config = copy.deepcopy(config)
 
         # Get tracked source paths from value_source_tracking
-        tracked_source_paths = self.value_source_tracking.get_tracked_source_paths()
+        tracked_source_paths = self.value_source_tracking.get_tracked_source_paths(self.strategy_name)
 
         # Sort tracked values so list indices are removed in descending order to avoid shifting
         sorted_tracked = sort_tracked_values_for_filtering(tracked_source_paths)
@@ -444,6 +445,7 @@ class MigrationService:
     migration: MigrationStrategy = field(init=True)  # Migration strategy
     extra_files_strategy: ExtraFilesDiscoveryStrategy = field(init=True)  # Extra files discovery service
     secret_discovery_strategy: SecretDiscoveryStrategy | None = field(init=True)  # Secret discovery service
+    value_source_tracking: ValueSourceTracking = field(init=True)  # Shared value source tracking instance
     override_warnings: list[str] = field(default_factory=list)  # Warnings about overridden configurations
     underride_warnings: list[str] = field(default_factory=list)  # Warnings about ESS default configurations
     init_by_ess_secrets: list[str] = field(default_factory=list)  # List of secrets that will be initialized by ESS
@@ -455,7 +457,6 @@ class MigrationService:
     underride_configs: set[str] = field(default_factory=set)  # Set of configurations that are ESS defaults
     results: list[TransformationResult] = field(default_factory=list)  # List of transformation results
     global_options: GlobalOptions = field(default_factory=GlobalOptions)  # Global migration options
-    value_source_tracking: ValueSourceTracking = field(default_factory=ValueSourceTracking)
 
     def __post_init__(self):
         self.override_configs = self.migration.override_configs
@@ -503,7 +504,9 @@ class MigrationService:
         self.discovered_file_paths = extra_files_discovery.discovered_file_paths
         self.missing_file_paths = extra_files_discovery.missing_file_paths
 
-        config_to_ess_transformer = ConfigValueTransformer(self.pretty_logger, self.ess_config)
+        config_to_ess_transformer = ConfigValueTransformer(
+            self.pretty_logger, self.ess_config, self.value_source_tracking
+        )
 
         # Set strategy name for source tracking
         config_to_ess_transformer.strategy_name = self.migration.name
@@ -531,12 +534,7 @@ class MigrationService:
             extra_files_discovery=extra_files_discovery,
         )
 
-        # Step 6: Collect value sources from transformer
-        for path, sources in config_to_ess_transformer.value_source_tracking.sources.items():
-            for source in sources:
-                self.value_source_tracking.add_source(path, source.strategy_name, source.value, source.source_path)
-
-        # Step 7: Store results and override/underride warnings
+        # Step 6: Store results and override/underride warnings
         self.results.extend(config_to_ess_transformer.results)
         self.override_warnings.extend(config_to_ess_transformer.override_warnings)
         self.underride_warnings.extend(config_to_ess_transformer.underride_warnings)
