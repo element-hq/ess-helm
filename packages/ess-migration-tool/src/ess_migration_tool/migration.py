@@ -18,7 +18,6 @@ from .interfaces import ExtraFilesDiscoveryStrategy, MigrationStrategy, SecretDi
 from .models import (
     ConfigMap,
     DiscoveredExtraFile,
-    DiscoveredSecret,
     GlobalOptions,
     MigrationInput,
     Secret,
@@ -257,6 +256,7 @@ class ConfigValueTransformer:
     def get_component_config(self, component_key: str) -> dict[str, Any]:
         """
         Get the configuration for a specific component.
+        Uses setdefault to ensure the component config exists in ess_config.
 
         Args:
             component_key: The component key (e.g., "synapse", "matrixAuthenticationService")
@@ -264,7 +264,7 @@ class ConfigValueTransformer:
         Returns:
             Dictionary with the component configuration, or empty dict if not found
         """
-        return self.ess_config.get(component_key, {})
+        return self.ess_config.setdefault(component_key, {})
 
     def filter_config(self, config: dict[str, Any]) -> dict[str, Any]:
         """
@@ -309,7 +309,7 @@ class ConfigValueTransformer:
 
     def handle_secrets(
         self,
-        secret_discovery: SecretDiscovery | None,
+        secret_discovery: SecretDiscovery,
         secrets_list: list[Secret],
     ) -> None:
         """
@@ -323,7 +323,7 @@ class ConfigValueTransformer:
             ESS configuration dictionary with credential schema
         """
         # Skip if secret_service is None or no secrets discovered
-        if secret_discovery is None or not secret_discovery.discovered_secrets:
+        if not secret_discovery.discovered_secrets:
             return
 
         # Create a Kubernetes Secret containing all discovered secrets
@@ -356,15 +356,6 @@ class ConfigValueTransformer:
 
             # Set the credential config in the ESS config under the component section
             set_nested_value(self.ess_config, discover_secret.secret_key, credential_config)
-
-            # Track the config value that is being passed to ESS
-            # We need to track the original config path so it gets filtered out later
-            self.register_value_source(
-                ess_path=discover_secret.secret_key,
-                strategy_name=self.strategy_name,
-                value=None,
-                source_path=discover_secret.config_key,
-            )
 
     def handle_extra_files_mounts(
         self,
@@ -448,8 +439,6 @@ class MigrationService:
     value_source_tracking: ValueSourceTracking = field(init=True)  # Shared value source tracking instance
     override_warnings: list[str] = field(default_factory=list)  # Warnings about overridden configurations
     underride_warnings: list[str] = field(default_factory=list)  # Warnings about ESS default configurations
-    init_by_ess_secrets: list[str] = field(default_factory=list)  # List of secrets that will be initialized by ESS
-    discovered_secrets: list[DiscoveredSecret] = field(default_factory=list)  # List of discovered secrets
     discovered_extra_files: list[DiscoveredExtraFile] = field(default_factory=list)  # List of discovered secrets
     secrets: list[Secret] = field(default_factory=list)  # List of created Secrets
     configmaps: list[ConfigMap] = field(default_factory=list)  # List of created ConfigMaps
@@ -457,6 +446,7 @@ class MigrationService:
     underride_configs: set[str] = field(default_factory=set)  # Set of configurations that are ESS defaults
     results: list[TransformationResult] = field(default_factory=list)  # List of transformation results
     global_options: GlobalOptions = field(default_factory=GlobalOptions)  # Global migration options
+    secret_discovery: SecretDiscovery | None = field(default=None)  # Secret discovery instance for this migrator
 
     def __post_init__(self):
         self.override_configs = self.migration.override_configs
@@ -471,23 +461,18 @@ class MigrationService:
         2. Add filtered additional configurations
         """
         # Step 1: Discover secrets
-        secret_discovery = None
         if self.secret_discovery_strategy:
-            secret_discovery = SecretDiscovery(
+            self.secret_discovery = SecretDiscovery(
                 strategy=self.secret_discovery_strategy,
                 source_file=self.input.config_path,
                 pretty_logger=self.pretty_logger,
                 global_options=self.global_options,
             )
-            secret_discovery.discover_secrets(self.input.config)
-            # Prompt for missing secrets then validate
-            secret_discovery.prompt_for_missing_secrets()
-            secret_discovery.validate_required_secrets()
-            self.discovered_secrets = list(secret_discovery.discovered_secrets.values())
-            self.init_by_ess_secrets = secret_discovery.init_by_ess_secrets
+            self.secret_discovery.discover_secrets(self.input.config)
+            # Note: prompt_for_missing_secrets() and validate_required_secrets()
+            # are called in MigrationEngine after all strategies have run
         else:
-            self.discovered_secrets = []
-            self.init_by_ess_secrets = []
+            self.secret_discovery = None
 
         # Step 2: Discover extra files
         extra_files_discovery = ExtraFilesDiscovery(
@@ -511,14 +496,10 @@ class MigrationService:
         # Set strategy name for source tracking
         config_to_ess_transformer.strategy_name = self.migration.name
 
-        # Step 3: Handle secrets for the component using the transformer's method
-        # This will update the root ESS config directly and create Kubernetes Secrets
-        config_to_ess_transformer.handle_secrets(
-            secret_discovery,
-            self.secrets,
-        )
+        # Register secret sources for filtering before transformations run
+        self.register_secret_sources(config_to_ess_transformer)
 
-        # Step 4: Handle extra files mounts for the component using the transformer's method
+        # Step 3: Handle extra files mounts for the component using the transformer's method
         # This will update the root ESS config directly and create Kubernetes ConfigMaps
         config_to_ess_transformer.handle_extra_files_mounts(
             extra_files_discovery,
@@ -526,7 +507,7 @@ class MigrationService:
             self.configmaps,
         )
 
-        # Step 5: Apply component transformations
+        # Step 4: Apply component transformations
         # Note: component_root_key and other context are passed through TransformationSpec lambdas
         config_to_ess_transformer.transform_from_config(
             self.input.config,
@@ -538,3 +519,42 @@ class MigrationService:
         self.results.extend(config_to_ess_transformer.results)
         self.override_warnings.extend(config_to_ess_transformer.override_warnings)
         self.underride_warnings.extend(config_to_ess_transformer.underride_warnings)
+
+    def register_secret_sources(self, transformer: ConfigValueTransformer) -> None:
+        """
+        Register value sources for all discovered secrets for filtering purposes.
+        This must be called before transform_from_config() to ensure secrets are
+        filtered out from the additional configuration.
+
+        Args:
+            transformer: The ConfigValueTransformer whose tracking should receive the secret sources
+        """
+        if self.secret_discovery is None:
+            return
+
+        for secret_key, discover_secret in self.secret_discovery.discovered_secrets.items():
+            transformer.value_source_tracking.add_source(
+                ess_path=secret_key,
+                strategy_name=self.migration.name,
+                value=None,
+                source_path=discover_secret.config_key,
+            )
+
+    def handle_secrets_phase(self) -> None:
+        """
+        Handle secrets phase - creates Kubernetes Secrets for all discovered secrets.
+        Called after prompt_for_missing_secrets() to ensure all secrets (including
+        prompted ones) are processed.
+        """
+        if self.secret_discovery is None:
+            return
+
+        config_to_ess_transformer = ConfigValueTransformer(
+            self.pretty_logger, self.ess_config, self.value_source_tracking
+        )
+        config_to_ess_transformer.strategy_name = self.migration.name
+
+        config_to_ess_transformer.handle_secrets(
+            self.secret_discovery,
+            self.secrets,
+        )
