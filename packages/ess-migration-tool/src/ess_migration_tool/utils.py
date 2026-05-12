@@ -5,8 +5,6 @@
 
 import logging
 import os
-import random
-import time
 import urllib.parse
 from collections import defaultdict
 from collections.abc import Callable
@@ -487,9 +485,10 @@ def prompt_for_database_choice(pretty_logger: logging.Logger) -> bool:
         return False
 
 
-def delay_next_steps(pretty_logger: logging.Logger) -> None:
+def press_enter_to_continue(pretty_logger: logging.Logger) -> None:
     if not is_quiet_mode(pretty_logger) and not os.environ.get("PYTEST_CURRENT_TEST"):
-        time.sleep(random.uniform(0.2, 1.5))
+        pretty_logger.info("   Press Enter to continue...")
+        input()
         pretty_logger.info("")
 
 
