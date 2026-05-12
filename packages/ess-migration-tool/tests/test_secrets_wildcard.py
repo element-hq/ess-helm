@@ -15,7 +15,14 @@ from typing import Any
 import pytest
 from ess_migration_tool.interfaces import SecretDiscoveryStrategy
 from ess_migration_tool.migration import ConfigValueTransformer
-from ess_migration_tool.models import DiscoverableSecret, DiscoveredSecret, GlobalOptions, Secret, SecretConfig
+from ess_migration_tool.models import (
+    DiscoverableSecret,
+    DiscoveredSecret,
+    GlobalOptions,
+    Secret,
+    SecretConfig,
+    ValueSourceTracking,
+)
 from ess_migration_tool.secrets import SecretDiscovery
 
 
@@ -114,6 +121,7 @@ def test_wildcard_secret_discovery_and_injection():
     transformer = ConfigValueTransformer(
         pretty_logger=logging.getLogger(),
         ess_config={},
+        value_source_tracking=ValueSourceTracking(),
     )
 
     transformer.handle_secrets(discovery, secrets_list)

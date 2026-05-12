@@ -182,6 +182,11 @@ class ValueSourceTracking:
                     conflicts[path] = srcs_with_values
         return conflicts
 
-    def get_tracked_source_paths(self) -> list[str]:
+    def get_tracked_source_paths(self, strategy_name: str) -> list[str]:
         """Get all source paths that have been tracked (for filtering in additional config)."""
-        return [s.source_path for srcs in self.sources.values() for s in srcs if s.source_path is not None]
+        return [
+            s.source_path
+            for srcs in self.sources.values()
+            for s in srcs
+            if s.source_path is not None and s.strategy_name == strategy_name
+        ]

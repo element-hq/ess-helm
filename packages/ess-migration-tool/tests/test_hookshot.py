@@ -4,15 +4,12 @@
 
 """Tests for Hookshot migration."""
 
-import logging
-
 from ess_migration_tool.hookshot import (
     HOOKSHOT_STRATEGY_NAME,
     HookshotExtraFileDiscovery,
     HookshotMigration,
     HookshotSecretDiscovery,
 )
-from ess_migration_tool.migration import ConfigValueTransformer
 from ess_migration_tool.models import GlobalOptions
 
 
@@ -22,9 +19,9 @@ def test_hookshot_strategy_name():
     assert migration.name == HOOKSHOT_STRATEGY_NAME
 
 
-def test_hookshot_enabled_transformation():
+def test_hookshot_enabled_transformation(config_value_transformer):
     """Test that Hookshot component is enabled."""
-    transformer = ConfigValueTransformer(logging.getLogger(), ess_config={})
+    transformer = config_value_transformer(__name__)
     migration = HookshotMigration(GlobalOptions())
 
     config = {"bridge": {"domain": "test.example.com"}}
@@ -33,9 +30,9 @@ def test_hookshot_enabled_transformation():
     assert transformer.ess_config["hookshot"]["enabled"] is True
 
 
-def test_bridge_domain_to_server_name():
+def test_bridge_domain_to_server_name(config_value_transformer):
     """Test that bridge.domain is mapped to global serverName."""
-    transformer = ConfigValueTransformer(logging.getLogger(), ess_config={})
+    transformer = config_value_transformer(__name__)
     migration = HookshotMigration(GlobalOptions())
 
     config = {"bridge": {"domain": "test.example.com"}}

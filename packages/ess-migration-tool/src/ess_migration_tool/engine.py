@@ -105,6 +105,7 @@ class MigrationEngine:
                         secrets=self.secrets,
                         configmaps=self.configmaps,
                         global_options=self.global_options,
+                        value_source_tracking=self.value_source_tracking,
                     )
                 )
 
@@ -119,16 +120,11 @@ class MigrationEngine:
         for migrator in self.migrators:
             migrator.migrate()
 
-            # Collect override and underride warnings, secrets, and value sources
+            # Collect override and underride warnings, secrets
             self.override_warnings.extend(migrator.override_warnings)
             self.underride_warnings.extend(migrator.underride_warnings)
             self.discovered_secrets.extend(migrator.discovered_secrets)
             self.init_by_ess_secrets.extend(migrator.init_by_ess_secrets)
-
-            # Collect value sources from this migrator
-            for path, sources in migrator.value_source_tracking.sources.items():
-                for source in sources:
-                    self.value_source_tracking.add_source(path, source.strategy_name, source.value, source.source_path)
 
         # Resolve conflicts after all migrations
         resolve_value_conflicts(self.pretty_logger, self.value_source_tracking, self.ess_config)

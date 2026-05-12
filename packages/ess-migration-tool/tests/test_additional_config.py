@@ -11,15 +11,14 @@ additional configurations with proper YAML pipe formatting for multi-line string
 """
 
 import json
-import logging
 
 import yaml
-from ess_migration_tool.migration import ConfigValueTransformer, TransformationSpec, additional_config_transformer
+from ess_migration_tool.migration import TransformationSpec, additional_config_transformer
 
 
-def test_additional_config_transformer_uses_pipe_for_multiline():
+def test_additional_config_transformer_uses_pipe_for_multiline(config_value_transformer):
     """Test that additional_config_transformer uses pipe for multi-line strings."""
-    transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config={})
+    transformer = config_value_transformer(__name__)
     source_config = {
         "log_config": """line1
 line2
@@ -54,9 +53,9 @@ line3""",
     assert parsed == source_config, "Additional config should round-trip correctly"
 
 
-def test_additional_config_transformer_single_line_no_unnecessary_pipe():
+def test_additional_config_transformer_single_line_no_unnecessary_pipe(config_value_transformer):
     """Test that additional config with single-line strings doesn't force pipe usage unnecessarily."""
-    transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config={})
+    transformer = config_value_transformer(__name__)
 
     source_config = {"simple_setting": "value1", "path_setting": "/path/to/file.yaml"}
 
@@ -81,9 +80,9 @@ def test_additional_config_transformer_single_line_no_unnecessary_pipe():
     assert parsed == source_config, "Single-line config should round-trip correctly"
 
 
-def test_additional_config_transformer_mixed_content():
+def test_additional_config_transformer_mixed_content(config_value_transformer):
     """Test additional config transformer with mixed single-line and multi-line content."""
-    transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config={})
+    transformer = config_value_transformer(__name__)
 
     source_config = {
         "enable_metrics": True,
@@ -126,9 +125,9 @@ formatters:
     assert parsed["simple_setting"] == "value1"
 
 
-def test_additional_config_transformer_filters_tracked_values():
+def test_additional_config_transformer_filters_tracked_values(config_value_transformer):
     """Test that additional_config_transformer filters out tracked values."""
-    transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config={})
+    transformer = config_value_transformer(__name__)
 
     source_config = {
         "server_name": "test.example.com",
@@ -180,9 +179,9 @@ def test_additional_config_transformer_filters_tracked_values():
     assert "public_baseurl" not in parsed
 
 
-def test_additional_config_transformer_empty_when_all_tracked():
+def test_additional_config_transformer_empty_when_all_tracked(config_value_transformer):
     """Test that additional config is empty when all values are tracked."""
-    transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config={})
+    transformer = config_value_transformer(__name__)
 
     source_config = {
         "server_name": "test.example.com",
@@ -221,12 +220,12 @@ def test_additional_config_transformer_empty_when_all_tracked():
     assert result["synapse"].get("additional") == {}
 
 
-def test_additional_config_transformer_preserves_existing_additional():
+def test_additional_config_transformer_preserves_existing_additional(config_value_transformer):
     """Test that additional_config_transformer preserves existing additional entries."""
     # Start with existing additional config (e.g., from listeners transformer)
     ess_config = {"synapse": {"additional": {"listeners.yml": {"config": "port: 8080\n"}}}}
-
-    transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config)
+    transformer = config_value_transformer(__name__)
+    transformer.ess_config = ess_config
 
     source_config = {
         "extra_setting": "value1",
@@ -261,10 +260,9 @@ def test_additional_config_transformer_preserves_existing_additional():
     assert parsed == {"extra_setting": "value1"}
 
 
-def test_additional_config_transformer_direct_string_format():
+def test_additional_config_transformer_direct_string_format(config_value_transformer):
     """Test that additional_config_transformer can output direct string format."""
-    transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config={})
-
+    transformer = config_value_transformer(__name__)
     source_config = {
         "simple_setting": "value1",
         "nested": {"key": "value2"},
@@ -298,9 +296,9 @@ def test_additional_config_transformer_direct_string_format():
     assert parsed == source_config
 
 
-def test_additional_config_transformer_direct_string_format_yaml():
+def test_additional_config_transformer_direct_string_format_yaml(config_value_transformer):
     """Test that additional_config_transformer can output direct YAML string format."""
-    transformer = ConfigValueTransformer(logging.Logger(__name__), ess_config={})
+    transformer = config_value_transformer(__name__)
 
     source_config = {
         "simple_setting": "value1",
