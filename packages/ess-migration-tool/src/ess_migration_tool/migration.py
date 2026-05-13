@@ -266,28 +266,6 @@ class ConfigValueTransformer:
         """
         return self.ess_config.setdefault(component_key, {})
 
-    def filter_config(self, config: dict[str, Any]) -> dict[str, Any]:
-        """
-        Create a filtered copy of the config that removes tracked values.
-
-        Args:
-            config: Original configuration
-
-        Returns:
-            Filtered configuration with tracked values removed
-        """
-        filtered_config = copy.deepcopy(config)
-
-        # Get tracked source paths from value_source_tracking
-        tracked_source_paths = self.value_source_tracking.get_tracked_source_paths(self.strategy_name)
-
-        # Sort tracked values so list indices are removed in descending order to avoid shifting
-        sorted_tracked = sort_tracked_values_for_filtering(tracked_source_paths)
-        for source_path in sorted_tracked:
-            remove_nested_value(filtered_config, source_path)
-
-        return filtered_config
-
     def update_paths_in_config(
         self,
         source_config: dict[str, Any],

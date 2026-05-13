@@ -5,6 +5,7 @@
 
 """Tests for the ConfigValueTransformer class."""
 
+import copy
 import logging
 from pathlib import Path
 
@@ -58,53 +59,6 @@ def test_config_value_tracker_basic(config_value_transformer):
     assert ess_config["serverName"] == "example.com"
 
 
-def test_config_value_tracker_filter_config(config_value_transformer):
-    """Test ConfigValueTransformer filter_config functionality."""
-    transformer = config_value_transformer(__name__)
-    transformer.strategy_name = "TestStrategy"
-
-    # Create a test config
-    config = {
-        "database": {
-            "host": "postgres",
-            "port": 5432,
-        },
-        "server_name": "example.com",
-    }
-
-    # Transform some values
-    transformer.transform_from_config(
-        config,
-        [
-            TransformationSpec(src_key="database.host", target_key="postgres.host"),
-            TransformationSpec(src_key="database.port", target_key="postgres.port"),
-            TransformationSpec(src_key="server_name", target_key="serverName"),
-        ],
-    )
-
-    # Create a config to filter
-    config = {
-        "database": {
-            "host": "postgres",
-            "port": 5432,
-            "name": "synapse",  # Not tracked
-        },
-        "server_name": "example.com",
-        "other_setting": "preserved",
-    }
-
-    # Filter the config
-    filtered_config = transformer.filter_config(config)
-
-    # Check that tracked values are removed
-    assert "database" in filtered_config
-    assert "host" not in filtered_config["database"]
-    assert "port" not in filtered_config["database"]
-    assert "name" in filtered_config["database"]  # Not tracked, should be preserved
-    assert "server_name" not in filtered_config
-    assert "other_setting" in filtered_config  # Not tracked, should be preserved
-
-
 def test_config_value_tracker_nested_dict(config_value_transformer):
     """Test ConfigValueTransformer with nested dictionaries."""
     transformer = config_value_transformer(__name__)
@@ -152,29 +106,6 @@ def test_config_value_tracker_nested_dict(config_value_transformer):
     assert ess_config["database"]["connection"]["port"] == 5432
     assert ess_config["database"]["credentials"]["user"] == "synapse"
     assert ess_config["server"]["name"] == "example.com"
-
-
-def test_config_value_tracker_empty(config_value_transformer):
-    """Test ConfigValueTransformer with no tracked values."""
-    transformer = config_value_transformer(__name__)
-
-    # Create a config to filter
-    config = {
-        "database": {
-            "host": "postgres",
-            "port": 5432,
-        },
-        "server_name": "example.com",
-    }
-
-    # Filter the config (no values tracked)
-    filtered_config = transformer.filter_config(config)
-
-    # Should be unchanged
-    assert filtered_config == config
-
-    # ESS config should be empty
-    assert transformer.ess_config == {}
 
 
 def test_update_paths_in_config_basic(config_value_transformer):
@@ -362,7 +293,8 @@ def test_update_paths_in_config_empty_discovery(config_value_transformer):
     )
 
     # Test the update_paths_in_config method
-    updated_config = transformer.update_paths_in_config(source_config, extra_files_discovery)
+    updated_config = copy.deepcopy(source_config)
+    transformer.update_paths_in_config(updated_config, extra_files_discovery)
 
     # Verify config is unchanged
     assert updated_config == source_config
