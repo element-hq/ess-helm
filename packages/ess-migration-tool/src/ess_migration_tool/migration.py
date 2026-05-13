@@ -28,6 +28,7 @@ from .secrets import SecretDiscovery
 from .utils import (
     find_matching_schema_key,
     get_nested_value,
+    press_enter_to_continue,
     remove_nested_value,
     set_nested_value,
     sort_tracked_values_for_filtering,
@@ -392,6 +393,7 @@ class ConfigValueTransformer:
                     f"Skipping large file {discovered_extra_file.source_path} "
                     f"({discovered_extra_file.source_path.stat().st_size} bytes > {MAX_EXTRA_FILE_SIZE} bytes)"
                 )
+                press_enter_to_continue(pretty_logger=self.pretty_logger)
                 continue
 
             # Read content from source_path (lazy loading - content read once here, not during discovery)
