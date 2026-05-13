@@ -62,7 +62,7 @@ dev = [
     { name = "jsonschema", specifier = ">=4.26" },
     { name = "mypy", specifier = ">=1.19.1" },
     { name = "platformdirs", specifier = ">=4.9.2" },
-    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest", specifier = ">=8.4.2,<9" },
     { name = "pytz", specifier = ">=2025.2" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "rapidfuzz", specifier = ">=3.14.3" },

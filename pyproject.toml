@@ -17,7 +17,7 @@ dependencies = []
 [dependency-groups]
 dev = [
   "ruff>=0.15.4",
-  "pytest>=8.4.2",
+  "pytest>=8.4.2,<9", # pytest 9 is causing issues with asyncio-cooperative
   "mypy>=1.19.1",
   "types-pyyaml>=6.0.12.20250915",
   "types-cryptography>=3.3.23.2",
