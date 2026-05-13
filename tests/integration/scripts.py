@@ -24,7 +24,7 @@ def run_command_to_file(cmd, output_file, check=True, text=True):
     """Run a command and write its output directly to a file."""
     with open(output_file, "w") as f:
         f.write("----\n")
-        subprocess.run(cmd, shell=True, check=check, stdout=f, stderr=subprocess.PIPE, text=text)
+        subprocess.run(cmd, shell=True, check=check, stdout=f, stderr=subprocess.STDOUT, text=text)
 
 
 def censor_secrets_yaml(yaml_content):
@@ -44,6 +44,12 @@ def censor_secrets_yaml(yaml_content):
 def collect_ess_logs():
     def _collect_logs(destination: Path = Path("ess-helm-logs"), system_logs: bool = False):
         Path(destination).mkdir(exist_ok=True)
+
+        if system_logs:
+            # Get k3d server logs
+            run_command_to_file(
+                "docker logs k3d-ess-helm-server-0", f"{destination}/k3d-ess-helm-server-0.logs", check=False
+            )
 
         # Merge kubeconfig
         subprocess.run("k3d kubeconfig merge ess-helm -ds", shell=True, check=True)
@@ -120,9 +126,7 @@ def collect_ess_logs():
                 f"{destination}/crds.txt",
             )
 
-            # Get k3d server logs
-            run_command_to_file("docker logs k3d-ess-helm-server-0", f"{destination}/k3d-ess-helm-server-0.logs")
-            typer.echo(f"Logs and resources collected in {destination}")
+        typer.echo(f"Logs and resources collected in {destination}")
 
     typer.run(_collect_logs)
 
