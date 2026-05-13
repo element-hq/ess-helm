@@ -222,6 +222,7 @@ def test_main_e2e_synapse_with_mas(
     monkeypatch,
     tmp_path,
     synapse_config_with_signing_key,
+    synapse_config_with_mas,
     basic_mas_config_with_keys,
     write_synapse_config,
     write_mas_config,
@@ -230,7 +231,7 @@ def test_main_e2e_synapse_with_mas(
 ):
     """Test the complete end-to-end migration workflow with Synapse and MAS."""
     # Write configuration files
-    synapse_config_file = write_synapse_config(synapse_config_with_signing_key)
+    synapse_config_file = write_synapse_config(synapse_config_with_signing_key | synapse_config_with_mas)
     mas_config_file = write_mas_config(basic_mas_config_with_keys)
 
     # Create output directory
@@ -318,6 +319,9 @@ def test_main_e2e_synapse_with_mas(
         additional_config = synapse_config["additional"]
         assert "listeners.yml" not in additional_config, (
             'synapse.additional."listeners.yml" should be absent when only chart-managed listeners exist'
+        )
+        assert "matrix_authentication_service" not in additional_config, (
+            'synapse.additional."matrix_authentication_service" should be absent when migrated from config'
         )
 
     # Verify MAS configuration was migrated and is explicitly enabled
