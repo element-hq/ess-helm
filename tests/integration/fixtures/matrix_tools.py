@@ -1,5 +1,5 @@
 # Copyright 2024 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -10,8 +10,8 @@ import pytest
 from python_on_whales import Image, docker
 
 
-@pytest.fixture(autouse=True, scope="session")
-async def build_matrix_tools():
+@pytest.fixture(scope="session")
+def build_matrix_tools():
     # Until the image is made publicly available
     # In local runs we always have to build it
     if os.environ.get("BUILD_MATRIX_TOOLS"):
@@ -24,8 +24,8 @@ async def build_matrix_tools():
         )
 
 
-@pytest.fixture(autouse=True, scope="session")
-async def loaded_matrix_tools(cluster, build_matrix_tools: Image):
+@pytest.fixture(scope="session")
+def loaded_matrix_tools(cluster, build_matrix_tools: Image):
     # Until the image is made publicly available
     # In local runs we always have to build it
     if os.environ.get("BUILD_MATRIX_TOOLS"):

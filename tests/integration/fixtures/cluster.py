@@ -95,8 +95,8 @@ class PotentiallyExistingK3dCluster(K3dManagerBase):
             return super()._on_delete()
 
 
-@pytest.fixture(autouse=True, scope="session")
-async def cluster():
+@pytest.fixture(scope="session")
+def cluster():
     # Both these names must match what `setup_test_cluster.sh` would create
     this_cluster = PotentiallyExistingK3dCluster("ess-helm")
     this_cluster.create(
@@ -110,12 +110,12 @@ async def cluster():
 
 
 @pytest.fixture(scope="session")
-async def helm_client(cluster):
+def helm_client(cluster):
     return pyhelm3.Client(kubeconfig=cluster.kubeconfig, kubecontext=cluster.context)
 
 
 @pytest.fixture(scope="session")
-async def kube_client(cluster):
+def kube_client(cluster):
     kube_config = KubeConfig.from_file(cluster.kubeconfig)
     config = kube_config.get()
 
