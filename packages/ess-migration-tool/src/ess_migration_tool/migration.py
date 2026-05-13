@@ -118,7 +118,7 @@ def additional_config_transformer(
 
     # Update file paths if extra files were discovered
     if extra_files_discovery:
-        filtered_config = config_value_transformer.update_paths_in_config(filtered_config, extra_files_discovery)
+        config_value_transformer.update_paths_in_config(filtered_config, extra_files_discovery)
 
     # Check if there are existing entries in the component's additional section
     component_config = config_value_transformer.ess_config.get(component_root_key, {})
@@ -267,28 +267,6 @@ class ConfigValueTransformer:
         """
         return self.ess_config.setdefault(component_key, {})
 
-    def filter_config(self, config: dict[str, Any]) -> dict[str, Any]:
-        """
-        Create a filtered copy of the config that removes tracked values.
-
-        Args:
-            config: Original configuration
-
-        Returns:
-            Filtered configuration with tracked values removed
-        """
-        filtered_config = copy.deepcopy(config)
-
-        # Get tracked source paths from value_source_tracking
-        tracked_source_paths = self.value_source_tracking.get_tracked_source_paths(self.strategy_name)
-
-        # Sort tracked values so list indices are removed in descending order to avoid shifting
-        sorted_tracked = sort_tracked_values_for_filtering(tracked_source_paths)
-        for source_path in sorted_tracked:
-            remove_nested_value(filtered_config, source_path)
-
-        return filtered_config
-
     def update_paths_in_config(
         self,
         source_config: dict[str, Any],
@@ -296,17 +274,15 @@ class ConfigValueTransformer:
     ):
         # Get the base mount path for the component
         base_mount_path = f"/etc/{extra_files_discovery.strategy.component_root_key}/extra"
-        updated_config = copy.deepcopy(source_config)
         for discovered_path in extra_files_discovery.discovered_file_paths:
             if discovered_path.skipped_reason:
                 continue
             # If it is a directory, files will be mounted as child of the directory name
             # If it is a file, files will be mounted as child of the `extra` folder
             mounted_path = f"{base_mount_path}/{discovered_path.source_path.name}"
-            original_value = get_nested_value(updated_config, discovered_path.config_key)
-            set_nested_value(updated_config, discovered_path.config_key, mounted_path)
+            original_value = get_nested_value(source_config, discovered_path.config_key)
+            set_nested_value(source_config, discovered_path.config_key, mounted_path)
             logging.info(f"Updated config: {discovered_path.config_key} = {original_value} -> {mounted_path}")
-        return updated_config
 
     def handle_secrets(
         self,
