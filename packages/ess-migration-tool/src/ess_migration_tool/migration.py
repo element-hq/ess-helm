@@ -117,7 +117,7 @@ def additional_config_transformer(
 
     # Update file paths if extra files were discovered
     if extra_files_discovery:
-        filtered_config = config_value_transformer.update_paths_in_config(filtered_config, extra_files_discovery)
+        config_value_transformer.update_paths_in_config(filtered_config, extra_files_discovery)
 
     # Check if there are existing entries in the component's additional section
     component_config = config_value_transformer.ess_config.get(component_root_key, {})
@@ -295,17 +295,15 @@ class ConfigValueTransformer:
     ):
         # Get the base mount path for the component
         base_mount_path = f"/etc/{extra_files_discovery.strategy.component_root_key}/extra"
-        updated_config = copy.deepcopy(source_config)
         for discovered_path in extra_files_discovery.discovered_file_paths:
             if discovered_path.skipped_reason:
                 continue
             # If it is a directory, files will be mounted as child of the directory name
             # If it is a file, files will be mounted as child of the `extra` folder
             mounted_path = f"{base_mount_path}/{discovered_path.source_path.name}"
-            original_value = get_nested_value(updated_config, discovered_path.config_key)
-            set_nested_value(updated_config, discovered_path.config_key, mounted_path)
+            original_value = get_nested_value(source_config, discovered_path.config_key)
+            set_nested_value(source_config, discovered_path.config_key, mounted_path)
             logging.info(f"Updated config: {discovered_path.config_key} = {original_value} -> {mounted_path}")
-        return updated_config
 
     def handle_secrets(
         self,

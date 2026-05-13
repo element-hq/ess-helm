@@ -237,12 +237,12 @@ def test_update_paths_in_config_basic(config_value_transformer):
     )
 
     # Test the update_paths_in_config method
-    updated_config = transformer.update_paths_in_config(source_config, extra_files_discovery)
+    transformer.update_paths_in_config(source_config, extra_files_discovery)
 
     # Verify paths are updated correctly
-    assert updated_config["templates"]["password_reset"] == "/etc/some-component/extra/password_reset.html"
-    assert updated_config["templates"]["registration"] == "/etc/some-component/extra/registration.html"
-    assert updated_config["other_setting"] == "preserved"  # Non-file setting should be unchanged
+    assert source_config["templates"]["password_reset"] == "/etc/some-component/extra/password_reset.html"
+    assert source_config["templates"]["registration"] == "/etc/some-component/extra/registration.html"
+    assert source_config["other_setting"] == "preserved"  # Non-file setting should be unchanged
 
     # Verify tracked values (only skipped paths are tracked)
     assert (
@@ -307,11 +307,11 @@ def test_update_paths_in_config_with_skipped_paths(config_value_transformer):
     )
 
     # Test the update_paths_in_config method
-    updated_config = transformer.update_paths_in_config(source_config, extra_files_discovery)
+    transformer.update_paths_in_config(source_config, extra_files_discovery)
 
     # Verify skipped path is not updated but is tracked
-    assert updated_config["templates"]["password_reset"] == "/path/to/password_reset.html"  # Unchanged
-    assert updated_config["templates"]["registration"] == "/etc/some-component/extra/registration.html"  # Updated
+    assert source_config["templates"]["password_reset"] == "/path/to/password_reset.html"  # Unchanged
+    assert source_config["templates"]["registration"] == "/etc/some-component/extra/registration.html"  # Updated
 
     assert "templates.password_reset" not in transformer.value_source_tracking.get_tracked_source_paths(
         transformer.strategy_name
@@ -431,13 +431,13 @@ def test_update_paths_in_config_nested_config(config_value_transformer):
     )
 
     # Test the update_paths_in_config method
-    updated_config = transformer.update_paths_in_config(source_config, extra_files_discovery)
+    transformer.update_paths_in_config(source_config, extra_files_discovery)
 
     # Verify paths are updated correctly
-    assert updated_config["email"]["template_dir"] == "/etc/some-component/extra/templates"
-    assert updated_config["email"]["config"]["tls_cert"] == "/etc/some-component/extra/cert.pem"
-    assert updated_config["email"]["smtp_host"] == "smtp.example.com"  # Unchanged
-    assert updated_config["other_setting"] == "preserved"  # Unchanged
+    assert source_config["email"]["template_dir"] == "/etc/some-component/extra/templates"
+    assert source_config["email"]["config"]["tls_cert"] == "/etc/some-component/extra/cert.pem"
+    assert source_config["email"]["smtp_host"] == "smtp.example.com"  # Unchanged
+    assert source_config["other_setting"] == "preserved"  # Unchanged
 
     # Verify tracked values (only skipped paths are tracked)
     assert (
