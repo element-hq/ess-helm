@@ -41,7 +41,6 @@ class HookshotMigration(MigrationStrategy):
             "bridge.url",
             "bridge.port",
             "bridge.bindAddress",
-            "bridge.mediaUrl",
             "listeners",
             "passFile",
             "cache.redisUri",
