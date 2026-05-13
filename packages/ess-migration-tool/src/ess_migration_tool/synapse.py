@@ -345,18 +345,12 @@ class SynapseMigration(MigrationStrategy):
                 transformer=filter_listeners,
                 required=False,
             ),  # Filter out chart-managed listeners and output to additional config
-            TransformationSpec(
-                src_key=None,
-                target_key="synapse.additional",
-                transformer=synapse_additional_transformer,
-                required=False,
-            ),  # Generic additional config generation (src_key=None passes full config)
             # ... other non-database transformations ...
         ]
 
         if self.global_options.use_existing_database:
             # External database: import all database configuration
-            return base_transformations + [
+            transformations = base_transformations + [
                 TransformationSpec(src_key="database.args.host", target_key="synapse.postgres.host"),
                 TransformationSpec(src_key="database.args.port", target_key="synapse.postgres.port", required=False),
                 TransformationSpec(src_key="database.args.user", target_key="synapse.postgres.user"),
@@ -367,16 +361,26 @@ class SynapseMigration(MigrationStrategy):
                     src_key="database.args.sslmode", target_key="synapse.postgres.sslMode", required=False
                 ),  # Optional security feature
                 # ... other database property transformations ...
+                # Generic additional config generation must be last to capture all tracked sources
             ]
         else:
             # ESS-managed: set postgres.enabled flag
-            return base_transformations + [
+            transformations = base_transformations + [
                 TransformationSpec(
                     src_key="database",  # Trigger on database section
                     target_key="postgres.enabled",
                     transformer=lambda _, __, **kw: True,  # Set to True for ESS-managed Postgres
-                )
+                ),
             ]
+        # Generic additional config generation must be last to capture all tracked sources
+        return transformations + [
+            TransformationSpec(
+                src_key=None,
+                target_key="synapse.additional",
+                transformer=synapse_additional_transformer,
+                required=False,
+            ),
+        ]
 
     @property
     def component_config_extras(self) -> dict[str, Any]:

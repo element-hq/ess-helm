@@ -276,18 +276,12 @@ class MASMigration(MigrationStrategy):
                 transformer=filter_mas_listeners,
                 required=False,
             ),  # Filter out chart-managed listeners and output to additional config
-            TransformationSpec(
-                src_key=None,
-                target_key="matrixAuthenticationService.additional",
-                transformer=mas_additional_transformer,
-                required=False,
-            ),  # Generic additional config generation (src_key=None passes full config)
             # ... other non-database transformations ...
         ]
 
         if self.global_options.use_existing_database:
             # External database: import database configuration
-            return base_transformations + [
+            transformations = base_transformations + [
                 TransformationSpec(
                     src_key="database.uri",
                     target_key="matrixAuthenticationService.postgres.host",
@@ -322,13 +316,21 @@ class MASMigration(MigrationStrategy):
             ]
         else:
             # ESS-managed: set postgres.enabled flag
-            return base_transformations + [
+            transformations = base_transformations + [
                 TransformationSpec(
                     src_key="database",  # Trigger on database section
                     target_key="postgres.enabled",
                     transformer=lambda _, __, **kw: True,  # Set to True for ESS-managed Postgres
                 )
             ]
+        return transformations + [
+            TransformationSpec(
+                src_key=None,
+                target_key="matrixAuthenticationService.additional",
+                transformer=mas_additional_transformer,
+                required=False,
+            ),  # Generic additional config generation (src_key=None passes full config)
+        ]
 
 
 class MASSecretDiscovery(SecretDiscoveryStrategy):
