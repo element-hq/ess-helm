@@ -39,7 +39,6 @@ dev = [
   "typer>=0.24.1",
   "types-cryptography>=3.3.23.2",
   "types-jsonschema>=4.26.0.20260202",
-  "types-jsonschema>=4.26.0.20260202",
   "types-pytz>=2025.2.0.20251108",
   "types-pyyaml>=6.0.12.20250915",
   "yamale>=6.1.0",
