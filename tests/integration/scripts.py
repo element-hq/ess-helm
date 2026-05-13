@@ -24,7 +24,7 @@ def run_command_to_file(cmd, output_file, check=True, text=True):
     """Run a command and write its output directly to a file."""
     with open(output_file, "w") as f:
         f.write("----\n")
-        subprocess.run(cmd, shell=True, check=check, stdout=f, stderr=subprocess.PIPE, text=text)
+        subprocess.run(cmd, shell=True, check=check, stdout=f, stderr=subprocess.STDOUT, text=text)
 
 
 def censor_secrets_yaml(yaml_content):
