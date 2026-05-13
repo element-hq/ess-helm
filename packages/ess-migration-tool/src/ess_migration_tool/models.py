@@ -102,8 +102,7 @@ class DiscoveredExtraFile:
         init=True
     )  # Source configuration file (e.g., "synapse.yaml", "mas.yaml")
     filename: str = field(init=True)  # Original file path in source file
-    # and the file was discovered by listing its content
-    content: bytes = field(default_factory=bytes)  # Extra file content. File bigger than 100KiB will be skipped
+    source_path: Path | None = field(default=None)  # Path to the source file (lazy-loaded, not content)
     cleartext: bool = field(default=True)  # If true, the file will be stored in a ConfigMap
 
 
