@@ -286,6 +286,15 @@ def test_main_e2e_synapse_with_mas(
     assert "'report_stats' found in" in log_output
     assert "'url_preview_enabled' found in" in log_output
 
+    # Verify that discovered MAS private keys are in MIGRATED SECRETS but NOT in ESS-INITIALIZED SECRETS
+    # The basic_mas_config_with_keys has RSA and ECDSA keys that are discovered
+    # All MAS secrets with init_if_missing_from_source_cfg=True are discovered,
+    # so they should appear in MIGRATED SECRETS and engine.init_by_ess_secrets should be empty
+    assert "🔐 MIGRATED SECRETS:" in log_output
+    assert "matrixAuthenticationService.privateKeys.rsa" in log_output
+    assert "matrixAuthenticationService.privateKeys.ecdsaPrime256v1" in log_output
+    assert "ESS-INITIALIZED SECRETS:" not in log_output
+
     # Check that output files were created
     values_file = output_dir / "values.yaml"
     assert values_file.exists(), "values.yaml should be created"
