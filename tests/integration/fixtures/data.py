@@ -1,5 +1,5 @@
 # Copyright 2024-2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -60,7 +60,7 @@ class ESSData:
 
 
 @pytest.fixture(scope="session")
-async def generated_data(pytestconfig, root_ca):
+def generated_data(pytestconfig, root_ca):
     serialized_data = pytestconfig.cache.get("ess-helm/generated-data", None)
     if serialized_data:
         data = ESSData.from_dict(serialized_data)

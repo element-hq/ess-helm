@@ -18,7 +18,7 @@ pytest_plugins = [
 # In theory it would be used to teardown cached clusters, but we do not use this feature
 # in our pytest test suite. Our `cluster` fixture takes care of the teardown itself.
 @pytest.fixture(scope="session", autouse=True)
-async def remaining_clusters_teardown():
+def remaining_clusters_teardown():
     return
 
 
