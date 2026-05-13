@@ -12,26 +12,26 @@ authors = [
 license = { text = "AGPL-3.0-only" }
 requires-python = ">=3.11.7,<4.0"
 dependencies = [
-  "pytest>=8.4.2",
-  # For https://github.com/azimuth-cloud/pyhelm3/pull/36 & https://github.com/azimuth-cloud/pyhelm3/pull/37 & https://github.com/azimuth-cloud/pyhelm3/pull/39
-  "pyhelm3 @ git+https://github.com/element-hq/pyhelm3.git@efa509e7501edeb9d04f2a9e688f6e0088305954",
-  "lightkube>=0.19.1",
-  "python-on-whales>=0.80.0",
+  "aiohttp-retry>=2.9.1",
   "aiohttp>=3.13.3",
   "cryptography>=46.0.5",
-  "platformdirs>=4.9.2",
-  "pytest-kubernetes>=0.7.2",
-  "signedjson>=1.1.4",
-  "aiohttp-retry>=2.9.1",
-  "jsonschema>=4.26.0",
-  "prometheus-client>=0.24.1",
   "httpx-retries>=0.4.6",
-  "typer>=0.24.1",
-  "pyyaml>=6.0.3",
-  "semver>=3.0.4",
-  "rapidfuzz>=3.14.3",
+  "jsonschema>=4.26.0",
+  "lightkube>=0.19.1",
+  "platformdirs>=4.9.2",
+  "prometheus-client>=0.24.1",
+  # For https://github.com/azimuth-cloud/pyhelm3/pull/36 & https://github.com/azimuth-cloud/pyhelm3/pull/37 & https://github.com/azimuth-cloud/pyhelm3/pull/39
+  "pyhelm3 @ git+https://github.com/element-hq/pyhelm3.git@efa509e7501edeb9d04f2a9e688f6e0088305954",
   "pytest-asyncio-cooperative>=0.40.0",
+  "pytest-kubernetes>=0.7.2",
+  "pytest>=8.4.2",
   "python-dotenv>=1.2.2",
+  "python-on-whales>=0.80.0",
+  "pyyaml>=6.0.3",
+  "rapidfuzz>=3.14.3",
+  "semver>=3.0.4",
+  "signedjson>=1.1.4",
+  "typer>=0.24.1",
 ]
 
 
