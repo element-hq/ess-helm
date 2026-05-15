@@ -837,6 +837,9 @@ matrixRTC:
         portType: NodePort
         # External IPs addresses of this service.
         # externalIPs: []
+        # Either Local or Cluster
+        internalTrafficPolicy: Cluster
+        externalTrafficPolicy: Cluster
         portRange:
           # The beginning port of the range
           startPort: 31000
