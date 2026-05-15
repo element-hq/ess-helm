@@ -71,7 +71,7 @@ def basic_synapse_config():
         "report_stats": False,
         "require_auth_for_profile_requests": True,
         "federation_client_minimum_tls_version": "1.2",
-        "experimental_features": {"msc4028_push_encrypted_events": True},
+        "experimental_features": {"msc4028_push_encrypted_events": True, "experimental_features.msc4452_enabled": True},
         "url_preview_enabled": True,
         "url_preview_ip_range_whitelist": [],
         "url_preview_ip_range_blacklist": ["192.168.0.0/16", "10.0.0.0/8"],
