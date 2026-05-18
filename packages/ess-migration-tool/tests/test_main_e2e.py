@@ -367,11 +367,15 @@ def test_main_e2e_synapse_with_mas(
             assert "name" in secret_content["metadata"]
             assert "data" in secret_content
             if secret_file.name == "imported-synapse-secret.yaml":
-                assert len(secret_content["data"]) == 4
+                assert len(secret_content["data"]) == 5
                 assert base64.b64decode(secret_content["data"]["synapse.macaroon"]) == b"test_macaroon_secret"
                 assert (
                     base64.b64decode(secret_content["data"]["synapse.registrationSharedSecret"])
                     == b"test_registration_secret"
+                )
+                assert (
+                    base64.b64decode(secret_content["data"]["matrixAuthenticationService.synapseSharedSecret"])
+                    == b"synapse_shared_secret_abcdef"
                 )
                 assert base64.b64decode(secret_content["data"]["synapse.signingKey"]) == b"test_signing_key_content"
             elif secret_file.name == "imported-matrix-authentication-service-secret.yaml":
