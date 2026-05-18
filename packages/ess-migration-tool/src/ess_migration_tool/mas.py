@@ -368,6 +368,7 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
                 "matrixAuthenticationService.synapseSharedSecret": DiscoverableSecret(
                     description="MAS Synapse shared secret",
                     init_if_missing_from_source_cfg=True,  # Can be auto-generated
+                    takes_precedence_if_duplicates=True,  # MAS owns this secret when discovered by multiple strategies
                     discovery=SecretConfig(
                         config_inline="matrix.secret",
                         config_path="matrix.secret_file",

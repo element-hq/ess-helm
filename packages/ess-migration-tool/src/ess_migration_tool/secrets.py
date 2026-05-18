@@ -60,6 +60,8 @@ class SecretDiscovery:
             matching_schema_key = find_matching_schema_key(secret_key, self.strategy.ess_secret_schema)
             if matching_schema_key is None:
                 raise RuntimeError(f"Discovered component-specific secret '{secret_key}' not found in schema")
+            # Get the precedence flag from the schema
+            discoverable_secret = self.strategy.ess_secret_schema[matching_schema_key]
             # Add the discovered secret
             self.discovered_secrets[secret_key] = discovered_secret
             # Register with global tracking
@@ -68,6 +70,7 @@ class SecretDiscovery:
                 strategy_name=self.strategy.secret_name,
                 value=discovered_secret.value,
                 source_path=discovered_secret.config_key,
+                takes_precedence=discoverable_secret.takes_precedence_if_duplicates,
             )
 
         # Process component-specific discovery failures
@@ -113,7 +116,12 @@ class SecretDiscovery:
             discovered_value, error_msg = self._try_discover_from_config(secret_key, discovery_config, config_data)
 
             if discovered_value is not None:
-                self._add_discovered_secret(secret_key, discovery_config, discovered_value)
+                self._add_discovered_secret(
+                    secret_key,
+                    discovery_config,
+                    discovered_value,
+                    takes_precedence=discoverable_secret.takes_precedence_if_duplicates,
+                )
                 continue
 
             # Secret was not discovered from config - handle missing case
@@ -179,6 +187,7 @@ class SecretDiscovery:
         secret_key: str,
         discovery_config: SecretConfig,
         discovered_value: str,
+        takes_precedence: bool = False,
     ) -> None:
         """Add a discovered secret to the discovered_secrets dictionary."""
         config_key = discovery_config.config_inline or discovery_config.config_path
@@ -198,6 +207,7 @@ class SecretDiscovery:
             strategy_name=self.strategy.secret_name,
             value=discovered_value,
             source_path=config_key,
+            takes_precedence=takes_precedence,
         )
 
     def _handle_missing_secret(
