@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/element-hq/ess-helm/matrix-tools/internal/cmd/concat"
 	deploymentmarkers "github.com/element-hq/ess-helm/matrix-tools/internal/cmd/deployment-markers"
 	generatesecrets "github.com/element-hq/ess-helm/matrix-tools/internal/cmd/generate-secrets"
 	renderconfig "github.com/element-hq/ess-helm/matrix-tools/internal/cmd/render-config"
@@ -196,7 +197,69 @@ func TestParseArgs(t *testing.T) {
 			expected: &Options{},
 			err:      true,
 		},
-
+		{
+			name: "Invalid number of arguments for concat",
+			args: []string{"cmd", "concat"},
+			expected: &Options{
+				Command: Concat,
+			},
+			err: true,
+		},
+		{
+			name: "Missing --target flag for concat",
+			args: []string{"cmd", "concat", "1.crt"},
+			expected: &Options{
+				Concat: &concat.ConcatOptions{
+					Files: []string{"1.crt"},
+				},
+				Command: Concat,
+			},
+			err: true,
+		},
+		{
+			name: "Invalid flag for concat",
+			args: []string{"cmd", "concat", "1.crt", "-invalidflag"},
+			expected: &Options{
+				Concat:  &concat.ConcatOptions{},
+				Command: Concat,
+			},
+			err: true,
+		},
+		{
+			name: "Correct usage of concat with no files",
+			args: []string{"cmd", "concat", "-target", "target.crt"},
+			expected: &Options{
+				Concat: &concat.ConcatOptions{
+					Output: "target.crt",
+				},
+				Command: Concat,
+			},
+			err: false,
+		},
+		{
+			name: "Correct usage of concat with single file",
+			args: []string{"cmd", "concat", "-target", "target.crt", "1.crt"},
+			expected: &Options{
+				Concat: &concat.ConcatOptions{
+					Output: "target.crt",
+					Files:  []string{"1.crt"},
+				},
+				Command: Concat,
+			},
+			err: false,
+		},
+		{
+			name: "Correct usage of concat with multiple files",
+			args: []string{"cmd", "concat", "-target", "target.crt", "1.crt", "2.crt"},
+			expected: &Options{
+				Concat: &concat.ConcatOptions{
+					Output: "target.crt",
+					Files:  []string{"1.crt", "2.crt"},
+				},
+				Command: Concat,
+			},
+			err: false,
+		},
 		{
 			name: "Proper syntax of syn2mas",
 			args: []string{"cmd", "syn2mas", "-config", "file1", "-synapse-config", "file2"},
