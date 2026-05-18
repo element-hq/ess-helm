@@ -18,6 +18,7 @@ from ess_migration_tool.migration import ConfigValueTransformer
 from ess_migration_tool.models import (
     DiscoverableSecret,
     DiscoveredSecret,
+    DiscoveredSecretTracking,
     GlobalOptions,
     Secret,
     SecretConfig,
@@ -106,6 +107,7 @@ def test_wildcard_secret_discovery_and_injection():
         pretty_logger=logging.getLogger(),
         source_file="test.yaml",
         global_options=global_options,
+        secret_tracking=DiscoveredSecretTracking(),
     )
 
     # Discover secrets (this should work with wildcards)
@@ -262,6 +264,7 @@ def test_wildcard_secret_prompt_for_missing(monkeypatch: pytest.MonkeyPatch):
         pretty_logger=logging.getLogger("test"),
         source_file="test.yaml",
         global_options=global_options,
+        secret_tracking=DiscoveredSecretTracking(),
     )
 
     # Discover secrets

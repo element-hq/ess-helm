@@ -5,7 +5,7 @@ import logging
 
 import pytest
 from ess_migration_tool.extra_files import ExtraFilesDiscovery
-from ess_migration_tool.models import GlobalOptions
+from ess_migration_tool.models import DiscoveredSecretTracking, GlobalOptions
 from ess_migration_tool.secrets import SecretDiscovery, SecretsError
 from ess_migration_tool.synapse import SynapseExtraFileDiscovery, SynapseSecretDiscovery
 
@@ -24,7 +24,9 @@ def test_discover_secrets_from_synapse_config(basic_synapse_config):
     # Test with existing database mode to ensure PostgreSQL password is discovered
     global_options = GlobalOptions(use_existing_database=True)
     synapse_secrets = SynapseSecretDiscovery(global_options)
-    discovery = SecretDiscovery(synapse_secrets, logging.getLogger(), "synapse.yaml", global_options)
+    discovery = SecretDiscovery(
+        synapse_secrets, logging.getLogger(), "synapse.yaml", global_options, DiscoveredSecretTracking()
+    )
     discovery.discover_secrets(synapse_config)
 
     # Should have discovered direct values
@@ -51,7 +53,9 @@ def test_discover_secrets_from_synapse_config_ess_managed(basic_synapse_config):
     # Test with ESS-managed database mode - PostgreSQL password should NOT be discovered
     global_options = GlobalOptions(use_existing_database=False)
     synapse_secrets = SynapseSecretDiscovery(global_options)
-    discovery = SecretDiscovery(synapse_secrets, logging.getLogger(), "synapse.yaml", global_options)
+    discovery = SecretDiscovery(
+        synapse_secrets, logging.getLogger(), "synapse.yaml", global_options, DiscoveredSecretTracking()
+    )
     discovery.discover_secrets(synapse_config)
 
     # Should NOT have discovered the PostgreSQL password when using ESS-managed database
@@ -100,7 +104,9 @@ def test_permission_error_handling_for_secrets(tmp_path, basic_synapse_config):
     # Test secret discovery
     global_options = GlobalOptions(use_existing_database=True)
     synapse_secrets = SynapseSecretDiscovery(global_options)
-    discovery = SecretDiscovery(synapse_secrets, logging.getLogger(), "synapse.yaml", global_options)
+    discovery = SecretDiscovery(
+        synapse_secrets, logging.getLogger(), "synapse.yaml", global_options, DiscoveredSecretTracking()
+    )
     discovery.discover_secrets(synapse_config)
 
     # Signing key should be in missing required secrets due to permission error
