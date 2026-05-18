@@ -1,5 +1,5 @@
 // Copyright 2025 New Vector Ltd
-// Copyright 2025 Element Creations Ltd
+// Copyright 2025-2026 Element Creations Ltd
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -8,6 +8,7 @@ package args
 import (
 	"flag"
 
+	"github.com/element-hq/ess-helm/matrix-tools/internal/cmd/concat"
 	deploymentmarkers "github.com/element-hq/ess-helm/matrix-tools/internal/cmd/deployment-markers"
 	generatesecrets "github.com/element-hq/ess-helm/matrix-tools/internal/cmd/generate-secrets"
 	renderconfig "github.com/element-hq/ess-helm/matrix-tools/internal/cmd/render-config"
@@ -23,10 +24,12 @@ const (
 	DeploymentMarkers
 	Syn2Mas
 	TCPWait
+	Concat
 )
 
 type Options struct {
 	Command           CommandType
+	Concat            *concat.ConcatOptions
 	RenderConfig      *renderconfig.RenderConfigOptions
 	GenerateSecrets   *generatesecrets.GenerateSecretsOptions
 	DeploymentMarkers *deploymentmarkers.DeploymentMarkersOptions
@@ -52,6 +55,13 @@ func ParseArgs(args []string) (*Options, error) {
 			return nil, err
 		}
 		options.TcpWait = tcpwait
+	case concat.FlagSetName:
+		options.Command = Concat
+		concatOptions, err := concat.ParseArgs(args[2:])
+		if err != nil {
+			return nil, err
+		}
+		options.Concat = concatOptions
 	case syn2mas.FlagSetName:
 		options.Command = Syn2Mas
 		syn2masOptions, err := syn2mas.ParseArgs(args[2:])
