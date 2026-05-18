@@ -551,6 +551,9 @@ extraInitContainers: []
   portType: {{ portType }}
   # External IPs addresses of this service.
   # externalIPs: []
+  # Either Local or Cluster
+  internalTrafficPolicy: Cluster
+  externalTrafficPolicy: Cluster
   portRange:
     # The beginning port of the range
     startPort: {{ startPort }}
