@@ -136,21 +136,21 @@ async def ingress(cluster, kube_client: AsyncClient):
             # We can't just kubectl wait as that doesn't work with non-existent objects
             # This can be setup before the LB port is accessible externally, so we do it afterwards
             service = await kube_client.get(Service, name="traefik", namespace="kube-system")
-            await asyncio.to_thread(
-                cluster.wait,
-                name="service/traefik",
-                waitfor="jsonpath='{.status.loadBalancer.ingress[0].ip}'",
-                namespace="kube-system",
-            )
 
             assert service
+            assert service.status
+            assert service.status.loadBalancer
+            assert service.status.loadBalancer.ingress
+            assert service.status.loadBalancer.ingress[0]
+            assert service.status.loadBalancer.ingress[0].ip
             assert service.spec
             assert service.spec.clusterIP
+
             return service.spec.clusterIP
-        except ApiError:
+        except (ApiError, AssertionError):
             await asyncio.sleep(1)
             attempt += 1
-    raise Exception("Couldn't fetch Trafeik Service IP after 180s")
+    raise Exception("Couldn't fetch Traefik Service IP after 180s")
 
 
 @pytest.fixture(scope="session")
