@@ -439,6 +439,14 @@ class SynapseSecretDiscovery(SecretDiscoveryStrategy):
                         config_path="signing_key_path",
                     ),
                 ),
+                "matrixAuthenticationService.synapseSharedSecret": DiscoverableSecret(
+                    description="Synapse-MAS shared secret",
+                    init_if_missing_from_source_cfg=True,  # Can be auto-generated
+                    discovery=SecretConfig(
+                        config_inline="matrix_authentication_service.secret",
+                        config_path="matrix_authentication_service.secret_path",
+                    ),
+                ),
             }
         )
 

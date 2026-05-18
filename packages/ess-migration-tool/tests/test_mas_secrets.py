@@ -5,7 +5,7 @@
 import logging
 
 from ess_migration_tool.mas import MASSecretDiscovery
-from ess_migration_tool.models import GlobalOptions
+from ess_migration_tool.models import DiscoveredSecretTracking, GlobalOptions
 from ess_migration_tool.secrets import SecretDiscovery
 
 
@@ -17,7 +17,9 @@ def test_discover_secrets_from_mas_config(basic_mas_config):
     # Test with existing database mode to ensure PostgreSQL password is discovered
     global_options = GlobalOptions(use_existing_database=True)
     mas_secrets = MASSecretDiscovery(global_options)
-    discovery = SecretDiscovery(mas_secrets, logging.getLogger(), "mas.yaml", global_options)
+    discovery = SecretDiscovery(
+        mas_secrets, logging.getLogger(), "mas.yaml", global_options, DiscoveredSecretTracking()
+    )
     discovery.discover_secrets(mas_config)
 
     # Should have discovered the password from database URI using transformer
@@ -35,7 +37,9 @@ def test_discover_secrets_from_mas_config_ess_managed(basic_mas_config):
     # Test with ESS-managed database mode - PostgreSQL password should NOT be discovered
     global_options = GlobalOptions(use_existing_database=False)
     mas_secrets = MASSecretDiscovery(global_options)
-    discovery = SecretDiscovery(mas_secrets, logging.getLogger(), "mas.yaml", global_options)
+    discovery = SecretDiscovery(
+        mas_secrets, logging.getLogger(), "mas.yaml", global_options, DiscoveredSecretTracking()
+    )
     discovery.discover_secrets(mas_config)
 
     # Should NOT have discovered the PostgreSQL password when using ESS-managed database
@@ -115,7 +119,9 @@ def test_keys_dir_discovery(tmp_path, rsa_key_pem, ecdsa_key_pem):
     # Test discovery
     global_options = GlobalOptions(use_existing_database=True)
     mas_secrets = MASSecretDiscovery(global_options)
-    discovery = SecretDiscovery(mas_secrets, logging.getLogger(), "mas.yaml", global_options)
+    discovery = SecretDiscovery(
+        mas_secrets, logging.getLogger(), "mas.yaml", global_options, DiscoveredSecretTracking()
+    )
     discovery.discover_secrets(mas_config)
 
     # Verify RSA key was discovered
@@ -158,7 +164,9 @@ def test_individual_keys_discovery(tmp_path, rsa_key_pem, ecdsa_key_pem):
     # Test discovery
     global_options = GlobalOptions(use_existing_database=True)
     mas_secrets = MASSecretDiscovery(global_options)
-    discovery = SecretDiscovery(mas_secrets, logging.getLogger(), "mas.yaml", global_options)
+    discovery = SecretDiscovery(
+        mas_secrets, logging.getLogger(), "mas.yaml", global_options, DiscoveredSecretTracking()
+    )
     discovery.discover_secrets(mas_config)
 
     # Verify RSA key was discovered from file
@@ -206,7 +214,9 @@ def test_mixed_key_sources(tmp_path, rsa_key_pem, ecdsa_key_pem):
     # Test discovery
     global_options = GlobalOptions(use_existing_database=True)
     mas_secrets = MASSecretDiscovery(global_options)
-    discovery = SecretDiscovery(mas_secrets, logging.getLogger(), "mas.yaml", global_options)
+    discovery = SecretDiscovery(
+        mas_secrets, logging.getLogger(), "mas.yaml", global_options, DiscoveredSecretTracking()
+    )
     discovery.discover_secrets(mas_config)
 
     # Verify both keys were discovered
@@ -230,7 +240,9 @@ def test_no_keys_config(basic_mas_config):
 
     global_options = GlobalOptions(use_existing_database=True)
     mas_secrets = MASSecretDiscovery(global_options)
-    discovery = SecretDiscovery(mas_secrets, logging.getLogger(), "mas.yaml", global_options)
+    discovery = SecretDiscovery(
+        mas_secrets, logging.getLogger(), "mas.yaml", global_options, DiscoveredSecretTracking()
+    )
     discovery.discover_secrets(mas_config)
 
     # Original key types should be marked for initialization since they're not required
@@ -276,7 +288,9 @@ def test_all_key_types_discovery(
     # Test discovery
     global_options = GlobalOptions(use_existing_database=True)
     mas_secrets = MASSecretDiscovery(global_options)
-    discovery = SecretDiscovery(mas_secrets, logging.getLogger(), "mas.yaml", global_options)
+    discovery = SecretDiscovery(
+        mas_secrets, logging.getLogger(), "mas.yaml", global_options, DiscoveredSecretTracking()
+    )
     discovery.discover_secrets(mas_config)
 
     # Verify all key types were discovered

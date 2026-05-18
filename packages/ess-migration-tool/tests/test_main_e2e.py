@@ -877,14 +877,14 @@ def test_main_e2e_synapse_with_mas_different_server_name(
 
     # Mock user inputs:
     # 1. Database choice - use existing database (default, empty string)
-    # 2. Conflict resolution - select option 1 (synapse.example.com)
+    # 2. Conflict resolution - select option 2 (synapse.example.com)
     #    The prompt will be: "Select value for 'serverName':"
     #    Options:
-    #    - "synapse.example.com (from: Synapse)"
     #    - "mas.example.com (from: Matrix Authentication Service)"
+    #    - "synapse.example.com (from: Synapse)"
     #    - "Enter custom value"
-    #    Selection "1" picks synapse.example.com
-    side_effect = (n for n in ("", "1"))
+    #    Selection "2" picks synapse.example.com
+    side_effect = (n for n in ("", "2"))
     monkeypatch.setattr(sys, "argv", test_args)
     monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
     exit_code = __main__.main()
@@ -1197,3 +1197,99 @@ def test_main_e2e_hookshot(
     for component in other_components:
         assert component in generated_values, f"{component} should be present in generated values"
         assert generated_values[component]["enabled"] is False, f"{component}.enabled should be False"
+
+
+def test_main_e2e_synapse_mas_shared_secret_conflict(
+    monkeypatch,
+    tmp_path,
+    synapse_config_with_signing_key,
+    basic_mas_config,
+    write_synapse_config,
+    write_mas_config,
+    capsys,
+    helm_validator,
+):
+    """Test conflict resolution for Synapse <-> MAS shared secret.
+
+    Synapse has matrix_authentication_service.secret = "synapse_side_secret"
+    MAS has matrix.secret = "mas_side_secret"
+    This should trigger a secret conflict prompt.
+    """
+    # Use existing fixture and add the shared secret
+    synapse_config = synapse_config_with_signing_key.copy()
+    synapse_config["matrix_authentication_service"] = {
+        "secret": "synapse_side_secret",
+    }
+    synapse_config_file = write_synapse_config(synapse_config)
+
+    # Create MAS config with matrix.secret (different value)
+    mas_config = basic_mas_config.copy()
+    mas_config["matrix"]["secret"] = "mas_side_secret"  # Different from Synapse's value
+    mas_config_file = write_mas_config(mas_config)
+
+    # Create output directory
+    output_dir = tmp_path / "output"
+    output_dir.mkdir()
+
+    # Mock sys.argv
+    test_args = [
+        "migration",
+        "--synapse-config",
+        str(synapse_config_file),
+        "--mas-config",
+        str(mas_config_file),
+        "--output-dir",
+        str(output_dir),
+    ]
+
+    # Mock user inputs:
+    # 1. Database choice - use existing database (default, empty string)
+    # 2. Secret conflict resolution - select option 1 (mas_side_secret) since alphabetically mas_side < synapse_side
+    #    Options are alphabetically sorted: "mas_side_secret (from: matrix-authentication-service)",
+    #    "synapse_side_secret (from: synapse)", "Enter custom value"
+    side_effect = (n for n in ("", "1"))
+    monkeypatch.setattr(sys, "argv", test_args)
+    monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
+    exit_code = __main__.main()
+
+    # Verify successful execution
+    assert exit_code == 0
+
+    # Verify the conflict prompt was shown
+    captured = capsys.readouterr()
+    log_output = captured.err
+    assert "RESOLVING SECRET CONFLICTS" in log_output
+    assert "Conflict for secret: matrixAuthenticationService.synapseSharedSecret" in log_output
+    assert "• mas_side_secret (from: matrix-authentication-service)" in log_output
+    assert "• synapse_side_secret (from: synapse)" in log_output
+
+    # Verify output was generated
+    values_file = output_dir / "values.yaml"
+    assert values_file.exists()
+
+    with open(values_file) as f:
+        generated_values = yaml.safe_load(f)
+
+    # Validate generated values
+    success, message = helm_validator(generated_values)
+    assert success, f"Helm template validation failed: {message}"
+
+    # Verify the resolved secret value is in the output
+    assert "matrixAuthenticationService" in generated_values
+    mas_config_output = generated_values["matrixAuthenticationService"]
+    assert "synapseSharedSecret" in mas_config_output
+    # The secret should reference the imported secret
+    assert "secret" in mas_config_output["synapseSharedSecret"]
+
+    # Verify the resolved value is mas_side_secret (we selected option 1)
+    # Check the secret file content
+    secret_files = list(output_dir.glob("*secret.yaml"))
+    mas_secret_file = next((sf for sf in secret_files if "matrix-authentication-service" in sf.name), None)
+    assert mas_secret_file is not None, "MAS secret file should exist"
+
+    with open(mas_secret_file) as f:
+        secret_content = yaml.safe_load(f)
+
+    # The resolved value should be mas_side_secret (option 1 selected)
+    decoded_value = base64.b64decode(secret_content["data"]["matrixAuthenticationService.synapseSharedSecret"])
+    assert decoded_value == b"mas_side_secret", f"Expected mas_side_secret, got {decoded_value}"

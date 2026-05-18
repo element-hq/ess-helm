@@ -189,3 +189,62 @@ class ValueSourceTracking:
             for s in srcs
             if s.source_path is not None and s.strategy_name == strategy_name
         ]
+
+
+@dataclass
+class SecretSource:
+    """Represents a source of a discovered secret value."""
+
+    strategy_name: str  # Name of the strategy that discovered the secret
+    secret_key: str  # ESS secret key (e.g., "synapse.signingKey")
+    value: str  # The secret value
+    source_path: str  # Original configuration path in source file
+
+
+@dataclass
+class DiscoveredSecretTracking:
+    """Tracks all discovered secrets across strategies to prevent duplicate prompts and detect conflicts."""
+
+    sources: dict[str, list[SecretSource]] = field(default_factory=dict)
+
+    def add_source(self, secret_key: str, strategy_name: str, value: str, source_path: str) -> None:
+        """Add a discovered secret source to tracking."""
+        if secret_key not in self.sources:
+            self.sources[secret_key] = []
+        self.sources[secret_key].append(
+            SecretSource(
+                strategy_name=strategy_name,
+                secret_key=secret_key,
+                value=value,
+                source_path=source_path,
+            )
+        )
+
+    def is_discovered(self, secret_key: str) -> bool:
+        """Check if a secret has been discovered by any strategy."""
+        return secret_key in self.sources and len(self.sources[secret_key]) > 0
+
+    def get_all_values(self, secret_key: str) -> list[str]:
+        """Get all discovered values for a secret key."""
+        if not self.is_discovered(secret_key):
+            return []
+        return [s.value for s in self.sources[secret_key]]
+
+    def get_conflicts(self) -> dict[str, list[SecretSource]]:
+        """Get all secret keys that have multiple sources with different values from different strategies."""
+        conflicts = {}
+        for secret_key, sources in self.sources.items():
+            # Get unique values
+            unique_values = set(s.value for s in sources)
+            if len(unique_values) > 1:
+                # Check if different strategies discovered different values
+                strategies = set(s.strategy_name for s in sources)
+                if len(strategies) > 1:
+                    conflicts[secret_key] = sources
+        return conflicts
+
+    def get_strategies_for_secret(self, secret_key: str) -> list[str]:
+        """Get all strategy names that discovered a particular secret."""
+        if not self.is_discovered(secret_key):
+            return []
+        return [s.strategy_name for s in self.sources[secret_key]]
