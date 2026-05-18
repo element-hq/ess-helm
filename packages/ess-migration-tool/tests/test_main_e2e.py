@@ -405,7 +405,7 @@ def test_main_e2e_synapse_with_mas(
     assert "keys_dir" not in mas_additional_config["secrets"]
 
 
-def test_main_e2e_mas_with_custom_listeners(
+def test_main_e2e_mas_with_custom_listeners_and_ess_managed_database(
     monkeypatch,
     tmp_path,
     synapse_config_with_signing_key,
@@ -463,8 +463,8 @@ def test_main_e2e_mas_with_custom_listeners(
         str(output_dir),
     ]
 
-    # Mock user input for database choice (select option 1 - existing database, default)
-    side_effect = (n for n in ("",))  # Empty string for default choice (existing database)
+    # Mock user input for database choice (select option 2 - ess-managed database)
+    side_effect = (n for n in ("2",))
     monkeypatch.setattr(sys, "argv", test_args)
     monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
     exit_code = __main__.main()
@@ -513,6 +513,9 @@ def test_main_e2e_mas_with_custom_listeners(
     assert not any(lstn.get("binds", [{}])[0].get("port") == 8081 for lstn in listeners), (
         "ESS-managed port 8081 should be filtered out"
     )
+    # Verify database section is filtered out from additional config
+    mas_additional_config = yaml.safe_load(mas_config["additional"]["00-imported.yaml"]["config"])
+    assert "database" not in mas_additional_config, "database should be filtered out from additional config"
 
 
 def test_main_e2e_synapse_existing_database(
@@ -645,6 +648,13 @@ def test_main_e2e_synapse_ess_managed_database(
     assert "port" not in synapse_postgres_config
     assert "user" not in synapse_postgres_config
     assert "database" not in synapse_postgres_config
+
+    # Verify database section is filtered out from additional config
+    assert "additional" in synapse_config, "synapse.additional should exist"
+    assert "00-imported.yaml" in synapse_config["additional"], "00-imported.yaml should exist in additional"
+    imported_config_yaml = synapse_config["additional"]["00-imported.yaml"]["config"]
+    imported_config = yaml.safe_load(imported_config_yaml)
+    assert "database" not in imported_config, "database should be filtered out from additional config"
 
 
 def test_main_e2e_synapse_listeners_with_custom_listeners(
