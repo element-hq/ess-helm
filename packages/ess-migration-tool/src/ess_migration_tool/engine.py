@@ -11,15 +11,15 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any
 
+from .conflicts import resolve_secret_conflicts, resolve_value_conflicts
 from .element_web import ElementWebMigration
 from .extra_files import GenericExtraFileDiscovery
 from .hookshot import HookshotExtraFileDiscovery, HookshotMigration, HookshotSecretDiscovery
 from .inputs import InputProcessor
 from .mas import MASExtraFileDiscovery, MASMigration, MASSecretDiscovery
 from .migration import MigrationService
-from .models import ConfigMap, DiscoveredSecret, GlobalOptions, Secret, ValueSourceTracking
+from .models import ConfigMap, DiscoveredSecret, DiscoveredSecretTracking, GlobalOptions, Secret, ValueSourceTracking
 from .synapse import SynapseExtraFileDiscovery, SynapseMigration, SynapseSecretDiscovery
-from .utils import resolve_value_conflicts
 from .well_known import WELL_KNOWN_COMPONENT_ROOT_KEY, WellKnownMigration
 
 logger = logging.getLogger("migration")
@@ -41,6 +41,7 @@ class MigrationEngine:
     migrators: list[MigrationService] = field(default_factory=list)
     global_options: GlobalOptions = field(default_factory=GlobalOptions)
     value_source_tracking: ValueSourceTracking = field(default_factory=ValueSourceTracking)
+    secret_tracking: DiscoveredSecretTracking = field(default_factory=DiscoveredSecretTracking)
 
     def __post_init__(self) -> None:
         """Initialize the migration engine."""
@@ -106,6 +107,7 @@ class MigrationEngine:
                         configmaps=self.configmaps,
                         global_options=self.global_options,
                         value_source_tracking=self.value_source_tracking,
+                        secret_tracking=self.secret_tracking,
                     )
                 )
 
@@ -142,7 +144,10 @@ class MigrationEngine:
                 # Handle any secrets that were just prompted for
                 migrator.handle_secrets_phase()
 
-        # Resolve conflicts after all migrations
+        # Resolve secret conflicts after all migrations
+        resolve_secret_conflicts(self.pretty_logger, self.secret_tracking)
+
+        # Resolve value conflicts after all migrations
         resolve_value_conflicts(self.pretty_logger, self.value_source_tracking, self.ess_config)
 
         # Disable any ESS component that was not migrated (absent from config)

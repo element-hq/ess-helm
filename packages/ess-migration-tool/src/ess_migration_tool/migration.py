@@ -18,6 +18,7 @@ from .interfaces import ExtraFilesDiscoveryStrategy, MigrationStrategy, SecretDi
 from .models import (
     ConfigMap,
     DiscoveredExtraFile,
+    DiscoveredSecretTracking,
     GlobalOptions,
     MigrationInput,
     Secret,
@@ -445,6 +446,9 @@ class MigrationService:
     extra_files_strategy: ExtraFilesDiscoveryStrategy = field(init=True)  # Extra files discovery service
     secret_discovery_strategy: SecretDiscoveryStrategy | None = field(init=True)  # Secret discovery service
     value_source_tracking: ValueSourceTracking = field(init=True)  # Shared value source tracking instance
+    secret_tracking: DiscoveredSecretTracking = field(
+        default_factory=DiscoveredSecretTracking
+    )  # Global tracking of discovered secrets
     override_warnings: list[str] = field(default_factory=list)  # Warnings about overridden configurations
     underride_warnings: list[str] = field(default_factory=list)  # Warnings about ESS default configurations
     discovered_extra_files: list[DiscoveredExtraFile] = field(default_factory=list)  # List of discovered secrets
@@ -475,6 +479,7 @@ class MigrationService:
                 source_file=self.input.config_path,
                 pretty_logger=self.pretty_logger,
                 global_options=self.global_options,
+                secret_tracking=self.secret_tracking,
             )
             self.secret_discovery.discover_secrets(self.input.config)
             # Note: prompt_for_missing_secrets() and validate_required_secrets()

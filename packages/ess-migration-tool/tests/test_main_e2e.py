@@ -867,14 +867,14 @@ def test_main_e2e_synapse_with_mas_different_server_name(
 
     # Mock user inputs:
     # 1. Database choice - use existing database (default, empty string)
-    # 2. Conflict resolution - select option 1 (synapse.example.com)
+    # 2. Conflict resolution - select option 2 (synapse.example.com)
     #    The prompt will be: "Select value for 'serverName':"
     #    Options:
-    #    - "synapse.example.com (from: Synapse)"
     #    - "mas.example.com (from: Matrix Authentication Service)"
+    #    - "synapse.example.com (from: Synapse)"
     #    - "Enter custom value"
-    #    Selection "1" picks synapse.example.com
-    side_effect = (n for n in ("", "1"))
+    #    Selection "2" picks synapse.example.com
+    side_effect = (n for n in ("", "2"))
     monkeypatch.setattr(sys, "argv", test_args)
     monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
     exit_code = __main__.main()

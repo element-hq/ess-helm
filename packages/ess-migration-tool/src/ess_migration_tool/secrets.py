@@ -10,7 +10,7 @@ import logging
 from dataclasses import dataclass, field
 
 from .interfaces import SecretDiscoveryStrategy
-from .models import DiscoverableSecret, DiscoveredSecret, GlobalOptions, SecretConfig
+from .models import DiscoverableSecret, DiscoveredSecret, DiscoveredSecretTracking, GlobalOptions, SecretConfig
 from .utils import (
     find_matching_schema_key,
     get_nested_value,
@@ -36,6 +36,7 @@ class SecretDiscovery:
     pretty_logger: logging.Logger = field(init=True)
     source_file: str = field(init=True)  # Source configuration file name
     global_options: GlobalOptions = field(init=True)  # Global migration options
+    secret_tracking: DiscoveredSecretTracking = field(init=True)  # Global tracking of discovered secrets
 
     discovered_secrets: dict[str, DiscoveredSecret] = field(default_factory=dict)  # Secrets with source tracking
     init_by_ess_secrets: list[str] = field(default_factory=list)  # Secrets to be initialized by ESS
@@ -61,6 +62,13 @@ class SecretDiscovery:
                 raise RuntimeError(f"Discovered component-specific secret '{secret_key}' not found in schema")
             # Add the discovered secret
             self.discovered_secrets[secret_key] = discovered_secret
+            # Register with global tracking
+            self.secret_tracking.add_source(
+                secret_key=secret_key,
+                strategy_name=self.strategy.secret_name,
+                value=discovered_secret.value,
+                source_path=discovered_secret.config_key,
+            )
 
         # Process component-specific discovery failures
         for discovered_secret, error_message in component_failures:
@@ -184,6 +192,13 @@ class SecretDiscovery:
             value=discovered_value,
         )
         self.discovered_secrets[secret_key] = discovered_secret
+        # Register with global tracking
+        self.secret_tracking.add_source(
+            secret_key=secret_key,
+            strategy_name=self.strategy.secret_name,
+            value=discovered_value,
+            source_path=config_key,
+        )
 
     def _handle_missing_secret(
         self,
@@ -199,6 +214,11 @@ class SecretDiscovery:
         - Add to init_by_ess_secrets (if init_if_missing_from_source_cfg)
         - Add to missing_required_secrets (if required)
         """
+        # Check if already discovered by another strategy
+        if self.secret_tracking.is_discovered(secret_key):
+            # Don't add to missing_required_secrets or init_by_ess_secrets
+            return
+
         # Optional secrets are ignored if not found
         if discoverable_secret.optional:
             return
