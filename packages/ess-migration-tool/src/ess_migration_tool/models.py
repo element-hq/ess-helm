@@ -146,6 +146,9 @@ class DiscoverableSecret:
     discovery: SecretConfig | None = None  # Discovery configuration (None if not discoverable from config)
     optional: bool = False  # Whether the secret is optional (not required for migration)
     init_if_missing_from_source_cfg: bool = False  # Whether to initialize secret if missing from source config
+    takes_precedence_if_duplicates: bool = (
+        False  # If True, this strategy owns the secret when discovered by multiple strategies
+    )
 
 
 @dataclass
@@ -199,6 +202,7 @@ class SecretSource:
     secret_key: str  # ESS secret key (e.g., "synapse.signingKey")
     value: str  # The secret value
     source_path: str  # Original configuration path in source file
+    takes_precedence: bool = False  # Whether this strategy takes precedence for duplicates
 
 
 @dataclass
@@ -207,7 +211,9 @@ class DiscoveredSecretTracking:
 
     sources: dict[str, list[SecretSource]] = field(default_factory=dict)
 
-    def add_source(self, secret_key: str, strategy_name: str, value: str, source_path: str) -> None:
+    def add_source(
+        self, secret_key: str, strategy_name: str, value: str, source_path: str, takes_precedence: bool = False
+    ) -> None:
         """Add a discovered secret source to tracking."""
         if secret_key not in self.sources:
             self.sources[secret_key] = []
@@ -217,6 +223,7 @@ class DiscoveredSecretTracking:
                 secret_key=secret_key,
                 value=value,
                 source_path=source_path,
+                takes_precedence=takes_precedence,
             )
         )
 
@@ -248,3 +255,54 @@ class DiscoveredSecretTracking:
         if not self.is_discovered(secret_key):
             return []
         return [s.strategy_name for s in self.sources[secret_key]]
+
+    def get_secret_owner(self, secret_key: str) -> str | None:
+        """
+        Determine which strategy owns a secret that was discovered by multiple strategies.
+        A strategy owns a secret if it has `takes_precedence_if_duplicates=True` for that secret.
+        Only one strategy can own a duplicate secret.
+        If no strategy claims precedence or multiple claim it, falls back to the last
+        discovering strategy.
+
+        Args:
+            secret_key: The ESS secret key to determine ownership for
+
+        Returns:
+            The strategy name that owns this secret, or None if secret was not discovered
+        """
+        import logging
+
+        logger = logging.getLogger("migration")
+
+        # If secret was not discovered, return None
+        if not self.is_discovered(secret_key):
+            return None
+
+        # Get all sources (strategies that discovered this secret)
+        sources = self.sources.get(secret_key, [])
+
+        # Find the strategy with takes_precedence=True
+        owning_strategy: str | None = None
+        found_precedence = False
+        for source in sources:
+            if source.takes_precedence:
+                found_precedence = True
+                # This strategy wants to own this secret
+                if owning_strategy is not None:
+                    # More than one strategy wants to own it - this is a conflict
+                    logger.error(
+                        f"Multiple strategies claim precedence for secret {secret_key}: "
+                        f"{owning_strategy} and {source.strategy_name}. "
+                    )
+                owning_strategy = source.strategy_name
+
+        # If no strategy has takes_precedence,
+        if len(sources) > 1 and not found_precedence:
+            # More than one strategy wants to own it - this is a conflict
+            logger.error(
+                f"Multiple strategies discovered secret {secret_key}, but no strategy claims precedence: "
+                f"{owning_strategy} and {source.strategy_name}. "
+            )
+            # Find the last strategy that discovered the secret
+            owning_strategy = sources[-1].strategy_name
+        return owning_strategy

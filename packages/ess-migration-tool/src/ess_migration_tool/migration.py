@@ -307,8 +307,16 @@ class ConfigValueTransformer:
         # Create a Kubernetes Secret containing all discovered secrets
         secret_name = f"imported-{secret_discovery.strategy.secret_name}"
         secret_data = {}
+        current_strategy = secret_discovery.strategy.secret_name
 
         for secret_key, discover_secret in secret_discovery.discovered_secrets.items():
+            # Check if this secret should be owned by another strategy
+            owner = secret_discovery.secret_tracking.get_secret_owner(secret_key)
+            if owner and owner != current_strategy:
+                # This secret is owned by another strategy, skip it
+                logger.debug(f"Skipping {secret_key} for {current_strategy} - owned by {owner}")
+                continue
+
             # Base64 encode the secret value for Kubernetes Secret
             encoded_value = base64.b64encode(discover_secret.value.encode("utf-8")).decode("utf-8")
             secret_data[secret_key] = encoded_value
@@ -323,9 +331,13 @@ class ConfigValueTransformer:
         # Update ESS values to use credential schema instead of direct values
         # Use the ess_secret_schema to map secret keys to ESS configuration paths
         for secret_key, discover_secret in secret_discovery.discovered_secrets.items():
+            # Determine which secret file this secret belongs to
+            owner = secret_discovery.secret_tracking.get_secret_owner(secret_key)
+            owning_secret_name = secret.name if owner is None else f"imported-{owner}"
+
             # Convert secret key to credential schema format
             # Example: secret -> {"secret": "imported-synapse", "secretKey": "synapse.postgres.password"}
-            credential_config = {"secret": secret.name, "secretKey": secret_key}
+            credential_config = {"secret": owning_secret_name, "secretKey": secret_key}
 
             # Validate that the secret key matches a schema entry (supports wildcard patterns)
             matching_key = find_matching_schema_key(secret_key, secret_discovery.strategy.ess_secret_schema)

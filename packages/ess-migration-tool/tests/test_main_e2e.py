@@ -367,20 +367,22 @@ def test_main_e2e_synapse_with_mas(
             assert "name" in secret_content["metadata"]
             assert "data" in secret_content
             if secret_file.name == "imported-synapse-secret.yaml":
-                assert len(secret_content["data"]) == 5
+                assert len(secret_content["data"]) == 4, (
+                    "expected 4 synapse secrets (macaroon, registration, signing, postgres password)"
+                )
                 assert base64.b64decode(secret_content["data"]["synapse.macaroon"]) == b"test_macaroon_secret"
                 assert (
                     base64.b64decode(secret_content["data"]["synapse.registrationSharedSecret"])
                     == b"test_registration_secret"
                 )
-                assert (
-                    base64.b64decode(secret_content["data"]["matrixAuthenticationService.synapseSharedSecret"])
-                    == b"synapse_shared_secret_abcdef"
-                )
                 assert base64.b64decode(secret_content["data"]["synapse.signingKey"]) == b"test_signing_key_content"
+                assert base64.b64decode(secret_content["data"]["synapse.postgres.password"]) == b"test"
+                assert "matrixAuthenticationService.synapseSharedSecret" not in secret_content["data"], (
+                    "matrixAuthenticationService.synapseSharedSecret should be in MAS secret only"
+                )
+
             elif secret_file.name == "imported-matrix-authentication-service-secret.yaml":
-                # 3 original secrets + 2-4 keys (rsa, ecdsaPrime256v1, ecdsaSecp256k1, ecdsaSecp384r1)
-                assert 5 <= len(secret_content["data"]) <= 7  # 3 original + 2-4 keys
+                assert len(secret_content["data"]) == 5, "expected 2 original + 2 keys + 1 synapse shared secret"
                 assert (
                     base64.b64decode(secret_content["data"]["matrixAuthenticationService.synapseSharedSecret"])
                     == b"synapse_shared_secret_abcdef"
@@ -1290,7 +1292,8 @@ def test_main_e2e_synapse_mas_shared_secret_conflict(
     assert "secret" in mas_config_output["synapseSharedSecret"]
 
     # Verify the resolved value is mas_side_secret (we selected option 1)
-    # Check the secret file content
+    # Note: The shared secret is owned by MAS (takes_precedence_if_duplicates=True),
+    # so it should be in the MAS secret file, not the Synapse one
     secret_files = list(output_dir.glob("*secret.yaml"))
     mas_secret_file = next((sf for sf in secret_files if "matrix-authentication-service" in sf.name), None)
     assert mas_secret_file is not None, "MAS secret file should exist"
@@ -1301,3 +1304,12 @@ def test_main_e2e_synapse_mas_shared_secret_conflict(
     # The resolved value should be mas_side_secret (option 1 selected)
     decoded_value = base64.b64decode(secret_content["data"]["matrixAuthenticationService.synapseSharedSecret"])
     assert decoded_value == b"mas_side_secret", f"Expected mas_side_secret, got {decoded_value}"
+
+    # Verify the secret is NOT in the Synapse secret file
+    synapse_secret_file = next((sf for sf in secret_files if "synapse" in sf.name), None)
+    if synapse_secret_file:
+        with open(synapse_secret_file) as f:
+            synapse_secret_content = yaml.safe_load(f)
+        assert "matrixAuthenticationService.synapseSharedSecret" not in synapse_secret_content["data"], (
+            "matrixAuthenticationService.synapseSharedSecret should only be in MAS secret"
+        )
