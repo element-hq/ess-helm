@@ -75,6 +75,7 @@ turn:
   cert_file: /turn-tls/tls.crt
   key_file: /turn-tls/tls.key
 {{- end }}
+  external_tls: {{ not .tlsTerminationOnPod }}
 {{- end }}
 {{- end }}
 {{- with .exposedServices.turn }}
