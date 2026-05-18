@@ -345,6 +345,12 @@ class SynapseMigration(MigrationStrategy):
                 transformer=filter_listeners,
                 required=False,
             ),  # Filter out chart-managed listeners and output to additional config
+            TransformationSpec(
+                src_key="matrix_authentication_service",
+                target_key="matrixAuthenticationService.enabled",
+                transformer=lambda _, mas, **__: mas.get("enabled") if mas else None,
+                required=False,
+            ),
             # ... other non-database transformations ...
         ]
 

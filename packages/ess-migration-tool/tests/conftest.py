@@ -226,6 +226,18 @@ def synapse_config_with_ca_federation_list(tmp_path, basic_synapse_config):
 
 
 @pytest.fixture
+def synapse_config_with_mas(tmp_path, basic_synapse_config):
+    """Synapse configuration with a signing key file."""
+    config = basic_synapse_config.copy()
+    config["matrix_authentication_service"] = {
+        "enabled": True,
+        "endpoint": "http://mas.example.com:8080",
+        "secret": "synapse_shared_secret_abcdef",
+    }
+    return config
+
+
+@pytest.fixture
 def basic_mas_config():
     """Basic MAS configuration for testing."""
     return {

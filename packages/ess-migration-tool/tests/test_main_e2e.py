@@ -222,6 +222,7 @@ def test_main_e2e_synapse_with_mas(
     monkeypatch,
     tmp_path,
     synapse_config_with_signing_key,
+    synapse_config_with_mas,
     basic_mas_config_with_keys,
     write_synapse_config,
     write_mas_config,
@@ -230,7 +231,7 @@ def test_main_e2e_synapse_with_mas(
 ):
     """Test the complete end-to-end migration workflow with Synapse and MAS."""
     # Write configuration files
-    synapse_config_file = write_synapse_config(synapse_config_with_signing_key)
+    synapse_config_file = write_synapse_config(synapse_config_with_signing_key | synapse_config_with_mas)
     mas_config_file = write_mas_config(basic_mas_config_with_keys)
 
     # Create output directory
@@ -319,6 +320,9 @@ def test_main_e2e_synapse_with_mas(
         assert "listeners.yml" not in additional_config, (
             'synapse.additional."listeners.yml" should be absent when only chart-managed listeners exist'
         )
+        assert "matrix_authentication_service" not in additional_config, (
+            'synapse.additional."matrix_authentication_service" should be absent when migrated from config'
+        )
 
     # Verify MAS configuration was migrated and is explicitly enabled
     assert "matrixAuthenticationService" in generated_values
@@ -363,11 +367,15 @@ def test_main_e2e_synapse_with_mas(
             assert "name" in secret_content["metadata"]
             assert "data" in secret_content
             if secret_file.name == "imported-synapse-secret.yaml":
-                assert len(secret_content["data"]) == 4
+                assert len(secret_content["data"]) == 5
                 assert base64.b64decode(secret_content["data"]["synapse.macaroon"]) == b"test_macaroon_secret"
                 assert (
                     base64.b64decode(secret_content["data"]["synapse.registrationSharedSecret"])
                     == b"test_registration_secret"
+                )
+                assert (
+                    base64.b64decode(secret_content["data"]["matrixAuthenticationService.synapseSharedSecret"])
+                    == b"synapse_shared_secret_abcdef"
                 )
                 assert base64.b64decode(secret_content["data"]["synapse.signingKey"]) == b"test_signing_key_content"
             elif secret_file.name == "imported-matrix-authentication-service-secret.yaml":
