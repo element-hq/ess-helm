@@ -1,5 +1,5 @@
 // Copyright 2025 New Vector Ltd
-// Copyright 2025 Element Creations Ltd
+// Copyright 2025-2026 Element Creations Ltd
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/element-hq/ess-helm/matrix-tools/internal/cmd/concat"
 	deploymentmarkers "github.com/element-hq/ess-helm/matrix-tools/internal/cmd/deployment-markers"
 	generatesecrets "github.com/element-hq/ess-helm/matrix-tools/internal/cmd/generate-secrets"
 	renderconfig "github.com/element-hq/ess-helm/matrix-tools/internal/cmd/render-config"
@@ -35,8 +36,10 @@ func main() {
 		generatesecrets.Run(options.GenerateSecrets)
 	case args.DeploymentMarkers:
 		deploymentmarkers.Run(options.DeploymentMarkers)
+	case args.Concat:
+		concat.Run(options.Concat)
 	default:
-		fmt.Printf("Unknown command")
+		fmt.Printf("Unknown command : %s", os.Args[1])
 		os.Exit(1)
 	}
 }
