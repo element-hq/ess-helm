@@ -55,8 +55,13 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- define "element-io.hookshot.secret-name" -}}
 {{- $root := .root -}}
 {{- with required "element-io.hookshot.secret-name requires context" .context -}}
+{{- $isHook := .isHook }}
+{{- if $isHook -}}
+{{ $root.Release.Name }}-hookshot-pre
+{{- else -}}
 {{ $root.Release.Name }}-hookshot
-{{- end -}}
+{{- end }}
+{{- end }}
 {{- end }}
 
 
