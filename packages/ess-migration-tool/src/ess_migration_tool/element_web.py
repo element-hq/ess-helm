@@ -113,7 +113,3 @@ class ElementWebMigration(MigrationStrategy):
                 required=False,
             ),
         ]
-
-    @property
-    def component_config_extras(self) -> dict[str, Any]:
-        return {"enabled": True}
