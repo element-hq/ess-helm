@@ -46,7 +46,7 @@ dev = [
 ]
 
 [tool.uv.workspace]
-members = ["packages/*", "tests"]
+members = ["packages/ess-migration-tool", "tests"]
 
 [tool.uv.sources]
 ess-community-integration-tests = { workspace = true }
