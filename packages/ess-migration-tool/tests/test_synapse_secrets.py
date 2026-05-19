@@ -127,3 +127,85 @@ def test_permission_error_handling_for_secrets(tmp_path, basic_synapse_config):
 
     # Clean up: restore permissions for cleanup
     restricted_key.chmod(0o644)
+
+
+def test_discover_appservice_registration_files(tmp_path, basic_synapse_config):
+    """Test discovering appservice registration files from Synapse configuration."""
+    # Create test appservice registration files
+    appservice1 = tmp_path / "appservice1.yaml"
+    appservice1.write_text("id: appservice1\nurl: http://localhost:8001\n")
+
+    appservice2 = tmp_path / "appservice2.yaml"
+    appservice2.write_text("id: appservice2\nurl: http://localhost:8002\n")
+
+    # Create config with appservice config files
+    synapse_config = basic_synapse_config.copy()
+    synapse_config["app_service_config_files"] = [str(appservice1), str(appservice2)]
+    synapse_config["database"]["args"]["password"] = "test_password"
+
+    # Test secret discovery
+    global_options = GlobalOptions(use_existing_database=True)
+    synapse_secrets = SynapseSecretDiscovery(global_options)
+    discovery = SecretDiscovery(
+        synapse_secrets, logging.getLogger(), "synapse.yaml", global_options, DiscoveredSecretTracking()
+    )
+    discovery.discover_secrets(synapse_config)
+
+    # Appservice registration files should be discovered
+    assert "synapse.appservices.0" in discovery.discovered_secrets
+    assert "synapse.appservices.1" in discovery.discovered_secrets
+    assert (
+        discovery.discovered_secrets["synapse.appservices.0"].value == "id: appservice1\nurl: http://localhost:8001\n"
+    )
+    assert (
+        discovery.discovered_secrets["synapse.appservices.1"].value == "id: appservice2\nurl: http://localhost:8002\n"
+    )
+
+    # Appservice secrets should have correct source tracking
+    assert discovery.discovered_secrets["synapse.appservices.0"].source_file == "synapse.yaml"
+    assert discovery.discovered_secrets["synapse.appservices.0"].config_key == "app_service_config_files.0"
+    assert discovery.discovered_secrets["synapse.appservices.1"].config_key == "app_service_config_files.1"
+
+
+def test_appservice_files_missing(tmp_path, basic_synapse_config):
+    """Test handling of missing appservice registration files."""
+    # Create config with non-existent appservice config files
+    synapse_config = basic_synapse_config.copy()
+    synapse_config["app_service_config_files"] = ["/nonexistent/appservice1.yaml", "/nonexistent/appservice2.yaml"]
+    synapse_config["database"]["args"]["password"] = "test_password"
+
+    # Test secret discovery
+    global_options = GlobalOptions(use_existing_database=True)
+    synapse_secrets = SynapseSecretDiscovery(global_options)
+    discovery = SecretDiscovery(
+        synapse_secrets, logging.getLogger(), "synapse.yaml", global_options, DiscoveredSecretTracking()
+    )
+    discovery.discover_secrets(synapse_config)
+
+    # Missing appservice files should be in failed secrets (but optional, so not in missing_required)
+    # Since appservice secrets are optional, they won't block migration
+    assert "synapse.appservices.0" not in discovery.discovered_secrets
+    assert "synapse.appservices.1" not in discovery.discovered_secrets
+    # Other required secrets should still be missing
+    missing_secret_keys = {ds.secret_key for ds, _ in discovery.missing_required_secrets}
+    assert "synapse.signingKey" in missing_secret_keys
+
+
+def test_appservice_files_empty_list(basic_synapse_config):
+    """Test handling of empty app_service_config_files list."""
+    # Create config with empty appservice config files list
+    synapse_config = basic_synapse_config.copy()
+    synapse_config["app_service_config_files"] = []
+    synapse_config["database"]["args"]["password"] = "test_password"
+
+    # Test secret discovery
+    global_options = GlobalOptions(use_existing_database=True)
+    synapse_secrets = SynapseSecretDiscovery(global_options)
+    discovery = SecretDiscovery(
+        synapse_secrets, logging.getLogger(), "synapse.yaml", global_options, DiscoveredSecretTracking()
+    )
+    discovery.discover_secrets(synapse_config)
+
+    # No appservice secrets should be discovered
+    appservice_secrets = [k for k in discovery.discovered_secrets if "appservices" in k]
+    assert len(appservice_secrets) == 0
