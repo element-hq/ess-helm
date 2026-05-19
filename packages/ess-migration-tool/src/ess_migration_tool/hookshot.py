@@ -114,10 +114,6 @@ class HookshotMigration(MigrationStrategy):
             ),
         ]
 
-    @property
-    def component_config_extras(self) -> dict[str, Any]:
-        return {"enabled": True}
-
 
 class HookshotSecretDiscovery(SecretDiscoveryStrategy):
     """Hookshot-specific secret discovery implementation."""

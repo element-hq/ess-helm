@@ -394,10 +394,6 @@ class SynapseMigration(MigrationStrategy):
             ),
         ]
 
-    @property
-    def component_config_extras(self) -> dict[str, Any]:
-        return {"enabled": True}
-
 
 class SynapseSecretDiscovery(SecretDiscoveryStrategy):
     """Synapse-specific secret discovery implementation."""
