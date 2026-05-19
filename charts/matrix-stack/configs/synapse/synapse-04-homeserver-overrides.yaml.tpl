@@ -105,8 +105,6 @@ matrix_authentication_service:
 {{- if or (include "element-io.matrix-authentication-service.readyToHandleAuth" (dict "root" $root)) $root.Values.matrixRTC.enabled $root.Values.hookshot.enabled }}
 experimental_features:
 {{- if $root.Values.matrixRTC.enabled }}
-  # MSC3266: Room summary API. Used for knocking over federation
-  msc3266_enabled: true
   # MSC4143: Matrix RTC Transport using Livekit Backend. This enables a client-server API for discovery of Matrix RTC backends
   msc4143_enabled: true
   # MSC4222 needed for syncv2 state_after. This allow clients to
