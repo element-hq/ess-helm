@@ -8,78 +8,9 @@ resolution-markers = [
 
 [manifest]
 members = [
-    "",
+    "ess-community",
     "ess-community-integration-tests",
     "ess-migration-tool",
-]
-
-[[package]]
-name = ""
-version = "0.1.0"
-source = { virtual = "." }
-
-[package.dev-dependencies]
-dev = [
-    { name = "aiohttp" },
-    { name = "checkov" },
-    { name = "cryptography" },
-    { name = "ess-community-integration-tests" },
-    { name = "frozendict" },
-    { name = "jinja2" },
-    { name = "jsonschema" },
-    { name = "mypy" },
-    { name = "platformdirs" },
-    { name = "pytest" },
-    { name = "pytz" },
-    { name = "pyyaml" },
-    { name = "rapidfuzz" },
-    { name = "reuse" },
-    { name = "ruamel-yaml" },
-    { name = "ruff" },
-    { name = "semver" },
-    { name = "signedjson" },
-    { name = "spdx-tools" },
-    { name = "towncrier" },
-    { name = "typer" },
-    { name = "types-cryptography" },
-    { name = "types-jsonschema" },
-    { name = "types-pytz" },
-    { name = "types-pyyaml" },
-    { name = "yamale" },
-    { name = "yamllint" },
-]
-
-[package.metadata]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "aiohttp", specifier = ">=3.13.3" },
-    { name = "checkov", specifier = ">=3.2.506" },
-    { name = "cryptography", specifier = ">=46.0.5" },
-    { name = "ess-community-integration-tests", editable = "tests" },
-    { name = "frozendict", specifier = ">=2.4.7" },
-    { name = "jinja2", specifier = ">=3.1.6" },
-    { name = "jsonschema", specifier = ">=4.26" },
-    { name = "mypy", specifier = ">=1.19.1" },
-    { name = "platformdirs", specifier = ">=4.9.2" },
-    { name = "pytest", specifier = ">=8.4.2,<9" },
-    { name = "pytz", specifier = ">=2025.2" },
-    { name = "pyyaml", specifier = ">=6.0.3" },
-    { name = "rapidfuzz", specifier = ">=3.14.3" },
-    { name = "reuse", specifier = ">=6.2.0" },
-    { name = "ruamel-yaml", specifier = ">=0.19.1" },
-    { name = "ruff", specifier = ">=0.15.4" },
-    { name = "semver", specifier = ">=3.0.4" },
-    { name = "signedjson", specifier = ">=1.1.4" },
-    { name = "spdx-tools", specifier = ">=0.8.3" },
-    { name = "towncrier", specifier = ">=25.8.0" },
-    { name = "typer", specifier = ">=0.24.1" },
-    { name = "types-cryptography", specifier = ">=3.3.23.2" },
-    { name = "types-jsonschema", specifier = ">=4.26.0.20260202" },
-    { name = "types-pytz", specifier = ">=2025.2.0.20251108" },
-    { name = "types-pyyaml", specifier = ">=6.0.12.20250915" },
-    { name = "yamale", specifier = ">=6.1.0" },
-    { name = "yamllint", specifier = ">=1.38.0" },
 ]
 
 [[package]]
@@ -821,6 +752,75 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/1f/2c/a4213cdbbc43b8fdf34b6e2afb415fd5d46e171d32a4bb92e7924548aa9f/dpath-2.1.3.tar.gz", hash = "sha256:d1a7a0e6427d0a4156c792c82caf1f0109603f68ace792e36ca4596fd2cb8d9d", size = 24016, upload-time = "2022-12-13T07:27:22.108Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c9/12/02fdb87afeab1987442164a2db470a995122c800f15265e9b7a5103a3fd9/dpath-2.1.3-py3-none-any.whl", hash = "sha256:d9560e03ccd83b3c6f29988b0162ce9b34fd28b9d8dbda46663b20c68d9cdae3", size = 17232, upload-time = "2022-12-13T07:27:20.023Z" },
+]
+
+[[package]]
+name = "ess-community"
+version = "0.1.0"
+source = { virtual = "." }
+
+[package.dev-dependencies]
+dev = [
+    { name = "aiohttp" },
+    { name = "checkov" },
+    { name = "cryptography" },
+    { name = "ess-community-integration-tests" },
+    { name = "frozendict" },
+    { name = "jinja2" },
+    { name = "jsonschema" },
+    { name = "mypy" },
+    { name = "platformdirs" },
+    { name = "pytest" },
+    { name = "pytz" },
+    { name = "pyyaml" },
+    { name = "rapidfuzz" },
+    { name = "reuse" },
+    { name = "ruamel-yaml" },
+    { name = "ruff" },
+    { name = "semver" },
+    { name = "signedjson" },
+    { name = "spdx-tools" },
+    { name = "towncrier" },
+    { name = "typer" },
+    { name = "types-cryptography" },
+    { name = "types-jsonschema" },
+    { name = "types-pytz" },
+    { name = "types-pyyaml" },
+    { name = "yamale" },
+    { name = "yamllint" },
+]
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "aiohttp", specifier = ">=3.13.3" },
+    { name = "checkov", specifier = ">=3.2.506" },
+    { name = "cryptography", specifier = ">=46.0.5" },
+    { name = "ess-community-integration-tests", editable = "tests" },
+    { name = "frozendict", specifier = ">=2.4.7" },
+    { name = "jinja2", specifier = ">=3.1.6" },
+    { name = "jsonschema", specifier = ">=4.26" },
+    { name = "mypy", specifier = ">=1.19.1" },
+    { name = "platformdirs", specifier = ">=4.9.2" },
+    { name = "pytest", specifier = ">=8.4.2,<9" },
+    { name = "pytz", specifier = ">=2025.2" },
+    { name = "pyyaml", specifier = ">=6.0.3" },
+    { name = "rapidfuzz", specifier = ">=3.14.3" },
+    { name = "reuse", specifier = ">=6.2.0" },
+    { name = "ruamel-yaml", specifier = ">=0.19.1" },
+    { name = "ruff", specifier = ">=0.15.4" },
+    { name = "semver", specifier = ">=3.0.4" },
+    { name = "signedjson", specifier = ">=1.1.4" },
+    { name = "spdx-tools", specifier = ">=0.8.3" },
+    { name = "towncrier", specifier = ">=25.8.0" },
+    { name = "typer", specifier = ">=0.24.1" },
+    { name = "types-cryptography", specifier = ">=3.3.23.2" },
+    { name = "types-jsonschema", specifier = ">=4.26.0.20260202" },
+    { name = "types-pytz", specifier = ">=2025.2.0.20251108" },
+    { name = "types-pyyaml", specifier = ">=6.0.12.20250915" },
+    { name = "yamale", specifier = ">=6.1.0" },
+    { name = "yamllint", specifier = ">=1.38.0" },
 ]
 
 [[package]]
