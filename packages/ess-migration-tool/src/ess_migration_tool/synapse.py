@@ -272,6 +272,8 @@ class SynapseMigration(MigrationStrategy):
             "macaroon_secret_key_path",
             "registration_shared_secret_path",
             "listeners",  # Listeners are also managed by ESS
+            "app_service_config_files",  # In theory we can use extra file for this
+            # In practice, the migration-tool manages it using ESS high level values
         }
 
     @property
