@@ -16,7 +16,13 @@ from rapidfuzz import fuzz, process
 from .interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
 from .migration import ConfigValueTransformer, MigrationStrategy, TransformationSpec, additional_config_transformer
 from .models import DiscoverableSecret, DiscoveredSecret, GlobalOptions, MigrationError, SecretConfig
-from .utils import extract_hostname_from_url, prompt_choice, prompt_value, yaml_dump_with_pipe_for_multiline
+from .utils import (
+    extract_hostname_from_url,
+    get_nested_value,
+    prompt_choice,
+    prompt_value,
+    yaml_dump_with_pipe_for_multiline,
+)
 
 logger = logging.getLogger("migration")
 
@@ -404,6 +410,11 @@ class SynapseSecretDiscovery(SecretDiscoveryStrategy):
         """Get the ESS secret schema for Synapse."""
         schema: dict[str, DiscoverableSecret] = {
             # Synapse secrets
+            "synapse.appservices.*": DiscoverableSecret(
+                description="Appservice registration files",
+                init_if_missing_from_source_cfg=False,
+                optional=True,
+            ),
         }
 
         # Only include PostgreSQL password when using existing database
@@ -468,16 +479,50 @@ class SynapseSecretDiscovery(SecretDiscoveryStrategy):
         """
         Discover component-specific secrets from configuration.
 
-        Synapse doesn't have specialized secret discovery, so this returns empty dict/list.
+        Discovers appservice registration files from the app_service_config_files configuration.
 
         Args:
             source_file: Source configuration file name
             config_data: Synapse configuration data
 
         Returns:
-            Tuple of (empty dict, empty list) - no specialized secret discovery for Synapse
+            Tuple of (discovered_secrets, failed_secrets) where:
+            - discovered_secrets: Dictionary mapping ESS secret keys to DiscoveredSecret objects
+            - failed_secrets: List of (DiscoveredSecret, error_message) tuples for secrets
+              that were discovered but could not be read
         """
-        return ({}, [])
+        discovered: dict[str, DiscoveredSecret] = {}
+        failed: list[tuple[DiscoveredSecret, str]] = []
+
+        # Get app_service_config_files from config (always a list)
+        file_paths = get_nested_value(config_data, "app_service_config_files")
+        if not file_paths or not isinstance(file_paths, list):
+            return discovered, failed
+
+        # Read each file and create discovered secrets
+        for idx, file_path in enumerate(file_paths):
+            secret_key = f"synapse.appservices.{idx}"
+            config_key = f"app_service_config_files.{idx}"
+
+            try:
+                with open(file_path) as f:
+                    file_content = f.read()
+                discovered[secret_key] = DiscoveredSecret(
+                    source_file=source_file,
+                    secret_key=secret_key,
+                    config_key=config_key,
+                    value=file_content,
+                )
+            except Exception as e:
+                failed_secret = DiscoveredSecret(
+                    source_file=source_file,
+                    secret_key=secret_key,
+                    config_key=config_key,
+                    value="",
+                )
+                failed.append((failed_secret, f"Failed to read file {file_path}: {e}"))
+
+        return discovered, failed
 
 
 class SynapseExtraFileDiscovery(ExtraFilesDiscoveryStrategy):
