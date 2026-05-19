@@ -331,7 +331,7 @@ def test_migration_with_missing_extra_files_prompt(
         output = log_capture_string.getvalue()
 
         # Verify that warnings about generated secrets are present
-        assert "📁 EXTRA FILES DISCOVERY" in output
+        assert "📁 EXTRA FILES DISCOVERY (Synapse)" in output
         assert "The following extra files were referenced in your configuration" in output
         assert "   ⚠️  Skipping missing files..." not in output
         assert f"   ✅ Found 2 matching files in {(str(tmp_path / 'moved'))}" in output
