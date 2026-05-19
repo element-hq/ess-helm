@@ -50,6 +50,7 @@ members = ["packages/*", "tests"]
 
 [tool.uv.sources]
 ess-community-integration-tests = { workspace = true }
+ess-migration-tool = { workspace = true }
 
 [tool.pytest.ini_options]
 # we use asyncio-cooperative
