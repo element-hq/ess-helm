@@ -7,6 +7,71 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.5.1 (2026-05-20)
+
+## Changed
+
+- Rebuild matrix-tools on Golang 1.26. (#1287, #1289)
+- Upgrade Element Web to v1.12.18.
+
+  Highlights:
+  - Promote "Share encrypted history" from labs
+  - Confirm before inviting unknown users to a DM/room
+
+  Full Changelogs:
+  - [v1.12.17](https://github.com/element-hq/element-web/releases/tag/v1.12.17)
+  - [v1.12.18](https://github.com/element-hq/element-web/releases/tag/v1.12.18)
+
+  (#1303)
+- Upgrade Synapse to v1.153.0.
+
+  Highlights:
+  - Make ACLs apply to EDUs per [MSC4163](https://github.com/matrix-org/matrix-spec-proposals/pull/4163)
+  - Stabilize [MSC3266](https://github.com/matrix-org/matrix-spec-proposals/pull/3266): Room summary API
+  - Allow self-requested user erasure (upon account deactivation) to succeed even if Synapse has disabled profile changes
+
+  Full Changelogs:
+  - [v1.153.0](https://github.com/element-hq/synapse/releases/tag/v1.153.0)
+
+  (#1304)
+- Introduce `concat` command to `matrix-tools`. (#1312)
+- Upgrade Hookshot to v7.3.3.
+
+  Highlights:
+  - Fix Matrix reply messages being skipped if the reply message could not be read. 
+  - Fix a bug where a webhook URL could be randomly regenerated on startup if storage is not available.
+
+  Full Changelogs:
+  - [v7.3.3](https://github.com/matrix-org/matrix-hookshot/releases/tag/7.3.3)
+
+  (#1314)
+- Upgrade Matrix Authentication Service to v1.17.0.
+
+  Highlights:
+  - Remove URL fragments set by upstream identity providers when redirecting to clients
+  - Experimental session hard-limits in non-interactive contexts
+
+  Full Changelogs:
+  - [v1.17.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.17.0)
+
+  (#1330)
+
+## Fixed
+
+- Fixed `matrixRTC.sfu.exposedServices.rtpUdp` not documenting `externalTrafficPolicy` or `internalTrafficPolicy`. (#1309)
+- Ensure `turn.external_tls` is correctly set in the Matrix RTC SFU configuration depending on `matrixRTC.sfu.exposedServices.turnTLS.tlsTerminationOnPod`. (#1310)
+- Fix an issue where a custom appservice registration file configured for Hookshot would not be mounted properly into Synapse pods. (#1329)
+
+## Internal
+
+- Pin pytest to pytest 8. (#1301)
+- CI: remove unnecessary async markers from integration test fixtures. (#1302)
+- CI: collect k3d container logs before cluster logs so that they're available if the cluster hasn't fully started. (#1305)
+- CI: poll for the Traefik `Service` having a load-balancer IP rather than waiting. (#1308)
+- Add name to `pyproject.toml`. (#1315)
+- CI: Configure dependabot to target `uv` ecosystem. (#1319, #1325, #1326)
+
+
 # ESS Community Helm Chart 26.5.0 (2026-05-07)
 
 ## Removed / Breaking Changes
