@@ -651,12 +651,12 @@ matrixRTC:
   resources:
     ## Requests describes the minimum amount of compute resources required. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
     requests:
-      memory: 20Mi
+      memory: 50Mi
       cpu: 50m
 
     ## Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
     limits:
-      memory: 20Mi
+      memory: 200Mi
   ## Whether to deploy ServiceMonitors into the cluster for this component
   ## Requires the ServiceMonitor CRDs to be in the cluster
   serviceMonitors:
