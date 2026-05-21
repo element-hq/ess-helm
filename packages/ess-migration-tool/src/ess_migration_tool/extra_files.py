@@ -240,12 +240,16 @@ class ExtraFilesDiscovery:
                 "Cannot prompt for files when --quiet is enabled."
             )
 
+        # Only print header and prompt if there are missing files
+        if not self.missing_file_paths:
+            return
+
+        component_name = self.strategy.component_name
         self.pretty_logger.info("\n" + "=" * 60)
-        self.pretty_logger.info("📁 EXTRA FILES DISCOVERY")
+        self.pretty_logger.info(f"📁 EXTRA FILES DISCOVERY ({component_name})")
         self.pretty_logger.info("=" * 60)
-        if self.missing_file_paths:
-            self.pretty_logger.info("The following extra files were referenced in your configuration")
-            self.pretty_logger.info("but could not be found:")
+        self.pretty_logger.info("The following extra files were referenced in your configuration")
+        self.pretty_logger.info("but could not be found:")
 
         for file_path in self.missing_file_paths:
             self.pretty_logger.info(f"📝 Missing: {file_path.config_key} ({file_path.source_path})")
@@ -370,8 +374,11 @@ class ExtraFilesDiscovery:
             missing_list = ", ".join([str(missing.source_path) for missing in self.missing_file_paths])
             raise ExtraFilesError(f"Missing or invalid extra files: {missing_list}")
 
-        self.pretty_logger.info("\n✅ Extra files validation completed")
-        self.pretty_logger.info("=" * 60)
+        # Only print validation message if there were files to validate
+        if self.discovered_file_paths or self.discovered_extra_files:
+            component_name = self.strategy.component_name
+            self.pretty_logger.info(f"\n✅ Extra files validation completed ({component_name})")
+            self.pretty_logger.info("=" * 60)
 
     def _is_binary_file(self, path: Path) -> bool:
         """
