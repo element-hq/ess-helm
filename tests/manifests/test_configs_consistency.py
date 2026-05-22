@@ -644,15 +644,15 @@ class ValidatedContainerConfig(ValidatedConfig):
                 else:
                     paths_not_found.append((str(MountPath(parent_mount, mount_node)), source))
         newline = chr(10)
+
+        def _format_path_and_source(path_and_source):
+            return f"- {path_and_source[0]} ({path_and_source[1].name()})"
+
         assert paths_not_found == [], (
             f"{self.template_id}/{self.name} : "
             f"No consumer found for paths: {newline}- "
-            f"{
-                newline.join(
-                    [f'- {path_and_source[0]} ({path_and_source[1].name()})' for path_and_source in paths_not_found]
-                )
-            }{newline}"
-            f"Skipped paths: {skipped_paths}"
+            f"{newline.join([_format_path_and_source(path_and_source) for path_and_source in paths_not_found])}"
+            f"{newline}Skipped paths: {skipped_paths}"
         )
 
     def check_all_paths_matches_an_actual_mount(self):
