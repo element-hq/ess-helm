@@ -177,7 +177,7 @@ Examples:
         choices=["existing", "ess-managed"],
         help=(
             "Database migration mode. "
-            "'existing' to use existing database, 'ess-managed' to use ESS-managed Postgres. "
+            "'existing' to use existing database, 'ess-managed' to use ESS-managed PostgreSQL. "
             "If not specified, user will be prompted."
         ),
     )
@@ -426,7 +426,7 @@ Examples:
         if not engine.global_options.use_existing_database:
             pretty_logger.info("📋 DATABASE IMPORT INSTRUCTIONS")
             pretty_logger.info("=" * 60)
-            pretty_logger.info("Since you chose to use ESS-managed Postgres, you'll need to import your")
+            pretty_logger.info("Since you chose to use ESS-managed PostgreSQL, you'll need to import your")
             pretty_logger.info("existing database schema after deployment. Here are the steps:")
             press_enter_to_continue(pretty_logger)
 
@@ -515,7 +515,7 @@ Examples:
                 step_number += 1
 
             # Step: Copy the dumps
-            pretty_logger.info(f"{step_number}. Copy the dumps to the ESS Postgres pod:")
+            pretty_logger.info(f"{step_number}. Copy the dumps to the ESS PostgreSQL pod:")
             pretty_logger.info("   kubectl cp synapse.sql ess-postgres-0:/tmp -n ess")
 
             # Only show MAS copy instructions if MAS is being migrated
@@ -526,7 +526,7 @@ Examples:
             step_number += 1
 
             # Step: Import the dumps
-            pretty_logger.info(f"{step_number}. Import the dumps into the ESS-managed Postgres:")
+            pretty_logger.info(f"{step_number}. Import the dumps into the ESS-managed PostgreSQL:")
             pretty_logger.info(
                 '   kubectl exec -n ess sts/ess-postgres -- bash -c "psql -U postgres -d synapse < /tmp/synapse.sql"'
             )

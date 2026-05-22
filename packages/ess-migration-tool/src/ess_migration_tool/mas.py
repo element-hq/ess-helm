@@ -320,7 +320,7 @@ class MASMigration(MigrationStrategy):
                 TransformationSpec(
                     src_key="database",  # Trigger on database section
                     target_key="postgres.enabled",
-                    transformer=lambda _, __, **kw: True,  # Set to True for ESS-managed Postgres
+                    transformer=lambda _, __, **kw: True,  # Set to True for ESS-managed PostgreSQL
                 )
             ]
         return transformations + [
