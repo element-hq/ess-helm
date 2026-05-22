@@ -859,7 +859,7 @@ requires-dist = [
     { name = "jsonschema", specifier = ">=4.26.0" },
     { name = "lightkube", specifier = ">=0.19.1" },
     { name = "platformdirs", specifier = ">=4.9.2" },
-    { name = "prometheus-client", specifier = ">=0.25.0" },
+    { name = "prometheus-client", specifier = ">=0.24.1" },
     { name = "pyhelm3", git = "https://github.com/element-hq/pyhelm3.git?rev=efa509e7501edeb9d04f2a9e688f6e0088305954" },
     { name = "pytest", specifier = ">=8.4.2" },
     { name = "pytest-asyncio-cooperative", specifier = ">=0.40.0" },
