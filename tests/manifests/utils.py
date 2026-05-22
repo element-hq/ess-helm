@@ -21,9 +21,9 @@ from frozendict import deepfreeze, frozendict
 
 from . import DeployableDetails, PropertyType, all_deployables_details
 
-template_cache = {}
+template_cache: dict[str, list[frozendict[str, Any]]] = {}
 manifests_cache: dict[int, frozendict] = {}
-values_cache = {}
+values_cache: dict[str, dict[str, Any]] = {}
 
 
 @pytest.fixture(scope="session")
