@@ -50,7 +50,7 @@ class ProgressReporter:
 
     def start_migration(self):
         """Report migration start."""
-        self.pretty_logger.info("🚀 Starting Matrix Stack to ESS Migration")
+        self.pretty_logger.info("🚀 Starting ESS Migration")
 
     def report_step(self, step_name: str):
         """Report progress on a specific step."""
