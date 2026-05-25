@@ -95,7 +95,7 @@ def additional_config_transformer(
 
     # Note: This runs after filtering so we check the remaining config
     # Store warnings for future engine logging
-    config_path_suffix = f'"{file_name}"].config' if use_file_object_format else f'"{file_name}"]'
+    config_path_suffix = f'"{file_name}"].config' if use_file_object_format else f'"{file_name}"'
 
     # Check for override configs (ESS-managed values that users should not override)
     if override_configs and component_root_key:
