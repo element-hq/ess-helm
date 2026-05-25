@@ -18,7 +18,7 @@ from .hookshot import HOOKSHOT_STRATEGY_NAME
 from .inputs import InputProcessor, ValidationError
 from .mas import MAS_STRATEGY_NAME, parse_postgres_uri
 from .outputs import generate_helm_values, write_outputs
-from .rich_output import ProgressReporter, log_command, print_section, print_table
+from .rich_output import ProgressReporter, log_command, print_section, print_separator, print_table
 from .synapse import SYNAPSE_STRATEGY_NAME
 from .utils import press_enter_to_continue, prompt_for_database_choice
 
@@ -604,7 +604,7 @@ Examples:
 
             press_enter_to_continue(pretty_logger)
 
-        pretty_logger.info("=" * 60)
+        print_separator(logger=pretty_logger)
 
         reporter.report_success(args.output_dir)
         logging.info("Migration completed successfully!")

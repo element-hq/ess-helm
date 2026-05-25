@@ -171,6 +171,56 @@ def log_command(
     get_console().print(syntax)
 
 
+def print_prompt(
+    message: str,
+    style: str = "bold white",
+    logger: logging.Logger | None = None,
+    prefix: str = "   ",
+) -> None:
+    """
+    Print a prompt message with Rich styling if available.
+
+    Args:
+        message: The prompt message to display
+        style: Rich style string for the text (default: "bold white")
+        logger: Logger to use for fallback output when Rich is disabled
+        prefix: Prefix string to add before the message (default: "   ")
+    """
+    if not is_rich_enabled():
+        # Fallback to plain text using the provided logger
+        if logger is not None:
+            logger.info(f"{prefix}{message}")
+        return
+
+    # Rich is enabled - use styled text
+    from rich.text import Text
+
+    styled = Text(f"{prefix}{message}", style=style)
+    get_console().print(styled)
+
+
+def print_separator(
+    logger: logging.Logger | None = None,
+) -> None:
+    """
+    Print a separator line using Rich styling if available.
+    Uses terminal width when Rich is enabled, falls back to 60 for plain text.
+
+    Args:
+        logger: Logger to use for fallback output when Rich is disabled
+    """
+    if not is_rich_enabled():
+        # Fallback to plain text using the provided logger
+        if logger is not None:
+            logger.info("=" * 60)
+        return
+
+    # Rich is enabled - use a styled separator with terminal width
+    console = get_console()
+    separator = "─" * console.width
+    console.print(separator, style="cyan")
+
+
 class ProgressReporter:
     """
     Handles progress reporting for the migration process.

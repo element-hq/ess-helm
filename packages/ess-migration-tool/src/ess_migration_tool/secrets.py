@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 
 from .interfaces import SecretDiscoveryStrategy
 from .models import DiscoverableSecret, DiscoveredSecret, DiscoveredSecretTracking, GlobalOptions, SecretConfig
-from .rich_output import print_section
+from .rich_output import print_section, print_separator
 from .utils import (
     find_matching_schema_key,
     get_nested_value,
@@ -328,4 +328,4 @@ class SecretDiscovery:
             self.pretty_logger.info(f"   ✅ Secret stored for {secret_key}")
 
         self.pretty_logger.info(f"\n✅ All required {component_name} secrets have been provided")
-        self.pretty_logger.info("=" * 60)
+        print_separator(logger=self.pretty_logger)
