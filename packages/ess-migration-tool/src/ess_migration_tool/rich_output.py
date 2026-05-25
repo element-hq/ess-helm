@@ -318,8 +318,7 @@ class ProgressReporter:
         # Pause for user input after each step (unless in quiet mode or testing)
         if not os.environ.get("PYTEST_CURRENT_TEST") and self.pretty_logger.level != logging.CRITICAL:
             self.pretty_logger.info("   Press Enter to continue...")
-            input()
-            self.pretty_logger.info("")
+            get_console().input()
 
     def report_success(self, output_dir: str, file_paths: list[str]) -> None:
         """Report successful completion.
