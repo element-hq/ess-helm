@@ -923,6 +923,7 @@ dependencies = [
     { name = "jsonschema" },
     { name = "pyyaml" },
     { name = "rapidfuzz" },
+    { name = "rich" },
 ]
 
 [package.metadata]
@@ -931,6 +932,7 @@ requires-dist = [
     { name = "jsonschema", specifier = ">=4.26.0" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "rapidfuzz", specifier = ">=3.14.3" },
+    { name = "rich", specifier = ">=13.0.0" },
 ]
 
 [[package]]

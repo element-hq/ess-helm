@@ -10,6 +10,7 @@ Main CLI entry point for the migration script.
 
 import argparse
 import logging
+import os
 from dataclasses import dataclass, field
 
 from .element_web import ELEMENT_WEB_STRATEGY_NAME
@@ -19,6 +20,7 @@ from .inputs import InputProcessor, ValidationError
 from .mas import MAS_STRATEGY_NAME, parse_postgres_uri
 from .models import MigrationError
 from .outputs import generate_helm_values, write_outputs
+from .rich_output import print_table
 from .synapse import SYNAPSE_STRATEGY_NAME
 from .utils import press_enter_to_continue, prompt_for_database_choice
 
@@ -204,12 +206,39 @@ Examples:
     pretty_logger.propagate = False
     pretty_logger.setLevel(logging.CRITICAL if args.quiet else logging.INFO)
     pretty_sh = logging.StreamHandler()
-    pretty_sh.setFormatter(
-        logging.Formatter(
-            "%(message)s",
+    # Use rich for colored output if available and not running in a test environment
+    # RichHandler doesn't work well with pytest's capsys, so we detect pytest via PYTEST_CURRENT_TEST env var
+    # Similar logic to press_enter_to_continue function in utils.py
+    is_pytest = bool(os.environ.get("PYTEST_CURRENT_TEST"))
+    if not is_pytest:
+        # Try to use rich for colored output
+        try:
+            from rich.logging import RichHandler
+
+            pretty_handler = RichHandler(
+                rich_tracebacks=False,
+                show_time=False,
+                show_level=False,
+                show_path=False,
+                enable_link_path=False,
+            )
+            pretty_logger.addHandler(pretty_handler)
+        except ImportError:
+            # Fallback to basic formatter if rich is not installed
+            pretty_sh.setFormatter(
+                logging.Formatter(
+                    "%(message)s",
+                )
+            )
+            pretty_logger.addHandler(pretty_sh)
+    else:
+        # Use basic formatter for pytest compatibility
+        pretty_sh.setFormatter(
+            logging.Formatter(
+                "%(message)s",
+            )
         )
-    )
-    pretty_logger.addHandler(pretty_sh)
+        pretty_logger.addHandler(pretty_sh)
 
     # Set up progress reporter
     reporter = ProgressReporter(pretty_logger=pretty_logger)
@@ -306,14 +335,30 @@ Examples:
         # Show successfully migrated values with source and target mapping
         if migration_mapping:
             pretty_logger.info("✅ ESS COMMUNITY VALUES CREATED SUCCESSFULLY :")
+            # Prepare table data for migration mappings
+            table_data = []
             for source_path, (source_file, target_path) in sorted(migration_mapping.items()):
-                pretty_logger.info(f"   • {source_file}: {source_path} → {target_path}")
+                table_data.append([source_file, source_path, target_path])
+            print_table(
+                table_data,
+                headers=["Source", "Path", "Target"],
+                title="Migrated Values",
+                logger=pretty_logger,
+            )
             press_enter_to_continue(pretty_logger)
 
         if engine.ess_config["synapse"].get("workers"):
             pretty_logger.info("📝 Discovered and enabled the following Synapse workers")
+            # Prepare table data for workers
+            worker_data = []
             for worker_type, worker_props in engine.ess_config["synapse"]["workers"].items():
-                pretty_logger.info(f"   -   {worker_type} (replicas: {worker_props['replicas']})")
+                worker_data.append([worker_type, str(worker_props["replicas"])])
+            print_table(
+                worker_data,
+                headers=["Worker", "Replicas"],
+                title="Synapse Workers",
+                logger=pretty_logger,
+            )
             # ask user to take a second look
             pretty_logger.info("   ⚠️  Please review the workers in your values files before proceeding.\n")
         else:
@@ -321,18 +366,35 @@ Examples:
         if engine.discovered_secrets:
             press_enter_to_continue(pretty_logger)
             pretty_logger.info("🔐 MIGRATED SECRETS:")
+            # Prepare table data for secrets
+            secret_data = []
             for discovered_secret in engine.discovered_secrets:
-                pretty_logger.info(
-                    f"   • {discovered_secret.source_file}: {discovered_secret.config_key} → "
-                    f"{discovered_secret.secret_key}"
+                secret_data.append(
+                    [
+                        discovered_secret.source_file,
+                        discovered_secret.config_key,
+                        discovered_secret.secret_key,
+                    ]
                 )
+            print_table(
+                secret_data,
+                headers=["Source File", "Config Key", "Secret Path in Values"],
+                title="Migrated Secrets",
+                logger=pretty_logger,
+            )
 
         if engine.init_by_ess_secrets:
             press_enter_to_continue(pretty_logger)
             pretty_logger.info("\n⚠️  ESS-INITIALIZED SECRETS:")
             pretty_logger.info("The following Synapse secrets will be auto-generated by ESS:")
-            for secret in engine.init_by_ess_secrets:
-                pretty_logger.info(f"   • {secret}")
+            # Prepare table data for auto-generated secrets
+            init_secret_data = [[secret] for secret in engine.init_by_ess_secrets]
+            print_table(
+                init_secret_data,
+                headers=["Secret Path in Values"],
+                title="Auto-Generated Secrets",
+                logger=pretty_logger,
+            )
             pretty_logger.info(
                 "These secrets are not required for migration but will be created automatically during deployment."
             )
@@ -344,12 +406,18 @@ Examples:
             pretty_logger.info("\n⚠️  ESS-MANAGED COMPONENTS CONFIGURATIONS DETECTED:")
             pretty_logger.info(
                 "   These components settings are managed by ESS Community and"
-                "your settings may be overriden if they are not configurable in ESS:"
+                " your settings may be overriden if they are not configurable in ESS:"
             )
             press_enter_to_continue(pretty_logger)
 
-            for warning in engine.override_warnings:
-                pretty_logger.info(f"   • {warning}")
+            # Prepare table data for override warnings
+            override_data = [[warning] for warning in engine.override_warnings]
+            print_table(
+                override_data,
+                headers=["Warning"],
+                title="Override Warnings",
+                logger=pretty_logger,
+            )
 
             press_enter_to_continue(pretty_logger)
             pretty_logger.info("❗ ACTION REQUIRED:")
@@ -364,8 +432,14 @@ Examples:
             pretty_logger.info("   These settings have ESS defaults that your values will override:")
             press_enter_to_continue(pretty_logger)
 
-            for warning in engine.underride_warnings:
-                pretty_logger.info(f"   • {warning}")
+            # Prepare table data for underride warnings
+            underride_data = [[warning] for warning in engine.underride_warnings]
+            print_table(
+                underride_data,
+                headers=["Warning"],
+                title="Underride Warnings",
+                logger=pretty_logger,
+            )
 
             press_enter_to_continue(pretty_logger)
 
