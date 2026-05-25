@@ -12,6 +12,8 @@ import argparse
 import logging
 import os
 
+from rich.logging import RichHandler
+
 from .element_web import ELEMENT_WEB_STRATEGY_NAME
 from .engine import MigrationEngine
 from .hookshot import HOOKSHOT_STRATEGY_NAME
@@ -164,26 +166,14 @@ Examples:
     # Similar logic to press_enter_to_continue function in utils.py
     is_pytest = bool(os.environ.get("PYTEST_CURRENT_TEST"))
     if not is_pytest:
-        # Try to use rich for colored output
-        try:
-            from rich.logging import RichHandler
-
-            pretty_handler = RichHandler(
-                rich_tracebacks=False,
-                show_time=False,
-                show_level=False,
-                show_path=False,
-                enable_link_path=False,
-            )
-            pretty_logger.addHandler(pretty_handler)
-        except ImportError:
-            # Fallback to basic formatter if rich is not installed
-            pretty_sh.setFormatter(
-                logging.Formatter(
-                    "%(message)s",
-                )
-            )
-            pretty_logger.addHandler(pretty_sh)
+        pretty_handler = RichHandler(
+            rich_tracebacks=False,
+            show_time=False,
+            show_level=False,
+            show_path=False,
+            enable_link_path=False,
+        )
+        pretty_logger.addHandler(pretty_handler)
     else:
         # Use basic formatter for pytest compatibility
         pretty_sh.setFormatter(
