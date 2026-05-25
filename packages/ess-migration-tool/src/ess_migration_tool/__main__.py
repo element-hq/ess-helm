@@ -272,6 +272,9 @@ Examples:
             output_dir=args.output_dir,
         )
 
+        # Collect all written file paths for display
+        all_file_paths = [values_path] + secret_paths + configmap_paths
+
         # Display migration summary
         press_enter_to_continue(pretty_logger)
         print_section("📊 MIGRATION SUMMARY", logger=pretty_logger)
@@ -606,7 +609,7 @@ Examples:
 
         print_separator(logger=pretty_logger)
 
-        reporter.report_success(args.output_dir)
+        reporter.report_success(args.output_dir, all_file_paths)
         logging.info("Migration completed successfully!")
         logging.info(f"Output files written to: {args.output_dir}")
         return 0

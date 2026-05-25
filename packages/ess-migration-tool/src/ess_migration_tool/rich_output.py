@@ -10,6 +10,7 @@ Provides styled console output using the Rich library for tables.
 
 import logging
 import os
+from pathlib import Path
 from typing import Any
 
 from rich import box
@@ -18,6 +19,7 @@ from rich.panel import Panel
 from rich.syntax import Syntax
 from rich.table import Table
 from rich.text import Text
+from rich.tree import Tree
 
 # Global console instance
 _console: Console | None = None
@@ -193,8 +195,6 @@ def print_prompt(
         return
 
     # Rich is enabled - use styled text
-    from rich.text import Text
-
     styled = Text(f"{prefix}{message}", style=style)
     get_console().print(styled)
 
@@ -219,6 +219,43 @@ def print_separator(
     console = get_console()
     separator = "─" * console.width
     console.print(separator, style="cyan")
+
+
+def print_output_tree(
+    output_dir: str,
+    file_paths: list[str],
+    logger: logging.Logger | None = None,
+) -> None:
+    """
+    Print the output directory file tree using Rich styling if available.
+
+    Args:
+        output_dir: Path to the output directory
+        file_paths: List of file paths to display
+        logger: Logger to use for fallback output when Rich is disabled
+    """
+    if not is_rich_enabled():
+        if logger is not None:
+            logger.info(f"📁 Output files written to: {output_dir}")
+        return
+
+    console = get_console()
+    output_path = Path(output_dir)
+
+    tree = Tree(
+        Text(f"📁 {output_path.name}", style="bold white"),
+        guide_style="cyan",
+    )
+
+    for file_path in sorted(file_paths):
+        path_obj = Path(file_path)
+        try:
+            relative = path_obj.relative_to(output_path)
+        except ValueError:
+            relative = path_obj
+        tree.add(Text(str(relative), style="green"))
+
+    console.print(tree)
 
 
 class ProgressReporter:
@@ -284,14 +321,21 @@ class ProgressReporter:
             input()
             self.pretty_logger.info("")
 
-    def report_success(self, output_dir: str) -> None:
-        """Report successful completion."""
-        self.pretty_logger.info("✅ Migration completed successfully!")
-        self.pretty_logger.info(f"📁 Output files written to: {output_dir}")
-        self.pretty_logger.info("🎉 Ready to deploy with Element Server Suite!")
+    def report_success(self, output_dir: str, file_paths: list[str]) -> None:
+        """Report successful completion.
+
+        Args:
+            output_dir: Path to the output directory
+            file_paths: Optional list of file paths that were written
+        """
+        print_prompt("✅ Migration completed successfully!", logger=self.pretty_logger, style="bold green")
+        print_output_tree(output_dir, file_paths, logger=self.pretty_logger)
+        print_prompt("🎉 Ready to deploy with Element Server Suite!", logger=self.pretty_logger, style="bold magenta")
 
     def report_failure(self, error: str) -> None:
         """Report migration failure."""
-        self.pretty_logger.info("❌ Migration failed!")
-        self.pretty_logger.info(f"💥 Error: {error}")
-        self.pretty_logger.info("📚 Check logs for details and try again.")
+        print_prompt("❌ Migration failed!", style="bold red", logger=self.pretty_logger, prefix="")
+        print_prompt(f"💥 Error: {error}", style="bold red", logger=self.pretty_logger, prefix="")
+        print_prompt(
+            "📚 Check logs for details and try again.", style="bold yellow", logger=self.pretty_logger, prefix=""
+        )
