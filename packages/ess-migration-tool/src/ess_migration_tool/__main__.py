@@ -18,7 +18,7 @@ from .hookshot import HOOKSHOT_STRATEGY_NAME
 from .inputs import InputProcessor, ValidationError
 from .mas import MAS_STRATEGY_NAME, parse_postgres_uri
 from .outputs import generate_helm_values, write_outputs
-from .rich_output import ProgressReporter, print_section, print_table
+from .rich_output import ProgressReporter, log_command, print_section, print_table
 from .synapse import SYNAPSE_STRATEGY_NAME
 from .utils import press_enter_to_continue, prompt_for_database_choice
 
@@ -412,7 +412,7 @@ Examples:
 
         pretty_logger.info(f"{step_number}. Create Kubernetes namespace:")
         step_number += 1
-        pretty_logger.info("   kubectl create namespace ess")
+        log_command("kubectl create namespace ess", logger=pretty_logger)
 
         # Check if there are configmaps or secrets to apply
         has_configmaps = len(configmap_paths) > 0
@@ -423,17 +423,18 @@ Examples:
             step_number += 1
             if has_configmaps:
                 for configmap_path in configmap_paths:
-                    pretty_logger.info(f"   kubectl apply -f {configmap_path} -n ess")
+                    log_command(f"kubectl apply -f {configmap_path} -n ess", logger=pretty_logger)
             if has_secrets:
                 for secret_path in secret_paths:
-                    pretty_logger.info(f"   kubectl apply -f {secret_path} -n ess")
+                    log_command(f"kubectl apply -f {secret_path} -n ess", logger=pretty_logger)
             pretty_logger.info("")
 
         pretty_logger.info(f"{step_number}.Install ESS using Helm with the generated values:")
         step_number += 1
-        pretty_logger.info(
-            f'   helm upgrade --install --namespace "ess" ess '
-            f"oci://ghcr.io/element-hq/ess-helm/matrix-stack -f {values_path} --wait"
+        log_command(
+            f'helm upgrade --install --namespace "ess" ess '
+            f"oci://ghcr.io/element-hq/ess-helm/matrix-stack -f {values_path} --wait",
+            logger=pretty_logger,
         )
         press_enter_to_continue(pretty_logger)
 
@@ -445,7 +446,10 @@ Examples:
 
         if original_media_path:
             pretty_logger.info(f"{step_number}. Copy media from your existing setup to ESS persistent volume:")
-            pretty_logger.info(f"   kubectl cp {original_media_path} ess-synapse-0:/media/media_store -n ess")
+            log_command(
+                f"kubectl cp {original_media_path} ess-synapse-0:/media/media_store -n ess",
+                logger=pretty_logger,
+            )
             press_enter_to_continue(pretty_logger)
 
         pretty_logger.info("📚 For more details on deployment and data migration, refer to the ESS documentation.")
@@ -486,12 +490,14 @@ Examples:
             # Step 1: Stop workloads before importing
             step_number = 1
             pretty_logger.info(f"{step_number}. Stop Synapse and MAS workloads before importing:")
-            pretty_logger.info(
-                '   kubectl scale sts -l "app.kubernetes.io/component=matrix-server" -n ess --replicas=0'
+            log_command(
+                'kubectl scale sts -l "app.kubernetes.io/component=matrix-server" -n ess --replicas=0',
+                logger=pretty_logger,
             )
             if mas_input:
-                pretty_logger.info(
-                    '   kubectl scale deploy -l "app.kubernetes.io/component=matrix-authentication" -n ess --replicas=0'
+                log_command(
+                    'kubectl scale deploy -l "app.kubernetes.io/component=matrix-authentication" -n ess --replicas=0',
+                    logger=pretty_logger,
                 )
             press_enter_to_continue(pretty_logger)
 
@@ -499,11 +505,14 @@ Examples:
 
             # Step 2: Create database dumps
             pretty_logger.info(f"{step_number}. After ESS is deployed, create database dumps for Synapse:")
-            pretty_logger.info(f"   pg_dump -C -U {source_synapse_user} -d {source_synapse_db} > synapse.sql")
+            log_command(
+                f"pg_dump -C -U {source_synapse_user} -d {source_synapse_db} > synapse.sql",
+                logger=pretty_logger,
+            )
 
             # Only show MAS dump instructions if MAS is being migrated
             if mas_input:
-                pretty_logger.info(f"   pg_dump -C -U {source_mas_user} -d {source_mas_db} > mas.sql")
+                log_command(f"pg_dump -C -U {source_mas_user} -d {source_mas_db} > mas.sql", logger=pretty_logger)
 
             press_enter_to_continue(pretty_logger)
             step_number += 1
@@ -520,50 +529,60 @@ Examples:
                 # Only show database name transformation if source and target are different
                 if source_synapse_db != target_synapse_db:
                     pretty_logger.info("   # Replace source database names with ESS database names")
-                    pretty_logger.info(
-                        f"   sed -i 's/DATABASE {source_synapse_db}/DATABASE {target_synapse_db}/' synapse.sql"
+                    log_command(
+                        f"sed -i 's/DATABASE {source_synapse_db}/DATABASE {target_synapse_db}/' synapse.sql",
+                        logger=pretty_logger,
                     )
 
                 # Only show MAS database transformation if MAS is being migrated and names are different
                 if mas_input and source_mas_db != target_mas_db:
-                    pretty_logger.info(f"   sed -i 's/DATABASE {source_mas_db}/DATABASE {target_mas_db}/' mas.sql")
+                    log_command(
+                        f"sed -i 's/DATABASE {source_mas_db}/DATABASE {target_mas_db}/' mas.sql",
+                        logger=pretty_logger,
+                    )
 
                 # Only show owner transformation if source and target are different
                 if source_synapse_user != target_synapse_user:
                     pretty_logger.info("   # Replace source owners with ESS owners")
-                    pretty_logger.info(
-                        f"   sed -i 's/OWNER TO.*{source_synapse_user}/OWNER TO {target_synapse_user}/' synapse.sql"
+                    log_command(
+                        f"sed -i 's/OWNER TO.*{source_synapse_user}/OWNER TO {target_synapse_user}/' synapse.sql",
+                        logger=pretty_logger,
                     )
 
                 # Only show MAS owner transformation if MAS is being migrated and owners are different
                 if mas_input and source_mas_user != target_mas_user:
-                    pretty_logger.info(f"   sed -i 's/OWNER TO.*{source_mas_user}/OWNER TO {target_mas_user}/' mas.sql")
+                    log_command(
+                        f"sed -i 's/OWNER TO.*{source_mas_user}/OWNER TO {target_mas_user}/' mas.sql",
+                        logger=pretty_logger,
+                    )
 
                 press_enter_to_continue(pretty_logger)
                 step_number += 1
 
             # Step: Copy the dumps
             pretty_logger.info(f"{step_number}. Copy the dumps to the ESS PostgreSQL pod:")
-            pretty_logger.info("   kubectl cp synapse.sql ess-postgres-0:/tmp -n ess")
+            log_command("kubectl cp synapse.sql ess-postgres-0:/tmp -n ess", logger=pretty_logger)
 
             # Only show MAS copy instructions if MAS is being migrated
             if mas_input:
-                pretty_logger.info("   kubectl cp mas.sql ess-postgres-0:/tmp -n ess")
+                log_command("kubectl cp mas.sql ess-postgres-0:/tmp -n ess", logger=pretty_logger)
 
             press_enter_to_continue(pretty_logger)
             step_number += 1
 
             # Step: Import the dumps
             pretty_logger.info(f"{step_number}. Import the dumps into the ESS-managed PostgreSQL:")
-            pretty_logger.info(
-                '   kubectl exec -n ess sts/ess-postgres -- bash -c "psql -U postgres -d synapse < /tmp/synapse.sql"'
+            log_command(
+                'kubectl exec -n ess sts/ess-postgres -- bash -c "psql -U postgres -d synapse < /tmp/synapse.sql"',
+                logger=pretty_logger,
             )
 
             # Only show MAS import instructions if MAS is being migrated
             if mas_input:
-                pretty_logger.info(
-                    '   kubectl exec -n ess sts/ess-postgres -- bash -c "psql -U postgres -d '
-                    'matrixauthenticationservice < /tmp/mas.sql"'
+                log_command(
+                    'kubectl exec -n ess sts/ess-postgres -- bash -c "psql -U postgres -d '
+                    'matrixauthenticationservice < /tmp/mas.sql"',
+                    logger=pretty_logger,
                 )
 
             pretty_logger.info("")
@@ -571,14 +590,16 @@ Examples:
 
             # Step: Restart workloads
             pretty_logger.info(f"{step_number}. Restart Synapse and MAS to use the imported data:")
-            pretty_logger.info(
-                '   kubectl scale sts -l "app.kubernetes.io/component=matrix-server" -n ess --replicas=1'
+            log_command(
+                'kubectl scale sts -l "app.kubernetes.io/component=matrix-server" -n ess --replicas=1',
+                logger=pretty_logger,
             )
 
             # Only show MAS restart instructions if MAS is being migrated
             if mas_input:
-                pretty_logger.info(
-                    '   kubectl scale deploy -l "app.kubernetes.io/component=matrix-authentication" -n ess --replicas=1'
+                log_command(
+                    'kubectl scale deploy -l "app.kubernetes.io/component=matrix-authentication" -n ess --replicas=1',
+                    logger=pretty_logger,
                 )
 
             press_enter_to_continue(pretty_logger)

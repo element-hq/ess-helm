@@ -15,6 +15,7 @@ from typing import Any
 from rich import box
 from rich.console import Console
 from rich.panel import Panel
+from rich.syntax import Syntax
 from rich.table import Table
 from rich.text import Text
 
@@ -146,6 +147,28 @@ def print_header(
 
     # Rich is enabled - use styled text without panel
     get_console().print(Text(text, style=style))
+
+
+def log_command(
+    command: str,
+    logger: logging.Logger | None = None,
+) -> None:
+    """
+    Display a command with syntax highlighting using Rich.
+
+    Args:
+        command: The command string to display
+        logger: Logger for fallback output when Rich is disabled
+    """
+    if not is_rich_enabled():
+        # Fallback to plain text using the provided logger
+        if logger is not None:
+            logger.info(f"   {command}")
+        return
+
+    # Rich is enabled - use syntax highlighting
+    syntax = Syntax(command, "bash", theme="monokai")
+    get_console().print(syntax)
 
 
 class ProgressReporter:
