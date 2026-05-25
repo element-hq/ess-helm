@@ -275,7 +275,7 @@ def test_main_e2e_synapse_with_mas(
     assert "'database.args.password' found in synapse.additional[\"00-imported.yaml\"].config" not in log_output
 
     # Verify underride warnings for MAS
-    assert "ESS DEFAULT CONFIGURATIONS FOUND:" in log_output
+    assert "DEVIATION FROM ESS COMMUNITY DEFAULT CONFIGURATIONS FOUND:" in log_output
     assert "These settings have ESS defaults that your values will override:" in log_output
     # Sample MAS policy config underride warnings
     assert "'policy.data.admin_clients' found in" in log_output
@@ -1008,7 +1008,7 @@ def test_main_e2e_synapse_with_element_web(
 
     # Verify underride warnings for Element Web
     # default_server_config is in underride_configs, so we should see an informational warning
-    assert "ESS DEFAULT CONFIGURATIONS FOUND:" in log_output, (
+    assert "DEVIATION FROM ESS COMMUNITY DEFAULT CONFIGURATIONS FOUND:" in log_output, (
         "Expected underride warnings section for Element Web defaults"
     )
     assert "These settings have ESS defaults that your values will override:" in log_output

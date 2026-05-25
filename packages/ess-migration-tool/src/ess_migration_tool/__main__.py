@@ -305,7 +305,7 @@ Examples:
 
         # Show successfully migrated values with source and target mapping
         if migration_mapping:
-            pretty_logger.info("✅ SUCCESSFULLY MIGRATED TO ESS:")
+            pretty_logger.info("✅ ESS COMMUNITY VALUES CREATED SUCCESSFULLY :")
             for source_path, (source_file, target_path) in sorted(migration_mapping.items()):
                 pretty_logger.info(f"   • {source_file}: {source_path} → {target_path}")
             press_enter_to_continue(pretty_logger)
@@ -341,8 +341,11 @@ Examples:
         # Show override warnings within the migration summary
         if engine.override_warnings:
             press_enter_to_continue(pretty_logger)
-            pretty_logger.info("\n⚠️  ESS-MANAGED OVERRIDES FOUND:")
-            pretty_logger.info("   These settings are managed by ESS and your values may be ignored:")
+            pretty_logger.info("\n⚠️  ESS-MANAGED COMPONENTS CONFIGURATIONS DETECTED:")
+            pretty_logger.info(
+                "   These components settings are managed by ESS Community and"
+                "your settings may be overriden if they are not configurable in ESS:"
+            )
             press_enter_to_continue(pretty_logger)
 
             for warning in engine.override_warnings:
@@ -357,7 +360,7 @@ Examples:
         # Show underride warnings within the migration summary
         if engine.underride_warnings:
             press_enter_to_continue(pretty_logger)
-            pretty_logger.info("\nℹ️  ESS DEFAULT CONFIGURATIONS FOUND:")
+            pretty_logger.info("\nℹ️  DEVIATION FROM ESS COMMUNITY DEFAULT CONFIGURATIONS FOUND:")
             pretty_logger.info("   These settings have ESS defaults that your values will override:")
             press_enter_to_continue(pretty_logger)
 
