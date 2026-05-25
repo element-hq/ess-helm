@@ -11,16 +11,14 @@ Main CLI entry point for the migration script.
 import argparse
 import logging
 import os
-from dataclasses import dataclass, field
 
 from .element_web import ELEMENT_WEB_STRATEGY_NAME
 from .engine import MigrationEngine
 from .hookshot import HOOKSHOT_STRATEGY_NAME
 from .inputs import InputProcessor, ValidationError
 from .mas import MAS_STRATEGY_NAME, parse_postgres_uri
-from .models import MigrationError
 from .outputs import generate_helm_values, write_outputs
-from .rich_output import print_section, print_table
+from .rich_output import ProgressReporter, print_section, print_table
 from .synapse import SYNAPSE_STRATEGY_NAME
 from .utils import press_enter_to_continue, prompt_for_database_choice
 
@@ -30,51 +28,6 @@ GENERATING_VALUES_STEP = "Generating Helm values"
 WRITING_OUTPUTS_STEP = "Writing output files"
 
 logger = logging.getLogger("migration")
-
-
-@dataclass
-class ProgressReporter:
-    """Handles progress reporting for the migration process."""
-
-    pretty_logger: logging.Logger
-    verbose: bool = field(default=False)
-    current_step: int = field(default=-1)
-    all_steps: list[str] = field(default_factory=list)
-
-    def __post_init__(self):
-        # List of steps and the order we expect to report
-        self.all_steps = [
-            LOADING_STEP,
-            MIGRATING_STEP,
-            GENERATING_VALUES_STEP,
-            WRITING_OUTPUTS_STEP,
-        ]
-
-    def start_migration(self):
-        """Report migration start."""
-        self.pretty_logger.info("🚀 Starting ESS Migration")
-
-    def report_step(self, step_name: str):
-        """Report progress on a specific step."""
-        if step_name != self.all_steps[self.current_step + 1]:
-            raise MigrationError("Migration engine tried to run an unexpected step")
-
-        self.current_step += 1
-        progress = self.current_step / len(self.all_steps) * 100
-        self.pretty_logger.info(f"📦 Step {self.current_step}/{len(self.all_steps)} ({progress:.0f}%): {step_name}")
-        press_enter_to_continue(self.pretty_logger)
-
-    def report_success(self, output_dir: str):
-        """Report successful completion."""
-        self.pretty_logger.info("✅ Migration completed successfully!")
-        self.pretty_logger.info(f"📁 Output files written to: {output_dir}")
-        self.pretty_logger.info("🎉 Ready to deploy with Element Server Suite!")
-
-    def report_failure(self, error: str):
-        """Report migration failure."""
-        self.pretty_logger.info("❌ Migration failed!")
-        self.pretty_logger.info(f"💥 Error: {error}")
-        self.pretty_logger.info("📚 Check logs for details and try again.")
 
 
 def main() -> int:
@@ -241,7 +194,17 @@ Examples:
         pretty_logger.addHandler(pretty_sh)
 
     # Set up progress reporter
-    reporter = ProgressReporter(pretty_logger=pretty_logger)
+    steps = [
+        LOADING_STEP,
+        MIGRATING_STEP,
+        GENERATING_VALUES_STEP,
+        WRITING_OUTPUTS_STEP,
+    ]
+    reporter = ProgressReporter(
+        pretty_logger=pretty_logger,
+        steps=steps,
+        verbose=args.verbose,
+    )
 
     try:
         reporter.start_migration()

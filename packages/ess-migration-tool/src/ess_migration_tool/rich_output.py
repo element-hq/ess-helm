@@ -122,3 +122,103 @@ def print_section(
         padding=(0, 2),
     )
     get_console().print(panel)
+
+
+def print_header(
+    text: str,
+    style: str = "bold green",
+    logger: logging.Logger | None = None,
+) -> None:
+    """
+    Print a styled header using Rich if available, otherwise use plain text.
+    This is distinct from section headers - uses green color without a panel.
+
+    Args:
+        text: The header text to display
+        style: Rich style string for the text (default: "bold green")
+        logger: Logger to use for fallback output
+    """
+    if not is_rich_enabled():
+        # Fallback to plain text using the provided logger
+        if logger is not None:
+            logger.info(f"\n{text}")
+        return
+
+    # Rich is enabled - use styled text without panel
+    get_console().print(Text(text, style=style))
+
+
+class ProgressReporter:
+    """
+    Handles progress reporting for the migration process.
+    Uses Rich for styled output when available.
+    """
+
+    def __init__(
+        self,
+        pretty_logger: logging.Logger,
+        steps: list[str],
+        *,
+        verbose: bool = False,
+    ) -> None:
+        """
+        Initialize the progress reporter.
+
+        Args:
+            pretty_logger: Logger for output
+            steps: List of step names in order
+            verbose: Enable verbose logging
+        """
+        self.pretty_logger = pretty_logger
+        self.verbose = verbose
+        self.current_step: int = -1
+        self.all_steps = steps
+
+    def start_migration(self) -> None:
+        """Report migration start."""
+        print_header("🚀 Starting ESS Migration", logger=self.pretty_logger)
+
+    def report_step(self, step_name: str) -> None:
+        """Report progress on a specific step."""
+        if step_name != self.all_steps[self.current_step + 1]:
+            raise ValueError("Migration engine tried to run an unexpected step")
+
+        self.current_step += 1
+        progress = (self.current_step + 1) / len(self.all_steps) * 100
+
+        # Build a styled progress bar using block characters
+        bar_width = 10
+        completed = int(progress / 100 * bar_width)
+        bar = "[" + "▰" * completed + "▱" * (bar_width - completed) + "]"
+
+        if is_rich_enabled():
+            # Rich is enabled - use styled output
+            step_msg_rich = Text.assemble(
+                (f"📦 Step {self.current_step + 1}/{len(self.all_steps)} ", "bold"),
+                (f"{progress:.0f}% ", "green"),
+                (bar + " ", "green"),
+                (step_name, "bold white"),
+            )
+            get_console().print(step_msg_rich)
+        else:
+            # Fallback to plain text for non-Rich environments
+            step_msg_plain = f"📦 Step {self.current_step + 1}/{len(self.all_steps)} ({progress:.0f}%): {step_name}"
+            self.pretty_logger.info(step_msg_plain)
+
+        # Pause for user input after each step (unless in quiet mode or testing)
+        if not os.environ.get("PYTEST_CURRENT_TEST") and self.pretty_logger.level != logging.CRITICAL:
+            self.pretty_logger.info("   Press Enter to continue...")
+            input()
+            self.pretty_logger.info("")
+
+    def report_success(self, output_dir: str) -> None:
+        """Report successful completion."""
+        self.pretty_logger.info("✅ Migration completed successfully!")
+        self.pretty_logger.info(f"📁 Output files written to: {output_dir}")
+        self.pretty_logger.info("🎉 Ready to deploy with Element Server Suite!")
+
+    def report_failure(self, error: str) -> None:
+        """Report migration failure."""
+        self.pretty_logger.info("❌ Migration failed!")
+        self.pretty_logger.info(f"💥 Error: {error}")
+        self.pretty_logger.info("📚 Check logs for details and try again.")
