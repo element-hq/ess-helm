@@ -16,6 +16,7 @@ from rich import box
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
+from rich.text import Text
 
 # Global console instance
 _console: Console | None = None
@@ -87,3 +88,37 @@ def print_table(
         get_console().print(panel)
     else:
         get_console().print(table)
+
+
+def print_section(
+    text: str,
+    style: str = "bold cyan",
+    border_style: str = "cyan",
+    logger: logging.Logger | None = None,
+    separator: str = "=",
+) -> None:
+    """
+    Print a styled section header using Rich if available, otherwise use plain text.
+
+    Args:
+        text: The section header text to display
+        style: Rich style string for the text (default: "bold cyan")
+        border_style: Rich style string for the border/panel (default: "cyan")
+        logger: Logger to use for fallback output
+        separator: Character to use for separator line in plain text mode (default: "=")
+    """
+    if not is_rich_enabled():
+        # Fallback to plain text using the provided logger
+        if logger is not None:
+            logger.info(f"\n{text}")
+            logger.info(separator * len(text))
+        return
+
+    # Rich is enabled - use styled panel for section header
+    panel = Panel(
+        Text(text, style=style),
+        border_style=border_style,
+        box=box.ROUNDED,
+        padding=(0, 2),
+    )
+    get_console().print(panel)
