@@ -11,16 +11,14 @@ Main CLI entry point for the migration script.
 import argparse
 import logging
 import os
-from dataclasses import dataclass, field
 
 from .element_web import ELEMENT_WEB_STRATEGY_NAME
 from .engine import MigrationEngine
 from .hookshot import HOOKSHOT_STRATEGY_NAME
 from .inputs import InputProcessor, ValidationError
 from .mas import MAS_STRATEGY_NAME, parse_postgres_uri
-from .models import MigrationError
 from .outputs import generate_helm_values, write_outputs
-from .rich_output import print_table
+from .rich_output import ProgressReporter, print_section, print_table
 from .synapse import SYNAPSE_STRATEGY_NAME
 from .utils import press_enter_to_continue, prompt_for_database_choice
 
@@ -30,51 +28,6 @@ GENERATING_VALUES_STEP = "Generating Helm values"
 WRITING_OUTPUTS_STEP = "Writing output files"
 
 logger = logging.getLogger("migration")
-
-
-@dataclass
-class ProgressReporter:
-    """Handles progress reporting for the migration process."""
-
-    pretty_logger: logging.Logger
-    verbose: bool = field(default=False)
-    current_step: int = field(default=-1)
-    all_steps: list[str] = field(default_factory=list)
-
-    def __post_init__(self):
-        # List of steps and the order we expect to report
-        self.all_steps = [
-            LOADING_STEP,
-            MIGRATING_STEP,
-            GENERATING_VALUES_STEP,
-            WRITING_OUTPUTS_STEP,
-        ]
-
-    def start_migration(self):
-        """Report migration start."""
-        self.pretty_logger.info("🚀 Starting ESS Migration")
-
-    def report_step(self, step_name: str):
-        """Report progress on a specific step."""
-        if step_name != self.all_steps[self.current_step + 1]:
-            raise MigrationError("Migration engine tried to run an unexpected step")
-
-        self.current_step += 1
-        progress = self.current_step / len(self.all_steps) * 100
-        self.pretty_logger.info(f"📦 Step {self.current_step}/{len(self.all_steps)} ({progress:.0f}%): {step_name}")
-        press_enter_to_continue(self.pretty_logger)
-
-    def report_success(self, output_dir: str):
-        """Report successful completion."""
-        self.pretty_logger.info("✅ Migration completed successfully!")
-        self.pretty_logger.info(f"📁 Output files written to: {output_dir}")
-        self.pretty_logger.info("🎉 Ready to deploy with Element Server Suite!")
-
-    def report_failure(self, error: str):
-        """Report migration failure."""
-        self.pretty_logger.info("❌ Migration failed!")
-        self.pretty_logger.info(f"💥 Error: {error}")
-        self.pretty_logger.info("📚 Check logs for details and try again.")
 
 
 def main() -> int:
@@ -241,7 +194,17 @@ Examples:
         pretty_logger.addHandler(pretty_sh)
 
     # Set up progress reporter
-    reporter = ProgressReporter(pretty_logger=pretty_logger)
+    steps = [
+        LOADING_STEP,
+        MIGRATING_STEP,
+        GENERATING_VALUES_STEP,
+        WRITING_OUTPUTS_STEP,
+    ]
+    reporter = ProgressReporter(
+        pretty_logger=pretty_logger,
+        steps=steps,
+        verbose=args.verbose,
+    )
 
     try:
         reporter.start_migration()
@@ -311,8 +274,7 @@ Examples:
 
         # Display migration summary
         press_enter_to_continue(pretty_logger)
-        pretty_logger.info("\n📊 MIGRATION SUMMARY")
-        pretty_logger.info("=" * 60)
+        print_section("📊 MIGRATION SUMMARY", logger=pretty_logger)
 
         # Create a comprehensive mapping of source config paths to target ESS paths
         migration_mapping = {}
@@ -334,21 +296,19 @@ Examples:
 
         # Show successfully migrated values with source and target mapping
         if migration_mapping:
-            pretty_logger.info("✅ ESS COMMUNITY VALUES CREATED SUCCESSFULLY :")
             # Prepare table data for migration mappings
             table_data = []
             for source_path, (source_file, target_path) in sorted(migration_mapping.items()):
                 table_data.append([source_file, source_path, target_path])
             print_table(
                 table_data,
-                headers=["Source", "Path", "Target"],
-                title="Migrated Values",
+                headers=["Source", "Path", "ESS Value"],
+                title="✅ ESS COMMUNITY VALUES CREATED SUCCESSFULLY",
                 logger=pretty_logger,
             )
             press_enter_to_continue(pretty_logger)
 
         if engine.ess_config["synapse"].get("workers"):
-            pretty_logger.info("📝 Discovered and enabled the following Synapse workers")
             # Prepare table data for workers
             worker_data = []
             for worker_type, worker_props in engine.ess_config["synapse"]["workers"].items():
@@ -356,16 +316,16 @@ Examples:
             print_table(
                 worker_data,
                 headers=["Worker", "Replicas"],
-                title="Synapse Workers",
+                title="📝 SYNAPSE WORKERS",
                 logger=pretty_logger,
             )
             # ask user to take a second look
             pretty_logger.info("   ⚠️  Please review the workers in your values files before proceeding.\n")
+            press_enter_to_continue(pretty_logger)
         else:
             pretty_logger.info("   ✅ No workers found, using a single main Synapse process")
-        if engine.discovered_secrets:
             press_enter_to_continue(pretty_logger)
-            pretty_logger.info("🔐 MIGRATED SECRETS:")
+        if engine.discovered_secrets:
             # Prepare table data for secrets
             secret_data = []
             for discovered_secret in engine.discovered_secrets:
@@ -379,20 +339,18 @@ Examples:
             print_table(
                 secret_data,
                 headers=["Source File", "Config Key", "Secret Path in Values"],
-                title="Migrated Secrets",
+                title="🔐 MIGRATED SECRETS",
                 logger=pretty_logger,
             )
+            press_enter_to_continue(pretty_logger)
 
         if engine.init_by_ess_secrets:
-            press_enter_to_continue(pretty_logger)
-            pretty_logger.info("\n⚠️  ESS-INITIALIZED SECRETS:")
-            pretty_logger.info("The following Synapse secrets will be auto-generated by ESS:")
             # Prepare table data for auto-generated secrets
             init_secret_data = [[secret] for secret in engine.init_by_ess_secrets]
             print_table(
                 init_secret_data,
                 headers=["Secret Path in Values"],
-                title="Auto-Generated Secrets",
+                title="⚠️  ESS-INITIALIZED SECRETS",
                 logger=pretty_logger,
             )
             pretty_logger.info(
@@ -402,57 +360,51 @@ Examples:
 
         # Show override warnings within the migration summary
         if engine.override_warnings:
-            press_enter_to_continue(pretty_logger)
-            pretty_logger.info("\n⚠️  ESS-MANAGED COMPONENTS CONFIGURATIONS DETECTED:")
-            pretty_logger.info(
-                "   These components settings are managed by ESS Community and"
-                " your settings may be overriden if they are not configurable in ESS:"
-            )
-            press_enter_to_continue(pretty_logger)
-
             # Prepare table data for override warnings
             override_data = [[warning] for warning in engine.override_warnings]
             print_table(
                 override_data,
                 headers=["Warning"],
-                title="Override Warnings",
+                title="⚠️  ESS-MANAGED COMPONENTS CONFIGURATIONS DETECTED",
+                logger=pretty_logger,
+            )
+            pretty_logger.info(
+                "   These components settings are managed by ESS Community and"
+                " your settings may be overriden if they are not configurable in ESS"
+            )
+            press_enter_to_continue(pretty_logger)
+
+            print_section(
+                "❗ ACTION REQUIRED:\n   "
+                "Double-check and maybe remove these settings from your additional configuration to avoid conflicts.",
                 logger=pretty_logger,
             )
 
             press_enter_to_continue(pretty_logger)
-            pretty_logger.info("❗ ACTION REQUIRED:")
-            pretty_logger.info("   Remove these settings from your additional configuration to avoid conflicts.")
-            pretty_logger.info("   They are now automatically managed by the ESS Helm chart.")
-            press_enter_to_continue(pretty_logger)
 
         # Show underride warnings within the migration summary
         if engine.underride_warnings:
-            press_enter_to_continue(pretty_logger)
-            pretty_logger.info("\nℹ️  DEVIATION FROM ESS COMMUNITY DEFAULT CONFIGURATIONS FOUND:")
-            pretty_logger.info("   These settings have ESS defaults that your values will override:")
-            press_enter_to_continue(pretty_logger)
-
             # Prepare table data for underride warnings
             underride_data = [[warning] for warning in engine.underride_warnings]
             print_table(
                 underride_data,
                 headers=["Warning"],
-                title="Underride Warnings",
+                title="ℹ️  DEVIATION FROM ESS COMMUNITY DEFAULT CONFIGURATIONS FOUND",
                 logger=pretty_logger,
             )
 
+            pretty_logger.info("   These settings have ESS defaults that your values will override")
             press_enter_to_continue(pretty_logger)
 
         # Show clean migration message
         if not engine.override_warnings and not engine.underride_warnings:
             press_enter_to_continue(pretty_logger)
-            pretty_logger.info("🎉 CLEAN MIGRATION: No unexpected overrides detected!")
+            print_section("🎉 CLEAN MIGRATION: No unexpected overrides detected!", logger=pretty_logger)
             pretty_logger.info("   All configurations have been properly migrated to ESS.")
             press_enter_to_continue(pretty_logger)
 
         # Show next steps for deployment
-        pretty_logger.info("🚀 NEXT STEPS TO DEPLOY ELEMENT SERVER SUITE:")
-        pretty_logger.info("=" * 60)
+        print_section("🚀 NEXT STEPS TO DEPLOY ELEMENT SERVER SUITE:", logger=pretty_logger)
         press_enter_to_continue(pretty_logger)
 
         # Use incremental step numbering
@@ -501,8 +453,7 @@ Examples:
 
         # Add database-specific instructions
         if not engine.global_options.use_existing_database:
-            pretty_logger.info("📋 DATABASE IMPORT INSTRUCTIONS")
-            pretty_logger.info("=" * 60)
+            print_section("📋 DATABASE IMPORT INSTRUCTIONS", logger=pretty_logger)
             pretty_logger.info("Since you chose to use ESS-managed PostgreSQL, you'll need to import your")
             pretty_logger.info("existing database schema after deployment. Here are the steps:")
             press_enter_to_continue(pretty_logger)

@@ -15,6 +15,7 @@ from urllib.parse import urlparse
 
 from .interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
 from .models import DiscoverableSecret, DiscoveredExtraFile, DiscoveredPath
+from .rich_output import print_section
 from .utils import is_quiet_mode, prompt_choice, prompt_value, prompt_yes_no
 
 logger = logging.getLogger("migration")
@@ -245,9 +246,7 @@ class ExtraFilesDiscovery:
             return
 
         component_name = self.strategy.component_name
-        self.pretty_logger.info("\n" + "=" * 60)
-        self.pretty_logger.info(f"📁 EXTRA FILES DISCOVERY ({component_name})")
-        self.pretty_logger.info("=" * 60)
+        print_section(f"📁 EXTRA FILES DISCOVERY ({component_name})", logger=self.pretty_logger)
         self.pretty_logger.info("The following extra files were referenced in your configuration")
         self.pretty_logger.info("but could not be found:")
 

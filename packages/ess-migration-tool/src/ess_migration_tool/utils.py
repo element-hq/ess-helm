@@ -18,6 +18,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec, rsa
 
 from .models import MigrationError
+from .rich_output import print_section
 
 
 def yaml_dump_with_pipe_for_multiline(data: Any) -> str:
@@ -456,9 +457,7 @@ def prompt_for_database_choice(pretty_logger: logging.Logger) -> bool:
     Returns:
         True if user wants to use existing database, False for ESS-managed PostgreSQL
     """
-    pretty_logger.info("\n" + "=" * 60)
-    pretty_logger.info("🗃️  DATABASE CONFIGURATION CHOICE")
-    pretty_logger.info("=" * 60)
+    print_section("🗃️  DATABASE CONFIGURATION CHOICE", logger=pretty_logger)
     pretty_logger.info("How would you like to handle the database for your ESS deployment?")
     pretty_logger.info("")
     pretty_logger.info("1. 🔗 Connect to existing database (recommended for production)")

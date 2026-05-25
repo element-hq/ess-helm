@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 
 from .interfaces import SecretDiscoveryStrategy
 from .models import DiscoverableSecret, DiscoveredSecret, DiscoveredSecretTracking, GlobalOptions, SecretConfig
+from .rich_output import print_section
 from .utils import (
     find_matching_schema_key,
     get_nested_value,
@@ -287,9 +288,7 @@ class SecretDiscovery:
             )
 
         component_name = self.strategy.secret_name.upper()
-        self.pretty_logger.info("\n" + "=" * 60)
-        self.pretty_logger.info(f"🔐 {component_name} SECRETS REQUIRED FOR MIGRATION")
-        self.pretty_logger.info("=" * 60)
+        print_section(f"🔐 {component_name} SECRETS REQUIRED FOR MIGRATION", logger=self.pretty_logger)
         self.pretty_logger.info(f"The following {component_name} secrets are required but could not be automatically")
         self.pretty_logger.info("discovered from your configuration files. Please provide them:")
 
