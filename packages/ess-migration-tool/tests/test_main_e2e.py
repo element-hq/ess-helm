@@ -275,7 +275,7 @@ def test_main_e2e_synapse_with_mas(
     assert "'database.args.password' found in synapse.additional[\"00-imported.yaml\"].config" not in log_output
 
     # Verify underride warnings for MAS
-    assert "ESS DEFAULT CONFIGURATIONS FOUND:" in log_output
+    assert "DEVIATION FROM ESS COMMUNITY DEFAULT CONFIGURATIONS FOUND:" in log_output
     assert "These settings have ESS defaults that your values will override:" in log_output
     # Sample MAS policy config underride warnings
     assert "'policy.data.admin_clients' found in" in log_output
@@ -599,7 +599,7 @@ def test_main_e2e_synapse_ess_managed_database(
     write_synapse_config,
     helm_validator,
 ):
-    """Test the complete end-to-end migration workflow with Synapse using ESS-managed Postgres."""
+    """Test the complete end-to-end migration workflow with Synapse using ESS-managed PostgreSQL."""
     # Write Synapse config
     synapse_config_file = write_synapse_config(synapse_config_with_signing_key)
 
@@ -617,7 +617,7 @@ def test_main_e2e_synapse_ess_managed_database(
         "--verbose",
     ]
 
-    # Mock user input for database choice (select option 2 - ESS-managed Postgres)
+    # Mock user input for database choice (select option 2 - ESS-managed PostgreSQL)
     side_effect = (n for n in ("2",))  # Just database choice, no missing secrets
     monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
     monkeypatch.setattr(sys, "argv", test_args)
@@ -644,12 +644,12 @@ def test_main_e2e_synapse_ess_managed_database(
     synapse_config = generated_values["synapse"]
     assert synapse_config["enabled"] is True
 
-    # Verify postgres configuration (should have minimal settings for ESS-managed Postgres)
-    # For ESS-managed Postgres, postgres.enabled should be set at the global level
+    # Verify postgres configuration (should have minimal settings for ESS-managed PostgreSQL)
+    # For ESS-managed PostgreSQL, postgres.enabled should be set at the global level
     assert "postgres" in generated_values
     postgres_config = generated_values["postgres"]
 
-    # For ESS-managed Postgres, we should have postgres.enabled = True at global level
+    # For ESS-managed PostgreSQL, we should have postgres.enabled = True at global level
     assert postgres_config.get("enabled") is True
 
     # Synapse should not have detailed database connection info (host, port, user, etc.)
@@ -1008,7 +1008,7 @@ def test_main_e2e_synapse_with_element_web(
 
     # Verify underride warnings for Element Web
     # default_server_config is in underride_configs, so we should see an informational warning
-    assert "ESS DEFAULT CONFIGURATIONS FOUND:" in log_output, (
+    assert "DEVIATION FROM ESS COMMUNITY DEFAULT CONFIGURATIONS FOUND:" in log_output, (
         "Expected underride warnings section for Element Web defaults"
     )
     assert "These settings have ESS defaults that your values will override:" in log_output

@@ -124,7 +124,7 @@ options:
   --quiet               Disable migration summary output.
   --database-mode {existing,ess-managed}
                         Database migration mode. 'existing' to use existing database, 'ess-managed' to use ESS-
-                        managed Postgres. If not specified, user will be prompted.
+                        managed PostgreSQL. If not specified, user will be prompted.
 ```
 
 ## Migration Process

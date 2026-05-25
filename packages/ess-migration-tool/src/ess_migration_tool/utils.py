@@ -451,10 +451,10 @@ def sort_tracked_values_for_filtering(tracked_values: list[str]) -> list[str]:
 
 def prompt_for_database_choice(pretty_logger: logging.Logger) -> bool:
     """
-    Prompt user to choose between using existing database or ESS-managed Postgres.
+    Prompt user to choose between using existing database or ESS-managed PostgreSQL.
 
     Returns:
-        True if user wants to use existing database, False for ESS-managed Postgres
+        True if user wants to use existing database, False for ESS-managed PostgreSQL
     """
     pretty_logger.info("\n" + "=" * 60)
     pretty_logger.info("🗃️  DATABASE CONFIGURATION CHOICE")
@@ -465,7 +465,7 @@ def prompt_for_database_choice(pretty_logger: logging.Logger) -> bool:
     pretty_logger.info("   - Import your current database settings into ESS")
     pretty_logger.info("   - Continue using your existing PostgreSQL instance")
     pretty_logger.info("")
-    pretty_logger.info("2. 🆕 Install Postgres with ESS and import database later")
+    pretty_logger.info("2. 🆕 Install PostgreSQL with ESS and import database later")
     pretty_logger.info("   - Let ESS deploy and manage PostgreSQL")
     pretty_logger.info("   - Import your Synapse and MAS database schemas after deployment")
     pretty_logger.info("")
@@ -473,7 +473,7 @@ def prompt_for_database_choice(pretty_logger: logging.Logger) -> bool:
     choice = prompt_choice(
         pretty_logger,
         "Please select an option [1/2] (default: 1):",
-        ["Use existing database", "Install Postgres with ESS"],
+        ["Use existing database", "Install PostgreSQL with ESS"],
         default="Use existing database",
     )
 
@@ -481,7 +481,7 @@ def prompt_for_database_choice(pretty_logger: logging.Logger) -> bool:
         pretty_logger.info("   ✅ Using existing database configuration")
         return True
     else:
-        pretty_logger.info("   ✅ Using ESS-managed Postgres (import database later)")
+        pretty_logger.info("   ✅ Using ESS-managed PostgreSQL (import database later)")
         return False
 
 

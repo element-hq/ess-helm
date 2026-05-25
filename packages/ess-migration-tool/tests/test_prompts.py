@@ -403,7 +403,7 @@ def test_database_choice_prompt_existing_database(
         assert "🗃️  DATABASE CONFIGURATION CHOICE" in output
         assert "How would you like to handle the database for your ESS deployment?" in output
         assert "1. 🔗 Connect to existing database" in output
-        assert "2. 🆕 Install Postgres with ESS and import database later" in output
+        assert "2. 🆕 Install PostgreSQL with ESS and import database later" in output
         assert "   ✅ Using existing database configuration" in output
 
         # Verify that the global option was set correctly
@@ -426,7 +426,7 @@ def test_database_choice_prompt_ess_managed(
     synapse_config_with_signing_key,
     write_synapse_config,
 ):
-    """Test database choice prompt when user selects ESS-managed Postgres."""
+    """Test database choice prompt when user selects ESS-managed PostgreSQL."""
     # Write Synapse config
     synapse_config_file = write_synapse_config(synapse_config_with_signing_key)
 
@@ -445,7 +445,7 @@ def test_database_choice_prompt_ess_managed(
 
     engine = MigrationEngine(input_processor, pretty_logger=pretty_logger)
 
-    # Mock user input for database choice (select option 2 - ESS-managed Postgres)
+    # Mock user input for database choice (select option 2 - ESS-managed PostgreSQL)
     side_effect = (n for n in ("2",))  # Just database choice, no missing secrets
     monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
 
@@ -469,8 +469,8 @@ def test_database_choice_prompt_ess_managed(
         assert "🗃️  DATABASE CONFIGURATION CHOICE" in output
         assert "How would you like to handle the database for your ESS deployment?" in output
         assert "1. 🔗 Connect to existing database" in output
-        assert "2. 🆕 Install Postgres with ESS and import database later" in output
-        assert "   ✅ Using ESS-managed Postgres (import database later)" in output
+        assert "2. 🆕 Install PostgreSQL with ESS and import database later" in output
+        assert "   ✅ Using ESS-managed PostgreSQL (import database later)" in output
 
         # Verify that the global option was set correctly
         assert engine.global_options.use_existing_database is False
