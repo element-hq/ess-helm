@@ -18,7 +18,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec, rsa
 
 from .models import MigrationError
-from .rich_output import print_section
+from .rich_output import get_console, is_rich_enabled, print_prompt, print_section
 
 
 def yaml_dump_with_pipe_for_multiline(data: Any) -> str:
@@ -458,16 +458,17 @@ def prompt_for_database_choice(pretty_logger: logging.Logger) -> bool:
         True if user wants to use existing database, False for ESS-managed PostgreSQL
     """
     print_section("🗃️  DATABASE CONFIGURATION CHOICE", logger=pretty_logger)
-    pretty_logger.info("How would you like to handle the database for your ESS deployment?")
-    pretty_logger.info("")
-    pretty_logger.info("1. 🔗 Connect to existing database (recommended for production)")
-    pretty_logger.info("   - Import your current database settings into ESS")
-    pretty_logger.info("   - Continue using your existing PostgreSQL instance")
-    pretty_logger.info("")
-    pretty_logger.info("2. 🆕 Install PostgreSQL with ESS and import database later")
-    pretty_logger.info("   - Let ESS deploy and manage PostgreSQL")
-    pretty_logger.info("   - Import your Synapse and MAS database schemas after deployment")
-    pretty_logger.info("")
+    print_prompt("How would you like to handle the database for your ESS deployment?", style="bold white", logger=pretty_logger, prefix="")
+    print("")
+
+    print_prompt("1. 🔗 Connect to existing database (recommended for production)", style="bold cyan", logger=pretty_logger, prefix="")
+    print_prompt("- Import your current database settings into ESS", style="dim", logger=pretty_logger, prefix="   ")
+    print_prompt("- Continue using your existing PostgreSQL instance", style="dim", logger=pretty_logger, prefix="   ")
+    print("")
+    print_prompt("2. 🆕 Install PostgreSQL with ESS and import database later", style="white", logger=pretty_logger, prefix="")
+    print_prompt("- Let ESS deploy and manage PostgreSQL", style="dim", logger=pretty_logger, prefix="   ")
+    print_prompt("- Import your Synapse and MAS database schemas after deployment", style="dim", logger=pretty_logger, prefix="   ")
+    print("")
 
     choice = prompt_choice(
         pretty_logger,
@@ -477,18 +478,18 @@ def prompt_for_database_choice(pretty_logger: logging.Logger) -> bool:
     )
 
     if choice == "Use existing database":
-        pretty_logger.info("   ✅ Using existing database configuration")
+        print_prompt("✅ Using existing database configuration", style="bold green", logger=pretty_logger)
         return True
     else:
-        pretty_logger.info("   ✅ Using ESS-managed PostgreSQL (import database later)")
+        print_prompt("✅ Using ESS-managed PostgreSQL (import database later)", style="bold green", logger=pretty_logger)
         return False
 
 
 def press_enter_to_continue(pretty_logger: logging.Logger) -> None:
     if not is_quiet_mode(pretty_logger) and not os.environ.get("PYTEST_CURRENT_TEST"):
-        pretty_logger.info("   Press Enter to continue...")
+        print_prompt("Press Enter to continue...", logger=pretty_logger)
         input()
-        pretty_logger.info("")
+        print("")
 
 
 def prompt_value(
@@ -514,7 +515,12 @@ def prompt_value(
     """
     while True:
         try:
-            user_input = input(f"   {prompt}").strip()
+            # Display prompt with Rich if available
+            if is_rich_enabled():
+                print_prompt(prompt, style="bold white", logger=pretty_logger, prefix="")
+                user_input = input("   ").strip()
+            else:
+                user_input = input(f"   {prompt}").strip()
 
             # Handle default value
             if user_input == "" and default is not None:
@@ -522,23 +528,23 @@ def prompt_value(
 
             # Handle empty input
             if user_input == "":
-                pretty_logger.info("   ❌ Value cannot be empty. Please try again.")
+                print_prompt("❌ Value cannot be empty. Please try again.", style="bold red", logger=pretty_logger)
                 continue
 
             # Validate if validator is provided
             if validator is not None:
                 is_valid, error_message = validator(user_input)
                 if not is_valid:
-                    pretty_logger.info(f"   ❌ {error_message}")
+                    print_prompt(f"❌ {error_message}", style="bold red", logger=pretty_logger)
                     continue
 
             return user_input
 
         except KeyboardInterrupt as err:
-            pretty_logger.info("\n   ❌ Operation cancelled by user")
+            print_prompt("\n❌ Operation cancelled by user", style="bold red", logger=pretty_logger, prefix="")
             raise MigrationError("User cancelled input") from err
         except EOFError as err:
-            pretty_logger.info("\n   ❌ End of input reached")
+            print_prompt("\n❌ End of input reached", style="bold red", logger=pretty_logger, prefix="")
             raise MigrationError("End of input reached during prompt") from err
 
 
@@ -566,7 +572,12 @@ def prompt_choice(
     """
     while True:
         try:
-            user_input = input(f"   {prompt}").strip()
+            # Display prompt with Rich if available
+            if is_rich_enabled():
+                print_prompt(prompt, style="bold white", logger=pretty_logger, prefix="")
+                user_input = input("   ").strip()
+            else:
+                user_input = input(f"   {prompt}").strip()
 
             # Handle default
             if user_input == "" and default is not None:
@@ -574,7 +585,7 @@ def prompt_choice(
 
             # Handle empty input without default
             if user_input == "":
-                pretty_logger.info("   ❌ Please select a valid option.")
+                print_prompt("❌ Please select a valid option.", style="bold red", logger=pretty_logger)
                 continue
 
             # Try to parse as number
@@ -583,15 +594,23 @@ def prompt_choice(
                 if 0 <= choice_index < len(options):
                     return options[choice_index]
                 else:
-                    pretty_logger.info(f"   ❌ Invalid choice. Please enter a number between 1 and {len(options)}.")
+                    print_prompt(
+                        f"❌ Invalid choice. Please enter a number between 1 and {len(options)}.",
+                        style="bold red",
+                        logger=pretty_logger,
+                    )
             except ValueError:
-                pretty_logger.info(f"   ❌ Please enter a number between 1 and {len(options)}.")
+                print_prompt(
+                    f"❌ Please enter a number between 1 and {len(options)}.",
+                    style="bold red",
+                    logger=pretty_logger,
+                )
 
         except KeyboardInterrupt as err:
-            pretty_logger.info("\n   ❌ Operation cancelled by user")
+            print_prompt("\n❌ Operation cancelled by user", style="bold red", logger=pretty_logger, prefix="")
             raise MigrationError("User cancelled input") from err
         except EOFError as err:
-            pretty_logger.info("\n   ❌ End of input reached")
+            print_prompt("\n❌ End of input reached", style="bold red", logger=pretty_logger, prefix="")
             raise MigrationError("End of input reached during prompt") from err
 
 
@@ -616,7 +635,12 @@ def prompt_yes_no(
     """
     while True:
         try:
-            user_input = input(f"   {prompt}").strip().lower()
+            # Display prompt with Rich if available
+            if is_rich_enabled():
+                print_prompt(prompt, style="bold white", logger=pretty_logger, prefix="")
+                user_input = input("   ").strip().lower()
+            else:
+                user_input = input(f"   {prompt}").strip().lower()
 
             # Handle default
             if user_input == "" and default is not None:
@@ -624,7 +648,7 @@ def prompt_yes_no(
 
             # Handle empty input without default
             if user_input == "":
-                pretty_logger.info("   ❌ Please enter 'yes' or 'no'.")
+                print_prompt("❌ Please enter 'yes' or 'no'.", style="bold red", logger=pretty_logger)
                 continue
 
             # Check for yes variations
@@ -634,11 +658,11 @@ def prompt_yes_no(
             elif user_input in ("no", "n", "false", "f", "0"):
                 return False
             else:
-                pretty_logger.info("   ❌ Please enter 'yes' or 'no'.")
+                print_prompt("❌ Please enter 'yes' or 'no'.", style="bold red", logger=pretty_logger)
 
         except KeyboardInterrupt as err:
-            pretty_logger.info("\n   ❌ Operation cancelled by user")
+            print_prompt("\n❌ Operation cancelled by user", style="bold red", logger=pretty_logger, prefix="")
             raise MigrationError("User cancelled input") from err
         except EOFError as err:
-            pretty_logger.info("\n   ❌ End of input reached")
+            print_prompt("\n❌ End of input reached", style="bold red", logger=pretty_logger, prefix="")
             raise MigrationError("End of input reached during prompt") from err

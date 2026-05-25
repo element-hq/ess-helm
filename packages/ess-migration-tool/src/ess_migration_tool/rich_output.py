@@ -171,6 +171,34 @@ def log_command(
     get_console().print(syntax)
 
 
+def print_prompt(
+    message: str,
+    style: str = "bold white",
+    logger: logging.Logger | None = None,
+    prefix: str = "   ",
+) -> None:
+    """
+    Print a prompt message with Rich styling if available.
+
+    Args:
+        message: The prompt message to display
+        style: Rich style string for the text (default: "bold white")
+        logger: Logger to use for fallback output when Rich is disabled
+        prefix: Prefix string to add before the message (default: "   ")
+    """
+    if not is_rich_enabled():
+        # Fallback to plain text using the provided logger
+        if logger is not None:
+            logger.info(f"{prefix}{message}")
+        return
+
+    # Rich is enabled - use styled text
+    from rich.text import Text
+
+    styled = Text(f"{prefix}{message}", style=style)
+    get_console().print(styled)
+
+
 class ProgressReporter:
     """
     Handles progress reporting for the migration process.
