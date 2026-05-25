@@ -169,13 +169,13 @@ def log_command(
         return
 
     # Rich is enabled - use syntax highlighting
-    syntax = Syntax(command, "bash", theme="monokai")
+    syntax = Syntax(command, "bash", theme="monokai", word_wrap=True)
     get_console().print(syntax)
 
 
 def print_prompt(
     message: str,
-    style: str = "bold white",
+    style: str = "bold",
     logger: logging.Logger | None = None,
     prefix: str = "   ",
 ) -> None:
@@ -184,7 +184,7 @@ def print_prompt(
 
     Args:
         message: The prompt message to display
-        style: Rich style string for the text (default: "bold white")
+        style: Rich style string for the text (default: "bold")
         logger: Logger to use for fallback output when Rich is disabled
         prefix: Prefix string to add before the message (default: "   ")
     """
