@@ -11,6 +11,7 @@ import logging
 from typing import Any
 
 from .models import DiscoveredSecretTracking, SecretSource, ValueSourceTracking
+from .rich_output import print_separator
 from .utils import is_quiet_mode, prompt_choice, prompt_value, set_nested_value
 
 
@@ -101,9 +102,9 @@ def resolve_secret_conflicts(
     logger = logging.getLogger("migration")
 
     pretty_logger.info("")
-    pretty_logger.info("=" * 60)
+    print_separator(logger=pretty_logger)
     pretty_logger.info("🔐 RESOLVING SECRET CONFLICTS")
-    pretty_logger.info("=" * 60)
+    print_separator(logger=pretty_logger)
     pretty_logger.info("Some secrets were discovered by multiple strategies with different values.")
     pretty_logger.info("Please select which value to use for each:")
     pretty_logger.info("")
@@ -144,4 +145,4 @@ def resolve_secret_conflicts(
         pretty_logger.info(f"   ✅ Resolved {secret_key}")
         pretty_logger.info("")
 
-    pretty_logger.info("=" * 60)
+    print_separator(logger=pretty_logger)

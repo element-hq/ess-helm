@@ -199,6 +199,28 @@ def print_prompt(
     get_console().print(styled)
 
 
+def print_separator(
+    logger: logging.Logger | None = None,
+) -> None:
+    """
+    Print a separator line using Rich styling if available.
+    Uses terminal width when Rich is enabled, falls back to 60 for plain text.
+
+    Args:
+        logger: Logger to use for fallback output when Rich is disabled
+    """
+    if not is_rich_enabled():
+        # Fallback to plain text using the provided logger
+        if logger is not None:
+            logger.info("=" * 60)
+        return
+
+    # Rich is enabled - use a styled separator with terminal width
+    console = get_console()
+    separator = "─" * console.width
+    console.print(separator, style="cyan")
+
+
 class ProgressReporter:
     """
     Handles progress reporting for the migration process.

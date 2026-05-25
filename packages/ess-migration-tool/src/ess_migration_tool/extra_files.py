@@ -15,7 +15,7 @@ from urllib.parse import urlparse
 
 from .interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
 from .models import DiscoverableSecret, DiscoveredExtraFile, DiscoveredPath
-from .rich_output import print_section
+from .rich_output import print_section, print_separator
 from .utils import is_quiet_mode, prompt_choice, prompt_value, prompt_yes_no
 
 logger = logging.getLogger("migration")
@@ -377,7 +377,7 @@ class ExtraFilesDiscovery:
         if self.discovered_file_paths or self.discovered_extra_files:
             component_name = self.strategy.component_name
             self.pretty_logger.info(f"\n✅ Extra files validation completed ({component_name})")
-            self.pretty_logger.info("=" * 60)
+            print_separator(logger=self.pretty_logger)
 
     def _is_binary_file(self, path: Path) -> bool:
         """

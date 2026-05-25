@@ -18,7 +18,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec, rsa
 
 from .models import MigrationError
-from .rich_output import get_console, is_rich_enabled, print_prompt, print_section
+from .rich_output import is_rich_enabled, print_prompt, print_section
 
 
 def yaml_dump_with_pipe_for_multiline(data: Any) -> str:
@@ -458,16 +458,33 @@ def prompt_for_database_choice(pretty_logger: logging.Logger) -> bool:
         True if user wants to use existing database, False for ESS-managed PostgreSQL
     """
     print_section("🗃️  DATABASE CONFIGURATION CHOICE", logger=pretty_logger)
-    print_prompt("How would you like to handle the database for your ESS deployment?", style="bold white", logger=pretty_logger, prefix="")
+    print_prompt(
+        "How would you like to handle the database for your ESS deployment?",
+        style="bold white",
+        logger=pretty_logger,
+        prefix="",
+    )
     print("")
 
-    print_prompt("1. 🔗 Connect to existing database (recommended for production)", style="bold cyan", logger=pretty_logger, prefix="")
+    print_prompt(
+        "1. 🔗 Connect to existing database (recommended for production)",
+        style="bold cyan",
+        logger=pretty_logger,
+        prefix="",
+    )
     print_prompt("- Import your current database settings into ESS", style="dim", logger=pretty_logger, prefix="   ")
     print_prompt("- Continue using your existing PostgreSQL instance", style="dim", logger=pretty_logger, prefix="   ")
     print("")
-    print_prompt("2. 🆕 Install PostgreSQL with ESS and import database later", style="white", logger=pretty_logger, prefix="")
+    print_prompt(
+        "2. 🆕 Install PostgreSQL with ESS and import database later", style="white", logger=pretty_logger, prefix=""
+    )
     print_prompt("- Let ESS deploy and manage PostgreSQL", style="dim", logger=pretty_logger, prefix="   ")
-    print_prompt("- Import your Synapse and MAS database schemas after deployment", style="dim", logger=pretty_logger, prefix="   ")
+    print_prompt(
+        "- Import your Synapse and MAS database schemas after deployment",
+        style="dim",
+        logger=pretty_logger,
+        prefix="   ",
+    )
     print("")
 
     choice = prompt_choice(
@@ -481,7 +498,9 @@ def prompt_for_database_choice(pretty_logger: logging.Logger) -> bool:
         print_prompt("✅ Using existing database configuration", style="bold green", logger=pretty_logger)
         return True
     else:
-        print_prompt("✅ Using ESS-managed PostgreSQL (import database later)", style="bold green", logger=pretty_logger)
+        print_prompt(
+            "✅ Using ESS-managed PostgreSQL (import database later)", style="bold green", logger=pretty_logger
+        )
         return False
 
 
