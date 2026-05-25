@@ -18,7 +18,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec, rsa
 
 from .models import MigrationError
-from .rich_output import is_rich_enabled, print_prompt, print_section
+from .rich_output import get_console, is_rich_enabled, print_prompt, print_section
 
 
 def yaml_dump_with_pipe_for_multiline(data: Any) -> str:
@@ -535,11 +535,7 @@ def prompt_value(
     while True:
         try:
             # Display prompt with Rich if available
-            if is_rich_enabled():
-                print_prompt(prompt, style="bold white", logger=pretty_logger, prefix="")
-                user_input = input("   ").strip()
-            else:
-                user_input = input(f"   {prompt}").strip()
+            user_input = get_console().input(prompt).strip() if is_rich_enabled() else input(f"   {prompt}").strip()
 
             # Handle default value
             if user_input == "" and default is not None:
@@ -592,11 +588,7 @@ def prompt_choice(
     while True:
         try:
             # Display prompt with Rich if available
-            if is_rich_enabled():
-                print_prompt(prompt, style="bold white", logger=pretty_logger, prefix="")
-                user_input = input("   ").strip()
-            else:
-                user_input = input(f"   {prompt}").strip()
+            user_input = get_console().input(prompt) if is_rich_enabled() else input(f"   {prompt}").strip()
 
             # Handle default
             if user_input == "" and default is not None:
@@ -656,8 +648,7 @@ def prompt_yes_no(
         try:
             # Display prompt with Rich if available
             if is_rich_enabled():
-                print_prompt(prompt, style="bold white", logger=pretty_logger, prefix="")
-                user_input = input("   ").strip().lower()
+                user_input = get_console().input(prompt).strip().lower()
             else:
                 user_input = input(f"   {prompt}").strip().lower()
 
