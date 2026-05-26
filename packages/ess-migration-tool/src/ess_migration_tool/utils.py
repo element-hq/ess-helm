@@ -46,7 +46,8 @@ def yaml_dump_with_pipe_for_multiline(data: Any) -> str:
 
     # Create a custom YAML dumper
     class CustomYAMLDumper(yaml.SafeDumper):
-        pass
+        def ignore_aliases(self, data: Any) -> bool:
+            return True
 
     CustomYAMLDumper.add_representer(str, multiline_string_representer)  # type: ignore[arg-type]
 
