@@ -220,6 +220,8 @@ class MASMigration(MigrationStrategy):
         return {
             "http",  # The entire HTTP configuration is managed by ESS
             "database.uri",  # Database URI configuration is managed by ESS"
+            "telemetry",  # Telemetry configuration is managed by ESS
+            "matrix",  # Matrix configuration is managed by ESS
         }
 
     @property

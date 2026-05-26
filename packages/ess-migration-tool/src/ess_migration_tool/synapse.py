@@ -274,6 +274,13 @@ class SynapseMigration(MigrationStrategy):
             "listeners",  # Listeners are also managed by ESS
             "app_service_config_files",  # In theory we can use extra file for this
             # In practice, the migration-tool manages it using ESS high level values
+            "notify_appservices_from_worker",
+            "run_background_tasks_on",
+            "send_federation",
+            "federation_sender_instances",
+            "max_upload_size",
+            "media_instance_running_background_jobs",
+            "push_instances",
         }
 
     @property
