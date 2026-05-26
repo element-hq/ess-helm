@@ -44,12 +44,12 @@ def test_migration_with_missing_secrets_prompt(
     ess_values = {}
 
     log_capture_string = StringIO()
-    pretty_logger = logging.getLogger(test_migration_with_missing_secrets_prompt.__name__)
-    pretty_logger.propagate = False
-    pretty_logger.setLevel(logging.INFO)
-    pretty_logger.addHandler(logging.StreamHandler(log_capture_string))
+    summary_logger = logging.getLogger(test_migration_with_missing_secrets_prompt.__name__)
+    summary_logger.propagate = False
+    summary_logger.setLevel(logging.INFO)
+    summary_logger.addHandler(logging.StreamHandler(log_capture_string))
 
-    engine = MigrationEngine(input_processor, pretty_logger=pretty_logger)
+    engine = MigrationEngine(input_processor, summary_logger=summary_logger)
 
     # Set database mode directly
     engine.global_options.use_existing_database = True
@@ -111,12 +111,12 @@ def test_migration_with_missing_secrets_prompt(
 
 def test_prompt_for_ingress_host_with_missing_public_baseurl(monkeypatch, config_value_transformer):
     """Test that missing public_baseurl triggers user prompt for ingress host."""
-    pretty_logger = logging.getLogger(test_prompt_for_ingress_host_with_missing_public_baseurl.__name__)
-    pretty_logger.propagate = False
-    pretty_logger.setLevel(logging.INFO)
+    summary_logger = logging.getLogger(test_prompt_for_ingress_host_with_missing_public_baseurl.__name__)
+    summary_logger.propagate = False
+    summary_logger.setLevel(logging.INFO)
 
     log_capture_string = StringIO()
-    pretty_logger.addHandler(logging.StreamHandler(log_capture_string))
+    summary_logger.addHandler(logging.StreamHandler(log_capture_string))
 
     # Mock user input using monkeypatch
     monkeypatch.setattr("builtins.input", lambda _: "matrix.example.com")
@@ -159,12 +159,12 @@ def test_quiet_mode_fails_on_missing_secrets(tmp_path, synapse_config_with_signi
     )
 
     # Create logger in quiet mode (CRITICAL level)
-    pretty_logger = logging.getLogger(test_quiet_mode_fails_on_missing_secrets.__name__)
-    pretty_logger.propagate = False
-    pretty_logger.setLevel(logging.CRITICAL)  # This simulates --quiet mode
-    pretty_logger.addHandler(logging.StreamHandler())
+    summary_logger = logging.getLogger(test_quiet_mode_fails_on_missing_secrets.__name__)
+    summary_logger.propagate = False
+    summary_logger.setLevel(logging.CRITICAL)  # This simulates --quiet mode
+    summary_logger.addHandler(logging.StreamHandler())
 
-    engine = MigrationEngine(input_processor, pretty_logger=pretty_logger)
+    engine = MigrationEngine(input_processor, summary_logger=summary_logger)
 
     # Set database mode directly to avoid prompting (simulate --database-mode existing)
     engine.global_options.use_existing_database = True
@@ -197,12 +197,12 @@ def test_quiet_mode_fails_on_missing_extra_files(
     )
 
     # Create logger in quiet mode (CRITICAL level)
-    pretty_logger = logging.getLogger(test_quiet_mode_fails_on_missing_extra_files.__name__)
-    pretty_logger.propagate = False
-    pretty_logger.setLevel(logging.CRITICAL)  # This simulates --quiet mode
-    pretty_logger.addHandler(logging.StreamHandler())
+    summary_logger = logging.getLogger(test_quiet_mode_fails_on_missing_extra_files.__name__)
+    summary_logger.propagate = False
+    summary_logger.setLevel(logging.CRITICAL)  # This simulates --quiet mode
+    summary_logger.addHandler(logging.StreamHandler())
 
-    engine = MigrationEngine(input_processor, pretty_logger=pretty_logger)
+    engine = MigrationEngine(input_processor, summary_logger=summary_logger)
 
     # Set database mode directly to avoid prompting (simulate --database-mode existing)
     engine.global_options.use_existing_database = True
@@ -236,12 +236,12 @@ def test_migration_with_unknown_workers_prompt(
     ess_values = {}
 
     log_capture_string = StringIO()
-    pretty_logger = logging.getLogger(test_migration_with_unknown_workers_prompt.__name__)
-    pretty_logger.propagate = False
-    pretty_logger.setLevel(logging.INFO)
-    pretty_logger.addHandler(logging.StreamHandler(log_capture_string))
+    summary_logger = logging.getLogger(test_migration_with_unknown_workers_prompt.__name__)
+    summary_logger.propagate = False
+    summary_logger.setLevel(logging.INFO)
+    summary_logger.addHandler(logging.StreamHandler(log_capture_string))
 
-    engine = MigrationEngine(input_processor, pretty_logger=pretty_logger)
+    engine = MigrationEngine(input_processor, summary_logger=summary_logger)
 
     # Set database mode directly
     engine.global_options.use_existing_database = True
@@ -305,12 +305,12 @@ def test_migration_with_missing_extra_files_prompt(
     shutil.move(tmp_path / "email_templates", tmp_path / "moved")
 
     log_capture_string = StringIO()
-    pretty_logger = logging.getLogger(test_migration_with_missing_extra_files_prompt.__name__)
-    pretty_logger.propagate = False
-    pretty_logger.setLevel(logging.INFO)
-    pretty_logger.addHandler(logging.StreamHandler(log_capture_string))
+    summary_logger = logging.getLogger(test_migration_with_missing_extra_files_prompt.__name__)
+    summary_logger.propagate = False
+    summary_logger.setLevel(logging.INFO)
+    summary_logger.addHandler(logging.StreamHandler(log_capture_string))
 
-    engine = MigrationEngine(input_processor, pretty_logger=pretty_logger)
+    engine = MigrationEngine(input_processor, summary_logger=summary_logger)
 
     # Set database mode directly
     engine.global_options.use_existing_database = True
@@ -372,12 +372,12 @@ def test_database_choice_prompt_existing_database(
     )
 
     log_capture_string = StringIO()
-    pretty_logger = logging.getLogger(test_database_choice_prompt_existing_database.__name__)
-    pretty_logger.propagate = False
-    pretty_logger.setLevel(logging.INFO)
-    pretty_logger.addHandler(logging.StreamHandler(log_capture_string))
+    summary_logger = logging.getLogger(test_database_choice_prompt_existing_database.__name__)
+    summary_logger.propagate = False
+    summary_logger.setLevel(logging.INFO)
+    summary_logger.addHandler(logging.StreamHandler(log_capture_string))
 
-    engine = MigrationEngine(input_processor, pretty_logger=pretty_logger)
+    engine = MigrationEngine(input_processor, summary_logger=summary_logger)
 
     # Mock user input for database choice (select option 1 - existing database)
     side_effect = (n for n in ("1",))  # Just database choice, no missing secrets
@@ -386,7 +386,7 @@ def test_database_choice_prompt_existing_database(
     # Test database choice prompt directly
     from ess_migration_tool.utils import prompt_for_database_choice
 
-    engine.global_options.use_existing_database = prompt_for_database_choice(pretty_logger)
+    engine.global_options.use_existing_database = prompt_for_database_choice(summary_logger)
 
     # Test with async timeout to prevent hanging
     async def test_with_timeout():
@@ -438,12 +438,12 @@ def test_database_choice_prompt_ess_managed(
     )
 
     log_capture_string = StringIO()
-    pretty_logger = logging.getLogger(test_database_choice_prompt_ess_managed.__name__)
-    pretty_logger.propagate = False
-    pretty_logger.setLevel(logging.INFO)
-    pretty_logger.addHandler(logging.StreamHandler(log_capture_string))
+    summary_logger = logging.getLogger(test_database_choice_prompt_ess_managed.__name__)
+    summary_logger.propagate = False
+    summary_logger.setLevel(logging.INFO)
+    summary_logger.addHandler(logging.StreamHandler(log_capture_string))
 
-    engine = MigrationEngine(input_processor, pretty_logger=pretty_logger)
+    engine = MigrationEngine(input_processor, summary_logger=summary_logger)
 
     # Mock user input for database choice (select option 2 - ESS-managed PostgreSQL)
     side_effect = (n for n in ("2",))  # Just database choice, no missing secrets
@@ -452,7 +452,7 @@ def test_database_choice_prompt_ess_managed(
     # Test database choice prompt directly
     from ess_migration_tool.utils import prompt_for_database_choice
 
-    engine.global_options.use_existing_database = prompt_for_database_choice(pretty_logger)
+    engine.global_options.use_existing_database = prompt_for_database_choice(summary_logger)
 
     # Test with async timeout to prevent hanging
     async def test_with_timeout():
@@ -504,12 +504,12 @@ def test_database_choice_prompt_default(
     )
 
     log_capture_string = StringIO()
-    pretty_logger = logging.getLogger(test_database_choice_prompt_default.__name__)
-    pretty_logger.propagate = False
-    pretty_logger.setLevel(logging.INFO)
-    pretty_logger.addHandler(logging.StreamHandler(log_capture_string))
+    summary_logger = logging.getLogger(test_database_choice_prompt_default.__name__)
+    summary_logger.propagate = False
+    summary_logger.setLevel(logging.INFO)
+    summary_logger.addHandler(logging.StreamHandler(log_capture_string))
 
-    engine = MigrationEngine(input_processor, pretty_logger=pretty_logger)
+    engine = MigrationEngine(input_processor, summary_logger=summary_logger)
 
     # Mock user input for database choice (press Enter for default - option 1)
     side_effect = (n for n in ("",))  # Empty string for default choice
@@ -518,7 +518,7 @@ def test_database_choice_prompt_default(
     # Test database choice prompt directly
     from ess_migration_tool.utils import prompt_for_database_choice
 
-    engine.global_options.use_existing_database = prompt_for_database_choice(pretty_logger)
+    engine.global_options.use_existing_database = prompt_for_database_choice(summary_logger)
 
     # Test with async timeout to prevent hanging
     async def test_with_timeout():

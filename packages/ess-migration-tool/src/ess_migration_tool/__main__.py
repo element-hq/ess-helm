@@ -9,6 +9,7 @@ Main CLI entry point for the migration script.
 """
 
 import argparse
+import datetime
 import logging
 import os
 
@@ -20,7 +21,7 @@ from .hookshot import HOOKSHOT_STRATEGY_NAME
 from .inputs import InputProcessor, ValidationError
 from .mas import MAS_STRATEGY_NAME, parse_postgres_uri
 from .outputs import generate_helm_values, write_outputs
-from .rich_output import ProgressReporter, log_command, print_section, print_separator, print_table
+from .rich_output import ProgressReporter, log_command, print_prompt, print_section, print_separator, print_table
 from .synapse import SYNAPSE_STRATEGY_NAME
 from .utils import press_enter_to_continue, prompt_for_database_choice
 
@@ -157,7 +158,14 @@ Examples:
     else:
         logger.setLevel(logging.CRITICAL)
 
-    pretty_logger = logging.getLogger("migration:summary")
+    summary_logger = logging.getLogger("migration:summary")
+    summary_logger.propagate = False
+    summary_logger.setLevel(logging.INFO)
+    summary_logger.addHandler(
+        logging.FileHandler(f"output/migration-summary-{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.log")
+    )
+
+    pretty_logger = logging.getLogger("migration:terminal")
     pretty_logger.propagate = False
     pretty_logger.setLevel(logging.CRITICAL if args.quiet else logging.INFO)
     pretty_sh = logging.StreamHandler()
@@ -191,7 +199,7 @@ Examples:
         WRITING_OUTPUTS_STEP,
     ]
     reporter = ProgressReporter(
-        pretty_logger=pretty_logger,
+        summary_logger=summary_logger,
         steps=steps,
         verbose=args.verbose,
     )
@@ -235,7 +243,7 @@ Examples:
 
         # Run migration
         reporter.report_step(MIGRATING_STEP)
-        engine = MigrationEngine(input_processor=input_processor, pretty_logger=pretty_logger)
+        engine = MigrationEngine(input_processor=input_processor, summary_logger=summary_logger)
 
         # Set database mode if provided via command line
         if args.database_mode:
@@ -245,7 +253,7 @@ Examples:
                 engine.global_options.use_existing_database = False
         else:
             # Prompt for database choice only if not already set via command line
-            engine.global_options.use_existing_database = prompt_for_database_choice(pretty_logger)
+            engine.global_options.use_existing_database = prompt_for_database_choice(summary_logger)
 
         ess_values = engine.run_migration()
 
@@ -266,8 +274,8 @@ Examples:
         all_file_paths = [values_path] + secret_paths + configmap_paths
 
         # Display migration summary
-        press_enter_to_continue(pretty_logger)
-        print_section("📊 MIGRATION SUMMARY", logger=pretty_logger)
+        press_enter_to_continue(summary_logger)
+        print_section("📊 MIGRATION SUMMARY", logger=summary_logger)
 
         # Create a comprehensive mapping of source config paths to target ESS paths
         migration_mapping = {}
@@ -297,9 +305,9 @@ Examples:
                 table_data,
                 headers=["Source", "Path", "ESS Value"],
                 title="✅ ESS COMMUNITY VALUES CREATED SUCCESSFULLY",
-                logger=pretty_logger,
+                logger=summary_logger,
             )
-            press_enter_to_continue(pretty_logger)
+            press_enter_to_continue(summary_logger)
 
         if engine.ess_config["synapse"].get("workers"):
             # Prepare table data for workers
@@ -310,14 +318,20 @@ Examples:
                 worker_data,
                 headers=["Worker", "Replicas"],
                 title="📝 SYNAPSE WORKERS",
-                logger=pretty_logger,
+                logger=summary_logger,
             )
             # ask user to take a second look
-            pretty_logger.info("   ⚠️  Please review the workers in your values files before proceeding.\n")
-            press_enter_to_continue(pretty_logger)
+            print_prompt(
+                "   ⚠️  Please review the workers in your values files before proceeding.\n",
+                style="default",
+                logger=summary_logger,
+            )
+            press_enter_to_continue(summary_logger)
         else:
-            pretty_logger.info("   ✅ No workers found, using a single main Synapse process")
-            press_enter_to_continue(pretty_logger)
+            print_prompt(
+                "   ✅ No workers found, using a single main Synapse process", style="default", logger=summary_logger
+            )
+            press_enter_to_continue(summary_logger)
         if engine.discovered_secrets:
             # Prepare table data for secrets
             secret_data = []
@@ -333,9 +347,9 @@ Examples:
                 secret_data,
                 headers=["Source File", "Config Key", "Secret Path in Values"],
                 title="🔐 MIGRATED SECRETS",
-                logger=pretty_logger,
+                logger=summary_logger,
             )
-            press_enter_to_continue(pretty_logger)
+            press_enter_to_continue(summary_logger)
 
         if engine.init_by_ess_secrets:
             # Prepare table data for auto-generated secrets
@@ -344,12 +358,12 @@ Examples:
                 init_secret_data,
                 headers=["Secret Path in Values"],
                 title="⚠️  ESS-INITIALIZED SECRETS",
-                logger=pretty_logger,
+                logger=summary_logger,
             )
-            pretty_logger.info(
+            summary_logger.info(
                 "These secrets are not required for migration but will be created automatically during deployment."
             )
-            press_enter_to_continue(pretty_logger)
+            press_enter_to_continue(summary_logger)
 
         # Show override warnings within the migration summary
         if engine.override_warnings:
@@ -359,21 +373,21 @@ Examples:
                 override_data,
                 headers=["Warning"],
                 title="⚠️  ESS-MANAGED COMPONENTS CONFIGURATIONS DETECTED",
-                logger=pretty_logger,
+                logger=summary_logger,
             )
-            pretty_logger.info(
+            summary_logger.info(
                 "   These components settings are managed by ESS Community and"
                 " your settings may be overriden if they are not configurable in ESS"
             )
-            press_enter_to_continue(pretty_logger)
+            press_enter_to_continue(summary_logger)
 
             print_section(
                 "❗ ACTION REQUIRED:\n   "
                 "Double-check and maybe remove these settings from your additional configuration to avoid conflicts.",
-                logger=pretty_logger,
+                logger=summary_logger,
             )
 
-            press_enter_to_continue(pretty_logger)
+            press_enter_to_continue(summary_logger)
 
         # Show underride warnings within the migration summary
         if engine.underride_warnings:
@@ -383,53 +397,63 @@ Examples:
                 underride_data,
                 headers=["Warning"],
                 title="ℹ️  DEVIATION FROM ESS COMMUNITY DEFAULT CONFIGURATIONS FOUND",
-                logger=pretty_logger,
+                logger=summary_logger,
             )
 
-            pretty_logger.info("   These settings have ESS defaults that your values will override")
-            press_enter_to_continue(pretty_logger)
+            print_prompt(
+                "   These settings have ESS defaults that your values will override",
+                style="default",
+                logger=summary_logger,
+            )
+            press_enter_to_continue(summary_logger)
 
         # Show clean migration message
         if not engine.override_warnings and not engine.underride_warnings:
-            press_enter_to_continue(pretty_logger)
-            print_section("🎉 CLEAN MIGRATION: No unexpected overrides detected!", logger=pretty_logger)
-            pretty_logger.info("   All configurations have been properly migrated to ESS.")
-            press_enter_to_continue(pretty_logger)
+            press_enter_to_continue(summary_logger)
+            print_section("🎉 CLEAN MIGRATION: No unexpected overrides detected!", logger=summary_logger)
+            print_prompt(
+                "   All configurations have been properly migrated to ESS.", style="default", logger=summary_logger
+            )
+            press_enter_to_continue(summary_logger)
 
         # Show next steps for deployment
-        print_section("🚀 NEXT STEPS TO DEPLOY ELEMENT SERVER SUITE:", logger=pretty_logger)
-        press_enter_to_continue(pretty_logger)
+        print_section("🚀 NEXT STEPS TO DEPLOY ELEMENT SERVER SUITE:", logger=summary_logger)
+        press_enter_to_continue(summary_logger)
 
         # Use incremental step numbering
         step_number = 1
 
-        pretty_logger.info(f"{step_number}. Create Kubernetes namespace:")
+        print_prompt(f"{step_number}. Create Kubernetes namespace:", style="default", logger=summary_logger)
         step_number += 1
-        log_command("kubectl create namespace ess", logger=pretty_logger)
+        log_command("kubectl create namespace ess", logger=summary_logger)
 
         # Check if there are configmaps or secrets to apply
         has_configmaps = len(configmap_paths) > 0
         has_secrets = len(secret_paths) > 0
 
         if has_configmaps or has_secrets:
-            pretty_logger.info(f"{step_number}. Apply generated Kubernetes resources:")
+            print_prompt(
+                f"{step_number}. Apply generated Kubernetes resources:", style="default", logger=summary_logger
+            )
             step_number += 1
             if has_configmaps:
                 for configmap_path in configmap_paths:
-                    log_command(f"kubectl apply -f {configmap_path} -n ess", logger=pretty_logger)
+                    log_command(f"kubectl apply -f {configmap_path} -n ess", logger=summary_logger)
             if has_secrets:
                 for secret_path in secret_paths:
-                    log_command(f"kubectl apply -f {secret_path} -n ess", logger=pretty_logger)
-            pretty_logger.info("")
+                    log_command(f"kubectl apply -f {secret_path} -n ess", logger=summary_logger)
+            print_prompt("", style="default", logger=summary_logger)
 
-        pretty_logger.info(f"{step_number}.Install ESS using Helm with the generated values:")
+        print_prompt(
+            f"{step_number}.Install ESS using Helm with the generated values:", style="default", logger=summary_logger
+        )
         step_number += 1
         log_command(
             f'helm upgrade --install --namespace "ess" ess '
             f"oci://ghcr.io/element-hq/ess-helm/matrix-stack -f {values_path} --wait",
-            logger=pretty_logger,
+            logger=summary_logger,
         )
-        press_enter_to_continue(pretty_logger)
+        press_enter_to_continue(summary_logger)
 
         # Get the original media path from Synapse configuration
         synapse_input = engine.input_processor.input_for_strategy(SYNAPSE_STRATEGY_NAME)
@@ -438,22 +462,37 @@ Examples:
             original_media_path = synapse_input.config["media_store_path"]
 
         if original_media_path:
-            pretty_logger.info(f"{step_number}. Copy media from your existing setup to ESS persistent volume:")
+            print_prompt(
+                f"{step_number}. Copy media from your existing setup to ESS persistent volume:",
+                style="default",
+                logger=summary_logger,
+            )
             log_command(
                 f"kubectl cp {original_media_path} ess-synapse-0:/media/media_store -n ess",
-                logger=pretty_logger,
+                logger=summary_logger,
             )
-            press_enter_to_continue(pretty_logger)
+            press_enter_to_continue(summary_logger)
 
-        pretty_logger.info("📚 For more details on deployment and data migration, refer to the ESS documentation.")
-        press_enter_to_continue(pretty_logger)
+        print_prompt(
+            "📚 For more details on deployment and data migration, refer to the ESS documentation.",
+            style="default",
+            logger=summary_logger,
+        )
+        press_enter_to_continue(summary_logger)
 
         # Add database-specific instructions
         if not engine.global_options.use_existing_database:
-            print_section("📋 DATABASE IMPORT INSTRUCTIONS", logger=pretty_logger)
-            pretty_logger.info("Since you chose to use ESS-managed PostgreSQL, you'll need to import your")
-            pretty_logger.info("existing database schema after deployment. Here are the steps:")
-            press_enter_to_continue(pretty_logger)
+            print_section("📋 DATABASE IMPORT INSTRUCTIONS", logger=summary_logger)
+            print_prompt(
+                "Since you chose to use ESS-managed PostgreSQL, you'll need to import your"
+                "existing database schema after deployment. Here are the steps:",
+                style="default",
+                logger=summary_logger,
+            )
+            print_prompt(
+                "existing database schema after deployment. Here are the steps:", style="default", logger=summary_logger
+            )
+            press_enter_to_continue(summary_logger)
 
             # Get source database configuration from input files
             synapse_input = engine.input_processor.input_for_strategy(SYNAPSE_STRATEGY_NAME)
@@ -482,32 +521,40 @@ Examples:
 
             # Step 1: Stop workloads before importing
             step_number = 1
-            pretty_logger.info(f"{step_number}. Stop Synapse and MAS workloads before importing:")
+            print_prompt(
+                f"{step_number}. Stop Synapse and MAS workloads before importing:",
+                style="default",
+                logger=summary_logger,
+            )
             log_command(
                 'kubectl scale sts -l "app.kubernetes.io/component=matrix-server" -n ess --replicas=0',
-                logger=pretty_logger,
+                logger=summary_logger,
             )
             if mas_input:
                 log_command(
                     'kubectl scale deploy -l "app.kubernetes.io/component=matrix-authentication" -n ess --replicas=0',
-                    logger=pretty_logger,
+                    logger=summary_logger,
                 )
-            press_enter_to_continue(pretty_logger)
+            press_enter_to_continue(summary_logger)
 
             step_number += 1
 
             # Step 2: Create database dumps
-            pretty_logger.info(f"{step_number}. After ESS is deployed, create database dumps for Synapse:")
+            print_prompt(
+                f"{step_number}. After ESS is deployed, create database dumps for Synapse:",
+                style="default",
+                logger=summary_logger,
+            )
             log_command(
                 f"pg_dump -C -U {source_synapse_user} -d {source_synapse_db} > synapse.sql",
-                logger=pretty_logger,
+                logger=summary_logger,
             )
 
             # Only show MAS dump instructions if MAS is being migrated
             if mas_input:
-                log_command(f"pg_dump -C -U {source_mas_user} -d {source_mas_db} > mas.sql", logger=pretty_logger)
+                log_command(f"pg_dump -C -U {source_mas_user} -d {source_mas_db} > mas.sql", logger=summary_logger)
 
-            press_enter_to_continue(pretty_logger)
+            press_enter_to_continue(summary_logger)
             step_number += 1
 
             # Step 3: Transform the dumps (only show if transformations are needed)
@@ -517,57 +564,71 @@ Examples:
             mas_needs_transform = mas_input and (source_mas_db != target_mas_db or source_mas_user != target_mas_user)
 
             if synapse_needs_transform or mas_needs_transform:
-                pretty_logger.info(f"{step_number}. Transform the dumps to match ESS database names and owners:")
+                print_prompt(
+                    f"{step_number}. Transform the dumps to match ESS database names and owners:",
+                    style="default",
+                    logger=summary_logger,
+                )
 
                 # Only show database name transformation if source and target are different
                 if source_synapse_db != target_synapse_db:
-                    pretty_logger.info("   # Replace source database names with ESS database names")
+                    print_prompt(
+                        "   # Replace source database names with ESS database names",
+                        style="default",
+                        logger=summary_logger,
+                    )
                     log_command(
                         f"sed -i 's/DATABASE {source_synapse_db}/DATABASE {target_synapse_db}/' synapse.sql",
-                        logger=pretty_logger,
+                        logger=summary_logger,
                     )
 
                 # Only show MAS database transformation if MAS is being migrated and names are different
                 if mas_input and source_mas_db != target_mas_db:
                     log_command(
                         f"sed -i 's/DATABASE {source_mas_db}/DATABASE {target_mas_db}/' mas.sql",
-                        logger=pretty_logger,
+                        logger=summary_logger,
                     )
 
                 # Only show owner transformation if source and target are different
                 if source_synapse_user != target_synapse_user:
-                    pretty_logger.info("   # Replace source owners with ESS owners")
+                    print_prompt("   # Replace source owners with ESS owners", style="default", logger=summary_logger)
                     log_command(
                         f"sed -i 's/OWNER TO.*{source_synapse_user}/OWNER TO {target_synapse_user}/' synapse.sql",
-                        logger=pretty_logger,
+                        logger=summary_logger,
                     )
 
                 # Only show MAS owner transformation if MAS is being migrated and owners are different
                 if mas_input and source_mas_user != target_mas_user:
                     log_command(
                         f"sed -i 's/OWNER TO.*{source_mas_user}/OWNER TO {target_mas_user}/' mas.sql",
-                        logger=pretty_logger,
+                        logger=summary_logger,
                     )
 
-                press_enter_to_continue(pretty_logger)
+                press_enter_to_continue(summary_logger)
                 step_number += 1
 
             # Step: Copy the dumps
-            pretty_logger.info(f"{step_number}. Copy the dumps to the ESS PostgreSQL pod:")
-            log_command("kubectl cp synapse.sql ess-postgres-0:/tmp -n ess", logger=pretty_logger)
+            print_prompt(
+                f"{step_number}. Copy the dumps to the ESS PostgreSQL pod:", style="default", logger=summary_logger
+            )
+            log_command("kubectl cp synapse.sql ess-postgres-0:/tmp -n ess", logger=summary_logger)
 
             # Only show MAS copy instructions if MAS is being migrated
             if mas_input:
-                log_command("kubectl cp mas.sql ess-postgres-0:/tmp -n ess", logger=pretty_logger)
+                log_command("kubectl cp mas.sql ess-postgres-0:/tmp -n ess", logger=summary_logger)
 
-            press_enter_to_continue(pretty_logger)
+            press_enter_to_continue(summary_logger)
             step_number += 1
 
             # Step: Import the dumps
-            pretty_logger.info(f"{step_number}. Import the dumps into the ESS-managed PostgreSQL:")
+            print_prompt(
+                f"{step_number}. Import the dumps into the ESS-managed PostgreSQL:",
+                style="default",
+                logger=summary_logger,
+            )
             log_command(
                 'kubectl exec -n ess sts/ess-postgres -- bash -c "psql -U postgres -d synapse < /tmp/synapse.sql"',
-                logger=pretty_logger,
+                logger=summary_logger,
             )
 
             # Only show MAS import instructions if MAS is being migrated
@@ -575,29 +636,33 @@ Examples:
                 log_command(
                     'kubectl exec -n ess sts/ess-postgres -- bash -c "psql -U postgres -d '
                     'matrixauthenticationservice < /tmp/mas.sql"',
-                    logger=pretty_logger,
+                    logger=summary_logger,
                 )
 
-            pretty_logger.info("")
+            print_prompt("", style="default", logger=summary_logger)
             step_number += 1
 
             # Step: Restart workloads
-            pretty_logger.info(f"{step_number}. Restart Synapse and MAS to use the imported data:")
+            print_prompt(
+                f"{step_number}. Restart Synapse and MAS to use the imported data:",
+                style="default",
+                logger=summary_logger,
+            )
             log_command(
                 'kubectl scale sts -l "app.kubernetes.io/component=matrix-server" -n ess --replicas=1',
-                logger=pretty_logger,
+                logger=summary_logger,
             )
 
             # Only show MAS restart instructions if MAS is being migrated
             if mas_input:
                 log_command(
                     'kubectl scale deploy -l "app.kubernetes.io/component=matrix-authentication" -n ess --replicas=1',
-                    logger=pretty_logger,
+                    logger=summary_logger,
                 )
 
-            press_enter_to_continue(pretty_logger)
+            press_enter_to_continue(summary_logger)
 
-        print_separator(logger=pretty_logger)
+        print_separator(logger=summary_logger)
 
         reporter.report_success(args.output_dir, all_file_paths)
         logging.info("Migration completed successfully!")

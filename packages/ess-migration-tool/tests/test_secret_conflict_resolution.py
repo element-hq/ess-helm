@@ -120,7 +120,7 @@ def test_secret_discovery_uses_tracking():
     discovery = SecretDiscovery(
         strategy=strategy,
         source_file="test.yaml",
-        pretty_logger=logging.getLogger("test"),
+        summary_logger=logging.getLogger("test"),
         global_options=global_options,
         secret_tracking=tracking,
     )
@@ -137,7 +137,7 @@ def test_discovered_secret_registered_with_tracking():
     discovery = SecretDiscovery(
         strategy=strategy,
         source_file="test.yaml",
-        pretty_logger=logging.getLogger("test"),
+        summary_logger=logging.getLogger("test"),
         global_options=global_options,
         secret_tracking=tracking,
     )

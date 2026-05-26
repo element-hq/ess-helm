@@ -41,7 +41,7 @@ def test_validate_extra_files_success(tmp_path):
     test2 = DiscoveredPath(config_key="b", source_file="test.yaml", source_path=tmp_path / "test2.yaml")
     discovery = ExtraFilesDiscovery(
         strategy=TestStrategy(),
-        pretty_logger=logging.getLogger(),
+        summary_logger=logging.getLogger(),
         secrets_strategy=TestSecretStrategy(),
         source_file="test.yaml",
         discovered_file_paths=[
@@ -83,7 +83,7 @@ def test_validate_extra_files_missing():
 
     discovery = ExtraFilesDiscovery(
         strategy=TestStrategy(),
-        pretty_logger=logging.getLogger(),
+        summary_logger=logging.getLogger(),
         secrets_strategy=TestSecretStrategy(),
         source_file="test.yaml",
         discovered_file_paths=[
@@ -121,7 +121,7 @@ def test_file_path_detection():
 
     discovery = ExtraFilesDiscovery(
         strategy=TestStrategy(),
-        pretty_logger=logging.getLogger(),
+        summary_logger=logging.getLogger(),
         secrets_strategy=TestSecretStrategy(),
         source_file="test.yaml",
     )
@@ -171,7 +171,7 @@ def test_discover_file_paths_from_dict_and_list():
 
     discovery = ExtraFilesDiscovery(
         strategy=TestStrategy(),
-        pretty_logger=logging.getLogger(),
+        summary_logger=logging.getLogger(),
         secrets_strategy=TestSecretStrategy(),
         source_file="test.yaml",
     )
@@ -240,7 +240,7 @@ def test_mixed_config_with_secrets_and_extra_files():
 
     discovery = ExtraFilesDiscovery(
         strategy=TestStrategy(),
-        pretty_logger=logging.getLogger(),
+        summary_logger=logging.getLogger(),
         secrets_strategy=TestSecretStrategy(),
         source_file="test.yaml",
     )
@@ -299,7 +299,7 @@ def test_duplicate_file_paths(tmp_path):
 
     discovery = ExtraFilesDiscovery(
         strategy=TestStrategy(),
-        pretty_logger=logging.getLogger(),
+        summary_logger=logging.getLogger(),
         secrets_strategy=TestSecretStrategy(),
         source_file="test.yaml",
     )
@@ -354,7 +354,7 @@ def test_binary_file_detection(tmp_path):
 
     discovery = ExtraFilesDiscovery(
         strategy=TestStrategy(),
-        pretty_logger=logging.getLogger(),
+        summary_logger=logging.getLogger(),
         secrets_strategy=TestSecretStrategy(),
         source_file="test.yaml",
     )
@@ -400,7 +400,7 @@ def test_ignored_config_keys():
 
     discovery = ExtraFilesDiscovery(
         strategy=TestStrategy(),
-        pretty_logger=logging.getLogger(),
+        summary_logger=logging.getLogger(),
         secrets_strategy=TestSecretStrategy(),
         source_file="test.yaml",
     )
@@ -450,7 +450,7 @@ def test_permission_error_handling(tmp_path):
     # Create discovery instance
     discovery = ExtraFilesDiscovery(
         strategy=TestStrategy(),
-        pretty_logger=logging.getLogger(),
+        summary_logger=logging.getLogger(),
         secrets_strategy=TestSecretStrategy(),
         source_file="test.yaml",
     )
