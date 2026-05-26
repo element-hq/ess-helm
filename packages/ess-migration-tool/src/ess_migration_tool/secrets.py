@@ -289,11 +289,7 @@ class SecretDiscovery:
         component_name = self.strategy.secret_name.upper()
         print_section(f"🔐 {component_name} SECRETS REQUIRED FOR MIGRATION", logger=self.summary_logger)
         print_prompt(
-            f"The following {component_name} secrets are required but could not be automatically",
-            style="default",
-            logger=self.summary_logger,
-        )
-        print_prompt(
+            f"The following {component_name} secrets are required but could not be automatically"
             "discovered from your configuration files. Please provide them:",
             style="default",
             logger=self.summary_logger,
