@@ -366,6 +366,11 @@ class SynapseMigration(MigrationStrategy):
                 transformer=lambda _, mas, **__: mas.get("enabled") if mas else None,
                 required=False,
             ),
+            TransformationSpec(
+                src_key="max_upload_size",
+                target_key="synapse.media.maxUploadSize",
+                required=False,
+            ),
             # ... other non-database transformations ...
         ]
 
