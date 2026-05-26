@@ -46,14 +46,14 @@ def test_migration_with_missing_secrets_prompt(
     ess_values = {}
 
     log_capture_string = StringIO()
-    summary_logger = logging.getLogger(test_migration_with_missing_secrets_prompt.__name__)
-    summary_logger.propagate = False
-    summary_logger.setLevel(logging.INFO)
-    summary_logger.addHandler(logging.StreamHandler(log_capture_string))
+    logger = logging.getLogger(test_migration_with_missing_secrets_prompt.__name__)
+    logger.propagate = False
+    logger.setLevel(logging.INFO)
+    logger.addHandler(logging.StreamHandler(log_capture_string))
 
     global_options = GlobalOptions()
     global_options.use_existing_database = True
-    engine = MigrationEngine(input_processor, summary_logger=summary_logger, global_options=global_options)
+    engine = MigrationEngine(input_processor, summary_logger=logger, global_options=global_options)
 
     # Mock user input for missing secrets
     side_effect = (n for n in ("test_db_password", "test_macaroon", "test_registration"))
@@ -112,12 +112,12 @@ def test_migration_with_missing_secrets_prompt(
 
 def test_prompt_for_ingress_host_with_missing_public_baseurl(monkeypatch, config_value_transformer):
     """Test that missing public_baseurl triggers user prompt for ingress host."""
-    summary_logger = logging.getLogger(test_prompt_for_ingress_host_with_missing_public_baseurl.__name__)
-    summary_logger.propagate = False
-    summary_logger.setLevel(logging.INFO)
-
     log_capture_string = StringIO()
-    summary_logger.addHandler(logging.StreamHandler(log_capture_string))
+    logger = logging.getLogger(test_prompt_for_ingress_host_with_missing_public_baseurl.__name__)
+    logger.propagate = False
+    logger.setLevel(logging.INFO)
+
+    logger.addHandler(logging.StreamHandler(log_capture_string))
 
     # Mock user input using monkeypatch
     monkeypatch.setattr("builtins.input", lambda _: "matrix.example.com")
@@ -162,14 +162,13 @@ def test_quiet_mode_fails_on_missing_secrets(tmp_path, synapse_config_with_signi
     )
 
     # Create logger in quiet mode (CRITICAL level)
-    summary_logger = logging.getLogger(test_quiet_mode_fails_on_missing_secrets.__name__)
-    summary_logger.propagate = False
-    summary_logger.setLevel(logging.CRITICAL)  # This simulates --quiet mode
-    summary_logger.addHandler(logging.StreamHandler())
+    logger = logging.getLogger(test_quiet_mode_fails_on_missing_secrets.__name__)
+    logger.propagate = False
+    logger.addHandler(logging.StreamHandler())
 
     # Set database mode directly to avoid prompting (simulate --database-mode existing)
     global_options = GlobalOptions(use_existing_database=True, quiet_mode=True)
-    engine = MigrationEngine(input_processor, summary_logger=summary_logger, global_options=global_options)
+    engine = MigrationEngine(input_processor, summary_logger=logger, global_options=global_options)
 
     # Test that it raises SecretsError in quiet mode
     with pytest.raises(SecretsError) as exc_info:
@@ -199,14 +198,13 @@ def test_quiet_mode_fails_on_missing_extra_files(
     )
 
     # Create logger in quiet mode (CRITICAL level)
-    summary_logger = logging.getLogger(test_quiet_mode_fails_on_missing_extra_files.__name__)
-    summary_logger.propagate = False
-    summary_logger.setLevel(logging.CRITICAL)  # This simulates --quiet mode
-    summary_logger.addHandler(logging.StreamHandler())
+    logger = logging.getLogger(test_quiet_mode_fails_on_missing_extra_files.__name__)
+    logger.propagate = False
+    logger.addHandler(logging.StreamHandler())
 
     # Set database mode directly to avoid prompting (simulate --database-mode existing)
     global_options = GlobalOptions(use_existing_database=True, quiet_mode=True)
-    engine = MigrationEngine(input_processor, summary_logger=summary_logger, global_options=global_options)
+    engine = MigrationEngine(input_processor, summary_logger=logger, global_options=global_options)
 
     # Test that it raises ExtraFilesError in quiet mode
     with pytest.raises(ExtraFilesError) as exc_info:
@@ -237,14 +235,14 @@ def test_migration_with_unknown_workers_prompt(
     ess_values = {}
 
     log_capture_string = StringIO()
-    summary_logger = logging.getLogger(test_migration_with_unknown_workers_prompt.__name__)
-    summary_logger.propagate = False
-    summary_logger.setLevel(logging.INFO)
-    summary_logger.addHandler(logging.StreamHandler(log_capture_string))
+    logger = logging.getLogger(test_migration_with_unknown_workers_prompt.__name__)
+    logger.propagate = False
+    logger.setLevel(logging.INFO)
+    logger.addHandler(logging.StreamHandler(log_capture_string))
 
     # Set database mode directly to avoid prompting (simulate --database-mode existing)
     global_options = GlobalOptions(use_existing_database=True)
-    engine = MigrationEngine(input_processor, summary_logger=summary_logger, global_options=global_options)
+    engine = MigrationEngine(input_processor, summary_logger=logger, global_options=global_options)
 
     # Mock user input for workers
     side_effect = (n for n in ("8",))
@@ -305,14 +303,14 @@ def test_migration_with_missing_extra_files_prompt(
     shutil.move(tmp_path / "email_templates", tmp_path / "moved")
 
     log_capture_string = StringIO()
-    summary_logger = logging.getLogger(test_migration_with_missing_extra_files_prompt.__name__)
-    summary_logger.propagate = False
-    summary_logger.setLevel(logging.INFO)
-    summary_logger.addHandler(logging.StreamHandler(log_capture_string))
+    logger = logging.getLogger(test_migration_with_missing_extra_files_prompt.__name__)
+    logger.propagate = False
+    logger.setLevel(logging.INFO)
+    logger.addHandler(logging.StreamHandler(log_capture_string))
 
     # Set database mode directly to avoid prompting (simulate --database-mode existing)
     global_options = GlobalOptions(use_existing_database=True)
-    engine = MigrationEngine(input_processor, summary_logger=summary_logger, global_options=global_options)
+    engine = MigrationEngine(input_processor, summary_logger=logger, global_options=global_options)
 
     # Mock user input for extra files discovery
     side_effect = (n for n in ("3", str(tmp_path / "moved")))
@@ -371,18 +369,18 @@ def test_database_choice_prompt_existing_database(
     )
 
     log_capture_string = StringIO()
-    summary_logger = logging.getLogger(test_database_choice_prompt_existing_database.__name__)
-    summary_logger.propagate = False
-    summary_logger.setLevel(logging.INFO)
-    summary_logger.addHandler(logging.StreamHandler(log_capture_string))
+    logger = logging.getLogger(test_database_choice_prompt_existing_database.__name__)
+    logger.propagate = False
+    logger.setLevel(logging.INFO)
+    logger.addHandler(logging.StreamHandler(log_capture_string))
 
-    engine = MigrationEngine(input_processor, summary_logger=summary_logger, global_options=GlobalOptions())
+    engine = MigrationEngine(input_processor, summary_logger=logger, global_options=GlobalOptions())
 
     # Mock user input for database choice (select option 1 - existing database)
     side_effect = (n for n in ("1",))  # Just database choice, no missing secrets
     monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
 
-    engine.global_options.use_existing_database = prompt_for_database_choice(summary_logger, engine.global_options)
+    engine.global_options.use_existing_database = prompt_for_database_choice(logger, engine.global_options)
 
     # Test with async timeout to prevent hanging
     async def test_with_timeout():
@@ -434,18 +432,18 @@ def test_database_choice_prompt_ess_managed(
     )
 
     log_capture_string = StringIO()
-    summary_logger = logging.getLogger(test_database_choice_prompt_ess_managed.__name__)
-    summary_logger.propagate = False
-    summary_logger.setLevel(logging.INFO)
-    summary_logger.addHandler(logging.StreamHandler(log_capture_string))
+    logger = logging.getLogger(test_database_choice_prompt_ess_managed.__name__)
+    logger.propagate = False
+    logger.setLevel(logging.INFO)
+    logger.addHandler(logging.StreamHandler(log_capture_string))
 
-    engine = MigrationEngine(input_processor, summary_logger=summary_logger, global_options=GlobalOptions())
+    engine = MigrationEngine(input_processor, summary_logger=logger, global_options=GlobalOptions())
 
     # Mock user input for database choice (select option 2 - ESS-managed PostgreSQL)
     side_effect = (n for n in ("2",))  # Just database choice, no missing secrets
     monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
 
-    engine.global_options.use_existing_database = prompt_for_database_choice(summary_logger, engine.global_options)
+    engine.global_options.use_existing_database = prompt_for_database_choice(logger, engine.global_options)
 
     # Test with async timeout to prevent hanging
     async def test_with_timeout():
@@ -497,18 +495,18 @@ def test_database_choice_prompt_default(
     )
 
     log_capture_string = StringIO()
-    summary_logger = logging.getLogger(test_database_choice_prompt_default.__name__)
-    summary_logger.propagate = False
-    summary_logger.setLevel(logging.INFO)
-    summary_logger.addHandler(logging.StreamHandler(log_capture_string))
+    logger = logging.getLogger(test_database_choice_prompt_default.__name__)
+    logger.propagate = False
+    logger.setLevel(logging.INFO)
+    logger.addHandler(logging.StreamHandler(log_capture_string))
 
-    engine = MigrationEngine(input_processor, summary_logger=summary_logger, global_options=GlobalOptions())
+    engine = MigrationEngine(input_processor, summary_logger=logger, global_options=GlobalOptions())
 
     # Mock user input for database choice (press Enter for default - option 1)
     side_effect = (n for n in ("",))  # Empty string for default choice
     monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
 
-    engine.global_options.use_existing_database = prompt_for_database_choice(summary_logger, engine.global_options)
+    engine.global_options.use_existing_database = prompt_for_database_choice(logger, engine.global_options)
 
     # Test with async timeout to prevent hanging
     async def test_with_timeout():
