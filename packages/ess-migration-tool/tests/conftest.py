@@ -53,6 +53,7 @@ def basic_synapse_config():
                 ],
             }
         ],
+        "max_upload_size": "60M",
         "database": {
             "args": {
                 "database": "synapse",

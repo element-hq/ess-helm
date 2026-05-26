@@ -274,6 +274,13 @@ class SynapseMigration(MigrationStrategy):
             "listeners",  # Listeners are also managed by ESS
             "app_service_config_files",  # In theory we can use extra file for this
             # In practice, the migration-tool manages it using ESS high level values
+            "notify_appservices_from_worker",
+            "run_background_tasks_on",
+            "send_federation",
+            "federation_sender_instances",
+            "max_upload_size",
+            "media_instance_running_background_jobs",
+            "push_instances",
         }
 
     @property
@@ -357,6 +364,11 @@ class SynapseMigration(MigrationStrategy):
                 src_key="matrix_authentication_service",
                 target_key="matrixAuthenticationService.enabled",
                 transformer=lambda _, mas, **__: mas.get("enabled") if mas else None,
+                required=False,
+            ),
+            TransformationSpec(
+                src_key="max_upload_size",
+                target_key="synapse.media.maxUploadSize",
                 required=False,
             ),
             # ... other non-database transformations ...

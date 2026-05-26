@@ -45,6 +45,10 @@ class HookshotMigration(MigrationStrategy):
             "passFile",
             "cache.redisUri",
             "encryption.storagePath",
+            "matrix",
+            "telemery",
+            "database",
+            "http",
         }
 
     @property
