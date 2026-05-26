@@ -354,7 +354,7 @@ class MASSecretDiscovery(SecretDiscoveryStrategy):
         if self.global_options.use_existing_database:
             schema["matrixAuthenticationService.postgres.password"] = DiscoverableSecret(
                 description="MAS database password",
-                init_if_missing_from_source_cfg=True,  # Must be provided
+                init_if_missing_from_source_cfg=False,  # Must be provided if using existing db
                 discovery=SecretConfig(
                     config_inline="database.uri",
                     config_path=None,
