@@ -80,6 +80,7 @@ def test_discover_extra_files_from_synapse_config(tmp_path, synapse_config_with_
         secrets_strategy=SynapseSecretDiscovery(GlobalOptions(use_existing_database=True)),
         strategy=SynapseExtraFileDiscovery(),
         source_file="homeserver.yaml",
+        global_options=GlobalOptions(),
     )
 
     discovery.discover_extra_files_from_config(synapse_config)

@@ -13,7 +13,7 @@ from pathlib import Path
 import pytest
 from ess_migration_tool.extra_files import ExtraFilesDiscovery, ExtraFilesError
 from ess_migration_tool.interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
-from ess_migration_tool.models import DiscoverableSecret, DiscoveredPath, SecretConfig
+from ess_migration_tool.models import DiscoverableSecret, DiscoveredPath, GlobalOptions, SecretConfig
 
 
 def test_validate_extra_files_success(tmp_path):
@@ -48,6 +48,7 @@ def test_validate_extra_files_success(tmp_path):
             test1,
             test2,
         ],
+        global_options=GlobalOptions(),
     )
 
     # Should validate successfully
@@ -90,6 +91,7 @@ def test_validate_extra_files_missing():
             DiscoveredPath(config_key="a", source_file="test.yaml", source_path="nonexistent/file1.txt"),
             DiscoveredPath(config_key="b", source_file="test.yaml", source_path="nonexistent/file2.yaml"),
         ],
+        global_options=GlobalOptions(),
     )
 
     # Should raise ExtraFilesError
@@ -124,6 +126,7 @@ def test_file_path_detection():
         summary_logger=logging.getLogger(),
         secrets_strategy=TestSecretStrategy(),
         source_file="test.yaml",
+        global_options=GlobalOptions(),
     )
 
     # Test various file path patterns
@@ -174,6 +177,7 @@ def test_discover_file_paths_from_dict_and_list():
         summary_logger=logging.getLogger(),
         secrets_strategy=TestSecretStrategy(),
         source_file="test.yaml",
+        global_options=GlobalOptions(),
     )
     discovery._discover_file_paths_from_list_or_dict(config_data)
 
@@ -243,6 +247,7 @@ def test_mixed_config_with_secrets_and_extra_files():
         summary_logger=logging.getLogger(),
         secrets_strategy=TestSecretStrategy(),
         source_file="test.yaml",
+        global_options=GlobalOptions(),
     )
 
     discovery._discover_file_paths_from_list_or_dict(config_data)
@@ -302,6 +307,7 @@ def test_duplicate_file_paths(tmp_path):
         summary_logger=logging.getLogger(),
         secrets_strategy=TestSecretStrategy(),
         source_file="test.yaml",
+        global_options=GlobalOptions(),
     )
     discovery.discover_extra_files_from_config(config_data)
 
@@ -357,6 +363,7 @@ def test_binary_file_detection(tmp_path):
         summary_logger=logging.getLogger(),
         secrets_strategy=TestSecretStrategy(),
         source_file="test.yaml",
+        global_options=GlobalOptions(),
     )
     discovery.discover_extra_files_from_config(config_data)
 
@@ -403,6 +410,7 @@ def test_ignored_config_keys():
         summary_logger=logging.getLogger(),
         secrets_strategy=TestSecretStrategy(),
         source_file="test.yaml",
+        global_options=GlobalOptions(),
     )
     discovery._discover_file_paths_from_list_or_dict(config_data)
 
@@ -453,6 +461,7 @@ def test_permission_error_handling(tmp_path):
         summary_logger=logging.getLogger(),
         secrets_strategy=TestSecretStrategy(),
         source_file="test.yaml",
+        global_options=GlobalOptions(),
     )
 
     # Discover file paths

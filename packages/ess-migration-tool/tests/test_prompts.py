@@ -168,6 +168,7 @@ def test_quiet_mode_fails_on_missing_secrets(tmp_path, synapse_config_with_signi
 
     # Set database mode directly to avoid prompting (simulate --database-mode existing)
     engine.global_options.use_existing_database = True
+    engine.global_options.quiet_mode = True
 
     # Test that it raises SecretsError in quiet mode
     with pytest.raises(SecretsError) as exc_info:
@@ -206,6 +207,7 @@ def test_quiet_mode_fails_on_missing_extra_files(
 
     # Set database mode directly to avoid prompting (simulate --database-mode existing)
     engine.global_options.use_existing_database = True
+    engine.global_options.quiet_mode = True
 
     # Test that it raises ExtraFilesError in quiet mode
     with pytest.raises(ExtraFilesError) as exc_info:

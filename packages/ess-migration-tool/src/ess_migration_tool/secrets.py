@@ -15,7 +15,6 @@ from .rich_output import print_prompt, print_section, print_separator
 from .utils import (
     find_matching_schema_key,
     get_nested_value,
-    is_quiet_mode,
     is_wildcard_pattern,
     prompt_value,
 )
@@ -280,7 +279,7 @@ class SecretDiscovery:
             return
 
         # Check if quiet mode is enabled
-        if is_quiet_mode(self.summary_logger):
+        if self.global_options.quiet_mode:
             missing_list = ", ".join(ds.secret_key for ds, _ in self.missing_required_secrets)
             raise SecretsError(
                 f"Missing required {self.strategy.secret_name} secrets in quiet mode: {missing_list}. "
@@ -338,7 +337,7 @@ class SecretDiscovery:
             print_prompt(f"   ✅ Secret stored for {secret_key}", style="default", logger=self.summary_logger)
 
         print_prompt(
-            f"\n✅ All required {component_name} secrets have been provided",
+            f"✅ All required {component_name} secrets have been provided",
             style="default",
             logger=self.summary_logger,
         )

@@ -16,7 +16,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import dsa, ec, rsa
 from ess_migration_tool.migration import ConfigValueTransformer
-from ess_migration_tool.models import ValueSourceTracking
+from ess_migration_tool.models import GlobalOptions, ValueSourceTracking
 
 from .helm_validation import validate_helm_template
 
@@ -27,7 +27,10 @@ def config_value_transformer():
 
     def _gen(name: str):
         return ConfigValueTransformer(
-            logging.getLogger(name), ess_config={}, value_source_tracking=ValueSourceTracking()
+            logging.getLogger(name),
+            ess_config={},
+            value_source_tracking=ValueSourceTracking(),
+            global_options=GlobalOptions(),
         )
 
     return _gen

@@ -20,6 +20,7 @@ class GlobalOptions:
     """
 
     use_existing_database: bool | None = None
+    quiet_mode: bool | None = None
 
 
 @dataclass

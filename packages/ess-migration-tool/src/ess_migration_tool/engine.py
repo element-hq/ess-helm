@@ -145,10 +145,10 @@ class MigrationEngine:
                 migrator.handle_secrets_phase()
 
         # Resolve secret conflicts after all migrations
-        resolve_secret_conflicts(self.summary_logger, self.secret_tracking)
+        resolve_secret_conflicts(self.summary_logger, self.secret_tracking, self.global_options)
 
         # Resolve value conflicts after all migrations
-        resolve_value_conflicts(self.summary_logger, self.value_source_tracking, self.ess_config)
+        resolve_value_conflicts(self.summary_logger, self.value_source_tracking, self.ess_config, self.global_options)
 
         # Disable any ESS component that was not migrated (absent from config)
         ALL_ESS_COMPONENTS = {

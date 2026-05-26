@@ -175,6 +175,7 @@ class ConfigValueTransformer:
     summary_logger: logging.Logger = field(init=True)  # Pretty logger
     ess_config: dict[str, Any] = field(init=True)  # Target ESS configuration dictionary
     value_source_tracking: ValueSourceTracking = field(init=True)  # Shared value source tracking instance
+    global_options: GlobalOptions = field(init=True)  # Global options
     results: list[TransformationResult] = field(default_factory=list)  # List of transformation results
     override_warnings: list[str] = field(default_factory=list)  # Warnings about ESS-managed overrides
     underride_warnings: list[str] = field(default_factory=list)  # Warnings about ESS default configurations
@@ -382,7 +383,7 @@ class ConfigValueTransformer:
                     f"Skipping large file {discovered_extra_file.source_path} "
                     f"({discovered_extra_file.source_path.stat().st_size} bytes > {MAX_EXTRA_FILE_SIZE} bytes)"
                 )
-                press_enter_to_continue(summary_logger=self.summary_logger)
+                press_enter_to_continue(self.summary_logger, self.global_options)
                 continue
 
             # Read content from source_path (lazy loading - content read once here, not during discovery)
@@ -505,6 +506,7 @@ class MigrationService:
             strategy=self.extra_files_strategy,
             secrets_strategy=self.secret_discovery_strategy,
             summary_logger=self.summary_logger,
+            global_options=self.global_options,
         )
         extra_files_discovery.discover_extra_files_from_config(self.input.config)
         # Prompt for missing files then validate
@@ -515,7 +517,7 @@ class MigrationService:
         self.missing_file_paths = extra_files_discovery.missing_file_paths
 
         config_to_ess_transformer = ConfigValueTransformer(
-            self.summary_logger, self.ess_config, self.value_source_tracking
+            self.summary_logger, self.ess_config, self.value_source_tracking, self.global_options
         )
 
         # Set strategy name for source tracking
@@ -575,7 +577,7 @@ class MigrationService:
             return
 
         config_to_ess_transformer = ConfigValueTransformer(
-            self.summary_logger, self.ess_config, self.value_source_tracking
+            self.summary_logger, self.ess_config, self.value_source_tracking, self.global_options
         )
         config_to_ess_transformer.strategy_name = self.migration.name
 

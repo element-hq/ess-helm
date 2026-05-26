@@ -14,9 +14,9 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from .interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
-from .models import DiscoverableSecret, DiscoveredExtraFile, DiscoveredPath
+from .models import DiscoverableSecret, DiscoveredExtraFile, DiscoveredPath, GlobalOptions
 from .rich_output import print_prompt, print_section, print_separator
-from .utils import is_quiet_mode, prompt_choice, prompt_value, prompt_yes_no
+from .utils import prompt_choice, prompt_value, prompt_yes_no
 
 logger = logging.getLogger("migration")
 
@@ -45,6 +45,7 @@ class ExtraFilesDiscovery:
         init=True
     )  # Strategy for component-specific secret discovery
     source_file: str = field(init=True)  # Source file path
+    global_options: GlobalOptions = field(init=True)  # Global options for the migration script
     discovered_extra_files: dict[Path, DiscoveredExtraFile] = field(
         default_factory=dict
     )  # Discovered Extra File to mount in ESS
@@ -238,7 +239,7 @@ class ExtraFilesDiscovery:
         Prompt user for alternative paths when files are missing.
         """
         # Check if quiet mode is enabled
-        if is_quiet_mode(self.summary_logger) and self.missing_file_paths:
+        if self.global_options.quiet_mode and self.missing_file_paths:
             missing_files = [str(fp.source_path) for fp in self.missing_file_paths]
             raise ExtraFilesError(
                 f"Missing extra files in quiet mode: {', '.join(missing_files)}. "
@@ -399,7 +400,7 @@ class ExtraFilesDiscovery:
         if self.discovered_file_paths or self.discovered_extra_files:
             component_name = self.strategy.component_name
             print_prompt(
-                f"\n✅ Extra files validation completed ({component_name})", style="default", logger=self.summary_logger
+                f"✅ Extra files validation completed ({component_name})", style="default", logger=self.summary_logger
             )
             print_separator(logger=self.summary_logger)
 

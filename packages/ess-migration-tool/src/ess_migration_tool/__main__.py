@@ -11,16 +11,13 @@ Main CLI entry point for the migration script.
 import argparse
 import datetime
 import logging
-import os
-
-from rich.logging import RichHandler
 
 from .element_web import ELEMENT_WEB_STRATEGY_NAME
 from .engine import MigrationEngine
 from .hookshot import HOOKSHOT_STRATEGY_NAME
 from .inputs import InputProcessor, ValidationError
 from .mas import MAS_STRATEGY_NAME, parse_postgres_uri
-from .outputs import generate_helm_values, write_outputs
+from .outputs import create_output_dir, generate_helm_values, write_outputs
 from .rich_output import ProgressReporter, log_command, print_prompt, print_section, print_separator, print_table
 from .synapse import SYNAPSE_STRATEGY_NAME
 from .utils import press_enter_to_continue, prompt_for_database_choice
@@ -158,38 +155,23 @@ Examples:
     else:
         logger.setLevel(logging.CRITICAL)
 
+    # Validate and create output directory
+    create_output_dir(args.output_dir)
+
+    summary_fh = logging.FileHandler(
+        f"{args.output_dir}/migration-summary-{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.log"
+    )
+    summary_fh.setFormatter(
+        logging.Formatter(
+            "%(asctime)s - %(levelname)s - %(message)s",
+        )
+    )
+
     summary_logger = logging.getLogger("migration:summary")
     summary_logger.propagate = False
     summary_logger.setLevel(logging.INFO)
-    summary_logger.addHandler(
-        logging.FileHandler(f"output/migration-summary-{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.log")
-    )
-
-    pretty_logger = logging.getLogger("migration:terminal")
-    pretty_logger.propagate = False
-    pretty_logger.setLevel(logging.CRITICAL if args.quiet else logging.INFO)
-    pretty_sh = logging.StreamHandler()
-    # Use rich for colored output if available and not running in a test environment
-    # RichHandler doesn't work well with pytest's capsys, so we detect pytest via PYTEST_CURRENT_TEST env var
-    # Similar logic to press_enter_to_continue function in utils.py
-    is_pytest = bool(os.environ.get("PYTEST_CURRENT_TEST"))
-    if not is_pytest:
-        pretty_handler = RichHandler(
-            rich_tracebacks=False,
-            show_time=False,
-            show_level=False,
-            show_path=False,
-            enable_link_path=False,
-        )
-        pretty_logger.addHandler(pretty_handler)
-    else:
-        # Use basic formatter for pytest compatibility
-        pretty_sh.setFormatter(
-            logging.Formatter(
-                "%(message)s",
-            )
-        )
-        pretty_logger.addHandler(pretty_sh)
+    summary_logger.addHandler(summary_fh)
+    logger.addHandler(summary_fh)
 
     # Set up progress reporter
     steps = [
@@ -274,7 +256,7 @@ Examples:
         all_file_paths = [values_path] + secret_paths + configmap_paths
 
         # Display migration summary
-        press_enter_to_continue(summary_logger)
+        press_enter_to_continue(summary_logger, engine.global_options)
         print_section("📊 MIGRATION SUMMARY", logger=summary_logger)
 
         # Create a comprehensive mapping of source config paths to target ESS paths
@@ -307,7 +289,7 @@ Examples:
                 title="✅ ESS COMMUNITY VALUES CREATED SUCCESSFULLY",
                 logger=summary_logger,
             )
-            press_enter_to_continue(summary_logger)
+            press_enter_to_continue(summary_logger, engine.global_options)
 
         if engine.ess_config["synapse"].get("workers"):
             # Prepare table data for workers
@@ -326,12 +308,12 @@ Examples:
                 style="default",
                 logger=summary_logger,
             )
-            press_enter_to_continue(summary_logger)
+            press_enter_to_continue(summary_logger, engine.global_options)
         else:
             print_prompt(
                 "   ✅ No workers found, using a single main Synapse process", style="default", logger=summary_logger
             )
-            press_enter_to_continue(summary_logger)
+            press_enter_to_continue(summary_logger, engine.global_options)
         if engine.discovered_secrets:
             # Prepare table data for secrets
             secret_data = []
@@ -349,7 +331,7 @@ Examples:
                 title="🔐 MIGRATED SECRETS",
                 logger=summary_logger,
             )
-            press_enter_to_continue(summary_logger)
+            press_enter_to_continue(summary_logger, engine.global_options)
 
         if engine.init_by_ess_secrets:
             # Prepare table data for auto-generated secrets
@@ -363,7 +345,7 @@ Examples:
             summary_logger.info(
                 "These secrets are not required for migration but will be created automatically during deployment."
             )
-            press_enter_to_continue(summary_logger)
+            press_enter_to_continue(summary_logger, engine.global_options)
 
         # Show override warnings within the migration summary
         if engine.override_warnings:
@@ -379,7 +361,7 @@ Examples:
                 "   These components settings are managed by ESS Community and"
                 " your settings may be overriden if they are not configurable in ESS"
             )
-            press_enter_to_continue(summary_logger)
+            press_enter_to_continue(summary_logger, engine.global_options)
 
             print_section(
                 "❗ ACTION REQUIRED:\n   "
@@ -387,7 +369,7 @@ Examples:
                 logger=summary_logger,
             )
 
-            press_enter_to_continue(summary_logger)
+            press_enter_to_continue(summary_logger, engine.global_options)
 
         # Show underride warnings within the migration summary
         if engine.underride_warnings:
@@ -405,20 +387,20 @@ Examples:
                 style="default",
                 logger=summary_logger,
             )
-            press_enter_to_continue(summary_logger)
+            press_enter_to_continue(summary_logger, engine.global_options)
 
         # Show clean migration message
         if not engine.override_warnings and not engine.underride_warnings:
-            press_enter_to_continue(summary_logger)
+            press_enter_to_continue(summary_logger, engine.global_options)
             print_section("🎉 CLEAN MIGRATION: No unexpected overrides detected!", logger=summary_logger)
             print_prompt(
                 "   All configurations have been properly migrated to ESS.", style="default", logger=summary_logger
             )
-            press_enter_to_continue(summary_logger)
+            press_enter_to_continue(summary_logger, engine.global_options)
 
         # Show next steps for deployment
         print_section("🚀 NEXT STEPS TO DEPLOY ELEMENT SERVER SUITE:", logger=summary_logger)
-        press_enter_to_continue(summary_logger)
+        press_enter_to_continue(summary_logger, engine.global_options)
 
         # Use incremental step numbering
         step_number = 1
@@ -453,7 +435,7 @@ Examples:
             f"oci://ghcr.io/element-hq/ess-helm/matrix-stack -f {values_path} --wait",
             logger=summary_logger,
         )
-        press_enter_to_continue(summary_logger)
+        press_enter_to_continue(summary_logger, engine.global_options)
 
         # Get the original media path from Synapse configuration
         synapse_input = engine.input_processor.input_for_strategy(SYNAPSE_STRATEGY_NAME)
@@ -471,14 +453,14 @@ Examples:
                 f"kubectl cp {original_media_path} ess-synapse-0:/media/media_store -n ess",
                 logger=summary_logger,
             )
-            press_enter_to_continue(summary_logger)
+            press_enter_to_continue(summary_logger, engine.global_options)
 
         print_prompt(
             "📚 For more details on deployment and data migration, refer to the ESS documentation.",
             style="default",
             logger=summary_logger,
         )
-        press_enter_to_continue(summary_logger)
+        press_enter_to_continue(summary_logger, engine.global_options)
 
         # Add database-specific instructions
         if not engine.global_options.use_existing_database:
@@ -489,10 +471,7 @@ Examples:
                 style="default",
                 logger=summary_logger,
             )
-            print_prompt(
-                "existing database schema after deployment. Here are the steps:", style="default", logger=summary_logger
-            )
-            press_enter_to_continue(summary_logger)
+            press_enter_to_continue(summary_logger, engine.global_options)
 
             # Get source database configuration from input files
             synapse_input = engine.input_processor.input_for_strategy(SYNAPSE_STRATEGY_NAME)
@@ -535,7 +514,7 @@ Examples:
                     'kubectl scale deploy -l "app.kubernetes.io/component=matrix-authentication" -n ess --replicas=0',
                     logger=summary_logger,
                 )
-            press_enter_to_continue(summary_logger)
+            press_enter_to_continue(summary_logger, engine.global_options)
 
             step_number += 1
 
@@ -554,7 +533,7 @@ Examples:
             if mas_input:
                 log_command(f"pg_dump -C -U {source_mas_user} -d {source_mas_db} > mas.sql", logger=summary_logger)
 
-            press_enter_to_continue(summary_logger)
+            press_enter_to_continue(summary_logger, engine.global_options)
             step_number += 1
 
             # Step 3: Transform the dumps (only show if transformations are needed)
@@ -604,7 +583,7 @@ Examples:
                         logger=summary_logger,
                     )
 
-                press_enter_to_continue(summary_logger)
+                press_enter_to_continue(summary_logger, engine.global_options)
                 step_number += 1
 
             # Step: Copy the dumps
@@ -617,7 +596,7 @@ Examples:
             if mas_input:
                 log_command("kubectl cp mas.sql ess-postgres-0:/tmp -n ess", logger=summary_logger)
 
-            press_enter_to_continue(summary_logger)
+            press_enter_to_continue(summary_logger, engine.global_options)
             step_number += 1
 
             # Step: Import the dumps
@@ -660,7 +639,7 @@ Examples:
                     logger=summary_logger,
                 )
 
-            press_enter_to_continue(summary_logger)
+            press_enter_to_continue(summary_logger, engine.global_options)
 
         print_separator(logger=summary_logger)
 

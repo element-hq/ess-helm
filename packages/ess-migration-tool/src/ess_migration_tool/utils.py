@@ -17,7 +17,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec, rsa
 
-from .models import MigrationError
+from .models import GlobalOptions, MigrationError
 from .rich_output import get_console, is_rich_enabled, print_prompt, print_section
 
 
@@ -393,22 +393,6 @@ def detect_key_type(content: bytes) -> str:
         return "unknown"
 
 
-def is_quiet_mode(summary_logger: logging.Logger) -> bool:
-    """
-    Check if quiet mode is enabled by examining the logger level.
-
-    In the migration tool, quiet mode is indicated by setting the summary_logger
-    level to logging.CRITICAL, which suppresses all summary output.
-
-    Args:
-        summary_logger: The pretty logger instance to check
-
-    Returns:
-        True if quiet mode is enabled (logger level is CRITICAL), False otherwise
-    """
-    return summary_logger.level == logging.CRITICAL
-
-
 def sort_tracked_values_for_filtering(tracked_values: list[str]) -> list[str]:
     """
     Sort tracked values so that list indices are processed in descending order.
@@ -505,8 +489,8 @@ def prompt_for_database_choice(summary_logger: logging.Logger) -> bool:
         return False
 
 
-def press_enter_to_continue(summary_logger: logging.Logger) -> None:
-    if not is_quiet_mode(summary_logger) and not os.environ.get("PYTEST_CURRENT_TEST"):
+def press_enter_to_continue(summary_logger: logging.Logger, global_options: GlobalOptions) -> None:
+    if not global_options.quiet_mode and not os.environ.get("PYTEST_CURRENT_TEST"):
         print_prompt("Press Enter to continue...", logger=summary_logger)
         if is_rich_enabled():
             get_console().input()

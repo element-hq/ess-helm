@@ -59,7 +59,7 @@ def print_table(
         logger: Logger to use for fallback output
     """
     if title:
-        logger.info(f"\n{title}")
+        logger.info(f"{title}")
         logger.info("-" * len(title))
     # Print headers
     logger.info("  ".join(headers))
@@ -107,7 +107,7 @@ def print_section(
         separator: Character to use for separator line in plain text mode (default: "=")
     """
     # Log to file
-    logger.info(f"\n{text}")
+    logger.info(text)
     logger.info(separator * len(text))
 
     # Rich is enabled - use styled panel for section header
@@ -135,7 +135,7 @@ def print_header(
         logger: Logger to use for fallback output
     """
     # Log to file
-    logger.info(f"\n{text}")
+    logger.info(text)
 
     # Rich is enabled - use styled text without panel
     get_console().print(Text(text, style=style))

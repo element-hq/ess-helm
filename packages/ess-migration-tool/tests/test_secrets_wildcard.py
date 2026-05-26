@@ -124,6 +124,7 @@ def test_wildcard_secret_discovery_and_injection():
         summary_logger=logging.getLogger(),
         ess_config={},
         value_source_tracking=ValueSourceTracking(),
+        global_options=global_options,
     )
 
     transformer.handle_secrets(discovery, secrets_list)

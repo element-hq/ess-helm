@@ -68,7 +68,7 @@ def prompt_user_for_worker(
 
     logger.info("   No worker type found for instance %s (host: %s)", instance_name, instance_props["host"])
     config_value_transformer.summary_logger.info(
-        f"\n   ❌ No worker type found for instance {instance_name} (host: {instance_props['host']})"
+        f"   ❌ No worker type found for instance {instance_name} (host: {instance_props['host']})"
     )
     print_prompt("   ❌ Available worker types", style="default", logger=config_value_transformer.summary_logger)
     for i, worker_type in enumerate(matched_worker_types):
