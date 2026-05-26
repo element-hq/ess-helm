@@ -435,13 +435,16 @@ def sort_tracked_values_for_filtering(tracked_values: list[str]) -> list[str]:
     return regular_paths + sorted_indexed
 
 
-def prompt_for_database_choice(summary_logger: logging.Logger) -> bool:
+def prompt_for_database_choice(summary_logger: logging.Logger, global_options: GlobalOptions) -> bool:
     """
     Prompt user to choose between using existing database or ESS-managed PostgreSQL.
 
     Returns:
         True if user wants to use existing database, False for ESS-managed PostgreSQL
     """
+    if global_options.quiet_mode:
+        raise MigrationError("Quiet mode is enabled. Cannot prompt for database choice.")
+
     print_section("🗃️  DATABASE CONFIGURATION CHOICE", logger=summary_logger)
     print_prompt(
         "How would you like to handle the database for your ESS deployment?",
@@ -449,7 +452,7 @@ def prompt_for_database_choice(summary_logger: logging.Logger) -> bool:
         logger=summary_logger,
         prefix="",
     )
-    print("")
+    print_prompt("", logger=summary_logger)
 
     print_prompt(
         "1. 🔗 Connect to existing database (recommended for production)",
@@ -459,7 +462,7 @@ def prompt_for_database_choice(summary_logger: logging.Logger) -> bool:
     )
     print_prompt("- Import your current database settings into ESS", style="dim", logger=summary_logger, prefix="   ")
     print_prompt("- Continue using your existing PostgreSQL instance", style="dim", logger=summary_logger, prefix="   ")
-    print("")
+    print_prompt("", logger=summary_logger)
     print_prompt(
         "2. 🆕 Install PostgreSQL with ESS and import database later", style="white", logger=summary_logger, prefix=""
     )
@@ -470,13 +473,14 @@ def prompt_for_database_choice(summary_logger: logging.Logger) -> bool:
         logger=summary_logger,
         prefix="   ",
     )
-    print("")
+    print_prompt("", logger=summary_logger)
 
     choice = prompt_choice(
         summary_logger,
         "Please select an option [1/2] (default: 1):",
         ["Use existing database", "Install PostgreSQL with ESS"],
         default="Use existing database",
+        global_options=global_options,
     )
 
     if choice == "Use existing database":
@@ -501,6 +505,7 @@ def press_enter_to_continue(summary_logger: logging.Logger, global_options: Glob
 def prompt_value(
     summary_logger: logging.Logger,
     prompt: str,
+    global_options: GlobalOptions,
     validator: Callable[[str], tuple[bool, str]] | None = None,
     default: str | None = None,
 ) -> str:
@@ -519,6 +524,9 @@ def prompt_value(
     Raises:
         MigrationError: If user cancels the operation (Ctrl+C or EOF)
     """
+    if global_options.quiet_mode:
+        raise MigrationError("Quiet mode is enabled. Cannot prompt for value.")
+
     while True:
         try:
             # Display prompt with Rich if available
@@ -554,6 +562,7 @@ def prompt_choice(
     summary_logger: logging.Logger,
     prompt: str,
     options: list[str],
+    global_options: GlobalOptions,
     default: str | None = None,
 ) -> str:
     """
@@ -572,6 +581,9 @@ def prompt_choice(
     Raises:
         MigrationError: If user cancels the operation (Ctrl+C or EOF)
     """
+    if global_options.quiet_mode:
+        raise MigrationError("Quiet mode is enabled. Cannot prompt for choice.")
+
     while True:
         try:
             # Display prompt with Rich if available
@@ -615,6 +627,7 @@ def prompt_choice(
 def prompt_yes_no(
     summary_logger: logging.Logger,
     prompt: str,
+    global_options: GlobalOptions,
     default: bool | None = None,
 ) -> bool:
     """
@@ -631,6 +644,9 @@ def prompt_yes_no(
     Raises:
         MigrationError: If user cancels the operation (Ctrl+C or EOF)
     """
+    if global_options.quiet_mode:
+        raise MigrationError("Quiet mode is enabled. Cannot prompt for input.")
+
     while True:
         try:
             # Display prompt with Rich if available

@@ -279,6 +279,7 @@ class ExtraFilesDiscovery:
                     "Skip these files and continue",
                     "Provide a directory to search for files",
                 ],
+                global_options=self.global_options,
             )
 
             if choice == "Provide alternative path for this file":
@@ -318,6 +319,7 @@ class ExtraFilesDiscovery:
                 self.summary_logger,
                 "Please enter the correct file path (or 'skip' to ignore):",
                 validator=validate_file_path,
+                global_options=self.global_options,
             )
 
             if new_path.lower() == "skip":
@@ -357,6 +359,7 @@ class ExtraFilesDiscovery:
                 self.summary_logger,
                 "Enter directory path:",
                 validator=validate_directory,
+                global_options=self.global_options,
             )
 
             dir_path = Path(search_dir)
@@ -382,6 +385,7 @@ class ExtraFilesDiscovery:
                     self.summary_logger,
                     "Try another directory?",
                     default=False,
+                    global_options=self.global_options,
                 )
                 if not retry:
                     print_prompt("   ⚠️  Skipping directory search...", style="default", logger=self.summary_logger)

@@ -325,6 +325,7 @@ class SecretDiscovery:
             value = prompt_value(
                 self.summary_logger,
                 "Please paste the secret value:",
+                global_options=self.global_options,
             )
             self.discovered_secrets[secret_key] = DiscoveredSecret(
                 source_file=self.source_file,

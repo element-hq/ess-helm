@@ -31,6 +31,7 @@ class MigrationEngine:
 
     input_processor: InputProcessor = field(init=True)
     summary_logger: logging.Logger = field(init=True)
+    global_options: GlobalOptions = field(init=True)
     ess_config: dict[str, Any] = field(default_factory=dict)
     secrets: list[Secret] = field(default_factory=list)
     configmaps: list[ConfigMap] = field(default_factory=list)
@@ -39,7 +40,6 @@ class MigrationEngine:
     discovered_secrets: list[DiscoveredSecret] = field(default_factory=list)
     init_by_ess_secrets: list[str] = field(default_factory=list)
     migrators: list[MigrationService] = field(default_factory=list)
-    global_options: GlobalOptions = field(default_factory=GlobalOptions)
     value_source_tracking: ValueSourceTracking = field(default_factory=ValueSourceTracking)
     secret_tracking: DiscoveredSecretTracking = field(default_factory=DiscoveredSecretTracking)
 

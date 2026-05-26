@@ -213,6 +213,7 @@ class ConfigValueTransformer:
                     self,
                     value,
                     extra_files_discovery=extra_files_discovery,
+                    global_options=self.global_options,
                     **kwargs,
                 )
             else:

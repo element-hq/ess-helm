@@ -19,6 +19,7 @@ def prompt_for_conflict_resolution(
     summary_logger: logging.Logger,
     conflict_key: str,
     value_to_strategies: dict[str, list[str]],
+    global_options: GlobalOptions,
     display_value_max_length: int = 50,
     enable_custom: bool = False,
 ) -> tuple[str | None, bool]:
@@ -40,7 +41,9 @@ def prompt_for_conflict_resolution(
     if enable_custom:
         options.append("Enter custom value")
 
-    choice = prompt_choice(summary_logger, f"Select value for '{conflict_key}':", options)
+    choice = prompt_choice(
+        summary_logger, f"Select value for '{conflict_key}':", options, global_options=global_options
+    )
     is_custom = choice == "Enter custom value"
     selected_value = choice if not is_custom else None
     return selected_value, is_custom
@@ -85,11 +88,11 @@ def resolve_value_conflicts(
             )
 
         selected_value, is_custom = prompt_for_conflict_resolution(
-            summary_logger, ess_path, value_to_strategies, enable_custom=True
+            summary_logger, ess_path, value_to_strategies, enable_custom=True, global_options=global_options
         )
 
         if is_custom:
-            selected_value = prompt_value(summary_logger, "Enter custom value:")
+            selected_value = prompt_value(summary_logger, "Enter custom value:", global_options)
 
         set_nested_value(ess_config, ess_path, selected_value)
         logging.info(f"Resolved {ess_path} = {selected_value}")
@@ -139,10 +142,12 @@ def resolve_secret_conflicts(
                 f"   • {display_value} (from: {', '.join(strategies)})", style="default", logger=summary_logger
             )
 
-        selected_value, is_custom = prompt_for_conflict_resolution(summary_logger, secret_key, value_to_strategies)
+        selected_value, is_custom = prompt_for_conflict_resolution(
+            summary_logger, secret_key, value_to_strategies, global_options
+        )
 
         if is_custom:
-            new_value = prompt_value(summary_logger, "Enter custom value:")
+            new_value = prompt_value(summary_logger, "Enter custom value:", global_options)
             secret_tracking.sources[secret_key] = [
                 SecretSource(
                     strategy_name="user-provided",

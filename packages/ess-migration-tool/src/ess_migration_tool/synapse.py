@@ -62,6 +62,7 @@ def prompt_user_for_worker(
     instance_name: str,
     instance_props: Any,
     matched_worker_types: list[str],
+    global_options: GlobalOptions,
 ) -> str:
     if not matched_worker_types:
         matched_worker_types = worker_types
@@ -78,6 +79,7 @@ def prompt_user_for_worker(
         config_value_transformer.summary_logger,
         f"Please select the worker type of instance {instance_name}:",
         matched_worker_types,
+        global_options,
     )
     return selected_worker
 
@@ -97,7 +99,11 @@ def extract_workers_from_instance_map(
         probable_matches = [m[0] for m in matches if m[1] > 60]
         selected_worker = (
             prompt_user_for_worker(
-                config_value_transformer, instance_name, instance_map[instance_name], probable_matches
+                config_value_transformer,
+                instance_name,
+                instance_map[instance_name],
+                probable_matches,
+                kwargs["global_options"],
             )
             if len(very_high_probable_matches) != 1
             else very_high_probable_matches[0]
@@ -172,6 +178,7 @@ def prompt_for_ingress_host(
     return prompt_value(
         config_value_transformer.summary_logger,
         "Enter ingress host:",
+        kwargs["global_options"],
     )
 
 

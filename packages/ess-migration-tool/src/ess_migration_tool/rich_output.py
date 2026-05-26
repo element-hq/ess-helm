@@ -21,6 +21,8 @@ from rich.table import Table
 from rich.text import Text
 from rich.tree import Tree
 
+from .models import GlobalOptions
+
 # Global console instance
 _console: Console | None = None
 
@@ -243,6 +245,7 @@ class ProgressReporter:
         self,
         summary_logger: logging.Logger,
         steps: list[str],
+        global_options: GlobalOptions,
         *,
         verbose: bool = False,
     ) -> None:
@@ -258,6 +261,7 @@ class ProgressReporter:
         self.verbose = verbose
         self.current_step: int = -1
         self.all_steps = steps
+        self.global_options = global_options
 
     def start_migration(self) -> None:
         """Report migration start."""
@@ -291,7 +295,7 @@ class ProgressReporter:
             print_prompt(step_msg_plain, style="default", logger=self.summary_logger)
 
         # Pause for user input after each step (unless in quiet mode or testing)
-        if not os.environ.get("PYTEST_CURRENT_TEST") and self.summary_logger.level != logging.CRITICAL:
+        if not os.environ.get("PYTEST_CURRENT_TEST") and not self.global_options.quiet_mode:
             print_prompt("   Press Enter to continue...", style="default", logger=self.summary_logger)
             get_console().input()
 

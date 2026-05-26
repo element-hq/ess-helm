@@ -17,8 +17,10 @@ import pytest
 from ess_migration_tool.engine import MigrationEngine
 from ess_migration_tool.extra_files import ExtraFilesError
 from ess_migration_tool.inputs import InputProcessor
+from ess_migration_tool.models import GlobalOptions
 from ess_migration_tool.secrets import SecretsError
 from ess_migration_tool.synapse import SYNAPSE_STRATEGY_NAME, prompt_for_ingress_host
+from ess_migration_tool.utils import prompt_for_database_choice
 
 
 def test_migration_with_missing_secrets_prompt(
@@ -49,10 +51,9 @@ def test_migration_with_missing_secrets_prompt(
     summary_logger.setLevel(logging.INFO)
     summary_logger.addHandler(logging.StreamHandler(log_capture_string))
 
-    engine = MigrationEngine(input_processor, summary_logger=summary_logger)
-
-    # Set database mode directly
-    engine.global_options.use_existing_database = True
+    global_options = GlobalOptions()
+    global_options.use_existing_database = True
+    engine = MigrationEngine(input_processor, summary_logger=summary_logger, global_options=global_options)
 
     # Mock user input for missing secrets
     side_effect = (n for n in ("test_db_password", "test_macaroon", "test_registration"))
@@ -124,7 +125,9 @@ def test_prompt_for_ingress_host_with_missing_public_baseurl(monkeypatch, config
     try:
         # Test with missing public_baseurl
         result = prompt_for_ingress_host(
-            config_value_transformer(test_prompt_for_ingress_host_with_missing_public_baseurl.__name__), None
+            config_value_transformer(test_prompt_for_ingress_host_with_missing_public_baseurl.__name__),
+            None,
+            global_options=GlobalOptions(),
         )
 
         # Verify the result
@@ -164,11 +167,9 @@ def test_quiet_mode_fails_on_missing_secrets(tmp_path, synapse_config_with_signi
     summary_logger.setLevel(logging.CRITICAL)  # This simulates --quiet mode
     summary_logger.addHandler(logging.StreamHandler())
 
-    engine = MigrationEngine(input_processor, summary_logger=summary_logger)
-
     # Set database mode directly to avoid prompting (simulate --database-mode existing)
-    engine.global_options.use_existing_database = True
-    engine.global_options.quiet_mode = True
+    global_options = GlobalOptions(use_existing_database=True, quiet_mode=True)
+    engine = MigrationEngine(input_processor, summary_logger=summary_logger, global_options=global_options)
 
     # Test that it raises SecretsError in quiet mode
     with pytest.raises(SecretsError) as exc_info:
@@ -203,11 +204,9 @@ def test_quiet_mode_fails_on_missing_extra_files(
     summary_logger.setLevel(logging.CRITICAL)  # This simulates --quiet mode
     summary_logger.addHandler(logging.StreamHandler())
 
-    engine = MigrationEngine(input_processor, summary_logger=summary_logger)
-
     # Set database mode directly to avoid prompting (simulate --database-mode existing)
-    engine.global_options.use_existing_database = True
-    engine.global_options.quiet_mode = True
+    global_options = GlobalOptions(use_existing_database=True, quiet_mode=True)
+    engine = MigrationEngine(input_processor, summary_logger=summary_logger, global_options=global_options)
 
     # Test that it raises ExtraFilesError in quiet mode
     with pytest.raises(ExtraFilesError) as exc_info:
@@ -243,10 +242,9 @@ def test_migration_with_unknown_workers_prompt(
     summary_logger.setLevel(logging.INFO)
     summary_logger.addHandler(logging.StreamHandler(log_capture_string))
 
-    engine = MigrationEngine(input_processor, summary_logger=summary_logger)
-
-    # Set database mode directly
-    engine.global_options.use_existing_database = True
+    # Set database mode directly to avoid prompting (simulate --database-mode existing)
+    global_options = GlobalOptions(use_existing_database=True)
+    engine = MigrationEngine(input_processor, summary_logger=summary_logger, global_options=global_options)
 
     # Mock user input for workers
     side_effect = (n for n in ("8",))
@@ -312,10 +310,9 @@ def test_migration_with_missing_extra_files_prompt(
     summary_logger.setLevel(logging.INFO)
     summary_logger.addHandler(logging.StreamHandler(log_capture_string))
 
-    engine = MigrationEngine(input_processor, summary_logger=summary_logger)
-
-    # Set database mode directly
-    engine.global_options.use_existing_database = True
+    # Set database mode directly to avoid prompting (simulate --database-mode existing)
+    global_options = GlobalOptions(use_existing_database=True)
+    engine = MigrationEngine(input_processor, summary_logger=summary_logger, global_options=global_options)
 
     # Mock user input for extra files discovery
     side_effect = (n for n in ("3", str(tmp_path / "moved")))
@@ -379,16 +376,13 @@ def test_database_choice_prompt_existing_database(
     summary_logger.setLevel(logging.INFO)
     summary_logger.addHandler(logging.StreamHandler(log_capture_string))
 
-    engine = MigrationEngine(input_processor, summary_logger=summary_logger)
+    engine = MigrationEngine(input_processor, summary_logger=summary_logger, global_options=GlobalOptions())
 
     # Mock user input for database choice (select option 1 - existing database)
     side_effect = (n for n in ("1",))  # Just database choice, no missing secrets
     monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
 
-    # Test database choice prompt directly
-    from ess_migration_tool.utils import prompt_for_database_choice
-
-    engine.global_options.use_existing_database = prompt_for_database_choice(summary_logger)
+    engine.global_options.use_existing_database = prompt_for_database_choice(summary_logger, engine.global_options)
 
     # Test with async timeout to prevent hanging
     async def test_with_timeout():
@@ -445,16 +439,13 @@ def test_database_choice_prompt_ess_managed(
     summary_logger.setLevel(logging.INFO)
     summary_logger.addHandler(logging.StreamHandler(log_capture_string))
 
-    engine = MigrationEngine(input_processor, summary_logger=summary_logger)
+    engine = MigrationEngine(input_processor, summary_logger=summary_logger, global_options=GlobalOptions())
 
     # Mock user input for database choice (select option 2 - ESS-managed PostgreSQL)
     side_effect = (n for n in ("2",))  # Just database choice, no missing secrets
     monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
 
-    # Test database choice prompt directly
-    from ess_migration_tool.utils import prompt_for_database_choice
-
-    engine.global_options.use_existing_database = prompt_for_database_choice(summary_logger)
+    engine.global_options.use_existing_database = prompt_for_database_choice(summary_logger, engine.global_options)
 
     # Test with async timeout to prevent hanging
     async def test_with_timeout():
@@ -511,16 +502,13 @@ def test_database_choice_prompt_default(
     summary_logger.setLevel(logging.INFO)
     summary_logger.addHandler(logging.StreamHandler(log_capture_string))
 
-    engine = MigrationEngine(input_processor, summary_logger=summary_logger)
+    engine = MigrationEngine(input_processor, summary_logger=summary_logger, global_options=GlobalOptions())
 
     # Mock user input for database choice (press Enter for default - option 1)
     side_effect = (n for n in ("",))  # Empty string for default choice
     monkeypatch.setattr("builtins.input", lambda _: next(side_effect))
 
-    # Test database choice prompt directly
-    from ess_migration_tool.utils import prompt_for_database_choice
-
-    engine.global_options.use_existing_database = prompt_for_database_choice(summary_logger)
+    engine.global_options.use_existing_database = prompt_for_database_choice(summary_logger, engine.global_options)
 
     # Test with async timeout to prevent hanging
     async def test_with_timeout():

@@ -17,6 +17,7 @@ from .engine import MigrationEngine
 from .hookshot import HOOKSHOT_STRATEGY_NAME
 from .inputs import InputProcessor, ValidationError
 from .mas import MAS_STRATEGY_NAME, parse_postgres_uri
+from .models import GlobalOptions
 from .outputs import create_output_dir, generate_helm_values, write_outputs
 from .rich_output import ProgressReporter, log_command, print_prompt, print_section, print_separator, print_table
 from .synapse import SYNAPSE_STRATEGY_NAME
@@ -180,10 +181,11 @@ Examples:
         GENERATING_VALUES_STEP,
         WRITING_OUTPUTS_STEP,
     ]
+    global_options = GlobalOptions(
+        quiet_mode=args.quiet,
+    )
     reporter = ProgressReporter(
-        summary_logger=summary_logger,
-        steps=steps,
-        verbose=args.verbose,
+        summary_logger=summary_logger, steps=steps, verbose=args.verbose, global_options=global_options
     )
 
     try:
@@ -225,7 +227,9 @@ Examples:
 
         # Run migration
         reporter.report_step(MIGRATING_STEP)
-        engine = MigrationEngine(input_processor=input_processor, summary_logger=summary_logger)
+        engine = MigrationEngine(
+            input_processor=input_processor, summary_logger=summary_logger, global_options=global_options
+        )
 
         # Set database mode if provided via command line
         if args.database_mode:
@@ -235,7 +239,9 @@ Examples:
                 engine.global_options.use_existing_database = False
         else:
             # Prompt for database choice only if not already set via command line
-            engine.global_options.use_existing_database = prompt_for_database_choice(summary_logger)
+            engine.global_options.use_existing_database = prompt_for_database_choice(
+                summary_logger, global_options=engine.global_options
+            )
 
         ess_values = engine.run_migration()
 
