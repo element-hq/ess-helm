@@ -162,6 +162,9 @@ jobs:
     - name: Bump version for next PR
       id: versions
       run: |
+        if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+          uv --directory packages/ess-migration-tool version "${GITHUB_REF_NAME#ess-migration-tool-v}"
+        fi
         this_version=$(uv --directory packages/ess-migration-tool version --short)
         uv --directory packages/ess-migration-tool version --bump patch --bump dev=1
         next_version=$(uv --directory packages/ess-migration-tool version --short)
