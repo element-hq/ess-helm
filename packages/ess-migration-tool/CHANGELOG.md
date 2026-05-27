@@ -6,6 +6,51 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Migration Tool 0.2.0 (2026-05-27)
+
+## Bugfixes
+
+- Fix an issue where dynamically discovered secrets would still be logged as initialied by ESS. (#1296)
+- Fix an issue where underrides would be logged as overrides. (#1297)
+- Fix `database` not being removed from Synapse & MAS `additional` discovered configuration when selecting ESS-managed database. (#1307)
+- Fix an issue where Matrix Authentication Service might be using the wrong password when using an existing database. (#1350, #1352)
+- Add some missing configuration keys to override detection. (#1351)
+
+## Features
+
+- Handle configuration sources conflicts when generating ESS values. (#1266, #1276, #1294)
+- Add support for migrating Element Web `config.json` to ESS Community. (#1268, #1275)
+- Display settings that the chart tries to set as `underrides`. (#1269)
+- Add support for migrating Well Known delegation configuration files (client.json, server.json, support.json) to ESS. Users can now specify well-known files via `--well-known-dir` for a directory containing the files, or individual files via `--well-known-client`, `--well-known-server`, and `--well-known-support`. Files can be with or without the `.json` extension. (#1274)
+- Add support for migrating Hookshot `config.yaml` to ESS Community. (#1275)
+- Lazy load extra files instead of loading them in memory before dumping them into our output directory. (#1298)
+- Trigger a values conflict resolution if Synapse `homeserver.yaml` does not have `matrix_authentication_service` configured despite a MAS `config.yaml` being passed. (#1306)
+- Allow the migration process to discover MAS <-> Synapse shared secret from Synapse configuration, and resolve any conflicting configuration. (#1311, #1313)
+- Use Rich library to display formatted tables for migration mappings, workers, secrets, and warnings in the CLI output. (#1340, #1341, #1343, #1344, #1345, #1346, #1348, #1349)
+- Use Rich library to display formatted commands in the CLI output. (#1342)
+- Log all migration process to a summary log file. (#1353)
+
+## Misc
+
+- Refactor `additional` handling to rely on a generic transformer. (#1246)
+- Refactor strategies to allow them to manage any component configuration. (#1248, #1250, #1299)
+- Drop delays in tests. (#1251)
+- Support wildcard in secrets handling. (#1256)
+- Adjust handling of failures in dynamically discovered secrets. (#1257, #1260)
+- Refactor internal prompting logic. (#1261)
+- Handle nested keys with dots when parsing configuration files. (#1264)
+- Adjust build system to support uv 0.11. (#1277)
+- Tests: Fix the tests validating the helm validator fixture. (#1280)
+- Refactor internal handling of secrets to allow multiple secrets discovery implementations. (#1286, #1288, #1295)
+- Change artifical delays in logs to "press enter to continue" interaction. (#1293)
+- Verify that all our transformation specs target an existing key in the schema. (#1300)
+- Remove some dead code from the strategies. (#1318)
+- Add support for importing appservices as high level values in `synapse.appservices`. (#1327, #1328)
+- Fix empty extra file logs when no extra files was discovered. (#1333)
+- Adjust the wording of the migration process. (#1339)
+- CI: Fix version bumps after release. (#1355)
+
+
 # ESS Migration Tool 0.1.2 (2026-03-26)
 
 ## Misc
