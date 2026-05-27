@@ -10,7 +10,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 ## Bugfixes
 
-- Fix an issue where dynamically discovered secrets would still be logged as initialied by ESS. (#1296)
+- Fix an issue where dynamically discovered secrets would still be logged as initialized by ESS. (#1296)
 - Fix an issue where underrides would be logged as overrides. (#1297)
 - Fix `database` not being removed from Synapse & MAS `additional` discovered configuration when selecting ESS-managed database. (#1307)
 - Fix an issue where Matrix Authentication Service might be using the wrong password when using an existing database. (#1350, #1352)
