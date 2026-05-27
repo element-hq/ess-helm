@@ -17,7 +17,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec, rsa
 
-from .models import MigrationError
+from .models import GlobalOptions, MigrationError
 from .rich_output import get_console, is_rich_enabled, print_prompt, print_section
 
 
@@ -393,22 +393,6 @@ def detect_key_type(content: bytes) -> str:
         return "unknown"
 
 
-def is_quiet_mode(pretty_logger: logging.Logger) -> bool:
-    """
-    Check if quiet mode is enabled by examining the logger level.
-
-    In the migration tool, quiet mode is indicated by setting the pretty_logger
-    level to logging.CRITICAL, which suppresses all summary output.
-
-    Args:
-        pretty_logger: The pretty logger instance to check
-
-    Returns:
-        True if quiet mode is enabled (logger level is CRITICAL), False otherwise
-    """
-    return pretty_logger.level == logging.CRITICAL
-
-
 def sort_tracked_values_for_filtering(tracked_values: list[str]) -> list[str]:
     """
     Sort tracked values so that list indices are processed in descending order.
@@ -451,63 +435,67 @@ def sort_tracked_values_for_filtering(tracked_values: list[str]) -> list[str]:
     return regular_paths + sorted_indexed
 
 
-def prompt_for_database_choice(pretty_logger: logging.Logger) -> bool:
+def prompt_for_database_choice(summary_logger: logging.Logger, global_options: GlobalOptions) -> bool:
     """
     Prompt user to choose between using existing database or ESS-managed PostgreSQL.
 
     Returns:
         True if user wants to use existing database, False for ESS-managed PostgreSQL
     """
-    print_section("🗃️  DATABASE CONFIGURATION CHOICE", logger=pretty_logger)
+    if global_options.quiet_mode:
+        raise MigrationError("Quiet mode is enabled. Cannot prompt for database choice.")
+
+    print_section("🗃️  DATABASE CONFIGURATION CHOICE", logger=summary_logger)
     print_prompt(
         "How would you like to handle the database for your ESS deployment?",
         style="bold white",
-        logger=pretty_logger,
+        logger=summary_logger,
         prefix="",
     )
-    print("")
+    print_prompt("", logger=summary_logger)
 
     print_prompt(
         "1. 🔗 Connect to existing database (recommended for production)",
         style="bold cyan",
-        logger=pretty_logger,
+        logger=summary_logger,
         prefix="",
     )
-    print_prompt("- Import your current database settings into ESS", style="dim", logger=pretty_logger, prefix="   ")
-    print_prompt("- Continue using your existing PostgreSQL instance", style="dim", logger=pretty_logger, prefix="   ")
-    print("")
+    print_prompt("- Import your current database settings into ESS", style="dim", logger=summary_logger, prefix="   ")
+    print_prompt("- Continue using your existing PostgreSQL instance", style="dim", logger=summary_logger, prefix="   ")
+    print_prompt("", logger=summary_logger)
     print_prompt(
-        "2. 🆕 Install PostgreSQL with ESS and import database later", style="white", logger=pretty_logger, prefix=""
+        "2. 🆕 Install PostgreSQL with ESS and import database later", style="white", logger=summary_logger, prefix=""
     )
-    print_prompt("- Let ESS deploy and manage PostgreSQL", style="dim", logger=pretty_logger, prefix="   ")
+    print_prompt("- Let ESS deploy and manage PostgreSQL", style="dim", logger=summary_logger, prefix="   ")
     print_prompt(
         "- Import your Synapse and MAS database schemas after deployment",
         style="dim",
-        logger=pretty_logger,
+        logger=summary_logger,
         prefix="   ",
     )
-    print("")
+    print_prompt("", logger=summary_logger)
 
     choice = prompt_choice(
-        pretty_logger,
+        summary_logger,
         "Please select an option [1/2] (default: 1):",
         ["Use existing database", "Install PostgreSQL with ESS"],
         default="Use existing database",
+        global_options=global_options,
     )
 
     if choice == "Use existing database":
-        print_prompt("✅ Using existing database configuration", style="bold green", logger=pretty_logger)
+        print_prompt("✅ Using existing database configuration", style="bold green", logger=summary_logger)
         return True
     else:
         print_prompt(
-            "✅ Using ESS-managed PostgreSQL (import database later)", style="bold green", logger=pretty_logger
+            "✅ Using ESS-managed PostgreSQL (import database later)", style="bold green", logger=summary_logger
         )
         return False
 
 
-def press_enter_to_continue(pretty_logger: logging.Logger) -> None:
-    if not is_quiet_mode(pretty_logger) and not os.environ.get("PYTEST_CURRENT_TEST"):
-        print_prompt("Press Enter to continue...", logger=pretty_logger)
+def press_enter_to_continue(summary_logger: logging.Logger, global_options: GlobalOptions) -> None:
+    if not global_options.quiet_mode and not os.environ.get("PYTEST_CURRENT_TEST"):
+        print_prompt("Press Enter to continue...", logger=summary_logger)
         if is_rich_enabled():
             get_console().input()
         else:
@@ -515,8 +503,9 @@ def press_enter_to_continue(pretty_logger: logging.Logger) -> None:
 
 
 def prompt_value(
-    pretty_logger: logging.Logger,
+    summary_logger: logging.Logger,
     prompt: str,
+    global_options: GlobalOptions,
     validator: Callable[[str], tuple[bool, str]] | None = None,
     default: str | None = None,
 ) -> str:
@@ -524,7 +513,7 @@ def prompt_value(
     Generic function to prompt user for a text value.
 
     Args:
-        pretty_logger: Logger for displaying prompts and messages
+        summary_logger: Logger for displaying prompts and messages
         prompt: The prompt message to display
         validator: Optional function that takes input string and returns (is_valid, error_message)
         default: Optional default value if user presses Enter
@@ -535,6 +524,9 @@ def prompt_value(
     Raises:
         MigrationError: If user cancels the operation (Ctrl+C or EOF)
     """
+    if global_options.quiet_mode:
+        raise MigrationError("Quiet mode is enabled. Cannot prompt for value.")
+
     while True:
         try:
             # Display prompt with Rich if available
@@ -546,37 +538,38 @@ def prompt_value(
 
             # Handle empty input
             if user_input == "":
-                print_prompt("❌ Value cannot be empty. Please try again.", style="bold red", logger=pretty_logger)
+                print_prompt("❌ Value cannot be empty. Please try again.", style="bold red", logger=summary_logger)
                 continue
 
             # Validate if validator is provided
             if validator is not None:
                 is_valid, error_message = validator(user_input)
                 if not is_valid:
-                    print_prompt(f"❌ {error_message}", style="bold red", logger=pretty_logger)
+                    print_prompt(f"❌ {error_message}", style="bold red", logger=summary_logger)
                     continue
 
             return user_input
 
         except KeyboardInterrupt as err:
-            print_prompt("\n❌ Operation cancelled by user", style="bold red", logger=pretty_logger, prefix="")
+            print_prompt("\n❌ Operation cancelled by user", style="bold red", logger=summary_logger, prefix="")
             raise MigrationError("User cancelled input") from err
         except EOFError as err:
-            print_prompt("\n❌ End of input reached", style="bold red", logger=pretty_logger, prefix="")
+            print_prompt("\n❌ End of input reached", style="bold red", logger=summary_logger, prefix="")
             raise MigrationError("End of input reached during prompt") from err
 
 
 def prompt_choice(
-    pretty_logger: logging.Logger,
+    summary_logger: logging.Logger,
     prompt: str,
     options: list[str],
+    global_options: GlobalOptions,
     default: str | None = None,
 ) -> str:
     """
     Prompt user to select from a numbered list of options.
 
     Args:
-        pretty_logger: Logger for displaying prompts and messages
+        summary_logger: Logger for displaying prompts and messages
         prompt: The prompt message to display
         options: List of option strings to choose from
         default: Optional default choice (value, not index). If provided and user
@@ -588,6 +581,9 @@ def prompt_choice(
     Raises:
         MigrationError: If user cancels the operation (Ctrl+C or EOF)
     """
+    if global_options.quiet_mode:
+        raise MigrationError("Quiet mode is enabled. Cannot prompt for choice.")
+
     while True:
         try:
             # Display prompt with Rich if available
@@ -599,7 +595,7 @@ def prompt_choice(
 
             # Handle empty input without default
             if user_input == "":
-                print_prompt("❌ Please select a valid option.", style="bold red", logger=pretty_logger)
+                print_prompt("❌ Please select a valid option.", style="bold red", logger=summary_logger)
                 continue
 
             # Try to parse as number
@@ -611,33 +607,34 @@ def prompt_choice(
                     print_prompt(
                         f"❌ Invalid choice. Please enter a number between 1 and {len(options)}.",
                         style="bold red",
-                        logger=pretty_logger,
+                        logger=summary_logger,
                     )
             except ValueError:
                 print_prompt(
                     f"❌ Please enter a number between 1 and {len(options)}.",
                     style="bold red",
-                    logger=pretty_logger,
+                    logger=summary_logger,
                 )
 
         except KeyboardInterrupt as err:
-            print_prompt("\n❌ Operation cancelled by user", style="bold red", logger=pretty_logger, prefix="")
+            print_prompt("\n❌ Operation cancelled by user", style="bold red", logger=summary_logger, prefix="")
             raise MigrationError("User cancelled input") from err
         except EOFError as err:
-            print_prompt("\n❌ End of input reached", style="bold red", logger=pretty_logger, prefix="")
+            print_prompt("\n❌ End of input reached", style="bold red", logger=summary_logger, prefix="")
             raise MigrationError("End of input reached during prompt") from err
 
 
 def prompt_yes_no(
-    pretty_logger: logging.Logger,
+    summary_logger: logging.Logger,
     prompt: str,
+    global_options: GlobalOptions,
     default: bool | None = None,
 ) -> bool:
     """
     Prompt user for a yes/no answer.
 
     Args:
-        pretty_logger: Logger for displaying prompts and messages
+        summary_logger: Logger for displaying prompts and messages
         prompt: The prompt message to display
         default: Optional default value if user presses Enter
 
@@ -647,6 +644,9 @@ def prompt_yes_no(
     Raises:
         MigrationError: If user cancels the operation (Ctrl+C or EOF)
     """
+    if global_options.quiet_mode:
+        raise MigrationError("Quiet mode is enabled. Cannot prompt for input.")
+
     while True:
         try:
             # Display prompt with Rich if available
@@ -661,7 +661,7 @@ def prompt_yes_no(
 
             # Handle empty input without default
             if user_input == "":
-                print_prompt("❌ Please enter 'yes' or 'no'.", style="bold red", logger=pretty_logger)
+                print_prompt("❌ Please enter 'yes' or 'no'.", style="bold red", logger=summary_logger)
                 continue
 
             # Check for yes variations
@@ -671,11 +671,11 @@ def prompt_yes_no(
             elif user_input in ("no", "n", "false", "f", "0"):
                 return False
             else:
-                print_prompt("❌ Please enter 'yes' or 'no'.", style="bold red", logger=pretty_logger)
+                print_prompt("❌ Please enter 'yes' or 'no'.", style="bold red", logger=summary_logger)
 
         except KeyboardInterrupt as err:
-            print_prompt("\n❌ Operation cancelled by user", style="bold red", logger=pretty_logger, prefix="")
+            print_prompt("\n❌ Operation cancelled by user", style="bold red", logger=summary_logger, prefix="")
             raise MigrationError("User cancelled input") from err
         except EOFError as err:
-            print_prompt("\n❌ End of input reached", style="bold red", logger=pretty_logger, prefix="")
+            print_prompt("\n❌ End of input reached", style="bold red", logger=summary_logger, prefix="")
             raise MigrationError("End of input reached during prompt") from err

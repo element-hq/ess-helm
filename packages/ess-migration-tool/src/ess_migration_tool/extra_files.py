@@ -14,9 +14,9 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from .interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
-from .models import DiscoverableSecret, DiscoveredExtraFile, DiscoveredPath
-from .rich_output import print_section, print_separator
-from .utils import is_quiet_mode, prompt_choice, prompt_value, prompt_yes_no
+from .models import DiscoverableSecret, DiscoveredExtraFile, DiscoveredPath, GlobalOptions
+from .rich_output import print_prompt, print_section, print_separator
+from .utils import prompt_choice, prompt_value, prompt_yes_no
 
 logger = logging.getLogger("migration")
 
@@ -39,12 +39,13 @@ def ess_schema_config_key_secret_paths(ess_schema: dict[str, DiscoverableSecret]
 class ExtraFilesDiscovery:
     """Handles discovery and extraction of extra files from configuration files."""
 
-    pretty_logger: logging.Logger = field(init=True)
+    summary_logger: logging.Logger = field(init=True)
     strategy: ExtraFilesDiscoveryStrategy = field(init=True)  # Strategy for component-specific secret discovery
     secrets_strategy: SecretDiscoveryStrategy | None = field(
         init=True
     )  # Strategy for component-specific secret discovery
     source_file: str = field(init=True)  # Source file path
+    global_options: GlobalOptions = field(init=True)  # Global options for the migration script
     discovered_extra_files: dict[Path, DiscoveredExtraFile] = field(
         default_factory=dict
     )  # Discovered Extra File to mount in ESS
@@ -177,16 +178,20 @@ class ExtraFilesDiscovery:
             if _discovered_path.source_path.is_dir():
                 files_in_dir = self._handle_directory(_discovered_path)
                 logger.info(f"Found {len(files_in_dir)} files in directory {_discovered_path.source_path}")
-                self.pretty_logger.info(
+                self.summary_logger.info(
                     f"📁 Found {len(files_in_dir)} files in directory: {_discovered_path.source_path}"
                 )
                 # Show the files being imported
                 for file_path in files_in_dir:
                     logger.info(f"  - {file_path}")
-                    self.pretty_logger.info(f"  📄 {Path(file_path).name}")
+                    print_prompt(f"  📄 {Path(file_path).name}", style="default", logger=self.summary_logger)
                 if not files_in_dir:
                     logger.warning(f"No files found in directory: {_discovered_path.source_path}")
-                    self.pretty_logger.info(f"⚠️  No files found in directory: {_discovered_path.source_path}")
+                    print_prompt(
+                        f"⚠️  No files found in directory: {_discovered_path.source_path}",
+                        style="default",
+                        logger=self.summary_logger,
+                    )
             else:
                 if _discovered_path.source_path not in self.discovered_extra_files:
                     try:
@@ -234,7 +239,7 @@ class ExtraFilesDiscovery:
         Prompt user for alternative paths when files are missing.
         """
         # Check if quiet mode is enabled
-        if is_quiet_mode(self.pretty_logger) and self.missing_file_paths:
+        if self.global_options.quiet_mode and self.missing_file_paths:
             missing_files = [str(fp.source_path) for fp in self.missing_file_paths]
             raise ExtraFilesError(
                 f"Missing extra files in quiet mode: {', '.join(missing_files)}. "
@@ -246,26 +251,35 @@ class ExtraFilesDiscovery:
             return
 
         component_name = self.strategy.component_name
-        print_section(f"📁 EXTRA FILES DISCOVERY ({component_name})", logger=self.pretty_logger)
-        self.pretty_logger.info("The following extra files were referenced in your configuration")
-        self.pretty_logger.info("but could not be found:")
+        print_section(f"📁 EXTRA FILES DISCOVERY ({component_name})", logger=self.summary_logger)
+        print_prompt(
+            "The following extra files were referenced in your configuration",
+            style="default",
+            logger=self.summary_logger,
+        )
+        print_prompt("but could not be found:", style="default", logger=self.summary_logger)
 
         for file_path in self.missing_file_paths:
-            self.pretty_logger.info(f"📝 Missing: {file_path.config_key} ({file_path.source_path})")
+            print_prompt(
+                f"📝 Missing: {file_path.config_key} ({file_path.source_path})",
+                style="default",
+                logger=self.summary_logger,
+            )
 
-            self.pretty_logger.info("\n🔍 Would you like to:")
-            self.pretty_logger.info("  1. Provide alternative path for this file")
-            self.pretty_logger.info("  2. Skip these files and continue")
-            self.pretty_logger.info("  3. Provide a directory to search for files")
+            print_prompt("\n🔍 Would you like to:", style="default", logger=self.summary_logger)
+            print_prompt("  1. Provide alternative path for this file", style="default", logger=self.summary_logger)
+            print_prompt("  2. Skip these files and continue", style="default", logger=self.summary_logger)
+            print_prompt("  3. Provide a directory to search for files", style="default", logger=self.summary_logger)
 
             choice = prompt_choice(
-                self.pretty_logger,
+                self.summary_logger,
                 "Enter your choice (1/2/3):",
                 [
                     "Provide alternative path for this file",
                     "Skip these files and continue",
                     "Provide a directory to search for files",
                 ],
+                global_options=self.global_options,
             )
 
             if choice == "Provide alternative path for this file":
@@ -273,7 +287,7 @@ class ExtraFilesDiscovery:
                 self._prompt_for_individual_alternatives(file_path)
             elif choice == "Skip these files and continue":
                 # Skip missing files
-                self.pretty_logger.info("   ⚠️  Skipping missing files...")
+                print_prompt("   ⚠️  Skipping missing files...", style="default", logger=self.summary_logger)
                 file_path.skipped_reason = "Skipped by user"
             elif choice == "Provide a directory to search for files":
                 # Provide directory to search
@@ -302,27 +316,32 @@ class ExtraFilesDiscovery:
 
         while True:
             new_path = prompt_value(
-                self.pretty_logger,
+                self.summary_logger,
                 "Please enter the correct file path (or 'skip' to ignore):",
                 validator=validate_file_path,
+                global_options=self.global_options,
             )
 
             if new_path.lower() == "skip":
-                self.pretty_logger.info(f"   ⚠️  Skipping file: {discovered_path.source_path}")
+                print_prompt(
+                    f"   ⚠️  Skipping file: {discovered_path.source_path}", style="default", logger=self.summary_logger
+                )
                 break
 
             new_path_obj = Path(new_path)
             discovered_extra_file = self._discover_extra_file(discovered_path, new_path_obj)
             if discovered_extra_file:
                 self.discovered_extra_files[new_path_obj] = discovered_extra_file
-                self.pretty_logger.info(f"   ✅ File validated: {new_path}")
+                print_prompt(f"   ✅ File validated: {new_path}", style="default", logger=self.summary_logger)
                 break
 
     def _prompt_for_directory_search(self, discovered_path: DiscoveredPath) -> None:
         """
         Prompt user for a directory to search for missing files.
         """
-        self.pretty_logger.info("\n📁 Please provide a directory to search for missing files:")
+        print_prompt(
+            "\n📁 Please provide a directory to search for missing files:", style="default", logger=self.summary_logger
+        )
 
         def validate_directory(path: str) -> tuple[bool, str]:
             if not path:
@@ -337,9 +356,10 @@ class ExtraFilesDiscovery:
 
         while True:
             search_dir = prompt_value(
-                self.pretty_logger,
+                self.summary_logger,
                 "Enter directory path:",
                 validator=validate_directory,
+                global_options=self.global_options,
             )
 
             dir_path = Path(search_dir)
@@ -348,20 +368,27 @@ class ExtraFilesDiscovery:
             found_files = self._handle_directory(discovered_path, dir_path)
 
             if found_files:
-                self.pretty_logger.info(f"   ✅ Found {len(found_files)} matching files in {search_dir}")
+                print_prompt(
+                    f"   ✅ Found {len(found_files)} matching files in {search_dir}",
+                    style="default",
+                    logger=self.summary_logger,
+                )
                 for file_path in found_files:
-                    self.pretty_logger.info(f"      📄 {Path(file_path).name}")
+                    print_prompt(f"      📄 {Path(file_path).name}", style="default", logger=self.summary_logger)
                 break
             else:
-                self.pretty_logger.info(f"   ⚠️  No matching files found in {search_dir}")
-                self.pretty_logger.info("   Would you like to try another directory?")
+                print_prompt(
+                    f"   ⚠️  No matching files found in {search_dir}", style="default", logger=self.summary_logger
+                )
+                print_prompt("   Would you like to try another directory?", style="default", logger=self.summary_logger)
                 retry = prompt_yes_no(
-                    self.pretty_logger,
+                    self.summary_logger,
                     "Try another directory?",
                     default=False,
+                    global_options=self.global_options,
                 )
                 if not retry:
-                    self.pretty_logger.info("   ⚠️  Skipping directory search...")
+                    print_prompt("   ⚠️  Skipping directory search...", style="default", logger=self.summary_logger)
                     break
 
     def validate_extra_files(self) -> None:
@@ -376,8 +403,10 @@ class ExtraFilesDiscovery:
         # Only print validation message if there were files to validate
         if self.discovered_file_paths or self.discovered_extra_files:
             component_name = self.strategy.component_name
-            self.pretty_logger.info(f"\n✅ Extra files validation completed ({component_name})")
-            print_separator(logger=self.pretty_logger)
+            print_prompt(
+                f"✅ Extra files validation completed ({component_name})", style="default", logger=self.summary_logger
+            )
+            print_separator(logger=self.summary_logger)
 
     def _is_binary_file(self, path: Path) -> bool:
         """

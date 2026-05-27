@@ -25,7 +25,6 @@ def test_main_e2e_synapse_only(
     synapse_config_with_ca_federation_list,
     synapse_config_without_public_baseurl,
     write_synapse_config,
-    capsys,
     helm_validator,
 ):
     """Test the complete end-to-end migration workflow with Synapse only."""
@@ -48,7 +47,6 @@ def test_main_e2e_synapse_only(
 
     # Create output directory
     output_dir = tmp_path / "output"
-    output_dir.mkdir()
 
     # Mock sys.argv to simulate CLI arguments
     test_args = [
@@ -70,8 +68,7 @@ def test_main_e2e_synapse_only(
     assert exit_code == 0
 
     # Get captured stderr output (where logging goes)
-    captured = capsys.readouterr()
-    log_output = captured.err
+    log_output = next(output_dir.glob("*.log")).read_text()
 
     # Verify override detection behavior
     # listeners should be filtered out (they serve chart-managed resources)
@@ -226,7 +223,6 @@ def test_main_e2e_synapse_with_mas(
     basic_mas_config_with_keys,
     write_synapse_config,
     write_mas_config,
-    capsys,
     helm_validator,
 ):
     """Test the complete end-to-end migration workflow with Synapse and MAS."""
@@ -236,7 +232,6 @@ def test_main_e2e_synapse_with_mas(
 
     # Create output directory
     output_dir = tmp_path / "output"
-    output_dir.mkdir()
 
     # Mock sys.argv to simulate CLI arguments
     test_args = [
@@ -259,8 +254,7 @@ def test_main_e2e_synapse_with_mas(
     assert exit_code == 0
 
     # Get captured stderr output (where logging goes)
-    captured = capsys.readouterr()
-    log_output = captured.err
+    log_output = next(output_dir.glob("*.log")).read_text()
 
     # Verify override detection behavior for MAS
     # http should be detected as override for MAS
@@ -460,7 +454,6 @@ def test_main_e2e_mas_with_custom_listeners_and_ess_managed_database(
 
     # Create output directory
     output_dir = tmp_path / "output"
-    output_dir.mkdir()
 
     # Mock sys.argv to simulate CLI arguments
     test_args = [
@@ -541,7 +534,6 @@ def test_main_e2e_synapse_existing_database(
 
     # Create output directory
     output_dir = tmp_path / "output"
-    output_dir.mkdir()
 
     # Mock sys.argv to simulate CLI arguments
     test_args = [
@@ -605,7 +597,6 @@ def test_main_e2e_synapse_ess_managed_database(
 
     # Create output directory
     output_dir = tmp_path / "output"
-    output_dir.mkdir()
 
     # Mock sys.argv to simulate CLI arguments
     test_args = [
@@ -683,7 +674,6 @@ def test_main_e2e_synapse_listeners_with_custom_listeners(
 
     # Create output directory
     output_dir = tmp_path / "output"
-    output_dir.mkdir()
 
     # Mock sys.argv to simulate CLI arguments
     test_args = [
@@ -769,7 +759,6 @@ def test_main_e2e_mas_with_individual_keys(
 
     # Create output directory
     output_dir = tmp_path / "output"
-    output_dir.mkdir()
 
     # Mock sys.argv to simulate CLI arguments
     test_args = [
@@ -849,7 +838,6 @@ def test_main_e2e_synapse_with_mas_different_server_name(
     basic_mas_config_with_keys,
     write_synapse_config,
     write_mas_config,
-    capsys,
     helm_validator,
 ):
     """Test conflict resolution when Synapse and MAS have different serverName values.
@@ -872,7 +860,6 @@ def test_main_e2e_synapse_with_mas_different_server_name(
 
     # Create output directory
     output_dir = tmp_path / "output"
-    output_dir.mkdir()
 
     # Mock sys.argv to simulate CLI arguments
     test_args = [
@@ -922,8 +909,7 @@ def test_main_e2e_synapse_with_mas_different_server_name(
     assert generated_values["matrixAuthenticationService"]["enabled"] is True
 
     # Verify the conflict prompt was shown in the output
-    captured = capsys.readouterr()
-    log_output = captured.err
+    log_output = next(output_dir.glob("*.log")).read_text()
     assert "CONFLICT for 'serverName'" in log_output
     assert "synapse.example.com" in log_output
     assert "mas.example.com" in log_output
@@ -937,7 +923,6 @@ def test_main_e2e_synapse_with_element_web(
     basic_element_web_config,
     write_synapse_config,
     write_element_web_config,
-    capsys,
     helm_validator,
 ):
     """Test migration with Synapse and Element Web.
@@ -958,7 +943,6 @@ def test_main_e2e_synapse_with_element_web(
 
     # Create output directory
     output_dir = tmp_path / "output"
-    output_dir.mkdir()
 
     # Mock sys.argv to simulate CLI arguments
     test_args = [
@@ -993,8 +977,7 @@ def test_main_e2e_synapse_with_element_web(
     assert success, f"Helm template validation failed: {message}"
 
     # Get captured stderr output (where logging goes)
-    captured = capsys.readouterr()
-    log_output = captured.err
+    log_output = next(output_dir.glob("*.log")).read_text()
 
     # Verify Synapse configuration was migrated and is explicitly enabled
     assert "synapse" in generated_values
@@ -1125,7 +1108,6 @@ def test_main_e2e_hookshot(
     synapse_config_with_signing_key,
     write_hookshot_config,
     write_synapse_config,
-    capsys,
     helm_validator,
 ):
     """Test the complete end-to-end migration workflow with Hookshot."""
@@ -1141,7 +1123,6 @@ def test_main_e2e_hookshot(
 
     # Create output directory
     output_dir = tmp_path / "output"
-    output_dir.mkdir()
 
     # Mock sys.argv to simulate CLI arguments
     test_args = [
@@ -1165,8 +1146,7 @@ def test_main_e2e_hookshot(
     assert exit_code == 0
 
     # Get captured stderr output (where logging goes)
-    captured = capsys.readouterr()
-    log_output = captured.err
+    log_output = next(output_dir.glob("*.log")).read_text()
 
     # Verify override detection behavior for Hookshot
     # bridge configs should be detected as overrides (except domain and url which are mapped to global values)
@@ -1216,7 +1196,6 @@ def test_main_e2e_synapse_mas_shared_secret_conflict(
     basic_mas_config,
     write_synapse_config,
     write_mas_config,
-    capsys,
     helm_validator,
 ):
     """Test conflict resolution for Synapse <-> MAS shared secret.
@@ -1239,7 +1218,6 @@ def test_main_e2e_synapse_mas_shared_secret_conflict(
 
     # Create output directory
     output_dir = tmp_path / "output"
-    output_dir.mkdir()
 
     # Mock sys.argv
     test_args = [
@@ -1266,8 +1244,8 @@ def test_main_e2e_synapse_mas_shared_secret_conflict(
     assert exit_code == 0
 
     # Verify the conflict prompt was shown
-    captured = capsys.readouterr()
-    log_output = captured.err
+    log_output = next(output_dir.glob("*.log")).read_text()
+
     assert "RESOLVING SECRET CONFLICTS" in log_output
     assert "Conflict for secret: matrixAuthenticationService.synapseSharedSecret" in log_output
     assert "• mas_side_secret (from: matrix-authentication-service)" in log_output

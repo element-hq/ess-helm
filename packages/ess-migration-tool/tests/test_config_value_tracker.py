@@ -161,10 +161,11 @@ def test_update_paths_in_config_basic(config_value_transformer):
     # Create ExtraFilesDiscovery instance
     extra_files_discovery = ExtraFilesDiscovery(
         strategy=MockStrategy(),
-        pretty_logger=logging.Logger(__name__),
+        summary_logger=logging.Logger(__name__),
         secrets_strategy=MockSecretStrategy(global_options=GlobalOptions()),
         source_file="test.yaml",
         discovered_file_paths=discovered_paths,
+        global_options=GlobalOptions(),
     )
 
     # Test the update_paths_in_config method
@@ -231,10 +232,11 @@ def test_update_paths_in_config_with_skipped_paths(config_value_transformer):
 
     extra_files_discovery = ExtraFilesDiscovery(
         strategy=MockStrategy(),
-        pretty_logger=logging.Logger(__name__),
+        summary_logger=logging.Logger(__name__),
         secrets_strategy=MockSecretStrategy(global_options=GlobalOptions()),
         source_file="test.yaml",
         discovered_file_paths=discovered_paths,
+        global_options=GlobalOptions(),
     )
 
     # Test the update_paths_in_config method
@@ -286,10 +288,11 @@ def test_update_paths_in_config_empty_discovery(config_value_transformer):
     # Create ExtraFilesDiscovery with no discovered paths
     extra_files_discovery = ExtraFilesDiscovery(
         strategy=MockStrategy(),
-        pretty_logger=logging.Logger(__name__),
+        summary_logger=logging.Logger(__name__),
         secrets_strategy=MockSecretStrategy(global_options=GlobalOptions()),
         source_file="test.yaml",
         discovered_file_paths=[],
+        global_options=GlobalOptions(),
     )
 
     # Test the update_paths_in_config method
@@ -356,10 +359,11 @@ def test_update_paths_in_config_nested_config(config_value_transformer):
 
     extra_files_discovery = ExtraFilesDiscovery(
         strategy=MockStrategy(),
-        pretty_logger=logging.Logger(__name__),
+        summary_logger=logging.Logger(__name__),
         secrets_strategy=MockSecretStrategy(global_options=GlobalOptions()),
         source_file="test.yaml",
         discovered_file_paths=discovered_paths,
+        global_options=GlobalOptions(),
     )
 
     # Test the update_paths_in_config method

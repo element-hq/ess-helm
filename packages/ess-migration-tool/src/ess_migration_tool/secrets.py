@@ -11,11 +11,10 @@ from dataclasses import dataclass, field
 
 from .interfaces import SecretDiscoveryStrategy
 from .models import DiscoverableSecret, DiscoveredSecret, DiscoveredSecretTracking, GlobalOptions, SecretConfig
-from .rich_output import print_section, print_separator
+from .rich_output import print_prompt, print_section, print_separator
 from .utils import (
     find_matching_schema_key,
     get_nested_value,
-    is_quiet_mode,
     is_wildcard_pattern,
     prompt_value,
 )
@@ -34,7 +33,7 @@ class SecretDiscovery:
     """Complete implementation that handles all secret discovery functionality."""
 
     strategy: SecretDiscoveryStrategy = field(init=True)  # Strategy for component-specific secret discovery
-    pretty_logger: logging.Logger = field(init=True)
+    summary_logger: logging.Logger = field(init=True)
     source_file: str = field(init=True)  # Source configuration file name
     global_options: GlobalOptions = field(init=True)  # Global migration options
     secret_tracking: DiscoveredSecretTracking = field(init=True)  # Global tracking of discovered secrets
@@ -280,7 +279,7 @@ class SecretDiscovery:
             return
 
         # Check if quiet mode is enabled
-        if is_quiet_mode(self.pretty_logger):
+        if self.global_options.quiet_mode:
             missing_list = ", ".join(ds.secret_key for ds, _ in self.missing_required_secrets)
             raise SecretsError(
                 f"Missing required {self.strategy.secret_name} secrets in quiet mode: {missing_list}. "
@@ -288,9 +287,13 @@ class SecretDiscovery:
             )
 
         component_name = self.strategy.secret_name.upper()
-        print_section(f"🔐 {component_name} SECRETS REQUIRED FOR MIGRATION", logger=self.pretty_logger)
-        self.pretty_logger.info(f"The following {component_name} secrets are required but could not be automatically")
-        self.pretty_logger.info("discovered from your configuration files. Please provide them:")
+        print_section(f"🔐 {component_name} SECRETS REQUIRED FOR MIGRATION", logger=self.summary_logger)
+        print_prompt(
+            f"The following {component_name} secrets are required but could not be automatically"
+            "discovered from your configuration files. Please provide them:",
+            style="default",
+            logger=self.summary_logger,
+        )
 
         for discovered_secret, error_message in self.missing_required_secrets[:]:
             secret_key = discovered_secret.secret_key
@@ -301,21 +304,24 @@ class SecretDiscovery:
             assert matching_schema_key is not None
             discoverable_secret = self.strategy.ess_secret_schema[matching_schema_key]
 
-            self.pretty_logger.info(f"📝 {discoverable_secret.description}")
-            self.pretty_logger.info(f"   Secret path: {secret_key}")
+            print_prompt(f"📝 {discoverable_secret.description}", style="default", logger=self.summary_logger)
+            print_prompt(f"   Secret path: {secret_key}", style="default", logger=self.summary_logger)
 
             # Add failure reason if available
             if error_message:
-                self.pretty_logger.info(f"   ⚠️  {error_message}")
+                print_prompt(f"   ⚠️  {error_message}", style="default", logger=self.summary_logger)
                 if "Permission denied" in error_message:
-                    self.pretty_logger.info("   💡 Use elevated privileges to read this file")
+                    print_prompt(
+                        "   💡 Use elevated privileges to read this file", style="default", logger=self.summary_logger
+                    )
 
             if not config_key:
                 raise RuntimeError(f"Missing configuration path for {secret_key}")
 
             value = prompt_value(
-                self.pretty_logger,
+                self.summary_logger,
                 "Please paste the secret value:",
+                global_options=self.global_options,
             )
             self.discovered_secrets[secret_key] = DiscoveredSecret(
                 source_file=self.source_file,
@@ -325,7 +331,11 @@ class SecretDiscovery:
             )
             # Remove from missing_required_secrets after successful prompt
             self.missing_required_secrets.remove((discovered_secret, error_message))
-            self.pretty_logger.info(f"   ✅ Secret stored for {secret_key}")
+            print_prompt(f"   ✅ Secret stored for {secret_key}", style="default", logger=self.summary_logger)
 
-        self.pretty_logger.info(f"\n✅ All required {component_name} secrets have been provided")
-        print_separator(logger=self.pretty_logger)
+        print_prompt(
+            f"✅ All required {component_name} secrets have been provided",
+            style="default",
+            logger=self.summary_logger,
+        )
+        print_separator(logger=self.summary_logger)

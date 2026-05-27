@@ -163,11 +163,12 @@ def test_migration_output_schema_validation(tmp_path, synapse_config_with_signin
         config_path=synapse_path,
     )
 
-    # Create and run migration engine
-    engine = MigrationEngine(input_processor=input_processor, pretty_logger=logging.getLogger())
-
     # Set database mode directly to avoid prompting (simulate --database-mode existing)
-    engine.global_options.use_existing_database = True
+    global_options = GlobalOptions(use_existing_database=True)
+    # Create and run migration engine
+    engine = MigrationEngine(
+        input_processor=input_processor, summary_logger=logging.getLogger(), global_options=global_options
+    )
 
     ess_values = engine.run_migration()
 

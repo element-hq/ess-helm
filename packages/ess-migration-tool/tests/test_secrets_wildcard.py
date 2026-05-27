@@ -104,7 +104,7 @@ def test_wildcard_secret_discovery_and_injection():
     strategy = MockWildcardStrategy(global_options, component_config)
     discovery = SecretDiscovery(
         strategy=strategy,
-        pretty_logger=logging.getLogger(),
+        summary_logger=logging.getLogger(),
         source_file="test.yaml",
         global_options=global_options,
         secret_tracking=DiscoveredSecretTracking(),
@@ -121,9 +121,10 @@ def test_wildcard_secret_discovery_and_injection():
     # Use actual handle_secrets to inject credential configs
     secrets_list: list[Secret] = []
     transformer = ConfigValueTransformer(
-        pretty_logger=logging.getLogger(),
+        summary_logger=logging.getLogger(),
         ess_config={},
         value_source_tracking=ValueSourceTracking(),
+        global_options=global_options,
     )
 
     transformer.handle_secrets(discovery, secrets_list)
@@ -261,7 +262,7 @@ def test_wildcard_secret_prompt_for_missing(monkeypatch: pytest.MonkeyPatch):
 
     discovery = SecretDiscovery(
         strategy=strategy,
-        pretty_logger=logging.getLogger("test"),
+        summary_logger=logging.getLogger("test"),
         source_file="test.yaml",
         global_options=global_options,
         secret_tracking=DiscoveredSecretTracking(),

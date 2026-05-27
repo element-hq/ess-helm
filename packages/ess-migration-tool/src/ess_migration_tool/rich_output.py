@@ -21,6 +21,8 @@ from rich.table import Table
 from rich.text import Text
 from rich.tree import Tree
 
+from .models import GlobalOptions
+
 # Global console instance
 _console: Console | None = None
 
@@ -46,8 +48,8 @@ def is_rich_enabled() -> bool:
 def print_table(
     data: list[list[str | Any]],
     headers: list[str],
+    logger: logging.Logger,
     title: str = "",
-    logger: logging.Logger | None = None,
 ) -> None:
     """
     Print data in a formatted table using Rich if available, otherwise use plain text.
@@ -58,20 +60,16 @@ def print_table(
         title: Optional table title
         logger: Logger to use for fallback output
     """
-    if not is_rich_enabled():
-        # Fallback to plain text using the provided logger
-        if logger is not None:
-            if title:
-                logger.info(f"\n{title}")
-                logger.info("-" * len(title))
-            # Print headers
-            logger.info("  ".join(headers))
-            # Print separator
-            logger.info("-" * (sum(len(h) for h in headers) + 2 * (len(headers) - 1)))
-            # Print rows
-            for row in data:
-                logger.info("  ".join(str(cell) for cell in row))
-        return
+    if title:
+        logger.info(f"{title}")
+        logger.info("-" * len(title))
+    # Print headers
+    logger.info("  ".join(headers))
+    # Print separator
+    logger.info("-" * (sum(len(h) for h in headers) + 2 * (len(headers) - 1)))
+    # Print rows
+    for row in data:
+        logger.info("  ".join(str(cell) for cell in row))
 
     # Rich is enabled - use styled table
     table = Table(
@@ -95,9 +93,9 @@ def print_table(
 
 def print_section(
     text: str,
+    logger: logging.Logger,
     style: str = "bold cyan",
     border_style: str = "cyan",
-    logger: logging.Logger | None = None,
     separator: str = "=",
 ) -> None:
     """
@@ -110,12 +108,9 @@ def print_section(
         logger: Logger to use for fallback output
         separator: Character to use for separator line in plain text mode (default: "=")
     """
-    if not is_rich_enabled():
-        # Fallback to plain text using the provided logger
-        if logger is not None:
-            logger.info(f"\n{text}")
-            logger.info(separator * len(text))
-        return
+    # Log to file
+    logger.info(text)
+    logger.info(separator * len(text))
 
     # Rich is enabled - use styled panel for section header
     panel = Panel(
@@ -129,8 +124,8 @@ def print_section(
 
 def print_header(
     text: str,
+    logger: logging.Logger,
     style: str = "bold green",
-    logger: logging.Logger | None = None,
 ) -> None:
     """
     Print a styled header using Rich if available, otherwise use plain text.
@@ -141,11 +136,8 @@ def print_header(
         style: Rich style string for the text (default: "bold green")
         logger: Logger to use for fallback output
     """
-    if not is_rich_enabled():
-        # Fallback to plain text using the provided logger
-        if logger is not None:
-            logger.info(f"\n{text}")
-        return
+    # Log to file
+    logger.info(text)
 
     # Rich is enabled - use styled text without panel
     get_console().print(Text(text, style=style))
@@ -153,7 +145,7 @@ def print_header(
 
 def log_command(
     command: str,
-    logger: logging.Logger | None = None,
+    logger: logging.Logger,
 ) -> None:
     """
     Display a command with syntax highlighting using Rich.
@@ -162,11 +154,7 @@ def log_command(
         command: The command string to display
         logger: Logger for fallback output when Rich is disabled
     """
-    if not is_rich_enabled():
-        # Fallback to plain text using the provided logger
-        if logger is not None:
-            logger.info(f"   {command}")
-        return
+    logger.info(f"   {command}")
 
     # Rich is enabled - use syntax highlighting
     syntax = Syntax(command, "bash", theme="monokai", word_wrap=True)
@@ -175,8 +163,8 @@ def log_command(
 
 def print_prompt(
     message: str,
+    logger: logging.Logger,
     style: str = "bold",
-    logger: logging.Logger | None = None,
     prefix: str = "   ",
 ) -> None:
     """
@@ -188,11 +176,7 @@ def print_prompt(
         logger: Logger to use for fallback output when Rich is disabled
         prefix: Prefix string to add before the message (default: "   ")
     """
-    if not is_rich_enabled():
-        # Fallback to plain text using the provided logger
-        if logger is not None:
-            logger.info(f"{prefix}{message}")
-        return
+    logger.info(f"{prefix}{message}")
 
     # Rich is enabled - use styled text
     styled = Text(f"{prefix}{message}", style=style)
@@ -200,7 +184,7 @@ def print_prompt(
 
 
 def print_separator(
-    logger: logging.Logger | None = None,
+    logger: logging.Logger,
 ) -> None:
     """
     Print a separator line using Rich styling if available.
@@ -209,11 +193,7 @@ def print_separator(
     Args:
         logger: Logger to use for fallback output when Rich is disabled
     """
-    if not is_rich_enabled():
-        # Fallback to plain text using the provided logger
-        if logger is not None:
-            logger.info("=" * 60)
-        return
+    logger.info("=" * 60)
 
     # Rich is enabled - use a styled separator with terminal width
     console = get_console()
@@ -224,7 +204,7 @@ def print_separator(
 def print_output_tree(
     output_dir: str,
     file_paths: list[str],
-    logger: logging.Logger | None = None,
+    logger: logging.Logger,
 ) -> None:
     """
     Print the output directory file tree using Rich styling if available.
@@ -234,10 +214,7 @@ def print_output_tree(
         file_paths: List of file paths to display
         logger: Logger to use for fallback output when Rich is disabled
     """
-    if not is_rich_enabled():
-        if logger is not None:
-            logger.info(f"📁 Output files written to: {output_dir}")
-        return
+    logger.info(f"📁 Output files written to: {output_dir}")
 
     console = get_console()
     output_path = Path(output_dir)
@@ -266,8 +243,9 @@ class ProgressReporter:
 
     def __init__(
         self,
-        pretty_logger: logging.Logger,
+        summary_logger: logging.Logger,
         steps: list[str],
+        global_options: GlobalOptions,
         *,
         verbose: bool = False,
     ) -> None:
@@ -275,18 +253,19 @@ class ProgressReporter:
         Initialize the progress reporter.
 
         Args:
-            pretty_logger: Logger for output
+            summary_logger: Logger for output
             steps: List of step names in order
             verbose: Enable verbose logging
         """
-        self.pretty_logger = pretty_logger
+        self.summary_logger = summary_logger
         self.verbose = verbose
         self.current_step: int = -1
         self.all_steps = steps
+        self.global_options = global_options
 
     def start_migration(self) -> None:
         """Report migration start."""
-        print_header("🚀 Starting ESS Migration", logger=self.pretty_logger)
+        print_header("🚀 Starting ESS Migration", logger=self.summary_logger)
 
     def report_step(self, step_name: str) -> None:
         """Report progress on a specific step."""
@@ -313,11 +292,11 @@ class ProgressReporter:
         else:
             # Fallback to plain text for non-Rich environments
             step_msg_plain = f"📦 Step {self.current_step + 1}/{len(self.all_steps)} ({progress:.0f}%): {step_name}"
-            self.pretty_logger.info(step_msg_plain)
+            print_prompt(step_msg_plain, style="default", logger=self.summary_logger)
 
         # Pause for user input after each step (unless in quiet mode or testing)
-        if not os.environ.get("PYTEST_CURRENT_TEST") and self.pretty_logger.level != logging.CRITICAL:
-            self.pretty_logger.info("   Press Enter to continue...")
+        if not os.environ.get("PYTEST_CURRENT_TEST") and not self.global_options.quiet_mode:
+            print_prompt("   Press Enter to continue...", style="default", logger=self.summary_logger)
             get_console().input()
 
     def report_success(self, output_dir: str, file_paths: list[str]) -> None:
@@ -327,14 +306,14 @@ class ProgressReporter:
             output_dir: Path to the output directory
             file_paths: Optional list of file paths that were written
         """
-        print_prompt("✅ Migration completed successfully!", logger=self.pretty_logger, style="bold green")
-        print_output_tree(output_dir, file_paths, logger=self.pretty_logger)
-        print_prompt("🎉 Ready to deploy with Element Server Suite!", logger=self.pretty_logger, style="bold magenta")
+        print_prompt("✅ Migration completed successfully!", logger=self.summary_logger, style="bold green")
+        print_output_tree(output_dir, file_paths, logger=self.summary_logger)
+        print_prompt("🎉 Ready to deploy with Element Server Suite!", logger=self.summary_logger, style="bold magenta")
 
     def report_failure(self, error: str) -> None:
         """Report migration failure."""
-        print_prompt("❌ Migration failed!", style="bold red", logger=self.pretty_logger, prefix="")
-        print_prompt(f"💥 Error: {error}", style="bold red", logger=self.pretty_logger, prefix="")
+        print_prompt("❌ Migration failed!", style="bold red", logger=self.summary_logger, prefix="")
+        print_prompt(f"💥 Error: {error}", style="bold red", logger=self.summary_logger, prefix="")
         print_prompt(
-            "📚 Check logs for details and try again.", style="bold yellow", logger=self.pretty_logger, prefix=""
+            "📚 Check logs for details and try again.", style="bold yellow", logger=self.summary_logger, prefix=""
         )

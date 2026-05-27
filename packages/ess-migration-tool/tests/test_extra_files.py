@@ -13,7 +13,7 @@ from pathlib import Path
 import pytest
 from ess_migration_tool.extra_files import ExtraFilesDiscovery, ExtraFilesError
 from ess_migration_tool.interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
-from ess_migration_tool.models import DiscoverableSecret, DiscoveredPath, SecretConfig
+from ess_migration_tool.models import DiscoverableSecret, DiscoveredPath, GlobalOptions, SecretConfig
 
 
 def test_validate_extra_files_success(tmp_path):
@@ -41,13 +41,14 @@ def test_validate_extra_files_success(tmp_path):
     test2 = DiscoveredPath(config_key="b", source_file="test.yaml", source_path=tmp_path / "test2.yaml")
     discovery = ExtraFilesDiscovery(
         strategy=TestStrategy(),
-        pretty_logger=logging.getLogger(),
+        summary_logger=logging.getLogger(),
         secrets_strategy=TestSecretStrategy(),
         source_file="test.yaml",
         discovered_file_paths=[
             test1,
             test2,
         ],
+        global_options=GlobalOptions(),
     )
 
     # Should validate successfully
@@ -83,13 +84,14 @@ def test_validate_extra_files_missing():
 
     discovery = ExtraFilesDiscovery(
         strategy=TestStrategy(),
-        pretty_logger=logging.getLogger(),
+        summary_logger=logging.getLogger(),
         secrets_strategy=TestSecretStrategy(),
         source_file="test.yaml",
         discovered_file_paths=[
             DiscoveredPath(config_key="a", source_file="test.yaml", source_path="nonexistent/file1.txt"),
             DiscoveredPath(config_key="b", source_file="test.yaml", source_path="nonexistent/file2.yaml"),
         ],
+        global_options=GlobalOptions(),
     )
 
     # Should raise ExtraFilesError
@@ -121,9 +123,10 @@ def test_file_path_detection():
 
     discovery = ExtraFilesDiscovery(
         strategy=TestStrategy(),
-        pretty_logger=logging.getLogger(),
+        summary_logger=logging.getLogger(),
         secrets_strategy=TestSecretStrategy(),
         source_file="test.yaml",
+        global_options=GlobalOptions(),
     )
 
     # Test various file path patterns
@@ -171,9 +174,10 @@ def test_discover_file_paths_from_dict_and_list():
 
     discovery = ExtraFilesDiscovery(
         strategy=TestStrategy(),
-        pretty_logger=logging.getLogger(),
+        summary_logger=logging.getLogger(),
         secrets_strategy=TestSecretStrategy(),
         source_file="test.yaml",
+        global_options=GlobalOptions(),
     )
     discovery._discover_file_paths_from_list_or_dict(config_data)
 
@@ -240,9 +244,10 @@ def test_mixed_config_with_secrets_and_extra_files():
 
     discovery = ExtraFilesDiscovery(
         strategy=TestStrategy(),
-        pretty_logger=logging.getLogger(),
+        summary_logger=logging.getLogger(),
         secrets_strategy=TestSecretStrategy(),
         source_file="test.yaml",
+        global_options=GlobalOptions(),
     )
 
     discovery._discover_file_paths_from_list_or_dict(config_data)
@@ -299,9 +304,10 @@ def test_duplicate_file_paths(tmp_path):
 
     discovery = ExtraFilesDiscovery(
         strategy=TestStrategy(),
-        pretty_logger=logging.getLogger(),
+        summary_logger=logging.getLogger(),
         secrets_strategy=TestSecretStrategy(),
         source_file="test.yaml",
+        global_options=GlobalOptions(),
     )
     discovery.discover_extra_files_from_config(config_data)
 
@@ -354,9 +360,10 @@ def test_binary_file_detection(tmp_path):
 
     discovery = ExtraFilesDiscovery(
         strategy=TestStrategy(),
-        pretty_logger=logging.getLogger(),
+        summary_logger=logging.getLogger(),
         secrets_strategy=TestSecretStrategy(),
         source_file="test.yaml",
+        global_options=GlobalOptions(),
     )
     discovery.discover_extra_files_from_config(config_data)
 
@@ -400,9 +407,10 @@ def test_ignored_config_keys():
 
     discovery = ExtraFilesDiscovery(
         strategy=TestStrategy(),
-        pretty_logger=logging.getLogger(),
+        summary_logger=logging.getLogger(),
         secrets_strategy=TestSecretStrategy(),
         source_file="test.yaml",
+        global_options=GlobalOptions(),
     )
     discovery._discover_file_paths_from_list_or_dict(config_data)
 
@@ -450,9 +458,10 @@ def test_permission_error_handling(tmp_path):
     # Create discovery instance
     discovery = ExtraFilesDiscovery(
         strategy=TestStrategy(),
-        pretty_logger=logging.getLogger(),
+        summary_logger=logging.getLogger(),
         secrets_strategy=TestSecretStrategy(),
         source_file="test.yaml",
+        global_options=GlobalOptions(),
     )
 
     # Discover file paths

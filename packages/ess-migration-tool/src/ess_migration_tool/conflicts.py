@@ -10,15 +10,16 @@ Conflict resolution utilities for migration.
 import logging
 from typing import Any
 
-from .models import DiscoveredSecretTracking, SecretSource, ValueSourceTracking
-from .rich_output import print_separator
-from .utils import is_quiet_mode, prompt_choice, prompt_value, set_nested_value
+from .models import DiscoveredSecretTracking, GlobalOptions, SecretSource, ValueSourceTracking
+from .rich_output import print_prompt, print_separator
+from .utils import prompt_choice, prompt_value, set_nested_value
 
 
 def prompt_for_conflict_resolution(
-    pretty_logger: logging.Logger,
+    summary_logger: logging.Logger,
     conflict_key: str,
     value_to_strategies: dict[str, list[str]],
+    global_options: GlobalOptions,
     display_value_max_length: int = 50,
     enable_custom: bool = False,
 ) -> tuple[str | None, bool]:
@@ -26,7 +27,7 @@ def prompt_for_conflict_resolution(
     Prompt user to resolve a conflict.
 
     Args:
-        pretty_logger: Logger for displaying prompts
+        summary_logger: Logger for displaying prompts
         conflict_key: The key/path being resolved (for display)
         value_to_strategies: Mapping of value strings to list of strategy names
         display_value_max_length: Max length for value display before truncation
@@ -40,16 +41,19 @@ def prompt_for_conflict_resolution(
     if enable_custom:
         options.append("Enter custom value")
 
-    choice = prompt_choice(pretty_logger, f"Select value for '{conflict_key}':", options)
+    choice = prompt_choice(
+        summary_logger, f"Select value for '{conflict_key}':", options, global_options=global_options
+    )
     is_custom = choice == "Enter custom value"
     selected_value = choice if not is_custom else None
     return selected_value, is_custom
 
 
 def resolve_value_conflicts(
-    pretty_logger: logging.Logger,
+    summary_logger: logging.Logger,
     value_source_tracking: ValueSourceTracking,
     ess_config: dict[str, Any],
+    global_options: GlobalOptions,
 ) -> None:
     """Resolve conflicts where multiple strategies provide different values for same ESS path."""
     conflicts = value_source_tracking.get_conflicts()
@@ -64,7 +68,7 @@ def resolve_value_conflicts(
             logging.debug(f"Consistent values for {ess_path}: {first_value}")
             continue
 
-        if is_quiet_mode(pretty_logger):
+        if global_options.quiet_mode:
             logging.info(f"Conflict detected for {ess_path}, using first value: {first_value}")
             continue
 
@@ -74,25 +78,28 @@ def resolve_value_conflicts(
             value_str = str(source.value)
             value_to_strategies.setdefault(value_str, []).append(source.strategy_name)
 
-        pretty_logger.info(f"\n⚠️  CONFLICT for '{ess_path}'")
-        pretty_logger.info("   Multiple configurations provide different values:")
+        print_prompt(f"⚠️  CONFLICT for '{ess_path}'", style="default", logger=summary_logger)
+        print_prompt("   Multiple configurations provide different values:", style="default", logger=summary_logger)
         for source in sources:
-            pretty_logger.info(f"   • {source.strategy_name} ({source.source_path}): {source.value}")
+            print_prompt(
+                f"   • {source.strategy_name} ({source.source_path}): {source.value}",
+                style="default",
+                logger=summary_logger,
+            )
 
         selected_value, is_custom = prompt_for_conflict_resolution(
-            pretty_logger, ess_path, value_to_strategies, enable_custom=True
+            summary_logger, ess_path, value_to_strategies, enable_custom=True, global_options=global_options
         )
 
         if is_custom:
-            selected_value = prompt_value(pretty_logger, "Enter custom value:")
+            selected_value = prompt_value(summary_logger, "Enter custom value:", global_options)
 
         set_nested_value(ess_config, ess_path, selected_value)
         logging.info(f"Resolved {ess_path} = {selected_value}")
 
 
 def resolve_secret_conflicts(
-    pretty_logger: logging.Logger,
-    secret_tracking: DiscoveredSecretTracking,
+    summary_logger: logging.Logger, secret_tracking: DiscoveredSecretTracking, global_options: GlobalOptions
 ) -> None:
     """Resolve conflicts where multiple strategies discovered different values for the same secret."""
     conflicts = secret_tracking.get_conflicts()
@@ -101,15 +108,19 @@ def resolve_secret_conflicts(
 
     logger = logging.getLogger("migration")
 
-    pretty_logger.info("")
-    print_separator(logger=pretty_logger)
-    pretty_logger.info("🔐 RESOLVING SECRET CONFLICTS")
-    print_separator(logger=pretty_logger)
-    pretty_logger.info("Some secrets were discovered by multiple strategies with different values.")
-    pretty_logger.info("Please select which value to use for each:")
-    pretty_logger.info("")
+    print_prompt("", style="default", logger=summary_logger)
+    print_separator(logger=summary_logger)
+    print_prompt("🔐 RESOLVING SECRET CONFLICTS", style="default", logger=summary_logger)
+    print_separator(logger=summary_logger)
+    print_prompt(
+        "Some secrets were discovered by multiple strategies with different values.",
+        style="default",
+        logger=summary_logger,
+    )
+    print_prompt("Please select which value to use for each:", style="default", logger=summary_logger)
+    print_prompt("", style="default", logger=summary_logger)
 
-    if is_quiet_mode(pretty_logger):
+    if global_options.quiet_mode:
         for secret_key, sources in sorted(conflicts.items()):
             logger.info("Conflict for %s: using first value (from %s)", secret_key, sources[0].strategy_name)
             secret_tracking.sources[secret_key] = [sources[0]]
@@ -121,16 +132,22 @@ def resolve_secret_conflicts(
         for source in sources:
             value_to_strategies.setdefault(source.value, []).append(source.strategy_name)
 
-        pretty_logger.info("⚠️  Conflict for secret: %s", secret_key)
-        pretty_logger.info("   Discovered by multiple strategies with different values:")
+        print_prompt(f"⚠️  Conflict for secret: {secret_key}", style="default", logger=summary_logger)
+        print_prompt(
+            "   Discovered by multiple strategies with different values:", style="default", logger=summary_logger
+        )
         for value, strategies in sorted(value_to_strategies.items()):
             display_value = value if len(value) <= 50 else f"{value[:47]}..."
-            pretty_logger.info(f"   • {display_value} (from: {', '.join(strategies)})")
+            print_prompt(
+                f"   • {display_value} (from: {', '.join(strategies)})", style="default", logger=summary_logger
+            )
 
-        selected_value, is_custom = prompt_for_conflict_resolution(pretty_logger, secret_key, value_to_strategies)
+        selected_value, is_custom = prompt_for_conflict_resolution(
+            summary_logger, secret_key, value_to_strategies, global_options
+        )
 
         if is_custom:
-            new_value = prompt_value(pretty_logger, "Enter custom value:")
+            new_value = prompt_value(summary_logger, "Enter custom value:", global_options)
             secret_tracking.sources[secret_key] = [
                 SecretSource(
                     strategy_name="user-provided",
@@ -142,7 +159,7 @@ def resolve_secret_conflicts(
         else:
             secret_tracking.sources[secret_key] = [s for s in sources if s.value == selected_value]
 
-        pretty_logger.info(f"   ✅ Resolved {secret_key}")
-        pretty_logger.info("")
+        print_prompt(f"   ✅ Resolved {secret_key}", style="default", logger=summary_logger)
+        print_prompt("", style="default", logger=summary_logger)
 
-    print_separator(logger=pretty_logger)
+    print_separator(logger=summary_logger)

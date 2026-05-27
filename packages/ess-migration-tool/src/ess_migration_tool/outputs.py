@@ -51,8 +51,6 @@ def write_outputs(
     Returns:
         Tuple of (values_path, secret_paths, configmap_paths)
     """
-    # Validate and create output directory
-    _create_output_dir(output_dir)
 
     # Write Helm values with error handling
     values_path = _write_helm_values(helm_values, output_dir)
@@ -74,7 +72,7 @@ def write_outputs(
     return values_path, written_secrets, written_configmaps
 
 
-def _create_output_dir(output_dir: str) -> None:
+def create_output_dir(output_dir: str) -> None:
     """
     Validate and create output directory.
 

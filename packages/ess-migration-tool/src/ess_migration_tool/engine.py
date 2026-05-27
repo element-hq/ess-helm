@@ -30,7 +30,8 @@ class MigrationEngine:
     """Core migration engine that handles the conversion process."""
 
     input_processor: InputProcessor = field(init=True)
-    pretty_logger: logging.Logger = field(init=True)
+    summary_logger: logging.Logger = field(init=True)
+    global_options: GlobalOptions = field(init=True)
     ess_config: dict[str, Any] = field(default_factory=dict)
     secrets: list[Secret] = field(default_factory=list)
     configmaps: list[ConfigMap] = field(default_factory=list)
@@ -39,7 +40,6 @@ class MigrationEngine:
     discovered_secrets: list[DiscoveredSecret] = field(default_factory=list)
     init_by_ess_secrets: list[str] = field(default_factory=list)
     migrators: list[MigrationService] = field(default_factory=list)
-    global_options: GlobalOptions = field(default_factory=GlobalOptions)
     value_source_tracking: ValueSourceTracking = field(default_factory=ValueSourceTracking)
     secret_tracking: DiscoveredSecretTracking = field(default_factory=DiscoveredSecretTracking)
 
@@ -98,7 +98,7 @@ class MigrationEngine:
                 self.migrators.append(
                     MigrationService(
                         input=migration_input,
-                        pretty_logger=self.pretty_logger,
+                        summary_logger=self.summary_logger,
                         ess_config=self.ess_config,
                         migration=migration,
                         extra_files_strategy=extra_file_strategy,
@@ -145,10 +145,10 @@ class MigrationEngine:
                 migrator.handle_secrets_phase()
 
         # Resolve secret conflicts after all migrations
-        resolve_secret_conflicts(self.pretty_logger, self.secret_tracking)
+        resolve_secret_conflicts(self.summary_logger, self.secret_tracking, self.global_options)
 
         # Resolve value conflicts after all migrations
-        resolve_value_conflicts(self.pretty_logger, self.value_source_tracking, self.ess_config)
+        resolve_value_conflicts(self.summary_logger, self.value_source_tracking, self.ess_config, self.global_options)
 
         # Disable any ESS component that was not migrated (absent from config)
         ALL_ESS_COMPONENTS = {

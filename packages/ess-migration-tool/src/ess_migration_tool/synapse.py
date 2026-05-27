@@ -16,6 +16,7 @@ from rapidfuzz import fuzz, process
 from .interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
 from .migration import ConfigValueTransformer, MigrationStrategy, TransformationSpec, additional_config_transformer
 from .models import DiscoverableSecret, DiscoveredSecret, GlobalOptions, MigrationError, SecretConfig
+from .rich_output import print_prompt
 from .utils import (
     extract_hostname_from_url,
     get_nested_value,
@@ -61,22 +62,24 @@ def prompt_user_for_worker(
     instance_name: str,
     instance_props: Any,
     matched_worker_types: list[str],
+    global_options: GlobalOptions,
 ) -> str:
     if not matched_worker_types:
         matched_worker_types = worker_types
 
     logger.info("   No worker type found for instance %s (host: %s)", instance_name, instance_props["host"])
-    config_value_transformer.pretty_logger.info(
-        f"\n   ❌ No worker type found for instance {instance_name} (host: {instance_props['host']})"
+    config_value_transformer.summary_logger.info(
+        f"   ❌ No worker type found for instance {instance_name} (host: {instance_props['host']})"
     )
-    config_value_transformer.pretty_logger.info("   ❌ Available worker types")
+    print_prompt("   ❌ Available worker types", style="default", logger=config_value_transformer.summary_logger)
     for i, worker_type in enumerate(matched_worker_types):
-        config_value_transformer.pretty_logger.info(f"   ❌   {i + 1}. {worker_type}")
+        print_prompt(f"   ❌   {i + 1}. {worker_type}", style="default", logger=config_value_transformer.summary_logger)
 
     selected_worker = prompt_choice(
-        config_value_transformer.pretty_logger,
+        config_value_transformer.summary_logger,
         f"Please select the worker type of instance {instance_name}:",
         matched_worker_types,
+        global_options,
     )
     return selected_worker
 
@@ -96,7 +99,11 @@ def extract_workers_from_instance_map(
         probable_matches = [m[0] for m in matches if m[1] > 60]
         selected_worker = (
             prompt_user_for_worker(
-                config_value_transformer, instance_name, instance_map[instance_name], probable_matches
+                config_value_transformer,
+                instance_name,
+                instance_map[instance_name],
+                probable_matches,
+                kwargs["global_options"],
             )
             if len(very_high_probable_matches) != 1
             else very_high_probable_matches[0]
@@ -121,7 +128,11 @@ def extract_database_name(
     if not database_name:
         database_name = database_args.get("database")
     if not database_name:
-        config_value_transformer.pretty_logger.info("   ❌ Synapse database name could not be found")
+        print_prompt(
+            "   ❌ Synapse database name could not be found",
+            style="default",
+            logger=config_value_transformer.summary_logger,
+        )
         raise MigrationError("No synapse database name found")
     return database_name
 
@@ -148,15 +159,26 @@ def prompt_for_ingress_host(
         return extract_hostname_from_url(config_value_transformer, public_baseurl)
 
     # If public_baseurl is missing, prompt user for ingress host directly
-    config_value_transformer.pretty_logger.info("\n   ❌ Synapse public_baseurl not found in configuration")
-    config_value_transformer.pretty_logger.info(
-        "   ❌ The chart requires Synapse Public BaseURL to be distinct from the server name"
+    print_prompt(
+        "\n   ❌ Synapse public_baseurl not found in configuration",
+        style="default",
+        logger=config_value_transformer.summary_logger,
     )
-    config_value_transformer.pretty_logger.info("   ❌ Please provide Synapse ingress host (e.g., matrix.example.com):")
+    print_prompt(
+        "   ❌ The chart requires Synapse Public BaseURL to be distinct from the server name",
+        style="default",
+        logger=config_value_transformer.summary_logger,
+    )
+    print_prompt(
+        "   ❌ Please provide Synapse ingress host (e.g., matrix.example.com):",
+        style="default",
+        logger=config_value_transformer.summary_logger,
+    )
 
     return prompt_value(
-        config_value_transformer.pretty_logger,
+        config_value_transformer.summary_logger,
         "Enter ingress host:",
+        kwargs["global_options"],
     )
 
 
