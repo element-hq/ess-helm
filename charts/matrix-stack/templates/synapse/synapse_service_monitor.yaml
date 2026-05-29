@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2024 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -24,6 +24,10 @@ spec:
     - targetLabel: instance
       action: replace
       replacement: {{ tpl .ingress.host $ }}
+    - sourceLabels: [__meta_kubernetes_pod_name]
+      targetLabel: index
+      regex: '.*-([0-9]+)'
+      replacement: '$1'
   selector:
     matchLabels:
       app.kubernetes.io/part-of: matrix-stack
