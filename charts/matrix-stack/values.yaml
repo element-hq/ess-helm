@@ -3409,6 +3409,10 @@ redis:
 
     ## Annotations to add to the service account
     annotations: {}
+  ## Whether to deploy ServiceMonitors into the cluster for this component
+  ## Requires the ServiceMonitor CRDs to be in the cluster
+  serviceMonitors:
+    enabled: true
   ## Workload tolerations allows Pods that are part of this (sub)component to 'tolerate' any taint that matches the triple <key,value,effect> using the matching operator <operator>.
   ##
   ## * effect indicates the taint effect to match. Empty means match all taint effects. When specified, allowed values are NoSchedule, PreferNoSchedule and NoExecute.
@@ -3486,6 +3490,124 @@ redis:
 
     ## Number of seconds after which the probe times out
     timeoutSeconds: 1
+
+  redisExporter:
+    # Details of the image to be used
+    image:
+      ## The host and (optional) port of the container image registry for this component.
+      ## If not specified Docker Hub is implied
+      registry: ghcr.io
+
+      ## The path in the registry where the container image is located
+      repository: oliver006/redis_exporter
+
+      ## The tag of the container image to use.
+      ## One of tag or digest must be provided.
+      tag: "v1.84.0"
+
+      ## Container digest to use. Used to pull the image instead of the image tag if set
+      ## The tag will still be set as the app.kubernetes.io/version label
+      # digest:
+
+      ## Whether the image should be pulled on container startup. Valid values are Always, IfNotPresent and Never
+      ## If this isn't provided it defaults to Always when using the image tag or IfNotPresent if using a digest
+      # pullPolicy:
+
+      ## A list of pull secrets to use for this image
+      ## e.g.
+      ## pullSecrets:
+      ## - name: dockerhub
+      pullSecrets: []
+    ## Kubernetes resources to allocate to each instance.
+    resources:
+      ## Requests describes the minimum amount of compute resources required. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+      requests:
+        memory: 10Mi
+        cpu: 10m
+
+      ## Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+      limits:
+        memory: 50Mi
+    # Extra volumes to mount in Redis Exporter, as a yaml array
+    extraVolumeMounts: []
+
+    ## A subset of SecurityContext. ContainersSecurityContext holds pod-level security attributes and common container settings
+    containersSecurityContext:
+      ## Controls whether a process can gain more privileges than its parent process.
+      ## This bool directly controls whether the no_new_privs flag gets set on the container process.
+      ## allowPrivilegeEscalation is always true when the container is run as privileged, or has CAP_SYS_ADMIN
+      allowPrivilegeEscalation: false
+
+      ## Give a process some privileges, but not all the privileges of the root user.
+      capabilities:
+        ## Privileges to add.
+        # add: []
+        ## Privileges to drop.
+        drop:
+        - ALL
+
+      ## Mounts the container's root filesystem as read-only.
+      readOnlyRootFilesystem: true
+
+      ## To set the Seccomp profile for a Container, include the seccompProfile field in the securityContext section of your Pod or Container manifest.
+      ## The seccompProfile field is a SeccompProfile object consisting of type and localhostProfile. Valid options for type include RuntimeDefault, Unconfined, and Localhost.
+      ## localhostProfile must only be set set if type Localhost. It indicates the path of the pre-configured profile on the node, relative to the kubelet's configured Seccomp profile location (configured with the --root-dir flag).
+      # seccompProfile:
+      #  type: RuntimeDefault
+    ## Defines additional environment variables to be injected onto this workload
+    ## e.g.
+    ## extraEnv:
+    ## - name: FOO
+    ##   value: "bar"
+    extraEnv: []
+    ## Configuration of the thresholds and frequencies of the livenessProbe
+    livenessProbe:
+      ## How many consecutive failures for the probe to be considered failed
+      failureThreshold: 3
+
+      ## Number of seconds after the container has started before the probe starts
+      initialDelaySeconds: 0
+
+      ## How often (in seconds) to perform the probe
+      periodSeconds: 6
+
+      ## How many consecutive successes for the probe to be consider successful after having failed
+      successThreshold: 1
+
+      ## Number of seconds after which the probe times out
+      timeoutSeconds: 2
+    ## Configuration of the thresholds and frequencies of the readinessProbe
+    readinessProbe:
+      ## How many consecutive failures for the probe to be considered failed
+      failureThreshold: 3
+
+      ## Number of seconds after the container has started before the probe starts
+      initialDelaySeconds: 0
+
+      ## How often (in seconds) to perform the probe
+      periodSeconds: 2
+
+      ## How many consecutive successes for the probe to be consider successful after having failed
+      successThreshold: 2
+
+      ## Number of seconds after which the probe times out
+      timeoutSeconds: 2
+    ## Configuration of the thresholds and frequencies of the startupProbe
+    startupProbe:
+      ## How many consecutive failures for the probe to be considered failed
+      failureThreshold: 20
+
+      ## Number of seconds after the container has started before the probe starts
+      initialDelaySeconds: 0
+
+      ## How often (in seconds) to perform the probe
+      periodSeconds: 2
+
+      ## How many consecutive successes for the probe to be consider successful after having failed
+      successThreshold: 1
+
+      ## Number of seconds after which the probe times out
+      timeoutSeconds: 1
 
 synapse:
   enabled: true

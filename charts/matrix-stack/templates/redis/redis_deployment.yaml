@@ -72,6 +72,40 @@ spec:
 {{- range .extraVolumeMounts }}
         - {{ (. | toYaml) | nindent 10 }}
 {{- end }}
+{{- with .redisExporter }}
+      - name: redis-exporter
+        {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" .image) | nindent 8 }}
+{{- with .containersSecurityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+{{- end }}
+        {{- include "element-io.ess-library.pods.env" (dict "root" $ "context" (dict "componentValues" . "componentName" "redis-exporter")) | nindent 8 }}
+        ports:
+        - name: metrics
+          containerPort: 9121
+        startupProbe: {{- include "element-io.ess-library.pods.probe" .startupProbe | nindent 10 }}
+          httpGet:
+            path: /metrics
+            port: metrics
+        livenessProbe: {{- include "element-io.ess-library.pods.probe" .livenessProbe | nindent 10 }}
+          httpGet:
+            path: /metrics
+            port: metrics
+        readinessProbe: {{- include "element-io.ess-library.pods.probe" .readinessProbe | nindent 10 }}
+          httpGet:
+            path: /metrics
+            port: metrics
+{{- with .extraVolumeMounts }}
+        volumeMounts:
+{{- range . }}
+        - {{ (. | toYaml) | nindent 10 }}
+{{- end }}
+{{- end }}
+{{- with .resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+{{- end }}
+{{- end }}
       volumes:
       - configMap:
           name: "{{ $.Release.Name }}-redis"

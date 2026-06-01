@@ -4,8 +4,5 @@
 
 
 redis:
-  annotations:
-    has-no-service-monitor: "true"
-
   podSecurityContext:
     runAsGroup: 0
