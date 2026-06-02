@@ -8,6 +8,7 @@ Pytest fixtures for migration tests.
 Centralizes common test configurations to reduce duplication.
 """
 
+import json
 import logging
 
 import pytest
@@ -49,8 +50,6 @@ def write_config(tmp_path):
     """
 
     def _write(config_data, filename, format="yaml"):
-        import json
-
         config_file = tmp_path / filename
         with open(config_file, "w") as f:
             if format == "yaml":
@@ -284,14 +283,14 @@ def basic_mas_config_with_keys(tmp_path, basic_mas_config):
     )
     (keys_dir / "ecdsa_key.pem").write_bytes(ecdsa_pem)
 
+    config = dict(basic_mas_config)
+    config["secrets"]["keys_dir"] = str(keys_dir)
     # Update config with keys directory
-    return frozendict(basic_mas_config) | {
-        "secrets": {"keys_dir": str(keys_dir), "encryption": basic_mas_config["secrets"]["encryption"]}
-    }
+    return frozendict(config)
 
 
 @pytest.fixture
-def basic_mas_config_with_individual_keys(tmp_path):
+def basic_mas_config_with_individual_keys(basic_mas_config, tmp_path):
     """MAS configuration with individual keys in the secrets.keys array for testing.
 
     This fixture creates three key files:
@@ -333,27 +332,14 @@ def basic_mas_config_with_individual_keys(tmp_path):
     ecdsa_key_file = tmpdir_path / "ecdsa_key.pem"
     ecdsa_key_file.write_bytes(ecdsa_pem)
 
-    # Create MAS config with individual keys
-    config = frozendict(
-        {
-            "http": {"public_base": "https://auth.example.com", "bind": {"address": "0.0.0.0", "port": 8080}},
-            "database": {"uri": "postgresql://mas:mas_password@postgres:5432/mas?sslmode=prefer"},
-            "secrets": {
-                "encryption": "my_encryption_key",
-                "keys": [
-                    {"key_file": str(rsa_key_file)},  # Recognized: RSA
-                    {"key_file": str(dsa_key_file)},  # Unrecognized: DSA - should NOT be imported
-                    {"key_file": str(ecdsa_key_file)},  # Recognized: ECDSA with secp256r1
-                ],
-            },
-            "matrix": {
-                "homeserver": "test.example.com",
-                "secret": "synapse_shared_secret_abcdef",
-                "endpoint": "http://synapse:8008",
-            },
-        }
-    )
-    return config
+    config = dict(basic_mas_config)
+    config["secrets"]["keys"] = [
+        {"key_file": str(rsa_key_file)},  # Recognized: RSA
+        {"key_file": str(dsa_key_file)},  # Unrecognized: DSA - should NOT be imported
+        {"key_file": str(ecdsa_key_file)},  # Recognized: ECDSA with secp256r1
+    ]
+    # Update config with keys directory
+    return frozendict(config)
 
 
 @pytest.fixture
