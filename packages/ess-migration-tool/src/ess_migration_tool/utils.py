@@ -21,6 +21,69 @@ from .models import GlobalOptions, MigrationError
 from .rich_output import get_console, is_rich_enabled, print_prompt, print_section
 
 
+def parse_postgres_uri(uri: str) -> dict[str, Any]:
+    """
+    Parse a PostgreSQL connection URI and extract database configuration.
+
+    Args:
+        uri: PostgreSQL connection URI (e.g., "postgresql://user:pass@host:port/db?sslmode=prefer")
+
+    Returns:
+        Dictionary with database configuration fields (port is returned as int)
+    """
+    if not uri or not uri.startswith("postgresql://"):
+        return {}
+
+    try:
+        # Parse the URI
+        parsed = urllib.parse.urlparse(uri)
+
+        # Build result dictionary only with fields that are actually present
+        result: dict[str, str | int | None] = {}
+
+        if parsed.hostname:
+            result["host"] = parsed.hostname
+
+        if parsed.port:
+            result["port"] = int(parsed.port)
+
+        if parsed.username:
+            result["user"] = parsed.username
+
+        if parsed.password:
+            result["password"] = parsed.password
+
+        if parsed.path:
+            result["name"] = parsed.path.lstrip("/")
+
+        # Extract SSL mode from query parameters (only if present)
+        if parsed.query:
+            query_params = urllib.parse.parse_qs(parsed.query)
+            if "sslmode" in query_params:
+                result["ssl"] = query_params["sslmode"][0]
+
+        return result
+    except Exception as e:
+        logging.warning(f"Failed to parse PostgreSQL URI '{uri}': {e}")
+        return {}
+
+
+def extract_port_from_uri(_, uri: str, **kwargs: Any) -> int | None:
+    """
+    Extract port from PostgreSQL URI, returning None if not present.
+
+    Args:
+        uri: PostgreSQL connection URI
+        **kwargs: Optional context parameters (unused)
+
+    Returns:
+        Port as integer if present, None otherwise
+    """
+    parsed = parse_postgres_uri(uri)
+    port = parsed.get("port")
+    return int(port) if port is not None else None
+
+
 def yaml_dump_with_pipe_for_multiline(data: Any) -> str:
     """
     Custom YAML dump that uses pipe (|) for multi-line strings.
