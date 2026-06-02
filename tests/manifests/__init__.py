@@ -520,9 +520,22 @@ all_components_details = [
         is_shared_component=True,
         has_additional_config=False,
         has_ingress=False,
-        has_service_monitor=False,
         has_replicas=False,
         makes_outbound_requests=False,
+        sidecars=(
+            SidecarDetails(
+                name="redis-exporter",
+                values_file_path=ValuesFilePath.read_write("redis", "redisExporter"),
+                values_file_path_overrides={
+                    # No manifests of its own, so no labels to set
+                    PropertyType.Labels: ValuesFilePath.not_supported(),
+                },
+                has_additional_config=False,
+                has_ingress=False,
+                has_service_monitor=False,
+                makes_outbound_requests=False,
+            ),
+        ),
     ),
     ComponentDetails(
         name="matrix-rtc",

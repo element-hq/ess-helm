@@ -69,6 +69,41 @@
     },
     "startupProbe": {
       "$ref": "file://common/probe.json"
+    },
+    "serviceMonitors": {
+      "$ref": "file://common/serviceMonitors.json"
+    },
+    "redisExporter": {
+      "type": "object",
+      "properties": {
+        "image": {
+          "$ref": "file://common/image.json"
+        },
+        "extraEnv": {
+          "$ref": "file://common/extraEnv.json"
+        },
+        "containersSecurityContext": {
+          "$ref": "file://common/containersSecurityContext.json"
+        },
+        "resources": {
+          "$ref": "file://common/resources.json"
+        },
+        "extraVolumes": {
+          "$ref": "file://common/extraVolumes.json"
+        },
+        "extraVolumeMounts": {
+          "$ref": "file://common/extraVolumeMounts.json"
+        },
+        "livenessProbe": {
+          "$ref": "file://common/probe.json"
+        },
+        "readinessProbe": {
+          "$ref": "file://common/probe.json"
+        },
+        "startupProbe": {
+          "$ref": "file://common/probe.json"
+        }
+      }
     }
   }
 }

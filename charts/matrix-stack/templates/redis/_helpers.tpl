@@ -28,6 +28,10 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 env: []
 {{- end -}}
 
+{{- define "element-io.redis-exporter.overrideEnv" }}
+env: []
+{{- end -}}
+
 {{- define "element-io.redis.internalRedisEnabled" -}}
 {{- $root := .root -}}
 {{- $synapseNeedsRedis := and $root.Values.synapse.enabled (not $root.Values.synapse.redis) (include "element-io.synapse.enabledWorkers" (dict "root" $root) | fromJson) -}}

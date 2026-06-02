@@ -20,6 +20,9 @@ spec:
   - port: 6379
     targetPort: redis
     name: redis
+  - port: 9121
+    targetPort: metrics
+    name: metrics
   selector:
     app.kubernetes.io/instance: "{{ $.Release.Name }}-redis"
 {{- end }}

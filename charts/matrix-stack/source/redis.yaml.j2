@@ -21,8 +21,19 @@ maxMemoryPolicy: allkeys-lru
 {{- sub_schema_values.podSecurityContext(user_id='10002', group_id='10002') }}
 {{- sub_schema_values.resources(requests_memory='50Mi', requests_cpu='50m', limits_memory='50Mi') }}
 {{- sub_schema_values.serviceAccount() }}
+{{- sub_schema_values.serviceMonitors() }}
 {{- sub_schema_values.tolerations() }}
 {{- sub_schema_values.topologySpreadConstraints() }}
 {{- sub_schema_values.probe("liveness") }}
 {{- sub_schema_values.probe("readiness") }}
 {{- sub_schema_values.probe("startup", failureThreshold=5) }}
+
+redisExporter:
+  {{- sub_schema_values.image(registry='ghcr.io', repository='oliver006/redis_exporter', tag='v1.84.0') | indent(2) }}
+  {{- sub_schema_values.resources(requests_memory='10Mi', requests_cpu='10m', limits_memory='50Mi')| indent(2) }}
+  {{- sub_schema_values.extraVolumeMounts("Redis Exporter") | indent(2) }}
+  {{- sub_schema_values.containersSecurityContext() | indent(2) }}
+  {{- sub_schema_values.extraEnv() | indent(2) }}
+  {{- sub_schema_values.probe("liveness", periodSeconds=6, timeoutSeconds=2) | indent(2) }}
+  {{- sub_schema_values.probe("readiness", periodSeconds=2, successThreshold=2, timeoutSeconds=2) | indent(2) }}
+  {{- sub_schema_values.probe("startup", failureThreshold=20, periodSeconds=2) | indent(2) }}
