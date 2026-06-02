@@ -17,8 +17,13 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import dsa, ec, rsa
 from ess_migration_tool.migration import ConfigValueTransformer
 from ess_migration_tool.models import GlobalOptions, ValueSourceTracking
+from frozendict import frozendict
+from yaml import SafeDumper, representer
 
 from .helm_validation import validate_helm_template
+
+# Add representer for frozendict to allow YAML serialization
+SafeDumper.add_representer(frozendict, representer.SafeRepresenter.represent_dict)
 
 
 @pytest.fixture
@@ -37,120 +42,116 @@ def config_value_transformer():
 
 
 @pytest.fixture
+def write_config(tmp_path):
+    """Generic fixture to write config files.
+
+    Supports YAML and JSON formats.
+    """
+
+    def _write(config_data, filename, format="yaml"):
+        import json
+
+        config_file = tmp_path / filename
+        with open(config_file, "w") as f:
+            if format == "yaml":
+                yaml.dump(config_data, f, Dumper=SafeDumper)
+            elif format == "json":
+                json.dump(config_data, f, indent=2)
+            else:
+                raise ValueError(f"Unsupported format: {format}")
+        return config_file
+
+    return _write
+
+
+@pytest.fixture
 def basic_synapse_config():
     """Basic Synapse configuration for testing."""
-    return {
-        "server_name": "test.example.com",
-        "public_baseurl": "https://matrix.example.com",
-        "listeners": [
-            {
-                "port": 8008,
-                "tls": False,
-                "type": "http",
-                "x_forwarded": False,
-                "resources": [
-                    {
-                        "names": ["client", "federation"],
-                        "compression": False,
-                    }
-                ],
-            }
-        ],
-        "max_upload_size": "60M",
-        "database": {
-            "args": {
-                "database": "synapse",
-                "user": "synapse",
-                "host": "postgres",
-                "port": 5432,
-                "password": "test",
-                "keepalives": 1,
-                "keepalives_idle": 10,
-                "keepalives_interval": 10,
-                "keepalives_count": 3,
-                "cp_min": 5,
-                "cp_max": 10,
-            }
-        },
-        "report_stats": False,
-        "require_auth_for_profile_requests": True,
-        "federation_client_minimum_tls_version": "1.2",
-        "experimental_features": {"msc4028_push_encrypted_events": True},
-        "url_preview_enabled": True,
-        "url_preview_ip_range_whitelist": [],
-        "url_preview_ip_range_blacklist": ["192.168.0.0/16", "10.0.0.0/8"],
-        "rc_message": {"per_second": 0.5, "burst_count": 30},
-        "rc_delayed_event_mgmt": {"per_second": 1, "burst_count": 20},
-        "macaroon_secret_key": "test_macaroon_secret",
-        "registration_shared_secret": "test_registration_secret",
-    }
+    return frozendict(
+        {
+            "server_name": "test.example.com",
+            "public_baseurl": "https://matrix.example.com",
+            "listeners": [
+                {
+                    "port": 8008,
+                    "tls": False,
+                    "type": "http",
+                    "x_forwarded": False,
+                    "resources": [
+                        {
+                            "names": ["client", "federation"],
+                            "compression": False,
+                        }
+                    ],
+                }
+            ],
+            "max_upload_size": "60M",
+            "database": {
+                "args": {
+                    "database": "synapse",
+                    "user": "synapse",
+                    "host": "postgres",
+                    "port": 5432,
+                    "password": "test",
+                    "keepalives": 1,
+                    "keepalives_idle": 10,
+                    "keepalives_interval": 10,
+                    "keepalives_count": 3,
+                    "cp_min": 5,
+                    "cp_max": 10,
+                }
+            },
+            "report_stats": False,
+            "require_auth_for_profile_requests": True,
+            "federation_client_minimum_tls_version": "1.2",
+            "experimental_features": {"msc4028_push_encrypted_events": True},
+            "url_preview_enabled": True,
+            "url_preview_ip_range_whitelist": [],
+            "url_preview_ip_range_blacklist": ["192.168.0.0/16", "10.0.0.0/8"],
+            "rc_message": {"per_second": 0.5, "burst_count": 30},
+            "rc_delayed_event_mgmt": {"per_second": 1, "burst_count": 20},
+            "macaroon_secret_key": "test_macaroon_secret",
+            "registration_shared_secret": "test_registration_secret",
+        }
+    )
 
 
 @pytest.fixture
 def basic_element_web_config():
     """Basic Element Web configuration for testing."""
-    return {
-        "default_server_config": {
-            "m.homeserver": {
-                "base_url": "https://matrix.example.com/",
-                "server_name": "test.example.com",
-            }
-        },
-        "setting_defaults": {"customTheme": True},
-    }
-
-
-@pytest.fixture
-def write_element_web_config(tmp_path):
-    """Helper fixture to write an Element Web config file."""
-
-    def _write_config(config_data):
-        element_web_config_file = tmp_path / "element-web.json"
-        with open(element_web_config_file, "w") as f:
-            import json
-
-            json.dump(config_data, f, indent=2)
-        return element_web_config_file
-
-    return _write_config
+    return frozendict(
+        {
+            "default_server_config": {
+                "m.homeserver": {
+                    "base_url": "https://matrix.example.com/",
+                    "server_name": "test.example.com",
+                }
+            },
+            "setting_defaults": {"customTheme": True},
+        }
+    )
 
 
 @pytest.fixture
 def synapse_config_with_custom_listeners(basic_synapse_config):
     """Synapse configuration with custom listeners for testing."""
-    config = basic_synapse_config.copy()
-    # Replace the chart-managed listener with a custom one
-    config["listeners"] = [
-        {
-            "port": 9010,
-            "tls": True,
-            "type": "http",
-            "resources": [{"names": ["custom_api"], "compress": False}],
-        }
-    ]
-    return config
+    return frozendict(basic_synapse_config) | {
+        "listeners": [
+            {
+                "port": 9010,
+                "tls": True,
+                "type": "http",
+                "resources": [{"names": ["custom_api"], "compress": False}],
+            }
+        ]
+    }
 
 
 @pytest.fixture
 def synapse_config_without_public_baseurl(basic_synapse_config):
     """Synapse configuration without public_baseurl for testing prompt functionality."""
-    config = basic_synapse_config.copy()
     # Remove public_baseurl to test prompt functionality
-    del config["public_baseurl"]
-    return config
-
-
-@pytest.fixture
-def write_synapse_config(tmp_path):
-    """Helper fixture to write a Synapse config file."""
-
-    def _write_config(config_data):
-        synapse_config_file = tmp_path / "synapse.yaml"
-        with open(synapse_config_file, "w") as f:
-            yaml.dump(config_data, f)
-        return synapse_config_file
-
-    return _write_config
+    return frozendict({k: v for k, v in basic_synapse_config.items() if k != "public_baseurl"})
 
 
 @pytest.fixture
@@ -161,38 +162,31 @@ def synapse_config_with_signing_key(tmp_path, basic_synapse_config):
     signing_key_file.write_text("test_signing_key_content")
 
     # Add signing key to config
-    config = basic_synapse_config.copy()
-    config["signing_key_path"] = str(signing_key_file)
-
-    return config
+    return frozendict(basic_synapse_config) | {"signing_key_path": str(signing_key_file)}
 
 
 @pytest.fixture
 def synapse_config_with_web_client_location(basic_synapse_config):
     """Synapse configuration with web_client_location for Element Web."""
-    config = basic_synapse_config.copy()
-    config["web_client_location"] = "https://element.example.com/"
-    return config
+    return frozendict(basic_synapse_config) | {"web_client_location": "https://element.example.com/"}
 
 
 @pytest.fixture
 def synapse_config_with_instance_map(tmp_path, basic_synapse_config):
-    """Synapse configuration with a signing key file."""
-    # Add signing key to config
-    config = basic_synapse_config.copy()
-    config["instance_map"] = {
-        "main": {"host": "main-instance.local", "port": 9093},
-        "funny-name": {"host": "funny-instance.local", "port": 9093},
-        "synchrotron": {"host": "synchro.local", "port": 9093},
-        "synchrotron2": {"host": "synchro.local", "port": 9094},
+    """Synapse configuration with instance map."""
+    return frozendict(basic_synapse_config) | {
+        "instance_map": {
+            "main": {"host": "main-instance.local", "port": 9093},
+            "funny-name": {"host": "funny-instance.local", "port": 9093},
+            "synchrotron": {"host": "synchro.local", "port": 9093},
+            "synchrotron2": {"host": "synchro.local", "port": 9094},
+        }
     }
-
-    return config
 
 
 @pytest.fixture
 def synapse_config_with_email_templates(tmp_path, basic_synapse_config):
-    """Synapse configuration with a signing key file."""
+    """Synapse configuration with email templates directory."""
     # Create email templates directory
     templates_dir = tmp_path / "email_templates"
     templates_dir.mkdir()
@@ -201,69 +195,67 @@ def synapse_config_with_email_templates(tmp_path, basic_synapse_config):
     (templates_dir / "registration.html").write_text("test_registration_content")
 
     # Add email templates to config
-    config = basic_synapse_config.copy()
-    config.setdefault("templates", {})["custom_template_directory"] = str(templates_dir)
-
-    return config
+    return frozendict(basic_synapse_config) | {"templates": {"custom_template_directory": str(templates_dir)}}
 
 
 @pytest.fixture
 def synapse_config_with_ca_federation_list(tmp_path, basic_synapse_config):
-    """Synapse configuration with a signing key file."""
-    # Create email templates directory
-    templates_dir = tmp_path / "ca"
-    templates_dir.mkdir()
-    # Add password reset, registration templates
-    (templates_dir / "ca1.pem").write_text("CA1")
-    (templates_dir / "ca-second.pem").write_text("CA2")
-    (templates_dir / "another-ca.pem").write_text("CA3")
+    """Synapse configuration with CA federation list."""
+    # Create CA directory
+    ca_dir = tmp_path / "ca"
+    ca_dir.mkdir()
+    # Add CA files
+    (ca_dir / "ca1.pem").write_text("CA1")
+    (ca_dir / "ca-second.pem").write_text("CA2")
+    (ca_dir / "another-ca.pem").write_text("CA3")
 
-    # Add email templates to config
-    config = basic_synapse_config.copy()
-    config["federation_custom_ca_list"] = [
-        str(templates_dir / "ca1.pem"),
-        str(templates_dir / "ca-second.pem"),
-        str(templates_dir / "another-ca.pem"),
-    ]
-
-    return config
+    # Add CA list to config
+    return frozendict(basic_synapse_config) | {
+        "federation_custom_ca_list": [
+            str(ca_dir / "ca1.pem"),
+            str(ca_dir / "ca-second.pem"),
+            str(ca_dir / "another-ca.pem"),
+        ]
+    }
 
 
 @pytest.fixture
 def synapse_config_with_mas(tmp_path, basic_synapse_config):
-    """Synapse configuration with a signing key file."""
-    config = basic_synapse_config.copy()
-    config["matrix_authentication_service"] = {
-        "enabled": True,
-        "endpoint": "http://mas.example.com:8080",
-        "secret": "synapse_shared_secret_abcdef",
+    """Synapse configuration with MAS."""
+    return frozendict(basic_synapse_config) | {
+        "matrix_authentication_service": {
+            "enabled": True,
+            "endpoint": "http://mas.example.com:8080",
+            "secret": "synapse_shared_secret_abcdef",
+        }
     }
-    return config
 
 
 @pytest.fixture
 def basic_mas_config():
     """Basic MAS configuration for testing."""
-    return {
-        "http": {"public_base": "https://auth.example.com", "bind": {"address": "0.0.0.0", "port": 8080}},
-        "database": {"uri": "postgresql://mas:mas_password@postgres:5432/mas?sslmode=prefer"},
-        "secrets": {"encryption": "my_encryption_key"},
-        "matrix": {
-            "homeserver": "test.example.com",
-            "secret": "synapse_shared_secret_abcdef",
-            "endpoint": "http://synapse:8008",
-        },
-        "policy": {
-            "data": {
-                "admin_clients": ["test_client"],
-                "admin_users": ["@admin:test.example.com"],
-                "client_registration": {
-                    "allow_host_mismatch": False,
-                    "allow_insecure_uris": False,
-                },
-            }
-        },
-    }
+    return frozendict(
+        {
+            "http": {"public_base": "https://auth.example.com", "bind": {"address": "0.0.0.0", "port": 8080}},
+            "database": {"uri": "postgresql://mas:mas_password@postgres:5432/mas?sslmode=prefer"},
+            "secrets": {"encryption": "my_encryption_key"},
+            "matrix": {
+                "homeserver": "test.example.com",
+                "secret": "synapse_shared_secret_abcdef",
+                "endpoint": "http://synapse:8008",
+            },
+            "policy": {
+                "data": {
+                    "admin_clients": ["test_client"],
+                    "admin_users": ["@admin:test.example.com"],
+                    "client_registration": {
+                        "allow_host_mismatch": False,
+                        "allow_insecure_uris": False,
+                    },
+                }
+            },
+        }
+    )
 
 
 @pytest.fixture
@@ -293,23 +285,9 @@ def basic_mas_config_with_keys(tmp_path, basic_mas_config):
     (keys_dir / "ecdsa_key.pem").write_bytes(ecdsa_pem)
 
     # Update config with keys directory
-    mas_config = basic_mas_config.copy()
-    mas_config["secrets"]["keys_dir"] = str(keys_dir)
-
-    return mas_config
-
-
-@pytest.fixture
-def write_mas_config(tmp_path):
-    """Helper fixture to write a MAS config file."""
-
-    def _write_config(config_data):
-        mas_config_file = tmp_path / "mas.yaml"
-        with open(mas_config_file, "w") as f:
-            yaml.dump(config_data, f)
-        return mas_config_file
-
-    return _write_config
+    return frozendict(basic_mas_config) | {
+        "secrets": {"keys_dir": str(keys_dir), "encryption": basic_mas_config["secrets"]["encryption"]}
+    }
 
 
 @pytest.fixture
@@ -356,23 +334,25 @@ def basic_mas_config_with_individual_keys(tmp_path):
     ecdsa_key_file.write_bytes(ecdsa_pem)
 
     # Create MAS config with individual keys
-    config = {
-        "http": {"public_base": "https://auth.example.com", "bind": {"address": "0.0.0.0", "port": 8080}},
-        "database": {"uri": "postgresql://mas:mas_password@postgres:5432/mas?sslmode=prefer"},
-        "secrets": {
-            "encryption": "my_encryption_key",
-            "keys": [
-                {"key_file": str(rsa_key_file)},  # Recognized: RSA
-                {"key_file": str(dsa_key_file)},  # Unrecognized: DSA - should NOT be imported
-                {"key_file": str(ecdsa_key_file)},  # Recognized: ECDSA with secp256r1
-            ],
-        },
-        "matrix": {
-            "homeserver": "test.example.com",
-            "secret": "synapse_shared_secret_abcdef",
-            "endpoint": "http://synapse:8008",
-        },
-    }
+    config = frozendict(
+        {
+            "http": {"public_base": "https://auth.example.com", "bind": {"address": "0.0.0.0", "port": 8080}},
+            "database": {"uri": "postgresql://mas:mas_password@postgres:5432/mas?sslmode=prefer"},
+            "secrets": {
+                "encryption": "my_encryption_key",
+                "keys": [
+                    {"key_file": str(rsa_key_file)},  # Recognized: RSA
+                    {"key_file": str(dsa_key_file)},  # Unrecognized: DSA - should NOT be imported
+                    {"key_file": str(ecdsa_key_file)},  # Recognized: ECDSA with secp256r1
+                ],
+            },
+            "matrix": {
+                "homeserver": "test.example.com",
+                "secret": "synapse_shared_secret_abcdef",
+                "endpoint": "http://synapse:8008",
+            },
+        }
+    )
     return config
 
 
@@ -471,52 +451,53 @@ def ecdsa_secp384r1_key_der():
 @pytest.fixture
 def basic_hookshot_config():
     """Basic Hookshot configuration for testing."""
-    return {
-        "bridge": {
-            "domain": "test.example.com",
-            "url": "http://synapse:8008",
-            "mediaUrl": "https://matrix.example.com",
-            "port": 9993,
-            "bindAddress": "0.0.0.0",
-        },
-        "logging": {
-            "level": "info",
-            "colorize": True,
-            "json": False,
-            "timestampFormat": "HH:mm:ss:SSS",
-        },
-        "user": {
-            "localpart": "hookshot",
-        },
-        "enableEncryption": False,
-        "listeners": [
-            {
-                "port": 9000,
+    return frozendict(
+        {
+            "bridge": {
+                "domain": "test.example.com",
+                "url": "http://synapse:8008",
+                "mediaUrl": "https://matrix.example.com",
+                "port": 9993,
                 "bindAddress": "0.0.0.0",
-                "resources": ["webhooks"],
             },
-            {
-                "port": 9001,
-                "bindAddress": "0.0.0.0",
-                "resources": ["widgets"],
+            "logging": {
+                "level": "info",
+                "colorize": True,
+                "json": False,
+                "timestampFormat": "HH:mm:ss:SSS",
             },
-        ],
-    }
+            "user": {
+                "localpart": "hookshot",
+            },
+            "enableEncryption": False,
+            "listeners": [
+                {
+                    "port": 9000,
+                    "bindAddress": "0.0.0.0",
+                    "resources": ["webhooks"],
+                },
+                {
+                    "port": 9001,
+                    "bindAddress": "0.0.0.0",
+                    "resources": ["widgets"],
+                },
+            ],
+        }
+    )
 
 
 @pytest.fixture
 def hookshot_config_with_custom_listeners(basic_hookshot_config):
     """Hookshot configuration with custom listeners for testing."""
-    config = basic_hookshot_config.copy()
-    # Replace the ESS-managed listeners with a custom one
-    config["listeners"] = [
-        {
-            "port": 9010,
-            "bindAddress": "0.0.0.0",
-            "resources": ["custom_service"],
-        }
-    ]
-    return config
+    return frozendict(basic_hookshot_config) | {
+        "listeners": [
+            {
+                "port": 9010,
+                "bindAddress": "0.0.0.0",
+                "resources": ["custom_service"],
+            }
+        ]
+    }
 
 
 @pytest.fixture
@@ -532,23 +513,7 @@ MIIJQQIBADANBgkqhkiG9w0BAQEFAASCCSswggknAgEAAoICAQDLtjXE9gRU9GVE
     passkey_file.write_text(passkey_content)
 
     # Add passFile to config
-    config = basic_hookshot_config.copy()
-    config["passFile"] = str(passkey_file)
-
-    return config
-
-
-@pytest.fixture
-def write_hookshot_config(tmp_path):
-    """Helper fixture to write a Hookshot config file."""
-
-    def _write_config(config_data):
-        hookshot_config_file = tmp_path / "hookshot-config.yaml"
-        with open(hookshot_config_file, "w") as f:
-            yaml.dump(config_data, f)
-        return hookshot_config_file
-
-    return _write_config
+    return frozendict(basic_hookshot_config) | {"passFile": str(passkey_file)}
 
 
 @pytest.fixture
@@ -569,30 +534,34 @@ def helm_validator():
 @pytest.fixture
 def basic_well_known_client_config():
     """Basic well-known client configuration for testing."""
-    return {
-        "m.homeserver": {
-            "base_url": "https://matrix.example.com",
-            "server_name": "test.example.com",
-        },
-        # Add an untracked value to ensure the client entry is created
-        "m.custom": {"setting": "value"},
-    }
+    return frozendict(
+        {
+            "m.homeserver": {
+                "base_url": "https://matrix.example.com",
+                "server_name": "test.example.com",
+            },
+            # Add an untracked value to ensure the client entry is created
+            "m.custom": {"setting": "value"},
+        }
+    )
 
 
 @pytest.fixture
 def basic_well_known_server_config():
     """Basic well-known server configuration for testing."""
-    return {
-        "m.server": "test.example.com:443",
-        # Add an untracked value to ensure the server entry is created
-        "m.custom_server": "value",
-    }
+    return frozendict(
+        {
+            "m.server": "test.example.com:443",
+            # Add an untracked value to ensure the server entry is created
+            "m.custom_server": "value",
+        }
+    )
 
 
 @pytest.fixture
 def basic_well_known_support_config():
     """Basic well-known support configuration for testing."""
-    return {"im.vector.matrix": {"room": "#support:element.io"}}
+    return frozendict({"im.vector.matrix": {"room": "#support:element.io"}})
 
 
 @pytest.fixture
