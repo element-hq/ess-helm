@@ -148,13 +148,13 @@ def test_transformation_specs_target_keys_valid():
         pytest.fail("TransformationSpec target_keys not in schema:\n" + "\n".join(invalid_targets))
 
 
-def test_migration_output_schema_validation(tmp_path, synapse_config_with_signing_key, write_synapse_config):
+def test_migration_output_schema_validation(tmp_path, synapse_config_with_signing_key, write_config):
     """Test that MigrationEngine output validates against the Helm chart schema."""
 
     # Load the Helm chart schema
     schema = load_helm_schema()
 
-    synapse_path = write_synapse_config(synapse_config_with_signing_key)
+    synapse_path = write_config(synapse_config_with_signing_key, "synapse.yaml", "yaml")
 
     # Load migration input
     input_processor = InputProcessor()

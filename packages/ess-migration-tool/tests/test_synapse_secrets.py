@@ -14,7 +14,7 @@ def test_discover_secrets_from_synapse_config(basic_synapse_config):
     """Test discovering secrets from Synapse configuration with existing database."""
 
     # Start with basic config and add secret file references
-    synapse_config = basic_synapse_config.copy()
+    synapse_config = dict(basic_synapse_config)
     synapse_config["macaroon_secret_key"] = "./macaroon_key.txt"
     synapse_config["registration_shared_secret"] = "my_registration_secret"
 
@@ -43,7 +43,7 @@ def test_discover_secrets_from_synapse_config_ess_managed(basic_synapse_config):
     """Test discovering secrets from Synapse configuration with ESS-managed database."""
 
     # Start with basic config and add secret file references
-    synapse_config = basic_synapse_config.copy()
+    synapse_config = dict(basic_synapse_config)
     synapse_config["macaroon_secret_key"] = "./macaroon_key.txt"
     synapse_config["registration_shared_secret"] = "my_registration_secret"
 
@@ -74,7 +74,7 @@ def test_discover_extra_files_from_synapse_config(tmp_path, synapse_config_with_
     """Test discovering extra files from Synapse configuration."""
 
     # Start with basic config and add secret file references
-    synapse_config = synapse_config_with_email_templates.copy()
+    synapse_config = dict(synapse_config_with_email_templates)
     discovery = ExtraFilesDiscovery(
         summary_logger=logging.getLogger(),
         secrets_strategy=SynapseSecretDiscovery(GlobalOptions(use_existing_database=True)),
@@ -97,7 +97,7 @@ def test_permission_error_handling_for_secrets(tmp_path, basic_synapse_config):
     restricted_key.chmod(0o200)  # Write-only for owner
 
     # Create config with restricted file reference
-    synapse_config = basic_synapse_config.copy()
+    synapse_config = dict(basic_synapse_config)
     synapse_config["signing_key_path"] = str(restricted_key)
     synapse_config["database"]["args"]["password"] = "test_password"
     synapse_config["macaroon_secret_key"] = "test_macaroon_key"
@@ -140,7 +140,7 @@ def test_discover_appservice_registration_files(tmp_path, basic_synapse_config):
     appservice2.write_text("id: appservice2\nurl: http://localhost:8002\n")
 
     # Create config with appservice config files
-    synapse_config = basic_synapse_config.copy()
+    synapse_config = dict(basic_synapse_config)
     synapse_config["app_service_config_files"] = [str(appservice1), str(appservice2)]
     synapse_config["database"]["args"]["password"] = "test_password"
 
@@ -171,7 +171,7 @@ def test_discover_appservice_registration_files(tmp_path, basic_synapse_config):
 def test_appservice_files_missing(tmp_path, basic_synapse_config):
     """Test handling of missing appservice registration files."""
     # Create config with non-existent appservice config files
-    synapse_config = basic_synapse_config.copy()
+    synapse_config = dict(basic_synapse_config)
     synapse_config["app_service_config_files"] = ["/nonexistent/appservice1.yaml", "/nonexistent/appservice2.yaml"]
     synapse_config["database"]["args"]["password"] = "test_password"
 
@@ -195,7 +195,7 @@ def test_appservice_files_missing(tmp_path, basic_synapse_config):
 def test_appservice_files_empty_list(basic_synapse_config):
     """Test handling of empty app_service_config_files list."""
     # Create config with empty appservice config files list
-    synapse_config = basic_synapse_config.copy()
+    synapse_config = dict(basic_synapse_config)
     synapse_config["app_service_config_files"] = []
     synapse_config["database"]["args"]["password"] = "test_password"
 

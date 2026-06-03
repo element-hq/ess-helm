@@ -24,7 +24,7 @@ def test_main_e2e_synapse_only(
     synapse_config_with_email_templates,
     synapse_config_with_ca_federation_list,
     synapse_config_without_public_baseurl,
-    write_synapse_config,
+    write_config,
     helm_validator,
 ):
     """Test the complete end-to-end migration workflow with Synapse only."""
@@ -38,11 +38,13 @@ def test_main_e2e_synapse_only(
     monkeypatch.setattr("builtins.input", mock_input)
 
     # Write Synapse config without public_baseurl to test prompt functionality
-    synapse_config_file = write_synapse_config(
+    synapse_config_file = write_config(
         synapse_config_without_public_baseurl
         | synapse_config_with_signing_key
         | synapse_config_with_email_templates
-        | synapse_config_with_ca_federation_list
+        | synapse_config_with_ca_federation_list,
+        "synapse.yaml",
+        "yaml",
     )
 
     # Create output directory
@@ -221,14 +223,15 @@ def test_main_e2e_synapse_with_mas(
     synapse_config_with_signing_key,
     synapse_config_with_mas,
     basic_mas_config_with_keys,
-    write_synapse_config,
-    write_mas_config,
+    write_config,
     helm_validator,
 ):
     """Test the complete end-to-end migration workflow with Synapse and MAS."""
     # Write configuration files
-    synapse_config_file = write_synapse_config(synapse_config_with_signing_key | synapse_config_with_mas)
-    mas_config_file = write_mas_config(basic_mas_config_with_keys)
+    synapse_config_file = write_config(
+        synapse_config_with_signing_key | synapse_config_with_mas, "synapse.yaml", "yaml"
+    )
+    mas_config_file = write_config(basic_mas_config_with_keys, "mas.yaml", "yaml")
 
     # Create output directory
     output_dir = tmp_path / "output"
@@ -414,14 +417,13 @@ def test_main_e2e_mas_with_custom_listeners_and_ess_managed_database(
     tmp_path,
     synapse_config_with_signing_key,
     basic_mas_config_with_keys,
-    write_synapse_config,
-    write_mas_config,
+    write_config,
     capsys,
     helm_validator,
 ):
     """Test that custom MAS listeners are preserved in additional config."""
     # Add listeners structure to MAS config (it doesn't have one by default)
-    mas_config = basic_mas_config_with_keys.copy()
+    mas_config = dict(basic_mas_config_with_keys)
     mas_config["http"]["listeners"] = [
         {
             "name": "web",
@@ -449,8 +451,8 @@ def test_main_e2e_mas_with_custom_listeners_and_ess_managed_database(
     ]
 
     # Write configuration files
-    synapse_config_file = write_synapse_config(synapse_config_with_signing_key)
-    mas_config_file = write_mas_config(mas_config)
+    synapse_config_file = write_config(synapse_config_with_signing_key, "synapse.yaml", "yaml")
+    mas_config_file = write_config(mas_config, "mas.yaml", "yaml")
 
     # Create output directory
     output_dir = tmp_path / "output"
@@ -525,12 +527,12 @@ def test_main_e2e_synapse_existing_database(
     monkeypatch,
     tmp_path,
     synapse_config_with_signing_key,
-    write_synapse_config,
+    write_config,
     helm_validator,
 ):
     """Test the complete end-to-end migration workflow with Synapse using existing database."""
     # Write Synapse config
-    synapse_config_file = write_synapse_config(synapse_config_with_signing_key)
+    synapse_config_file = write_config(synapse_config_with_signing_key, "synapse.yaml", "yaml")
 
     # Create output directory
     output_dir = tmp_path / "output"
@@ -588,12 +590,12 @@ def test_main_e2e_synapse_ess_managed_database(
     monkeypatch,
     tmp_path,
     synapse_config_with_signing_key,
-    write_synapse_config,
+    write_config,
     helm_validator,
 ):
     """Test the complete end-to-end migration workflow with Synapse using ESS-managed PostgreSQL."""
     # Write Synapse config
-    synapse_config_file = write_synapse_config(synapse_config_with_signing_key)
+    synapse_config_file = write_config(synapse_config_with_signing_key, "synapse.yaml", "yaml")
 
     # Create output directory
     output_dir = tmp_path / "output"
@@ -663,14 +665,14 @@ def test_main_e2e_synapse_listeners_with_custom_listeners(
     tmp_path,
     synapse_config_with_custom_listeners,
     synapse_config_with_signing_key,
-    write_synapse_config,
+    write_config,
     helm_validator,
 ):
     """Test that custom listeners are preserved in additional config."""
     # Use config with custom listeners that should be preserved
-    custom_config = synapse_config_with_custom_listeners.copy()
+    custom_config = dict(synapse_config_with_custom_listeners)
     custom_config["signing_key_path"] = synapse_config_with_signing_key["signing_key_path"]
-    synapse_config_file = write_synapse_config(custom_config)
+    synapse_config_file = write_config(custom_config, "synapse.yaml", "yaml")
 
     # Create output directory
     output_dir = tmp_path / "output"
@@ -735,8 +737,7 @@ def test_main_e2e_mas_with_individual_keys(
     tmp_path,
     synapse_config_with_signing_key,
     basic_mas_config_with_individual_keys,
-    write_synapse_config,
-    write_mas_config,
+    write_config,
     capsys,
     helm_validator,
 ):
@@ -752,10 +753,10 @@ def test_main_e2e_mas_with_individual_keys(
     dsa_key_file = tmp_path / "mas_keys" / "dsa_key.pem"
 
     # Write Synapse config
-    synapse_config_file = write_synapse_config(synapse_config_with_signing_key)
+    synapse_config_file = write_config(synapse_config_with_signing_key, "synapse.yaml", "yaml")
 
     # Write MAS config with individual keys (using the fixture)
-    mas_config_file = write_mas_config(basic_mas_config_with_individual_keys)
+    mas_config_file = write_config(basic_mas_config_with_individual_keys, "mas.yaml", "yaml")
 
     # Create output directory
     output_dir = tmp_path / "output"
@@ -836,8 +837,7 @@ def test_main_e2e_synapse_with_mas_different_server_name(
     tmp_path,
     synapse_config_with_signing_key,
     basic_mas_config_with_keys,
-    write_synapse_config,
-    write_mas_config,
+    write_config,
     helm_validator,
 ):
     """Test conflict resolution when Synapse and MAS have different serverName values.
@@ -847,16 +847,16 @@ def test_main_e2e_synapse_with_mas_different_server_name(
     This should trigger a conflict prompt.
     """
     # Patch Synapse config to use different server_name
-    synapse_config = synapse_config_with_signing_key.copy()
+    synapse_config = dict(synapse_config_with_signing_key)
     synapse_config["server_name"] = "synapse.example.com"
 
     # Patch MAS config to use different homeserver
-    mas_config = basic_mas_config_with_keys.copy()
+    mas_config = dict(basic_mas_config_with_keys)
     mas_config["matrix"]["homeserver"] = "mas.example.com"
 
     # Write configuration files
-    synapse_config_file = write_synapse_config(synapse_config)
-    mas_config_file = write_mas_config(mas_config)
+    synapse_config_file = write_config(synapse_config, "synapse.yaml", "yaml")
+    mas_config_file = write_config(mas_config, "mas.yaml", "yaml")
 
     # Create output directory
     output_dir = tmp_path / "output"
@@ -921,8 +921,7 @@ def test_main_e2e_synapse_with_element_web(
     synapse_config_with_signing_key,
     synapse_config_with_web_client_location,
     basic_element_web_config,
-    write_synapse_config,
-    write_element_web_config,
+    write_config,
     helm_validator,
 ):
     """Test migration with Synapse and Element Web.
@@ -934,12 +933,12 @@ def test_main_e2e_synapse_with_element_web(
     4. The Synapse template uses elementWeb.ingress.host for web_client_location
     """
     # Merge signing key and web_client_location into Synapse config
-    synapse_config = synapse_config_with_signing_key.copy()
+    synapse_config = dict(synapse_config_with_signing_key)
     synapse_config["web_client_location"] = "https://element.example.com/"
 
     # Write configuration files
-    synapse_config_file = write_synapse_config(synapse_config)
-    element_web_config_file = write_element_web_config(basic_element_web_config)
+    synapse_config_file = write_config(synapse_config, "synapse.yaml", "yaml")
+    element_web_config_file = write_config(basic_element_web_config, "element-web.json", "json")
 
     # Create output directory
     output_dir = tmp_path / "output"
@@ -1028,7 +1027,7 @@ def test_well_known_migration(
     tmp_path,
     monkeypatch,
     synapse_config_with_signing_key,
-    write_synapse_config,
+    write_config,
     basic_well_known_client_config,
     basic_well_known_server_config,
     basic_well_known_support_config,
@@ -1036,7 +1035,7 @@ def test_well_known_migration(
 ):
     """Test end-to-end migration with well-known files."""
     # Use fixture for synapse config and write it to file
-    synapse_file = write_synapse_config(synapse_config_with_signing_key)
+    synapse_file = write_config(synapse_config_with_signing_key, "synapse.yaml", "yaml")
     write_well_known_configs(
         basic_well_known_client_config,
         basic_well_known_server_config,
@@ -1106,20 +1105,19 @@ def test_main_e2e_hookshot(
     tmp_path,
     basic_hookshot_config,
     synapse_config_with_signing_key,
-    write_hookshot_config,
-    write_synapse_config,
+    write_config,
     helm_validator,
 ):
     """Test the complete end-to-end migration workflow with Hookshot."""
     # Write Hookshot config
     # Note: We need to use a Hookshot config where bridge.url matches the synapse base URL
     # to avoid conflicts with Synapse's public_baseurl
-    hookshot_config = basic_hookshot_config.copy()
+    hookshot_config = dict(basic_hookshot_config)
     hookshot_config["bridge"]["url"] = "https://matrix.example.com"
-    hookshot_config_file = write_hookshot_config(hookshot_config)
+    hookshot_config_file = write_config(hookshot_config, "hookshot-config.yaml", "yaml")
 
     # Write Synapse config using the existing fixture
-    synapse_config_file = write_synapse_config(synapse_config_with_signing_key)
+    synapse_config_file = write_config(synapse_config_with_signing_key, "synapse.yaml", "yaml")
 
     # Create output directory
     output_dir = tmp_path / "output"
@@ -1194,8 +1192,7 @@ def test_main_e2e_synapse_mas_shared_secret_conflict(
     tmp_path,
     synapse_config_with_signing_key,
     basic_mas_config,
-    write_synapse_config,
-    write_mas_config,
+    write_config,
     helm_validator,
 ):
     """Test conflict resolution for Synapse <-> MAS shared secret.
@@ -1205,16 +1202,16 @@ def test_main_e2e_synapse_mas_shared_secret_conflict(
     This should trigger a secret conflict prompt.
     """
     # Use existing fixture and add the shared secret
-    synapse_config = synapse_config_with_signing_key.copy()
+    synapse_config = dict(synapse_config_with_signing_key)
     synapse_config["matrix_authentication_service"] = {
         "secret": "synapse_side_secret",
     }
-    synapse_config_file = write_synapse_config(synapse_config)
+    synapse_config_file = write_config(synapse_config, "synapse.yaml", "yaml")
 
     # Create MAS config with matrix.secret (different value)
-    mas_config = basic_mas_config.copy()
+    mas_config = dict(basic_mas_config)
     mas_config["matrix"]["secret"] = "mas_side_secret"  # Different from Synapse's value
-    mas_config_file = write_mas_config(mas_config)
+    mas_config_file = write_config(mas_config, "mas.yaml", "yaml")
 
     # Create output directory
     output_dir = tmp_path / "output"

@@ -23,12 +23,10 @@ from ess_migration_tool.synapse import SYNAPSE_STRATEGY_NAME, prompt_for_ingress
 from ess_migration_tool.utils import prompt_for_database_choice
 
 
-def test_migration_with_missing_secrets_prompt(
-    monkeypatch, tmp_path, synapse_config_with_signing_key, write_synapse_config
-):
+def test_migration_with_missing_secrets_prompt(monkeypatch, tmp_path, synapse_config_with_signing_key, write_config):
     """Test migration workflow that prompts for missing secrets with timeout."""
     # Create Synapse configuration with missing secrets
-    synapse_config = synapse_config_with_signing_key.copy()
+    synapse_config = dict(synapse_config_with_signing_key)
     # Remove password to simulate missing secret
     del synapse_config["database"]["args"]["password"]
     # Remove other secrets to simulate missing secrets
@@ -36,7 +34,7 @@ def test_migration_with_missing_secrets_prompt(
     del synapse_config["registration_shared_secret"]
 
     # Write Synapse config
-    synapse_config_file = write_synapse_config(synapse_config)
+    synapse_config_file = write_config(synapse_config, "synapse.yaml", "yaml")
     # Load migration input - this should prompt for missing secrets
     input_processor = InputProcessor()
     input_processor.load_migration_input(
@@ -143,16 +141,16 @@ def test_prompt_for_ingress_host_with_missing_public_baseurl(monkeypatch, config
         log_capture_string.close()
 
 
-def test_quiet_mode_fails_on_missing_secrets(tmp_path, synapse_config_with_signing_key, write_synapse_config):
+def test_quiet_mode_fails_on_missing_secrets(tmp_path, synapse_config_with_signing_key, write_config):
     """Test that migration fails in quiet mode when secrets are missing."""
     # Create Synapse configuration with missing secrets
-    synapse_config = synapse_config_with_signing_key.copy()
+    synapse_config = dict(synapse_config_with_signing_key)
     # Remove password to simulate missing secret
     del synapse_config["database"]["args"]["password"]
     del synapse_config["macaroon_secret_key"]
 
     # Write Synapse config
-    synapse_config_file = write_synapse_config(synapse_config)
+    synapse_config_file = write_config(synapse_config, "synapse.yaml", "yaml")
 
     # Load migration input
     input_processor = InputProcessor()
@@ -181,11 +179,13 @@ def test_quiet_mode_fails_on_missing_secrets(tmp_path, synapse_config_with_signi
 
 
 def test_quiet_mode_fails_on_missing_extra_files(
-    tmp_path, synapse_config_with_signing_key, synapse_config_with_email_templates, write_synapse_config
+    tmp_path, synapse_config_with_signing_key, synapse_config_with_email_templates, write_config
 ):
     """Test that migration fails in quiet mode when extra files are missing."""
     # Write Synapse config
-    synapse_config_file = write_synapse_config(synapse_config_with_signing_key | synapse_config_with_email_templates)
+    synapse_config_file = write_config(
+        synapse_config_with_signing_key | synapse_config_with_email_templates, "synapse.yaml", "yaml"
+    )
 
     # Remove the email templates directory to simulate missing files
     shutil.rmtree(tmp_path / "email_templates")
@@ -220,12 +220,14 @@ def test_migration_with_unknown_workers_prompt(
     tmp_path,
     synapse_config_with_signing_key,
     synapse_config_with_instance_map,
-    write_synapse_config,
+    write_config,
 ):
     """Test migration workflow that prompts for missing secrets with timeout."""
 
     # Write Synapse config
-    synapse_config_file = write_synapse_config(synapse_config_with_signing_key | synapse_config_with_instance_map)
+    synapse_config_file = write_config(
+        synapse_config_with_signing_key | synapse_config_with_instance_map, "synapse.yaml", "yaml"
+    )
     # Load migration input - this should prompt for missing secrets
     input_processor = InputProcessor()
     input_processor.load_migration_input(
@@ -287,11 +289,13 @@ def test_migration_with_missing_extra_files_prompt(
     tmp_path,
     synapse_config_with_signing_key,
     synapse_config_with_email_templates,
-    write_synapse_config,
+    write_config,
 ):
     """Test migration workflow that prompts for missing secrets with timeout."""
     # Write Synapse config
-    synapse_config_file = write_synapse_config(synapse_config_with_signing_key | synapse_config_with_email_templates)
+    synapse_config_file = write_config(
+        synapse_config_with_signing_key | synapse_config_with_email_templates, "synapse.yaml", "yaml"
+    )
     # Load migration input - this should prompt for missing secrets
     input_processor = InputProcessor()
     input_processor.load_migration_input(
@@ -355,11 +359,11 @@ def test_database_choice_prompt_existing_database(
     monkeypatch,
     tmp_path,
     synapse_config_with_signing_key,
-    write_synapse_config,
+    write_config,
 ):
     """Test database choice prompt when user selects existing database."""
     # Write Synapse config
-    synapse_config_file = write_synapse_config(synapse_config_with_signing_key)
+    synapse_config_file = write_config(synapse_config_with_signing_key, "synapse.yaml", "yaml")
 
     # Load migration input
     input_processor = InputProcessor()
@@ -418,11 +422,11 @@ def test_database_choice_prompt_ess_managed(
     monkeypatch,
     tmp_path,
     synapse_config_with_signing_key,
-    write_synapse_config,
+    write_config,
 ):
     """Test database choice prompt when user selects ESS-managed PostgreSQL."""
     # Write Synapse config
-    synapse_config_file = write_synapse_config(synapse_config_with_signing_key)
+    synapse_config_file = write_config(synapse_config_with_signing_key, "synapse.yaml", "yaml")
 
     # Load migration input
     input_processor = InputProcessor()
@@ -481,11 +485,11 @@ def test_database_choice_prompt_default(
     monkeypatch,
     tmp_path,
     synapse_config_with_signing_key,
-    write_synapse_config,
+    write_config,
 ):
     """Test database choice prompt when user presses Enter (default choice)."""
     # Write Synapse config
-    synapse_config_file = write_synapse_config(synapse_config_with_signing_key)
+    synapse_config_file = write_config(synapse_config_with_signing_key, "synapse.yaml", "yaml")
 
     # Load migration input
     input_processor = InputProcessor()
