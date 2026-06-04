@@ -97,7 +97,7 @@ jobs:
         ls -la .pyhelm_cache || echo "Cache directory does not exist or is empty"
 
     - name: Login to Dockerhub
-      uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121  # v4.1.0
+      uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee  # v4.2.0
       if: ${{ github.event.pull_request.head.repo.full_name == 'element-hq/ess-helm' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
       with:
         registry: docker.io
