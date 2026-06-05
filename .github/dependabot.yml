@@ -24,6 +24,9 @@ updates:
       - "/"
       - "/tests"
       - "/packages/*"
+    # Workaround https://github.com/dependabot/dependabot-core/issues/14004
+    ignore:
+      - dependency-name: ess-community-integration-tests
     schedule:
       interval: "weekly"
     cooldown:
