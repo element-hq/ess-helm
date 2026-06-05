@@ -20,7 +20,10 @@ updates:
           - "minor"
           - "patch"
   - package-ecosystem: "uv"
-    directory: "/"
+    directories:
+      - "/"
+      - "/tests"
+      - "/packages/*"
     schedule:
       interval: "weekly"
     cooldown:
