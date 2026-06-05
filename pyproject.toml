@@ -37,7 +37,6 @@ dev = [
   "spdx-tools>=0.8.5",
   "towncrier>=25.8.0",
   "typer>=0.26.3",
-  "types-cryptography>=3.3.23.2",
   "types-jsonschema>=4.26.0.20260518",
   "types-pytz>=2026.2.0.20260518",
   "types-pyyaml>=6.0.12.20260518",

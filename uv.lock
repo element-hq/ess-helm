@@ -824,7 +824,6 @@ dev = [
     { name = "spdx-tools" },
     { name = "towncrier" },
     { name = "typer" },
-    { name = "types-cryptography" },
     { name = "types-jsonschema" },
     { name = "types-pytz" },
     { name = "types-pyyaml" },
@@ -857,7 +856,6 @@ dev = [
     { name = "spdx-tools", specifier = ">=0.8.5" },
     { name = "towncrier", specifier = ">=25.8.0" },
     { name = "typer", specifier = ">=0.26.3" },
-    { name = "types-cryptography", specifier = ">=3.3.23.2" },
     { name = "types-jsonschema", specifier = ">=4.26.0.20260518" },
     { name = "types-pytz", specifier = ">=2026.2.0.20260518" },
     { name = "types-pyyaml", specifier = ">=6.0.12.20260518" },
@@ -3072,15 +3070,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/cc/15/f5fc7be23b7196bc065b282d9589a372392fb10860c80f9c1dd7eb008662/typer-0.26.3.tar.gz", hash = "sha256:3e2b9352f535e5303ef27806dadc2c8647687bdca5c902f03fec3fb88f46a46a", size = 198326, upload-time = "2026-05-28T20:30:50.984Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/cd/cc/c6c5dea061e2740355bfeef22ac6a41751bd2f3903e83921295569bdcec4/typer-0.26.3-py3-none-any.whl", hash = "sha256:e70549ec5a403ca8a0bf0802ddd9f3c6ff7a14ccbb859b01b697baa943636f33", size = 122338, upload-time = "2026-05-28T20:30:49.816Z" },
-]
-
-[[package]]
-name = "types-cryptography"
-version = "3.3.23.2"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/18/05/a57fe8bbed10fe4b739fac6e16c4e80c5199ce2f74ae67fa7d7f6e3750da/types-cryptography-3.3.23.2.tar.gz", hash = "sha256:09cc53f273dd4d8c29fa7ad11fefd9b734126d467960162397bc5e3e604dea75", size = 15461, upload-time = "2022-11-08T18:29:28.012Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/b6/36/92dfe7e5056694e78caefd05b383140c74c7fcbfc63d26ee514c77f2d8a2/types_cryptography-3.3.23.2-py3-none-any.whl", hash = "sha256:b965d548f148f8e87f353ccf2b7bd92719fdf6c845ff7cedf2abb393a0643e4f", size = 30223, upload-time = "2022-11-08T18:29:26.848Z" },
 ]
 
 [[package]]
