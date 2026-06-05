@@ -102,7 +102,7 @@ matrix_authentication_service:
   force_http2: true
 {{- end }}
 
-{{- if or (include "element-io.matrix-authentication-service.readyToHandleAuth" (dict "root" $root)) $root.Values.matrixRTC.enabled $root.Values.hookshot.enabled }}
+{{- if or $root.Values.matrixRTC.enabled $root.Values.hookshot.enabled }}
 experimental_features:
 {{- if $root.Values.matrixRTC.enabled }}
   # MSC4143: Matrix RTC Transport using Livekit Backend. This enables a client-server API for discovery of Matrix RTC backends
@@ -118,14 +118,13 @@ experimental_features:
   msc3202_device_masquerading: true
   msc3202_transaction_extensions: true
 {{- end }}
+{{- end }}
 
 {{- if (include "element-io.matrix-authentication-service.readyToHandleAuth" (dict "root" $root)) }}
-  # QR Code Login. Requires MAS
-  msc4108_enabled: true
+
 password_config:
   localdb_enabled: false
   enabled: false
-{{- end }}
 {{- end }}
 {{- if $root.Values.matrixRTC.enabled }}
 
