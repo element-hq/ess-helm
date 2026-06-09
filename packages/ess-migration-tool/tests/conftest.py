@@ -105,7 +105,6 @@ def basic_synapse_config():
             "federation_client_minimum_tls_version": "1.2",
             "experimental_features": {
                 "msc4028_push_encrypted_events": True,
-                "experimental_features.msc4452_enabled": True,
             },
             "url_preview_enabled": True,
             "url_preview_ip_range_whitelist": [],
