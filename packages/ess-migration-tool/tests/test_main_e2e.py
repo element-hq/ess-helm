@@ -1027,6 +1027,7 @@ def test_well_known_migration(
     tmp_path,
     monkeypatch,
     synapse_config_with_signing_key,
+    basic_mas_config_with_keys,
     write_config,
     basic_well_known_client_config,
     basic_well_known_server_config,
@@ -1041,6 +1042,7 @@ def test_well_known_migration(
         basic_well_known_server_config,
         basic_well_known_support_config,
     )
+    mas_config_file = write_config(basic_mas_config_with_keys, "mas.yaml", "yaml")
 
     # Run migration
     output_dir = tmp_path / "output"
@@ -1064,6 +1066,8 @@ def test_well_known_migration(
             str(synapse_file),
             "--well-known-dir",
             str(tmp_path),
+            "--mas-config",
+            str(mas_config_file),
             "--output-dir",
             str(output_dir),
             "--database-mode",
@@ -1088,10 +1092,10 @@ def test_well_known_migration(
     # Verify that transformed values are filtered out from additional config
     client_config = json.loads(values["wellKnownDelegation"]["additional"]["client"])
     # m.homeserver.base_url and m.homeserver.server_name should be filtered out
-    assert "m.homeserver" not in client_config or (
-        "base_url" not in client_config.get("m.homeserver", {})
-        and "server_name" not in client_config.get("m.homeserver", {})
-    )
+    assert "base_url" not in client_config.get("m.homeserver", {})
+    assert "server_name" not in client_config.get("m.homeserver", {})
+    assert "account" not in client_config.get("org.matrix.msc2965.authentication", {})
+    assert "issuer" not in client_config.get("org.matrix.msc2965.authentication", {})
 
     server_config = json.loads(values["wellKnownDelegation"]["additional"]["server"])
     assert "m.server" not in server_config

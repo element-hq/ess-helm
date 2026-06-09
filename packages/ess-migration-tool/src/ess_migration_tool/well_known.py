@@ -82,6 +82,19 @@ class WellKnownMigration(MigrationStrategy):
                         transformer=extract_hostname_from_url,
                         required=False,
                     ),
+                    # Extract org.matrix.msc2965.authentication and map to matrixAuthenticationService.ingress.host
+                    TransformationSpec(
+                        src_key="'org.matrix.msc2965.authentication'.issuer",
+                        target_key="matrixAuthenticationService.ingress.host",
+                        transformer=extract_hostname_from_url,
+                        required=False,
+                    ),
+                    TransformationSpec(
+                        src_key="'org.matrix.msc2965.authentication'.account",
+                        target_key="matrixAuthenticationService.ingress.host",
+                        transformer=extract_hostname_from_url,
+                        required=False,
+                    ),
                 ]
             )
 
