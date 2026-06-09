@@ -332,7 +332,7 @@ def get_nested_value(config: dict[str, Any], path: str) -> Any:
     return current
 
 
-def remove_nested_value(config: dict[str, Any], path: str) -> None:
+def remove_nested_value(config: dict[str, Any], path: str, remove_empty_parent: bool = False) -> None:
     """
     Remove a config value by its dot-separated path.
     Supports single-quoted keys containing dots (e.g., "a.'my.key'.b").
@@ -379,6 +379,10 @@ def remove_nested_value(config: dict[str, Any], path: str) -> None:
                 del current[idx]
         except ValueError:
             pass
+
+    if remove_empty_parent and not current:
+        formatted_parts = [f"'{part}'" if "." in part else part for part in parts[:-1]]
+        remove_nested_value(config, ".".join(formatted_parts), remove_empty_parent)
 
 
 def extract_hostname_from_url(_, url: str, **kwargs: Any) -> str:
