@@ -7,6 +7,80 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.6.0 (2026-06-09)
+
+## Added
+
+- Support monitoring Redis.
+
+  Deploys a Redis Exporter sidecar and adds `ServiceMonitor` support. (#1367)
+
+## Changed
+
+- Element Web now disables/enables link preview toggles based on Synapse configuration. (#1290)
+- Increased default MatrixRTC authoriser resources for increased stability. (#1334)
+- Upgrade Element Web to v1.12.21.
+
+  Highlights:
+  - Incoming Element Calls now trigger a regular OS notification
+  - Redesign user menu
+  - Add support for `m.recent_emoji` account data event
+
+  Full Changelogs:
+  - [v1.12.19](https://github.com/element-hq/element-web/releases/tag/v1.12.19)
+  - [v1.12.20](https://github.com/element-hq/element-web/releases/tag/v1.12.20)
+  - [v1.12.21](https://github.com/element-hq/element-web/releases/tag/v1.12.21)
+
+  (#1357, #1387)
+- Upgrade Synapse to v1.154.0.
+
+  Highlights:
+  - Add support for [MSC4452: Preview URL capabilities API](https://github.com/matrix-org/matrix-spec-proposals/pull/4452)
+
+  Full Changelogs:
+  - [v1.154.0](https://github.com/element-hq/synapse/releases/tag/v1.154.0rc1)
+
+  (#1358)
+- Synapse: add `index` label to metrics. (#1364)
+- Upgrade MatrixRTC SFU to v1.12.0.
+
+  Highlights:
+  - Fix UDP Turn URLs when ipv6 is enabled
+  - Fix local ip filtering from ICE candidates
+
+  Full Changelogs:
+  - [v1.11.0](https://github.com/livekit/livekit/releases/tag/v1.11.0)
+  - [v1.12.0](https://github.com/livekit/livekit/releases/tag/v1.12.0)
+
+  (#1366)
+- Upgrade Matrix Authentication Service to v1.18.0.
+
+  Highlights:
+  - Disable the device code auto-filling by default
+  - Add `oauth.device_code_grant_enabled` configuration option
+
+  Full Changelogs:
+  - [v1.18.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.18.0)
+
+  (#1372)
+- Allow turning off of QR code login on deployments with Matrix Authentication Service.
+
+  Synapse additional configuration turning off the experimental feature is required:
+
+  ```yaml
+  synapse:
+    additional:
+      disable-qr-code-login.yaml:
+        config: |
+          experimental_features:
+            msc4108_enabled: false
+  ``` (#1383)
+
+## Internal
+
+- Have Dependabot manage more directories. (#1375, #1381)
+
+
 # ESS Community Helm Chart 26.5.1 (2026-05-20)
 
 ## Changed
