@@ -346,7 +346,7 @@ Examples:
             print_table(
                 init_secret_data,
                 headers=["Secret Path in Values"],
-                title="⚠️  ESS-INITIALIZED SECRETS",
+                title="ℹ️  ESS-INITIALIZED SECRETS",
                 logger=summary_logger,
             )
             summary_logger.info(
