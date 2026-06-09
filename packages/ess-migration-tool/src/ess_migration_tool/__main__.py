@@ -302,6 +302,7 @@ Examples:
             worker_data = []
             for worker_type, worker_props in engine.ess_config["synapse"]["workers"].items():
                 worker_data.append([worker_type, str(worker_props["replicas"])])
+            worker_data = sorted(worker_data, key=lambda w: w[0])
             print_table(
                 worker_data,
                 headers=["Worker", "Replicas"],
@@ -323,7 +324,7 @@ Examples:
         if engine.discovered_secrets:
             # Prepare table data for secrets
             secret_data = []
-            for discovered_secret in engine.discovered_secrets:
+            for discovered_secret in sorted(engine.discovered_secrets, key=lambda ds: ds.source_file + ds.config_key):
                 secret_data.append(
                     [
                         discovered_secret.source_file,
@@ -341,7 +342,7 @@ Examples:
 
         if engine.init_by_ess_secrets:
             # Prepare table data for auto-generated secrets
-            init_secret_data = [[secret] for secret in engine.init_by_ess_secrets]
+            init_secret_data = sorted([[secret] for secret in engine.init_by_ess_secrets], key=lambda ds: ds[0])
             print_table(
                 init_secret_data,
                 headers=["Secret Path in Values"],
