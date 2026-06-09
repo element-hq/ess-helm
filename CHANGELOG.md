@@ -7,6 +7,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.6.1 (2026-06-09)
+
+## Changed
+
+- Revert "Element Web now disables/enables link preview toggles based on Synapse configuration".
+
+  In deployments with specific sets of Synapse workers enabled, the relevant Synapse configuration causes the capabilities API in Synapse v1.154 to fail. (#1390)
+
+
 # ESS Community Helm Chart 26.6.0 (2026-06-09)
 
 ## Added
