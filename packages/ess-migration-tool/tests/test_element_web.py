@@ -4,6 +4,8 @@
 
 """Tests for Element Web migration."""
 
+import json
+
 from ess_migration_tool.element_web import ElementWebMigration
 from ess_migration_tool.models import GlobalOptions
 
@@ -20,13 +22,11 @@ def test_element_web_additional_config_excludes_default_server_config(config_val
 
     transformer.transform_from_config(config, migration.transformations)
 
-    import json
-
     # Element Web's additional config uses direct string format: {"filename": string} (not wrapped in {"config": ...})
     additional_config_str = transformer.ess_config["elementWeb"]["additional"]["00-imported.json"]
     additional_config = json.loads(additional_config_str)
     # Verify that m.homeserver is empty (values extracted)
-    assert additional_config["default_server_config"]["m.homeserver"] == {}
+    assert "default_server_config" not in additional_config
     assert "customTheme" in additional_config["setting_defaults"]
     # Verify that synapse.ingress.host was set from the base_url
     assert transformer.ess_config["synapse"]["ingress"]["host"] == "matrix.example.com"

@@ -529,6 +529,10 @@ def basic_well_known_client_config():
                 "base_url": "https://matrix.example.com",
                 "server_name": "test.example.com",
             },
+            "org.matrix.msc2965.authentication": {
+                "account": "https://auth.example.com/account",
+                "issuer": "https://auth.example.com/",
+            },
             # Add an untracked value to ensure the client entry is created
             "m.custom": {"setting": "value"},
         }

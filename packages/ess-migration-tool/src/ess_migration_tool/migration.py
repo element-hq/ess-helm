@@ -91,7 +91,7 @@ def additional_config_transformer(
     # Sort tracked values so list indices are removed in descending order to avoid shifting
     sorted_tracked = sort_tracked_values_for_filtering(tracked_source_paths)
     for source_path in sorted_tracked:
-        remove_nested_value(filtered_config, source_path)
+        remove_nested_value(filtered_config, source_path, remove_empty_parent=True)
 
     # Note: This runs after filtering so we check the remaining config
     # Store warnings for future engine logging
