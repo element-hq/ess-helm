@@ -303,6 +303,9 @@ class SynapseMigration(MigrationStrategy):
             "max_upload_size",
             "media_instance_running_background_jobs",
             "push_instances",
+            "worker_app",
+            "media_store_path",
+            "enable_media_repo",
         }
 
     @property
