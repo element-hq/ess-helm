@@ -1228,7 +1228,7 @@ def test_main_e2e_synapse_mas_shared_secret_conflict(
     # Mock user inputs:
     # 1. Database choice - use existing database (default, empty string)
     # 2. Secret conflict resolution - select option 1 (mas_side_secret) since alphabetically mas_side < synapse_side
-    #    Options are alphabetically sorted: "mas_side_secret (from: matrix-authentication-service)",
+    #    Options are alphabetically sorted: "mas_side_secret (from: Matrix Authentication Service)",
     #    "synapse_side_secret (from: synapse)", "Enter custom value"
     side_effect = (n for n in ("", "1"))
     monkeypatch.setattr(sys, "argv", test_args)
@@ -1243,8 +1243,8 @@ def test_main_e2e_synapse_mas_shared_secret_conflict(
 
     assert "RESOLVING SECRET CONFLICTS" in log_output
     assert "Conflict for secret: matrixAuthenticationService.synapseSharedSecret" in log_output
-    assert "• mas_side_secret (from: matrix-authentication-service)" in log_output
-    assert "• synapse_side_secret (from: synapse)" in log_output
+    assert "• mas_side_secret (from: Matrix Authentication Service)" in log_output
+    assert "• synapse_side_secret (from: Synapse)" in log_output
 
     # Verify output was generated
     values_file = output_dir / "values.yaml"

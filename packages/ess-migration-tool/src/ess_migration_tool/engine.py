@@ -11,14 +11,14 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any
 
-from .conflicts import resolve_secret_conflicts, resolve_value_conflicts
+from .conflicts import DiscoveredSecretTracking, resolve_value_conflicts
 from .element_web import ElementWebMigration
 from .extra_files import GenericExtraFileDiscovery
 from .hookshot import HookshotExtraFileDiscovery, HookshotMigration, HookshotSecretDiscovery
 from .inputs import InputProcessor
 from .mas import MASExtraFileDiscovery, MASMigration, MASSecretDiscovery
 from .migration import MigrationService
-from .models import ConfigMap, DiscoveredSecret, DiscoveredSecretTracking, GlobalOptions, Secret, ValueSourceTracking
+from .models import ConfigMap, DiscoveredSecret, GlobalOptions, Secret, ValueSourceTracking
 from .synapse import SynapseExtraFileDiscovery, SynapseMigration, SynapseSecretDiscovery
 from .well_known import WELL_KNOWN_COMPONENT_ROOT_KEY, WellKnownMigration
 
@@ -145,7 +145,7 @@ class MigrationEngine:
                 migrator.handle_secrets_phase()
 
         # Resolve secret conflicts after all migrations
-        resolve_secret_conflicts(self.summary_logger, self.secret_tracking, self.global_options)
+        self.secret_tracking.resolve_secret_conflicts(self.summary_logger, self.global_options)
 
         # Resolve value conflicts after all migrations
         resolve_value_conflicts(self.summary_logger, self.value_source_tracking, self.ess_config, self.global_options)

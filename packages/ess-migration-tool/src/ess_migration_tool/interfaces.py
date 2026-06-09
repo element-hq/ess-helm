@@ -55,6 +55,11 @@ class SecretDiscoveryStrategy(Protocol):
         ...
 
     @property
+    def name(self) -> str:
+        """Get the strategy name."""
+        ...
+
+    @property
     def secret_name(self) -> str:
         """Get the secret/strategy name in kebab-case."""
         ...

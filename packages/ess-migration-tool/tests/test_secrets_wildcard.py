@@ -13,12 +13,12 @@ import logging
 from typing import Any
 
 import pytest
+from ess_migration_tool.conflicts import DiscoveredSecretTracking
 from ess_migration_tool.interfaces import SecretDiscoveryStrategy
 from ess_migration_tool.migration import ConfigValueTransformer
 from ess_migration_tool.models import (
     DiscoverableSecret,
     DiscoveredSecret,
-    DiscoveredSecretTracking,
     GlobalOptions,
     Secret,
     SecretConfig,
@@ -33,6 +33,10 @@ class MockWildcardStrategy(SecretDiscoveryStrategy):
     def __init__(self, global_options: GlobalOptions, component_config: dict):
         self.global_options = global_options
         self.component_config = component_config
+
+    @property
+    def name(self) -> str:
+        return "mock-wildcard"
 
     @property
     def ess_secret_schema(self) -> dict[str, DiscoverableSecret]:
@@ -167,6 +171,10 @@ class MockWildcardStrategyWithFailures(SecretDiscoveryStrategy):
     def __init__(self, global_options: GlobalOptions, component_config: dict):
         self.global_options = global_options
         self.component_config = component_config
+
+    @property
+    def name(self) -> str:
+        return "mock-wildcard-strategy"
 
     @property
     def ess_secret_schema(self) -> dict[str, DiscoverableSecret]:
