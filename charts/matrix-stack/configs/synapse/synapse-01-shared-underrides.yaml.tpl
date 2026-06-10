@@ -18,6 +18,7 @@ federation_client_minimum_tls_version: '1.2'
 
 experimental_features:
   msc4028_push_encrypted_events: true
+  msc4452_enabled: true
 {{- if (include "element-io.matrix-authentication-service.readyToHandleAuth" (dict "root" $root)) }}
   # QR Code Login. Requires MAS
   msc4108_enabled: true
