@@ -147,6 +147,10 @@ class HookshotSecretDiscovery(SecretDiscoveryStrategy):
         }
 
     @property
+    def name(self) -> str:
+        return HOOKSHOT_STRATEGY_NAME
+
+    @property
     def secret_name(self) -> str:
         return "hookshot"
 

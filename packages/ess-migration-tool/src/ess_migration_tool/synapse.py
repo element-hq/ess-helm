@@ -441,6 +441,10 @@ class SynapseSecretDiscovery(SecretDiscoveryStrategy):
         self.global_options = global_options
 
     @property
+    def name(self) -> str:
+        return SYNAPSE_STRATEGY_NAME
+
+    @property
     def ess_secret_schema(self) -> dict[str, DiscoverableSecret]:
         """Get the ESS secret schema for Synapse."""
         schema: dict[str, DiscoverableSecret] = {

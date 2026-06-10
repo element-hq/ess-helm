@@ -13,12 +13,12 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any
 
+from .conflicts import DiscoveredSecretTracking
 from .extra_files import ExtraFilesDiscovery
 from .interfaces import ExtraFilesDiscoveryStrategy, MigrationStrategy, SecretDiscoveryStrategy
 from .models import (
     ConfigMap,
     DiscoveredExtraFile,
-    DiscoveredSecretTracking,
     GlobalOptions,
     MigrationInput,
     Secret,
@@ -309,14 +309,13 @@ class ConfigValueTransformer:
         # Create a Kubernetes Secret containing all discovered secrets
         secret_name = f"imported-{secret_discovery.strategy.secret_name}"
         secret_data = {}
-        current_strategy = secret_discovery.strategy.secret_name
 
         for secret_key, discover_secret in secret_discovery.discovered_secrets.items():
             # Check if this secret should be owned by another strategy
             owner = secret_discovery.secret_tracking.get_secret_owner(secret_key)
-            if owner and owner != current_strategy:
+            if owner and owner != secret_discovery.strategy:
                 # This secret is owned by another strategy, skip it
-                logger.debug(f"Skipping {secret_key} for {current_strategy} - owned by {owner}")
+                logger.debug(f"Skipping {secret_key} for {secret_discovery.strategy} - owned by {owner}")
                 continue
 
             # Base64 encode the secret value for Kubernetes Secret
@@ -327,7 +326,7 @@ class ConfigValueTransformer:
         secrets_list.append(secret)
         logging.info(
             f"Created Kubernetes Secret with {len(secret_discovery.discovered_secrets)}"
-            f" secrets for {secret_discovery.strategy.secret_name}"
+            f" secrets for {secret_discovery.strategy.name}"
         )
 
         # Update ESS values to use credential schema instead of direct values
@@ -335,7 +334,7 @@ class ConfigValueTransformer:
         for secret_key, discover_secret in secret_discovery.discovered_secrets.items():
             # Determine which secret file this secret belongs to
             owner = secret_discovery.secret_tracking.get_secret_owner(secret_key)
-            owning_secret_name = secret.name if owner is None else f"imported-{owner}"
+            owning_secret_name = secret.name if owner is None else f"imported-{owner.secret_name}"
 
             # Convert secret key to credential schema format
             # Example: secret -> {"secret": "imported-synapse", "secretKey": "synapse.postgres.password"}

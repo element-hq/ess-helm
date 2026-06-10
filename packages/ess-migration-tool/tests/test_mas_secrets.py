@@ -4,8 +4,9 @@
 
 import logging
 
+from ess_migration_tool.conflicts import DiscoveredSecretTracking
 from ess_migration_tool.mas import MASSecretDiscovery
-from ess_migration_tool.models import DiscoveredSecretTracking, GlobalOptions
+from ess_migration_tool.models import GlobalOptions
 from ess_migration_tool.secrets import SecretDiscovery
 
 

@@ -4,8 +4,9 @@
 import logging
 
 import pytest
+from ess_migration_tool.conflicts import DiscoveredSecretTracking
 from ess_migration_tool.extra_files import ExtraFilesDiscovery
-from ess_migration_tool.models import DiscoveredSecretTracking, GlobalOptions
+from ess_migration_tool.models import GlobalOptions
 from ess_migration_tool.secrets import SecretDiscovery, SecretsError
 from ess_migration_tool.synapse import SynapseExtraFileDiscovery, SynapseSecretDiscovery
 

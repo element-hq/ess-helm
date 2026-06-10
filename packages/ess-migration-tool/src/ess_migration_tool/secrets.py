@@ -9,8 +9,9 @@ Secret discovery service that handles all secret discovery functionality.
 import logging
 from dataclasses import dataclass, field
 
+from .conflicts import DiscoveredSecretTracking
 from .interfaces import SecretDiscoveryStrategy
-from .models import DiscoverableSecret, DiscoveredSecret, DiscoveredSecretTracking, GlobalOptions, SecretConfig
+from .models import DiscoverableSecret, DiscoveredSecret, GlobalOptions, SecretConfig
 from .rich_output import print_prompt, print_section, print_separator
 from .utils import (
     find_matching_schema_key,
@@ -46,7 +47,7 @@ class SecretDiscovery:
 
     def discover_secrets(self, config_data: dict) -> None:
         """Discover secrets from configuration data."""
-        logging.info(f"Discovering {self.strategy.secret_name} secrets from configuration")
+        logging.info(f"Discovering {self.strategy.name} secrets from configuration")
 
         # Common discovery using strategy's schema
         self._discover_secrets_from_schema(config_data)
@@ -67,7 +68,7 @@ class SecretDiscovery:
             # Register with global tracking
             self.secret_tracking.add_source(
                 secret_key=secret_key,
-                strategy_name=self.strategy.secret_name,
+                strategy=self.strategy,
                 value=discovered_secret.value,
                 source_path=discovered_secret.config_key,
                 takes_precedence=discoverable_secret.takes_precedence_if_duplicates,
@@ -204,7 +205,7 @@ class SecretDiscovery:
         # Register with global tracking
         self.secret_tracking.add_source(
             secret_key=secret_key,
-            strategy_name=self.strategy.secret_name,
+            strategy=self.strategy,
             value=discovered_value,
             source_path=config_key,
             takes_precedence=takes_precedence,
@@ -270,8 +271,8 @@ class SecretDiscovery:
         """Validate that all required secrets are present."""
         if self.missing_required_secrets:
             missing_list = ", ".join(ds.secret_key for ds, _ in self.missing_required_secrets)
-            raise SecretsError(f"Missing required {self.strategy.secret_name} secrets: {missing_list}")
-        logging.info(f"All required {self.strategy.secret_name} secrets are present")
+            raise SecretsError(f"Missing required {self.strategy.name} secrets: {missing_list}")
+        logging.info(f"All required {self.strategy.name} secrets are present")
 
     def prompt_for_missing_secrets(self) -> None:
         """Prompt user to provide missing required secrets."""
@@ -282,11 +283,11 @@ class SecretDiscovery:
         if self.global_options.quiet_mode:
             missing_list = ", ".join(ds.secret_key for ds, _ in self.missing_required_secrets)
             raise SecretsError(
-                f"Missing required {self.strategy.secret_name} secrets in quiet mode: {missing_list}. "
+                f"Missing required {self.strategy.name} secrets in quiet mode: {missing_list}. "
                 "Cannot prompt for secrets when --quiet is enabled."
             )
 
-        component_name = self.strategy.secret_name.upper()
+        component_name = self.strategy.name.upper()
         print_section(f"🔐 {component_name} SECRETS REQUIRED FOR MIGRATION", logger=self.summary_logger)
         print_prompt(
             f"The following {component_name} secrets are required but could not be automatically"
