@@ -242,7 +242,7 @@ def basic_mas_config():
             "secrets": {"encryption": "my_encryption_key"},
             "matrix": {
                 "homeserver": "test.example.com",
-                "secret": "synapse_shared_secret_abcdef",
+                "secret": "synapse_shared_secret_wrong",
                 "endpoint": "http://synapse:8008",
             },
             "policy": {
