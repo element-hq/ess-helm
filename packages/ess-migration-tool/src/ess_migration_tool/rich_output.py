@@ -289,6 +289,7 @@ class ProgressReporter:
                 (step_name, "bold white"),
             )
             get_console().print(step_msg_rich)
+            self.summary_logger.info(f"Step {self.current_step + 1}/{len(self.all_steps)}")
         else:
             # Fallback to plain text for non-Rich environments
             step_msg_plain = f"📦 Step {self.current_step + 1}/{len(self.all_steps)} ({progress:.0f}%): {step_name}"
