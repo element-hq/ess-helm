@@ -135,6 +135,9 @@ class MigrationEngine:
         all_discovered_keys = {secret.secret_key for secret in self.discovered_secrets}
         self.init_by_ess_secrets = [key for key in self.init_by_ess_secrets if key not in all_discovered_keys]
 
+        # Resolve secret conflicts after all migrations
+        self.secret_tracking.resolve_secret_conflicts(self.summary_logger, self.global_options)
+
         # Prompt for missing secrets and validate after all strategies have resolved their secrets
         # This allows strategies to find secrets that previous strategies may have missed
         for migrator in self.migrators:
@@ -143,9 +146,6 @@ class MigrationEngine:
                 migrator.secret_discovery.validate_required_secrets()
                 # Handle any secrets that were just prompted for
                 migrator.handle_secrets_phase()
-
-        # Resolve secret conflicts after all migrations
-        self.secret_tracking.resolve_secret_conflicts(self.summary_logger, self.global_options)
 
         # Resolve value conflicts after all migrations
         resolve_value_conflicts(self.summary_logger, self.value_source_tracking, self.ess_config, self.global_options)

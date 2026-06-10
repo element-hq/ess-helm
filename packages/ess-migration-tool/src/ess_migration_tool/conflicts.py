@@ -49,7 +49,8 @@ def prompt_for_conflict_resolution(
         Tuple of (selected_value, is_custom) where is_custom indicates user wants to enter custom value
     """
     options = []
-    for value in sorted(value_to_strategies):
+    # Sort options by strategies names
+    for value, _ in sorted(value_to_strategies.items(), key=lambda v: "".join(sorted(v[1]))):
         options.append(value)
     if enable_custom:
         options.append("Enter custom value")
@@ -194,6 +195,9 @@ class DiscoveredSecretTracking:
         owning_strategy: SecretDiscoveryStrategy | None = None
         found_precedence = False
         for source in sources:
+            if owning_strategy is None:
+                owning_strategy = source.strategy
+
             if source.takes_precedence:
                 found_precedence = True
                 # This strategy wants to own this secret
@@ -252,7 +256,7 @@ class DiscoveredSecretTracking:
             print_prompt(
                 "   Discovered by multiple strategies with different values:", style="default", logger=summary_logger
             )
-            for value, strategies in sorted(value_to_strategies.items()):
+            for value, strategies in sorted(value_to_strategies.items(), key=lambda v: "".join(sorted(v[1]))):
                 display_value = value if len(value) <= 50 else f"{value[:47]}..."
                 print_prompt(
                     f"   • {display_value} (from: {', '.join(strategies)})", style="default", logger=summary_logger
@@ -264,7 +268,7 @@ class DiscoveredSecretTracking:
 
             self.sources[secret_key] = [s for s in sources if s.value == selected_value]
 
-            print_prompt(f"   ✅ Resolved {secret_key}", style="default", logger=summary_logger)
+            print_prompt(f"   ✅ Resolved {secret_key} using {selected_value}", style="default", logger=summary_logger)
             print_prompt("", style="default", logger=summary_logger)
 
         print_separator(logger=summary_logger)
