@@ -199,14 +199,14 @@ class DiscoveredSecretTracking:
                 owning_strategy = source.strategy
 
             if source.takes_precedence:
-                found_precedence = True
                 # This strategy wants to own this secret
-                if owning_strategy is not None:
+                if found_precedence:
                     # More than one strategy wants to own it - this is a conflict
                     logger.error(
                         f"Multiple strategies claim precedence for secret {secret_key}: "
-                        f"{owning_strategy} and {source.strategy.name}. "
+                        f"{owning_strategy.name} and {source.strategy.name}. "
                     )
+                found_precedence = True
                 owning_strategy = source.strategy
 
         # If no strategy has takes_precedence,
