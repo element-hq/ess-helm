@@ -225,6 +225,9 @@ networking:
   ## The size of a PersistentVolumeClaim to be constructed
   ## Ignored if existingClaim is provided
   size: 10Gi
+
+  ## The PersistentVolumeClaim PV selector
+  # selector: {}
 {%- endif %}
 
   ## The StorageClass to be used by {{ 'all constructed PersistentVolumeClaims by default' if global else 'the constructed PersistentVolumeClaim' }}.

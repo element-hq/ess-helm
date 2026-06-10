@@ -26,6 +26,10 @@ spec:
   resources:
     requests:
       storage: {{ .media.storage.size }}
+{{- with .media.storage.selector }}
+  selector:
+  {{ toYaml . | nindent 4 }}
+{{- end }}
 {{- end }}
 {{- end -}}
 {{- end -}}
