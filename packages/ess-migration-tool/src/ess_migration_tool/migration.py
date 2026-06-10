@@ -315,7 +315,7 @@ class ConfigValueTransformer:
             owner = secret_discovery.secret_tracking.get_secret_owner(secret_key)
             if owner and owner != secret_discovery.strategy:
                 # This secret is owned by another strategy, skip it
-                logger.debug(f"Skipping {secret_key} for {secret_discovery.strategy} - owned by {owner}")
+                logger.debug(f"Skipping {secret_key} for {secret_discovery.strategy.name} - owned by {owner.name}")
                 continue
 
             # Base64 encode the secret value for Kubernetes Secret

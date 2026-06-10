@@ -177,3 +177,35 @@ def test_synapse_signing_key_not_optional():
 
     assert signing_key_config is not None
     assert not signing_key_config.optional
+
+
+def test_conflict_with_precedence_conflict(caplog):
+    """Test that conflict is detected when sources have different values from different strategies."""
+    tracking = DiscoveredSecretTracking()
+    global_options = GlobalOptions()
+    with caplog.at_level(logging.DEBUG, logger="migration"):
+        synapse = SynapseSecretDiscovery(global_options)
+        mas = MASSecretDiscovery(global_options)
+        tracking.add_source("synapse.signingKey", synapse, "value1", "path1", takes_precedence=True)
+        tracking.add_source("synapse.signingKey", mas, "value2", "path2", takes_precedence=True)
+
+        owner = tracking.get_secret_owner("synapse.signingKey")
+
+        assert owner.name == "Matrix Authentication Service"  ## last one found
+        assert "Multiple strategies claim precedence for secret" in caplog.text
+
+
+def test_conflict_without_precedence_conflict(caplog):
+    """Test that conflict is detected when sources have different values from different strategies."""
+    tracking = DiscoveredSecretTracking()
+    global_options = GlobalOptions()
+    with caplog.at_level(logging.DEBUG, logger="migration"):
+        synapse = SynapseSecretDiscovery(global_options)
+        mas = MASSecretDiscovery(global_options)
+        tracking.add_source("synapse.signingKey", synapse, "value1", "path1", takes_precedence=True)
+        tracking.add_source("synapse.signingKey", mas, "value2", "path2")
+
+        owner = tracking.get_secret_owner("synapse.signingKey")
+
+        assert owner.name == "Synapse"
+        assert "Multiple strategies claim precedence for secret" not in caplog.text
