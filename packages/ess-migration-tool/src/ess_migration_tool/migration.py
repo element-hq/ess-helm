@@ -95,7 +95,7 @@ def additional_config_transformer(
 
     # Note: This runs after filtering so we check the remaining config
     # Store warnings for future engine logging
-    config_path_suffix = f'"{file_name}"].config' if use_file_object_format else f'"{file_name}"'
+    config_path_suffix = f'["{file_name}"].config' if use_file_object_format else f'["{file_name}"]'
 
     # Check for override configs (ESS-managed values that users should not override)
     if override_configs and component_root_key:
@@ -103,7 +103,7 @@ def additional_config_transformer(
             if get_nested_value(filtered_config, override_config) is not None:
                 warning = (
                     f"⚠️  '{override_config}' found in {component_root_key}.additional"
-                    f"[{config_path_suffix}] - ESS manages this, your setting may be ignored"
+                    f"{config_path_suffix} - ESS manages this, your setting may be ignored"
                 )
                 config_value_transformer.override_warnings.append(warning)
 
@@ -113,7 +113,7 @@ def additional_config_transformer(
             if get_nested_value(filtered_config, underride_config) is not None:
                 warning = (
                     f"ℹ️  '{underride_config}' found in {component_root_key}.additional"
-                    f"[{config_path_suffix}] - ESS default, your value overrides it"
+                    f"{config_path_suffix} - ESS default, your value overrides it"
                 )
                 config_value_transformer.underride_warnings.append(warning)
 
