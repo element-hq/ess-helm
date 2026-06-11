@@ -19,6 +19,9 @@
     },
     "selector": {
       "$ref": "file://common/labelSelector.json"
+    },
+    "volumeName": {
+      "type": "string"
     }
   }
 }

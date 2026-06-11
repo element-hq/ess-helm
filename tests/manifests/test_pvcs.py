@@ -193,3 +193,37 @@ async def test_pvc_gets_configured_selector(values, make_templates, release_name
             deployable_details = template_to_deployable_details(template)
             expected_selector = deployable_details.get_helm_values(values, PropertyType.Storage)["selector"]
             assert pvc_spec["selector"] == expected_selector, f"{template_id(template)} has an unexpected selector"
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_pvc_has_no_volumeName_by_default(templates):
+    for template in templates:
+        if template["kind"] in ["PersistentVolumeClaim"]:
+            pvc_spec = template["spec"]
+            assert "volumeName" not in pvc_spec, (
+                f"{template_id(template)} has a default volumeName when one isn't configured"
+            )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_pvc_gets_configured_volumeName(values, make_templates, release_name):
+    def set_volumeName(deployable_details: DeployableDetails):
+        volumeName = "".join(random.choices(string.ascii_lowercase))
+        deployable_details.set_helm_values(values, PropertyType.Storage, {"volumeName": volumeName})
+
+    iterate_deployables_parts(
+        set_volumeName,
+        lambda deployable_details: deployable_details.has_storage,
+    )
+    for template in await make_templates(values):
+        if template["kind"] in ["PersistentVolumeClaim"]:
+            pvc_spec = template["spec"]
+            assert "volumeName" in pvc_spec, f"{template_id(template)} doesn't have a volumeName when one is configured"
+
+            deployable_details = template_to_deployable_details(template)
+            expected_volumeName = deployable_details.get_helm_values(values, PropertyType.Storage)["volumeName"]
+            assert pvc_spec["volumeName"] == expected_volumeName, (
+                f"{template_id(template)} has an unexpected volumeName"
+            )
