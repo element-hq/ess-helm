@@ -16,7 +16,7 @@ dependencies = []
 [tool.uv]
 [dependency-groups]
 dev = [
-  "aiohttp>=3.13.5",
+  "aiohttp>=3.14.0",
   "checkov>=3.2.530",
   "cryptography>=48.0.0",
   "ess-community-integration-tests",
@@ -31,12 +31,12 @@ dev = [
   "rapidfuzz>=3.14.5",
   "reuse>=6.2.0",
   "ruamel-yaml>=0.19.1",
-  "ruff>=0.15.15",
+  "ruff>=0.15.16",
   "semver>=3.0.4",
   "signedjson>=1.1.4",
   "spdx-tools>=0.8.5",
   "towncrier>=25.8.0",
-  "typer>=0.26.3",
+  "typer>=0.26.7",
   "types-jsonschema>=4.26.0.20260518",
   "types-pytz>=2026.2.0.20260518",
   "types-pyyaml>=6.0.12.20260518",
