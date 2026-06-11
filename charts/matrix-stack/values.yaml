@@ -2020,6 +2020,9 @@ hookshot:
     ## Ignored if existingClaim is provided
     size: 10Gi
 
+    ## The PersistentVolumeClaim PV selector
+    # selector: {}
+
     ## The StorageClass to be used by the constructed PersistentVolumeClaim.
     ## The top-level storage.storageClassName value is used, if not provided (or the cluster default if neither are provided).
     ## If changed after initial usage the PersistentVolumeClaim could be recreated causing data-loss.
@@ -3030,6 +3033,9 @@ postgres:
     ## Ignored if existingClaim is provided
     size: 10Gi
 
+    ## The PersistentVolumeClaim PV selector
+    # selector: {}
+
     ## The StorageClass to be used by the constructed PersistentVolumeClaim.
     ## The top-level storage.storageClassName value is used, if not provided (or the cluster default if neither are provided).
     ## If changed after initial usage the PersistentVolumeClaim could be recreated causing data-loss.
@@ -3677,6 +3683,9 @@ synapse:
       ## The size of a PersistentVolumeClaim to be constructed
       ## Ignored if existingClaim is provided
       size: 10Gi
+
+      ## The PersistentVolumeClaim PV selector
+      # selector: {}
 
       ## The StorageClass to be used by the constructed PersistentVolumeClaim.
       ## The top-level storage.storageClassName value is used, if not provided (or the cluster default if neither are provided).

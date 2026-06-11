@@ -16,6 +16,9 @@
         "keep",
         "delete"
       ]
+    },
+    "selector": {
+      "$ref": "file://common/labelSelector.json"
     }
   }
 }

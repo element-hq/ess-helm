@@ -161,3 +161,35 @@ async def test_individual_storageClassName_passed_through_to_created_pvcs(values
             assert expected_storageClassName == template["spec"]["storageClassName"], (
                 f"{template_id(template)} didn't respect the configured PVC storageClassName"
             )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_pvc_has_no_selector_by_default(templates):
+    for template in templates:
+        if template["kind"] in ["PersistentVolumeClaim"]:
+            pvc_spec = template["spec"]
+            assert "selectors" not in pvc_spec, (
+                f"{template_id(template)} has a default selector when one isn't configured"
+            )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_pvc_gets_configured_selector(values, make_templates, release_name):
+    def set_selector(deployable_details: DeployableDetails):
+        selector = {"k8s.element.io/pvc-testing": "".join(random.choices(string.ascii_lowercase))}
+        deployable_details.set_helm_values(values, PropertyType.Storage, {"selector": {"matchLabels": selector}})
+
+    iterate_deployables_parts(
+        set_selector,
+        lambda deployable_details: deployable_details.has_storage,
+    )
+    for template in await make_templates(values):
+        if template["kind"] in ["PersistentVolumeClaim"]:
+            pvc_spec = template["spec"]
+            assert "selector" in pvc_spec, f"{template_id(template)} doesn't have a selector when one is configured"
+
+            deployable_details = template_to_deployable_details(template)
+            expected_selector = deployable_details.get_helm_values(values, PropertyType.Storage)["selector"]
+            assert pvc_spec["selector"] == expected_selector, f"{template_id(template)} has an unexpected selector"
