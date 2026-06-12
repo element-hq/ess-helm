@@ -12,6 +12,8 @@ web_client_location: https://{{ $root.Values.elementWeb.ingress.host }}/
 
 report_stats: false
 
+mau_stats_only: true
+
 require_auth_for_profile_requests: true
 
 federation_client_minimum_tls_version: '1.2'
