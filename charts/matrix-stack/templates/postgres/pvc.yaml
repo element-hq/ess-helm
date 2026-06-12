@@ -26,6 +26,9 @@ spec:
   resources:
     requests:
       storage: {{ .storage.size }}
+{{- with .storage.volumeName }}
+  volumeName: {{ . }}
+{{- end }}
 {{- with .storage.selector }}
   selector:
   {{ toYaml . | nindent 4 }}

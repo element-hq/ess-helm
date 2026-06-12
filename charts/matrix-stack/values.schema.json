@@ -5586,6 +5586,9 @@
                 }
               },
               "additionalProperties": false
+            },
+            "volumeName": {
+              "type": "string"
             }
           },
           "additionalProperties": false
@@ -8354,6 +8357,9 @@
                 }
               },
               "additionalProperties": false
+            },
+            "volumeName": {
+              "type": "string"
             }
           },
           "additionalProperties": false
@@ -10199,6 +10205,9 @@
                     }
                   },
                   "additionalProperties": false
+                },
+                "volumeName": {
+                  "type": "string"
                 }
               },
               "additionalProperties": false

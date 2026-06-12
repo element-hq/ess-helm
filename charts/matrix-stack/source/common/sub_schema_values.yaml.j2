@@ -228,6 +228,9 @@ networking:
 
   ## The PersistentVolumeClaim PV selector
   # selector: {}
+
+  ## The PersistentVolumeClaim PV name
+  # volumeName:
 {%- endif %}
 
   ## The StorageClass to be used by {{ 'all constructed PersistentVolumeClaims by default' if global else 'the constructed PersistentVolumeClaim' }}.
