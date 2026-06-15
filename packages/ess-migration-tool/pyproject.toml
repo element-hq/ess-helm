@@ -5,7 +5,7 @@
 [project]
 name = "ess-migration-tool"
 version = "0.2.1.dev1"
-requires-python = ">=3.11.7,<4.0"
+requires-python = ">=3.11,<4.0"
 readme = "README.md"
 authors = [
   { name = "Element Creations Ltd", email = "contact@element.io" },
