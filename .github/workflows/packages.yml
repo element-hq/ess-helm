@@ -105,9 +105,16 @@ jobs:
       run: uv build --package ess-migration-tool
     # Check that basic features work and we didn't miss to include crucial files
     - name: Smoke test (wheel)
-      run: uv run --isolated --resolution lowest --no-project --with dist/*.whl ess-migration-tool --help
+      run: |-
+        for version in 3.11 3.12 3.13 3.14; do
+          uv run --python "$version" --isolated --resolution lowest --no-project --with dist/*.whl ess-migration-tool --help
+        done
+
     - name: Smoke test (source distribution)
-      run: uv run --isolated --resolution lowest --no-project --with dist/*.tar.gz ess-migration-tool --help
+      run: |
+        for version in 3.11 3.12 3.13 3.14; do
+          uv run --python "$version" --isolated --resolution lowest --no-project --with dist/*.tar.gz ess-migration-tool --help
+        done
 
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
