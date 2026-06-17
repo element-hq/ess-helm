@@ -7,6 +7,59 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.6.2 (2026-06-17)
+
+## Added
+
+- Add support for configuring `PersistentVolumeClaim` `selector` properties. (#1398)
+- Add support for configuring `PersistentVolumeClaim` `volumeName` property. (#1400)
+
+## Changed
+
+- Element Web now disables/enables link preview toggles based on Synapse configuration. (#1396)
+- Upgrade Synapse to v1.155.0.
+
+  Highlights:
+  - Port the Python Event classes to Rust
+  - Fix the `/capabilities` endpoint returning a 500 error on non-media workers when [MSC4452: Preview URL capabilities API](https://github.com/matrix-org/matrix-spec-proposals/pull/4452) is enabled.
+
+  Full Changelogs:
+  - [v1.155.0](https://github.com/element-hq/synapse/releases/tag/v1.155.0)
+
+  (#1396)
+- Upgrade Matrix Authentication Service to v1.19.0.
+
+  Highlights:
+  - Set `X-Frame-Options` header to `DENY` for human facing screens
+  - Support per-provider registration token requirements
+
+  Full Changelogs
+  - [v1.19.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.19.0)
+
+  (#1397)
+- Have Synapse calculate MAU metrics. (#1399)
+- Upgrade Hookshot to v7.4.2.
+
+  Highlights:
+  - You can now add hints to Hookshot messages to disable URL previews on clients. Uses [MSC4095](https://github.com/matrix-org/matrix-spec-proposals/pull/4095).
+
+  Full Changelogs:
+  - [v7.4.0](https://github.com/matrix-org/matrix-hookshot/releases/tag/7.4.0)
+  - [v7.4.1](https://github.com/matrix-org/matrix-hookshot/releases/tag/7.4.1)
+  - [v7.4.2](https://github.com/matrix-org/matrix-hookshot/releases/tag/7.4.2)
+
+  (#1404)
+
+## Documentation
+
+- Remove orphan reference to `wellKnownDelegation.additional.element`. (#1403)
+
+## Internal
+
+- CI: pin to Helm v4.2.0 in the integration tests. (#1396)
+- Pin pytest to `<9` in the `ess-community-integration-tests` package as well, so downstream consumers that `uv tool install` the test package (rather than running from the locked workspace) don't pull pytest 9, which breaks `pytest-asyncio-cooperative`. Completes the pin from #1301. (#1411)
+
+
 # ESS Community Helm Chart 26.6.1 (2026-06-09)
 
 ## Changed
