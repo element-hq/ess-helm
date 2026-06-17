@@ -16,7 +16,6 @@ from typing import Any
 from rich import box
 from rich.console import Console
 from rich.panel import Panel
-from rich.syntax import Syntax
 from rich.table import Table
 from rich.text import Text
 from rich.tree import Tree
@@ -157,7 +156,16 @@ def log_command(
     logger.info(f"   {command}")
 
     # Rich is enabled - use syntax highlighting
-    syntax = Syntax(command, "bash", theme="monokai", word_wrap=True)
+    syntax = Text()
+    syntax.append(Text("     $> ", style="bold"))
+    highlight_command = Text(command)
+    # highlight the command called
+    highlight_command.highlight_regex(r"^\w+", style="bold blue")
+    # highlight the command arguments
+    highlight_command.highlight_regex(r"\s-+\w+", style="green")
+    # highlight strings
+    highlight_command.highlight_regex(r"\".+\"", style="yellow")
+    syntax.append(highlight_command)
     get_console().print(syntax)
 
 
