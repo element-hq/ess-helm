@@ -929,7 +929,7 @@ requires-dist = [
     { name = "platformdirs", specifier = ">=4.9.2" },
     { name = "prometheus-client", specifier = ">=0.24.1" },
     { name = "pyhelm3", git = "https://github.com/element-hq/pyhelm3.git?rev=efa509e7501edeb9d04f2a9e688f6e0088305954" },
-    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest", specifier = ">=8.4.2,<9" },
     { name = "pytest-asyncio-cooperative", specifier = ">=0.40.0" },
     { name = "pytest-kubernetes", specifier = ">=0.7.2" },
     { name = "python-dotenv", specifier = ">=1.2.2" },
