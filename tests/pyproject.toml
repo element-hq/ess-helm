@@ -31,7 +31,7 @@ dependencies = [
   "rapidfuzz>=3.14.3",
   "semver>=3.0.4",
   "signedjson>=1.1.4",
-  "typer>=0.24.1",
+  "typer>=0.26.7",
 ]
 
 

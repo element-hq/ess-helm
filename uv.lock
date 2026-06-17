@@ -868,7 +868,7 @@ dev = [
     { name = "signedjson", specifier = ">=1.1.4" },
     { name = "spdx-tools", specifier = ">=0.8.5" },
     { name = "towncrier", specifier = ">=25.8.0" },
-    { name = "typer", specifier = ">=0.26.3" },
+    { name = "typer", specifier = ">=0.26.7" },
     { name = "types-jsonschema", specifier = ">=4.26.0.20260518" },
     { name = "types-pytz", specifier = ">=2026.2.0.20260518" },
     { name = "types-pyyaml", specifier = ">=6.0.12.20260518" },
@@ -922,7 +922,7 @@ requires-dist = [
     { name = "rapidfuzz", specifier = ">=3.14.3" },
     { name = "semver", specifier = ">=3.0.4" },
     { name = "signedjson", specifier = ">=1.1.4" },
-    { name = "typer", specifier = ">=0.24.1" },
+    { name = "typer", specifier = ">=0.26.7" },
 ]
 
 [[package]]
@@ -3072,7 +3072,7 @@ wheels = [
 
 [[package]]
 name = "typer"
-version = "0.26.3"
+version = "0.26.7"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "annotated-doc" },
@@ -3080,9 +3080,9 @@ dependencies = [
     { name = "rich" },
     { name = "shellingham" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/cc/15/f5fc7be23b7196bc065b282d9589a372392fb10860c80f9c1dd7eb008662/typer-0.26.3.tar.gz", hash = "sha256:3e2b9352f535e5303ef27806dadc2c8647687bdca5c902f03fec3fb88f46a46a", size = 198326, upload-time = "2026-05-28T20:30:50.984Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/5e/ed/ef06584ccdd5c410df0837951ecd7e15d9a6144ea1bd4c73cecab1a89891/typer-0.26.7.tar.gz", hash = "sha256:e314a34c617e419c091b2830dda3ea1f257134ff593061a8f5b9717ab8dddb3a", size = 201709, upload-time = "2026-06-03T07:18:06.843Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/cd/cc/c6c5dea061e2740355bfeef22ac6a41751bd2f3903e83921295569bdcec4/typer-0.26.3-py3-none-any.whl", hash = "sha256:e70549ec5a403ca8a0bf0802ddd9f3c6ff7a14ccbb859b01b697baa943636f33", size = 122338, upload-time = "2026-05-28T20:30:49.816Z" },
+    { url = "https://files.pythonhosted.org/packages/24/25/2201973529af2c954de0bb725323c3aaed6d7f0ceee8f550dec9185df013/typer-0.26.7-py3-none-any.whl", hash = "sha256:5c87cfbc5d34491c5346ebf49c23e18d56ccb863268d3a8d592b26087c2f5e58", size = 122456, upload-time = "2026-06-03T07:18:05.732Z" },
 ]
 
 [[package]]
