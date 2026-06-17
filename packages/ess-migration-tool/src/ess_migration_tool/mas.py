@@ -9,9 +9,10 @@ MAS-specific migration strategy.
 
 import logging
 import os
+from collections.abc import Iterator
 from typing import Any
 
-from .interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
+from .interfaces import DataMigrationProtocol, ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
 from .migration import ConfigValueTransformer, MigrationStrategy, TransformationSpec, additional_config_transformer
 from .models import DiscoverableSecret, DiscoveredSecret, GlobalOptions, SecretConfig
 from .utils import (
@@ -527,3 +528,54 @@ class MASExtraFileDiscovery(ExtraFilesDiscoveryStrategy):
         """Files paths to ignore when discovering extra files."""
         ...
         return []
+
+
+class MASDataMigrationInstructions(DataMigrationProtocol):
+    def __init__(self, global_options: GlobalOptions):
+        self.global_options = global_options
+
+    @property
+    def component_name(self) -> str:
+        return MAS_STRATEGY_NAME
+
+    def stop_in_ess_pro(self) -> Iterator[str]:
+        yield 'kubectl scale deploy -l "app.kubernetes.io/component=matrix-authentication" -n ess --replicas=0'
+
+    def restart_in_ess_pro(self) -> Iterator[str]:
+        yield 'kubectl scale deploy -l "app.kubernetes.io/component=matrix-authentication" -n ess --replicas=1'
+
+    def run_media_migration(self, source_config: dict[str, Any]) -> Iterator[str]:
+        """Nothing to do for MAS"""
+        yield from []
+
+    def create_db_dump(self, source_config: dict[str, Any]) -> Iterator[str]:
+        mas_uri = source_config["database"]["uri"]
+        parsed_mas = parse_postgres_uri(mas_uri)
+        source_mas_db = parsed_mas.get("name", "<source_mas_db>")
+        source_mas_user = parsed_mas.get("user", "<source_mas_user>")
+
+        yield f"pg_dump -C -U {source_mas_user} -d {source_mas_db} > mas.sql"
+
+        mas_uri = source_config["database"]["uri"]
+        parsed_mas = parse_postgres_uri(mas_uri)
+        source_mas_db = parsed_mas.get("name", "<source_mas_db>")
+        source_mas_user = parsed_mas.get("user", "<source_mas_user>")
+
+        target_mas_db = "matrixauthenticationservice"
+        target_mas_user = "matrixauthenticationservice_user"
+        needs_transform = source_mas_db != target_mas_db or source_mas_user != target_mas_user
+        if needs_transform:
+            yield f"sed -i 's/DATABASE {source_mas_db}/DATABASE {target_mas_db}/' mas.sql"
+            # Only show owner transformation if source and target are different
+            if source_mas_user != target_mas_user:
+                yield f"sed -i 's/OWNER TO.*{source_mas_user}/OWNER TO {target_mas_user}/' mas.sql"
+
+    def copy_db_dump_to_ess_pro(self) -> Iterator[str]:
+        # Step: Copy the dumps
+        yield "kubectl cp mas.sql ess-postgres-0:/tmp -n ess"
+
+    def import_db_in_ess_pro(self) -> Iterator[str]:
+        yield (
+            'kubectl exec -n ess sts/ess-postgres -- bash -c "psql -U postgres -d '
+            'matrixauthenticationservice < /tmp/mas.sql"'
+        )

@@ -8,12 +8,13 @@ Synapse-specific migration strategy.
 """
 
 import logging
+from collections.abc import Iterator
 from dataclasses import dataclass
 from typing import Any
 
 from rapidfuzz import fuzz, process
 
-from .interfaces import ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
+from .interfaces import DataMigrationProtocol, ExtraFilesDiscoveryStrategy, SecretDiscoveryStrategy
 from .migration import ConfigValueTransformer, MigrationStrategy, TransformationSpec, additional_config_transformer
 from .models import DiscoverableSecret, DiscoveredSecret, GlobalOptions, MigrationError, SecretConfig
 from .rich_output import print_prompt
@@ -586,3 +587,57 @@ class SynapseExtraFileDiscovery(ExtraFilesDiscoveryStrategy):
         """Files paths to ignore when discovering extra files."""
         ...
         return []
+
+
+class SynapseDataMigrationInstructions(DataMigrationProtocol):
+    def __init__(self, global_options: GlobalOptions):
+        self.global_options = global_options
+
+    @property
+    def component_name(self) -> str:
+        return SYNAPSE_STRATEGY_NAME
+
+    def stop_in_ess_pro(self) -> Iterator[str]:
+        yield 'kubectl scale sts -l "app.kubernetes.io/component=matrix-server" -n ess --replicas=0'
+
+    def restart_in_ess_pro(self) -> Iterator[str]:
+        yield 'kubectl scale sts -l "app.kubernetes.io/component=matrix-server" -n ess --replicas=1'
+
+    def run_media_migration(self, source_config: dict[str, Any]) -> Iterator[str]:
+        original_media_path = source_config.get("media_store_path")
+
+        if original_media_path:
+            yield f"kubectl cp {original_media_path} ess-synapse-0:/media/media_store -n ess"
+
+    def create_db_dump(self, source_config: dict[str, Any]) -> Iterator[str]:
+        source_synapse_db = source_config["database"]["args"].get("dbname", "<source_synapse_db>")
+        if not source_synapse_db:
+            source_synapse_db = source_config["database"]["args"].get("database", "<source_synapse_db>")
+        source_synapse_user = source_config["database"]["args"].get("user", "<source_synapse_user>")
+
+        yield f"pg_dump -C -U {source_synapse_user} -d {source_synapse_db} > synapse.sql"
+
+        source_synapse_db = source_config["database"]["args"].get("dbname", "<source_synapse_db>")
+        if not source_synapse_db:
+            source_synapse_db = source_config["database"]["args"].get("database", "<source_synapse_db>")
+        source_synapse_user = source_config["database"]["args"].get("user", "<source_synapse_user>")
+
+        # Get target database names and users from ESS configuration
+        # These are the standard ESS target database names from the helm chart
+        target_synapse_db = "synapse"
+        target_synapse_user = "synapse_user"
+
+        needs_transform = source_synapse_db != target_synapse_db or source_synapse_user != target_synapse_user
+
+        if needs_transform:
+            yield f"sed -i 's/DATABASE {source_synapse_db}/DATABASE {target_synapse_db}/' synapse.sql"
+            # Only show owner transformation if source and target are different
+            if source_synapse_user != target_synapse_user:
+                yield f"sed -i 's/OWNER TO.*{source_synapse_user}/OWNER TO {target_synapse_user}/' synapse.sql"
+
+    def copy_db_dump_to_ess_pro(self) -> Iterator[str]:
+        # Step: Copy the dumps
+        yield "kubectl cp synapse.sql ess-postgres-0:/tmp -n ess"
+
+    def import_db_in_ess_pro(self) -> Iterator[str]:
+        yield 'kubectl exec -n ess sts/ess-postgres -- bash -c "psql -U postgres -d synapse < /tmp/synapse.sql"'

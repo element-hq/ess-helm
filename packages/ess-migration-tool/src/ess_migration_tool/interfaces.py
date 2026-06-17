@@ -7,7 +7,8 @@
 Interfaces for the migration system.
 """
 
-from typing import Protocol, runtime_checkable
+from collections.abc import Iterator
+from typing import Any, Protocol, runtime_checkable
 
 from .models import DiscoverableSecret, DiscoveredSecret, GlobalOptions, TransformationSpec
 
@@ -106,4 +107,42 @@ class ExtraFilesDiscoveryStrategy(Protocol):
     @property
     def component_root_key(self) -> str:
         """Get the component root key for ESS config (e.g., 'synapse', 'matrixAuthenticationService')."""
+        ...
+
+
+@runtime_checkable
+class DataMigrationProtocol(Protocol):
+    """Interface for migration instructions."""
+
+    def __init__(self, global_options: GlobalOptions):
+        """Initialize with global options."""
+        ...
+
+    @property
+    def component_name(self) -> str:
+        """Get the component name for user-facing messages."""
+        ...
+
+    def stop_in_ess_pro(self) -> Iterator[str]:
+        """Logs instructions for stopping ESS Pro."""
+        ...
+
+    def restart_in_ess_pro(self) -> Iterator[str]:
+        """Logs instructions for restarting ESS Pro."""
+        ...
+
+    def run_media_migration(self, source_config: dict[str, Any]) -> Iterator[str]:
+        """Logs instructions for running media migration."""
+        ...
+
+    def create_db_dump(self, source_config: dict[str, Any]) -> Iterator[str]:
+        """Logs instructions for preparing database migration."""
+        ...
+
+    def copy_db_dump_to_ess_pro(self) -> Iterator[str]:
+        """Logs instructions for copying database dump to ESS Pro."""
+        ...
+
+    def import_db_in_ess_pro(self) -> Iterator[str]:
+        """Logs instructions for importing database dump in ESS Pro."""
         ...

@@ -8,7 +8,9 @@ Migration engine that orchestrates the conversion process.
 """
 
 import logging
+from collections.abc import Iterator
 from dataclasses import dataclass, field
+from itertools import chain
 from typing import Any
 
 from .conflicts import DiscoveredSecretTracking, resolve_value_conflicts
@@ -16,10 +18,18 @@ from .element_web import ElementWebMigration
 from .extra_files import GenericExtraFileDiscovery
 from .hookshot import HookshotExtraFileDiscovery, HookshotMigration, HookshotSecretDiscovery
 from .inputs import InputProcessor
-from .mas import MASExtraFileDiscovery, MASMigration, MASSecretDiscovery
+from .interfaces import DataMigrationProtocol
+from .mas import MASDataMigrationInstructions, MASExtraFileDiscovery, MASMigration, MASSecretDiscovery
 from .migration import MigrationService
 from .models import ConfigMap, DiscoveredSecret, GlobalOptions, Secret, ValueSourceTracking
-from .synapse import SynapseExtraFileDiscovery, SynapseMigration, SynapseSecretDiscovery
+from .rich_output import log_command
+from .synapse import (
+    SynapseDataMigrationInstructions,
+    SynapseExtraFileDiscovery,
+    SynapseMigration,
+    SynapseSecretDiscovery,
+)
+from .utils import press_enter_to_continue, print_prompt, print_section
 from .well_known import WELL_KNOWN_COMPONENT_ROOT_KEY, WellKnownMigration
 
 logger = logging.getLogger("migration")
@@ -40,6 +50,7 @@ class MigrationEngine:
     discovered_secrets: list[DiscoveredSecret] = field(default_factory=list)
     init_by_ess_secrets: list[str] = field(default_factory=list)
     migrators: list[MigrationService] = field(default_factory=list)
+    data_migration_protocols: list[DataMigrationProtocol] = field(default_factory=list)
     value_source_tracking: ValueSourceTracking = field(default_factory=ValueSourceTracking)
     secret_tracking: DiscoveredSecretTracking = field(default_factory=DiscoveredSecretTracking)
 
@@ -110,6 +121,10 @@ class MigrationEngine:
                         secret_tracking=self.secret_tracking,
                     )
                 )
+        self.data_migration_protocols = [
+            SynapseDataMigrationInstructions(self.global_options),
+            MASDataMigrationInstructions(self.global_options),
+        ]
 
     def run_migration(self) -> dict[str, Any]:
         """
@@ -165,3 +180,80 @@ class MigrationEngine:
 
         logger.info("Migration process completed successfully")
         return self.ess_config
+
+    def manual_procedure(self, step_number: int) -> None:
+        def _print_steps_with_generator(steps_title: str, instructions_generator: Iterator[str], conclusion: str = ""):
+            nonlocal step_number
+            first_instruct = next(instructions_generator, None)
+
+            if first_instruct is not None:
+                print_prompt(
+                    steps_title,
+                    style="default",
+                    logger=self.summary_logger,
+                )
+                log_command(first_instruct, logger=self.summary_logger)
+                for instruct in instructions_generator:
+                    log_command(instruct, logger=self.summary_logger)
+                if conclusion:
+                    print_prompt(conclusion, style="default", logger=self.summary_logger)
+                press_enter_to_continue(self.summary_logger, self.global_options)
+                step_number += 1
+
+        def _data_migration_generator() -> Iterator[tuple[DataMigrationProtocol, dict[str, Any]]]:
+            for data_migration in self.data_migration_protocols:
+                input_for_migration = self.input_processor.input_for_strategy(data_migration.component_name)
+                if input_for_migration:
+                    yield data_migration, input_for_migration.config
+
+        _print_steps_with_generator(
+            f"{step_number}. Stop ESS Pro workloads before importing:",
+            chain.from_iterable(data_migration.stop_in_ess_pro() for data_migration, _ in _data_migration_generator()),
+        )
+
+        _print_steps_with_generator(
+            f"{step_number}. Copy media from your existing setup to ESS persistent volume:",
+            chain.from_iterable(
+                data_migration.run_media_migration(source_config)
+                for data_migration, source_config in _data_migration_generator()
+            ),
+            "📚 For more details on deployment and data migration, refer to the ESS documentation.",
+        )
+
+        # Add database-specific instructions
+        if not self.global_options.use_existing_database:
+            print_section("📋 DATABASE IMPORT INSTRUCTIONS", logger=self.summary_logger)
+            print_prompt(
+                "Since you chose to use ESS-managed PostgreSQL, you'll need to import your "
+                "existing database schema after deployment. Here are the steps:",
+                style="default",
+                logger=self.summary_logger,
+            )
+            press_enter_to_continue(self.summary_logger, self.global_options)
+
+            _print_steps_with_generator(
+                f"{step_number}. Create database dumps:",
+                chain.from_iterable(
+                    data_migration.create_db_dump(source_config)
+                    for data_migration, source_config in _data_migration_generator()
+                ),
+            )
+            _print_steps_with_generator(
+                f"{step_number}. Copy the dumps to the ESS PostgreSQL pod:",
+                chain.from_iterable(
+                    data_migration.copy_db_dump_to_ess_pro() for data_migration, _ in _data_migration_generator()
+                ),
+            )
+            _print_steps_with_generator(
+                f"{step_number}. Import the dumps into the ESS-managed PostgreSQL:",
+                chain.from_iterable(
+                    data_migration.import_db_in_ess_pro() for data_migration, _ in _data_migration_generator()
+                ),
+            )
+
+        _print_steps_with_generator(
+            f"{step_number}. Start ESS Pro workloads again:",
+            chain.from_iterable(
+                data_migration.restart_in_ess_pro() for data_migration, _ in _data_migration_generator()
+            ),
+        )
