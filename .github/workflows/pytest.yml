@@ -110,6 +110,9 @@ jobs:
           k3d 5.8.3
 
     - uses: azure/setup-helm@dda3372f752e03dde6b3237bc9431cdc2f7a02a2  # v5.0.0
+      with:
+        # 4.2.1 appears to hang on most integration tests.
+        version: 4.2.0
 
     - name: Checkout values files from previous ref
       run: |
