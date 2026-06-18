@@ -166,7 +166,7 @@ def log_command(
     # highlight strings
     highlight_command.highlight_regex(r"\".+\"", style="yellow")
     syntax.append(highlight_command)
-    get_console().print(syntax)
+    get_console().print(syntax, crop=False, overflow="ignore")
 
 
 def print_prompt(
