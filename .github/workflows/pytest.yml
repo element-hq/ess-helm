@@ -34,7 +34,7 @@ jobs:
       manifestTests: ${{ steps.data.outputs.manifestTests }}
       upgradeFrom: ${{ steps.data.outputs.upgradeFrom }}
     steps:
-    - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  # v6.0.3
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
       with:
         persist-credentials: false
         fetch-depth: 0
@@ -60,7 +60,7 @@ jobs:
       MATRIX_TEST_COMPONENT: ${{ matrix.test-component }}
       MATRIX_TEST_FROM_REF: ${{ matrix.test-from-ref }}
     steps:
-    - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  # v6.0.3
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
       with:
         persist-credentials: false
         fetch-depth: 0
@@ -183,7 +183,7 @@ jobs:
         manifest-test: ${{ fromJSON(needs.pytest-setup.outputs.manifestTests).manifestTests }}
     steps:
     - name: Checkout
-      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  # v6.0.3
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
       with:
         persist-credentials: false
 
