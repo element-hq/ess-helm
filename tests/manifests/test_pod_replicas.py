@@ -60,23 +60,20 @@ async def test_deployments_statefulsets_respect_replicas(values, make_templates)
         )
 
         deployable_details = template_to_deployable_details(template)
-        if deployable_details.has_replicas:
-            expected_replicas = deployable_details.get_helm_values(values, PropertyType.Replicas)
-            assert expected_replicas == template["spec"]["replicas"], (
-                f"{template_id(template)} has incorrect replicas value"
-            )
-        else:
-            assert template["spec"]["replicas"] == 1, f"{template_id(template)} has incorrect replicas value"
+        expected_replicas = deployable_details.get_helm_values(values, PropertyType.Replicas)
+        assert expected_replicas == template["spec"]["replicas"], (
+            f"{template_id(template)} has incorrect replicas value"
+        )
 
         if template["kind"] == "Deployment":
             max_unavailable = template["spec"]["strategy"]["rollingUpdate"]["maxUnavailable"]
-            if deployable_details.has_replicas:
-                assert max_unavailable == 1, (
-                    f"{template_id(template)} has {max_unavailable=} when it should be 1 with more than 1 replica"
+            if template_to_deployable_details(template).is_singleton:
+                assert max_unavailable == 0, (
+                    f"{template_id(template)} has {max_unavailable=} when it should be 0 with singletons"
                 )
             else:
-                assert max_unavailable == 0, (
-                    f"{template_id(template)} has {max_unavailable=} when it should be 0 with no replicas"
+                assert max_unavailable == 1, (
+                    f"{template_id(template)} has {max_unavailable=} when it should be 1 with more than 1 replica"
                 )
 
 
@@ -89,6 +86,10 @@ def set_replicas_details(values):
     def set_replicas_details(deployable_details: DeployableDetails):
         nonlocal counter
         counter += 1
-        deployable_details.set_helm_values(values, PropertyType.Replicas, counter)
+        # For singletons, we check that we can disable pod replicas
+        if deployable_details.is_singleton:
+            deployable_details.set_helm_values(values, PropertyType.Replicas, 0)
+        else:
+            deployable_details.set_helm_values(values, PropertyType.Replicas, counter)
 
-    iterate_deployables_parts(set_replicas_details, lambda deployable_details: deployable_details.has_replicas)
+    iterate_deployables_parts(set_replicas_details, lambda deployable_details: True)
