@@ -142,7 +142,7 @@ matrixAuthenticationService:
 Other settings for MAS can be seen under the `matrixAuthenticationService` section of
 `helm show values` for this chart.
 
-## Matrix RTC Backend
+## Matrix RTC Backend
 
 A minimal set of values to bring up Matrix RTC Backend would be
 ```yaml
