@@ -193,7 +193,7 @@ instance_map:
 {{- range $workerType, $workerDetails := $enabledWorkers }}
 {{- if include "element-io.synapse.process.hasReplication" (dict "root" $root "context" $workerType) }}
 {{- $workerTypeName := include "element-io.synapse.process.workerTypeName" (dict "root" $root "context" $workerType) }}
-{{- range $index := untilStep 0 ($workerDetails.replicas | int | default 1) 1 }}
+{{- range $index := untilStep 0 ($workerDetails.replicas | int) 1 }}
   {{ $root.Release.Name }}-synapse-{{ $workerTypeName }}-{{ $index }}:
     host: {{ $root.Release.Name }}-synapse-{{ $workerTypeName }}-{{ $index }}.{{ $root.Release.Name }}-synapse-{{ $workerTypeName }}.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}
     port: 9093
@@ -232,7 +232,7 @@ stream_writers:
 {{- if eq $stream_writer "quarantined_media_changes" }}
   - main
 {{- end }}
-{{- range $index := untilStep 0 ($workerDetails.replicas | int | default 1) 1 }}
+{{- range $index := untilStep 0 ($workerDetails.replicas | int) 1 }}
   - {{ $root.Release.Name }}-synapse-{{ $workerTypeName }}-{{ $index }}
 {{- end }}
 {{- end }}

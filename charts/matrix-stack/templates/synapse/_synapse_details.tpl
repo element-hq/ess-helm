@@ -24,6 +24,31 @@ hasReplication
 {{- end -}}
 {{- end }}
 
+
+{{- define "element-io.synapse.process.scalingType" -}}
+{{- $root := .root -}}
+{{- with required "element-io.synapse.process.scalingType missing context" .context -}}
+{{- $singleWorkers := list
+  "account-data"
+  "appservice"
+  "background"
+  "encryption"
+  "media-repository"
+  "presence-writer"
+  "push-rules"
+  "sso-login"
+  "typing-persister"
+  "user-dir"
+-}}
+{{- if has . $singleWorkers -}}
+single
+{{- else -}}
+statically_scalable
+{{- end }}
+{{- end }}
+{{- end }}
+
+
 {{- define "element-io.synapse.process.canFallbackToMain" -}}
 {{- $root := .root -}}
 {{- with required "element-io.synapse.process.canFallbackToMain missing context" .context -}}

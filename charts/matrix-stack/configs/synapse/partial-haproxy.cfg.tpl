@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2024-2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -237,7 +237,7 @@ backend synapse-{{ $workerType }}
   timeout queue 5s
 
 {{- end }}
-{{- $maxInstances := ternary 20 1 (hasKey $workerDetails "replicas") }}
+{{- $maxInstances := ternary 1 20 (eq "single" (include "element-io.synapse.process.scalingType" (dict "root" $root "context" $workerType))) }}
 {{- $workerTypeName := include "element-io.synapse.process.workerTypeName" (dict "root" $root "context" $workerType) }}
   # Use DNS SRV service discovery on the headless service
   server-template {{ $workerTypeName }} {{ $maxInstances }} _synapse-http._tcp.{{ $root.Release.Name }}-synapse-{{ $workerTypeName }}.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }} resolvers kubedns init-addr none check
