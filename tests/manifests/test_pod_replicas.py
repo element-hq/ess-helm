@@ -69,7 +69,7 @@ async def test_deployments_statefulsets_respect_replicas(values, make_templates)
             max_unavailable = template["spec"]["strategy"]["rollingUpdate"]["maxUnavailable"]
             if template_to_deployable_details(template).is_singleton:
                 assert max_unavailable == 0, (
-                    f"{template_id(template)} has {max_unavailable=} when it should be 0 with singletons"
+                    f"{template_id(template)} has {max_unavailable=} when it should be 0 with singletons:"
                 )
             else:
                 assert max_unavailable == 1, (
