@@ -9,6 +9,11 @@
     "image": {
       "$ref": "file://common/image.json"
     },
+    "replicas": {
+      "minimum": 0,
+      "maximum": 1,
+      "type": "integer"
+    },
     "postgresExporter": {
       "type": "object",
       "properties": {

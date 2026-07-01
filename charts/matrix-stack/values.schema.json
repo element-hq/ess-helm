@@ -1372,6 +1372,7 @@
           "additionalProperties": false
         },
         "replicas": {
+          "minimum": 0,
           "type": "integer"
         },
         "extraEnv": {
@@ -2090,6 +2091,11 @@
           "properties": {
             "enabled": {
               "type": "boolean"
+            },
+            "replicas": {
+              "minimum": 0,
+              "maximum": 1,
+              "type": "integer"
             },
             "image": {
               "type": "object",
@@ -3100,7 +3106,7 @@
           "type": "boolean"
         },
         "replicas": {
-          "minimum": 1,
+          "minimum": 0,
           "type": "integer"
         },
         "image": {
@@ -3805,7 +3811,7 @@
           }
         },
         "replicas": {
-          "minimum": 1,
+          "minimum": 0,
           "type": "integer"
         },
         "extraVolumes": {
@@ -4501,7 +4507,7 @@
       "type": "object",
       "properties": {
         "replicas": {
-          "minimum": 1,
+          "minimum": 0,
           "type": "integer"
         },
         "image": {
@@ -5132,6 +5138,11 @@
         "enabled": {
           "type": "boolean",
           "description": "Enable Hookshot."
+        },
+        "replicas": {
+          "minimum": 0,
+          "maximum": 1,
+          "type": "integer"
         },
         "appserviceRegistration": {
           "type": "object",
@@ -6511,6 +6522,7 @@
           "additionalProperties": false
         },
         "replicas": {
+          "minimum": 0,
           "type": "integer"
         },
         "syn2mas": {
@@ -7809,6 +7821,11 @@
           },
           "additionalProperties": false
         },
+        "replicas": {
+          "minimum": 0,
+          "maximum": 1,
+          "type": "integer"
+        },
         "postgresExporter": {
           "type": "object",
           "properties": {
@@ -8916,6 +8933,11 @@
       "properties": {
         "maxMemory": {
           "type": "string"
+        },
+        "replicas": {
+          "minimum": 0,
+          "maximum": 1,
+          "type": "integer"
         },
         "maxMemoryPolicy": {
           "type": "string",
@@ -10461,6 +10483,11 @@
             "type": "string"
           }
         },
+        "replicas": {
+          "minimum": 0,
+          "maximum": 1,
+          "type": "integer"
+        },
         "ingress": {
           "type": "object",
           "properties": {
@@ -11271,6 +11298,11 @@
                 "enabled": {
                   "type": "boolean"
                 },
+                "replicas": {
+                  "minimum": 0,
+                  "maximum": 1,
+                  "type": "integer"
+                },
                 "resources": {
                   "properties": {
                     "limits": {
@@ -11437,6 +11469,11 @@
                 "enabled": {
                   "type": "boolean"
                 },
+                "replicas": {
+                  "minimum": 0,
+                  "maximum": 1,
+                  "type": "integer"
+                },
                 "resources": {
                   "properties": {
                     "limits": {
@@ -11602,6 +11639,11 @@
               "properties": {
                 "enabled": {
                   "type": "boolean"
+                },
+                "replicas": {
+                  "minimum": 0,
+                  "maximum": 1,
+                  "type": "integer"
                 },
                 "resources": {
                   "properties": {
@@ -11774,7 +11816,7 @@
                 },
                 "replicas": {
                   "type": "integer",
-                  "minimum": 1
+                  "minimum": 0
                 },
                 "resources": {
                   "properties": {
@@ -12045,6 +12087,11 @@
                 "enabled": {
                   "type": "boolean"
                 },
+                "replicas": {
+                  "minimum": 0,
+                  "maximum": 1,
+                  "type": "integer"
+                },
                 "resources": {
                   "properties": {
                     "limits": {
@@ -12216,7 +12263,7 @@
                 },
                 "replicas": {
                   "type": "integer",
-                  "minimum": 1
+                  "minimum": 0
                 },
                 "resources": {
                   "properties": {
@@ -12492,7 +12539,7 @@
                 },
                 "replicas": {
                   "type": "integer",
-                  "minimum": 1
+                  "minimum": 0
                 },
                 "resources": {
                   "properties": {
@@ -12768,7 +12815,7 @@
                 },
                 "replicas": {
                   "type": "integer",
-                  "minimum": 1
+                  "minimum": 0
                 },
                 "resources": {
                   "properties": {
@@ -13044,7 +13091,7 @@
                 },
                 "replicas": {
                   "type": "integer",
-                  "minimum": 1
+                  "minimum": 0
                 },
                 "resources": {
                   "properties": {
@@ -13320,7 +13367,7 @@
                 },
                 "replicas": {
                   "type": "integer",
-                  "minimum": 1
+                  "minimum": 0
                 },
                 "resources": {
                   "properties": {
@@ -13596,7 +13643,7 @@
                 },
                 "replicas": {
                   "type": "integer",
-                  "minimum": 1
+                  "minimum": 0
                 },
                 "resources": {
                   "properties": {
@@ -13872,7 +13919,7 @@
                 },
                 "replicas": {
                   "type": "integer",
-                  "minimum": 1
+                  "minimum": 0
                 },
                 "resources": {
                   "properties": {
@@ -14148,7 +14195,7 @@
                 },
                 "replicas": {
                   "type": "integer",
-                  "minimum": 1
+                  "minimum": 0
                 },
                 "resources": {
                   "properties": {
@@ -14419,6 +14466,11 @@
                 "enabled": {
                   "type": "boolean"
                 },
+                "replicas": {
+                  "minimum": 0,
+                  "maximum": 1,
+                  "type": "integer"
+                },
                 "resources": {
                   "properties": {
                     "limits": {
@@ -14585,6 +14637,11 @@
                 "enabled": {
                   "type": "boolean"
                 },
+                "replicas": {
+                  "minimum": 0,
+                  "maximum": 1,
+                  "type": "integer"
+                },
                 "resources": {
                   "properties": {
                     "limits": {
@@ -14750,6 +14807,11 @@
               "properties": {
                 "enabled": {
                   "type": "boolean"
+                },
+                "replicas": {
+                  "minimum": 0,
+                  "maximum": 1,
+                  "type": "integer"
                 },
                 "resources": {
                   "properties": {
@@ -14922,7 +14984,7 @@
                 },
                 "replicas": {
                   "type": "integer",
-                  "minimum": 1
+                  "minimum": 0
                 },
                 "resources": {
                   "properties": {
@@ -15198,7 +15260,7 @@
                 },
                 "replicas": {
                   "type": "integer",
-                  "minimum": 1
+                  "minimum": 0
                 },
                 "resources": {
                   "properties": {
@@ -15474,7 +15536,7 @@
                 },
                 "replicas": {
                   "type": "integer",
-                  "minimum": 1
+                  "minimum": 0
                 },
                 "resources": {
                   "properties": {
@@ -15745,6 +15807,11 @@
                 "enabled": {
                   "type": "boolean"
                 },
+                "replicas": {
+                  "minimum": 0,
+                  "maximum": 1,
+                  "type": "integer"
+                },
                 "resources": {
                   "properties": {
                     "limits": {
@@ -15916,7 +15983,7 @@
                 },
                 "replicas": {
                   "type": "integer",
-                  "minimum": 1
+                  "minimum": 0
                 },
                 "resources": {
                   "properties": {
@@ -16187,6 +16254,11 @@
                 "enabled": {
                   "type": "boolean"
                 },
+                "replicas": {
+                  "minimum": 0,
+                  "maximum": 1,
+                  "type": "integer"
+                },
                 "resources": {
                   "properties": {
                     "limits": {
@@ -16352,6 +16424,11 @@
               "properties": {
                 "enabled": {
                   "type": "boolean"
+                },
+                "replicas": {
+                  "minimum": 0,
+                  "maximum": 1,
+                  "type": "integer"
                 },
                 "resources": {
                   "properties": {

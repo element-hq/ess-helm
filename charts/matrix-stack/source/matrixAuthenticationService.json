@@ -39,6 +39,7 @@
       }
     },
     "replicas": {
+      "minimum": 0,
       "type": "integer"
     },
     "syn2mas": {

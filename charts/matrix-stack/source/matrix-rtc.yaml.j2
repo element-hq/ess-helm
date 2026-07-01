@@ -68,6 +68,9 @@ sfu:
   ## Full details on available configuration options can be found at https://docs.livekit.io/home/self-hosting/deployment/#configuration
   {{- sub_schema_values.additionalConfig() | indent(2) }}
 
+  # Use 0 replicas to stop the SFU
+  replicas: 1
+
   # Whether to start the SFU in host network mode or not
   hostNetwork: false
   exposedServices:

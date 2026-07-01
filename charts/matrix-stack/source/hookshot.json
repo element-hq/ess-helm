@@ -7,6 +7,11 @@
       "type": "boolean",
       "description": "Enable Hookshot."
     },
+    "replicas": {
+      "minimum": 0,
+      "maximum": 1,
+      "type": "integer"
+    },
     "appserviceRegistration": {
       "$ref": "file://common/credential.json"
     },

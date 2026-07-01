@@ -16,6 +16,9 @@ SPDX-License-Identifier: AGPL-3.0-only
   ## If omitted the global Synapse resources are used
   # resources: {}
 
+  ## Use 0 replicas to stop the worker without removing routing to it
+  replicas: 1
+
 {{- sub_schema_values.probe("liveness", failureThreshold=8, periodSeconds=6, timeoutSeconds=2) | indent(2) }}
 {{- sub_schema_values.probe("readiness", failureThreshold=8, periodSeconds=2, successThreshold=2, timeoutSeconds=2) | indent(2) }}
 {{- sub_schema_values.probe("startup", failureThreshold=54, periodSeconds=2) | indent(2) }}
