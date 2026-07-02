@@ -8,6 +8,8 @@ from dataclasses import InitVar, dataclass, field
 from enum import Enum
 from typing import Any
 
+import pyhelm3
+
 
 class PropertyType(Enum):
     AdditionalConfig = "additional"
@@ -58,6 +60,16 @@ class ValuesFilePath:
             self.write_path + (propertyType.value,) if self.write_path is not None else None,
             self.read_path + (propertyType.value,) if self.read_path is not None else None,
         )
+
+    def assert_is_in_error_message(self, err: pyhelm3.errors.Error, msg_details: str | None):
+        assert self.write_path
+        expected_path = "/".join(self.write_path)
+        error_msg = f"at /{expected_path}"
+        if msg_details:
+            error_msg += f": {msg_details}"
+
+        assert expected_path in str(err), f"{expected_path} did not cause any failure in {str(err)}"
+        assert error_msg in str(err), f"{expected_path} did not cause {error_msg} in {str(err)}"
 
 
 # We introduce 4 DataClasses to store details of the deployables this chart manages

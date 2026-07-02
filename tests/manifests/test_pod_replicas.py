@@ -96,27 +96,28 @@ def set_replicas_details(values):
     iterate_deployables_parts(set_replicas_details, lambda deployable_details: True)
 
 
-@pytest.mark.parametrize("values_file", ["well-known-minimal-values.yaml"])
+@pytest.mark.parametrize("values_file", ["all-enabled-values.yaml"])
 @pytest.mark.asyncio_cooperative
 async def test_singleton_cannot_have_more_than_one_replicas(values, make_templates):
-    wrong_value_paths = set()
+    found_deployables = []
 
     def set_2_replicas(deployable_details: DeployableDetails):
-        nonlocal wrong_value_paths
+        nonlocal found_deployables
         deployable_details.set_helm_values(values, PropertyType.Replicas, 2)
-        replicas_path = deployable_details.get_values_file_path(PropertyType.Replicas).write_path
-        assert replicas_path
-        wrong_value_paths |= {"/".join(replicas_path)}
+        found_deployables.append(deployable_details)
 
     iterate_deployables_parts(
         set_2_replicas,
         lambda deployable_details: deployable_details.is_singleton,
     )
 
-    try:
+    async def render_and_assert_error():
         await make_templates(values)
-        pytest.fail("no exception raised")
-    except pyhelm3.errors.Error as e:
-        for wrong_value_path in wrong_value_paths:
+        for deployable_details in found_deployables:
             # ruff: disable[PT017]
-            assert f"at '/{wrong_value_path}': maximum: got 2, want 1" in str(e)
+            replicas_values_file_path = deployable_details.get_values_file_path(PropertyType.Replicas)
+            assert replicas_values_file_path
+            replicas_values_file_path.assert_is_in_error_message(e, ": maximum: got 2, want 1")
+
+    with pytest.raises(pyhelm3.errors.Error) as e:
+        await render_and_assert_error()
