@@ -145,7 +145,7 @@ class DeployableDetails(abc.ABC):
         if self.has_mount_context is None:
             self.has_mount_context = self.is_hook
 
-    def _get_values_file_path(self, propertyType: PropertyType) -> ValuesFilePath:
+    def get_values_file_path(self, propertyType: PropertyType) -> ValuesFilePath:
         """
         Returns the "path" through the values file to a given PropertyType.
 
@@ -169,7 +169,7 @@ class DeployableDetails(abc.ABC):
         * None if this deployable explicitly can't configure this PropertyType.
         * The value or empty dict if this PropertyType can be configured.
         """
-        values_file_path = self._get_values_file_path(propertyType)
+        values_file_path = self.get_values_file_path(propertyType)
         if values_file_path.read_path is None:
             return None
 
@@ -199,7 +199,7 @@ class DeployableDetails(abc.ABC):
         is to support the case where sub-components/sidecars obtain values from their parent and so
         can't set those PropertyTypes themselves.
         """
-        values_file_path = self._get_values_file_path(propertyType)
+        values_file_path = self.get_values_file_path(propertyType)
         if values_file_path.write_path is None:
             return
 

@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
+import pyhelm3
 import pytest
 
 from . import DeployableDetails, PropertyType, values_files_to_test
@@ -93,3 +94,29 @@ def set_replicas_details(values):
             deployable_details.set_helm_values(values, PropertyType.Replicas, counter)
 
     iterate_deployables_parts(set_replicas_details, lambda deployable_details: True)
+
+
+@pytest.mark.parametrize("values_file", ["well-known-minimal-values.yaml"])
+@pytest.mark.asyncio_cooperative
+async def test_singleton_cannot_have_more_than_one_replicas(values, make_templates):
+    wrong_value_paths = set()
+
+    def set_2_replicas(deployable_details: DeployableDetails):
+        nonlocal wrong_value_paths
+        deployable_details.set_helm_values(values, PropertyType.Replicas, 2)
+        replicas_path = deployable_details.get_values_file_path(PropertyType.Replicas).write_path
+        assert replicas_path
+        wrong_value_paths |= {"/".join(replicas_path)}
+
+    iterate_deployables_parts(
+        set_2_replicas,
+        lambda deployable_details: deployable_details.is_singleton,
+    )
+
+    try:
+        await make_templates(values)
+        pytest.fail("no exception raised")
+    except pyhelm3.errors.Error as e:
+        for wrong_value_path in wrong_value_paths:
+            # ruff: disable[PT017]
+            assert f"at '/{wrong_value_path}': maximum: got 2, want 1" in str(e)
