@@ -109,7 +109,7 @@ jobs:
     - name: Set up UV environment
       run: uv sync
 
-    - uses: azure/setup-helm@dda3372f752e03dde6b3237bc9431cdc2f7a02a2  # v5.0.0
+    - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310  # v5.0.1
 
     - name: Set version
       run: |
@@ -210,7 +210,7 @@ jobs:
         echo "next-version=$next_version" >> "$GITHUB_OUTPUT"
 
     - name: Release
-      uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda  # v3.0.0
+      uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b  # v3.0.1
       with:
         draft: true
         body_path: CHANGELOG.latest.md
