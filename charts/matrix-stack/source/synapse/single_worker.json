@@ -3,6 +3,11 @@
     "enabled": {
       "type": "boolean"
     },
+    "replicas": {
+      "minimum": 0,
+      "maximum": 1,
+      "type": "integer"
+    },
     "resources": {
       "$ref": "file://common/resources.json"
     },

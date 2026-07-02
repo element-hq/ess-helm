@@ -8,6 +8,8 @@ from dataclasses import InitVar, dataclass, field
 from enum import Enum
 from typing import Any
 
+import pyhelm3
+
 
 class PropertyType(Enum):
     AdditionalConfig = "additional"
@@ -59,6 +61,16 @@ class ValuesFilePath:
             self.read_path + (propertyType.value,) if self.read_path is not None else None,
         )
 
+    def assert_is_in_error_message(self, err: pyhelm3.errors.Error, msg_details: str | None):
+        assert self.write_path
+        expected_path = "/".join(self.write_path)
+        error_msg = f"at /{expected_path}"
+        if msg_details:
+            error_msg += f": {msg_details}"
+
+        assert expected_path in str(err), f"{expected_path} did not cause any failure in {str(err)}"
+        assert error_msg in str(err), f"{expected_path} did not cause {error_msg} in {str(err)}"
+
 
 # We introduce 4 DataClasses to store details of the deployables this chart manages
 # * ComponentDetails - details of a top-level deployable. This includes both the headline
@@ -107,7 +119,7 @@ class DeployableDetails(abc.ABC):
     has_ingress: bool = field(default=True, hash=False)
     has_automount_service_account_token: bool = field(default=False, hash=False)
     has_workloads: bool = field(default=True, hash=False)
-    has_replicas: bool = field(default=None, hash=False)  # type: ignore[assignment]
+    is_singleton: bool = field(default=None, hash=False)  # type: ignore[assignment]
     has_service_monitor: bool = field(default=None, hash=False)  # type: ignore[assignment]
     has_storage: bool = field(default=False, hash=False)
     makes_outbound_requests: bool = field(default=None, hash=False)  # type: ignore[assignment]
@@ -138,14 +150,14 @@ class DeployableDetails(abc.ABC):
             self.has_image = self.has_workloads
         if self.has_service_monitor is None:
             self.has_service_monitor = self.has_workloads
-        if self.has_replicas is None:
-            self.has_replicas = self.has_workloads
+        if self.is_singleton is None:
+            self.is_singleton = self.has_storage
         if self.makes_outbound_requests is None:
             self.makes_outbound_requests = self.has_workloads
         if self.has_mount_context is None:
             self.has_mount_context = self.is_hook
 
-    def _get_values_file_path(self, propertyType: PropertyType) -> ValuesFilePath:
+    def get_values_file_path(self, propertyType: PropertyType) -> ValuesFilePath:
         """
         Returns the "path" through the values file to a given PropertyType.
 
@@ -169,7 +181,7 @@ class DeployableDetails(abc.ABC):
         * None if this deployable explicitly can't configure this PropertyType.
         * The value or empty dict if this PropertyType can be configured.
         """
-        values_file_path = self._get_values_file_path(propertyType)
+        values_file_path = self.get_values_file_path(propertyType)
         if values_file_path.read_path is None:
             return None
 
@@ -199,7 +211,7 @@ class DeployableDetails(abc.ABC):
         is to support the case where sub-components/sidecars obtain values from their parent and so
         can't set those PropertyTypes themselves.
         """
-        values_file_path = self._get_values_file_path(propertyType)
+        values_file_path = self.get_values_file_path(propertyType)
         if values_file_path.write_path is None:
             return
 
@@ -250,9 +262,6 @@ class SidecarDetails(DeployableDetails):
         if self.values_file_path_overrides is None:
             self.values_file_path_overrides = {}
         self.values_file_path_overrides |= sidecar_values_file_path_overrides
-
-        # We dont support replicas
-        self.has_replicas = False
 
     def create_ownership_link(self, parent: "ComponentDetails | SubComponentDetails"):
         self.parent = parent
@@ -386,7 +395,7 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
         values_file_path_overrides=values_file_path_overrides,
         has_ingress=False,
         is_synapse_process=True,
-        has_replicas=(worker_type == "scalable"),
+        is_singleton=(worker_type != "scalable"),
         ignore_unreferenced_mounts={"synapse": ("/tmp",)},
         has_mount_context=True,
         content_volumes_mapping={
@@ -435,13 +444,14 @@ all_components_details = [
             PropertyType.ReadinessProbe: ValuesFilePath.not_supported(),
             # Job so no startupProbe
             PropertyType.StartupProbe: ValuesFilePath.not_supported(),
+            # Job so no replicas
+            PropertyType.Replicas: ValuesFilePath.not_supported(),
         },
         has_additional_config=False,
         has_credentials=False,
         has_image=False,
         has_ingress=False,
         has_automount_service_account_token=True,
-        has_replicas=False,
         has_service_monitor=False,
         makes_outbound_requests=False,
         is_hook=True,
@@ -458,12 +468,13 @@ all_components_details = [
             PropertyType.ReadinessProbe: ValuesFilePath.not_supported(),
             # Job so no startupProbe
             PropertyType.StartupProbe: ValuesFilePath.not_supported(),
+            # Job so no replicas
+            PropertyType.Replicas: ValuesFilePath.not_supported(),
         },
         has_additional_config=False,
         has_image=False,
         has_ingress=False,
         has_automount_service_account_token=True,
-        has_replicas=False,
         has_service_monitor=False,
         makes_outbound_requests=False,
         is_hook=True,
@@ -487,7 +498,6 @@ all_components_details = [
         has_additional_config=False,
         has_ingress=False,
         has_storage=True,
-        has_replicas=False,
         sidecars=(
             SidecarDetails(
                 name="postgres-exporter",
@@ -495,6 +505,7 @@ all_components_details = [
                 values_file_path_overrides={
                     # No manifests of its own, so no labels to set
                     PropertyType.Labels: ValuesFilePath.not_supported(),
+                    PropertyType.Replicas: ValuesFilePath.read_elsewhere("postgres.replicas"),
                 },
                 has_additional_config=False,
                 has_ingress=False,
@@ -520,7 +531,7 @@ all_components_details = [
         is_shared_component=True,
         has_additional_config=False,
         has_ingress=False,
-        has_replicas=False,
+        is_singleton=True,
         makes_outbound_requests=False,
         sidecars=(
             SidecarDetails(
@@ -529,6 +540,7 @@ all_components_details = [
                 values_file_path_overrides={
                     # No manifests of its own, so no labels to set
                     PropertyType.Labels: ValuesFilePath.not_supported(),
+                    PropertyType.Replicas: ValuesFilePath.read_elsewhere("redis.replicas"),
                 },
                 has_additional_config=False,
                 has_ingress=False,
@@ -548,7 +560,7 @@ all_components_details = [
                 values_file_path=ValuesFilePath.read_write("matrixRTC", "sfu"),
                 has_exposed_services=True,
                 has_ingress=False,
-                has_replicas=False,
+                is_singleton=True,
                 makes_outbound_requests=False,
             ),
         ),
@@ -598,7 +610,6 @@ all_components_details = [
     ComponentDetails(
         name="hookshot",
         has_storage=True,
-        has_replicas=False,
         values_file_path_overrides={
             PropertyType.Storage: ValuesFilePath.read_write("hookshot", "storage"),
         },
@@ -648,10 +659,11 @@ all_components_details = [
                     PropertyType.ReadinessProbe: ValuesFilePath.not_supported(),
                     # Job so no startupProbe
                     PropertyType.StartupProbe: ValuesFilePath.not_supported(),
+                    # Job so no replicas
+                    PropertyType.Replicas: ValuesFilePath.not_supported(),
                 },
                 has_ingress=False,
                 has_automount_service_account_token=True,
-                has_replicas=False,
                 has_service_monitor=False,
                 is_hook=True,
                 has_mount_context=False,
@@ -666,7 +678,6 @@ all_components_details = [
         },
         has_db=True,
         has_storage=True,
-        has_replicas=False,
         is_synapse_process=True,
         additional_values_files=("synapse-worker-example-values.yaml",),
         skip_path_consistency_for_files=("path_map_file", "path_map_file_get"),
@@ -700,10 +711,10 @@ all_components_details = [
                     ),
                     PropertyType.Volumes: ValuesFilePath.read_elsewhere("synapse", "extraVolumes"),
                     PropertyType.VolumeMounts: ValuesFilePath.read_elsewhere("synapse", "extraVolumeMounts"),
+                    PropertyType.Replicas: ValuesFilePath.not_supported(),
                 },
                 has_ingress=False,
                 has_service_monitor=False,
-                has_replicas=False,
                 is_hook=True,
                 makes_outbound_requests=False,
                 ignore_unreferenced_mounts={"synapse": ("/tmp",)},
@@ -716,6 +727,9 @@ all_components_details = [
     ComponentDetails(
         name="well-known",
         values_file_path=ValuesFilePath.read_write("wellKnownDelegation"),
+        values_file_path_overrides={
+            PropertyType.Replicas: ValuesFilePath.not_supported(),
+        },
         has_additional_config=True,
         has_credentials=False,
         has_workloads=False,

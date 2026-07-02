@@ -13,7 +13,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $serviceNameSuffix := .serviceNameSuffix | default $nameSuffix -}}
 {{- $kind := required "element-io.ess-library.workloads.commonSpec missing context.kind" .kind -}}
 {{- with required "element-io.ess-library.workloads.commonSpec missing context.componentValues" .componentValues -}}
-replicas: {{ .replicas | default 1 }}
+replicas: {{ .replicas }}
 selector:
   matchLabels:
     app.kubernetes.io/instance: {{ $root.Release.Name }}-{{ $nameSuffix }}
@@ -22,7 +22,7 @@ strategy:
   type: RollingUpdate
   rollingUpdate:
     maxSurge: 2
-    maxUnavailable: {{ min (max 0 (sub (.replicas | default 1) 1)) 1 }}
+    maxUnavailable: {{ min (max 0 (sub .replicas 1)) 1 }}
 {{- else }}
 serviceName: {{ $root.Release.Name }}-{{ $serviceNameSuffix }}
 updateStrategy:

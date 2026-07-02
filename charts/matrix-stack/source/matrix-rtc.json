@@ -48,6 +48,7 @@
       }
     },
     "replicas": {
+      "minimum": 0,
       "type": "integer"
     },
     "extraEnv": {
@@ -115,6 +116,11 @@
       "properties": {
         "enabled": {
           "type": "boolean"
+        },
+        "replicas": {
+          "minimum": 0,
+          "maximum": 1,
+          "type": "integer"
         },
         "image": {
           "$ref": "file://common/image.json"

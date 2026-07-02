@@ -18,6 +18,9 @@ postgresExporter:
 
 {{- sub_schema_values.credential("Postgres Admin Password", "adminPassword", initIfAbsent=true) }}
 
+# Use 0 replicas to stop Postgres
+replicas: 1
+
 essPasswords: {}
   {{- sub_schema_values.credential("Synapse DB Password", "synapse", initIfAbsent=true) | indent(2) }}
   {{- sub_schema_values.credential("Matrix Authentication Service DB Password", "matrixAuthenticationService", initIfAbsent=true) | indent(2) }}

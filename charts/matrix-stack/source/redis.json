@@ -6,6 +6,11 @@
     "maxMemory": {
       "type": "string"
     },
+    "replicas": {
+      "minimum": 0,
+      "maximum": 1,
+      "type": "integer"
+    },
     "maxMemoryPolicy": {
       "type": "string",
       "enum": [

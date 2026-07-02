@@ -136,6 +136,11 @@
         "type": "string"
       }
     },
+    "replicas": {
+      "minimum": 0,
+      "maximum": 1,
+      "type": "integer"
+    },
     "ingress": {
       "$ref": "file://synapse/ingress_with_additional_paths.json"
     },

@@ -8,7 +8,7 @@
     },
     "replicas": {
       "type": "integer",
-      "minimum": 1
+      "minimum": 0
     },
     "resources": {
       "$ref": "file://common/resources.json"

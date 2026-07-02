@@ -20,6 +20,9 @@ logging:
   # Must be one of [critical, error, warning, info, debug]
   level: info
 
+# Use 0 replicas to stop Hookshot
+replicas: 1
+
 {{ sub_schema_values.credential("Hookshot registration file to connect to a remote Synapse instance", "appserviceRegistration", initIfAbsent=True) }}
 {{ sub_schema_values.credential("Hookshot passkey used to encrypt stored tokens", "passkey", initIfAbsent=True) }}
 {{ sub_schema_values.redis() }}
