@@ -165,6 +165,9 @@
     "nodeSelector": {
       "$ref": "file://common/nodeSelector.json"
     },
+    "priorityClassName": {
+      "type": "string"
+    },
     "extraVolumes": {
       "$ref": "file://common/extraVolumesWithContext.json"
     },

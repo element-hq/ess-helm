@@ -28,6 +28,9 @@ securityContext:
 nodeSelector:
   {{- toYaml . | nindent 2 }}
 {{- end }}
+{{- with (coalesce .priorityClassName $root.Values.priorityClassName) }}
+priorityClassName: {{ . }}
+{{- end }}
 restartPolicy: {{ (eq $kind "Job") | ternary "Never" "Always" }}
 {{- include "element-io.ess-library.pods.tolerations" (dict "root" $root "context" .tolerations) }}
 {{- include "element-io.ess-library.pods.topologySpreadConstraints" (dict "root" $root "context" (dict "instanceSuffix" $instanceSuffix "deployment" (eq $kind "Deployment") "topologySpreadConstraints" .topologySpreadConstraints)) }}

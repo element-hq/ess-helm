@@ -31,6 +31,7 @@ privateKeys: {}
 {{ sub_schema_values.labels() }}
 {{ sub_schema_values.serviceAccount() }}
 {{ sub_schema_values.nodeSelector() }}
+{{- sub_schema_values.priorityClassName() }}
 {{ sub_schema_values.tolerations() }}
 {{ sub_schema_values.hostAliases() }}
 {{ sub_schema_values.topologySpreadConstraints() }}
@@ -68,6 +69,7 @@ syn2mas:
   {{- sub_schema_values.workloadAnnotations() | indent(2) -}}
   {{- sub_schema_values.containersSecurityContext() | indent(2) -}}
   {{- sub_schema_values.nodeSelector() | indent(2) -}}
+  {{- sub_schema_values.priorityClassName() | indent(2) -}}
   {{- sub_schema_values.podSecurityContext(user_id='10005', group_id='10005') | indent(2) -}}
   {{- sub_schema_values.resources(requests_memory='50Mi', requests_cpu='50m', limits_memory='350Mi') | indent(2) -}}
   {{- sub_schema_values.serviceAccount() | indent(2) -}}
