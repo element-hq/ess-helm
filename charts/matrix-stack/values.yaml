@@ -5406,7 +5406,7 @@ synapse:
     successThreshold: 1
 
     ## Number of seconds after which the probe times out
-    timeoutSeconds: 2
+    timeoutSeconds: 12
   ## Configuration of the thresholds and frequencies of the readinessProbe
   readinessProbe:
     ## How many consecutive failures for the probe to be considered failed
@@ -5422,7 +5422,7 @@ synapse:
     successThreshold: 2
 
     ## Number of seconds after which the probe times out
-    timeoutSeconds: 2
+    timeoutSeconds: 12
   ## Configuration of the thresholds and frequencies of the startupProbe
   startupProbe:
     ## How many consecutive failures for the probe to be considered failed
