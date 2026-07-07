@@ -30,6 +30,7 @@ replicas: 1
 {{- sub_schema_values.extraInitContainers("Element Web") }}
 {{- sub_schema_values.containersSecurityContext() -}}
 {{- sub_schema_values.nodeSelector() -}}
+{{- sub_schema_values.priorityClassName() -}}
 {{- sub_schema_values.podSecurityContext(user_id='10004', group_id='10004') -}}
 {{- sub_schema_values.resources(requests_memory='50Mi', requests_cpu='50m', limits_memory='200Mi') -}}
 {{- sub_schema_values.serviceAccount() -}}

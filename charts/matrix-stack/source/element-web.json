@@ -46,6 +46,9 @@
     "nodeSelector": {
       "$ref": "file://common/nodeSelector.json"
     },
+    "priorityClassName": {
+      "type": "string"
+    },
     "podSecurityContext": {
       "$ref": "file://common/podSecurityContext.json"
     },

@@ -88,6 +88,9 @@
     "topologySpreadConstraints": {
       "$ref": "file://common/topologySpreadConstraints.json"
     },
+    "priorityClassName": {
+      "type": "string"
+    },
     "clusterDomain": {
       "type": "string"
     },

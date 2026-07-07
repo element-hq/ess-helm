@@ -136,6 +136,14 @@ topologySpreadConstraints:
   topologyKey: kubernetes.io/hostname
   whenUnsatisfiable: ScheduleAnyway
 
+## Default priorityClassName applied to the pods of all components.
+## A priorityClassName set on an individual component overrides this global value for that component.
+## Synapse worker pods inherit the priorityClassName of the Synapse main process; per-worker priorityClassName is not yet configurable.
+## "system-cluster-critical" and "system-node-critical" are two special built-in classes indicating the highest priorities.
+## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
+## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
+priorityClassName: ""
+
 ## The cluster's domain name which will be appended to URLs of internal Services (<name>.<namespace>.svc.<clusterDomain>).
 ## It is unusual to need to change this but if you do need to change it,
 ## strongly consider having a trailing dot to prevent multiple search domains being queried.
@@ -197,6 +205,11 @@ initSecrets:
 
   ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   nodeSelector: {}
+  ## If specified, indicates the pod's priority and must reference the name of an existing PriorityClass object.
+  ## "system-cluster-critical" and "system-node-critical" are two special built-in classes indicating the highest priorities.
+  ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
+  priorityClassName: ""
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
   podSecurityContext:
     ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to
@@ -347,6 +360,11 @@ deploymentMarkers:
 
   ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   nodeSelector: {}
+  ## If specified, indicates the pod's priority and must reference the name of an existing PriorityClass object.
+  ## "system-cluster-critical" and "system-node-critical" are two special built-in classes indicating the highest priorities.
+  ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
+  priorityClassName: ""
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
   podSecurityContext:
     ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to
@@ -597,6 +615,11 @@ matrixRTC:
 
   ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   nodeSelector: {}
+  ## If specified, indicates the pod's priority and must reference the name of an existing PriorityClass object.
+  ## "system-cluster-critical" and "system-node-critical" are two special built-in classes indicating the highest priorities.
+  ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
+  priorityClassName: ""
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
   podSecurityContext:
     ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to
@@ -974,6 +997,11 @@ matrixRTC:
       #  type: RuntimeDefault
     ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
     nodeSelector: {}
+    ## If specified, indicates the pod's priority and must reference the name of an existing PriorityClass object.
+    ## "system-cluster-critical" and "system-node-critical" are two special built-in classes indicating the highest priorities.
+    ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
+    ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
+    priorityClassName: ""
     ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
     podSecurityContext:
       ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to
@@ -1232,6 +1260,11 @@ elementAdmin:
     #  type: RuntimeDefault
   ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   nodeSelector: {}
+  ## If specified, indicates the pod's priority and must reference the name of an existing PriorityClass object.
+  ## "system-cluster-critical" and "system-node-critical" are two special built-in classes indicating the highest priorities.
+  ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
+  priorityClassName: ""
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
   podSecurityContext:
     ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to
@@ -1494,6 +1527,11 @@ elementWeb:
     #  type: RuntimeDefault
   ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   nodeSelector: {}
+  ## If specified, indicates the pod's priority and must reference the name of an existing PriorityClass object.
+  ## "system-cluster-critical" and "system-node-critical" are two special built-in classes indicating the highest priorities.
+  ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
+  priorityClassName: ""
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
   podSecurityContext:
     ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to
@@ -1715,6 +1753,11 @@ haproxy:
 
   ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   nodeSelector: {}
+  ## If specified, indicates the pod's priority and must reference the name of an existing PriorityClass object.
+  ## "system-cluster-critical" and "system-node-critical" are two special built-in classes indicating the highest priorities.
+  ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
+  priorityClassName: ""
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
   podSecurityContext:
     ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to
@@ -2083,6 +2126,11 @@ hookshot:
 
   ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   nodeSelector: {}
+  ## If specified, indicates the pod's priority and must reference the name of an existing PriorityClass object.
+  ## "system-cluster-critical" and "system-node-critical" are two special built-in classes indicating the highest priorities.
+  ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
+  priorityClassName: ""
 
   ## Workload tolerations allows Pods that are part of this (sub)component to 'tolerate' any taint that matches the triple <key,value,effect> using the matching operator <operator>.
   ##
@@ -2482,6 +2530,11 @@ matrixAuthenticationService:
 
   ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   nodeSelector: {}
+  ## If specified, indicates the pod's priority and must reference the name of an existing PriorityClass object.
+  ## "system-cluster-critical" and "system-node-critical" are two special built-in classes indicating the highest priorities.
+  ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
+  priorityClassName: ""
 
   ## Workload tolerations allows Pods that are part of this (sub)component to 'tolerate' any taint that matches the triple <key,value,effect> using the matching operator <operator>.
   ##
@@ -2753,6 +2806,11 @@ matrixAuthenticationService:
       #  type: RuntimeDefault
     ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
     nodeSelector: {}
+    ## If specified, indicates the pod's priority and must reference the name of an existing PriorityClass object.
+    ## "system-cluster-critical" and "system-node-critical" are two special built-in classes indicating the highest priorities.
+    ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
+    ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
+    priorityClassName: ""
     ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
     podSecurityContext:
       ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to
@@ -3132,6 +3190,11 @@ postgres:
     #  type: RuntimeDefault
   ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   nodeSelector: {}
+  ## If specified, indicates the pod's priority and must reference the name of an existing PriorityClass object.
+  ## "system-cluster-critical" and "system-node-critical" are two special built-in classes indicating the highest priorities.
+  ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
+  priorityClassName: ""
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
   podSecurityContext:
     ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to
@@ -3363,6 +3426,11 @@ redis:
 
   ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   nodeSelector: {}
+  ## If specified, indicates the pod's priority and must reference the name of an existing PriorityClass object.
+  ## "system-cluster-critical" and "system-node-critical" are two special built-in classes indicating the highest priorities.
+  ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
+  priorityClassName: ""
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
   podSecurityContext:
     ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to
@@ -5288,6 +5356,11 @@ synapse:
   hostAliases: []
   ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   nodeSelector: {}
+  ## If specified, indicates the pod's priority and must reference the name of an existing PriorityClass object.
+  ## "system-cluster-critical" and "system-node-critical" are two special built-in classes indicating the highest priorities.
+  ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
+  priorityClassName: ""
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
   podSecurityContext:
     ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to

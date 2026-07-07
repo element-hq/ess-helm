@@ -372,6 +372,9 @@
         "additionalProperties": false
       }
     },
+    "priorityClassName": {
+      "type": "string"
+    },
     "clusterDomain": {
       "type": "string"
     },
@@ -565,6 +568,9 @@
           "additionalProperties": {
             "type": "string"
           }
+        },
+        "priorityClassName": {
+          "type": "string"
         },
         "podSecurityContext": {
           "properties": {
@@ -995,6 +1001,9 @@
           "additionalProperties": {
             "type": "string"
           }
+        },
+        "priorityClassName": {
+          "type": "string"
         },
         "podSecurityContext": {
           "properties": {
@@ -1712,6 +1721,9 @@
           "additionalProperties": {
             "type": "string"
           }
+        },
+        "priorityClassName": {
+          "type": "string"
         },
         "podSecurityContext": {
           "properties": {
@@ -2709,6 +2721,9 @@
                 "type": "string"
               }
             },
+            "priorityClassName": {
+              "type": "string"
+            },
             "podSecurityContext": {
               "properties": {
                 "fsGroup": {
@@ -3420,6 +3435,9 @@
             "type": "string"
           }
         },
+        "priorityClassName": {
+          "type": "string"
+        },
         "podSecurityContext": {
           "properties": {
             "fsGroup": {
@@ -4125,6 +4143,9 @@
             "type": "string"
           }
         },
+        "priorityClassName": {
+          "type": "string"
+        },
         "podSecurityContext": {
           "properties": {
             "fsGroup": {
@@ -4744,6 +4765,9 @@
           "additionalProperties": {
             "type": "string"
           }
+        },
+        "priorityClassName": {
+          "type": "string"
         },
         "podSecurityContext": {
           "properties": {
@@ -5767,6 +5791,9 @@
             "type": "string"
           }
         },
+        "priorityClassName": {
+          "type": "string"
+        },
         "podSecurityContext": {
           "properties": {
             "fsGroup": {
@@ -6771,6 +6798,9 @@
                 "type": "string"
               }
             },
+            "priorityClassName": {
+              "type": "string"
+            },
             "podSecurityContext": {
               "properties": {
                 "fsGroup": {
@@ -7352,6 +7382,9 @@
           "additionalProperties": {
             "type": "string"
           }
+        },
+        "priorityClassName": {
+          "type": "string"
         },
         "podSecurityContext": {
           "properties": {
@@ -8541,6 +8574,9 @@
             "type": "string"
           }
         },
+        "priorityClassName": {
+          "type": "string"
+        },
         "podSecurityContext": {
           "properties": {
             "fsGroup": {
@@ -9186,6 +9222,9 @@
           "additionalProperties": {
             "type": "string"
           }
+        },
+        "priorityClassName": {
+          "type": "string"
         },
         "podSecurityContext": {
           "properties": {
@@ -10814,6 +10853,9 @@
           "additionalProperties": {
             "type": "string"
           }
+        },
+        "priorityClassName": {
+          "type": "string"
         },
         "extraVolumes": {
           "type": "array",

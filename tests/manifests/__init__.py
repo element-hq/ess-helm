@@ -25,6 +25,7 @@ class PropertyType(Enum):
     NodeSelector = "nodeSelector"
     PodSecurityContext = "podSecurityContext"
     Postgres = "postgres"
+    PriorityClassName = "priorityClassName"
     Replicas = "replicas"
     ReadinessProbe = "readinessProbe"
     Resources = "resources"
@@ -254,6 +255,7 @@ class SidecarDetails(DeployableDetails):
             PropertyType.InitContainers: ValuesFilePath.not_supported(),
             PropertyType.NodeSelector: ValuesFilePath.not_supported(),
             PropertyType.PodSecurityContext: ValuesFilePath.not_supported(),
+            PropertyType.PriorityClassName: ValuesFilePath.not_supported(),
             PropertyType.ServiceAccount: ValuesFilePath.not_supported(),
             PropertyType.Tolerations: ValuesFilePath.not_supported(),
             PropertyType.TopologySpreadConstraints: ValuesFilePath.not_supported(),
@@ -381,6 +383,7 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
         PropertyType.Labels: ValuesFilePath.read_elsewhere("synapse", "labels"),
         PropertyType.NodeSelector: ValuesFilePath.read_elsewhere("synapse", "nodeSelector"),
         PropertyType.PodSecurityContext: ValuesFilePath.read_elsewhere("synapse", "podSecurityContext"),
+        PropertyType.PriorityClassName: ValuesFilePath.read_elsewhere("synapse", "priorityClassName"),
         PropertyType.ServiceAccount: ValuesFilePath.read_elsewhere("synapse", "serviceAccount"),
         PropertyType.ServiceMonitor: ValuesFilePath.read_elsewhere("synapse", "serviceMonitor"),
         PropertyType.Tolerations: ValuesFilePath.read_elsewhere("synapse", "tolerations"),
@@ -700,6 +703,7 @@ all_components_details = [
                     PropertyType.LivenessProbe: ValuesFilePath.not_supported(),
                     PropertyType.NodeSelector: ValuesFilePath.read_elsewhere("synapse", "nodeSelector"),
                     PropertyType.PodSecurityContext: ValuesFilePath.read_elsewhere("synapse", "podSecurityContext"),
+                    PropertyType.PriorityClassName: ValuesFilePath.read_elsewhere("synapse", "priorityClassName"),
                     # Job so no readinessProbe
                     PropertyType.ReadinessProbe: ValuesFilePath.not_supported(),
                     PropertyType.ServiceMonitor: ValuesFilePath.read_elsewhere("synapse", "serviceMonitor"),

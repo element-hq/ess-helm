@@ -45,6 +45,7 @@ image:
 {{ persistentVolumeClaim(key="storage", global=true)}}
 {{ tolerations(global=true) }}
 {{ topologySpreadConstraints(global=true) }}
+{{ priorityClassName(global=true) }}
 
 ## The cluster's domain name which will be appended to URLs of internal Services (<name>.<namespace>.svc.<clusterDomain>).
 ## It is unusual to need to change this but if you do need to change it,
@@ -213,6 +214,20 @@ networking:
 {% macro nodeSelector(key='nodeSelector') %}
 ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
 {{ key }}: {}
+{%- endmacro %}
+
+{% macro priorityClassName(global=false, key='priorityClassName') %}
+{%- if global %}
+## Default priorityClassName applied to the pods of all components.
+## A priorityClassName set on an individual component overrides this global value for that component.
+## Synapse worker pods inherit the priorityClassName of the Synapse main process; per-worker priorityClassName is not yet configurable.
+{%- else %}
+## If specified, indicates the pod's priority and must reference the name of an existing PriorityClass object.
+{%- endif %}
+## "system-cluster-critical" and "system-node-critical" are two special built-in classes indicating the highest priorities.
+## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
+## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
+{{ key }}: ""
 {%- endmacro %}
 
 {% macro persistentVolumeClaim(key, global=false) %}
