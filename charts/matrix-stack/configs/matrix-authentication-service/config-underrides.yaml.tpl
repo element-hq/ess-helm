@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -15,4 +15,8 @@ policy:
       allow_host_mismatch: false
       allow_insecure_uris: false
 
+experimental:
+  session_limit:
+    soft_limit: 50
+    hard_limit: 50
 {{- end -}}
