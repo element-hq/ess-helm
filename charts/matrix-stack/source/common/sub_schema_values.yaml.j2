@@ -46,6 +46,7 @@ image:
 {{ tolerations(global=true) }}
 {{ topologySpreadConstraints(global=true) }}
 {{ priorityClassName(global=true) }}
+{{ affinity(global=true) }}
 
 ## The cluster's domain name which will be appended to URLs of internal Services (<name>.<namespace>.svc.<clusterDomain>).
 ## It is unusual to need to change this but if you do need to change it,
@@ -228,6 +229,27 @@ networking:
 ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
 ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
 {{ key }}: ""
+{%- endmacro %}
+
+{% macro affinity(global=false, key='affinity') %}
+{%- if global %}
+## Default affinity rules applied to the pods of all components.
+## Configured independently per affinity type (nodeAffinity, podAffinity, podAntiAffinity).
+## A component that sets one of these affinity types overrides only that type for that component; the other types are still inherited from here.
+## Synapse worker pods inherit the affinity of the Synapse main process; per-worker affinity is not yet configurable.
+{%- else %}
+## If specified, the pod's scheduling constraints, configured independently per affinity type.
+## Each affinity type set here overrides only the matching global affinity type for this component.
+## Set an affinity type to {} to blank out the value inherited from the global affinity for that type.
+{%- endif %}
+## Supports nodeAffinity, podAffinity and podAntiAffinity.
+## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
+## Example:
+## {{ key }}:
+##   nodeAffinity: {}
+##   podAffinity: {}
+##   podAntiAffinity: {}
+{{ key }}: {}
 {%- endmacro %}
 
 {% macro persistentVolumeClaim(key, global=false) %}

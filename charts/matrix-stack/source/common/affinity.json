@@ -1,0 +1,43 @@
+{
+  "type": "object",
+  "properties": {
+    "nodeAffinity": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "requiredDuringSchedulingIgnoredDuringExecution": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "preferredDuringSchedulingIgnoredDuringExecution": {
+          "type": "array"
+        }
+      }
+    },
+    "podAffinity": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "requiredDuringSchedulingIgnoredDuringExecution": {
+          "type": "array"
+        },
+        "preferredDuringSchedulingIgnoredDuringExecution": {
+          "type": "array"
+        }
+      }
+    },
+    "podAntiAffinity": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "requiredDuringSchedulingIgnoredDuringExecution": {
+          "type": "array"
+        },
+        "preferredDuringSchedulingIgnoredDuringExecution": {
+          "type": "array"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -31,6 +31,7 @@ nodeSelector:
 {{- with (coalesce .priorityClassName $root.Values.priorityClassName) }}
 priorityClassName: {{ . }}
 {{- end }}
+{{- include "element-io.ess-library.pods.affinity" (dict "root" $root "context" (dict "affinity" .affinity)) }}
 restartPolicy: {{ (eq $kind "Job") | ternary "Never" "Always" }}
 {{- include "element-io.ess-library.pods.tolerations" (dict "root" $root "context" .tolerations) }}
 {{- include "element-io.ess-library.pods.topologySpreadConstraints" (dict "root" $root "context" (dict "instanceSuffix" $instanceSuffix "deployment" (eq $kind "Deployment") "topologySpreadConstraints" .topologySpreadConstraints)) }}
@@ -102,6 +103,35 @@ topologySpreadConstraints:
 {{- end }}
 {{- end }}
 {{- end }}
+
+{{- define "element-io.ess-library.pods.affinity" -}}
+{{- $root := .root -}}
+{{- with required "element-io.ess-library.pods.affinity missing context" .context -}}
+{{- $componentAffinity := .affinity | default dict -}}
+{{- $globalAffinity := $root.Values.affinity | default dict -}}
+{{- $affinity := dict -}}
+{{- /*
+Each affinity type is resolved independently so that setting one type at a component level does not drop
+the other types inherited from the global affinity. A component that sets an affinity type overrides only
+that type; setting it to an empty value ({} or null) blanks out the inherited global value for that type.
+*/ -}}
+{{- range $affinityType := (list "nodeAffinity" "podAffinity" "podAntiAffinity") -}}
+{{- if hasKey $componentAffinity $affinityType -}}
+{{- with (get $componentAffinity $affinityType) -}}
+{{- $_ := set $affinity $affinityType . -}}
+{{- end -}}
+{{- else -}}
+{{- with (get $globalAffinity $affinityType) -}}
+{{- $_ := set $affinity $affinityType . -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- with $affinity }}
+affinity:
+  {{- toYaml . | nindent 2 }}
+{{- end }}
+{{- end -}}
+{{- end -}}
 
 {{- /*
 The only differences this has over (. | toYaml) are that

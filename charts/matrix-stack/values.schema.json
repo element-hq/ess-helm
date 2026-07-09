@@ -375,6 +375,49 @@
     "priorityClassName": {
       "type": "string"
     },
+    "affinity": {
+      "type": "object",
+      "properties": {
+        "nodeAffinity": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "requiredDuringSchedulingIgnoredDuringExecution": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "preferredDuringSchedulingIgnoredDuringExecution": {
+              "type": "array"
+            }
+          }
+        },
+        "podAffinity": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "requiredDuringSchedulingIgnoredDuringExecution": {
+              "type": "array"
+            },
+            "preferredDuringSchedulingIgnoredDuringExecution": {
+              "type": "array"
+            }
+          }
+        },
+        "podAntiAffinity": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "requiredDuringSchedulingIgnoredDuringExecution": {
+              "type": "array"
+            },
+            "preferredDuringSchedulingIgnoredDuringExecution": {
+              "type": "array"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "clusterDomain": {
       "type": "string"
     },
@@ -571,6 +614,49 @@
         },
         "priorityClassName": {
           "type": "string"
+        },
+        "affinity": {
+          "type": "object",
+          "properties": {
+            "nodeAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            },
+            "podAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            },
+            "podAntiAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
         },
         "podSecurityContext": {
           "properties": {
@@ -1004,6 +1090,49 @@
         },
         "priorityClassName": {
           "type": "string"
+        },
+        "affinity": {
+          "type": "object",
+          "properties": {
+            "nodeAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            },
+            "podAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            },
+            "podAntiAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
         },
         "podSecurityContext": {
           "properties": {
@@ -1724,6 +1853,49 @@
         },
         "priorityClassName": {
           "type": "string"
+        },
+        "affinity": {
+          "type": "object",
+          "properties": {
+            "nodeAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            },
+            "podAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            },
+            "podAntiAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
         },
         "podSecurityContext": {
           "properties": {
@@ -2724,6 +2896,49 @@
             "priorityClassName": {
               "type": "string"
             },
+            "affinity": {
+              "type": "object",
+              "properties": {
+                "nodeAffinity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "requiredDuringSchedulingIgnoredDuringExecution": {
+                      "type": "object",
+                      "additionalProperties": true
+                    },
+                    "preferredDuringSchedulingIgnoredDuringExecution": {
+                      "type": "array"
+                    }
+                  }
+                },
+                "podAffinity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "requiredDuringSchedulingIgnoredDuringExecution": {
+                      "type": "array"
+                    },
+                    "preferredDuringSchedulingIgnoredDuringExecution": {
+                      "type": "array"
+                    }
+                  }
+                },
+                "podAntiAffinity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "requiredDuringSchedulingIgnoredDuringExecution": {
+                      "type": "array"
+                    },
+                    "preferredDuringSchedulingIgnoredDuringExecution": {
+                      "type": "array"
+                    }
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
             "podSecurityContext": {
               "properties": {
                 "fsGroup": {
@@ -3438,6 +3653,49 @@
         "priorityClassName": {
           "type": "string"
         },
+        "affinity": {
+          "type": "object",
+          "properties": {
+            "nodeAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            },
+            "podAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            },
+            "podAntiAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        },
         "podSecurityContext": {
           "properties": {
             "fsGroup": {
@@ -4146,6 +4404,49 @@
         "priorityClassName": {
           "type": "string"
         },
+        "affinity": {
+          "type": "object",
+          "properties": {
+            "nodeAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            },
+            "podAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            },
+            "podAntiAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        },
         "podSecurityContext": {
           "properties": {
             "fsGroup": {
@@ -4768,6 +5069,49 @@
         },
         "priorityClassName": {
           "type": "string"
+        },
+        "affinity": {
+          "type": "object",
+          "properties": {
+            "nodeAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            },
+            "podAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            },
+            "podAntiAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
         },
         "podSecurityContext": {
           "properties": {
@@ -5794,6 +6138,49 @@
         "priorityClassName": {
           "type": "string"
         },
+        "affinity": {
+          "type": "object",
+          "properties": {
+            "nodeAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            },
+            "podAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            },
+            "podAntiAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        },
         "podSecurityContext": {
           "properties": {
             "fsGroup": {
@@ -6801,6 +7188,49 @@
             "priorityClassName": {
               "type": "string"
             },
+            "affinity": {
+              "type": "object",
+              "properties": {
+                "nodeAffinity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "requiredDuringSchedulingIgnoredDuringExecution": {
+                      "type": "object",
+                      "additionalProperties": true
+                    },
+                    "preferredDuringSchedulingIgnoredDuringExecution": {
+                      "type": "array"
+                    }
+                  }
+                },
+                "podAffinity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "requiredDuringSchedulingIgnoredDuringExecution": {
+                      "type": "array"
+                    },
+                    "preferredDuringSchedulingIgnoredDuringExecution": {
+                      "type": "array"
+                    }
+                  }
+                },
+                "podAntiAffinity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "requiredDuringSchedulingIgnoredDuringExecution": {
+                      "type": "array"
+                    },
+                    "preferredDuringSchedulingIgnoredDuringExecution": {
+                      "type": "array"
+                    }
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
             "podSecurityContext": {
               "properties": {
                 "fsGroup": {
@@ -7385,6 +7815,49 @@
         },
         "priorityClassName": {
           "type": "string"
+        },
+        "affinity": {
+          "type": "object",
+          "properties": {
+            "nodeAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            },
+            "podAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            },
+            "podAntiAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
         },
         "podSecurityContext": {
           "properties": {
@@ -8577,6 +9050,49 @@
         "priorityClassName": {
           "type": "string"
         },
+        "affinity": {
+          "type": "object",
+          "properties": {
+            "nodeAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            },
+            "podAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            },
+            "podAntiAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        },
         "podSecurityContext": {
           "properties": {
             "fsGroup": {
@@ -9225,6 +9741,49 @@
         },
         "priorityClassName": {
           "type": "string"
+        },
+        "affinity": {
+          "type": "object",
+          "properties": {
+            "nodeAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            },
+            "podAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            },
+            "podAntiAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
         },
         "podSecurityContext": {
           "properties": {
@@ -10856,6 +11415,49 @@
         },
         "priorityClassName": {
           "type": "string"
+        },
+        "affinity": {
+          "type": "object",
+          "properties": {
+            "nodeAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            },
+            "podAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            },
+            "podAntiAffinity": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                },
+                "preferredDuringSchedulingIgnoredDuringExecution": {
+                  "type": "array"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
         },
         "extraVolumes": {
           "type": "array",

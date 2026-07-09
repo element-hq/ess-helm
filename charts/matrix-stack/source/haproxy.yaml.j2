@@ -18,6 +18,7 @@ replicas: 1
 {{- sub_schema_values.extraInitContainers("HAProxy") }}
 {{- sub_schema_values.nodeSelector() }}
 {{- sub_schema_values.priorityClassName() }}
+{{- sub_schema_values.affinity() }}
 {{- sub_schema_values.podSecurityContext(user_id='10001', group_id='10001') }}
 {{- sub_schema_values.resources(requests_memory='100Mi', requests_cpu='100m', limits_memory='200Mi') }}
 {{- sub_schema_values.serviceAccount() }}

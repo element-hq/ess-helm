@@ -22,6 +22,7 @@ replicas: 1
 {{- sub_schema_values.extraInitContainers("Redis") }}
 {{- sub_schema_values.nodeSelector() }}
 {{- sub_schema_values.priorityClassName() }}
+{{- sub_schema_values.affinity() }}
 {{- sub_schema_values.podSecurityContext(user_id='10002', group_id='10002') }}
 {{- sub_schema_values.resources(requests_memory='50Mi', requests_cpu='50m', limits_memory='50Mi') }}
 {{- sub_schema_values.serviceAccount() }}
