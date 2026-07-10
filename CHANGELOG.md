@@ -7,6 +7,95 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.7.0 (2026-07-10)
+
+## Added
+
+- Add support for configuring the `priorityClassName` on component workloads, along with a global `priorityClassName` applied to all components (a per-component value overrides the global one). (#1438)
+
+## Changed
+
+- Upgrade Element Web to v1.12.22.
+
+  Highlights:
+  - Room list: add notifications to section headers 
+  - Disable URL previews per-message when the message provides a hint
+
+  Full Changelogs:
+  - [v1.12.22](https://github.com/element-hq/element-web/releases/tag/v1.12.22)
+
+  (#1423)
+- Upgrade Element Admin to v0.1.12.
+
+  Highlights:
+  - Add Federation tab
+
+  Full Changelogs:
+  - [v0.1.12](https://github.com/element-hq/element-admin/releases/tag/v0.1.12)
+
+  (#1424)
+- Add support for configuring `0` replicas on any workload. (#1426)
+- Upgrade Matrix Authentication Service to v1.20.0.
+
+  Highlights:
+  * Admin API: allow listing and viewing of OAuth 2.0 clients
+  * Infer an initial name for the device for the device auth grant
+
+  Full Changelogs
+  * [v1.20.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.20.0)
+
+  (#1434)
+- Upgrade Synapse to v1.156.0.
+
+  Highlights:
+  * Expose [MSC4354 Sticky Events](https://github.com/matrix-org/matrix-spec-proposals/pull/4354) over [MSC4186 (Simplified) Sliding Sync](https://github.com/matrix-org/matrix-spec-proposals/pull/4186)
+  * Include `allowed_room_ids` in the `/summary` client-server API response for rooms with restricted join rules, as required by Matrix 1.15
+  * Add experimental support for [MSC4491: Invite reasons in room creation](https://github.com/matrix-org/matrix-spec-proposals/pull/4491)
+
+  Full Changelogs:
+  * [v1.156.0](https://github.com/element-hq/synapse/releases/tag/v1.156.0)
+
+  (#1435)
+- Increase Synapse liveness and readiness probe timeouts. (#1437)
+- Upgrade Element Web to v1.12.23.
+
+  Highlights:
+  - Move room list sections out of labs
+
+  Full Changelogs:
+  - [v1.12.23](https://github.com/element-hq/element-web/releases/tag/v1.12.23)
+
+  (#1439)
+- Add session limits to Matrix Authentication Service by default.
+
+  Configure Matrix Authentication Services with soft and hard limits of 50 sessions by default.
+  This applies to both interactive and non-interactive sessions.
+
+  The defaults can be raised, to e.g. 75, with
+
+  ```yaml
+  matrixAuthenticationService:
+    additional:
+      session-limits:
+        config: |
+          experimental:
+            session_limit:
+              soft_limit: 75
+              hard_limit: 75
+  ```
+
+  The limits can be removed with
+
+  ```yaml
+  matrixAuthenticationService:
+    additional:
+      session-limits:
+        config: |
+          experimental:
+            session_limit: null
+  ``` (#1440)
+
+
 # ESS Community Helm Chart 26.6.2 (2026-06-17)
 
 ## Added
