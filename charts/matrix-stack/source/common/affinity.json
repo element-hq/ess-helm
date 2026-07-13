@@ -7,7 +7,12 @@
       "properties": {
         "requiredDuringSchedulingIgnoredDuringExecution": {
           "type": "object",
-          "additionalProperties": true
+          "additionalProperties": false,
+          "properties": {
+            "nodeSelectorTerms": {
+              "type": "array"
+            }
+          }
         },
         "preferredDuringSchedulingIgnoredDuringExecution": {
           "type": "array"

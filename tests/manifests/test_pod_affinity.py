@@ -180,13 +180,10 @@ async def test_component_can_blank_global_affinity_type(affinity_type, values, m
     for template in await make_templates(values):
         if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
             pod_spec = template["spec"]["template"]["spec"]
-            deployable_details = template_to_deployable_details(template)
-            component_affinity = deployable_details.get_helm_values(values, PropertyType.Affinity)
             affinity = pod_spec.get("affinity", {})
-            if component_affinity and component_affinity.get(affinity_type) == {}:
-                assert affinity_type not in affinity, (
-                    f"{template_id(template)} did not blank out the global {affinity_type}"
-                )
+            assert affinity_type not in affinity, (
+                f"{template_id(template)} did not blank out the global {affinity_type}"
+            )
             # The non-blanked affinity types must still be inherited from the global affinity.
             for other_type in AFFINITY_TYPES:
                 if other_type == affinity_type:
