@@ -237,12 +237,39 @@ networking:
 ## Configured independently per affinity type (nodeAffinity, podAffinity, podAntiAffinity).
 ## A component that sets one of these affinity types overrides only that type for that component; the other types are still inherited from here.
 ## Synapse worker pods inherit the affinity of the Synapse main process; per-worker affinity is not yet configurable.
-## Supports the three Kubernetes affinity types, each configured as a sub-key, e.g.:
-##   nodeAffinity: {}       ## node-scheduling rules, e.g. requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms
-##   podAffinity: {}        ## co-scheduling rules, e.g. preferredDuringSchedulingIgnoredDuringExecution[].podAffinityTerm
-##   podAntiAffinity: {}    ## spreading rules, e.g. preferredDuringSchedulingIgnoredDuringExecution[].podAffinityTerm
+## Supports the three Kubernetes affinity types, each configured as a sub-key.
 ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
-{{ key }}: {}
+{{ key }}:
+  ## Node-scheduling rules for the pods. e.g.
+  ## nodeAffinity:
+  ##   requiredDuringSchedulingIgnoredDuringExecution:
+  ##     nodeSelectorTerms:
+  ##     - matchExpressions:
+  ##       - key: disktype
+  ##         operator: In
+  ##         values:
+  ##         - ssd
+  nodeAffinity: {}
+  ## Rules that attract the pods to nodes already running matching pods. e.g.
+  ## podAffinity:
+  ##   preferredDuringSchedulingIgnoredDuringExecution:
+  ##   - weight: 100
+  ##     podAffinityTerm:
+  ##       topologyKey: kubernetes.io/hostname
+  ##       labelSelector:
+  ##         matchLabels:
+  ##           app.kubernetes.io/name: matrix-stack
+  podAffinity: {}
+  ## Rules that repel the pods from nodes already running matching pods. e.g.
+  ## podAntiAffinity:
+  ##   preferredDuringSchedulingIgnoredDuringExecution:
+  ##   - weight: 100
+  ##     podAffinityTerm:
+  ##       topologyKey: kubernetes.io/hostname
+  ##       labelSelector:
+  ##         matchLabels:
+  ##           app.kubernetes.io/name: matrix-stack
+  podAntiAffinity: {}
 {%- else %}
 ## If specified, the pod's scheduling constraints, configured independently per affinity type.
 ## Each affinity type set here overrides only the matching global affinity type for this component; the other types are still inherited from the global affinity.

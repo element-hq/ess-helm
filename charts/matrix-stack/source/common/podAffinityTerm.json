@@ -1,0 +1,35 @@
+{
+  "type": "object",
+  "required": [
+    "topologyKey"
+  ],
+  "properties": {
+    "labelSelector": {
+      "$ref": "file://common/labelSelector.json"
+    },
+    "namespaceSelector": {
+      "$ref": "file://common/labelSelector.json"
+    },
+    "namespaces": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "topologyKey": {
+      "type": "string"
+    },
+    "matchLabelKeys": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "mismatchLabelKeys": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

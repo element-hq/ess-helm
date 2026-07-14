@@ -3,46 +3,104 @@
   "properties": {
     "nodeAffinity": {
       "type": "object",
-      "additionalProperties": false,
       "properties": {
         "requiredDuringSchedulingIgnoredDuringExecution": {
           "type": "object",
-          "additionalProperties": false,
+          "required": [
+            "nodeSelectorTerms"
+          ],
           "properties": {
             "nodeSelectorTerms": {
-              "type": "array"
+              "type": "array",
+              "items": {
+                "$ref": "file://common/nodeSelectorTerm.json"
+              }
             }
           }
         },
         "preferredDuringSchedulingIgnoredDuringExecution": {
-          "type": "array"
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "weight",
+              "preference"
+            ],
+            "properties": {
+              "weight": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100
+              },
+              "preference": {
+                "$ref": "file://common/nodeSelectorTerm.json"
+              }
+            }
+          }
         }
       }
     },
     "podAffinity": {
       "type": "object",
-      "additionalProperties": false,
       "properties": {
         "requiredDuringSchedulingIgnoredDuringExecution": {
-          "type": "array"
+          "type": "array",
+          "items": {
+            "$ref": "file://common/podAffinityTerm.json"
+          }
         },
         "preferredDuringSchedulingIgnoredDuringExecution": {
-          "type": "array"
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "weight",
+              "podAffinityTerm"
+            ],
+            "properties": {
+              "weight": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100
+              },
+              "podAffinityTerm": {
+                "$ref": "file://common/podAffinityTerm.json"
+              }
+            }
+          }
         }
       }
     },
     "podAntiAffinity": {
       "type": "object",
-      "additionalProperties": false,
       "properties": {
         "requiredDuringSchedulingIgnoredDuringExecution": {
-          "type": "array"
+          "type": "array",
+          "items": {
+            "$ref": "file://common/podAffinityTerm.json"
+          }
         },
         "preferredDuringSchedulingIgnoredDuringExecution": {
-          "type": "array"
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "weight",
+              "podAffinityTerm"
+            ],
+            "properties": {
+              "weight": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100
+              },
+              "podAffinityTerm": {
+                "$ref": "file://common/podAffinityTerm.json"
+              }
+            }
+          }
         }
       }
     }
-  },
-  "additionalProperties": false
+  }
 }
