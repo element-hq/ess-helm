@@ -37,6 +37,9 @@
     "priorityClassName": {
       "type": "string"
     },
+    "affinity": {
+      "$ref": "file://common/affinity.json"
+    },
     "podSecurityContext": {
       "$ref": "file://common/podSecurityContext.json"
     },

@@ -168,6 +168,9 @@
     "priorityClassName": {
       "type": "string"
     },
+    "affinity": {
+      "$ref": "file://common/affinity.json"
+    },
     "extraVolumes": {
       "$ref": "file://common/extraVolumesWithContext.json"
     },

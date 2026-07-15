@@ -13,6 +13,7 @@ import pyhelm3
 
 class PropertyType(Enum):
     AdditionalConfig = "additional"
+    Affinity = "affinity"
     Enabled = "enabled"
     Env = "extraEnv"
     ExposedServices = "exposedServices"
@@ -252,6 +253,7 @@ class SidecarDetails(DeployableDetails):
 
         sidecar_values_file_path_overrides = {
             # Not possible, will come from the parent component
+            PropertyType.Affinity: ValuesFilePath.not_supported(),
             PropertyType.InitContainers: ValuesFilePath.not_supported(),
             PropertyType.NodeSelector: ValuesFilePath.not_supported(),
             PropertyType.PodSecurityContext: ValuesFilePath.not_supported(),
@@ -381,6 +383,7 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
         PropertyType.Image: ValuesFilePath.read_elsewhere("synapse", "image"),
         PropertyType.InitContainers: ValuesFilePath.read_elsewhere("synapse", "extraInitContainers"),
         PropertyType.Labels: ValuesFilePath.read_elsewhere("synapse", "labels"),
+        PropertyType.Affinity: ValuesFilePath.read_elsewhere("synapse", "affinity"),
         PropertyType.NodeSelector: ValuesFilePath.read_elsewhere("synapse", "nodeSelector"),
         PropertyType.PodSecurityContext: ValuesFilePath.read_elsewhere("synapse", "podSecurityContext"),
         PropertyType.PriorityClassName: ValuesFilePath.read_elsewhere("synapse", "priorityClassName"),
@@ -701,6 +704,7 @@ all_components_details = [
                     PropertyType.InitContainers: ValuesFilePath.read_elsewhere("synapse", "extraInitContainers"),
                     # Job so no livenessProbe
                     PropertyType.LivenessProbe: ValuesFilePath.not_supported(),
+                    PropertyType.Affinity: ValuesFilePath.read_elsewhere("synapse", "affinity"),
                     PropertyType.NodeSelector: ValuesFilePath.read_elsewhere("synapse", "nodeSelector"),
                     PropertyType.PodSecurityContext: ValuesFilePath.read_elsewhere("synapse", "podSecurityContext"),
                     PropertyType.PriorityClassName: ValuesFilePath.read_elsewhere("synapse", "priorityClassName"),

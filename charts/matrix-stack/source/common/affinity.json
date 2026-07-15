@@ -1,0 +1,106 @@
+{
+  "type": "object",
+  "properties": {
+    "nodeAffinity": {
+      "type": "object",
+      "properties": {
+        "requiredDuringSchedulingIgnoredDuringExecution": {
+          "type": "object",
+          "required": [
+            "nodeSelectorTerms"
+          ],
+          "properties": {
+            "nodeSelectorTerms": {
+              "type": "array",
+              "items": {
+                "$ref": "file://common/nodeSelectorTerm.json"
+              }
+            }
+          }
+        },
+        "preferredDuringSchedulingIgnoredDuringExecution": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "weight",
+              "preference"
+            ],
+            "properties": {
+              "weight": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100
+              },
+              "preference": {
+                "$ref": "file://common/nodeSelectorTerm.json"
+              }
+            }
+          }
+        }
+      }
+    },
+    "podAffinity": {
+      "type": "object",
+      "properties": {
+        "requiredDuringSchedulingIgnoredDuringExecution": {
+          "type": "array",
+          "items": {
+            "$ref": "file://common/podAffinityTerm.json"
+          }
+        },
+        "preferredDuringSchedulingIgnoredDuringExecution": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "weight",
+              "podAffinityTerm"
+            ],
+            "properties": {
+              "weight": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100
+              },
+              "podAffinityTerm": {
+                "$ref": "file://common/podAffinityTerm.json"
+              }
+            }
+          }
+        }
+      }
+    },
+    "podAntiAffinity": {
+      "type": "object",
+      "properties": {
+        "requiredDuringSchedulingIgnoredDuringExecution": {
+          "type": "array",
+          "items": {
+            "$ref": "file://common/podAffinityTerm.json"
+          }
+        },
+        "preferredDuringSchedulingIgnoredDuringExecution": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "weight",
+              "podAffinityTerm"
+            ],
+            "properties": {
+              "weight": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100
+              },
+              "podAffinityTerm": {
+                "$ref": "file://common/podAffinityTerm.json"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

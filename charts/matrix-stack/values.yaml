@@ -144,6 +144,44 @@ topologySpreadConstraints:
 ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
 priorityClassName: ""
 
+## Default affinity rules applied to the pods of all components.
+## Configured independently per affinity type (nodeAffinity, podAffinity, podAntiAffinity).
+## A component that sets one of these affinity types overrides only that type for that component; the other types are still inherited from here.
+## Synapse worker pods inherit the affinity of the Synapse main process; per-worker affinity is not yet configurable.
+## Supports the three Kubernetes affinity types, each configured as a sub-key.
+## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
+affinity:
+  ## Node-scheduling rules for the pods. e.g.
+  ## nodeAffinity:
+  ##   requiredDuringSchedulingIgnoredDuringExecution:
+  ##     nodeSelectorTerms:
+  ##     - matchExpressions:
+  ##       - key: disktype
+  ##         operator: In
+  ##         values:
+  ##         - ssd
+  nodeAffinity: {}
+  ## Rules that attract the pods to nodes already running matching pods. e.g.
+  ## podAffinity:
+  ##   preferredDuringSchedulingIgnoredDuringExecution:
+  ##   - weight: 100
+  ##     podAffinityTerm:
+  ##       topologyKey: kubernetes.io/hostname
+  ##       labelSelector:
+  ##         matchLabels:
+  ##           app.kubernetes.io/name: matrix-stack
+  podAffinity: {}
+  ## Rules that repel the pods from nodes already running matching pods. e.g.
+  ## podAntiAffinity:
+  ##   preferredDuringSchedulingIgnoredDuringExecution:
+  ##   - weight: 100
+  ##     podAffinityTerm:
+  ##       topologyKey: kubernetes.io/hostname
+  ##       labelSelector:
+  ##         matchLabels:
+  ##           app.kubernetes.io/name: matrix-stack
+  podAntiAffinity: {}
+
 ## The cluster's domain name which will be appended to URLs of internal Services (<name>.<namespace>.svc.<clusterDomain>).
 ## It is unusual to need to change this but if you do need to change it,
 ## strongly consider having a trailing dot to prevent multiple search domains being queried.
@@ -210,6 +248,14 @@ initSecrets:
   ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
   ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
   priorityClassName: ""
+  ## If specified, the pod's scheduling constraints, configured independently per affinity type.
+  ## Each affinity type set here overrides only the matching global affinity type for this component; the other types are still inherited from the global affinity.
+  ## A type is inherited from the global affinity while left unset here; set a type to {} to blank out the inherited global value for that type, e.g.:
+  ##   nodeAffinity: {}       ## override, or with {} blank out, the global nodeAffinity for this component
+  ##   podAffinity: {}        ## override, or with {} blank out, the global podAffinity for this component
+  ##   podAntiAffinity: {}    ## override, or with {} blank out, the global podAntiAffinity for this component
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
+  affinity: {}
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
   podSecurityContext:
     ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to
@@ -365,6 +411,14 @@ deploymentMarkers:
   ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
   ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
   priorityClassName: ""
+  ## If specified, the pod's scheduling constraints, configured independently per affinity type.
+  ## Each affinity type set here overrides only the matching global affinity type for this component; the other types are still inherited from the global affinity.
+  ## A type is inherited from the global affinity while left unset here; set a type to {} to blank out the inherited global value for that type, e.g.:
+  ##   nodeAffinity: {}       ## override, or with {} blank out, the global nodeAffinity for this component
+  ##   podAffinity: {}        ## override, or with {} blank out, the global podAffinity for this component
+  ##   podAntiAffinity: {}    ## override, or with {} blank out, the global podAntiAffinity for this component
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
+  affinity: {}
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
   podSecurityContext:
     ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to
@@ -620,6 +674,14 @@ matrixRTC:
   ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
   ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
   priorityClassName: ""
+  ## If specified, the pod's scheduling constraints, configured independently per affinity type.
+  ## Each affinity type set here overrides only the matching global affinity type for this component; the other types are still inherited from the global affinity.
+  ## A type is inherited from the global affinity while left unset here; set a type to {} to blank out the inherited global value for that type, e.g.:
+  ##   nodeAffinity: {}       ## override, or with {} blank out, the global nodeAffinity for this component
+  ##   podAffinity: {}        ## override, or with {} blank out, the global podAffinity for this component
+  ##   podAntiAffinity: {}    ## override, or with {} blank out, the global podAntiAffinity for this component
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
+  affinity: {}
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
   podSecurityContext:
     ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to
@@ -1002,6 +1064,14 @@ matrixRTC:
     ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
     ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
     priorityClassName: ""
+    ## If specified, the pod's scheduling constraints, configured independently per affinity type.
+    ## Each affinity type set here overrides only the matching global affinity type for this component; the other types are still inherited from the global affinity.
+    ## A type is inherited from the global affinity while left unset here; set a type to {} to blank out the inherited global value for that type, e.g.:
+    ##   nodeAffinity: {}       ## override, or with {} blank out, the global nodeAffinity for this component
+    ##   podAffinity: {}        ## override, or with {} blank out, the global podAffinity for this component
+    ##   podAntiAffinity: {}    ## override, or with {} blank out, the global podAntiAffinity for this component
+    ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
+    affinity: {}
     ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
     podSecurityContext:
       ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to
@@ -1265,6 +1335,14 @@ elementAdmin:
   ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
   ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
   priorityClassName: ""
+  ## If specified, the pod's scheduling constraints, configured independently per affinity type.
+  ## Each affinity type set here overrides only the matching global affinity type for this component; the other types are still inherited from the global affinity.
+  ## A type is inherited from the global affinity while left unset here; set a type to {} to blank out the inherited global value for that type, e.g.:
+  ##   nodeAffinity: {}       ## override, or with {} blank out, the global nodeAffinity for this component
+  ##   podAffinity: {}        ## override, or with {} blank out, the global podAffinity for this component
+  ##   podAntiAffinity: {}    ## override, or with {} blank out, the global podAntiAffinity for this component
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
+  affinity: {}
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
   podSecurityContext:
     ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to
@@ -1532,6 +1610,14 @@ elementWeb:
   ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
   ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
   priorityClassName: ""
+  ## If specified, the pod's scheduling constraints, configured independently per affinity type.
+  ## Each affinity type set here overrides only the matching global affinity type for this component; the other types are still inherited from the global affinity.
+  ## A type is inherited from the global affinity while left unset here; set a type to {} to blank out the inherited global value for that type, e.g.:
+  ##   nodeAffinity: {}       ## override, or with {} blank out, the global nodeAffinity for this component
+  ##   podAffinity: {}        ## override, or with {} blank out, the global podAffinity for this component
+  ##   podAntiAffinity: {}    ## override, or with {} blank out, the global podAntiAffinity for this component
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
+  affinity: {}
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
   podSecurityContext:
     ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to
@@ -1758,6 +1844,14 @@ haproxy:
   ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
   ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
   priorityClassName: ""
+  ## If specified, the pod's scheduling constraints, configured independently per affinity type.
+  ## Each affinity type set here overrides only the matching global affinity type for this component; the other types are still inherited from the global affinity.
+  ## A type is inherited from the global affinity while left unset here; set a type to {} to blank out the inherited global value for that type, e.g.:
+  ##   nodeAffinity: {}       ## override, or with {} blank out, the global nodeAffinity for this component
+  ##   podAffinity: {}        ## override, or with {} blank out, the global podAffinity for this component
+  ##   podAntiAffinity: {}    ## override, or with {} blank out, the global podAntiAffinity for this component
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
+  affinity: {}
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
   podSecurityContext:
     ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to
@@ -2131,6 +2225,14 @@ hookshot:
   ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
   ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
   priorityClassName: ""
+  ## If specified, the pod's scheduling constraints, configured independently per affinity type.
+  ## Each affinity type set here overrides only the matching global affinity type for this component; the other types are still inherited from the global affinity.
+  ## A type is inherited from the global affinity while left unset here; set a type to {} to blank out the inherited global value for that type, e.g.:
+  ##   nodeAffinity: {}       ## override, or with {} blank out, the global nodeAffinity for this component
+  ##   podAffinity: {}        ## override, or with {} blank out, the global podAffinity for this component
+  ##   podAntiAffinity: {}    ## override, or with {} blank out, the global podAntiAffinity for this component
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
+  affinity: {}
 
   ## Workload tolerations allows Pods that are part of this (sub)component to 'tolerate' any taint that matches the triple <key,value,effect> using the matching operator <operator>.
   ##
@@ -2535,6 +2637,14 @@ matrixAuthenticationService:
   ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
   ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
   priorityClassName: ""
+  ## If specified, the pod's scheduling constraints, configured independently per affinity type.
+  ## Each affinity type set here overrides only the matching global affinity type for this component; the other types are still inherited from the global affinity.
+  ## A type is inherited from the global affinity while left unset here; set a type to {} to blank out the inherited global value for that type, e.g.:
+  ##   nodeAffinity: {}       ## override, or with {} blank out, the global nodeAffinity for this component
+  ##   podAffinity: {}        ## override, or with {} blank out, the global podAffinity for this component
+  ##   podAntiAffinity: {}    ## override, or with {} blank out, the global podAntiAffinity for this component
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
+  affinity: {}
 
   ## Workload tolerations allows Pods that are part of this (sub)component to 'tolerate' any taint that matches the triple <key,value,effect> using the matching operator <operator>.
   ##
@@ -2811,6 +2921,14 @@ matrixAuthenticationService:
     ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
     ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
     priorityClassName: ""
+    ## If specified, the pod's scheduling constraints, configured independently per affinity type.
+    ## Each affinity type set here overrides only the matching global affinity type for this component; the other types are still inherited from the global affinity.
+    ## A type is inherited from the global affinity while left unset here; set a type to {} to blank out the inherited global value for that type, e.g.:
+    ##   nodeAffinity: {}       ## override, or with {} blank out, the global nodeAffinity for this component
+    ##   podAffinity: {}        ## override, or with {} blank out, the global podAffinity for this component
+    ##   podAntiAffinity: {}    ## override, or with {} blank out, the global podAntiAffinity for this component
+    ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
+    affinity: {}
     ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
     podSecurityContext:
       ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to
@@ -3195,6 +3313,14 @@ postgres:
   ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
   ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
   priorityClassName: ""
+  ## If specified, the pod's scheduling constraints, configured independently per affinity type.
+  ## Each affinity type set here overrides only the matching global affinity type for this component; the other types are still inherited from the global affinity.
+  ## A type is inherited from the global affinity while left unset here; set a type to {} to blank out the inherited global value for that type, e.g.:
+  ##   nodeAffinity: {}       ## override, or with {} blank out, the global nodeAffinity for this component
+  ##   podAffinity: {}        ## override, or with {} blank out, the global podAffinity for this component
+  ##   podAntiAffinity: {}    ## override, or with {} blank out, the global podAntiAffinity for this component
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
+  affinity: {}
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
   podSecurityContext:
     ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to
@@ -3431,6 +3557,14 @@ redis:
   ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
   ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
   priorityClassName: ""
+  ## If specified, the pod's scheduling constraints, configured independently per affinity type.
+  ## Each affinity type set here overrides only the matching global affinity type for this component; the other types are still inherited from the global affinity.
+  ## A type is inherited from the global affinity while left unset here; set a type to {} to blank out the inherited global value for that type, e.g.:
+  ##   nodeAffinity: {}       ## override, or with {} blank out, the global nodeAffinity for this component
+  ##   podAffinity: {}        ## override, or with {} blank out, the global podAffinity for this component
+  ##   podAntiAffinity: {}    ## override, or with {} blank out, the global podAntiAffinity for this component
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
+  affinity: {}
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
   podSecurityContext:
     ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to
@@ -5361,6 +5495,14 @@ synapse:
   ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
   ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
   priorityClassName: ""
+  ## If specified, the pod's scheduling constraints, configured independently per affinity type.
+  ## Each affinity type set here overrides only the matching global affinity type for this component; the other types are still inherited from the global affinity.
+  ## A type is inherited from the global affinity while left unset here; set a type to {} to blank out the inherited global value for that type, e.g.:
+  ##   nodeAffinity: {}       ## override, or with {} blank out, the global nodeAffinity for this component
+  ##   podAffinity: {}        ## override, or with {} blank out, the global podAffinity for this component
+  ##   podAntiAffinity: {}    ## override, or with {} blank out, the global podAntiAffinity for this component
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
+  affinity: {}
   ## A subset of PodSecurityContext. PodSecurityContext holds pod-level security attributes and common container settings
   podSecurityContext:
     ## A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to

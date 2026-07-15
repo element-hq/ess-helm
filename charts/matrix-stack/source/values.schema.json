@@ -91,6 +91,9 @@
     "priorityClassName": {
       "type": "string"
     },
+    "affinity": {
+      "$ref": "file://common/affinity.json"
+    },
     "clusterDomain": {
       "type": "string"
     },

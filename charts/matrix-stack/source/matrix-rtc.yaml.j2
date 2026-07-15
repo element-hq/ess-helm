@@ -35,6 +35,7 @@ replicas: 1
 {{- sub_schema_values.extraInitContainers("Matrix RTC") }}
 {{- sub_schema_values.nodeSelector() }}
 {{- sub_schema_values.priorityClassName() }}
+{{- sub_schema_values.affinity() }}
 {{- sub_schema_values.podSecurityContext(user_id='10033', group_id='10033') }}
 {{- sub_schema_values.resources(requests_memory='50Mi', requests_cpu='50m', limits_memory='200Mi') }}
 {{- sub_schema_values.serviceMonitors() }}
@@ -92,6 +93,7 @@ sfu:
 {{- sub_schema_values.containersSecurityContext() | indent(2) }}
 {{- sub_schema_values.nodeSelector() | indent(2) }}
 {{- sub_schema_values.priorityClassName() | indent(2) }}
+{{- sub_schema_values.affinity() | indent(2) }}
 {{- sub_schema_values.podSecurityContext(user_id='10030', group_id='10030') | indent(2) }}
 {{- sub_schema_values.resources(requests_memory='150Mi', requests_cpu='100m', limits_memory='4Gi') | indent(2) }}
 {{- sub_schema_values.serviceAccount() | indent(2) }}
