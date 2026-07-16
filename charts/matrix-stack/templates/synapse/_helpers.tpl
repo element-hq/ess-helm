@@ -326,11 +326,5 @@ ess-version.json: |
 
 {{- define "element-io.synapse.internal-hostport" -}}
 {{- $root := .root -}}
-{{- with required "element-io.synapse.internal-hostport missing context" .context -}}
-{{- $root.Release.Name }}-synapse
-{{- with .targetProcessType -}}
--{{ . }}
-{{- end -}}
-.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:8008
-{{- end -}}
+{{- $root.Release.Name }}-synapse.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:8008
 {{- end -}}
