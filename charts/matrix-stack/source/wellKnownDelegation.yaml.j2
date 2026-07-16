@@ -24,3 +24,17 @@ additional:
   client: "{}"
   server: "{}"
   support: "{}"
+
+## Headers to return on the /.well-known/matrix/* responses
+## Additional headers can be added and the default headers can be
+## modified or removed (by setting their value to null)
+headers:
+  Access-Control-Allow-Headers: "X-Requested-With, Content-Type, Authorization"
+  Access-Control-Allow-Methods: "GET, POST, PUT, DELETE, OPTIONS"
+  Access-Control-Allow-Origin: "*"
+  Cache-Control: "public, max-age=3600"
+  Content-Security-Policy: "frame-ancestors 'self'"
+  X-Content-Type-Options: "nosniff"
+  X-Frame-Options: "SAMEORIGIN"
+  X-Robots-Tag: "noindex, nofollow, noarchive, noimageindex"
+  X-XSS-Protection: "1; mode=block"
