@@ -82,7 +82,7 @@ matrix:
                         "defaultSecretKey" "SYNAPSE_SHARED_SECRET"
                       )
                   ) }}
-  endpoint: "http://{{ include "element-io.synapse.internal-hostport" (dict "root" $root "context" (dict "targetProcessType" "main")) }}"
+  endpoint: "http://{{ include "element-io.synapse.internal-hostport" (dict "root" $root) }}"
 {{- /* When in syn2mas dryRun mode, migration has not run yet
 We don't want MAS to change data in Synapse
 */}}

@@ -10,7 +10,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 bridge:
   domain: "{{ tpl $root.Values.serverName $root }}"
 {{- if $root.Values.synapse.enabled }}
-  url: "http://{{ include "element-io.synapse.internal-hostport" (dict "root" $root "context" (dict "targetProcessType" "")) }}"
+  url: "http://{{ include "element-io.synapse.internal-hostport" (dict "root" $root) }}"
 {{- end }}
   port: 9993
   {{- /* We can only bind to 1 and so in the dual-stack case we bind :: and rely on the lack of IPV6_V6ONLY on the socket options */}}

@@ -66,7 +66,7 @@ spec:
         args:
         - tcpwait
         - -address
-        - "{{ include "element-io.synapse.internal-hostport" (dict "root" $ "context" (dict "targetProcessType" "")) }}"
+        - "{{ include "element-io.synapse.internal-hostport" (dict "root" $) }}"
 {{- with .resources }}
         resources:
           {{- toYaml . | nindent 10 }}
