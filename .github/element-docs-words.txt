@@ -15,12 +15,14 @@ ELEMENTSEC
 Famedly
 Gematik
 GHSA
+GitHub
 homeserver
 Homeserver
 homeservers
 Hookshot
 Jetstack
 Jinja
+Jira
 kubeconfig
 kubeconform
 kubernetes
@@ -31,6 +33,7 @@ Muxed
 mypy
 newsfragment
 newsfragments
+OpenProject
 passthrough
 postgres
 PostgreSQL
