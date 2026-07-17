@@ -55,6 +55,11 @@ sfu:
   # Specify a manual IP address for the server public IP
   manualIP: ""
 
+  # The Kubernetes downward API field used to populate the server public IP
+  # when useStunToDiscoverPublicIP is false and manualIP is empty
+  # Valid values: hostIP, podIP
+  nodeIPSource: hostIP
+
   # LiveKit Logging level
   logging:
     # log level, valid values: debug, info, warn, error

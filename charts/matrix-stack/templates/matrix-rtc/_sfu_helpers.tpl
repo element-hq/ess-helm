@@ -32,7 +32,7 @@ env:
 - name: NODE_IP
   valueFrom:
     fieldRef:
-      fieldPath: status.hostIP
+      fieldPath: status.{{ $root.Values.matrixRTC.sfu.nodeIPSource }}
 {{- end }}
 - name: "LIVEKIT_KEY"
   value: "{{ ($root.Values.matrixRTC.livekitAuth).key | default "matrix-rtc" }}"

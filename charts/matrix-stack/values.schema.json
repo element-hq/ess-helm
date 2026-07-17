@@ -5308,6 +5308,13 @@
             "manualIP": {
               "type": "string"
             },
+            "nodeIPSource": {
+              "type": "string",
+              "enum": [
+                "hostIP",
+                "podIP"
+              ]
+            },
             "additional": {
               "type": "object",
               "additionalProperties": {
