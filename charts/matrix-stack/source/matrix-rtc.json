@@ -158,6 +158,13 @@
         "manualIP": {
           "type": "string"
         },
+        "nodeIPSource": {
+          "type": "string",
+          "enum": [
+            "hostIP",
+            "podIP"
+          ]
+        },
         "additional": {
           "$ref": "file://common/additional.json"
         },

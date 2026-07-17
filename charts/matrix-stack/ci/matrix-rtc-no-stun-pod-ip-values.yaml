@@ -1,0 +1,26 @@
+# Copyright 2025-2026 Element Creations Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# source_fragments: matrix-rtc-minimal.yaml matrix-rtc-pod-ip.yaml
+# DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
+
+# initSecrets, postgres don't have any required properties to be set and defaults to enabled
+deploymentMarkers:
+  enabled: false
+elementAdmin:
+  enabled: false
+elementWeb:
+  enabled: false
+matrixAuthenticationService:
+  enabled: false
+matrixRTC:
+  ingress:
+    host: mrtc.ess.localhost
+  sfu:
+    nodeIPSource: podIP
+    useStunToDiscoverPublicIP: false
+synapse:
+  enabled: false
+wellKnownDelegation:
+  enabled: false
