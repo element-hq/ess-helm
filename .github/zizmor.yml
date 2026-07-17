@@ -24,7 +24,7 @@ rules:
       # We disable cache on releases
       - packages.yml:85
       # This job do not release any artifact, we do not care about cache poisoning
-      - packages.yml:145
+      - packages.yml:152
   superfluous-actions:
     ignore:
       # The high-level action-gh-release is preferred over the CLI
