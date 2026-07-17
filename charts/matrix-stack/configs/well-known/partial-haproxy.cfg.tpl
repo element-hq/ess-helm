@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2024-2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -47,15 +47,9 @@ frontend well-known-in
 backend well-known-static
   mode http
 
-  http-after-response set-header X-Frame-Options SAMEORIGIN
-  http-after-response set-header X-Content-Type-Options nosniff
-  http-after-response set-header X-XSS-Protection "1; mode=block"
-  http-after-response set-header Content-Security-Policy "frame-ancestors 'self'"
-  http-after-response set-header X-Robots-Tag "noindex, nofollow, noarchive, noimageindex"
-
-  http-after-response set-header Access-Control-Allow-Origin *
-  http-after-response set-header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-  http-after-response set-header Access-Control-Allow-Headers "X-Requested-With, Content-Type, Authorization"
+{{- range $name, $value := .headers }}
+  http-after-response set-header {{ $name }} {{ $value | quote }}
+{{- end }}
 
   http-request return status 200 content-type "application/json" file "/well-known/server" if { path /.well-known/matrix/server }
   http-request return status 200 content-type "application/json" file "/well-known/client" if { path /.well-known/matrix/client }

@@ -36,6 +36,12 @@
           "type": "string"
         }
       }
+    },
+    "headers": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
     }
   }
 }
