@@ -39,11 +39,12 @@ async def test_uses_serviceaccount_named_as_per_pod_controller_by_default(templa
             serviceaccount_names.add(template["metadata"]["name"])
 
     for id, template in workloads_by_id.items():
-        assert "serviceAccountName" in template["spec"]["template"]["spec"], (
+        pod_template_details = PodTemplateDetails(template)
+        assert "serviceAccountName" in pod_template_details.pod_template["spec"], (
             f"{id} does not set an explicit ServiceAccount"
         )
 
-        serviceaccount_name = template["spec"]["template"]["spec"]["serviceAccountName"]
+        serviceaccount_name = pod_template_details.pod_template["spec"]["serviceAccountName"]
         covered_serviceaccount_names.add(serviceaccount_name)
 
         assert serviceaccount_name in serviceaccount_names, f"{id} does not reference a created ServiceAccount"
@@ -81,15 +82,16 @@ async def test_uses_serviceaccount_named_as_values_if_specified(values, make_tem
             serviceaccount_names.append(template["metadata"]["name"])
 
     for id, template in workloads_by_id.items():
-        assert "serviceAccountName" in template["spec"]["template"]["spec"], (
+        pod_template_details = PodTemplateDetails(template)
+        assert "serviceAccountName" in pod_template_details.pod_template["spec"], (
             f"{id} does not set an explicit ServiceAccount"
         )
-        assert template["spec"]["template"]["spec"]["serviceAccountName"] in serviceaccount_names, (
+        assert pod_template_details.pod_template["spec"]["serviceAccountName"] in serviceaccount_names, (
             f"{id} does not reference a created ServiceAccount"
         )
         assert (
             template["metadata"]["labels"]["expected.name"]
-            == template["spec"]["template"]["spec"]["serviceAccountName"]
+            == pod_template_details.pod_template["spec"]["serviceAccountName"]
         ), f"{id} uses unexpected ServiceAccount"
 
 
