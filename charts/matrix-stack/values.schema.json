@@ -375,6 +375,12 @@
     "priorityClassName": {
       "type": "string"
     },
+    "schedulerName": {
+      "type": "string"
+    },
+    "runtimeClassName": {
+      "type": "string"
+    },
     "affinity": {
       "type": "object",
       "properties": {
@@ -1322,6 +1328,12 @@
           }
         },
         "priorityClassName": {
+          "type": "string"
+        },
+        "schedulerName": {
+          "type": "string"
+        },
+        "runtimeClassName": {
           "type": "string"
         },
         "affinity": {
@@ -2507,6 +2519,12 @@
           }
         },
         "priorityClassName": {
+          "type": "string"
+        },
+        "schedulerName": {
+          "type": "string"
+        },
+        "runtimeClassName": {
           "type": "string"
         },
         "affinity": {
@@ -3979,6 +3997,12 @@
           }
         },
         "priorityClassName": {
+          "type": "string"
+        },
+        "schedulerName": {
+          "type": "string"
+        },
+        "runtimeClassName": {
           "type": "string"
         },
         "affinity": {
@@ -5739,6 +5763,12 @@
             "priorityClassName": {
               "type": "string"
             },
+            "schedulerName": {
+              "type": "string"
+            },
+            "runtimeClassName": {
+              "type": "string"
+            },
             "affinity": {
               "type": "object",
               "properties": {
@@ -7205,6 +7235,12 @@
         "priorityClassName": {
           "type": "string"
         },
+        "schedulerName": {
+          "type": "string"
+        },
+        "runtimeClassName": {
+          "type": "string"
+        },
         "affinity": {
           "type": "object",
           "properties": {
@@ -8665,6 +8701,12 @@
         "priorityClassName": {
           "type": "string"
         },
+        "schedulerName": {
+          "type": "string"
+        },
+        "runtimeClassName": {
+          "type": "string"
+        },
         "affinity": {
           "type": "object",
           "properties": {
@@ -10038,6 +10080,12 @@
           }
         },
         "priorityClassName": {
+          "type": "string"
+        },
+        "schedulerName": {
+          "type": "string"
+        },
+        "runtimeClassName": {
           "type": "string"
         },
         "affinity": {
@@ -11817,6 +11865,12 @@
         "priorityClassName": {
           "type": "string"
         },
+        "schedulerName": {
+          "type": "string"
+        },
+        "runtimeClassName": {
+          "type": "string"
+        },
         "affinity": {
           "type": "object",
           "properties": {
@@ -13576,6 +13630,12 @@
             "priorityClassName": {
               "type": "string"
             },
+            "schedulerName": {
+              "type": "string"
+            },
+            "runtimeClassName": {
+              "type": "string"
+            },
             "affinity": {
               "type": "object",
               "properties": {
@@ -14911,6 +14971,12 @@
           }
         },
         "priorityClassName": {
+          "type": "string"
+        },
+        "schedulerName": {
+          "type": "string"
+        },
+        "runtimeClassName": {
           "type": "string"
         },
         "affinity": {
@@ -16856,6 +16922,12 @@
         "priorityClassName": {
           "type": "string"
         },
+        "schedulerName": {
+          "type": "string"
+        },
+        "runtimeClassName": {
+          "type": "string"
+        },
         "affinity": {
           "type": "object",
           "properties": {
@@ -18255,6 +18327,12 @@
           }
         },
         "priorityClassName": {
+          "type": "string"
+        },
+        "schedulerName": {
+          "type": "string"
+        },
+        "runtimeClassName": {
           "type": "string"
         },
         "affinity": {
@@ -20638,6 +20716,12 @@
           }
         },
         "priorityClassName": {
+          "type": "string"
+        },
+        "schedulerName": {
+          "type": "string"
+        },
+        "runtimeClassName": {
           "type": "string"
         },
         "affinity": {

@@ -36,6 +36,8 @@ essPasswords: {}
 {{- sub_schema_values.containersSecurityContext() }}
 {{- sub_schema_values.nodeSelector() }}
 {{- sub_schema_values.priorityClassName() }}
+{{- sub_schema_values.schedulerName() }}
+{{- sub_schema_values.runtimeClassName() }}
 {{- sub_schema_values.affinity() }}
 {{- sub_schema_values.podSecurityContext(user_id='10091', group_id='10091') }}
 {{- sub_schema_values.resources(requests_memory='100Mi', requests_cpu='100m', limits_memory='4Gi') }}
