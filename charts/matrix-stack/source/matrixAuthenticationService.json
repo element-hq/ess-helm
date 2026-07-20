@@ -83,6 +83,12 @@
         "priorityClassName": {
           "type": "string"
         },
+        "schedulerName": {
+          "type": "string"
+        },
+        "runtimeClassName": {
+          "type": "string"
+        },
         "affinity": {
           "$ref": "file://common/affinity.json"
         },
@@ -137,6 +143,12 @@
       "$ref": "file://common/nodeSelector.json"
     },
     "priorityClassName": {
+      "type": "string"
+    },
+    "schedulerName": {
+      "type": "string"
+    },
+    "runtimeClassName": {
       "type": "string"
     },
     "affinity": {

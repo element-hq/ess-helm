@@ -31,6 +31,12 @@ nodeSelector:
 {{- with (coalesce .priorityClassName $root.Values.priorityClassName) }}
 priorityClassName: {{ . }}
 {{- end }}
+{{- with (coalesce .schedulerName $root.Values.schedulerName) }}
+schedulerName: {{ . }}
+{{- end }}
+{{- with (coalesce .runtimeClassName $root.Values.runtimeClassName) }}
+runtimeClassName: {{ . }}
+{{- end }}
 {{- include "element-io.ess-library.pods.affinity" (dict "root" $root "context" (dict "affinity" .affinity)) }}
 restartPolicy: {{ (eq $kind "Job") | ternary "Never" "Always" }}
 {{- include "element-io.ess-library.pods.tolerations" (dict "root" $root "context" .tolerations) }}

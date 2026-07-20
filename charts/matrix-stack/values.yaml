@@ -144,6 +144,20 @@ topologySpreadConstraints:
 ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
 priorityClassName: ""
 
+## Default schedulerName applied to the pods of all components.
+## A schedulerName set on an individual component overrides this global value for that component.
+## Synapse worker pods inherit the schedulerName of the Synapse main process; per-worker schedulerName is not yet configurable.
+## If not specified, the pod will be dispatched by the default scheduler.
+## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/
+schedulerName: ""
+
+## Default runtimeClassName applied to the pods of all components.
+## A runtimeClassName set on an individual component overrides this global value for that component.
+## Synapse worker pods inherit the runtimeClassName of the Synapse main process; per-worker runtimeClassName is not yet configurable.
+## If not set or empty, the default RuntimeClass is used, which is equivalent to the behavior when this feature is disabled.
+## More info: https://kubernetes.io/docs/concepts/containers/runtime-class/
+runtimeClassName: ""
+
 ## Default affinity rules applied to the pods of all components.
 ## Configured independently per affinity type (nodeAffinity, podAffinity, podAntiAffinity).
 ## A component that sets one of these affinity types overrides only that type for that component; the other types are still inherited from here.
@@ -248,6 +262,14 @@ initSecrets:
   ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
   ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
   priorityClassName: ""
+  ## If specified, the pod will be dispatched by the specified scheduler.
+  ## If not specified, the pod will be dispatched by the default scheduler.
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/
+  schedulerName: ""
+  ## If specified, refers to a RuntimeClass object in the node.k8s.io group, which should be used to run this pod.
+  ## If not set or empty, the default RuntimeClass is used, which is equivalent to the behavior when this feature is disabled.
+  ## More info: https://kubernetes.io/docs/concepts/containers/runtime-class/
+  runtimeClassName: ""
   ## If specified, the pod's scheduling constraints, configured independently per affinity type.
   ## Each affinity type set here overrides only the matching global affinity type for this component; the other types are still inherited from the global affinity.
   ## A type is inherited from the global affinity while left unset here; set a type to {} to blank out the inherited global value for that type, e.g.:
@@ -411,6 +433,14 @@ deploymentMarkers:
   ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
   ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
   priorityClassName: ""
+  ## If specified, the pod will be dispatched by the specified scheduler.
+  ## If not specified, the pod will be dispatched by the default scheduler.
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/
+  schedulerName: ""
+  ## If specified, refers to a RuntimeClass object in the node.k8s.io group, which should be used to run this pod.
+  ## If not set or empty, the default RuntimeClass is used, which is equivalent to the behavior when this feature is disabled.
+  ## More info: https://kubernetes.io/docs/concepts/containers/runtime-class/
+  runtimeClassName: ""
   ## If specified, the pod's scheduling constraints, configured independently per affinity type.
   ## Each affinity type set here overrides only the matching global affinity type for this component; the other types are still inherited from the global affinity.
   ## A type is inherited from the global affinity while left unset here; set a type to {} to blank out the inherited global value for that type, e.g.:
@@ -674,6 +704,14 @@ matrixRTC:
   ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
   ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
   priorityClassName: ""
+  ## If specified, the pod will be dispatched by the specified scheduler.
+  ## If not specified, the pod will be dispatched by the default scheduler.
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/
+  schedulerName: ""
+  ## If specified, refers to a RuntimeClass object in the node.k8s.io group, which should be used to run this pod.
+  ## If not set or empty, the default RuntimeClass is used, which is equivalent to the behavior when this feature is disabled.
+  ## More info: https://kubernetes.io/docs/concepts/containers/runtime-class/
+  runtimeClassName: ""
   ## If specified, the pod's scheduling constraints, configured independently per affinity type.
   ## Each affinity type set here overrides only the matching global affinity type for this component; the other types are still inherited from the global affinity.
   ## A type is inherited from the global affinity while left unset here; set a type to {} to blank out the inherited global value for that type, e.g.:
@@ -1069,6 +1107,14 @@ matrixRTC:
     ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
     ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
     priorityClassName: ""
+    ## If specified, the pod will be dispatched by the specified scheduler.
+    ## If not specified, the pod will be dispatched by the default scheduler.
+    ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/
+    schedulerName: ""
+    ## If specified, refers to a RuntimeClass object in the node.k8s.io group, which should be used to run this pod.
+    ## If not set or empty, the default RuntimeClass is used, which is equivalent to the behavior when this feature is disabled.
+    ## More info: https://kubernetes.io/docs/concepts/containers/runtime-class/
+    runtimeClassName: ""
     ## If specified, the pod's scheduling constraints, configured independently per affinity type.
     ## Each affinity type set here overrides only the matching global affinity type for this component; the other types are still inherited from the global affinity.
     ## A type is inherited from the global affinity while left unset here; set a type to {} to blank out the inherited global value for that type, e.g.:
@@ -1340,6 +1386,14 @@ elementAdmin:
   ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
   ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
   priorityClassName: ""
+  ## If specified, the pod will be dispatched by the specified scheduler.
+  ## If not specified, the pod will be dispatched by the default scheduler.
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/
+  schedulerName: ""
+  ## If specified, refers to a RuntimeClass object in the node.k8s.io group, which should be used to run this pod.
+  ## If not set or empty, the default RuntimeClass is used, which is equivalent to the behavior when this feature is disabled.
+  ## More info: https://kubernetes.io/docs/concepts/containers/runtime-class/
+  runtimeClassName: ""
   ## If specified, the pod's scheduling constraints, configured independently per affinity type.
   ## Each affinity type set here overrides only the matching global affinity type for this component; the other types are still inherited from the global affinity.
   ## A type is inherited from the global affinity while left unset here; set a type to {} to blank out the inherited global value for that type, e.g.:
@@ -1615,6 +1669,14 @@ elementWeb:
   ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
   ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
   priorityClassName: ""
+  ## If specified, the pod will be dispatched by the specified scheduler.
+  ## If not specified, the pod will be dispatched by the default scheduler.
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/
+  schedulerName: ""
+  ## If specified, refers to a RuntimeClass object in the node.k8s.io group, which should be used to run this pod.
+  ## If not set or empty, the default RuntimeClass is used, which is equivalent to the behavior when this feature is disabled.
+  ## More info: https://kubernetes.io/docs/concepts/containers/runtime-class/
+  runtimeClassName: ""
   ## If specified, the pod's scheduling constraints, configured independently per affinity type.
   ## Each affinity type set here overrides only the matching global affinity type for this component; the other types are still inherited from the global affinity.
   ## A type is inherited from the global affinity while left unset here; set a type to {} to blank out the inherited global value for that type, e.g.:
@@ -1849,6 +1911,14 @@ haproxy:
   ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
   ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
   priorityClassName: ""
+  ## If specified, the pod will be dispatched by the specified scheduler.
+  ## If not specified, the pod will be dispatched by the default scheduler.
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/
+  schedulerName: ""
+  ## If specified, refers to a RuntimeClass object in the node.k8s.io group, which should be used to run this pod.
+  ## If not set or empty, the default RuntimeClass is used, which is equivalent to the behavior when this feature is disabled.
+  ## More info: https://kubernetes.io/docs/concepts/containers/runtime-class/
+  runtimeClassName: ""
   ## If specified, the pod's scheduling constraints, configured independently per affinity type.
   ## Each affinity type set here overrides only the matching global affinity type for this component; the other types are still inherited from the global affinity.
   ## A type is inherited from the global affinity while left unset here; set a type to {} to blank out the inherited global value for that type, e.g.:
@@ -2230,6 +2300,14 @@ hookshot:
   ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
   ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
   priorityClassName: ""
+  ## If specified, the pod will be dispatched by the specified scheduler.
+  ## If not specified, the pod will be dispatched by the default scheduler.
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/
+  schedulerName: ""
+  ## If specified, refers to a RuntimeClass object in the node.k8s.io group, which should be used to run this pod.
+  ## If not set or empty, the default RuntimeClass is used, which is equivalent to the behavior when this feature is disabled.
+  ## More info: https://kubernetes.io/docs/concepts/containers/runtime-class/
+  runtimeClassName: ""
   ## If specified, the pod's scheduling constraints, configured independently per affinity type.
   ## Each affinity type set here overrides only the matching global affinity type for this component; the other types are still inherited from the global affinity.
   ## A type is inherited from the global affinity while left unset here; set a type to {} to blank out the inherited global value for that type, e.g.:
@@ -2642,6 +2720,14 @@ matrixAuthenticationService:
   ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
   ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
   priorityClassName: ""
+  ## If specified, the pod will be dispatched by the specified scheduler.
+  ## If not specified, the pod will be dispatched by the default scheduler.
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/
+  schedulerName: ""
+  ## If specified, refers to a RuntimeClass object in the node.k8s.io group, which should be used to run this pod.
+  ## If not set or empty, the default RuntimeClass is used, which is equivalent to the behavior when this feature is disabled.
+  ## More info: https://kubernetes.io/docs/concepts/containers/runtime-class/
+  runtimeClassName: ""
   ## If specified, the pod's scheduling constraints, configured independently per affinity type.
   ## Each affinity type set here overrides only the matching global affinity type for this component; the other types are still inherited from the global affinity.
   ## A type is inherited from the global affinity while left unset here; set a type to {} to blank out the inherited global value for that type, e.g.:
@@ -2926,6 +3012,14 @@ matrixAuthenticationService:
     ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
     ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
     priorityClassName: ""
+    ## If specified, the pod will be dispatched by the specified scheduler.
+    ## If not specified, the pod will be dispatched by the default scheduler.
+    ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/
+    schedulerName: ""
+    ## If specified, refers to a RuntimeClass object in the node.k8s.io group, which should be used to run this pod.
+    ## If not set or empty, the default RuntimeClass is used, which is equivalent to the behavior when this feature is disabled.
+    ## More info: https://kubernetes.io/docs/concepts/containers/runtime-class/
+    runtimeClassName: ""
     ## If specified, the pod's scheduling constraints, configured independently per affinity type.
     ## Each affinity type set here overrides only the matching global affinity type for this component; the other types are still inherited from the global affinity.
     ## A type is inherited from the global affinity while left unset here; set a type to {} to blank out the inherited global value for that type, e.g.:
@@ -3318,6 +3412,14 @@ postgres:
   ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
   ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
   priorityClassName: ""
+  ## If specified, the pod will be dispatched by the specified scheduler.
+  ## If not specified, the pod will be dispatched by the default scheduler.
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/
+  schedulerName: ""
+  ## If specified, refers to a RuntimeClass object in the node.k8s.io group, which should be used to run this pod.
+  ## If not set or empty, the default RuntimeClass is used, which is equivalent to the behavior when this feature is disabled.
+  ## More info: https://kubernetes.io/docs/concepts/containers/runtime-class/
+  runtimeClassName: ""
   ## If specified, the pod's scheduling constraints, configured independently per affinity type.
   ## Each affinity type set here overrides only the matching global affinity type for this component; the other types are still inherited from the global affinity.
   ## A type is inherited from the global affinity while left unset here; set a type to {} to blank out the inherited global value for that type, e.g.:
@@ -3562,6 +3664,14 @@ redis:
   ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
   ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
   priorityClassName: ""
+  ## If specified, the pod will be dispatched by the specified scheduler.
+  ## If not specified, the pod will be dispatched by the default scheduler.
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/
+  schedulerName: ""
+  ## If specified, refers to a RuntimeClass object in the node.k8s.io group, which should be used to run this pod.
+  ## If not set or empty, the default RuntimeClass is used, which is equivalent to the behavior when this feature is disabled.
+  ## More info: https://kubernetes.io/docs/concepts/containers/runtime-class/
+  runtimeClassName: ""
   ## If specified, the pod's scheduling constraints, configured independently per affinity type.
   ## Each affinity type set here overrides only the matching global affinity type for this component; the other types are still inherited from the global affinity.
   ## A type is inherited from the global affinity while left unset here; set a type to {} to blank out the inherited global value for that type, e.g.:
@@ -5500,6 +5610,14 @@ synapse:
   ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
   ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
   priorityClassName: ""
+  ## If specified, the pod will be dispatched by the specified scheduler.
+  ## If not specified, the pod will be dispatched by the default scheduler.
+  ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/
+  schedulerName: ""
+  ## If specified, refers to a RuntimeClass object in the node.k8s.io group, which should be used to run this pod.
+  ## If not set or empty, the default RuntimeClass is used, which is equivalent to the behavior when this feature is disabled.
+  ## More info: https://kubernetes.io/docs/concepts/containers/runtime-class/
+  runtimeClassName: ""
   ## If specified, the pod's scheduling constraints, configured independently per affinity type.
   ## Each affinity type set here overrides only the matching global affinity type for this component; the other types are still inherited from the global affinity.
   ## A type is inherited from the global affinity while left unset here; set a type to {} to blank out the inherited global value for that type, e.g.:

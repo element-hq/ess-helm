@@ -90,6 +90,12 @@
     "priorityClassName": {
       "type": "string"
     },
+    "schedulerName": {
+      "type": "string"
+    },
+    "runtimeClassName": {
+      "type": "string"
+    },
     "affinity": {
       "$ref": "file://common/affinity.json"
     },

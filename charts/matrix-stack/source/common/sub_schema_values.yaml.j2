@@ -46,6 +46,8 @@ image:
 {{ tolerations(global=true) }}
 {{ topologySpreadConstraints(global=true) }}
 {{ priorityClassName(global=true) }}
+{{ schedulerName(global=true) }}
+{{ runtimeClassName(global=true) }}
 {{ affinity(global=true) }}
 
 ## The cluster's domain name which will be appended to URLs of internal Services (<name>.<namespace>.svc.<clusterDomain>).
@@ -228,6 +230,32 @@ networking:
 ## "system-cluster-critical" and "system-node-critical" are two special built-in classes indicating the highest priorities.
 ## If not set (empty), the pod's priority defaults to the cluster's globalDefault PriorityClass or zero.
 ## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
+{{ key }}: ""
+{%- endmacro %}
+
+{% macro schedulerName(global=false, key='schedulerName') %}
+{%- if global %}
+## Default schedulerName applied to the pods of all components.
+## A schedulerName set on an individual component overrides this global value for that component.
+## Synapse worker pods inherit the schedulerName of the Synapse main process; per-worker schedulerName is not yet configurable.
+{%- else %}
+## If specified, the pod will be dispatched by the specified scheduler.
+{%- endif %}
+## If not specified, the pod will be dispatched by the default scheduler.
+## More info: https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/
+{{ key }}: ""
+{%- endmacro %}
+
+{% macro runtimeClassName(global=false, key='runtimeClassName') %}
+{%- if global %}
+## Default runtimeClassName applied to the pods of all components.
+## A runtimeClassName set on an individual component overrides this global value for that component.
+## Synapse worker pods inherit the runtimeClassName of the Synapse main process; per-worker runtimeClassName is not yet configurable.
+{%- else %}
+## If specified, refers to a RuntimeClass object in the node.k8s.io group, which should be used to run this pod.
+{%- endif %}
+## If not set or empty, the default RuntimeClass is used, which is equivalent to the behavior when this feature is disabled.
+## More info: https://kubernetes.io/docs/concepts/containers/runtime-class/
 {{ key }}: ""
 {%- endmacro %}
 
