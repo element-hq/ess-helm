@@ -1,5 +1,5 @@
 # Copyright 2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -9,7 +9,7 @@ from hashlib import sha1
 import pytest
 
 from . import PropertyType, secret_values_files_to_test, values_files_to_test
-from .utils import template_id, template_to_deployable_details
+from .utils import PERSISTENT_WORKLOAD_KINDS, iterate_pod_template, template_id
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -63,53 +63,49 @@ async def test_templates_have_expected_labels(release_name, templates):
 @pytest.mark.parametrize("values_file", secret_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_templates_have_postgres_hash_label(release_name, templates, values):
-    for template in templates:
-        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            id = template_id(template)
-            labels = template["spec"]["template"]["metadata"]["labels"]
-            deployable_details = template_to_deployable_details(template)
-            if not deployable_details.has_db:
-                continue
+    for pod_template_details in iterate_pod_template(templates):
+        id = pod_template_details.manifest_id
+        labels = pod_template_details.pod_template["metadata"]["labels"]
+        deployable_details = pod_template_details.deployable_details()
+        if not deployable_details.has_db:
+            continue
 
-            assert any(re.match("k8s.element.io/postgres-password-[a-z]+-hash", label) for label in labels), (
-                f"{id} does not have postgres password hash label"
-            )  # We currently assume that Postgres is for top-level components only and so there is a single segment
-            # write (or read) path
-            assert len(deployable_details.values_file_path.write_path) == 1
-            helm_key = deployable_details.values_file_path.read_path[0]
-            values_fragment = deployable_details.get_helm_values(values, PropertyType.Postgres)
-            if values_fragment.get("password", {}).get("value", None):
-                expected = values_fragment["password"]["value"]
-            elif values_fragment.get("password", {}).get("secret", None):
-                secret_name = values_fragment["password"]["secret"]
-                expected = f"{secret_name}-{values_fragment['password']['secretKey']}"
-            elif values["postgres"].get("essPasswords", {}).get(helm_key, {}).get("value", None):
-                expected = values["postgres"]["essPasswords"][helm_key]["value"]
-            elif values["postgres"].get("essPasswords", {}).get(helm_key, {}).get("secret", None):
-                secret_name = values["postgres"]["essPasswords"][helm_key]["secret"]
-                expected = f"{secret_name}-{values['postgres']['essPasswords'][helm_key]['secretKey']}"
-            else:
-                expected = f"{release_name}-generated"
-            expected = expected.replace("{{ $.Release.Name }}", release_name)
-            assert (
-                labels[f"k8s.element.io/postgres-password-{helm_key.lower()[:24]}-hash"]
-                == sha1(expected.encode()).hexdigest()
-            ), f"{id} has incorrect postgres password hash, expect {expected} hashed as sha1"
+        assert any(re.match("k8s.element.io/postgres-password-[a-z]+-hash", label) for label in labels), (
+            f"{id} does not have postgres password hash label"
+        )  # We currently assume that Postgres is for top-level components only and so there is a single segment
+        # write (or read) path
+        assert len(deployable_details.values_file_path.write_path) == 1
+        helm_key = deployable_details.values_file_path.read_path[0]
+        values_fragment = deployable_details.get_helm_values(values, PropertyType.Postgres)
+        if values_fragment.get("password", {}).get("value", None):
+            expected = values_fragment["password"]["value"]
+        elif values_fragment.get("password", {}).get("secret", None):
+            secret_name = values_fragment["password"]["secret"]
+            expected = f"{secret_name}-{values_fragment['password']['secretKey']}"
+        elif values["postgres"].get("essPasswords", {}).get(helm_key, {}).get("value", None):
+            expected = values["postgres"]["essPasswords"][helm_key]["value"]
+        elif values["postgres"].get("essPasswords", {}).get(helm_key, {}).get("secret", None):
+            secret_name = values["postgres"]["essPasswords"][helm_key]["secret"]
+            expected = f"{secret_name}-{values['postgres']['essPasswords'][helm_key]['secretKey']}"
+        else:
+            expected = f"{release_name}-generated"
+        expected = expected.replace("{{ $.Release.Name }}", release_name)
+        assert (
+            labels[f"k8s.element.io/postgres-password-{helm_key.lower()[:24]}-hash"]
+            == sha1(expected.encode()).hexdigest()
+        ), f"{id} has incorrect postgres password hash, expect {expected} hashed as sha1"
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_pod_spec_labels_are_consistent_with_parent_labels(templates):
-    for template in templates:
-        if template["kind"] not in ["Deployment", "Job", "StatefulSet"]:
-            continue
-
+    for pod_template_details in iterate_pod_template(templates):
         # Explicitly omitted from Pod labels so that they don't restart blindly on chart upgrade
-        parent_labels = template["metadata"]["labels"].delete("helm.sh/chart")
-        pod_labels = template["spec"]["template"]["metadata"]["labels"]
+        parent_labels = pod_template_details.manifest["metadata"]["labels"].delete("helm.sh/chart")
+        pod_labels = pod_template_details.pod_template["metadata"]["labels"]
 
         assert parent_labels == pod_labels, (
-            f"{template_id(template)} has differing labels between itself and the Pods it would create. "
+            f"{pod_template_details.manifest_id} has differing labels between itself and the Pods it would create. "
             f"{parent_labels=} vs {pod_labels=}"
         )
 
@@ -140,13 +136,12 @@ async def test_our_labels_are_named_consistently(templates):
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_workloads_selector_matches_labels(templates):
-    for template in templates:
-        if template["kind"] in ("Deployment", "StatefulSet"):
-            for label in template["spec"]["selector"]["matchLabels"]:
-                assert (
-                    template["spec"]["template"]["metadata"]["labels"][label]
-                    == template["spec"]["selector"]["matchLabels"][label]
-                )
+    for pod_template_details in iterate_pod_template(templates, kinds=PERSISTENT_WORKLOAD_KINDS):
+        selector_labels = pod_template_details.manifest["spec"]["selector"]
+        for label in selector_labels["matchLabels"]:
+            assert (
+                pod_template_details.pod_template["metadata"]["labels"][label] == selector_labels["matchLabels"][label]
+            )
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)

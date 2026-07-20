@@ -13,25 +13,22 @@ from . import (
     secret_values_files_to_test,
     values_files_to_test,
 )
-from .utils import iterate_deployables_workload_parts, template_id, template_to_deployable_details
+from .utils import iterate_deployables_workload_parts, iterate_pod_template
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test | secret_values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_emptyDirs_are_memory(templates):
-    for template in templates:
-        if template["kind"] not in ["Deployment", "Job", "StatefulSet"]:
-            continue
-
-        for volume in template["spec"]["template"]["spec"].get("volumes", []):
+    for pod_template_details in iterate_pod_template(templates):
+        for volume in pod_template_details.pod_template["spec"].get("volumes", []):
             if "emptyDir" not in volume:
                 continue
 
             assert "medium" in volume["emptyDir"], (
-                f"{template_id(template)} has emptyDir {volume['name']} but doesn't set the medium"
+                f"{pod_template_details.manifest_id} has emptyDir {volume['name']} but doesn't set the medium"
             )
             assert volume["emptyDir"]["medium"] == "Memory", (
-                f"{template_id(template)} has emptyDir {volume['name']} that isn't Memory backed"
+                f"{pod_template_details.manifest_id} has emptyDir {volume['name']} that isn't Memory backed"
             )
 
 
@@ -120,34 +117,31 @@ async def test_extra_volumes(values, make_templates, release_name):
         return expected_volumes
 
     template_id_to_pod_volumes = {}
-    for template in await make_templates(values):
-        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            pod_volumes = deepfreeze(template["spec"]["template"]["spec"].get("volumes", []))
-            template_id_to_pod_volumes[template_id(template)] = pod_volumes
+    for pod_template_details in iterate_pod_template(await make_templates(values)):
+        pod_volumes = deepfreeze(pod_template_details.pod_template["spec"].get("volumes", []))
+        template_id_to_pod_volumes[pod_template_details.manifest_id] = pod_volumes
 
     iterate_deployables_workload_parts(set_extra_volumes)
-
-    for template in await make_templates(values):
-        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            assert "volumes" in template["spec"]["template"]["spec"], (
-                f"Pod volumes unexpectedly absent for {template_id(template)}"
-            )
-            pod_volumes = deepfreeze(template["spec"]["template"]["spec"]["volumes"])
-            deployable_details = template_to_deployable_details(template)
-            if deployable_details.has_mount_context:
-                if template["metadata"].get("annotations", {}).get("helm.sh/hook-weight"):
-                    assert set(pod_volumes) - set(template_id_to_pod_volumes[f"{template_id(template)}"]) == set(
-                        get_expected_volumes_from_values(deployable_details, with_hooks=True)
-                    ), f"Pod container {template_id(template)} volume mounts {pod_volumes}"
-                else:
-                    assert set(pod_volumes) - set(template_id_to_pod_volumes[f"{template_id(template)}"]) == set(
-                        get_expected_volumes_from_values(deployable_details, with_hooks=False)
-                    ), f"Pod container {template_id(template)} volume mounts {pod_volumes}"
+    for pod_template_details in iterate_pod_template(await make_templates(values)):
+        assert "volumes" in pod_template_details.pod_template["spec"], (
+            f"Pod volumes unexpectedly absent for {pod_template_details.manifest_id}"
+        )
+        pod_volumes = deepfreeze(pod_template_details.pod_template["spec"]["volumes"])
+        deployable_details = pod_template_details.deployable_details()
+        if deployable_details.has_mount_context:
+            if pod_template_details.manifest["metadata"].get("annotations", {}).get("helm.sh/hook-weight"):
+                assert set(pod_volumes) - set(template_id_to_pod_volumes[pod_template_details.manifest_id]) == set(
+                    get_expected_volumes_from_values(deployable_details, with_hooks=True)
+                ), f"Pod container {pod_template_details.manifest_id} volume mounts {pod_volumes}"
             else:
-                assert "volumes" in template["spec"]["template"]["spec"], (
-                    f"Pod volumes unexpectedly absent for {template_id(template)}"
-                )
+                assert set(pod_volumes) - set(template_id_to_pod_volumes[pod_template_details.manifest_id]) == set(
+                    get_expected_volumes_from_values(deployable_details, with_hooks=False)
+                ), f"Pod container {pod_template_details.manifest_id} volume mounts {pod_volumes}"
+        else:
+            assert "volumes" in pod_template_details.pod_template["spec"], (
+                f"Pod volumes unexpectedly absent for {pod_template_details.manifest_id}"
+            )
 
-                assert set(pod_volumes) - set(template_id_to_pod_volumes[template_id(template)]) == set(
-                    get_expected_volumes_from_values(deployable_details, with_hooks=None)
-                ), f"Pod volumes {pod_volumes} is missing expected extra volume"
+            assert set(pod_volumes) - set(template_id_to_pod_volumes[pod_template_details.manifest_id]) == set(
+                get_expected_volumes_from_values(deployable_details, with_hooks=None)
+            ), f"Pod volumes {pod_volumes} is missing expected extra volume"

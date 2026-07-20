@@ -1,5 +1,5 @@
 # Copyright 2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -9,8 +9,7 @@ from frozendict import deepfreeze
 from . import DeployableDetails, PropertyType, values_files_to_test
 from .utils import (
     iterate_deployables_parts,
-    template_id,
-    template_to_deployable_details,
+    iterate_pod_template,
 )
 
 
@@ -30,34 +29,32 @@ async def test_pod_has_hostAliases_if_appropriate(values, make_templates, releas
         deployable_details.set_helm_values(values, PropertyType.HostAliases, hostAliases)
 
     iterate_deployables_parts(set_hostAliases, lambda deployable_details: deployable_details.makes_outbound_requests)
-    for template in await make_templates(values):
-        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            pod_spec = template["spec"]["template"]["spec"]
-            deployable_details = template_to_deployable_details(template)
+    for pod_template_details in iterate_pod_template(await make_templates(values)):
+        pod_spec = pod_template_details.pod_template["spec"]
+        deployable_details = pod_template_details.deployable_details()
 
-            if not deployable_details.makes_outbound_requests:
-                assert "hostAliases" not in pod_spec, (
-                    f"{template_id(template)} set hostAliases in its Pod when it doesn't need to"
+        if not deployable_details.makes_outbound_requests:
+            assert "hostAliases" not in pod_spec, (
+                f"{pod_template_details.manifest_id} set hostAliases in its Pod when it doesn't need to"
+            )
+            continue
+
+        assert "hostAliases" in pod_spec, f"{pod_template_details.manifest_id} doesn't set hostAliases in its Pod"
+
+        expected_hostAliases = deployable_details.get_helm_values(values, PropertyType.HostAliases)
+        expected_hostAliases = tuple(
+            [
+                deepfreeze(
+                    {
+                        "ip": alias["ip"],
+                        "hostnames": [
+                            hostname.replace("{{ $.Release.Name }}", release_name) for hostname in alias["hostnames"]
+                        ],
+                    }
                 )
-                continue
-
-            assert "hostAliases" in pod_spec, f"{template_id(template)} doesn't set hostAliases in its Pod"
-
-            expected_hostAliases = deployable_details.get_helm_values(values, PropertyType.HostAliases)
-            expected_hostAliases = tuple(
-                [
-                    deepfreeze(
-                        {
-                            "ip": alias["ip"],
-                            "hostnames": [
-                                hostname.replace("{{ $.Release.Name }}", release_name)
-                                for hostname in alias["hostnames"]
-                            ],
-                        }
-                    )
-                    for alias in expected_hostAliases
-                ]
-            )
-            assert pod_spec["hostAliases"] == expected_hostAliases, (
-                f"{template_id(template)} doesn't have the expected hostAliases"
-            )
+                for alias in expected_hostAliases
+            ]
+        )
+        assert pod_spec["hostAliases"] == expected_hostAliases, (
+            f"{pod_template_details.manifest_id} doesn't have the expected hostAliases"
+        )

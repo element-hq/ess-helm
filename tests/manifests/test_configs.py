@@ -11,7 +11,7 @@ import pytest
 import yaml
 
 from . import DeployableDetails, PropertyType, secret_values_files_to_test, values_files_to_test
-from .utils import iterate_deployables_parts, template_id, template_to_deployable_details
+from .utils import ALL_WORKLOAD_KINDS, iterate_deployables_parts, template_id, template_to_deployable_details
 
 
 @pytest.mark.parametrize(
@@ -60,11 +60,7 @@ async def test_user_provided_inline_configs_change_hashes(values, make_templates
             ):
                 hashes_by_template_id[id][label] = value
 
-        if template_to_deployable_details(template).has_additional_config and template["kind"] in [
-            "Deployment",
-            "StatefulSet",
-            "Job",
-        ]:
+        if template_to_deployable_details(template).has_additional_config and template["kind"] in ALL_WORKLOAD_KINDS:
             assert len(hashes_by_template_id[id]) > 0, (
                 f"{id} supports additional configuration but we haven't seen any hashes"
             )

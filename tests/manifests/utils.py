@@ -11,6 +11,7 @@ import shutil
 import string
 import tempfile
 from collections.abc import Callable, Iterator
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -369,11 +370,9 @@ def get_or_empty(d, key):
 
 def find_workload_ids_matching_selector(templates: list[dict[str, Any]], selector: dict[str, str]) -> set[str]:
     workload_ids = set[str]()
-    for template in templates:
-        if template["kind"] in ("Deployment", "StatefulSet", "Job") and selector_match(
-            template["spec"]["template"]["metadata"]["labels"], selector
-        ):
-            workload_ids.add(template_id(template))
+    for pod_template_details in iterate_pod_template(templates):
+        if selector_match(pod_template_details.pod_template["metadata"]["labels"], selector):
+            workload_ids.add(pod_template_details.manifest_id)
 
     return workload_ids
 
@@ -410,7 +409,7 @@ async def assert_covers_expected_workloads(
             f"{template_id(template)} unexpectedly exists when all {covering_kind} should be turned off"
         )
         deployable_details = template_to_deployable_details(template)
-        if template["kind"] in ["Deployment", "StatefulSet"] and if_condition(deployable_details):
+        if template["kind"] in PERSISTENT_WORKLOAD_KINDS and if_condition(deployable_details):
             workload_ids_to_cover.add(template_id(template))
 
     def enable_covering_templates(deployable_details: DeployableDetails):
@@ -443,6 +442,32 @@ async def assert_covers_expected_workloads(
         covered_workload_ids.update(new_covered_workload_ids)
 
     assert workload_ids_to_cover == covered_workload_ids, "Not all workloads we were expecting to cover were covered"
+
+
+@dataclass
+class PodTemplateDetails:
+    manifest: dict[str, Any]
+    manifest_id: str = field(init=False)
+    pod_template: dict[str, Any] = field(init=False)
+
+    def __post_init__(self):
+        self.manifest_id = template_id(self.manifest)
+        self.pod_template = self.manifest["spec"]["template"]
+
+    def deployable_details(self, container_name=None):
+        return template_to_deployable_details(self.manifest, container_name)
+
+
+PERSISTENT_WORKLOAD_KINDS = ("Deployment", "StatefulSet")
+EPHEMERAL_WORKLOAD_KINDS = ("Job",)
+ALL_WORKLOAD_KINDS = PERSISTENT_WORKLOAD_KINDS + EPHEMERAL_WORKLOAD_KINDS
+
+
+def iterate_pod_template(manifests, kinds: tuple[str, ...] = ALL_WORKLOAD_KINDS):
+    for manifest in manifests:
+        if manifest["kind"] not in kinds:
+            continue
+        yield PodTemplateDetails(manifest)
 
 
 def workload_spec_containers(workload_spec):

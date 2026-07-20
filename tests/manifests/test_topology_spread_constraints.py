@@ -1,5 +1,5 @@
 # Copyright 2024-2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -7,40 +7,41 @@ import pytest
 from frozendict import frozendict
 
 from . import DeployableDetails, PropertyType, values_files_to_test
-from .utils import iterate_deployables_workload_parts, template_id
+from .utils import iterate_deployables_workload_parts, iterate_pod_template
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_sets_default_topologySpreadConstraints(templates):
-    for template in templates:
-        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            assert "topologySpreadConstraints" in template["spec"]["template"]["spec"], (
-                f"Pod topologySpreadConstraints unexpectedly absent for {template_id(template)}"
-            )
+    for pod_template_details in iterate_pod_template(templates):
+        pod_spec = pod_template_details.pod_template["spec"]
+        assert "topologySpreadConstraints" in pod_spec, (
+            f"Pod topologySpreadConstraints unexpectedly absent for {pod_template_details.manifest_id}"
+        )
 
-            pod_topologySpreadConstraints = template["spec"]["template"]["spec"]["topologySpreadConstraints"]
-            assert pod_topologySpreadConstraints[0]["maxSkew"] == 1
-            assert pod_topologySpreadConstraints[0]["topologyKey"] == "kubernetes.io/hostname"
-            assert pod_topologySpreadConstraints[0]["whenUnsatisfiable"] == "ScheduleAnyway"
-            assert pod_topologySpreadConstraints[0]["labelSelector"]["matchLabels"] == {
-                "app.kubernetes.io/instance": template["metadata"]["labels"]["app.kubernetes.io/instance"]
-            }
-            if template["kind"] == "Deployment":
-                assert pod_topologySpreadConstraints[0]["matchLabelKeys"] == ("pod-template-hash",)
-            else:
-                assert pod_topologySpreadConstraints[0]["matchLabelKeys"] == tuple()
+        pod_topologySpreadConstraints = pod_spec["topologySpreadConstraints"]
+        assert pod_topologySpreadConstraints[0]["maxSkew"] == 1
+        assert pod_topologySpreadConstraints[0]["topologyKey"] == "kubernetes.io/hostname"
+        assert pod_topologySpreadConstraints[0]["whenUnsatisfiable"] == "ScheduleAnyway"
+        assert pod_topologySpreadConstraints[0]["labelSelector"]["matchLabels"] == {
+            "app.kubernetes.io/instance": pod_template_details.manifest["metadata"]["labels"][
+                "app.kubernetes.io/instance"
+            ]
+        }
+        if pod_template_details.manifest["kind"] == "Deployment":
+            assert pod_topologySpreadConstraints[0]["matchLabelKeys"] == ("pod-template-hash",)
+        else:
+            assert pod_topologySpreadConstraints[0]["matchLabelKeys"] == tuple()
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_can_unset_global_topologySpreadConstraints(values, make_templates):
     values["topologySpreadConstraints"] = []
-    for template in await make_templates(values):
-        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            assert "topologySpreadConstraints" not in template["spec"]["template"]["spec"], (
-                f"Pod securityContext unexpectedly present for {template_id(template)}"
-            )
+    for pod_template_details in iterate_pod_template(await make_templates(values)):
+        assert "topologySpreadConstraints" not in pod_template_details.pod_template["spec"], (
+            f"Pod securityContext unexpectedly present for {pod_template_details.manifest_id}"
+        )
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -61,24 +62,25 @@ async def test_topology_spread_constraint_enriches_with_default_settings(values,
         )
 
     iterate_deployables_workload_parts(set_topology_spread_constraints)
+    for pod_template_details in iterate_pod_template(await make_templates(values)):
+        pod_spec = pod_template_details.pod_template["spec"]
+        assert "topologySpreadConstraints" in pod_spec, (
+            f"Pod topologySpreadConstraints unexpectedly absent for {pod_template_details.manifest_id}"
+        )
 
-    for template in await make_templates(values):
-        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            assert "topologySpreadConstraints" in template["spec"]["template"]["spec"], (
-                f"Pod topologySpreadConstraints unexpectedly absent for {template_id(template)}"
-            )
-
-            pod_topologySpreadConstraints = template["spec"]["template"]["spec"]["topologySpreadConstraints"]
-            assert pod_topologySpreadConstraints[0]["maxSkew"] == 2
-            assert pod_topologySpreadConstraints[0]["topologyKey"] == "kubernetes.io/zone"
-            assert pod_topologySpreadConstraints[0]["whenUnsatisfiable"] == "DoNotSchedule"
-            assert pod_topologySpreadConstraints[0]["labelSelector"]["matchLabels"] == {
-                "app.kubernetes.io/instance": template["metadata"]["labels"]["app.kubernetes.io/instance"]
-            }
-            if template["kind"] == "Deployment":
-                assert pod_topologySpreadConstraints[0]["matchLabelKeys"] == ("pod-template-hash",)
-            else:
-                assert pod_topologySpreadConstraints[0]["matchLabelKeys"] == tuple()
+        pod_topologySpreadConstraints = pod_spec["topologySpreadConstraints"]
+        assert pod_topologySpreadConstraints[0]["maxSkew"] == 2
+        assert pod_topologySpreadConstraints[0]["topologyKey"] == "kubernetes.io/zone"
+        assert pod_topologySpreadConstraints[0]["whenUnsatisfiable"] == "DoNotSchedule"
+        assert pod_topologySpreadConstraints[0]["labelSelector"]["matchLabels"] == {
+            "app.kubernetes.io/instance": pod_template_details.manifest["metadata"]["labels"][
+                "app.kubernetes.io/instance"
+            ]
+        }
+        if pod_template_details.manifest["kind"] == "Deployment":
+            assert pod_topologySpreadConstraints[0]["matchLabelKeys"] == ("pod-template-hash",)
+        else:
+            assert pod_topologySpreadConstraints[0]["matchLabelKeys"] == tuple()
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -105,18 +107,17 @@ async def test_can_nuke_topology_spread_constraint_default_settings(values, make
         )
 
     iterate_deployables_workload_parts(set_topology_spread_constraints)
+    for pod_template_details in iterate_pod_template(await make_templates(values)):
+        pod_spec = pod_template_details.pod_template["spec"]
+        assert "topologySpreadConstraints" in pod_spec, (
+            f"Pod topologySpreadConstraints unexpectedly absent for {pod_template_details.manifest_id}"
+        )
 
-    for template in await make_templates(values):
-        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            assert "topologySpreadConstraints" in template["spec"]["template"]["spec"], (
-                f"Pod topologySpreadConstraints unexpectedly absent for {template_id(template)}"
-            )
-
-            pod_topologySpreadConstraints = template["spec"]["template"]["spec"]["topologySpreadConstraints"]
-            assert pod_topologySpreadConstraints[0]["maxSkew"] == 1
-            assert pod_topologySpreadConstraints[0]["topologyKey"] == "kubernetes.io/hostname"
-            assert pod_topologySpreadConstraints[0]["whenUnsatisfiable"] == "DoNotSchedule"
-            assert pod_topologySpreadConstraints[0]["labelSelector"]["matchLabels"] == frozendict(
-                {"app.kubernetes.io/testlabel": "testvalue"}
-            )
-            assert pod_topologySpreadConstraints[0]["matchLabelKeys"] == ("app.kubernetes.io/testlabel",)
+        pod_topologySpreadConstraints = pod_spec["topologySpreadConstraints"]
+        assert pod_topologySpreadConstraints[0]["maxSkew"] == 1
+        assert pod_topologySpreadConstraints[0]["topologyKey"] == "kubernetes.io/hostname"
+        assert pod_topologySpreadConstraints[0]["whenUnsatisfiable"] == "DoNotSchedule"
+        assert pod_topologySpreadConstraints[0]["labelSelector"]["matchLabels"] == frozendict(
+            {"app.kubernetes.io/testlabel": "testvalue"}
+        )
+        assert pod_topologySpreadConstraints[0]["matchLabelKeys"] == ("app.kubernetes.io/testlabel",)
