@@ -7,7 +7,7 @@ import pyhelm3
 import pytest
 import yaml
 
-from .utils import template_id
+from .utils import PERSISTENT_WORKLOAD_KINDS, template_id
 
 
 @pytest.mark.parametrize("values_file", ["matrix-rtc-minimal-values.yaml"])
@@ -111,7 +111,7 @@ async def test_turn_tls_external_termination(values, templates):
     turn_tls_service = None
 
     for template in templates:
-        if template["kind"] == "Deployment" and "matrix-rtc-sfu" in template["metadata"]["name"]:
+        if template["kind"] in PERSISTENT_WORKLOAD_KINDS and "matrix-rtc-sfu" in template["metadata"]["name"]:
             sfu_deployment = template
         elif template["kind"] == "ConfigMap" and "matrix-rtc-sfu" in template["metadata"]["name"]:
             sfu_configmap = template
@@ -160,7 +160,7 @@ async def test_turn_tls_external_termination_with_certmanager(values, make_templ
     sfu_configmap = None
 
     for template in await make_templates(values):
-        if template["kind"] == "Deployment" and "matrix-rtc-sfu" in template["metadata"]["name"]:
+        if template["kind"] in PERSISTENT_WORKLOAD_KINDS and "matrix-rtc-sfu" in template["metadata"]["name"]:
             sfu_deployment = template
         elif template["kind"] == "ConfigMap" and "matrix-rtc-sfu" in template["metadata"]["name"]:
             sfu_configmap = template
@@ -202,7 +202,7 @@ async def test_turn_tls_pod_termination_with_secret(values, templates):
     sfu_configmap = None
 
     for template in templates:
-        if template["kind"] == "Deployment" and "matrix-rtc-sfu" in template["metadata"]["name"]:
+        if template["kind"] in PERSISTENT_WORKLOAD_KINDS and "matrix-rtc-sfu" in template["metadata"]["name"]:
             sfu_deployment = template
         elif template["kind"] == "ConfigMap" and "matrix-rtc-sfu" in template["metadata"]["name"]:
             sfu_configmap = template

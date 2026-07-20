@@ -1,5 +1,5 @@
 # Copyright 2024-2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -7,23 +7,23 @@ import pytest
 
 from . import DeployableDetails, PropertyType, values_files_to_test
 from .utils import (
+    ALL_WORKLOAD_KINDS,
+    PodTemplateDetails,
     iterate_deployables_parts,
     iterate_deployables_workload_parts,
+    iterate_pod_template,
     template_id,
-    template_to_deployable_details,
 )
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_automount_serviceaccount_tokens_as_appropriate(templates):
-    for template in templates:
-        deployable_details = template_to_deployable_details(template)
-        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            assert (
-                deployable_details.has_automount_service_account_token
-                == template["spec"]["template"]["spec"]["automountServiceAccountToken"]
-            )
+    for pod_template_details in iterate_pod_template(templates):
+        assert (
+            pod_template_details.deployable_details().has_automount_service_account_token
+            == pod_template_details.pod_template["spec"]["automountServiceAccountToken"]
+        )
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -33,7 +33,7 @@ async def test_uses_serviceaccount_named_as_per_pod_controller_by_default(templa
     serviceaccount_names = set()
     covered_serviceaccount_names = set()
     for template in templates:
-        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
+        if template["kind"] in ALL_WORKLOAD_KINDS:
             workloads_by_id[template_id(template)] = template
         elif template["kind"] == "ServiceAccount":
             serviceaccount_names.add(template["metadata"]["name"])
@@ -75,7 +75,7 @@ async def test_uses_serviceaccount_named_as_values_if_specified(values, make_tem
     workloads_by_id = {}
     serviceaccount_names = []
     for template in await make_templates(values):
-        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
+        if template["kind"] in ALL_WORKLOAD_KINDS:
             workloads_by_id[template_id(template)] = template
         elif template["kind"] == "ServiceAccount":
             serviceaccount_names.append(template["metadata"]["name"])
@@ -107,7 +107,8 @@ async def test_does_not_create_serviceaccounts_if_configured_not_to(values, make
         assert template["kind"] != "ServiceAccount", (
             f"{template_id(template)} unexpectedly exists when all ServiceAccount should be turned off"
         )
-        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            assert "serviceAccountName" in template["spec"]["template"]["spec"], (
-                f"{template_id(template)} does not set an explicit ServiceAccount"
+        if template["kind"] in ALL_WORKLOAD_KINDS:
+            pod_template_details = PodTemplateDetails(template)
+            assert "serviceAccountName" in pod_template_details.pod_template["spec"], (
+                f"{pod_template_details.manifest_id} does not set an explicit ServiceAccount"
             )

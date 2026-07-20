@@ -17,7 +17,7 @@ from . import (
     services_values_files_to_test,
     values_files_to_test,
 )
-from .utils import iterate_deployables_parts, template_id, template_to_deployable_details
+from .utils import PERSISTENT_WORKLOAD_KINDS, iterate_deployables_parts, template_id, template_to_deployable_details
 
 
 @pytest.mark.parametrize("values_file", services_values_files_to_test)
@@ -105,7 +105,10 @@ async def test_exposed_services_port_and_type(values, make_templates):
                                     == template["metadata"]["annotations"]["exposed-service-port-type"]
                                 )
                         found_exposed_services[deployable_details.name].append(template)
-                if template["kind"] == "Deployment" and "exposed-service-port-type" in template["metadata"]["labels"]:
+                if (
+                    template["kind"] in PERSISTENT_WORKLOAD_KINDS
+                    and "exposed-service-port-type" in template["metadata"]["labels"]
+                ):
                     container = template["spec"]["template"]["spec"]["containers"][0]
                     for port in container["ports"]:
                         if service_mode != "HostPort":

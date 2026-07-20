@@ -1,12 +1,12 @@
 # Copyright 2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
 import pytest
 
 from . import DeployableDetails, PropertyType, values_files_to_test
-from .utils import iterate_deployables_workload_parts, template_id, template_to_deployable_details
+from .utils import iterate_deployables_workload_parts, iterate_pod_template
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -30,17 +30,16 @@ async def test_pod_resources_are_configurable(values, make_templates):
         deployable_details.set_helm_values(values, PropertyType.Resources, resources)
 
     iterate_deployables_workload_parts(set_resources)
-    for template in await make_templates(values):
-        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            for container in template["spec"]["template"]["spec"]["containers"]:
-                assert "resources" in container, (
-                    f"{template_id(template)} has container {container['name']} without resources"
-                )
+    for pod_template_details in iterate_pod_template(await make_templates(values)):
+        for container in pod_template_details.pod_template["spec"]["containers"]:
+            assert "resources" in container, (
+                f"{pod_template_details.manifest_id} has container {container['name']} without resources"
+            )
 
-                deployable_details = template_to_deployable_details(template, container["name"])
-                expected_resources = deployable_details.get_helm_values(values, PropertyType.Resources)
+            deployable_details = pod_template_details.deployable_details(container["name"])
+            expected_resources = deployable_details.get_helm_values(values, PropertyType.Resources)
 
-                assert expected_resources == container["resources"], (
-                    f"{template_id(template)} has container {container['name']} "
-                    "which doesn't have the expected resources"
-                )
+            assert expected_resources == container["resources"], (
+                f"{pod_template_details.manifest_id} has container {container['name']} "
+                "which doesn't have the expected resources"
+            )

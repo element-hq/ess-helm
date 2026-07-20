@@ -9,19 +9,19 @@ from frozendict import deepfreeze
 from . import DeployableDetails, PropertyType, values_files_to_test
 from .utils import (
     iterate_deployables_workload_parts,
-    template_id,
-    template_to_deployable_details,
+    iterate_pod_template,
 )
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_pod_gets_configured_extraInitContainers(values, make_templates, release_name):
+async def test_pod_gets_configured_extraInitContainers(values, make_templates):
     template_id_to_init_containers = {}
-    for template in await make_templates(values):
-        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            pod_spec = template["spec"]["template"]["spec"]
-            template_id_to_init_containers[template_id(template)] = deepfreeze(pod_spec.get("initContainers", []))
+    for pod_template_details in iterate_pod_template(await make_templates(values)):
+        pod_spec = pod_template_details.pod_template["spec"]
+        template_id_to_init_containers[pod_template_details.manifest_id] = deepfreeze(
+            pod_spec.get("initContainers", [])
+        )
 
     def set_initContainers(deployable_details: DeployableDetails):
         init_container = [
@@ -35,15 +35,17 @@ async def test_pod_gets_configured_extraInitContainers(values, make_templates, r
         deployable_details.set_helm_values(values, PropertyType.InitContainers, deepfreeze(init_container))
 
     iterate_deployables_workload_parts(set_initContainers)
-    for template in await make_templates(values):
-        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            pod_spec = template["spec"]["template"]["spec"]
-            assert "initContainers" in pod_spec, (
-                f"{template_id(template)} doesn't have at least one initContainers when a custom one is configured"
-            )
-            init_containers = pod_spec["initContainers"]
+    for pod_template_details in iterate_pod_template(await make_templates(values)):
+        pod_spec = pod_template_details.pod_template["spec"]
+        assert "initContainers" in pod_spec, (
+            f"{pod_template_details.manifest_id} doesn't have at least one initContainers "
+            "when a custom one is configured"
+        )
+        init_containers = pod_spec["initContainers"]
 
-            deployable_details = template_to_deployable_details(template)
-            extra_init_containers = deployable_details.get_helm_values(values, PropertyType.InitContainers)
-            # All the existing initContainers come first
-            assert (template_id_to_init_containers[template_id(template)] + extra_init_containers) == init_containers
+        deployable_details = pod_template_details.deployable_details()
+        extra_init_containers = deployable_details.get_helm_values(values, PropertyType.InitContainers)
+        # All the existing initContainers come first
+        assert (
+            template_id_to_init_containers[pod_template_details.manifest_id] + extra_init_containers
+        ) == init_containers

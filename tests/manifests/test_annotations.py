@@ -1,5 +1,5 @@
 # Copyright 2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -7,7 +7,7 @@
 import pytest
 
 from . import values_files_to_test
-from .utils import template_id
+from .utils import ALL_WORKLOAD_KINDS, template_id
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -21,7 +21,7 @@ async def test_annotations_dont_contain_things_that_should_be_labels(templates):
             "We should consistently use labels for k8s.element.io things"
         )
 
-        if template["kind"] in ["Deployment", "Job", "StatefulSet"]:
+        if template["kind"] in ALL_WORKLOAD_KINDS:
             pod_annotations = template["metadata"].get("annotations", {})
             our_pod_annotations = [key for key in pod_annotations if "k8s.element.io" in key]
             assert len(our_pod_annotations) == 0, (

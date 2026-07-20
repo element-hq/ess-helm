@@ -1,16 +1,18 @@
 # Copyright 2024 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
 import pytest
+
+from manifests.utils import PERSISTENT_WORKLOAD_KINDS
 
 
 @pytest.mark.parametrize("values_file", ["synapse-minimal-values.yaml"])
 @pytest.mark.asyncio_cooperative
 async def test_postgres_env_overrides(values, make_templates):
     for template in await make_templates(values):
-        if "postgres" in template["metadata"]["name"] and template["kind"] == "StatefulSet":
+        if "postgres" in template["metadata"]["name"] and template["kind"] in PERSISTENT_WORKLOAD_KINDS:
             env = {e["name"]: e["value"] for e in template["spec"]["template"]["spec"]["containers"][0]["env"]}
             assert env["PGDATA"] == "/var/lib/postgres/data/pgdata"
             break
@@ -23,7 +25,7 @@ async def test_postgres_env_overrides(values, make_templates):
     ]
 
     for template in await make_templates(values):
-        if "postgres" in template["metadata"]["name"] and template["kind"] == "StatefulSet":
+        if "postgres" in template["metadata"]["name"] and template["kind"] in PERSISTENT_WORKLOAD_KINDS:
             env = {e["name"]: e["value"] for e in template["spec"]["template"]["spec"]["containers"][0]["env"]}
             assert env["PGDATA"] == "/var/lib/postgres/data/pgdata"
             assert env["OTHER_KEY"] == "should-be-here"

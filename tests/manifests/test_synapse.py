@@ -10,10 +10,10 @@ import yaml
 
 from . import DeployableDetails, PropertyType
 from .utils import (
+    PERSISTENT_WORKLOAD_KINDS,
     iterate_deployables_ingress_parts,
     iterate_deployables_parts,
-    template_id,
-    template_to_deployable_details,
+    iterate_pod_template,
 )
 
 
@@ -25,7 +25,10 @@ async def test_appservice_configmaps_are_templated(release_name, values, make_te
     )
 
     for template in await make_templates(values):
-        if template["metadata"]["name"].startswith(f"{release_name}-synapse") and template["kind"] == "StatefulSet":
+        if (
+            template["metadata"]["name"].startswith(f"{release_name}-synapse")
+            and template["kind"] in PERSISTENT_WORKLOAD_KINDS
+        ):
             for volume in template["spec"]["template"]["spec"]["volumes"]:
                 if (
                     "configMap" in volume
@@ -54,7 +57,10 @@ async def test_appservice_secrets_are_templated(release_name, values, make_templ
     )
 
     for template in await make_templates(values):
-        if template["metadata"]["name"].startswith(f"{release_name}-synapse") and template["kind"] == "StatefulSet":
+        if (
+            template["metadata"]["name"].startswith(f"{release_name}-synapse")
+            and template["kind"] in PERSISTENT_WORKLOAD_KINDS
+        ):
             for volume in template["spec"]["template"]["spec"]["volumes"]:
                 if (
                     "secret" in volume
@@ -166,20 +172,19 @@ async def test_synapse_resources_shared_by_default(values, make_templates):
             deployable_details.set_helm_values(values, PropertyType.Resources, resources)
 
     iterate_deployables_parts(set_resources, lambda deployable_details: deployable_details.is_synapse_process)
-    for template in await make_templates(values):
-        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            deployable_details = template_to_deployable_details(template)
-            if not deployable_details.is_synapse_process:
-                continue
+    for pod_template_details in iterate_pod_template(await make_templates(values)):
+        deployable_details = pod_template_details.deployable_details()
+        if not deployable_details.is_synapse_process:
+            continue
 
-            for container in template["spec"]["template"]["spec"]["containers"]:
-                assert "resources" in container, (
-                    f"{template_id(template)} has container {container['name']} without resources"
-                )
-                assert resources == container["resources"], (
-                    f"{template_id(template)} has container {container['name']} "
-                    "which doesn't have the expected resources"
-                )
+        for container in pod_template_details.pod_template["spec"]["containers"]:
+            assert "resources" in container, (
+                f"{pod_template_details.manifest_id} has container {container['name']} without resources"
+            )
+            assert resources == container["resources"], (
+                f"{pod_template_details.manifest_id} has container {container['name']} "
+                "which doesn't have the expected resources"
+            )
 
 
 @pytest.mark.parametrize("values_file", ["synapse-minimal-values.yaml"])

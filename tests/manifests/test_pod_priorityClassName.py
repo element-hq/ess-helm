@@ -10,20 +10,18 @@ import pytest
 from . import DeployableDetails, PropertyType, values_files_to_test
 from .utils import (
     iterate_deployables_workload_parts,
-    template_id,
-    template_to_deployable_details,
+    iterate_pod_template,
 )
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_pod_has_no_priorityClassName_by_default(templates):
-    for template in templates:
-        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            pod_spec = template["spec"]["template"]["spec"]
-            assert "priorityClassName" not in pod_spec, (
-                f"{template_id(template)} has a default priorityClassName when one isn't configured"
-            )
+    for pod_template_details in iterate_pod_template(templates):
+        pod_spec = pod_template_details.pod_template["spec"]
+        assert "priorityClassName" not in pod_spec, (
+            f"{pod_template_details.manifest_id} has a default priorityClassName when one isn't configured"
+        )
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -34,18 +32,17 @@ async def test_pod_gets_configured_priorityClassName(values, make_templates, rel
         deployable_details.set_helm_values(values, PropertyType.PriorityClassName, priorityClassName)
 
     iterate_deployables_workload_parts(set_priorityClassName)
-    for template in await make_templates(values):
-        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            pod_spec = template["spec"]["template"]["spec"]
-            assert "priorityClassName" in pod_spec, (
-                f"{template_id(template)} doesn't have a priorityClassName when one is configured"
-            )
+    for pod_template_details in iterate_pod_template(await make_templates(values)):
+        pod_spec = pod_template_details.pod_template["spec"]
+        assert "priorityClassName" in pod_spec, (
+            f"{pod_template_details.manifest_id} doesn't have a priorityClassName when one is configured"
+        )
 
-            deployable_details = template_to_deployable_details(template)
-            expected_priorityClassName = deployable_details.get_helm_values(values, PropertyType.PriorityClassName)
-            assert pod_spec["priorityClassName"] == expected_priorityClassName, (
-                f"{template_id(template)} has an unexpected priorityClassName"
-            )
+        deployable_details = pod_template_details.deployable_details()
+        expected_priorityClassName = deployable_details.get_helm_values(values, PropertyType.PriorityClassName)
+        assert pod_spec["priorityClassName"] == expected_priorityClassName, (
+            f"{pod_template_details.manifest_id} has an unexpected priorityClassName"
+        )
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -54,12 +51,11 @@ async def test_global_priorityClassName_renders(values, make_templates):
     global_priorityClassName = "global-priority"
     values["priorityClassName"] = global_priorityClassName
 
-    for template in await make_templates(values):
-        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            pod_spec = template["spec"]["template"]["spec"]
-            assert pod_spec.get("priorityClassName") == global_priorityClassName, (
-                f"{template_id(template)} doesn't inherit the global priorityClassName"
-            )
+    for pod_template_details in iterate_pod_template(await make_templates(values)):
+        pod_spec = pod_template_details.pod_template["spec"]
+        assert pod_spec.get("priorityClassName") == global_priorityClassName, (
+            f"{pod_template_details.manifest_id} doesn't inherit the global priorityClassName"
+        )
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -73,14 +69,14 @@ async def test_component_priorityClassName_overrides_global(values, make_templat
         deployable_details.set_helm_values(values, PropertyType.PriorityClassName, component_priorityClassName)
 
     iterate_deployables_workload_parts(set_priorityClassName)
-    for template in await make_templates(values):
-        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            pod_spec = template["spec"]["template"]["spec"]
-            deployable_details = template_to_deployable_details(template)
-            expected_priorityClassName = deployable_details.get_helm_values(values, PropertyType.PriorityClassName)
-            assert pod_spec.get("priorityClassName") == expected_priorityClassName, (
-                f"{template_id(template)} did not let its component priorityClassName override the global one"
-            )
-            assert pod_spec["priorityClassName"] != global_priorityClassName, (
-                f"{template_id(template)} rendered the global priorityClassName instead of its component override"
-            )
+    for pod_template_details in iterate_pod_template(await make_templates(values)):
+        pod_spec = pod_template_details.pod_template["spec"]
+        deployable_details = pod_template_details.deployable_details()
+        expected_priorityClassName = deployable_details.get_helm_values(values, PropertyType.PriorityClassName)
+        assert pod_spec.get("priorityClassName") == expected_priorityClassName, (
+            f"{pod_template_details.manifest_id} did not let its component priorityClassName override the global one"
+        )
+        assert pod_spec["priorityClassName"] != global_priorityClassName, (
+            f"{pod_template_details.manifest_id} rendered the global priorityClassName "
+            "instead of its component override"
+        )

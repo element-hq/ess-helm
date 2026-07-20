@@ -11,8 +11,7 @@ from frozendict import deepfreeze
 from . import DeployableDetails, PropertyType, values_files_to_test
 from .utils import (
     iterate_deployables_workload_parts,
-    template_id,
-    template_to_deployable_details,
+    iterate_pod_template,
 )
 
 AFFINITY_TYPES = ["nodeAffinity", "podAffinity", "podAntiAffinity"]
@@ -88,12 +87,11 @@ def _expected_affinity(global_affinity: dict, component_affinity: dict | None) -
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_pod_has_no_affinity_by_default(templates):
-    for template in templates:
-        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            pod_spec = template["spec"]["template"]["spec"]
-            assert "affinity" not in pod_spec, (
-                f"{template_id(template)} has a default affinity when one isn't configured"
-            )
+    for pod_template_details in iterate_pod_template(templates):
+        pod_spec = pod_template_details.pod_template["spec"]
+        assert "affinity" not in pod_spec, (
+            f"{pod_template_details.manifest_id} has a default affinity when one isn't configured"
+        )
 
 
 @pytest.mark.parametrize("affinity_type", AFFINITY_TYPES)
@@ -104,16 +102,17 @@ async def test_pod_gets_configured_affinity(affinity_type, values, make_template
         deployable_details.set_helm_values(values, PropertyType.Affinity, _affinity_for(affinity_type))
 
     iterate_deployables_workload_parts(set_affinity)
-    for template in await make_templates(values):
-        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            pod_spec = template["spec"]["template"]["spec"]
-            assert "affinity" in pod_spec, f"{template_id(template)} doesn't have an affinity when one is configured"
+    for pod_template_details in iterate_pod_template(await make_templates(values)):
+        pod_spec = pod_template_details.pod_template["spec"]
+        assert "affinity" in pod_spec, (
+            f"{pod_template_details.manifest_id} doesn't have an affinity when one is configured"
+        )
 
-            deployable_details = template_to_deployable_details(template)
-            expected_affinity = deployable_details.get_helm_values(values, PropertyType.Affinity)
-            assert pod_spec["affinity"] == deepfreeze(expected_affinity), (
-                f"{template_id(template)} has an unexpected {affinity_type}"
-            )
+        deployable_details = pod_template_details.deployable_details()
+        expected_affinity = deployable_details.get_helm_values(values, PropertyType.Affinity)
+        assert pod_spec["affinity"] == deepfreeze(expected_affinity), (
+            f"{pod_template_details.manifest_id} has an unexpected {affinity_type}"
+        )
 
 
 @pytest.mark.parametrize("affinity_type", AFFINITY_TYPES)
@@ -123,12 +122,11 @@ async def test_global_affinity_renders(affinity_type, values, make_templates):
     global_affinity = _affinity_for(affinity_type)
     values["affinity"] = global_affinity
 
-    for template in await make_templates(values):
-        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            pod_spec = template["spec"]["template"]["spec"]
-            assert pod_spec.get("affinity") == deepfreeze(global_affinity), (
-                f"{template_id(template)} doesn't inherit the global {affinity_type}"
-            )
+    for pod_template_details in iterate_pod_template(await make_templates(values)):
+        pod_spec = pod_template_details.pod_template["spec"]
+        assert pod_spec.get("affinity") == deepfreeze(global_affinity), (
+            f"{pod_template_details.manifest_id} doesn't inherit the global {affinity_type}"
+        )
 
 
 @pytest.mark.parametrize("affinity_type", AFFINITY_TYPES)
@@ -145,24 +143,23 @@ async def test_component_override_is_isolated_to_its_type(affinity_type, values,
         deployable_details.set_helm_values(values, PropertyType.Affinity, component_override)
 
     iterate_deployables_workload_parts(set_affinity)
-    for template in await make_templates(values):
-        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            pod_spec = template["spec"]["template"]["spec"]
-            deployable_details = template_to_deployable_details(template)
-            component_affinity = deployable_details.get_helm_values(values, PropertyType.Affinity)
-            expected_affinity = _expected_affinity(global_affinity, component_affinity)
-            assert pod_spec.get("affinity") == deepfreeze(expected_affinity), (
-                f"{template_id(template)} did not isolate the {affinity_type} override to that type"
+    for pod_template_details in iterate_pod_template(await make_templates(values)):
+        pod_spec = pod_template_details.pod_template["spec"]
+        deployable_details = pod_template_details.deployable_details()
+        component_affinity = deployable_details.get_helm_values(values, PropertyType.Affinity)
+        expected_affinity = _expected_affinity(global_affinity, component_affinity)
+        assert pod_spec.get("affinity") == deepfreeze(expected_affinity), (
+            f"{pod_template_details.manifest_id} did not isolate the {affinity_type} override to that type"
+        )
+        # The other affinity types must still come from the global affinity.
+        for other_type in AFFINITY_TYPES:
+            if other_type == affinity_type:
+                continue
+            if component_affinity and other_type in component_affinity:
+                continue
+            assert pod_spec["affinity"].get(other_type) == deepfreeze(global_affinity[other_type]), (
+                f"{pod_template_details.manifest_id} dropped the global {other_type} when overriding {affinity_type}"
             )
-            # The other affinity types must still come from the global affinity.
-            for other_type in AFFINITY_TYPES:
-                if other_type == affinity_type:
-                    continue
-                if component_affinity and other_type in component_affinity:
-                    continue
-                assert pod_spec["affinity"].get(other_type) == deepfreeze(global_affinity[other_type]), (
-                    f"{template_id(template)} dropped the global {other_type} when overriding {affinity_type}"
-                )
 
 
 @pytest.mark.parametrize("affinity_type", AFFINITY_TYPES)
@@ -177,17 +174,16 @@ async def test_component_can_blank_global_affinity_type(affinity_type, values, m
         deployable_details.set_helm_values(values, PropertyType.Affinity, {affinity_type: {}})
 
     iterate_deployables_workload_parts(blank_affinity)
-    for template in await make_templates(values):
-        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            pod_spec = template["spec"]["template"]["spec"]
-            affinity = pod_spec.get("affinity", {})
-            assert affinity_type not in affinity, (
-                f"{template_id(template)} did not blank out the global {affinity_type}"
+    for pod_template_details in iterate_pod_template(await make_templates(values)):
+        pod_spec = pod_template_details.pod_template["spec"]
+        affinity = pod_spec.get("affinity", {})
+        assert affinity_type not in affinity, (
+            f"{pod_template_details.manifest_id} did not blank out the global {affinity_type}"
+        )
+        # The non-blanked affinity types must still be inherited from the global affinity.
+        for other_type in AFFINITY_TYPES:
+            if other_type == affinity_type:
+                continue
+            assert affinity.get(other_type) == deepfreeze(global_affinity[other_type]), (
+                f"{pod_template_details.manifest_id} dropped the global {other_type} when blanking {affinity_type}"
             )
-            # The non-blanked affinity types must still be inherited from the global affinity.
-            for other_type in AFFINITY_TYPES:
-                if other_type == affinity_type:
-                    continue
-                assert affinity.get(other_type) == deepfreeze(global_affinity[other_type]), (
-                    f"{template_id(template)} dropped the global {other_type} when blanking {affinity_type}"
-                )

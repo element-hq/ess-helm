@@ -9,7 +9,7 @@ import string
 import pytest
 
 from . import DeployableDetails, PropertyType, values_files_to_test
-from .utils import iterate_deployables_parts, template_id, template_to_deployable_details
+from .utils import ALL_WORKLOAD_KINDS, iterate_deployables_parts, template_id, template_to_deployable_details
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -17,7 +17,7 @@ from .utils import iterate_deployables_parts, template_id, template_to_deployabl
 async def test_pvcs_only_present_if_expected(templates):
     deployable_details_to_seen_pvcs = {}
     for template in templates:
-        if template["kind"] in ["Deployment", "StatefulSet"]:
+        if template["kind"] in ALL_WORKLOAD_KINDS:
             deployable_details = template_to_deployable_details(template)
             deployable_details_to_seen_pvcs.setdefault(deployable_details, False)
         if template["kind"] == "PersistentVolumeClaim":

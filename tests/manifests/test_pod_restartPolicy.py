@@ -5,25 +5,21 @@
 import pytest
 
 from . import values_files_to_test
-from .utils import template_id
+from .utils import EPHEMERAL_WORKLOAD_KINDS, iterate_pod_template
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_pod_restartPolicy_set_based_on_controller(templates):
-    for template in templates:
-        if template["kind"] not in ["Deployment", "StatefulSet", "Job"]:
-            continue
-
-        assert "restartPolicy" in template["spec"]["template"]["spec"], (
-            f"{template_id(template)} doesn't set a Pod-level restartPolicy"
-        )
-        if template["kind"] == "Job":
-            assert template["spec"]["template"]["spec"]["restartPolicy"] == "Never", (
-                f"{template_id(template)} doesn't reset the Pod-level restartPolicy to 'Never' "
+    for pod_template_details in iterate_pod_template(templates):
+        pod_spec = pod_template_details.pod_template["spec"]
+        assert "restartPolicy" in pod_spec, f"{pod_template_details.manifest_id} doesn't set a Pod-level restartPolicy"
+        if pod_template_details.manifest["kind"] in EPHEMERAL_WORKLOAD_KINDS:
+            assert pod_spec["restartPolicy"] == "Never", (
+                f"{pod_template_details.manifest_id} doesn't reset the Pod-level restartPolicy to 'Never' "
                 "so failed Pods won't be kept around"
             )
         else:
-            assert template["spec"]["template"]["spec"]["restartPolicy"] == "Always", (
-                f"{template_id(template)} doesn't reset the Pod-level restartPolicy to 'Always'"
+            assert pod_spec["restartPolicy"] == "Always", (
+                f"{pod_template_details.manifest_id} doesn't reset the Pod-level restartPolicy to 'Always'"
             )

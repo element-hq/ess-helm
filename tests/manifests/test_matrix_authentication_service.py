@@ -6,12 +6,17 @@
 import pyhelm3
 import pytest
 
+from manifests.utils import PERSISTENT_WORKLOAD_KINDS
+
 
 @pytest.mark.parametrize("values_file", ["matrix-authentication-service-minimal-values.yaml"])
 @pytest.mark.asyncio_cooperative
 async def test_matrix_authentication_service_env_overrides(values, make_templates):
     for template in await make_templates(values):
-        if "matrix-authentication-service" in template["metadata"]["name"] and template["kind"] == "Deployment":
+        if (
+            "matrix-authentication-service" in template["metadata"]["name"]
+            and template["kind"] in PERSISTENT_WORKLOAD_KINDS
+        ):
             env = {e["name"]: e["value"] for e in template["spec"]["template"]["spec"]["containers"][0]["env"]}
             assert env["MAS_CONFIG"] == "/conf/mas-config.yaml"
             break
@@ -24,7 +29,10 @@ async def test_matrix_authentication_service_env_overrides(values, make_template
     ]
 
     for template in await make_templates(values):
-        if "matrix-authentication-service" in template["metadata"]["name"] and template["kind"] == "Deployment":
+        if (
+            "matrix-authentication-service" in template["metadata"]["name"]
+            and template["kind"] in PERSISTENT_WORKLOAD_KINDS
+        ):
             env = {e["name"]: e["value"] for e in template["spec"]["template"]["spec"]["containers"][0]["env"]}
             assert env["MAS_CONFIG"] == "/conf/mas-config.yaml"
             assert env["OTHER_KEY"] == "should-exists"

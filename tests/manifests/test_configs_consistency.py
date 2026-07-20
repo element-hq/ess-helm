@@ -15,8 +15,7 @@ import pytest
 from . import DeployableDetails, secret_values_files_to_test, values_files_to_test
 from .utils import (
     get_or_empty,
-    template_id,
-    template_to_deployable_details,
+    iterate_pod_template,
     workload_spec_containers,
 )
 
@@ -681,19 +680,19 @@ class ValidatedContainerConfig(ValidatedConfig):
 
 
 def traverse_containers(templates, other_secrets, other_configmaps) -> Generator[ValidatedContainerConfig]:
-    workloads = [t for t in templates if t["kind"] in ("Deployment", "StatefulSet", "Job")]
-    for template in workloads:
+    for pod_template_details in iterate_pod_template(templates):
         all_workload_empty_dirs: dict[str, MountedEmptyDir] = {}
         # Gather all containers and initContainers from the template spec
-        workload_spec = template["spec"]["template"]["spec"]
+        workload_spec = pod_template_details.pod_template["spec"]
+        manifest = pod_template_details.manifest
         weight = None
-        if "pre-install,pre-upgrade" in template["metadata"].get("annotations", {}).get("helm.sh/hook", ""):
-            weight = int(template["metadata"]["annotations"].get("helm.sh/hook-weight", 0))
+        if "pre-install,pre-upgrade" in manifest["metadata"].get("annotations", {}).get("helm.sh/hook", ""):
+            weight = int(manifest["metadata"]["annotations"].get("helm.sh/hook-weight", 0))
 
         for container_spec in workload_spec_containers(workload_spec):
-            deployable_details = template_to_deployable_details(template, container_spec["name"])
+            deployable_details = pod_template_details.deployable_details(container_spec["name"])
             validated_container_config = ValidatedContainerConfig.from_container_spec(
-                template_id(template),
+                pod_template_details.manifest_id,
                 workload_spec,
                 container_spec,
                 weight,

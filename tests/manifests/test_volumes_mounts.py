@@ -16,8 +16,7 @@ from . import (
 )
 from .utils import (
     iterate_deployables_workload_parts,
-    template_id,
-    template_to_deployable_details,
+    iterate_pod_template,
     workload_spec_containers,
 )
 
@@ -33,52 +32,57 @@ async def test_volumes_mounts_exists(release_name, templates, other_secrets, oth
         + [s["metadata"]["name"] for s in other_secrets]
         + [c["spec"]["secretName"] for c in [c for c in templates if c["kind"] == "Certificate"]]
     )
-    for template in templates:
-        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            volumes_names = []
-            for volume in template["spec"]["template"]["spec"].get("volumes", []):
-                assert len(volume["name"]) <= 63, (
-                    f"Volume name {volume['name']} is too long: {volume['name']} in {template_id(template)}"
+    for pod_template_details in iterate_pod_template(templates):
+        volumes_names = []
+        for volume in pod_template_details.pod_template["spec"].get("volumes", []):
+            assert len(volume["name"]) <= 63, (
+                f"Volume name {volume['name']} is too long: {volume['name']} in {pod_template_details.manifest_id}"
+            )
+            assert volume["name"] not in volumes_names, (
+                f"Volume name {volume['name']} is listed multiple times in {pod_template_details.manifest_id}"
+            )
+            volumes_names.append(volume["name"])
+
+            # Volumes could be dynamic in other ways, but including $.Release.Name is the most likely
+            assert release_name not in volume["name"]
+
+            if "secret" in volume:
+                assert volume["secret"]["secretName"] in secrets_names, (
+                    f"Volume {volume['secret']['secretName']} not found in Secret names:"
+                    f"{secrets_names} for {pod_template_details.manifest_id}"
                 )
-                assert volume["name"] not in volumes_names, (
-                    f"Volume name {volume['name']} is listed multiple times in {template_id(template)}"
+                assert re.match(
+                    r"^((as)-\d+|(secret)-[a-f0-9]{12}|" + r"secret-(generated|turn-tls)|"
+                    r")$",
+                    volume["name"],
+                ), (
+                    f"{pod_template_details.manifest_id} contains a Secret mounted with an unexpected name: ",
+                    volume["name"],
                 )
-                volumes_names.append(volume["name"])
+            if "configMap" in volume:
+                assert volume["configMap"]["name"] in configmaps_names, (
+                    f"Volume {volume['configMap']['name']} not found in ConfigMap names:"
+                    f"{configmaps_names} for {pod_template_details.manifest_id}"
+                )
+                assert re.match(
+                    r"^("
+                    r"(haproxy-|nginx-|plain)?(-syn-|-mas-|-)?config|"
+                    r"(synapse|well-known)-haproxy|"
+                    r"registration-templates|"
+                    r"test-[\w-]+"
+                    r")$",
+                    volume["name"],
+                ), (
+                    f"{pod_template_details.manifest_id} contains a ConfigMap mounted with an unexpected name: ",
+                    volume["name"],
+                )
 
-                # Volumes could be dynamic in other ways, but including $.Release.Name is the most likely
-                assert release_name not in volume["name"]
-
-                if "secret" in volume:
-                    assert volume["secret"]["secretName"] in secrets_names, (
-                        f"Volume {volume['secret']['secretName']} not found in Secret names:"
-                        f"{secrets_names} for {template_id(template)}"
-                    )
-                    assert re.match(
-                        r"^((as)-\d+|(secret)-[a-f0-9]{12}|" + r"secret-(generated|turn-tls)|"
-                        r")$",
-                        volume["name"],
-                    ), f"{template_id(template)} contains a Secret mounted with an unexpected name: {volume['name']}"
-                if "configMap" in volume:
-                    assert volume["configMap"]["name"] in configmaps_names, (
-                        f"Volume {volume['configMap']['name']} not found in ConfigMap names:"
-                        f"{configmaps_names} for {template_id(template)}"
-                    )
-                    assert re.match(
-                        r"^("
-                        r"(haproxy-|nginx-|plain)?(-syn-|-mas-|-)?config|"
-                        r"(synapse|well-known)-haproxy|"
-                        r"registration-templates|"
-                        r"test-[\w-]+"
-                        r")$",
-                        volume["name"],
-                    ), f"{template_id(template)} contains a ConfigMap mounted with an unexpected name: {volume['name']}"
-
-            for container in workload_spec_containers(template["spec"]["template"]["spec"]):
-                for volume_mount in container.get("volumeMounts", []):
-                    assert volume_mount["name"] in volumes_names, (
-                        f"Volume Mount {volume_mount['name']} not found in volume names: {volumes_names} "
-                        f"for {template_id(template)}/{container['name']}"
-                    )
+        for container in workload_spec_containers(pod_template_details.pod_template["spec"]):
+            for volume_mount in container.get("volumeMounts", []):
+                assert volume_mount["name"] in volumes_names, (
+                    f"Volume Mount {volume_mount['name']} not found in volume names: {volumes_names} "
+                    f"for {pod_template_details.manifest_id}/{container['name']}"
+                )
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -165,47 +169,49 @@ async def test_extra_volume_mounts(values, make_templates):
         return expected_volume_mounts
 
     template_containers_volumes_mounts = {}
-    for template in await make_templates(values):
-        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            for container in workload_spec_containers(template["spec"]["template"]["spec"]):
-                volumes_mounts = deepfreeze(container.get("volumeMounts", []))
-                pod_container_volumes = volumes_mounts
-                template_containers_volumes_mounts[f"{template_id(template)}/{container['name']}"] = (
-                    pod_container_volumes
-                )
+    for pod_template_details in iterate_pod_template(await make_templates(values)):
+        for container in workload_spec_containers(pod_template_details.pod_template["spec"]):
+            volumes_mounts = deepfreeze(container.get("volumeMounts", []))
+            pod_container_volumes = volumes_mounts
+            template_containers_volumes_mounts[f"{pod_template_details.manifest_id}/{container['name']}"] = (
+                pod_container_volumes
+            )
 
     iterate_deployables_workload_parts(set_extra_volume_mounts)
-
-    for template in await make_templates(values):
-        if template["kind"] in ["Deployment", "StatefulSet", "Job"]:
-            for container in workload_spec_containers(template["spec"]["template"]["spec"]):
-                assert "volumeMounts" in container, (
-                    f"Pod container {template_id(template)}/{container['name']} does not have volumeMounts"
-                )
-                volumes_mounts = deepfreeze(container["volumeMounts"])
-                deployable_details = template_to_deployable_details(template)
-                container_details = deployable_details.deployable_details_for_container(container["name"])
-                if container_details.has_mount_context:
-                    if template["metadata"].get("annotations", {}).get("helm.sh/hook-weight"):
-                        assert set(volumes_mounts) - set(
-                            template_containers_volumes_mounts[f"{template_id(template)}/{container['name']}"]
-                        ) == set(
-                            get_expected_volume_mounts_from_values(
-                                deployable_details, container["name"], with_hooks=True
-                            )
-                        ), f"Pod container {template_id(template)}/{container['name']} volume mounts {volumes_mounts}"
-                    else:
-                        assert set(volumes_mounts) - set(
-                            template_containers_volumes_mounts[f"{template_id(template)}/{container['name']}"]
-                        ) == set(
-                            get_expected_volume_mounts_from_values(
-                                deployable_details, container["name"], with_hooks=False
-                            )
-                        ), f"Pod container {template_id(template)}/{container['name']} volume mounts {volumes_mounts}"
+    for pod_template_details in iterate_pod_template(await make_templates(values)):
+        for container in workload_spec_containers(pod_template_details.pod_template["spec"]):
+            assert "volumeMounts" in container, (
+                f"Pod container {pod_template_details.manifest_id}/{container['name']} does not have volumeMounts"
+            )
+            volumes_mounts = deepfreeze(container["volumeMounts"])
+            deployable_details = pod_template_details.deployable_details()
+            container_details = pod_template_details.deployable_details(container["name"])
+            if container_details.has_mount_context:
+                if pod_template_details.manifest["metadata"].get("annotations", {}).get("helm.sh/hook-weight"):
+                    assert set(volumes_mounts) - set(
+                        template_containers_volumes_mounts[f"{pod_template_details.manifest_id}/{container['name']}"]
+                    ) == set(
+                        get_expected_volume_mounts_from_values(deployable_details, container["name"], with_hooks=True)
+                    ), (
+                        f"Pod container {pod_template_details.manifest_id}/{container['name']} volume mounts ",
+                        volumes_mounts,
+                    )
                 else:
                     assert set(volumes_mounts) - set(
-                        template_containers_volumes_mounts[f"{template_id(template)}/{container['name']}"]
+                        template_containers_volumes_mounts[f"{pod_template_details.manifest_id}/{container['name']}"]
                     ) == set(
-                        get_expected_volume_mounts_from_values(deployable_details, container["name"], with_hooks=None)
-                    ), f"Pod container {template_id(template)}/{container['name']} volume mounts {volumes_mounts}"
-                    " is missing expected extra volume"
+                        get_expected_volume_mounts_from_values(deployable_details, container["name"], with_hooks=False)
+                    ), (
+                        f"Pod container {pod_template_details.manifest_id}/{container['name']} volume mounts ",
+                        volumes_mounts,
+                    )
+            else:
+                assert set(volumes_mounts) - set(
+                    template_containers_volumes_mounts[f"{pod_template_details.manifest_id}/{container['name']}"]
+                ) == set(
+                    get_expected_volume_mounts_from_values(deployable_details, container["name"], with_hooks=None)
+                ), (
+                    f"Pod container {pod_template_details.manifest_id}/{container['name']} volume mounts ",
+                    volumes_mounts,
+                )
+                " is missing expected extra volume"
