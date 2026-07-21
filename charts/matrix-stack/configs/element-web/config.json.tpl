@@ -19,8 +19,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $_ := set $mHomeserver "base_url" (printf "https://%s" (tpl $root.Values.synapse.ingress.host $root)) -}}
 {{- end }}
 {{- if $root.Values.matrixRTC.enabled }}
-{{- $_ := set $settingDefaults "feature_group_calls" true -}}
-{{- $_ := set $config "features" (dict "feature_video_rooms" true "feature_group_calls" true "feature_new_room_decoration_ui" true "feature_element_call_video_rooms" true) -}}
+{{- $_ := set $config "features" (dict "feature_video_rooms" true  "feature_new_room_decoration_ui" true "feature_element_call_video_rooms" true) -}}
 {{- $_ := set $config "element_call" (dict "use_exclusively" true) -}}
 {{- end }}
 {{- if include "element-io.matrix-authentication-service.readyToHandleAuth" (dict "root" $root) }}
