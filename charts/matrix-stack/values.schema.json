@@ -5432,6 +5432,7 @@
                     "portType": {
                       "type": "string",
                       "enum": [
+                        "ClusterIP",
                         "NodePort",
                         "HostPort",
                         "LoadBalancer"
@@ -5486,6 +5487,7 @@
                     "portType": {
                       "type": "string",
                       "enum": [
+                        "ClusterIP",
                         "NodePort",
                         "HostPort",
                         "LoadBalancer"
@@ -5540,6 +5542,7 @@
                     "portType": {
                       "type": "string",
                       "enum": [
+                        "ClusterIP",
                         "NodePort",
                         "HostPort",
                         "LoadBalancer"
@@ -5607,6 +5610,7 @@
                     "portType": {
                       "type": "string",
                       "enum": [
+                        "ClusterIP",
                         "NodePort",
                         "HostPort",
                         "LoadBalancer"
@@ -5670,6 +5674,7 @@
                     "portType": {
                       "type": "string",
                       "enum": [
+                        "ClusterIP",
                         "NodePort",
                         "HostPort",
                         "LoadBalancer"

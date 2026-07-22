@@ -18,6 +18,7 @@
     "portType": {
       "type": "string",
       "enum": [
+        "ClusterIP",
         "NodePort",
         "HostPort",
         "LoadBalancer"
