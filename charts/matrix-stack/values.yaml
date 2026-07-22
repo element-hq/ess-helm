@@ -925,7 +925,7 @@ matrixRTC:
         # This is unused if the portType is `HostPort` as the pod port
         # is exposed directly on the node running it, so no service is created.
         annotations: {}
-        # Either a NodePort, HostPort or LoadBalancer
+        # Either a ClusterIP, NodePort, HostPort or LoadBalancer
         # If the port is a HostPort, no Service will be created.
         portType: NodePort
         # External IPs addresses of this service.
@@ -944,7 +944,7 @@ matrixRTC:
         # This is unused if the portType is `HostPort` as the pod port
         # is exposed directly on the node running it, so no service is created.
         annotations: {}
-        # Either a NodePort, HostPort or LoadBalancer
+        # Either a ClusterIP, NodePort, HostPort or LoadBalancer
         # If the port is a HostPort, no Service will be created.
         portType: NodePort
         # External IPs addresses of this service.
@@ -963,7 +963,7 @@ matrixRTC:
         # This is unused if the portType is `HostPort` as the pod port
         # is exposed directly on the node running it, so no service is created.
         annotations: {}
-        # Either a NodePort, HostPort or LoadBalancer
+        # Either a ClusterIP, NodePort, HostPort or LoadBalancer
         # If the port is a HostPort, no Service will be created.
         portType: NodePort
         # External IPs addresses of this service.
@@ -990,7 +990,7 @@ matrixRTC:
         # This is unused if the portType is `HostPort` as the pod port
         # is exposed directly on the node running it, so no service is created.
         annotations: {}
-        # Either a NodePort, HostPort or LoadBalancer
+        # Either a ClusterIP, NodePort, HostPort or LoadBalancer
         # If the port is a HostPort, no Service will be created.
         portType: NodePort
         # External IPs addresses of this service.
@@ -1018,7 +1018,7 @@ matrixRTC:
         # This is unused if the portType is `HostPort` as the pod port
         # is exposed directly on the node running it, so no service is created.
         annotations: {}
-        # Either a NodePort, HostPort or LoadBalancer
+        # Either a ClusterIP, NodePort, HostPort or LoadBalancer
         # If the port is a HostPort, no Service will be created.
         portType: NodePort
         # External IPs addresses of this service.

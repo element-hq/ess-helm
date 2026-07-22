@@ -30,6 +30,7 @@ async def test_exposed_services_port_and_type(values, make_templates):
     - NodePort: Services must have type=NodePort with valid nodePort integers
     - HostPort: Deployments must have hostPort configured, no Service exposure
     - LoadBalancer: Services must have type=LoadBalancer
+    - ClusterIP: Services must have type=ClusterIP
     - DynamicNodePort: Services must have type=NodePort with empty nodePort for dynamic allocation
     """
     num_of_expected_ports = {}
@@ -68,7 +69,7 @@ async def test_exposed_services_port_and_type(values, make_templates):
 
     found_exposed_services = {}
     found_services = {}
-    for service_mode in ("NodePort", "HostPort", "LoadBalancer", "DynamicNodePort"):
+    for service_mode in ("NodePort", "HostPort", "LoadBalancer", "ClusterIP", "DynamicNodePort"):
         for deployable_details in all_deployables_details:
             num_of_expected_ports[deployable_details.name] = 0
             num_of_expected_exposed_services[deployable_details.name] = 0
