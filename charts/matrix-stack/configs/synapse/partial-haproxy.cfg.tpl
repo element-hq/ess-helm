@@ -178,12 +178,22 @@ backend synapse-{{ $workerType }}
   http-check send meth GET uri /health
 
 {{- if eq $workerType "event-creator" }}
-  # We want to balance based on the room, so try and pull it out of the path
-  http-request set-header X-Matrix-Room %[path]
-  http-request replace-header X-Matrix-Room rooms/([^/]+) \1
-  http-request replace-header X-Matrix-Room join/([^/]+) \1
 
-  balance hdr(X-Matrix-Room)
+# We place the path in the balance id
+  http-request set-header X-Balance-Id %[path]
+
+  # We balance on room-id / user-id by extracting it from the path as appropriate
+  http-request replace-header X-Balance-Id rooms/([^/]+) \1
+  http-request replace-header X-Balance-Id join/([^/]+) \1
+  http-request replace-header X-Balance-Id knock/([^/]+) \1
+  http-request replace-header X-Balance-Id profile/([^/]+) \1
+
+  # This path does not have an id, so we balance on access token
+  acl balance_on_access_token path_reg "^/_matrix/client/(api/v1|r0|v3|unstable)/createRoom"
+
+  # For paths without an id, we balance on the access token
+  http-request set-header X-Balance-Id hdr(X-Access-Token) if balance_on_access_token
+  balance hdr(X-Balance-Id)
 
 {{- else if eq $workerType "federation-inbound" }}
   # We balance by source IP so the same origin servers go to the same worker.
