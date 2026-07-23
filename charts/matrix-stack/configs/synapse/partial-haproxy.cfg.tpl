@@ -7,6 +7,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 {{- $root := .root -}}
 {{- with required "synapse/partial-haproxy.cfg.tpl missing context" .context -}}
+{{ $enabledWorkers := (include "element-io.synapse.enabledWorkers" (dict "root" $root)) | fromJson }}
 
 frontend startup
 {{- if has $root.Values.networking.ipFamily (list "ipv4" "dual-stack") }}
@@ -17,7 +18,7 @@ frontend startup
    bind [::]:8406 {{ (eq $root.Values.networking.ipFamily "dual-stack") | ternary "v6only" "v4v6" }}
 {{- end }}
    acl synapse_dead nbsrv(synapse-main) lt 1
-{{- range $workerType, $_ := (include "element-io.synapse.enabledWorkers" (dict "root" $root)) | fromJson }}
+{{- range $workerType, $_ := $enabledWorkers}}
 {{- if not (include "element-io.synapse.process.canFallbackToMain" (dict "root" $root "context" $workerType)) }}
   acl synapse_dead nbsrv(synapse-{{ $workerType }}) lt 1
 {{- end }}
@@ -111,7 +112,7 @@ frontend synapse-http-in
 {{- end }}
 {{- end }}
 
-{{ $enabledWorkerTypes := keys ((include "element-io.synapse.enabledWorkers" (dict "root" $root)) | fromJson) }}
+{{ $enabledWorkerTypes := keys  $enabledWorkers }}
 {{ $hasFailoverBackend := false }}
 {{- range $workerType := $enabledWorkerTypes | sortAlpha }}
 {{- if include "element-io.synapse.process.canFallbackToMain" (dict "root" $root "context" $workerType) }}
@@ -169,7 +170,7 @@ backend synapse-main-failover
   server-template main 1 _synapse-http._tcp.{{ $root.Release.Name }}-synapse-main.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }} resolvers kubedns init-addr none check
 {{- end }}
 
-{{- range $workerType, $workerDetails := (include "element-io.synapse.enabledWorkers" (dict "root" $root)) | fromJson }}
+{{- range $workerType, $workerDetails := $enabledWorkers }}
 {{- if include "element-io.synapse.process.hasHttp" (dict "root" $root "context" $workerType) }}
 
 backend synapse-{{ $workerType }}
@@ -247,7 +248,15 @@ backend synapse-{{ $workerType }}
   timeout queue 5s
 
 {{- end }}
-{{- $maxInstances := ternary 1 20 (eq "single" (include "element-io.synapse.process.scalingType" (dict "root" $root "context" $workerType))) }}
+
+
+{{- $maxInstances := 1 }}
+{{- if eq (include "element-io.synapse.process.scalingType" (dict "root" $root "context" $workerType)) "statically_scalable" }}
+{{- $maxInstances = $enabledWorkers | dig $workerType "replicas" 1 }}
+{{- /* We add some headrooms for rollouts */}}
+{{- $maxInstances = add $maxInstances 5 }}
+{{- end -}}
+
 {{- $workerTypeName := include "element-io.synapse.process.workerTypeName" (dict "root" $root "context" $workerType) }}
   # Use DNS SRV service discovery on the headless service
   server-template {{ $workerTypeName }} {{ $maxInstances }} _synapse-http._tcp.{{ $root.Release.Name }}-synapse-{{ $workerTypeName }}.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }} resolvers kubedns init-addr none check
