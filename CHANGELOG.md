@@ -7,6 +7,80 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.7.1 (2026-07-24)
+
+## Added
+
+- Add support for configuring `affinity` (nodeAffinity, podAffinity and podAntiAffinity) on component workloads, along with a global `affinity` applied to all components. Each affinity type is resolved independently: a component that sets one type overrides only that type, inheriting the others from the global affinity, and a type can be blanked out per-component by setting it to `{}`. (#1442)
+- Allow customising the response headers of the `/.well-known/matrix/*` endpoints via `wellKnownDelegation.headers`. The well-known responses now return `Cache-Control: public, max-age=3600` by default. (#1452)
+- Add `matrixRTC.sfu.nodeIPSource` to select which Kubernetes downward API field populates the SFU public IP (`NODE_IP`) when `useStunToDiscoverPublicIP` is `false` and no `manualIP` is provided. Valid values: `hostIP` (default, previous behaviour) and `podIP`. (#1460)
+- Add support for configuring `schedulerName` and `runtimeClassName` on component workloads, along with global `schedulerName` and `runtimeClassName` values applied to all components (a per-component value overrides the global one). (#1461)
+- Add support for setting `portType` in `matrixRTC.sfu.exposedServices` to `ClusterIP`. (#1465)
+
+## Changed
+
+- Upgrade Hookshot to v7.4.3.
+
+  Highlights:
+  - Fix GitHub messages being inlined incorrectly in some cases
+  - Fix requests to `GET /oauth` endpoints (Jira, GitHub, OpenProject) throwing an error when required query parameters are missing
+
+  Full Changelogs:
+  - [v7.4.3](https://github.com/matrix-org/matrix-hookshot/releases/tag/7.4.3)
+
+  (#1451)
+- Upgrade Element Web to v1.12.24.
+
+  Element Call is now the default calling solution in upstream Element Web.
+  It was already the default calling solution in ESS Community.
+  The setting in the Element Web configuration to disable Element Call has changed.
+  It was `features.feature_group_calls: false`.
+  It is now `element_call.disable: true`.
+  `element_call.use_exclusively` still controls whether legacy voice and video is enabled or not.
+
+  Highlights:
+  - Remove legacy room list
+  - Adapt OAuth2 implementation to Matrix Spec v1.18
+  - Allow disabling legacy calls and make `Voice & Video` settings `Legacy Voice & Video`
+
+  Full Changelogs:
+  - [v1.12.24](https://github.com/element-hq/element-web/releases/tag/v1.12.24)
+
+  (#1453)
+- Upgrade Synapse to v1.157.1.
+
+  Highlights
+  - Support [MSC4446](https://github.com/matrix-org/matrix-spec-proposals/pull/4446) for moving fully read markers backwards
+  - Add before and after time filters to the ['Redact events of a user'](https://element-hq.github.io/synapse/v1.157/admin_api/user_admin_api.html#redact-events-of-a-user) Admin API
+  - Add an `exclude_rooms_from_presence` configuration option to stop presence being routed between users solely because they share one of the listed rooms
+
+  Full Changelogs:
+  - [v1.157.0](https://github.com/element-hq/synapse/releases/tag/v1.157.0)
+  - [v1.157.1](https://github.com/element-hq/synapse/releases/tag/v1.157.1)
+
+  (#1454, #1466)
+- Upgrade Matrix Authentication Service to v1.21.0.
+
+  Highlights:
+  - Don't show client URI on consent screen for Device Authorization Grant
+  - Translations updates
+
+  Full Changelogs:
+  - [v1.21.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.21.0)
+
+  (#1455)
+- Configure Matrix Authentication Service to communicate with any Synapse worker, not only the main process. (#1456)
+
+## Fixed
+
+- Load balance `createRoom` API around available workers instead of a single-one. (#1467)
+- Fix an issue where HAProxy could not route to more than 20 instances of a worker. (#1468)
+
+## Internal
+
+- CI: consistently fetch the `Pod` template for workload kinds. (#1462, #1463)
+
+
 # ESS Community Helm Chart 26.7.0 (2026-07-10)
 
 ## Added
