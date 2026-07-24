@@ -27,15 +27,19 @@ spec:
   externalIPs: {{ .exposedServices.rtcTcp.externalIPs | toYaml | nindent 4 }}
   {{- end }}
   internalTrafficPolicy: {{ .exposedServices.rtcTcp.internalTrafficPolicy }}
+  {{- if (ne .exposedServices.rtcTcp.portType "ClusterIP") }}
   externalTrafficPolicy: {{ .exposedServices.rtcTcp.externalTrafficPolicy }}
+  {{- end }}
   ports:
   - name: "rtc-tcp"
     protocol: "TCP"
   {{- /* port and targetPort must be the same for RTC traffic as LiveKit advertises the local port its listening on as the access port*/}}
     port: {{ .exposedServices.rtcTcp.port }}
     targetPort: {{ .exposedServices.rtcTcp.port }}
+    {{- if (ne .exposedServices.rtcTcp.portType "ClusterIP") }}
     {{- with .exposedServices.rtcTcp.nodePort }}
     nodePort: {{ tpl . (dict "context" $.Values.matrixRTC.sfu.exposedServices.rtcTcp "root" $) }}
+    {{- end }}
     {{- end }}
   selector:
     app.kubernetes.io/instance: "{{ $.Release.Name }}-matrix-rtc-sfu"

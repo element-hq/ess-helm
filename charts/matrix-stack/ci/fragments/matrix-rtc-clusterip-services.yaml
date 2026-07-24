@@ -1,0 +1,19 @@
+# Copyright 2025-2026 Element Creations Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+matrixRTC:
+  sfu:
+    exposedServices:
+      rtcTcp:
+        portType: ClusterIP
+      rtcMuxedUdp:
+        portType: ClusterIP
+      turnTLS:
+        enabled: true
+        portType: ClusterIP
+        domain: turn.{{ $.Values.serverName }}
+        tlsSecret: "{{ $.Release.Name }}-turn-tls"
+      turn:
+        enabled: true
+        portType: ClusterIP

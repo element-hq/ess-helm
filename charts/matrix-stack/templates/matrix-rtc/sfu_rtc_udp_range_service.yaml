@@ -33,7 +33,9 @@ spec:
   {{- end }}
   ipFamilyPolicy: PreferDualStack
   internalTrafficPolicy: {{ $.Values.matrixRTC.sfu.exposedServices.rtcUdp.internalTrafficPolicy }}
+  {{- if (ne $.Values.matrixRTC.sfu.exposedServices.rtcUdp.portType "ClusterIP") }}
   externalTrafficPolicy: {{ $.Values.matrixRTC.sfu.exposedServices.rtcUdp.externalTrafficPolicy }}
+  {{- end }}
   ports:
 {{- $segment_start := ((add $range_start (mul 250 $port_segment)) | int) }}
 {{- $segment_end := ((min (add $range_end 1) (add $segment_start 250)) | int) }}
@@ -42,8 +44,10 @@ spec:
   {{- /* port and targetPort must be the same for RTC traffic as LiveKit advertises the local port its listening on as the access port*/}}
     port: {{ $port }}
     targetPort: {{ $port }}
+    {{- if (ne $.Values.matrixRTC.sfu.exposedServices.rtcUdp.portType "ClusterIP") }}
     {{- with $.Values.matrixRTC.sfu.exposedServices.rtcUdp.portRange.nodePort }}
     nodePort: {{ tpl . (dict "context" (mustMergeOverwrite (dict "port" $port) ($.Values.matrixRTC.sfu.exposedServices.rtcUdp)) "root" $)  }}
+    {{- end }}
     {{- end }}
     protocol: UDP
 {{- end }}

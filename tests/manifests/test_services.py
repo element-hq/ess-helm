@@ -361,10 +361,13 @@ async def test_exposed_services_traffic_policy(values, make_templates):
                         template["spec"].get("internalTrafficPolicy")
                         == template["metadata"]["annotations"]["exposed-service-internal"]
                     )
-                    assert (
-                        template["spec"].get("externalTrafficPolicy")
-                        == template["metadata"]["annotations"]["exposed-service-external"]
-                    )
+                    if template["spec"]["type"] != "ClusterIP":
+                        assert (
+                            template["spec"].get("externalTrafficPolicy")
+                            == template["metadata"]["annotations"]["exposed-service-external"]
+                        )
+                    else:
+                        assert "externalTrafficPolicy" not in template["spec"]
         for deployable_details in all_deployables_details:
             assert (
                 len(found_exposed_services[deployable_details.name])
@@ -588,6 +591,11 @@ async def test_services_specify_type_by_default(templates):
                     f"{template_id(template)} has externalTrafficPolicy defined for ClusterIP service. "
                     f"externalTrafficPolicy is only valid for NodePort/LoadBalancer services."
                 )
+                for port in template["spec"]["ports"]:
+                    assert "nodePort" not in port, (
+                        f"{template_id(template)} has nodePort set on a ClusterIP service port. "
+                        f"nodePort is only valid for NodePort/LoadBalancer services."
+                    )
             else:
                 assert "clusterIP" not in template["spec"], (
                     f"{template_id(template)} has clusterIP defined for NodePort service. "

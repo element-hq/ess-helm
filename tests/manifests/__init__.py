@@ -789,6 +789,7 @@ _extra_services_values_files_to_test = [
     "matrix-rtc-exposed-services-tls-values.yaml",
     "matrix-rtc-exposed-services-cert-manager-values.yaml",
     "matrix-rtc-turn-tls-external-values.yaml",
+    "matrix-rtc-clusterip-services-values.yaml",
 ]
 
 secret_values_files_to_test = set(

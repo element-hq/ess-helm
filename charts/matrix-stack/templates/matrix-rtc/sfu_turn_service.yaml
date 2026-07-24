@@ -27,15 +27,19 @@ spec:
   externalIPs: {{ .exposedServices.turn.externalIPs | toYaml | nindent 4 }}
   {{- end }}
   internalTrafficPolicy: {{ .exposedServices.turn.internalTrafficPolicy }}
+  {{- if (ne .exposedServices.turn.portType "ClusterIP") }}
   externalTrafficPolicy: {{ .exposedServices.turn.externalTrafficPolicy }}
+  {{- end }}
   ports:
   - name: "turn-udp"
     protocol: "UDP"
   {{- /* port and targetPort must be the same for Turn UDP traffic as LiveKit advertises the local port its listening on as the access port*/}}
     port: {{ .exposedServices.turn.port }}
     targetPort: {{ .exposedServices.turn.port }}
+    {{- if (ne .exposedServices.turn.portType "ClusterIP") }}
     {{- with .exposedServices.turn.nodePort }}
     nodePort: {{ tpl . (dict "context" $.Values.matrixRTC.sfu.exposedServices.turn "root" $) }}
+    {{- end }}
     {{- end }}
   selector:
     app.kubernetes.io/instance: "{{ $.Release.Name }}-matrix-rtc-sfu"
