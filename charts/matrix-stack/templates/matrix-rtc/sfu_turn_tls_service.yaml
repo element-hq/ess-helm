@@ -27,7 +27,9 @@ spec:
   externalIPs: {{ .exposedServices.turnTLS.externalIPs | toYaml | nindent 4 }}
   {{- end }}
   internalTrafficPolicy: {{ .exposedServices.turnTLS.internalTrafficPolicy }}
+  {{- if (ne .exposedServices.turnTLS.portType "ClusterIP") }}
   externalTrafficPolicy: {{ .exposedServices.turnTLS.externalTrafficPolicy }}
+  {{- end }}
   ports:
   - name: "turn-tls-tcp"
     protocol: "TCP"
@@ -35,8 +37,10 @@ spec:
   {{- /* LiveKit will advertise the port 443 regardless of the port configured.
     We hardcode it to 5349 and rely on Kubernetes routing to expose a port of 443 using a LoadBalancer service */}}
     targetPort: 5349
+    {{- if  (ne .exposedServices.turnTLS.portType "ClusterIP") }}
     {{- with .exposedServices.turnTLS.nodePort }}
     nodePort: {{ tpl . (dict "context" $.Values.matrixRTC.sfu.exposedServices.turnTLS "root" $) }}
+    {{- end }}
     {{- end }}
   selector:
     app.kubernetes.io/instance: "{{ $.Release.Name }}-matrix-rtc-sfu"

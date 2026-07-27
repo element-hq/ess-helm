@@ -27,15 +27,19 @@ spec:
   {{- end }}
   ipFamilyPolicy: PreferDualStack
   internalTrafficPolicy: {{ .exposedServices.rtcMuxedUdp.internalTrafficPolicy }}
+  {{- if (ne .exposedServices.rtcMuxedUdp.portType "ClusterIP") }}
   externalTrafficPolicy: {{ .exposedServices.rtcMuxedUdp.externalTrafficPolicy }}
+  {{- end }}
   ports:
   - name: "rtc-muxed-udp"
     protocol: "UDP"
   {{- /* port and targetPort must be the same for RTC traffic as LiveKit advertises the local port its listening on as the access port*/}}
     port: {{ .exposedServices.rtcMuxedUdp.port }}
     targetPort: {{ .exposedServices.rtcMuxedUdp.port }}
+    {{- if (ne .exposedServices.rtcMuxedUdp.portType "ClusterIP") }}
     {{- with .exposedServices.rtcMuxedUdp.nodePort }}
     nodePort: {{ tpl . (dict "context" $.Values.matrixRTC.sfu.exposedServices.rtcMuxedUdp "root" $) }}
+    {{- end }}
     {{- end }}
   selector:
     app.kubernetes.io/instance: "{{ $.Release.Name }}-matrix-rtc-sfu"
