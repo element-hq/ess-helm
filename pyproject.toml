@@ -16,7 +16,7 @@ dependencies = []
 [tool.uv]
 [dependency-groups]
 dev = [
-  "aiohttp>=3.14.1",
+  "aiohttp>=3.14.3",
   "checkov>=3.2.530",
   "cryptography>=49.0.0",
   "ess-community-integration-tests",
@@ -24,14 +24,14 @@ dev = [
   "jinja2>=3.1.6",
   "jsonschema>=4.26",
   "mypy>=2.3.0",
-  "platformdirs>=4.10.0",
+  "platformdirs>=4.11.0",
   "pytest>=8.4.2,<9", # pytest 9 is causing issues with asyncio-cooperative
   "pytz>=2026.2",
   "pyyaml>=6.0.3",
   "rapidfuzz>=3.14.5",
   "reuse>=6.2.0",
   "ruamel-yaml>=0.19.1",
-  "ruff>=0.15.22",
+  "ruff>=0.16.0",
   "semver>=3.0.4",
   "signedjson>=1.1.4",
   "spdx-tools>=0.8.5",
