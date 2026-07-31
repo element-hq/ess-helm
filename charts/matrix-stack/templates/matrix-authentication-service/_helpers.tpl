@@ -238,17 +238,6 @@ mas-config-overrides.yaml: |
 {{- end }}
 {{- end }}
 
-
-{{- define "element-io.matrix-authentication-service.syn2masConfigSecrets" -}}
-{{- $root := .root -}}
-{{- with required "element-io.matrix-authentication-service.syn2masConfigSecrets missing context" .context -}}
-{{- $masSecrets := include "element-io.matrix-authentication-service.configSecrets" (dict "root" $root "context" .masContext) | fromJsonArray }}
-{{- $synapseSecrets := include "element-io.synapse.configSecrets" (dict "root" $root "context" .synapseContext) | fromJsonArray }}
-{{- $syn2masSecrets := concat $masSecrets $synapseSecrets | uniq | sortAlpha }}
-{{- $syn2masSecrets | toJson -}}
-{{- end -}}
-{{- end -}}
-
 {{- define "element-io.matrix-authentication-service.readyToHandleAuth" -}}
 {{- $root := .root -}}
 {{- /*
