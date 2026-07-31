@@ -49,14 +49,44 @@ Work around this by omitted the host name in the dual-stack case and MAS itself 
 
 
 database:
-{{- /* We don't attempt to use passfile and mount the Secret directly due to
-https://github.com/kubernetes/kubernetes/issues/129043 / https://github.com/kubernetes/kubernetes/issues/81089 */}}
 {{- if .postgres }}
-{{- with .postgres }}
-  uri: "postgresql://{{ .user }}:${POSTGRES_PASSWORD}@{{ tpl .host $root }}:{{ .port }}/{{ .database }}?{{ with .sslMode }}sslmode={{ . }}&{{ end }}application_name=matrix-authentication-service"
-{{- end }}
+  host: {{ tpl .postgres.host $root | quote }}
+  port: {{ .postgres.port | default 5432 }}
+  username: {{ .postgres.user | quote }}
+  password_file: /secrets/{{
+                  include "element-io.ess-library.postgres-secret-path" (
+                      dict "root" $root
+                      "context" (dict
+                        "essPassword" "matrixAuthenticationService"
+                        "initSecretKey" "POSTGRES_MATRIX_AUTHENTICATION_SERVICE_PASSWORD"
+                        "componentPasswordPath" "matrixAuthenticationService.postgres.password"
+                        "defaultSecretName" (include "element-io.matrix-authentication-service.secret-name" (dict "root" $root "context" .))
+                        "defaultSecretKey" "POSTGRES_PASSWORD"
+                        "isHook" .isHook
+                      )
+                  ) }}
+  database: {{ .postgres.database | quote }}
+  {{- with .postgres.sslMode }}
+  ssl_mode: {{ . }}
+  {{- end }}
 {{- else if $root.Values.postgres.enabled }}
-  uri: "postgresql://matrixauthenticationservice_user:${POSTGRES_PASSWORD}@{{ $root.Release.Name }}-postgres.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:5432/matrixauthenticationservice?sslmode=prefer&application_name=matrix-authentication-service"
+  host: {{ $root.Release.Name }}-postgres.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}
+  port: 5432
+  username: matrixauthenticationservice_user
+  password_file: /secrets/{{
+                  include "element-io.ess-library.postgres-secret-path" (
+                      dict "root" $root
+                      "context" (dict
+                        "essPassword" "matrixAuthenticationService"
+                        "initSecretKey" "POSTGRES_MATRIX_AUTHENTICATION_SERVICE_PASSWORD"
+                        "componentPasswordPath" "matrixAuthenticationService.postgres.password"
+                        "defaultSecretName" (include "element-io.matrix-authentication-service.secret-name" (dict "root" $root "context" .))
+                        "defaultSecretKey" "POSTGRES_PASSWORD"
+                        "isHook" .isHook
+                      )
+                  ) }}
+  database: matrixauthenticationservice
+  ssl_mode: prefer
 {{ end }}
 
 telemetry:

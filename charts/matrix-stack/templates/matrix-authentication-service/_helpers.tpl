@@ -64,7 +64,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
                                                                 "essPassword" "matrixAuthenticationService"
                                                                 "componentPasswordPath" "matrixAuthenticationService.postgres.password"
                                                                 "defaultSecretName" (include "element-io.matrix-authentication-service.secret-name" (dict "root" $root "context" .))
-                                                                "isHook" false
+                                                                "isHook" .isHook
                                                                 )
                                             )
                                         ) -}}
@@ -109,27 +109,7 @@ env:
         Environment variables values found in the config file as ${VARNAME} are parsed through go template engine before being replaced in the target file.
 */}}
 {{- define "element-io.matrix-authentication-service.renderConfigOverrideEnv" }}
-{{- $root := .root -}}
-{{- with required "element-io.matrix-authentication-service.renderConfigOverrideEnv missing context" .context -}}
-env:
-- name: POSTGRES_PASSWORD
-  value: >-
-    {{
-      printf "{{ readfile \"/secrets/%s\" | urlencode }}" (
-          include "element-io.ess-library.postgres-secret-path" (
-              dict "root" $root
-              "context" (dict
-                "essPassword" "matrixAuthenticationService"
-                "initSecretKey" "POSTGRES_MATRIX_AUTHENTICATION_SERVICE_PASSWORD"
-                "componentPasswordPath" "matrixAuthenticationService.postgres.password"
-                "defaultSecretName" (include "element-io.matrix-authentication-service.secret-name" (dict "root" $root "context" .))
-                "defaultSecretKey" "POSTGRES_PASSWORD"
-                "isHook" false
-              )
-          )
-        )
-    }}
-{{- end }}
+env: []
 {{- end }}
 
 
