@@ -23,6 +23,9 @@ spec:
     - targetLabel: instance
       sourceLabels: [__meta_kubernetes_pod_label_app_kubernetes_io_instance]
       action: replace
+    {{- with .serviceMonitors.relabelings }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
   selector:
     matchLabels:
       app.kubernetes.io/instance: {{ $.Release.Name }}-redis

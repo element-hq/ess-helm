@@ -28,6 +28,9 @@ spec:
       targetLabel: index
       regex: '.*-([0-9]+)'
       replacement: '$1'
+    {{- with .serviceMonitors.relabelings }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
   selector:
     matchLabels:
       app.kubernetes.io/part-of: matrix-stack

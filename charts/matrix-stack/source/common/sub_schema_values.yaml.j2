@@ -519,6 +519,10 @@ networking:
 ## Requires the ServiceMonitor CRDs to be in the cluster
 {{ key }}:
   enabled: true
+
+  ## List of RelabelConfig's to dynamically rewrite label sets,
+  ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
+  relabelings: []
 {%- endmacro %}
 
 {% macro tolerations(global=false, key='tolerations') %}
