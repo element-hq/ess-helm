@@ -788,6 +788,10 @@ matrixRTC:
     ## List of RelabelConfig's to dynamically rewrite label sets,
     ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
     relabelings: []
+
+    ## List of RelabelConfig's to dynamically rewrite metric labels,
+    ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
+    metricRelabelings: []
   ## Controls configuration of the ServiceAccount for this component
   serviceAccount:
     ## Whether a ServiceAccount should be created by the chart or not
@@ -1205,6 +1209,10 @@ matrixRTC:
       ## List of RelabelConfig's to dynamically rewrite label sets,
       ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
       relabelings: []
+
+      ## List of RelabelConfig's to dynamically rewrite metric labels,
+      ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
+      metricRelabelings: []
     ## Workload tolerations allows Pods that are part of this (sub)component to 'tolerate' any taint that matches the triple <key,value,effect> using the matching operator <operator>.
     ##
     ## * effect indicates the taint effect to match. Empty means match all taint effects. When specified, allowed values are NoSchedule, PreferNoSchedule and NoExecute.
@@ -2013,6 +2021,10 @@ haproxy:
     ## List of RelabelConfig's to dynamically rewrite label sets,
     ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
     relabelings: []
+
+    ## List of RelabelConfig's to dynamically rewrite metric labels,
+    ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
+    metricRelabelings: []
   ## Workload tolerations allows Pods that are part of this (sub)component to 'tolerate' any taint that matches the triple <key,value,effect> using the matching operator <operator>.
   ##
   ## * effect indicates the taint effect to match. Empty means match all taint effects. When specified, allowed values are NoSchedule, PreferNoSchedule and NoExecute.
@@ -2446,6 +2458,10 @@ hookshot:
     ## List of RelabelConfig's to dynamically rewrite label sets,
     ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
     relabelings: []
+
+    ## List of RelabelConfig's to dynamically rewrite metric labels,
+    ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
+    metricRelabelings: []
 
   ## Defines additional environment variables to be injected onto this workload
   ## e.g.
@@ -2883,6 +2899,10 @@ matrixAuthenticationService:
     ## List of RelabelConfig's to dynamically rewrite label sets,
     ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
     relabelings: []
+
+    ## List of RelabelConfig's to dynamically rewrite metric labels,
+    ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
+    metricRelabelings: []
 
   ## Defines additional environment variables to be injected onto this workload
   ## e.g.
@@ -3526,6 +3546,10 @@ postgres:
     ## List of RelabelConfig's to dynamically rewrite label sets,
     ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
     relabelings: []
+
+    ## List of RelabelConfig's to dynamically rewrite metric labels,
+    ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
+    metricRelabelings: []
   ## Workload tolerations allows Pods that are part of this (sub)component to 'tolerate' any taint that matches the triple <key,value,effect> using the matching operator <operator>.
   ##
   ## * effect indicates the taint effect to match. Empty means match all taint effects. When specified, allowed values are NoSchedule, PreferNoSchedule and NoExecute.
@@ -3782,6 +3806,10 @@ redis:
     ## List of RelabelConfig's to dynamically rewrite label sets,
     ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
     relabelings: []
+
+    ## List of RelabelConfig's to dynamically rewrite metric labels,
+    ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
+    metricRelabelings: []
   ## Workload tolerations allows Pods that are part of this (sub)component to 'tolerate' any taint that matches the triple <key,value,effect> using the matching operator <operator>.
   ##
   ## * effect indicates the taint effect to match. Empty means match all taint effects. When specified, allowed values are NoSchedule, PreferNoSchedule and NoExecute.
@@ -5732,6 +5760,10 @@ synapse:
     ## List of RelabelConfig's to dynamically rewrite label sets,
     ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
     relabelings: []
+
+    ## List of RelabelConfig's to dynamically rewrite metric labels,
+    ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
+    metricRelabelings: []
   ## Workload tolerations allows Pods that are part of this (sub)component to 'tolerate' any taint that matches the triple <key,value,effect> using the matching operator <operator>.
   ##
   ## * effect indicates the taint effect to match. Empty means match all taint effects. When specified, allowed values are NoSchedule, PreferNoSchedule and NoExecute.

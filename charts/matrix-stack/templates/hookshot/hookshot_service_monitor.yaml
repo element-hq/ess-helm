@@ -24,6 +24,10 @@ spec:
     relabelings:
     {{- toYaml . | nindent 4 }}
   {{- end }}
+  {{- with .serviceMonitors.metricRelabelings }}
+    metricRelabelings:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
       app.kubernetes.io/instance: "{{ $.Release.Name }}-hookshot"
