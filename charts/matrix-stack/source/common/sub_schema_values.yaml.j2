@@ -520,11 +520,11 @@ networking:
 {{ key }}:
   enabled: true
 
-  ## List of RelabelConfig's to dynamically rewrite label sets,
-  ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
-  relabelings: []
+## List of RelabelConfig's to apply to the target before scraping
+## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
+relabelings: []
 
-  ## List of RelabelConfig's to dynamically rewrite metric labels,
+  ## List of RelabelConfig's to apply to the samples before ingestion but after scraping
   ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
   metricRelabelings: []
 {%- endmacro %}
