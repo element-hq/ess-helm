@@ -73,7 +73,7 @@ async def test_service_monitor_defaults(templates):
             assert len(template["spec"]["endpoints"][0]["relabelings"]) == 1
         else:
             assert "relabelings" not in template["spec"]["endpoints"][0]
-          assert "metricRelabelings" not in template["spec"]["endpoints"][0]
+        assert "metricRelabelings" not in template["spec"]["endpoints"][0]
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -145,5 +145,8 @@ async def test_service_monitors_allow_adding_metric_relabelings(values, make_tem
     )
 
     for template in await make_templates(values):
-          assert len(template["spec"]["endpoints"][0]["metricRelabelings"]) == 1
-          assert_metric_relabeling(template["spec"]["endpoints"][0]["metricRelabelings"][0])
+        if template["kind"] != "ServiceMonitor":
+            continue
+
+        assert len(template["spec"]["endpoints"][0]["metricRelabelings"]) == 1
+        assert_metric_relabeling(template["spec"]["endpoints"][0]["metricRelabelings"][0])
