@@ -785,11 +785,11 @@ matrixRTC:
   serviceMonitors:
     enabled: true
 
-    ## List of RelabelConfig's to dynamically rewrite label sets,
-    ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
-    relabelings: []
+  ## List of RelabelConfig's to apply to the target before scraping
+  ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
+  relabelings: []
 
-    ## List of RelabelConfig's to dynamically rewrite metric labels,
+    ## List of RelabelConfig's to apply to the samples before ingestion but after scraping
     ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
     metricRelabelings: []
   ## Controls configuration of the ServiceAccount for this component
@@ -1206,11 +1206,11 @@ matrixRTC:
     serviceMonitors:
       enabled: true
 
-      ## List of RelabelConfig's to dynamically rewrite label sets,
-      ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
-      relabelings: []
+    ## List of RelabelConfig's to apply to the target before scraping
+    ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
+    relabelings: []
 
-      ## List of RelabelConfig's to dynamically rewrite metric labels,
+      ## List of RelabelConfig's to apply to the samples before ingestion but after scraping
       ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
       metricRelabelings: []
     ## Workload tolerations allows Pods that are part of this (sub)component to 'tolerate' any taint that matches the triple <key,value,effect> using the matching operator <operator>.
@@ -2018,11 +2018,11 @@ haproxy:
   serviceMonitors:
     enabled: true
 
-    ## List of RelabelConfig's to dynamically rewrite label sets,
-    ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
-    relabelings: []
+  ## List of RelabelConfig's to apply to the target before scraping
+  ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
+  relabelings: []
 
-    ## List of RelabelConfig's to dynamically rewrite metric labels,
+    ## List of RelabelConfig's to apply to the samples before ingestion but after scraping
     ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
     metricRelabelings: []
   ## Workload tolerations allows Pods that are part of this (sub)component to 'tolerate' any taint that matches the triple <key,value,effect> using the matching operator <operator>.
@@ -2455,11 +2455,11 @@ hookshot:
   serviceMonitors:
     enabled: true
 
-    ## List of RelabelConfig's to dynamically rewrite label sets,
-    ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
-    relabelings: []
+  ## List of RelabelConfig's to apply to the target before scraping
+  ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
+  relabelings: []
 
-    ## List of RelabelConfig's to dynamically rewrite metric labels,
+    ## List of RelabelConfig's to apply to the samples before ingestion but after scraping
     ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
     metricRelabelings: []
 
@@ -2896,11 +2896,11 @@ matrixAuthenticationService:
   serviceMonitors:
     enabled: true
 
-    ## List of RelabelConfig's to dynamically rewrite label sets,
-    ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
-    relabelings: []
+  ## List of RelabelConfig's to apply to the target before scraping
+  ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
+  relabelings: []
 
-    ## List of RelabelConfig's to dynamically rewrite metric labels,
+    ## List of RelabelConfig's to apply to the samples before ingestion but after scraping
     ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
     metricRelabelings: []
 
@@ -3543,11 +3543,11 @@ postgres:
   serviceMonitors:
     enabled: true
 
-    ## List of RelabelConfig's to dynamically rewrite label sets,
-    ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
-    relabelings: []
+  ## List of RelabelConfig's to apply to the target before scraping
+  ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
+  relabelings: []
 
-    ## List of RelabelConfig's to dynamically rewrite metric labels,
+    ## List of RelabelConfig's to apply to the samples before ingestion but after scraping
     ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
     metricRelabelings: []
   ## Workload tolerations allows Pods that are part of this (sub)component to 'tolerate' any taint that matches the triple <key,value,effect> using the matching operator <operator>.
@@ -3803,11 +3803,11 @@ redis:
   serviceMonitors:
     enabled: true
 
-    ## List of RelabelConfig's to dynamically rewrite label sets,
-    ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
-    relabelings: []
+  ## List of RelabelConfig's to apply to the target before scraping
+  ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
+  relabelings: []
 
-    ## List of RelabelConfig's to dynamically rewrite metric labels,
+    ## List of RelabelConfig's to apply to the samples before ingestion but after scraping
     ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
     metricRelabelings: []
   ## Workload tolerations allows Pods that are part of this (sub)component to 'tolerate' any taint that matches the triple <key,value,effect> using the matching operator <operator>.
@@ -5757,11 +5757,11 @@ synapse:
   serviceMonitors:
     enabled: true
 
-    ## List of RelabelConfig's to dynamically rewrite label sets,
-    ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
-    relabelings: []
+  ## List of RelabelConfig's to apply to the target before scraping
+  ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
+  relabelings: []
 
-    ## List of RelabelConfig's to dynamically rewrite metric labels,
+    ## List of RelabelConfig's to apply to the samples before ingestion but after scraping
     ## see https://prometheus-operator.dev/docs/api-reference/api/#monitoring.coreos.com/v1.RelabelConfig
     metricRelabelings: []
   ## Workload tolerations allows Pods that are part of this (sub)component to 'tolerate' any taint that matches the triple <key,value,effect> using the matching operator <operator>.
