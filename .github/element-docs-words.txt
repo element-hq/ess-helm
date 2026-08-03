@@ -41,7 +41,6 @@ prometheus
 pytest
 Pytest
 Referer
-metricRelabeling
 relabeling
 SCIM
 shellcheck
