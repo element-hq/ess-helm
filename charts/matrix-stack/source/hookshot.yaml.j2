@@ -49,11 +49,12 @@ replicas: 1
 {{ sub_schema_values.topologySpreadConstraints() }}
 {{ sub_schema_values.podSecurityContext(user_id=10007, group_id=10007) }}
 {{ sub_schema_values.containersSecurityContext() }}
-{{ sub_schema_values.dnsPolicy() }}
 {{ sub_schema_values.workloadAnnotations() }}
 {{ sub_schema_values.serviceMonitors() }}
 {{ sub_schema_values.extraEnv() }}
 {{ sub_schema_values.hostAliases() }}
+{{ sub_schema_values.dnsPolicy() }}
+{{ sub_schema_values.dnsConfig() }}
 {{ sub_schema_values.probe("liveness", failureThreshold=9) }}
 {{ sub_schema_values.probe("readiness", failureThreshold=9) }}
 {{ sub_schema_values.probe("startup", failureThreshold=9) }}

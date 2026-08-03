@@ -25,6 +25,10 @@ serviceAccountName: {{ include "element-io.ess-library.serviceAccountName" (dict
 {{- with (tpl .dnsPolicy $root) }}
 dnsPolicy: {{ . }}
 {{- end }}
+{{- with .dnsConfig }}
+dnsConfig:
+  {{- tpl (toYaml . | nindent 2) $root }}
+{{- end }}
 {{- with .hostAliases }}
 hostAliases:
   {{- tpl (toYaml . | nindent 2) $root }}

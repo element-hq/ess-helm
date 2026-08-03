@@ -37,10 +37,11 @@ privateKeys: {}
 {{- sub_schema_values.affinity() }}
 {{ sub_schema_values.tolerations() }}
 {{ sub_schema_values.hostAliases() }}
+{{ sub_schema_values.dnsPolicy() }}
+{{ sub_schema_values.dnsConfig() }}
 {{ sub_schema_values.topologySpreadConstraints() }}
 {{ sub_schema_values.podSecurityContext(user_id=10005, group_id=10005) }}
 {{ sub_schema_values.containersSecurityContext() }}
-{{ sub_schema_values.dnsPolicy() }}
 {{ sub_schema_values.workloadAnnotations() }}
 {{ sub_schema_values.serviceMonitors() }}
 {{ sub_schema_values.extraEnv() }}
