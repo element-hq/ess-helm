@@ -77,6 +77,80 @@
           ]
         }
       }
+    },
+    "metricRelabelings": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": "object",
+        "properties": {
+          "sourceLabels": {
+            "description": "The source labels select values from existing labels. Their content is concatenated using the configured separator and matched against the configured regular expression for the replace, keep, and drop actions.",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$"
+            }
+          },
+          "separator": {
+            "description": "Separator placed between concatenated source label values.",
+            "type": "string",
+            "default": ";"
+          },
+          "targetLabel": {
+            "$comment": "https://github.com/prometheus/prometheus/blob/release-2.13/config/testdata/conf.good.yml#L146 has a regex capture group, violating vanilla label_name definition.",
+            "description": "Label to which the resulting value is written in a replace action. It is mandatory for replace actions. Regex capture groups are available.",
+            "type": "string"
+          },
+          "regex": {
+            "$comment": "https://github.com/prometheus/prometheus/blob/release-2.13/config/testdata/conf.good.yml#L111 has integer instead of string",
+            "description": "Regular expression against which the extracted value is matched.",
+            "type": "string",
+            "default": "(.*)"
+          },
+          "modulus": {
+            "description": "Modulus to take of the hash of the source label values.",
+            "type": "integer"
+          },
+          "replacement": {
+            "description": "Replacement value against which a regex replace is performed if the regular expression matches. Regex capture groups are available.",
+            "type": "string",
+            "default": "$1"
+          },
+          "action": {
+            "description": "Action to perform based on regex matching.",
+            "type": "string",
+            "enum": [
+              "replace",
+              "lowercase",
+              "uppercase",
+              "keep",
+              "drop",
+              "keepequal",
+              "dropequal",
+              "hashmod",
+              "labelmap",
+              "labeldrop",
+              "labelkeep"
+            ],
+            "default": "replace"
+          }
+        },
+        "if": {
+          "properties": {
+            "action": {
+              "const": "replace"
+            }
+          }
+        },
+        "then": {
+          "required": [
+            "targetLabel"
+          ]
+        }
+      }
     }
   }
 }

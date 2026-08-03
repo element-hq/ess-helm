@@ -73,6 +73,7 @@ async def test_service_monitor_defaults(templates):
             assert len(template["spec"]["endpoints"][0]["relabelings"]) == 1
         else:
             assert "relabelings" not in template["spec"]["endpoints"][0]
+        assert "metricRelabelings" not in template["spec"]["endpoints"][0]
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -114,3 +115,38 @@ async def test_service_monitors_allow_adding_relabelings(values, make_templates)
         else:
             assert len(template["spec"]["endpoints"][0]["relabelings"]) == 1
             assert_relabeling(template["spec"]["endpoints"][0]["relabelings"][0])
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_service_monitors_allow_adding_metric_relabelings(values, make_templates):
+    def assert_metric_relabeling(relabeling: dict[str, Any]):
+        assert relabeling["targetLabel"] == "test_metric_label"
+        assert relabeling["action"] == "replace"
+        assert relabeling["replacement"] == "test_metric_value"
+
+    def sets_metric_relabelings(deployable_details: DeployableDetails):
+        deployable_details.set_helm_values(
+            values,
+            PropertyType.ServiceMonitor,
+            {
+                "metricRelabelings": [
+                    {
+                        "targetLabel": "test_metric_label",
+                        "action": "replace",
+                        "replacement": "test_metric_value",
+                    }
+                ]
+            },
+        )
+
+    iterate_deployables_parts(
+        sets_metric_relabelings, lambda deployable_details: deployable_details.has_service_monitor
+    )
+
+    for template in await make_templates(values):
+        if template["kind"] != "ServiceMonitor":
+            continue
+
+        assert len(template["spec"]["endpoints"][0]["metricRelabelings"]) == 1
+        assert_metric_relabeling(template["spec"]["endpoints"][0]["metricRelabelings"][0])

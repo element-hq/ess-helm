@@ -8,3 +8,7 @@ synapse:
       - targetLabel: test_label
         action: replace
         replacement: test value
+    metricRelabelings:
+      - targetLabel: test_metric_label
+        action: replace
+        replacement: test metric value

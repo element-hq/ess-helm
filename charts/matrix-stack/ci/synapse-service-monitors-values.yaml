@@ -21,6 +21,10 @@ synapse:
   ingress:
     host: synapse.ess.localhost
   serviceMonitors:
+    metricRelabelings:
+      - action: replace
+        replacement: test metric value
+        targetLabel: test_metric_label
     relabelings:
       - action: replace
         replacement: test value
