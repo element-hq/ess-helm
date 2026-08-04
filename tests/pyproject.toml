@@ -24,7 +24,7 @@ dependencies = [
   "pyhelm3 @ git+https://github.com/element-hq/pyhelm3.git@efa509e7501edeb9d04f2a9e688f6e0088305954",
   "pytest-asyncio-cooperative>=0.40.0",
   "pytest-kubernetes>=0.7.2",
-  "pytest>=8.4.2,<9", # pytest 9 breaks pytest-asyncio-cooperative (see #1301)
+  "pytest>=9.1.1,<10", # pytest 9 breaks pytest-asyncio-cooperative (see #1301)
   "python-dotenv>=1.2.2",
   "python-on-whales>=0.80.0",
   "pyyaml>=6.0.3",
