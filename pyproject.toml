@@ -18,7 +18,7 @@ dependencies = []
 dev = [
   "aiohttp>=3.14.3",
   "checkov>=3.2.530",
-  "cryptography>=49.0.0",
+  "cryptography>=50.0.0",
   "ess-community-integration-tests",
   "frozendict>=2.4.7",
   "jinja2>=3.1.6",
