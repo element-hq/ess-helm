@@ -20,10 +20,7 @@ updates:
           - "minor"
           - "patch"
   - package-ecosystem: "uv"
-    directories:
-      - "/"
-      - "/tests"
-      - "/packages/*"
+    directory: "/"
     # Workaround https://github.com/dependabot/dependabot-core/issues/14004
     ignore:
       - dependency-name: ess-community-integration-tests
