@@ -75,6 +75,7 @@ app.kubernetes.io/instance: {{ $root.Release.Name }}-synapse
 k8s.element.io/target-name: haproxy
 k8s.element.io/target-instance: {{ $root.Release.Name }}-haproxy
 app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .image.tag }}
+k8s.element.io/synapse-instance: {{ $root.Release.Name }}-synapse
 {{- end }}
 {{- end }}
 
