@@ -66,6 +66,7 @@ kubectl exec -n ess sts/ess-postgres -- psql -U postgres -c 'DROP ROLE synapse_u
 kubectl exec -n ess sts/ess-postgres -- psql -U postgres -c 'DROP ROLE matrixauthenticationservice_user'
 kubectl cp dump.sql ess-postgres-0:/tmp -n ess
 kubectl exec -n ess sts/ess-postgres -- bash -c "psql -U postgres -d postgres < /tmp/dump.sql"
+kubectl exec -n ess sts/ess-postgres -- psql -U postgres -d synapse -c 'TRUNCATE e2e_one_time_keys_json'
 ```
 Adjust to your own kubernetes namespace and release name if required.
 
