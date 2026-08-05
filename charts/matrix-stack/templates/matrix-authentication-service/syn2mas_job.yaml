@@ -167,7 +167,7 @@ spec:
 {{- range .extraVolumeMounts }}
         - {{ (. | toYaml) | nindent 10 }}
 {{- end }}
-{{- range $secret := include "element-io.matrix-authentication-service.syn2masConfigSecrets" (dict "root" $ "context" (dict "synapseContext" $synapseContext "masContext" $masContext)) | fromJsonArray }}
+{{- range $secret := include "element-io.syn2mas.configSecrets" (dict "root" $ "context" (dict "synapseContext" $synapseContext "masContext" $masContext)) | fromJsonArray }}
 {{- with (tpl $secret $) }}
         - mountPath: /secrets/{{ . }}
           name: "secret-{{ . | sha256sum | trunc 12 }}"
@@ -202,7 +202,7 @@ spec:
         - mountPath: "/tmp-mas-cli"
           name: tmp-mas-cli
           readOnly: true
-{{- range $secret := include "element-io.matrix-authentication-service.syn2masConfigSecrets" (dict "root" $ "context" (dict "synapseContext" $synapseContext "masContext" $masContext)) | fromJsonArray }}
+{{- range $secret := include "element-io.syn2mas.configSecrets" (dict "root" $ "context" (dict "synapseContext" $synapseContext "masContext" $masContext)) | fromJsonArray }}
 {{- with (tpl $secret $) }}
         - mountPath: /secrets/{{ . }}
           name: "secret-{{ . | sha256sum | trunc 12 }}"
@@ -220,7 +220,7 @@ spec:
       - name: plain-mas-config
         configMap:
           name: {{ include "element-io.matrix-authentication-service.configmap-name" (dict "root" $ "context" (dict "isHook" $isHook)) }}
-{{- range $_, $secret := include "element-io.matrix-authentication-service.syn2masConfigSecrets" (dict "root" $ "context" (dict "synapseContext" $synapseContext "masContext" $masContext)) | fromJsonArray }}
+{{- range $_, $secret := include "element-io.syn2mas.configSecrets" (dict "root" $ "context" (dict "synapseContext" $synapseContext "masContext" $masContext)) | fromJsonArray }}
 {{- with tpl $secret $ }}
       - secret:
           secretName: {{ . }}
