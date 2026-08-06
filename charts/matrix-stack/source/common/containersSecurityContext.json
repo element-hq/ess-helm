@@ -3,6 +3,9 @@
     "allowPrivilegeEscalation": {
       "type": "boolean"
     },
+    "privileged": {
+      "type": "boolean"
+    },
     "capabilities": {
       "properties": {
         "add": {

@@ -1279,6 +1279,9 @@
             "allowPrivilegeEscalation": {
               "type": "boolean"
             },
+            "privileged": {
+              "type": "boolean"
+            },
             "capabilities": {
               "properties": {
                 "add": {
@@ -2468,6 +2471,9 @@
         "containersSecurityContext": {
           "properties": {
             "allowPrivilegeEscalation": {
+              "type": "boolean"
+            },
+            "privileged": {
               "type": "boolean"
             },
             "capabilities": {
@@ -3937,6 +3943,9 @@
         "containersSecurityContext": {
           "properties": {
             "allowPrivilegeEscalation": {
+              "type": "boolean"
+            },
+            "privileged": {
               "type": "boolean"
             },
             "capabilities": {
@@ -5867,6 +5876,9 @@
                 "allowPrivilegeEscalation": {
                   "type": "boolean"
                 },
+                "privileged": {
+                  "type": "boolean"
+                },
                 "capabilities": {
                   "properties": {
                     "add": {
@@ -7489,6 +7501,9 @@
             "allowPrivilegeEscalation": {
               "type": "boolean"
             },
+            "privileged": {
+              "type": "boolean"
+            },
             "capabilities": {
               "properties": {
                 "add": {
@@ -8955,6 +8970,9 @@
             "allowPrivilegeEscalation": {
               "type": "boolean"
             },
+            "privileged": {
+              "type": "boolean"
+            },
             "capabilities": {
               "properties": {
                 "add": {
@@ -10334,6 +10352,9 @@
         "containersSecurityContext": {
           "properties": {
             "allowPrivilegeEscalation": {
+              "type": "boolean"
+            },
+            "privileged": {
               "type": "boolean"
             },
             "capabilities": {
@@ -12157,6 +12178,9 @@
         "containersSecurityContext": {
           "properties": {
             "allowPrivilegeEscalation": {
+              "type": "boolean"
+            },
+            "privileged": {
               "type": "boolean"
             },
             "capabilities": {
@@ -14184,6 +14208,9 @@
                 "allowPrivilegeEscalation": {
                   "type": "boolean"
                 },
+                "privileged": {
+                  "type": "boolean"
+                },
                 "capabilities": {
                   "properties": {
                     "add": {
@@ -15415,6 +15442,9 @@
         "containersSecurityContext": {
           "properties": {
             "allowPrivilegeEscalation": {
+              "type": "boolean"
+            },
+            "privileged": {
               "type": "boolean"
             },
             "capabilities": {
@@ -17061,6 +17091,9 @@
                 "allowPrivilegeEscalation": {
                   "type": "boolean"
                 },
+                "privileged": {
+                  "type": "boolean"
+                },
                 "capabilities": {
                   "properties": {
                     "add": {
@@ -17624,6 +17657,9 @@
         "containersSecurityContext": {
           "properties": {
             "allowPrivilegeEscalation": {
+              "type": "boolean"
+            },
+            "privileged": {
               "type": "boolean"
             },
             "capabilities": {
@@ -19183,6 +19219,9 @@
             "allowPrivilegeEscalation": {
               "type": "boolean"
             },
+            "privileged": {
+              "type": "boolean"
+            },
             "capabilities": {
               "properties": {
                 "add": {
@@ -20626,6 +20665,9 @@
                 "allowPrivilegeEscalation": {
                   "type": "boolean"
                 },
+                "privileged": {
+                  "type": "boolean"
+                },
                 "capabilities": {
                   "properties": {
                     "add": {
@@ -21683,6 +21725,9 @@
         "containersSecurityContext": {
           "properties": {
             "allowPrivilegeEscalation": {
+              "type": "boolean"
+            },
+            "privileged": {
               "type": "boolean"
             },
             "capabilities": {
