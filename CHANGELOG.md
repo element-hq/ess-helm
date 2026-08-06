@@ -7,6 +7,65 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.8.0 (2026-08-05)
+
+## Added
+
+- Allow defining relabeling configuration for all `ServiceMonitors`. (#1489)
+- Allow defining `metricRelabelings` configuration for all `ServiceMonitors`. (#1491)
+
+## Changed
+
+- Upgrade Element Web to v1.12.25.
+
+  Highlights:
+  - Collapse left panel during calls
+  - Collapsed URL previews in timeline
+
+  Full Changelogs:
+  - [v1.12.25](https://github.com/element-hq/element-web/releases/tag/v1.12.25)
+
+  (#1480)
+- Upgrade Synapse to v1.158.0.
+
+  Highlights:
+  - Change default room version to 11, implementing [MSC4239](https://github.com/matrix-org/matrix-spec-proposals/pull/4239) as part of Matrix v1.14
+  - Return `M_USER_LIMIT_EXCEEDED` error code for media upload limits from [MSC4335](https://github.com/matrix-org/matrix-spec-proposals/pull/4335)
+  - Fix `/createRoom` intermittently failing with a 500 error in version 12 rooms when the same user creates several rooms at once, due to colliding room IDs
+
+
+  Full Changelogs:
+  - [v1.158.0](https://github.com/element-hq/synapse/releases/tag/v1.158.0)
+
+  (#1487)
+- Upgrade Matrix Authentication Service to v1.22.0.
+
+  Highlights:
+  - Accept `[` and `~` in OAuth 2.0 scope tokens
+  - Keep the auth action context when changing accounts
+
+
+  Full Changelogs:
+  - [v1.22.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.22.0)
+
+  (#1488)
+- Ensure Synapse `Ingresses` have the `k8s.element.io/synapse-instance` like other kinds. (#1495)
+- Upgrade Hookshot to v7.4.4.
+
+  Highlights:
+  - Do not log webhook URLs to prometheus metrics. Fixes `GHSA-5c49-6fvm-2xvc`
+
+  Full Changelog:
+  - [v7.4.4](https://github.com/matrix-org/matrix-hookshot/releases/tag/7.4.4)
+
+  (#1503)
+
+## Internal
+
+- Simplify Dependabot Python configuration. (#1496)
+- Remove invalid setting from `pyproject.toml`. (#1502)
+
+
 # ESS Community Helm Chart 26.7.2 (2026-07-28)
 
 ## Security
