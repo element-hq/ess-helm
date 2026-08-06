@@ -69,6 +69,11 @@ networking:
   ## allowPrivilegeEscalation is always true when the container is run as privileged, or has CAP_SYS_ADMIN
   allowPrivilegeEscalation: false
 
+  ## Whether the container should be run in privileged mode.
+  ## Processes in privileged containers are essentially equivalent to root on the host.
+  ## Do not set to true without good reason.
+  privileged: false
+
   ## Give a process some privileges, but not all the privileges of the root user.
   capabilities:
     ## Privileges to add.

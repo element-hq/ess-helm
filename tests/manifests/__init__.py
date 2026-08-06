@@ -14,6 +14,7 @@ import pyhelm3
 class PropertyType(Enum):
     AdditionalConfig = "additional"
     Affinity = "affinity"
+    ContainersSecurityContext = "containersSecurityContext"
     Enabled = "enabled"
     Env = "extraEnv"
     ExposedServices = "exposedServices"
@@ -389,6 +390,7 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
         PropertyType.Labels: ValuesFilePath.read_elsewhere("synapse", "labels"),
         PropertyType.Affinity: ValuesFilePath.read_elsewhere("synapse", "affinity"),
         PropertyType.NodeSelector: ValuesFilePath.read_elsewhere("synapse", "nodeSelector"),
+        PropertyType.ContainersSecurityContext: ValuesFilePath.read_elsewhere("synapse", "containersSecurityContext"),
         PropertyType.PodSecurityContext: ValuesFilePath.read_elsewhere("synapse", "podSecurityContext"),
         PropertyType.PriorityClassName: ValuesFilePath.read_elsewhere("synapse", "priorityClassName"),
         PropertyType.RuntimeClassName: ValuesFilePath.read_elsewhere("synapse", "runtimeClassName"),
@@ -712,6 +714,9 @@ all_components_details = [
                     PropertyType.LivenessProbe: ValuesFilePath.not_supported(),
                     PropertyType.Affinity: ValuesFilePath.read_elsewhere("synapse", "affinity"),
                     PropertyType.NodeSelector: ValuesFilePath.read_elsewhere("synapse", "nodeSelector"),
+                    PropertyType.ContainersSecurityContext: ValuesFilePath.read_elsewhere(
+                        "synapse", "containersSecurityContext"
+                    ),
                     PropertyType.PodSecurityContext: ValuesFilePath.read_elsewhere("synapse", "podSecurityContext"),
                     PropertyType.PriorityClassName: ValuesFilePath.read_elsewhere("synapse", "priorityClassName"),
                     PropertyType.RuntimeClassName: ValuesFilePath.read_elsewhere("synapse", "runtimeClassName"),
