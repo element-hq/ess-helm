@@ -127,9 +127,17 @@ func RenderConfig(sourceConfigs []io.Reader, arrayOverwriteKeys []string) (map[s
 			if err != nil {
 				return nil, fmt.Errorf("failed to render template for env var %s: %w", envVar, err)
 			}
-			replacementValue = buffer.Bytes()
-			fileContent = bytes.ReplaceAll(fileContent, []byte("${"+envVar+"}"), replacementValue)
+
+			// We need to capture any (non-escaping) character before the env var so that we can
+			// re-add it into replacementValue below or it gets lost as it was part of the regex so gets replaced
+			nonEscapedEnvVarsRe := regexp.MustCompile(`([^\\]|^)\$\{` + envVar + `\}`)
+			replacementValue = []byte("${1}" + buffer.String())
+			fileContent = nonEscapedEnvVarsRe.ReplaceAll(fileContent, replacementValue)
 		}
+
+		// De-escape any remaining env-var looking things
+		escapedEnvVarsRe := regexp.MustCompile(`\\(\$\{([^\}]+)\})`)
+		fileContent = escapedEnvVarsRe.ReplaceAll(fileContent, []byte("$1"))
 
 		var data map[string]any
 		if err := yaml.Unmarshal(fileContent, &data); err != nil {
@@ -149,7 +157,7 @@ func RenderConfig(sourceConfigs []io.Reader, arrayOverwriteKeys []string) (map[s
 
 func extractEnvVarNames(fileContent string) []string {
 	var envVars []string
-	re := regexp.MustCompile(`\$\{([^\}]+)\}`)
+	re := regexp.MustCompile(`(?:[^\\]|^)\$\{([^\}]+)\}`)
 	matches := re.FindAllStringSubmatch(fileContent, -1)
 	for _, match := range matches {
 		if len(match) > 1 {

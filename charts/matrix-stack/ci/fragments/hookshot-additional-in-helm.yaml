@@ -7,3 +7,4 @@ hookshot:
     example-value:
       config: |
         example: value
+        escaped_config: Some message \${NOT_REPLACED_WITH_ENV_VAR}
