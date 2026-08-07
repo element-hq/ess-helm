@@ -161,6 +161,23 @@ anotherKey:
 			},
 			err: false,
 		},
+		{
+			name: "Escaping Test",
+			readers: []io.Reader{
+				bytes.NewBuffer([]byte(`
+replacedKey: ${REPLACE_WITH}
+escapedKey: \${REPLACE_WITH}
+`)),
+			},
+			env: map[string]string{
+				"REPLACE_WITH": "replaced",
+			},
+			expected: map[string]any{
+				"replacedKey": "replaced",
+				"escapedKey":  "${REPLACE_WITH}",
+			},
+			err: false,
+		},
 	}
 
 	for _, tc := range testCases {
