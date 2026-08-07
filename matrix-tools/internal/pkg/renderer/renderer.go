@@ -130,7 +130,7 @@ func RenderConfig(sourceConfigs []io.Reader, arrayOverwriteKeys []string) (map[s
 
 			// We need to capture any (non-escaping) character before the env var so that we can
 			// re-add it into replacementValue below or it gets lost as it was part of the regex so gets replaced
-			nonEscapedEnvVarsRe := regexp.MustCompile(`([^\\]|$)\$\{` + envVar + `\}`)
+			nonEscapedEnvVarsRe := regexp.MustCompile(`([^\\]|^)\$\{` + envVar + `\}`)
 			replacementValue = []byte("${1}" + buffer.String())
 			fileContent = nonEscapedEnvVarsRe.ReplaceAll(fileContent, replacementValue)
 		}
@@ -157,7 +157,7 @@ func RenderConfig(sourceConfigs []io.Reader, arrayOverwriteKeys []string) (map[s
 
 func extractEnvVarNames(fileContent string) []string {
 	var envVars []string
-	re := regexp.MustCompile(`[^\\]\$\{([^\}]+)\}`)
+	re := regexp.MustCompile(`(?:[^\\]|^)\$\{([^\}]+)\}`)
 	matches := re.FindAllStringSubmatch(fileContent, -1)
 	for _, match := range matches {
 		if len(match) > 1 {

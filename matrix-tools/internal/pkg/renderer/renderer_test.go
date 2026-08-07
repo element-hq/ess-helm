@@ -178,6 +178,20 @@ escapedKey: \${REPLACE_WITH}
 			},
 			err: false,
 		},
+		{
+			name: "Keys Replaced Test",
+			readers: []io.Reader{
+				bytes.NewBuffer([]byte(`${LIVEKIT_KEY}: ${LIVEKIT_SECRET}`)),
+			},
+			env: map[string]string{
+				"LIVEKIT_KEY":    "key",
+				"LIVEKIT_SECRET": "secret",
+			},
+			expected: map[string]any{
+				"key": "secret",
+			},
+			err: false,
+		},
 	}
 
 	for _, tc := range testCases {
