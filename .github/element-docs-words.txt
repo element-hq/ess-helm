@@ -26,6 +26,7 @@ Jira
 kubeconfig
 kubeconform
 kubernetes
+lightkube
 linters
 LiveKit
 localpart

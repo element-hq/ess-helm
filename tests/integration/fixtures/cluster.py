@@ -7,9 +7,14 @@ import asyncio
 import base64
 import contextlib
 import os
+import sys
 from pathlib import Path
 
-import httpx
+import httpx2
+
+# See https://github.com/will-ockmore/httpx-retries/issues/73#issuecomment-4900339886
+sys.modules["httpx"] = httpx2  # do this first, before importing httpx or httpx_retries
+# ruff: disable[E402]
 import httpx_retries
 import pyhelm3
 import pytest
@@ -42,14 +47,14 @@ Certificate = create_namespaced_resource(
 )
 
 
-def FixedAsyncClient(config: SingleConfig, conn_parameters: ConnectionParams) -> httpx.AsyncClient:
+def FixedAsyncClient(config: SingleConfig, conn_parameters: ConnectionParams) -> httpx2.AsyncClient:
     # A transport with a SSLContext can't be pickled. This happens with the deepcopy that `asdict` does
     # inside conn_parameters.httpx_params(). Save it off, null it out for the `asdict` and pass it explicitly
-    transport: httpx.AsyncBaseTransport | None = conn_parameters.transport  # type: ignore[assignment]
+    transport: httpx2.AsyncBaseTransport | None = conn_parameters.transport  # type: ignore[assignment]
     conn_parameters.transport = None
     args = conn_parameters.httpx_params(config)
     args["transport"] = transport
-    return httpx.AsyncClient(**args)
+    return httpx2.AsyncClient(**args)
 
 
 GenericAsyncClient.AdapterClient = staticmethod(FixedAsyncClient)
@@ -121,7 +126,7 @@ def kube_client(cluster):
 
     # We've seen 429 errors with storage is (re)initializing. Let's retry those
     ssl_context = verify_cluster(config.cluster, config.user, config.abs_file)
-    wrapped_transport = httpx.AsyncHTTPTransport(verify=ssl_context)
+    wrapped_transport = httpx2.AsyncHTTPTransport(verify=ssl_context)
     transport = httpx_retries.RetryTransport(
         transport=wrapped_transport, retry=httpx_retries.Retry(status_forcelist=[429])
     )

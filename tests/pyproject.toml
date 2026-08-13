@@ -17,7 +17,7 @@ dependencies = [
   "cryptography>=50.0.0",
   "httpx-retries>=0.6.0",
   "jsonschema>=4.26.0",
-  "lightkube>=0.22.0",
+  "lightkube>=1.0.0",
   "platformdirs>=4.9.2",
   "prometheus-client>=0.26.0",
   # For https://github.com/azimuth-cloud/pyhelm3/pull/36 & https://github.com/azimuth-cloud/pyhelm3/pull/37 & https://github.com/azimuth-cloud/pyhelm3/pull/39
