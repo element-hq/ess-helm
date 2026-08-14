@@ -202,7 +202,7 @@ def setup_cluster():
     import pytest
 
     os.environ["PYTEST_KEEP_CLUSTER"] = "1"
-    errcode = pytest.main([str(HERE)] + ["--env-setup"])
+    errcode = pytest.main([str(HERE)] + ["test_setup.py", "--env-setup"])
     subprocess.run("k3d kubeconfig merge ess-helm -ds", shell=True, check=True)
 
     sys.exit(errcode)
