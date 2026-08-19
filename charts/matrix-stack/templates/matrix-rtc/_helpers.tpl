@@ -98,6 +98,10 @@ env:
 {{- else }}
   value: "*"
 {{- end -}}
+{{- if $root.Values.synapse.enabled }}
+- name: "LIVEKIT_CS_API_URL_OVERRIDES"
+  value: "{{ tpl $root.Values.serverName $root }}=http://{{ include "element-io.synapse.internal-hostport" (dict "root" $root) }}"
+{{- end }}
 {{- end -}}
 {{- end -}}
 
