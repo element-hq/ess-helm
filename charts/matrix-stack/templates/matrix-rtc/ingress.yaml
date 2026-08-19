@@ -43,12 +43,27 @@ spec:
             name: "{{ $.Release.Name }}-matrix-rtc-authorisation-service"
             port:
               name: http
-{{ if .sfu.enabled }}
+      - path: /delegate_delayed_leave
+        pathType: Prefix
+        backend:
+          service:
+            name: "{{ $.Release.Name }}-matrix-rtc-authorisation-service"
+            port:
+              name: http
+{{- if .sfu.enabled }}
       - path: /
         pathType: Prefix
         backend:
           service:
             name: "{{ $.Release.Name }}-matrix-rtc-sfu"
+            port:
+              name: http
+{{- else }}
+      - path: /sfu_webhook
+        pathType: Prefix
+        backend:
+          service:
+            name: "{{ $.Release.Name }}-matrix-rtc-authorisation-service"
             port:
               name: http
 {{- end }}

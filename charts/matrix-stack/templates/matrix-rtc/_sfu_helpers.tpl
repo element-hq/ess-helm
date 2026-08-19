@@ -34,8 +34,6 @@ env:
     fieldRef:
       fieldPath: status.{{ $root.Values.matrixRTC.sfu.nodeIPSource }}
 {{- end }}
-- name: "LIVEKIT_KEY"
-  value: "{{ ($root.Values.matrixRTC.livekitAuth).key | default "matrix-rtc" }}"
 - name: LIVEKIT_SECRET
   value: >-
     {{ (printf "{{ readfile \"/secrets/%s\" }}" (
@@ -89,10 +87,8 @@ config-underrides.yaml: |
 {{- (tpl ($root.Files.Get "configs/matrix-rtc/sfu/config-underrides.yaml.tpl") (dict "root" $root "context" .)) | nindent 2 }}
 config-overrides.yaml: |
 {{- (tpl ($root.Files.Get "configs/matrix-rtc/sfu/config-overrides.yaml.tpl") (dict "root" $root "context" .)) | nindent 2 }}
-{{- if not ($root.Values.matrixRTC.livekitAuth).keysYaml }}
 keys-template.yaml: |
-{{- (tpl ($root.Files.Get "configs/matrix-rtc/sfu/keys-template.yaml.tpl") dict) | nindent 2 }}
-{{- end -}}
+{{- (tpl ($root.Files.Get "configs/matrix-rtc/sfu/keys-template.yaml.tpl") (dict "root" $root)) | nindent 2 }}
 {{- end -}}
 {{- end -}}
 

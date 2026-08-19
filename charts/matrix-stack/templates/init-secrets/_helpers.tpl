@@ -43,7 +43,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" $
 {{- include "element-io.init-secrets.postgres-generated-secrets" (dict "root" $root) -}}
 {{- with $root.Values.matrixRTC }}
 {{- if .enabled -}}
-{{- if and (not (.livekitAuth).keysYaml) (not (.livekitAuth).secret) }}
+{{- if not .livekitAuth.secret }}
 - {{ (printf "%s-generated" $root.Release.Name) }}:ELEMENT_CALL_LIVEKIT_SECRET:rand32
 {{- end }}
 {{- end }}
