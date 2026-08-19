@@ -77,4 +77,9 @@ turn:
 room:
   auto_create: false
 
+webhook:
+  api_key: {{ $root.Values.matrixRTC.livekitAuth.key }}
+
+  urls:
+  - http://{{ $root.Release.Name }}-matrix-rtc-authorisation-service.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:8080/sfu_webhook
 {{ end }}
