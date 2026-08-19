@@ -1,8 +1,8 @@
 {{- /*
 Copyright 2024 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 
-${LIVEKIT_KEY}: ${LIVEKIT_SECRET}
+{{ .root.Values.matrixRTC.livekitAuth.key }}: ${LIVEKIT_SECRET}

@@ -11,34 +11,10 @@
     },
     "livekitAuth": {
       "type": "object",
-      "oneOf": [
-        {
-          "required": [
-            "keysYaml"
-          ],
-          "not": {
-            "required": [
-              "key",
-              "secret"
-            ]
-          }
-        },
-        {
-          "required": [
-            "key",
-            "secret"
-          ],
-          "not": {
-            "required": [
-              "keysYaml"
-            ]
-          }
-        }
+      "required": [
+        "key"
       ],
       "properties": {
-        "keysYaml": {
-          "$ref": "file://common/credential.json"
-        },
         "key": {
           "type": "string"
         },

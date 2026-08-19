@@ -3551,70 +3551,10 @@
         },
         "livekitAuth": {
           "type": "object",
-          "oneOf": [
-            {
-              "required": [
-                "keysYaml"
-              ],
-              "not": {
-                "required": [
-                  "key",
-                  "secret"
-                ]
-              }
-            },
-            {
-              "required": [
-                "key",
-                "secret"
-              ],
-              "not": {
-                "required": [
-                  "keysYaml"
-                ]
-              }
-            }
+          "required": [
+            "key"
           ],
           "properties": {
-            "keysYaml": {
-              "type": "object",
-              "oneOf": [
-                {
-                  "required": [
-                    "value"
-                  ],
-                  "not": {
-                    "required": [
-                      "secret",
-                      "secretKey"
-                    ]
-                  }
-                },
-                {
-                  "required": [
-                    "secret",
-                    "secretKey"
-                  ],
-                  "not": {
-                    "required": [
-                      "value"
-                    ]
-                  }
-                }
-              ],
-              "properties": {
-                "value": {
-                  "type": "string"
-                },
-                "secret": {
-                  "type": "string"
-                },
-                "secretKey": {
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            },
             "key": {
               "type": "string"
             },

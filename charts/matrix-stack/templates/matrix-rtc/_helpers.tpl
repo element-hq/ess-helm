@@ -64,19 +64,8 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- $root := .root -}}
 {{- with required "element-io.matrix-rtc-authorisation-service.overrideEnv missing context" .context -}}
 env:
-{{- if (.livekitAuth).keysYaml }}
-- name: "LIVEKIT_KEY_FILE"
-  value: {{ printf "/secrets/%s"
-      (include "element-io.ess-library.provided-secret-path" (
-        dict "root" $root "context" (
-          dict "secretPath" "matrixRTC.livekitAuth.keysYaml"
-              "defaultSecretName" (printf "%s-matrix-rtc-authorisation-service" $root.Release.Name)
-              "defaultSecretKey" "LIVEKIT_KEYS_YAML"
-              )
-        )) }}
-{{- else }}
 - name: "LIVEKIT_KEY"
-  value: {{ (.livekitAuth).key | default "matrix-rtc" }}
+  value: {{ .livekitAuth.key }}
 - name: "LIVEKIT_SECRET_FROM_FILE"
   value: {{ printf "/secrets/%s"
       (include "element-io.ess-library.init-secret-path" (
@@ -87,7 +76,6 @@ env:
               "defaultSecretKey" "LIVEKIT_SECRET"
               )
         )) }}
-{{- end }}
 {{- if .sfu.enabled }}
 - name: "LIVEKIT_URL"
   value: {{ printf "wss://%s" (tpl .ingress.host $root) }}
@@ -113,13 +101,10 @@ env:
 {{ $configSecrets = append $configSecrets (printf "%s-generated" $root.Release.Name) }}
 {{- end }}
 {{- with $root.Values.matrixRTC -}}
-{{- if or ((.livekitAuth).keysYaml).value ((.livekitAuth).secret).value -}}
+{{- if (.livekitAuth.secret).value -}}
 {{ $configSecrets = append $configSecrets (printf "%s-matrix-rtc-authorisation-service" $root.Release.Name) }}
 {{- end -}}
-{{- with ((.livekitAuth).keysYaml).secret -}}
-{{ $configSecrets = append $configSecrets (tpl . $root) }}
-{{- end -}}
-{{- with ((.livekitAuth).secret).secret -}}
+{{- with (.livekitAuth.secret).secret -}}
 {{ $configSecrets = append $configSecrets (tpl . $root) }}
 {{- end -}}
 {{ $configSecrets | uniq | toJson }}
@@ -131,24 +116,9 @@ env:
 {{- define "element-io.matrix-rtc-authorisation-service.secret-data" -}}
 {{- $root := .root -}}
 {{- with required "element-io.matrix-rtc-authorisation-service secret missing context" .context -}}
-{{- if not .keysYaml }}
-  {{- if $root.Values.matrixRTC.sfu.enabled -}}
-    {{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "matrixRTC.livekitAuth.secret" "initIfAbsent" true)) }}
-  {{- end }}
-{{- else }}
-  {{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "matrixRTC.livekitAuth.keysYaml" "initIfAbsent" false)) }}
-{{- end }}
-{{- with .livekitAuth -}}
-  {{- with .keysYaml }}
-    {{- with .value }}
-  LIVEKIT_KEYS_YAML: {{ . | b64enc }}
-    {{- end -}}
-  {{- end -}}
-  {{- with .secret }}
-    {{- with .value }}
-  LIVEKIT_SECRET: {{ . | b64enc }}
-    {{- end -}}
-  {{- end -}}
+{{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "matrixRTC.livekitAuth.secret" "initIfAbsent" $root.Values.matrixRTC.sfu.enabled)) }}
+{{- with (.livekitAuth.secret).value -}}
+LIVEKIT_SECRET: {{ . | b64enc }}
 {{- end -}}
 {{- end -}}
 {{- end -}}
