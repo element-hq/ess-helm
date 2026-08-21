@@ -9,12 +9,24 @@
           "name"
         ],
         "properties": {
-          "name": { "type": "string" },
-          "namespace": { "type": "string" },
-          "group": { "type": "string" },
-          "kind": { "type": "string" },
-          "sectionName": { "type": "string" },
-          "port": { "type": "integer" }
+          "name": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "group": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "sectionName": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer"
+          }
         }
       }
     },

@@ -764,7 +764,7 @@ all_components_details = [
         makes_outbound_requests=False,
         has_workloads=False,
         values_file_path_overrides={
-            # Gateway do not have replicas
+            # Gateways do not have replicas
             PropertyType.Replicas: ValuesFilePath.not_supported(),
         },
     ),
