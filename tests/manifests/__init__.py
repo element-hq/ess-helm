@@ -755,6 +755,19 @@ all_components_details = [
         has_credentials=False,
         has_workloads=False,
     ),
+    ComponentDetails(
+        name="gateway",
+        has_additional_config=False,
+        has_credentials=False,
+        has_ingress=False,
+        is_shared_component=True,
+        makes_outbound_requests=False,
+        has_workloads=False,
+        values_file_path_overrides={
+            # Gateways do not have replicas
+            PropertyType.Replicas: ValuesFilePath.not_supported(),
+        },
+    ),
 ]
 
 

@@ -70,6 +70,20 @@ ipFamilyPolicy: PreferDualStack
 {{- end }}
 {{- end }}
 
+{{- define "element-io.ess-library.ingress.tls.isEnabled" -}}
+{{- $root := .root -}}
+{{- with required "element-io.ess-library.ingress.tls.isEnabled missing context" .context -}}
+{{- and $root.Values.ingress.tlsEnabled .tlsEnabled -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "element-io.ess-library.routes.tls.isEnabled" -}}
+{{- $root := .root -}}
+{{- with required "element-io.ess-library.routes.tls.isEnabled missing context" .context -}}
+{{- and $root.Values.routes.tlsEnabled .tlsEnabled -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "element-io.ess-library.ingress.tls" -}}
 {{- $root := .root -}}
 {{- with required "element-io.ess-library.ingress.tls missing context" .context -}}
@@ -131,5 +145,46 @@ ingressClassName: {{ . | quote }}
 ImplementationSpecific
 {{- else -}}
 Prefix
+{{- end -}}
+{{- end -}}
+
+{{- define "element-io.ess-library.inboundTrafficHandler.isEnabled" -}}
+{{- $root := .root -}}
+{{- with required "element-io.ess-library.inboundTrafficHandler.isEnabled missing context" .context -}}
+{{- $component := required "element-io.ess-library.inboundTrafficHandler.isEnabled missing component in context" .component -}}
+{{- $trafficHandler := required "element-io.ess-library.inboundTrafficHandler.isEnabled missing trafficHandler in context" .trafficHandler -}}
+{{- $desiredTrafficHandler := coalesce $component.inboundTrafficHandler $root.Values.inboundTrafficHandler "none" -}}
+{{- if and $component.enabled (eq $trafficHandler $desiredTrafficHandler) -}}
+true
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "element-io.ess-library.ingress.parentRefs" -}}
+{{- $root := .root -}}
+{{- with required "element-io.ess-library.ingress.parentRefs missing context" .context -}}
+{{- $serviceName := required "element-io.ess-library.ingress.parentRefs missing serviceName" .serviceName -}}
+{{- $protocol := .protocol -}}
+{{- if not $protocol -}}
+{{- $protocol = ternary "https" "http" (eq (include "element-io.ess-library.ingress.tls.isEnabled" (dict "root" $root "context" (dig "routes" (dict) .component))) "true") -}}
+{{- end -}}
+{{- $globalGateways := (get (get $root.Values "routes" | default (dict)) "existingGateways" | default (list)) -}}
+{{- $componentGateways := dig "routes" "existingGateways" (list) .component -}}
+{{- $gateways := concat $globalGateways $componentGateways -}}
+{{- $builtinGateway := $root.Values.gateway | default dict -}}
+{{- if or (gt (len $gateways) 0) $builtinGateway.create -}}
+{{- if gt (len $gateways) 0 -}}
+{{ toYaml $gateways }}
+{{- end -}}
+{{ if $builtinGateway.create }}
+- name: {{ include "element-io.gateway.name" (dict "root" $root) | quote }}
+  namespace: {{ $root.Release.Namespace | quote }}
+  kind: Gateway
+  group: gateway.networking.k8s.io
+  sectionName: {{ include "element-io.gateway.listenerName" (dict "root" $root "context" (dict "serviceName" $serviceName "protocol" $protocol)) | quote }}
+{{ end }}
+{{- else -}}
+[]
+{{- end -}}
 {{- end -}}
 {{- end -}}

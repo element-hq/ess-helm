@@ -56,9 +56,6 @@ ingress:
   ## Annotations to be added to all Ingresses. Will be merged with component specific Ingress annotations
   annotations: {}
 
-  ## What Ingress Class Name that should be used for all Ingresses by default
-  # className:
-
   ## Disable TLS configuration by setting it to false
   tlsEnabled: true
 
@@ -73,9 +70,40 @@ ingress:
     # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
     externalTrafficPolicy: Cluster
     internalTrafficPolicy: Cluster
+
+  ## What Ingress Class Name that should be used for all Ingresses by default
+  # className:
+
   ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
   ## This can be set to `ingress-nginx`.
   # controllerType:
+
+## How all routes should be constructed by default, unless overridden
+routes:
+  ## Annotations to be added to all routes. Will be merged with component specific route annotations
+  annotations: {}
+
+  ## Disable TLS configuration by setting it to false
+  tlsEnabled: true
+
+  ## The name of the Secret containing the TLS certificate and the key that should be used for all routes by default
+  # tlsSecret:
+
+  ## Disable automatic HTTP redirect route generation by setting true
+  disableHTTPRedirect: false
+
+  ## How the Services behind all routes is constructed by default
+  service:
+    type: ClusterIP
+    ## Annotations to be added to all routes services. Will be merged with component specific route services annotations
+    annotations: {}
+    # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
+    externalTrafficPolicy: Cluster
+    internalTrafficPolicy: Cluster
+
+  ## List of existing Gateway parent refs to connect the routes to.
+  ## More info: https://gateway-api.sigs.k8s.io/reference/spec/#parentreference
+  # existingGateways: {}
 
 ## Common image properties that are applied as defaults to all components.
 image:
@@ -205,6 +233,23 @@ clusterDomain: "cluster.local."
 networking:
   ## Whether components should attempt to bind IPv4 (ipv4) /IPv6 (ipv6) / both (dual-stack)
   ipFamily: dual-stack
+
+## Gateway configuration options
+gateway:
+  ## Create a default gateway for all routes
+  create: false
+
+  ## Set the gateway class to use, required when create=true.
+  # className: ""
+
+  ## Additional annotations to add to the gateway resource
+  annotations: {}
+
+  ## Override which services the generated gateway creates listeners for
+  # listenFor: []
+
+## Set the default inbound traffic handler type. Options are ingress | routes | none
+inboundTrafficHandler: ingress
 
 ## Components
 initSecrets:
@@ -592,9 +637,6 @@ matrixRTC:
     ## Annotations to be added to this Ingress
     annotations: {}
 
-    ## What Ingress Class Name that should be used for this Ingress
-    # className:
-
     ## Disable TLS configuration by setting it to false
     tlsEnabled: true
 
@@ -611,9 +653,44 @@ matrixRTC:
     #   # External IPs addresses of this service.
     #   externalIPs: []
     service: {}
+
+    ## What Ingress Class Name that should be used for this Ingress
+    # className:
+
     ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
     ## This can be set to `ingress-nginx`.
     # controllerType:
+  ## How this component's routes should be constructed
+  routes:
+    ## What hostname should be used for this component
+    # host:
+
+    ## Annotations to be added to this route
+    annotations: {}
+
+    ## Disable TLS configuration by setting it to false
+    tlsEnabled: true
+
+    ## The name of the Secret containing the TLS certificate and the key that should be used for this route
+    # tlsSecret:
+
+    ## Disable automatic HTTP redirect route generation by setting true
+    disableHTTPRedirect: false
+
+    ## How the Service behind this route is constructed
+    # service:
+    #   type: ClusterIP
+    #   annotations: {}
+    #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
+    #   externalTrafficPolicy: Cluster
+    #   internalTrafficPolicy: Cluster
+    #   # External IPs addresses of this service.
+    #   externalIPs: []
+    service: {}
+
+    ## List of existing Gateway parent refs to connect the routes to.
+    ## More info: https://gateway-api.sigs.k8s.io/reference/spec/#parentreference
+    # existingGateways: {}
   # Details of the image to be used
   image:
     ## The host and (optional) port of the container image registry for this component.
@@ -1338,9 +1415,6 @@ elementAdmin:
     ## Annotations to be added to this Ingress
     annotations: {}
 
-    ## What Ingress Class Name that should be used for this Ingress
-    # className:
-
     ## Disable TLS configuration by setting it to false
     tlsEnabled: true
 
@@ -1357,9 +1431,44 @@ elementAdmin:
     #   # External IPs addresses of this service.
     #   externalIPs: []
     service: {}
+
+    ## What Ingress Class Name that should be used for this Ingress
+    # className:
+
     ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
     ## This can be set to `ingress-nginx`.
     # controllerType:
+  ## How this component's routes should be constructed
+  routes:
+    ## What hostname should be used for this component
+    # host:
+
+    ## Annotations to be added to this route
+    annotations: {}
+
+    ## Disable TLS configuration by setting it to false
+    tlsEnabled: true
+
+    ## The name of the Secret containing the TLS certificate and the key that should be used for this route
+    # tlsSecret:
+
+    ## Disable automatic HTTP redirect route generation by setting true
+    disableHTTPRedirect: false
+
+    ## How the Service behind this route is constructed
+    # service:
+    #   type: ClusterIP
+    #   annotations: {}
+    #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
+    #   externalTrafficPolicy: Cluster
+    #   internalTrafficPolicy: Cluster
+    #   # External IPs addresses of this service.
+    #   externalIPs: []
+    service: {}
+
+    ## List of existing Gateway parent refs to connect the routes to.
+    ## More info: https://gateway-api.sigs.k8s.io/reference/spec/#parentreference
+    # existingGateways: {}
   ## Labels to add to all manifest for this component
   labels: {}
   ## Defines the annotations to add to the workload
@@ -1626,9 +1735,6 @@ elementWeb:
     ## Annotations to be added to this Ingress
     annotations: {}
 
-    ## What Ingress Class Name that should be used for this Ingress
-    # className:
-
     ## Disable TLS configuration by setting it to false
     tlsEnabled: true
 
@@ -1645,9 +1751,44 @@ elementWeb:
     #   # External IPs addresses of this service.
     #   externalIPs: []
     service: {}
+
+    ## What Ingress Class Name that should be used for this Ingress
+    # className:
+
     ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
     ## This can be set to `ingress-nginx`.
     # controllerType:
+  ## How this component's routes should be constructed
+  routes:
+    ## What hostname should be used for this component
+    # host:
+
+    ## Annotations to be added to this route
+    annotations: {}
+
+    ## Disable TLS configuration by setting it to false
+    tlsEnabled: true
+
+    ## The name of the Secret containing the TLS certificate and the key that should be used for this route
+    # tlsSecret:
+
+    ## Disable automatic HTTP redirect route generation by setting true
+    disableHTTPRedirect: false
+
+    ## How the Service behind this route is constructed
+    # service:
+    #   type: ClusterIP
+    #   annotations: {}
+    #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
+    #   externalTrafficPolicy: Cluster
+    #   internalTrafficPolicy: Cluster
+    #   # External IPs addresses of this service.
+    #   externalIPs: []
+    service: {}
+
+    ## List of existing Gateway parent refs to connect the routes to.
+    ## More info: https://gateway-api.sigs.k8s.io/reference/spec/#parentreference
+    # existingGateways: {}
   ## Labels to add to all manifest for this component
   labels: {}
   ## Defines the annotations to add to the workload
@@ -2234,9 +2375,6 @@ hookshot:
     ## Annotations to be added to this Ingress
     annotations: {}
 
-    ## What Ingress Class Name that should be used for this Ingress
-    # className:
-
     ## Disable TLS configuration by setting it to false
     tlsEnabled: true
 
@@ -2253,9 +2391,45 @@ hookshot:
     #   # External IPs addresses of this service.
     #   externalIPs: []
     service: {}
+
+    ## What Ingress Class Name that should be used for this Ingress
+    # className:
+
     ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
     ## This can be set to `ingress-nginx`.
     # controllerType:
+
+  ## How this component's routes should be constructed
+  routes:
+    ## What hostname should be used for this component
+    # host:
+
+    ## Annotations to be added to this route
+    annotations: {}
+
+    ## Disable TLS configuration by setting it to false
+    tlsEnabled: true
+
+    ## The name of the Secret containing the TLS certificate and the key that should be used for this route
+    # tlsSecret:
+
+    ## Disable automatic HTTP redirect route generation by setting true
+    disableHTTPRedirect: false
+
+    ## How the Service behind this route is constructed
+    # service:
+    #   type: ClusterIP
+    #   annotations: {}
+    #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
+    #   externalTrafficPolicy: Cluster
+    #   internalTrafficPolicy: Cluster
+    #   # External IPs addresses of this service.
+    #   externalIPs: []
+    service: {}
+
+    ## List of existing Gateway parent refs to connect the routes to.
+    ## More info: https://gateway-api.sigs.k8s.io/reference/spec/#parentreference
+    # existingGateways: {}
 
   ## Additional configuration to provide to Hookshot.
   ## You can, if you whish, override it in the additional config.
@@ -2725,9 +2899,6 @@ matrixAuthenticationService:
     ## Annotations to be added to this Ingress
     annotations: {}
 
-    ## What Ingress Class Name that should be used for this Ingress
-    # className:
-
     ## Disable TLS configuration by setting it to false
     tlsEnabled: true
 
@@ -2744,9 +2915,45 @@ matrixAuthenticationService:
     #   # External IPs addresses of this service.
     #   externalIPs: []
     service: {}
+
+    ## What Ingress Class Name that should be used for this Ingress
+    # className:
+
     ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
     ## This can be set to `ingress-nginx`.
     # controllerType:
+
+  ## How this component's routes should be constructed
+  routes:
+    ## What hostname should be used for this component
+    # host:
+
+    ## Annotations to be added to this route
+    annotations: {}
+
+    ## Disable TLS configuration by setting it to false
+    tlsEnabled: true
+
+    ## The name of the Secret containing the TLS certificate and the key that should be used for this route
+    # tlsSecret:
+
+    ## Disable automatic HTTP redirect route generation by setting true
+    disableHTTPRedirect: false
+
+    ## How the Service behind this route is constructed
+    # service:
+    #   type: ClusterIP
+    #   annotations: {}
+    #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
+    #   externalTrafficPolicy: Cluster
+    #   internalTrafficPolicy: Cluster
+    #   # External IPs addresses of this service.
+    #   externalIPs: []
+    service: {}
+
+    ## List of existing Gateway parent refs to connect the routes to.
+    ## More info: https://gateway-api.sigs.k8s.io/reference/spec/#parentreference
+    # existingGateways: {}
 
   ## Kubernetes resources to allocate to each instance.
   resources:
@@ -5650,9 +5857,6 @@ synapse:
     ## Annotations to be added to this Ingress
     annotations: {}
 
-    ## What Ingress Class Name that should be used for this Ingress
-    # className:
-
     ## Disable TLS configuration by setting it to false
     tlsEnabled: true
 
@@ -5669,9 +5873,44 @@ synapse:
     #   # External IPs addresses of this service.
     #   externalIPs: []
     service: {}
+
+    ## What Ingress Class Name that should be used for this Ingress
+    # className:
+
     ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
     ## This can be set to `ingress-nginx`.
     # controllerType:
+  ## How this component's routes should be constructed
+  routes:
+    ## What hostname should be used for this component
+    # host:
+
+    ## Annotations to be added to this route
+    annotations: {}
+
+    ## Disable TLS configuration by setting it to false
+    tlsEnabled: true
+
+    ## The name of the Secret containing the TLS certificate and the key that should be used for this route
+    # tlsSecret:
+
+    ## Disable automatic HTTP redirect route generation by setting true
+    disableHTTPRedirect: false
+
+    ## How the Service behind this route is constructed
+    # service:
+    #   type: ClusterIP
+    #   annotations: {}
+    #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
+    #   externalTrafficPolicy: Cluster
+    #   internalTrafficPolicy: Cluster
+    #   # External IPs addresses of this service.
+    #   externalIPs: []
+    service: {}
+
+    ## List of existing Gateway parent refs to connect the routes to.
+    ## More info: https://gateway-api.sigs.k8s.io/reference/spec/#parentreference
+    # existingGateways: {}
   ## Labels to add to all manifest for this component
   labels: {}
   ## Defines the annotations to add to the workload
@@ -5923,9 +6162,6 @@ wellKnownDelegation:
     ## Annotations to be added to this Ingress
     annotations: {}
 
-    ## What Ingress Class Name that should be used for this Ingress
-    # className:
-
     ## Disable TLS configuration by setting it to false
     tlsEnabled: true
 
@@ -5942,9 +6178,42 @@ wellKnownDelegation:
     #   # External IPs addresses of this service.
     #   externalIPs: []
     service: {}
+
+    ## What Ingress Class Name that should be used for this Ingress
+    # className:
+
     ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
     ## This can be set to `ingress-nginx`.
     # controllerType:
+
+  ## How this component's routes should be constructed
+  routes:
+    ## Annotations to be added to this route
+    annotations: {}
+
+    ## Disable TLS configuration by setting it to false
+    tlsEnabled: true
+
+    ## The name of the Secret containing the TLS certificate and the key that should be used for this route
+    # tlsSecret:
+
+    ## Disable automatic HTTP redirect route generation by setting true
+    disableHTTPRedirect: false
+
+    ## How the Service behind this route is constructed
+    # service:
+    #   type: ClusterIP
+    #   annotations: {}
+    #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
+    #   externalTrafficPolicy: Cluster
+    #   internalTrafficPolicy: Cluster
+    #   # External IPs addresses of this service.
+    #   externalIPs: []
+    service: {}
+
+    ## List of existing Gateway parent refs to connect the routes to.
+    ## More info: https://gateway-api.sigs.k8s.io/reference/spec/#parentreference
+    # existingGateways: {}
 
   ## If ElementWeb is deployed, the base domain will redirect to it's ingress host by default
   ## If ElementWeb is not deployed or this is disabled, no base domain URL redirect will be set.
