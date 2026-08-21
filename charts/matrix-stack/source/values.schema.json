@@ -133,6 +133,12 @@
           "additionalProperties": {
             "type": "string"
           }
+        },
+        "listenFor": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },

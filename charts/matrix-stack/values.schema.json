@@ -224,6 +224,22 @@
       },
       "additionalProperties": false
     },
+    "storage": {
+      "type": "object",
+      "properties": {
+        "storageClassName": {
+          "type": "string"
+        },
+        "resourcePolicy": {
+          "type": "string",
+          "enum": [
+            "keep",
+            "delete"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
     "routes": {
       "type": "object",
       "properties": {
@@ -307,22 +323,6 @@
             }
           },
           "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
-    },
-    "storage": {
-      "type": "object",
-      "properties": {
-        "storageClassName": {
-          "type": "string"
-        },
-        "resourcePolicy": {
-          "type": "string",
-          "enum": [
-            "keep",
-            "delete"
-          ]
         }
       },
       "additionalProperties": false
@@ -1249,6 +1249,12 @@
         "annotations": {
           "type": "object",
           "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "listenFor": {
+          "type": "array",
+          "items": {
             "type": "string"
           }
         }

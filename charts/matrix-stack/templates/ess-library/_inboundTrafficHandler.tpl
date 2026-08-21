@@ -5,6 +5,30 @@ Copyright 2025-2026 Element Creations Ltd
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 
+{{- define "element-io.ess-library.inboundTrafficHandler.host" -}}
+{{- $root := .root -}}
+{{- with required "element-io.ess-library.inboundTrafficHandler.host missing context" .context -}}
+{{- $component := required "element-io.ess-library.inboundTrafficHandler.host missing component" .component -}}
+{{- $handler := coalesce $component.inboundTrafficHandler $root.Values.inboundTrafficHandler "none" -}}
+{{- if eq $handler "ingress" -}}
+{{- tpl (dig "ingress" "host" "" $component) $root -}}
+{{- else if eq $handler "routes" -}}
+{{- tpl (dig "routes" "host" "" $component) $root -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "element-io.ess-library.inboundTrafficHandler.name" -}}
+{{- $root := .root -}}
+{{- with required "element-io.ess-library.inboundTrafficHandler.name missing context" .context -}}
+{{- $component := required "element-io.ess-library.inboundTrafficHandler.name missing component" .component -}}
+{{- $handler := coalesce $component.inboundTrafficHandler $root.Values.inboundTrafficHandler "none" -}}
+{{- if ne $handler "none" -}}
+{{- $handler -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "element-io.ess-library.httpRedirectRoute" -}}
 {{- $root := .root -}}
 {{- with required "element-io.ess-library.httpRouteRedirect missing context" .context -}}

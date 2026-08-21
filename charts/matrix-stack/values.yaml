@@ -236,11 +236,14 @@ gateway:
   ## Create a default gateway for all routes
   create: false
   
-  ## Set the gateway class to use. If not set it will use the cluster default
+  ## Set the gateway class to use, required when create=true.
   # className: ""
 
   ## Additional annotations to add to the gateway resource
   annotations: {}
+
+  ## Override which services the generated gateway creates listeners for
+  # listenFor: []
 
 ## Set the default inbound traffic handler type. Options are ingress | routes | none
 inboundTrafficHandler: ingress
