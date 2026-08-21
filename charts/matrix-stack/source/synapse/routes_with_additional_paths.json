@@ -39,6 +39,9 @@
     "service": {
       "$ref": "file://common/service.json"
     },
+    "disableHTTPRedirect": {
+      "type": "boolean"
+    },
     "additionalPaths": {
       "type": "array",
       "items": {

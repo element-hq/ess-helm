@@ -31,6 +31,9 @@
     "tlsSecret": {
       "type": "string"
     },
+    "disableHTTPRedirect": {
+      "type": "boolean"
+    },
     "service": {
       "$ref": "file://common/service.json"
     }

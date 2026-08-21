@@ -89,6 +89,9 @@ routes:
   ## The name of the Secret containing the TLS certificate and the key that should be used for all routes by default
   # tlsSecret:
 
+  ## Disable automatic HTTP redirect route generation by setting true
+  disableHTTPRedirect: false
+
   ## How the Services behind all routes is constructed by default
   service:
     type: ClusterIP
@@ -670,6 +673,9 @@ matrixRTC:
 
     ## The name of the Secret containing the TLS certificate and the key that should be used for this route
     # tlsSecret:
+
+    ## Disable automatic HTTP redirect route generation by setting true
+    disableHTTPRedirect: false
 
     ## How the Service behind this route is constructed
     # service:
@@ -1446,6 +1452,9 @@ elementAdmin:
     ## The name of the Secret containing the TLS certificate and the key that should be used for this route
     # tlsSecret:
 
+    ## Disable automatic HTTP redirect route generation by setting true
+    disableHTTPRedirect: false
+
     ## How the Service behind this route is constructed
     # service:
     #   type: ClusterIP
@@ -1762,6 +1771,9 @@ elementWeb:
 
     ## The name of the Secret containing the TLS certificate and the key that should be used for this route
     # tlsSecret:
+
+    ## Disable automatic HTTP redirect route generation by setting true
+    disableHTTPRedirect: false
 
     ## How the Service behind this route is constructed
     # service:
@@ -2401,6 +2413,9 @@ hookshot:
     ## The name of the Secret containing the TLS certificate and the key that should be used for this route
     # tlsSecret:
 
+    ## Disable automatic HTTP redirect route generation by setting true
+    disableHTTPRedirect: false
+
     ## How the Service behind this route is constructed
     # service:
     #   type: ClusterIP
@@ -2921,6 +2936,9 @@ matrixAuthenticationService:
 
     ## The name of the Secret containing the TLS certificate and the key that should be used for this route
     # tlsSecret:
+
+    ## Disable automatic HTTP redirect route generation by setting true
+    disableHTTPRedirect: false
 
     ## How the Service behind this route is constructed
     # service:
@@ -5876,6 +5894,9 @@ synapse:
     ## The name of the Secret containing the TLS certificate and the key that should be used for this route
     # tlsSecret:
 
+    ## Disable automatic HTTP redirect route generation by setting true
+    disableHTTPRedirect: false
+
     ## How the Service behind this route is constructed
     # service:
     #   type: ClusterIP
@@ -6175,6 +6196,9 @@ wellKnownDelegation:
 
     ## The name of the Secret containing the TLS certificate and the key that should be used for this route
     # tlsSecret:
+
+    ## Disable automatic HTTP redirect route generation by setting true
+    disableHTTPRedirect: false
 
     ## How the Service behind this route is constructed
     # service:

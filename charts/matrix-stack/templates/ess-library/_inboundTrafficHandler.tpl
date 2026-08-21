@@ -34,9 +34,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- with required "element-io.ess-library.httpRouteRedirect missing context" .context -}}
 {{- $serviceName := required "element-io.ess-library.httpRedirectRoute context missing ServiceName" .serviceName -}}
 {{- $component := required "element-io.ess-library.httpRedirectRoute context missing Component" .component -}}
+{{- $disabled := coalesce $component.disableHTTPRedirect $root.Values.routes.disableHTTPRedirect false -}}
 {{- $host := required "element-io.ess-library.httpRedirectRoute context missing Host" .host -}}
 {{- $labels := required "element-io.ess-library.httpRedirectRoute context missing Labels" .labels -}}
 {{- $path := .path | default "/" -}}
+{{- if not $disabled -}}
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -61,5 +63,6 @@ spec:
           scheme: https
           statusCode: 301
         type: RequestRedirect
+{{- end -}}
 {{- end -}}
 {{- end -}}

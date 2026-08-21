@@ -31,6 +31,9 @@
     "tlsSecret": {
       "type": "string"
     },
+    "disableHTTPRedirect": {
+      "type": "boolean"
+    },
     "service": {
       "type": "object",
       "required": [

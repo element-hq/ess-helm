@@ -256,6 +256,9 @@ inboundTrafficHandler: ingress
   ## The name of the Secret containing the TLS certificate and the key that should be used for {{ 'all routes by default' if global else 'this route' }}
   # tlsSecret:
 
+  ## Disable automatic HTTP redirect route generation by setting true
+  disableHTTPRedirect: false
+
   ## How the {{ 'Services' if global else 'Service' }} behind {{ 'all routes' if global else 'this route' }} is constructed{{ ' by default' if global else '' }}
 {%- if global %}
   service:

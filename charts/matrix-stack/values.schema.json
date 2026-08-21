@@ -286,6 +286,9 @@
         "tlsSecret": {
           "type": "string"
         },
+        "disableHTTPRedirect": {
+          "type": "boolean"
+        },
         "service": {
           "type": "object",
           "required": [
@@ -4023,6 +4026,9 @@
             "tlsSecret": {
               "type": "string"
             },
+            "disableHTTPRedirect": {
+              "type": "boolean"
+            },
             "service": {
               "type": "object",
               "properties": {
@@ -7608,6 +7614,9 @@
             "tlsSecret": {
               "type": "string"
             },
+            "disableHTTPRedirect": {
+              "type": "boolean"
+            },
             "service": {
               "type": "object",
               "properties": {
@@ -9252,6 +9261,9 @@
             },
             "tlsSecret": {
               "type": "string"
+            },
+            "disableHTTPRedirect": {
+              "type": "boolean"
             },
             "service": {
               "type": "object",
@@ -12435,6 +12447,9 @@
             },
             "tlsSecret": {
               "type": "string"
+            },
+            "disableHTTPRedirect": {
+              "type": "boolean"
             },
             "service": {
               "type": "object",
@@ -15876,6 +15891,9 @@
             },
             "tlsSecret": {
               "type": "string"
+            },
+            "disableHTTPRedirect": {
+              "type": "boolean"
             },
             "service": {
               "type": "object",
@@ -22307,6 +22325,9 @@
                 }
               },
               "additionalProperties": false
+            },
+            "disableHTTPRedirect": {
+              "type": "boolean"
             },
             "additionalPaths": {
               "type": "array",
@@ -29392,6 +29413,9 @@
             },
             "tlsSecret": {
               "type": "string"
+            },
+            "disableHTTPRedirect": {
+              "type": "boolean"
             },
             "service": {
               "type": "object",
