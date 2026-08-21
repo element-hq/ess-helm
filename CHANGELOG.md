@@ -7,6 +7,84 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.8.1 (2026-08-21)
+
+## Removed / Breaking Changes
+
+- Removed `matrixRTC.livekitAuth.keysYaml` in favour of `matrixRTC.livekitAuth.{key,secret}`.
+
+  Both were previously available. `keysYaml` gave the impression of allowing multiple keys but this was not functional. (#1519)
+
+## Changed
+
+- Allow configuration of `privilege` in each container's `securityContext`.
+
+  The implicit default of `false` is maintained and made explicit. (#1506)
+- Allow `${NAME}` literals in the rendered configuration by escaping.
+
+  e.g. `\${NAME}` would render to `${NAME}` rather than looking for
+  an environment variable named `NAME` to replace with. (#1509)
+- Upgrade Element Web to v1.12.26.
+
+  Highlights:
+  - Tell the user when registration is being rate limited
+  - Room list: persist section state (expanded/collapsed)
+
+  Full Changelogs:
+  - [v1.12.26](https://github.com/element-hq/element-web/releases/tag/v1.12.26)
+
+  (#1516)
+- Upgrade Synapse to v1.159.0.
+
+  Highlights:
+  - Add optional support for [MSC4429: Profile Updates for Legacy Sync](https://github.com/matrix-org/matrix-spec-proposals/pull/4429)
+  - Fix the `quarantined_media` replication stream never being sent when the configured `quarantined_media_changes` stream writer is a worker.
+
+  Full Changelogs:
+  - [v1.159.0](https://github.com/element-hq/synapse/blob/release-v1.159/CHANGES.md)
+
+  (#1517)
+- Upgrade Matrix Authentication Service to v1.23.0.
+
+  Highlights:
+  - Remove the GraphQL playground
+  - Translations updates
+
+  Full Changelogs:
+  - [v1.23.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.23.0)
+
+  (#1518)
+- Keep client-server API requests to Synapse from the MatrixRTC authoriser internal to the cluster where possible. (#1519)
+- Upgrade MatrixRTC Authoriser to v0.6.0.
+
+  Highlights:
+  - Log the errors that cause "Unable to create room on SFU"
+  - Delegated MatrixRTC leave events via delayed events ([MSC4140](https://github.com/matrix-org/matrix-spec-proposals/pull/4140))
+
+  Full Changelogs:
+  - [v0.5.0](https://github.com/element-hq/lk-jwt-service/releases/tag/v0.5.0)
+  - [v0.6.0](https://github.com/element-hq/lk-jwt-service/releases/tag/v0.6.0)
+
+  (#1519)
+- Upgrade MatrixRTC SFU to v1.13.5.
+
+  Full Changelogs:
+  - No v1.13.0
+  - [v1.13.1](https://github.com/livekit/livekit/releases/tag/v1.13.1)
+  - [v1.13.2](https://github.com/livekit/livekit/releases/tag/v1.13.2)
+  - [v1.13.3](https://github.com/livekit/livekit/releases/tag/v1.13.3)
+  - [v1.13.4](https://github.com/livekit/livekit/releases/tag/v1.13.4)
+  - [v1.13.5](https://github.com/livekit/livekit/releases/tag/v1.13.5)
+
+  (#1520)
+
+## Internal
+
+- CI: Upgrade lightkube to 1.0.1. (#1511)
+- Fix calling `setup-ess-cluster` externally from the repository. (#1515)
+- Fix dependency pin for `cspell-action`. (#1521)
+
+
 # ESS Community Helm Chart 26.8.0 (2026-08-05)
 
 ## Added
