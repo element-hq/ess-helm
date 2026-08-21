@@ -77,6 +77,13 @@ ipFamilyPolicy: PreferDualStack
 {{- end -}}
 {{- end -}}
 
+{{- define "element-io.ess-library.routes.tls.isEnabled" -}}
+{{- $root := .root -}}
+{{- with required "element-io.ess-library.routes.tls.isEnabled missing context" .context -}}
+{{- and $root.Values.routes.tlsEnabled .tlsEnabled -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "element-io.ess-library.ingress.tls" -}}
 {{- $root := .root -}}
 {{- with required "element-io.ess-library.ingress.tls missing context" .context -}}

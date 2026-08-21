@@ -60,7 +60,7 @@ SPDX-License-Identifier: AGPL-3.0-only
     "protocol" "HTTP"
     "allowedRoutes" $allowedRoutes
 ) -}}
-{{- if eq (include "element-io.ess-library.ingress.tls.isEnabled" (dict "root" $root "context" $component.routes)) "true" -}}
+{{- if eq (include "element-io.ess-library.routes.tls.isEnabled" (dict "root" $root "context" $component.routes)) "true" -}}
 {{- $tlsSecret := include "element-io.gateway.tlsSecretName" (dict "root" $root "context" (dict "serviceName" $service "tlsSecret" $component.routes.tlsSecret)) -}}
 {{- $listeners = append $listeners (dict
     "name" (include "element-io.gateway.listenerName" (dict "root" $root "context" (dict "serviceName" $service "protocol" "https")))
