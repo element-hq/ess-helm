@@ -1,0 +1,111 @@
+{
+  "type": "object",
+  "properties": {
+    "existingGateways": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": { "type": "string" },
+          "namespace": { "type": "string" },
+          "group": { "type": "string" },
+          "kind": { "type": "string" },
+          "sectionName": { "type": "string" },
+          "port": { "type": "integer" }
+        }
+      }
+    },
+    "annotations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    },
+    "host": {
+      "type": "string"
+    },
+    "tlsEnabled": {
+      "type": "boolean"
+    },
+    "tlsSecret": {
+      "type": "string"
+    },
+    "service": {
+      "$ref": "file://common/service.json"
+    },
+    "additionalPaths": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "availability"
+        ],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "availability": {
+            "type": "string",
+            "enum": [
+              "internally_and_externally",
+              "only_externally",
+              "blocked"
+            ]
+          },
+          "service": {
+            "type": "object",
+            "required": [
+              "name",
+              "port"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "port": {
+                "type": "object",
+                "oneOf": [
+                  {
+                    "required": [
+                      "name"
+                    ],
+                    "not": {
+                      "required": [
+                        "number"
+                      ]
+                    }
+                  },
+                  {
+                    "required": [
+                      "number"
+                    ],
+                    "not": {
+                      "required": [
+                        "name"
+                      ]
+                    }
+                  }
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "number": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

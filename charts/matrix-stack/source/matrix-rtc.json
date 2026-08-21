@@ -23,6 +23,14 @@
         }
       }
     },
+    "inboundTrafficHandler": {
+      "type": "string",
+      "enum": [
+        "ingress",
+        "routes",
+        "none"
+      ]
+    },
     "replicas": {
       "minimum": 0,
       "type": "integer"
@@ -44,6 +52,9 @@
     },
     "ingress": {
       "$ref": "file://common/ingress.json"
+    },
+    "routes": {
+      "$ref": "file://common/routes.json"
     },
     "labels": {
       "$ref": "file://common/labels.json"
