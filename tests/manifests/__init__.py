@@ -764,27 +764,8 @@ all_components_details = [
         makes_outbound_requests=False,
         has_workloads=False,
         values_file_path_overrides={
-        #    # Gateway do not have most of the generic paths
-        #    PropertyType.Affinity: ValuesFilePath.not_supported(),
-        #    PropertyType.ContainersSecurityContext: ValuesFilePath.not_supported(),
-        #    PropertyType.Env: ValuesFilePath.not_supported(),
-        #    PropertyType.Image: ValuesFilePath.not_supported(),
-        #    PropertyType.InitContainers: ValuesFilePath.not_supported(),
-        #    PropertyType.LivenessProbe: ValuesFilePath.not_supported(),
-        #    PropertyType.NodeSelector: ValuesFilePath.not_supported(),
-        #    PropertyType.PodSecurityContext: ValuesFilePath.not_supported(),
-        #    PropertyType.PriorityClassName: ValuesFilePath.not_supported(),
-        #    PropertyType.RuntimeClassName: ValuesFilePath.not_supported(),
-        #    PropertyType.SchedulerName: ValuesFilePath.not_supported(),
+            # Gateway do not have replicas
             PropertyType.Replicas: ValuesFilePath.not_supported(),
-        #    PropertyType.ReadinessProbe: ValuesFilePath.not_supported(),
-        #    PropertyType.Resources: ValuesFilePath.not_supported(),
-        #    PropertyType.StartupProbe: ValuesFilePath.not_supported(),
-        #    PropertyType.ServiceAccount: ValuesFilePath.not_supported(),
-        #    PropertyType.Tolerations: ValuesFilePath.not_supported(),
-        #    PropertyType.TopologySpreadConstraints: ValuesFilePath.not_supported(),
-        #    PropertyType.Volumes: ValuesFilePath.not_supported(),
-        #    PropertyType.VolumeMounts: ValuesFilePath.not_supported(),
         },
     ),
 ]
