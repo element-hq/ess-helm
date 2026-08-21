@@ -157,6 +157,10 @@ true
 {{- $root := .root -}}
 {{- with required "element-io.ess-library.ingress.parentRefs missing context" .context -}}
 {{- $serviceName := required "element-io.ess-library.ingress.parentRefs missing serviceName" .serviceName -}}
+{{- $protocol := .protocol -}}
+{{- if not $protocol -}}
+{{- $protocol = ternary "https" "http" (eq (include "element-io.ess-library.ingress.tls.isEnabled" (dict "root" $root "context" (dig "routes" (dict) .component))) "true") -}}
+{{- end -}}
 {{- $globalGateways := (get (get $root.Values "routes" | default (dict)) "existingGateways" | default (list)) -}}
 {{- $componentGateways := dig "routes" "existingGateways" (list) .component -}}
 {{- $gateways := concat $globalGateways $componentGateways -}}
@@ -166,11 +170,11 @@ true
 {{ toYaml $gateways }}
 {{- end -}}
 {{ if $builtinGateway.create }}
-- name: {{ $root.Release.Name | quote }}
+- name: {{ include "element-io.gateway.name" (dict "root" $root) | quote }}
   namespace: {{ $root.Release.Namespace | quote }}
   kind: Gateway
   group: gateway.networking.k8s.io
-  sectionName: {{ printf "%s-%s" $root.Release.Name $serviceName | quote }}
+  sectionName: {{ include "element-io.gateway.listenerName" (dict "root" $root "context" (dict "serviceName" $serviceName "protocol" $protocol)) | quote }}
 {{ end }}
 {{- else -}}
 []

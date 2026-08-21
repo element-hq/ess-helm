@@ -21,17 +21,6 @@ spec:
   hostnames:
     - {{ (tpl .routes.host $) | quote }}
   rules:
-{{- if eq (include "element-io.ess-library.ingress.tls.isEnabled" (dict "root" $ "context" .routes)) "true" }}
-    - matches:
-      - path:
-          type: PathPrefix
-          value: /
-      filters:
-      - requestRedirect:
-          scheme: https
-          statusCode: 301
-        type: RequestRedirect
-{{- end }}
 {{- range (include "element-io.synapse.ingress.additionalPaths" (dict "root" $ "context" .)) | fromYamlArray -}}
 {{- if eq .availability "only_externally" }}
     - matches:
@@ -80,6 +69,9 @@ spec:
           group: ""
           kind: Service
 {{- end }}
+{{- end }}
+{{- if eq (include "element-io.ess-library.ingress.tls.isEnabled" (dict "root" $ "context" .routes)) "true" }}
+{{ include "element-io.ess-library.httpRedirectRoute" (dict "root" $ "context" (dict "component" . "serviceName" "synapse" "host" (tpl .routes.host $))) }}
 {{- end }}
 {{- end }}
 {{- end }}

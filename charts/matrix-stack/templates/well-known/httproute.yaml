@@ -29,16 +29,8 @@ spec:
           port: 8010
           group: ""
           kind: Service
-    {{- if eq (include "element-io.ess-library.ingress.tls.isEnabled" (dict "root" $ "context" .routes)) "true" }}
-    - matches:
-      - path:
-          type: PathPrefix
-          value: {{ include "element-io.well-known-delegation.httproute-path" (dict "root" $ "context" .baseDomainRedirect) }}
-      filters:
-      - requestRedirect:
-          scheme: https
-          statusCode: 301
-        type: RequestRedirect
-    {{- end }}
+{{- if eq (include "element-io.ess-library.ingress.tls.isEnabled" (dict "root" $ "context" .routes)) "true" }}
+{{ include "element-io.ess-library.httpRedirectRoute" (dict "root" $ "context" (dict "component" . "serviceName" "well-known" "host" (tpl .routes.host $))) }}
+{{- end }}
 {{- end }}
 {{- end }}
