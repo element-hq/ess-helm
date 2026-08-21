@@ -12,8 +12,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{ $messages = append $messages "serverName is required when hookshot.enabled=true" }}
 {{- end }}
 {{- $trafficHandler := include "element-io.ess-library.inboundTrafficHandler.name" (dict "root" $root "context" (dict "component" .)) -}}
-{{- if and $trafficHandler (not (include "element-io.ess-library.inboundTrafficHandler.host" (dict "root" $root "context" (dict "component" .)))) -}}
-{{ $messages = append $messages (printf "hookshot.%s.host is required when hookshot.enabled=true and inboundTrafficHandler is %s" $trafficHandler $trafficHandler) }}
+{{- if and $trafficHandler (not $root.Values.synapse.enabled) (not (include "element-io.ess-library.inboundTrafficHandler.host" (dict "root" $root "context" (dict "component" .)))) -}}
+{{ $messages = append $messages (printf "hookshot.%s.host is required when hookshot.enabled=true, synapse.enabled=false and inboundTrafficHandler is %s" $trafficHandler $trafficHandler) }}
 {{- end }}
 {{- if and ($root.Values.matrixAuthenticationService.enabled) (.enableEncryption) -}}
 {{ $messages = append $messages "hookshot.enableEncryption cannot be enabled when matrixAuthenticationService.enabled=true" }}

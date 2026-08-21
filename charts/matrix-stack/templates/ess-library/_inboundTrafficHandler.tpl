@@ -35,6 +35,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $serviceName := required "element-io.ess-library.httpRedirectRoute context missing ServiceName" .serviceName -}}
 {{- $component := required "element-io.ess-library.httpRedirectRoute context missing Component" .component -}}
 {{- $host := required "element-io.ess-library.httpRedirectRoute context missing Host" .host -}}
+{{- $labels := required "element-io.ess-library.httpRedirectRoute context missing Labels" .labels -}}
 {{- $path := .path | default "/" -}}
 ---
 apiVersion: gateway.networking.k8s.io/v1
@@ -42,7 +43,7 @@ kind: HTTPRoute
 metadata:
 {{- include "element-io.ess-library.ingress.annotations" (dict "root" $root "context" (dict "ingress" $component.routes)) | nindent 2 }}
   labels:
-    {{- include "element-io.element-admin.labels" (dict "root" $root "context" $component) | nindent 4 }}
+    {{- $labels | nindent 4 }}
   name: {{ printf "%s-%s-redirect" $root.Release.Name $serviceName }}
   namespace: {{ $root.Release.Namespace }}
 spec:

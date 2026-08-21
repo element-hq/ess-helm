@@ -16,7 +16,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $_ := set $mHomeserver "server_name" (tpl $root.Values.serverName $root) }}
 {{- end }}
 {{- if $root.Values.synapse.enabled }}
-{{- $_ := set $mHomeserver "base_url" (printf "https://%s" (tpl $root.Values.synapse.ingress.host $root)) -}}
+{{- $_ := set $mHomeserver "base_url" (printf "https://%s" (include "element-io.ess-library.inboundTrafficHandler.host" (dict "root" $root "context" (dict "component" $root.Values.synapse)))) -}}
 {{- end }}
 {{- if $root.Values.matrixRTC.enabled }}
 {{- $_ := set $config "features" (dict "feature_video_rooms" true  "feature_new_room_decoration_ui" true "feature_element_call_video_rooms" true) -}}

@@ -30,7 +30,7 @@ spec:
           group: ""
           kind: Service
 {{- if eq (include "element-io.ess-library.ingress.tls.isEnabled" (dict "root" $ "context" .routes)) "true" }}
-{{ include "element-io.ess-library.httpRedirectRoute" (dict "root" $ "context" (dict "component" . "serviceName" "well-known" "host" (tpl .routes.host $))) }}
+{{ include "element-io.ess-library.httpRedirectRoute" (dict "root" $ "context" (dict "component" . "serviceName" "well-known" "host" (tpl $.Values.serverName $) "path" (include "element-io.well-known-delegation.httproute-path" (dict "root" $ "context" .baseDomainRedirect)) "labels" (include "element-io.well-known-delegation-ingress.labels" (dict "root" $ "context" $.Values.haproxy)))) }}
 {{- end }}
 {{- end }}
 {{- end }}

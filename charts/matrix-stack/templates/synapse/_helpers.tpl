@@ -129,8 +129,7 @@ env:
 
 {{- define "element-io.synapse.ingress.additionalPaths" -}}
 {{- $root := .root -}}
-{{- $ingress := $root.Values.synapse.ingress | default dict }}
-{{- $type := coalesce $ingress.type $root.Values.ingress.type }}
+{{- $type := include "element-io.ess-library.inboundTrafficHandler.name" (dict "root" $root "context" (dict "component" $root.Values.synapse)) }}
 {{- with required "element-io.synapse.ingress.additionalPaths missing context" .context -}}
 {{- if include "element-io.matrix-authentication-service.readyToHandleAuth" (dict "root" $root) }}
 {{- range $apiVersion := list "api/v1" "r0" "v3" "unstable" }}
@@ -141,20 +140,20 @@ env:
     name: "{{ $root.Release.Name }}-matrix-authentication-service"
     port:
       name: http
-      {{- if eq $type "HTTPRoute" }}
+      {{- if eq $type "routes" }}
       number: 8080
       {{- end }}
 {{- end }}
 {{- end }}
 {{- end }}
-{{- if and $root.Values.hookshot.enabled (not $root.Values.hookshot.ingress.host) }}
+{{- if and $root.Values.hookshot.enabled (not (include "element-io.ess-library.inboundTrafficHandler.host" (dict "root" $root "context" (dict "component" $root.Values.hookshot)))) }}
 - path: "/_matrix/hookshot/widgetapi/v1"
   availability: only_externally
   service:
     name: "{{ $root.Release.Name }}-hookshot"
     port:
       name: widgets
-      {{- if eq $type "HTTPRoute" }}
+      {{- if eq $type "routes" }}
       number: 7778
       {{- end }}
 - path: "/_matrix/hookshot"
@@ -163,7 +162,7 @@ env:
     name: "{{ $root.Release.Name }}-hookshot"
     port:
       name: webhooks
-      {{- if eq $type "HTTPRoute" }}
+      {{- if eq $type "routes" }}
       number: 7775
       {{- end }}
 {{- end -}}

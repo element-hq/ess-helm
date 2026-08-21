@@ -42,7 +42,7 @@ spec:
           kind: Service
     {{- end }}
 {{- if eq (include "element-io.ess-library.ingress.tls.isEnabled" (dict "root" $ "context" .routes)) "true" }}
-{{ include "element-io.ess-library.httpRedirectRoute" (dict "root" $ "context" (dict "component" . "serviceName" "matrix-rtc" "host" (tpl .routes.host $))) }}
+{{ include "element-io.ess-library.httpRedirectRoute" (dict "root" $ "context" (dict "component" . "serviceName" "matrix-rtc" "host" (tpl .routes.host $) "labels" (include "element-io.matrix-rtc-ingress.labels" (dict "root" $ "context" .)))) }}
 {{- end }}
 {{- end }}
 {{- end }}
