@@ -169,13 +169,14 @@ Prefix
 {{- end -}}
 {{- end -}}
 
-{{- define "element-io.ess-library.ingress.isEnabled" -}}
+{{- define "element-io.ess-library.inboundTrafficHandler.isEnabled" -}}
 {{- $root := .root -}}
-{{- with required "element-io.ess-library.ingress.isEnabled missing context" .context -}}
-{{- $ingress := required "element-io.ess-library.ingress.isEnabled missing ingress" .ingress -}}
-{{- $type := required "element-io.ess-library.ingress.isEnabled missing type" .type -}}
-{{- $desiredType := coalesce $ingress.type $root.Values.ingress.type -}}
-{{- $enabled := or $ingress.enabled $root.Values.ingress.enabled -}}
-{{- and $enabled (eq $type $desiredType) -}}
+{{- with required "element-io.ess-library.inboundTrafficHandler.isEnabled missing context" .context -}}
+{{- $component := required "element-io.ess-library.inboundTrafficHandler.isEnabled missing component in context" .component -}}
+{{- $trafficHandler := required "element-io.ess-library.inboundTrafficHandler.isEnabled missing trafficHandler in context" .trafficHandler -}}
+{{- $desiredTrafficHandler := coalesce $component.inboundTrafficHandler $root.Values.inboundTrafficHandler "none" -}}
+{{- if and $component.enabled (eq $trafficHandler $desiredTrafficHandler) -}}
+true
+{{- end -}}
 {{- end -}}
 {{- end -}}
