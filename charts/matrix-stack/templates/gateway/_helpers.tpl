@@ -9,7 +9,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- with required "element-io.gateway.tlsConfig missing context" .context -}}
 {{- $tlsSecret := coalesce
     .tlsSecret
-    $root.Values.ingress.tlsSecret
+    $root.Values.gateway.tlsSecret
     (printf "%s-%s-certmanager-tls" $root.Release.Name .name)
 -}}
 tls:
@@ -32,7 +32,7 @@ tls:
     "synapse" $root.Values.synapse
     "well-known" $root.Values.wellKnownDelegation
 -}}
-{{- $listenFor := $root.Values.ingress.gateway.listenFor | default (list
+{{- $listenFor := $root.Values.gateway.listenFor | default (list
     "element-admin"
     "element-web"
     "matrix-authentication-service"
@@ -40,18 +40,18 @@ tls:
     "synapse"
     "well-known")
 -}}
-{{- if and (not $root.Values.ingress.gateway.listenFor) $root.Values.hookshot.enabled -}}
+{{- if and (not $root.Values.gateway.listenFor) $root.Values.hookshot.enabled -}}
 {{- $listenFor = append $listenFor "hookshot" -}}
 {{- end -}}
 {{- range $listenFor -}}
 {{- $service := . -}}
 {{- with required "element-io.gateway.listener missing context" (index $contexts $service) -}}
-{{- if eq (include "element-io.ess-library.ingress.isEnabled" (dict "root" $root "context" (dict "ingress" .ingress "type" "HTTPRoute"))) "true" }}
-- hostname: {{ .ingress.host | default $root.Values.serverName | quote }}
-  {{- if eq (include "element-io.ess-library.ingress.tls.isEnabled" (dict "root" $root "context" .ingress)) "true" }}
+{{- if eq (include "element-io.ess-library.inboundTrafficHandler.isEnabled" (dict "root" $root "context" (dict "component" . "trafficHandler" "routes"))) "true" -}}
+- hostname: {{ .routes.host | default $root.Values.serverName | quote }}
+  {{- if eq (include "element-io.ess-library.ingress.tls.isEnabled" (dict "root" $root "context" .routes)) "true" }}
   port: 443
   protocol: HTTPS
-  {{- include "element-io.gateway.tlsConfig" (dict "root" $root "context" (dict "tlsSecret" .ingress.tlsSecret "name" $service)) | nindent 2 }}
+  {{- include "element-io.gateway.tlsConfig" (dict "root" $root "context" (dict "tlsSecret" .routes.tlsSecret "name" $service)) | nindent 2 }}
   {{- else }}
   port: 80
   protocol: HTTP

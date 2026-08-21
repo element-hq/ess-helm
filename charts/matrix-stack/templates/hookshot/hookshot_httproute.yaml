@@ -17,9 +17,9 @@ metadata:
   namespace: {{ $.Release.Namespace }}
 spec:
   parentRefs:
-    {{- include "element-io.ess-library.ingress.parentRefs" (dict "root" $ "context" (dict "serviceName" "hookshot" "HTTPRoute" .ingress.HTTPRoute)) | nindent 4 }}
+    {{- include "element-io.ess-library.ingress.parentRefs" (dict "root" $ "context" (dict "component" . "serviceName" "hookshot")) | nindent 4 }}
   hostnames:
-    - {{ (tpl .ingress.host $) | quote }}
+    - {{ (tpl .routes.host $) | quote }}
   rules:
     - matches:
       - path:
@@ -39,7 +39,7 @@ spec:
           port: 7775
           group: ""
           kind: Service
-    {{- if eq (include "element-io.ess-library.ingress.tls.isEnabled" (dict "root" $ "context" .ingress)) "true" }}
+    {{- if eq (include "element-io.ess-library.ingress.tls.isEnabled" (dict "root" $ "context" .routes)) "true" }}
     - matches:
       - path:
           type: PathPrefix

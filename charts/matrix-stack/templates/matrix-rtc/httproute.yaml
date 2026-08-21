@@ -10,16 +10,16 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
 {{- $extraAnnotations := dict }}
-{{- include "element-io.ess-library.ingress.annotations" (dict "root" $ "context" (dict "ingress" .ingress "extraAnnotations" $extraAnnotations)) | nindent 2 }}
+{{- include "element-io.ess-library.ingress.annotations" (dict "root" $ "context" (dict "ingress" .routes "extraAnnotations" $extraAnnotations)) | nindent 2 }}
   labels:
     {{- include "element-io.matrix-rtc-ingress.labels" (dict "root" $ "context" .) | nindent 4 }}
   name: {{ $.Release.Name }}-matrix-rtc
   namespace: {{ $.Release.Namespace }}
 spec:
   parentRefs:
-    {{- include "element-io.ess-library.ingress.parentRefs" (dict "root" $ "context" (dict "serviceName" "matrix-rtc" "HTTPRoute" .ingress.HTTPRoute)) | nindent 4 }}
+    {{- include "element-io.ess-library.ingress.parentRefs" (dict "root" $ "context" (dict "component" . "serviceName" "matrix-rtc")) | nindent 4 }}
   hostnames:
-    - {{ (tpl .ingress.host $) | quote }}
+    - {{ (tpl .routes.host $) | quote }}
   rules:
     - matches:
       - path:
@@ -41,7 +41,7 @@ spec:
           group: ""
           kind: Service
     {{- end }}
-    {{- if eq (include "element-io.ess-library.ingress.tls.isEnabled" (dict "root" $ "context" .ingress)) "true" }}
+    {{- if eq (include "element-io.ess-library.ingress.tls.isEnabled" (dict "root" $ "context" .routes)) "true" }}
     - matches:
       - path:
           type: PathPrefix
