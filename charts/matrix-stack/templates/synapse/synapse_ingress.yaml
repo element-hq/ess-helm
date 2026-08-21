@@ -15,7 +15,6 @@ metadata:
 {{- $_ := set $extraAnnotations "nginx.ingress.kubernetes.io/proxy-body-size" .media.maxUploadSize }}
 {{- end }}
 {{- include "element-io.ess-library.ingress.annotations" (dict "root" $ "context" (dict "ingress" .ingress "extraAnnotations" $extraAnnotations)) | nindent 2 }}
-  test: {{- include "element-io.ess-library.inboundTrafficHandler.isEnabled" (dict "root" $ "context" (dict "component" . "trafficHandler" "ingress")) -}}
   labels:
     {{- include "element-io.synapse-ingress.labels" (dict "root" $ "context" $.Values.haproxy) | nindent 4 }}
   name: {{ $.Release.Name }}-synapse
