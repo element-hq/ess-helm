@@ -30,6 +30,7 @@ const (
 	Registration
 	RSA
 	EcdsaPrime256v1
+	X25519
 	ExpireKey
 )
 
@@ -110,6 +111,15 @@ func GenerateSecret(client kubernetes.Interface, secretLabels map[string]string,
 				existingSecret.Data[key] = keyBytes
 			} else {
 				return fmt.Errorf("failed to generate ECDSA Prime256v1 key: %w", err)
+			}
+		case X25519:
+			if len(generatorArgs) < 1 {
+				return fmt.Errorf("x25519 requires format argument: x25519:<der or base64>")
+			}
+			if keyBytes, err := generateX25519(generatorArgs[0]); err == nil {
+				existingSecret.Data[key] = keyBytes
+			} else {
+				return fmt.Errorf("failed to generate X25519 key: %w", err)
 			}
 		case ExpireKey:
 			existingSecret.Data[key], err = generateExpiredKeys(existingSecret.Data, generatedSecretsTypes)
