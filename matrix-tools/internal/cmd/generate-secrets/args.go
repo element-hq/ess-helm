@@ -36,8 +36,8 @@ func parseSecretType(value string) (secret.SecretType, error) {
 		return secret.Rand32, nil
 	case "signingkey":
 		return secret.SigningKey, nil
-	case "hex32":
-		return secret.Hex32, nil
+	case "randbytes":
+		return secret.RandBytes, nil
 	case "rsa":
 		return secret.RSA, nil
 	case "ecdsaprime256v1":
@@ -56,7 +56,7 @@ func ParseArgs(args []string) (*GenerateSecretsOptions, error) {
 	var options GenerateSecretsOptions
 
 	generateSecretsSet := flag.NewFlagSet("generate-secrets", flag.ExitOnError)
-	secrets := generateSecretsSet.String("secrets", "", "Comma-separated list of secrets to generate, in the format of `name:key:type:args if required`, where `type` is one of: rand32, signingkey, hex32, rsa:<bits>:<der or pem>, ecdsaprime256v1")
+	secrets := generateSecretsSet.String("secrets", "", "Comma-separated list of secrets to generate, in the format of `name:key:type:args if required`, where `type` is one of: rand32, signingkey, randbytes:<length>:<encoding>, rsa:<bits>:<der or pem>, ecdsaprime256v1")
 	secretsLabels := generateSecretsSet.String("labels", "", "Comma-separated list of labels for generated secrets, in the format of `key=value`")
 
 	err := generateSecretsSet.Parse(args)

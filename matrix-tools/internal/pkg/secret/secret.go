@@ -9,6 +9,7 @@ package secret
 import (
 	"context"
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"math/big"
@@ -25,7 +26,7 @@ const (
 	UnknownSecretType SecretType = iota
 	Rand32
 	SigningKey
-	Hex32
+	RandBytes
 	Registration
 	RSA
 	EcdsaPrime256v1
@@ -80,11 +81,19 @@ func GenerateSecret(client kubernetes.Interface, secretLabels map[string]string,
 			} else {
 				return fmt.Errorf("failed to generate signing key: %w", err)
 			}
-		case Hex32:
-			if hexBytes, err := generateRandomBytesHex(32); err == nil {
-				existingSecret.Data[key] = hexBytes
+		case RandBytes:
+			if len(generatorArgs) < 2 {
+				return fmt.Errorf("randbytes requires length and encoding arguments: randbytes:<length>:<encoding>")
+			}
+			length, err := strconv.Atoi(generatorArgs[0])
+			if err != nil {
+				return fmt.Errorf("failed to parse length for randbytes: %w", err)
+			}
+			encoding := generatorArgs[1]
+			if encodedBytes, err := generateRandomBytes(length, encoding); err == nil {
+				existingSecret.Data[key] = encodedBytes
 			} else {
-				return fmt.Errorf("failed to generate Hex32 : %w", err)
+				return fmt.Errorf("failed to generate randbytes: %w", err)
 			}
 		case RSA:
 			bits, err := strconv.Atoi(generatorArgs[0])
@@ -139,12 +148,20 @@ func generateRandomString(size int) ([]byte, error) {
 	return bytes, nil
 }
 
-func generateRandomBytesHex(size int) ([]byte, error) {
-	key := make([]byte, size)
+func generateRandomBytes(length int, encoding string) ([]byte, error) {
+	key := make([]byte, length)
 	if _, err := rand.Read(key); err != nil {
 		return nil, fmt.Errorf("failed to generate key : %w", err)
 	}
-	encodedKey := make([]byte, hex.EncodedLen(len(key)))
-	hex.Encode(encodedKey, key)
-	return encodedKey, nil
+
+	switch encoding {
+	case "hex":
+		encodedKey := make([]byte, hex.EncodedLen(len(key)))
+		hex.Encode(encodedKey, key)
+		return encodedKey, nil
+	case "base64":
+		return []byte(base64.RawStdEncoding.EncodeToString(key)), nil
+	default:
+		return nil, fmt.Errorf("unsupported encoding: %s. Supported encodings: hex, base64", encoding)
+	}
 }
