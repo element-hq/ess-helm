@@ -7,8 +7,11 @@ package secret
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/hex"
 	"reflect"
 	"regexp"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert/yaml"
@@ -169,6 +172,34 @@ func TestGenerateSecret(t *testing.T) {
 			expectedError:       false,
 			expectedChange:      true,
 		},
+		{
+			name:                  "Create randbytes with hex encoding",
+			namespace:             "randbytes-hex",
+			initLabels:            map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-init-secrets", "app.kubernetes.io/name": "create-secret"},
+			secretLabels:          map[string]string{"app.kubernetes.io/name": "test-secret"},
+			generatedSecretsTypes: map[string]SecretType{"key": RandBytes},
+			secretName:            "test-randbytes-hex",
+			secretKeys:            []string{"key"},
+			secretType:            RandBytes,
+			secretData:            nil,
+			secretGeneratorArgs:   []string{"32", "hex"},
+			expectedError:         false,
+			expectedChange:        true,
+		},
+		{
+			name:                  "Create randbytes with base64 encoding",
+			namespace:             "randbytes-base64",
+			initLabels:            map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-init-secrets", "app.kubernetes.io/name": "create-secret"},
+			secretLabels:          map[string]string{"app.kubernetes.io/name": "test-secret"},
+			generatedSecretsTypes: map[string]SecretType{"key": RandBytes},
+			secretName:            "test-randbytes-base64",
+			secretKeys:            []string{"key"},
+			secretType:            RandBytes,
+			secretData:            nil,
+			secretGeneratorArgs:   []string{"32", "base64"},
+			expectedError:         false,
+			expectedChange:        true,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -221,6 +252,33 @@ func TestGenerateSecret(t *testing.T) {
 						case Rand32:
 							if len(string(value)) != 32 {
 								t.Fatalf("Unexpected data in secret: %v", value)
+							}
+						case RandBytes:
+							// Decode the value and verify we get the expected number of bytes
+							if len(tc.secretGeneratorArgs) == 2 {
+								expectedLength, _ := strconv.Atoi(tc.secretGeneratorArgs[0])
+								encoding := tc.secretGeneratorArgs[1]
+
+								switch encoding {
+								case "hex":
+									decoded, err := hex.DecodeString(string(value))
+									if err != nil {
+										t.Fatalf("Failed to decode hex value: %v", err)
+									}
+									if len(decoded) != expectedLength {
+										t.Fatalf("Unexpected randbytes hex decoded length. Expected %d, got %d", expectedLength, len(decoded))
+									}
+								case "base64":
+									decoded, err := base64.RawStdEncoding.DecodeString(string(value))
+									if err != nil {
+										t.Fatalf("Failed to decode base64 value: %v", err)
+									}
+									if len(decoded) != expectedLength {
+										t.Fatalf("Unexpected randbytes base64 decoded length. Expected %d, got %d", expectedLength, len(decoded))
+									}
+								default:
+									t.Fatalf("Unexpected encoding: %s", encoding)
+								}
 							}
 						case SigningKey:
 							expectedPattern := "ed25519 1 ([a-zA-Z0-9\\/\\+]+)"
