@@ -70,7 +70,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" $
 {{- end -}}
 {{- end -}}
 {{- if not .encryptionSecret }}
-- {{ (printf "%s-generated" $root.Release.Name) }}:MAS_ENCRYPTION_SECRET:hex32
+- {{ (printf "%s-generated" $root.Release.Name) }}:MAS_ENCRYPTION_SECRET:randbytes:32:hex
 {{- end -}}
 {{- if not (.privateKeys).rsa }}
 - {{ (printf "%s-generated" $root.Release.Name) }}:MAS_RSA_PRIVATE_KEY:rsa:4096:der
