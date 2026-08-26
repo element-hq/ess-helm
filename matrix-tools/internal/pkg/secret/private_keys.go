@@ -69,9 +69,9 @@ func generateX25519(format string) ([]byte, error) {
 	case "der":
 		// Marshal the X25519 private key as PKCS#8 DER
 		return marshallKeyIntoDER(privateKey)
-	case "base64":
+	case "paddedBase64":
 		// Return base64-encoded raw 32-byte private key
-		return []byte(base64.RawStdEncoding.EncodeToString(privateKey.Bytes())), nil
+		return []byte(base64.StdEncoding.EncodeToString(privateKey.Bytes())), nil
 	default:
 		return nil, fmt.Errorf("%s key format unsupported for X25519", format)
 	}

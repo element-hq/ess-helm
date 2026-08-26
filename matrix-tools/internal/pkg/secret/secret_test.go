@@ -226,7 +226,7 @@ func TestGenerateSecret(t *testing.T) {
 			secretKeys:            []string{"key"},
 			secretType:            X25519,
 			secretData:            nil,
-			secretGeneratorArgs:   []string{"base64"},
+			secretGeneratorArgs:   []string{"paddedBase64"},
 			expectedError:         false,
 			expectedChange:        true,
 		},
@@ -366,9 +366,9 @@ func TestGenerateSecret(t *testing.T) {
 								if len(privateKeyBytes) != 32 {
 									t.Fatalf("Unexpected X25519 private key length. Expected 32 bytes, got %d", len(privateKeyBytes))
 								}
-							case "base64":
+							case "paddedBase64":
 								// Base64-encoded raw 32-byte private key
-								decoded, err := base64.RawStdEncoding.DecodeString(string(value))
+								decoded, err := base64.StdEncoding.DecodeString(string(value))
 								if err != nil {
 									t.Fatalf("Failed to decode base64 X25519 value: %v", err)
 								}
