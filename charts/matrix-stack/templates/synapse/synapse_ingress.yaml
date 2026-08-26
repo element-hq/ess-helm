@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2024 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -26,6 +26,9 @@ spec:
   - host: {{ (tpl .ingress.host $) | quote }}
     http:
       paths:
+{{- /* `only_externally` and `blocked` path are handled in the public Ingress only so that internal routing isn't impacted,
+      while `internally_and_externally` must be placed under `/_matrix` or `/_synapse` and will be handled by `synapse/haproxy-partial.cfg
+*/ -}}
 {{- range (include "element-io.synapse.ingress.additionalPaths" (dict "root" $ "context" .)) | fromYamlArray -}}
 {{- if eq .availability "only_externally" }}
       - path: {{ .path }}
