@@ -103,7 +103,8 @@ frontend synapse-http-in
 {{- end }}
   use_backend return_204_synapse if { method OPTIONS }
 
-{{- range .ingress.additionalPaths -}}
+{{- /* `internally_and_externally` must be placed under `/_matrix` or `/_synapse` to be routed properly by haproxy */}}
+{{- range (include "element-io.synapse.ingress.additionalPaths" (dict "root" $root "context" .)) | fromYamlArray -}}
 {{- if eq .availability "internally_and_externally" }}
 
 {{- $additionalPathId := printf "%s_%s" .service.name (.service.port.name | default .service.port.number) }}
@@ -263,7 +264,8 @@ backend synapse-{{ $workerType }}
 {{- end }}
 {{- end }}
 
-{{- range .ingress.additionalPaths -}}
+{{- /* `internally_and_externally` must be placed under `/_matrix` or `/_synapse` to be routed properly by haproxy */}}
+{{- range (include "element-io.synapse.ingress.additionalPaths" (dict "root" $root "context" .)) | fromYamlArray -}}
 {{- if eq .availability "internally_and_externally" }}
 {{- $additionalPathId := printf "%s_%s" .service.name (.service.port.name | default .service.port.number) }}
 backend synapse-be_{{ $additionalPathId }}
