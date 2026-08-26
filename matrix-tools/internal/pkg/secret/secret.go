@@ -159,8 +159,8 @@ func generateRandomBytes(length int, encoding string) ([]byte, error) {
 		encodedKey := make([]byte, hex.EncodedLen(len(key)))
 		hex.Encode(encodedKey, key)
 		return encodedKey, nil
-	case "base64":
-		return []byte(base64.RawStdEncoding.EncodeToString(key)), nil
+	case "paddedBase64":
+		return []byte(base64.StdEncoding.EncodeToString(key)), nil
 	default:
 		return nil, fmt.Errorf("unsupported encoding: %s. Supported encodings: hex, base64", encoding)
 	}
