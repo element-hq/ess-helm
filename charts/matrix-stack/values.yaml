@@ -3303,7 +3303,7 @@ matrixAuthenticationService:
     ephemeralStorages:
       ## temporary mas-cli copy (tmp-mas-cli)
       tmpMasCli:
-        sizeLimit: 10Mi
+        sizeLimit: 100Mi
 
     ## Runs the syn2mas process in dryRun mode.
     ## Force the authentication to happen with legacy authentication.

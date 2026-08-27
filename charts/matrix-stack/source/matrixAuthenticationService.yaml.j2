@@ -86,7 +86,7 @@ syn2mas:
   {{- sub_schema_values.tolerations() | indent(2) }}
   {{- sub_schema_values.topologySpreadConstraints() | indent(2) }}
 
-  {{- sub_schema_values.ephemeralStorages([("tmpMasCli", "temporary mas-cli copy (tmp-mas-cli)", "10Mi")]) | indent(2) }}
+  {{- sub_schema_values.ephemeralStorages([("tmpMasCli", "temporary mas-cli copy (tmp-mas-cli)", "100Mi")]) | indent(2) }}
 
   ## Runs the syn2mas process in dryRun mode.
   ## Force the authentication to happen with legacy authentication.
