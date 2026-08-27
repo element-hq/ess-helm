@@ -30,8 +30,8 @@ spec:
   podReplacementPolicy: TerminatingOrFailed
   template:
     metadata:
-      annotations:
 {{- with .annotations }}
+      annotations:
         {{- toYaml . | nindent 8 }}
 {{- end }}
       labels:
