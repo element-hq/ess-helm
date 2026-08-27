@@ -583,6 +583,7 @@ matrixRTC:
     ##   secretKey: key-in-secret
     # secret: {}
 
+  # Use 0 replicas to stop the MatrixRTC authoriser
   replicas: 1
   ## How this ingress should be constructed
   ingress:

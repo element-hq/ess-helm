@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 matrixRTC:
-  replicas: 2
   annotations:
     has-no-service-monitor: "true"
   ingress:

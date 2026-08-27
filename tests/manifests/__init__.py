@@ -566,6 +566,7 @@ all_components_details = [
     ComponentDetails(
         name="matrix-rtc",
         values_file_path=ValuesFilePath.read_write("matrixRTC"),
+        is_singleton=True,
         has_additional_config=False,
         has_service_monitor=False,
         sub_components=(
