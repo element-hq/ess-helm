@@ -125,6 +125,17 @@
     },
     "serviceMonitors": {
       "$ref": "file://common/serviceMonitors.json"
+    },
+    "ephemeralStorage": {
+      "type": "object",
+      "properties": {
+        "temp": {
+          "$ref": "file://common/ephemeralStorageEntry.json"
+        },
+        "varRun": {
+          "$ref": "file://common/ephemeralStorageEntry.json"
+        }
+      }
     }
   }
 }

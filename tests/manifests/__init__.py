@@ -77,6 +77,11 @@ class ValuesFilePath:
         assert error_msg in str(err), f"{expected_path} did not cause {error_msg} in {str(err)}"
 
 
+@dataclass(frozen=True)
+class EphemeralStorageVolume:
+    values_file_path: ValuesFilePath  # read_write path to the sizeLimit scalar
+
+
 # We introduce 4 DataClasses to store details of the deployables this chart manages
 # * ComponentDetails - details of a top-level deployable. This includes both the headline
 #   components like Synapse, Element Web, etc and components that have their own independent
@@ -145,6 +150,8 @@ class DeployableDetails(abc.ABC):
     # Use this property to add files that we know to be present in PVC/EmptyDirs
     # even if they're not being created by the chart templates
     content_volumes_mapping: dict[str, tuple[str, ...]] = field(default_factory=dict, hash=False)
+    # Maps emptyDir volume names to the values path of their sizeLimit
+    ephemeral_storage: dict[str, EphemeralStorageVolume] = field(default_factory=dict, hash=False)
 
     def __post_init__(self):
         if self.values_file_path is None:
@@ -234,6 +241,27 @@ class DeployableDetails(abc.ABC):
                     values_fragment[propertyType.value] = values_to_set
             else:
                 values_fragment = values_fragment.setdefault(helm_key, {})
+
+    def get_ephemeral_storage_size_limit(self, volume_name: str, values: dict[str, Any]) -> str | None:
+        """
+        Returns the configured sizeLimit for the given emptyDir volume name by walking
+        the registered EphemeralStorageVolume's values_file_path.read_path through the values.
+        Returns None if the volume is not registered or the value is unset.
+        """
+        ephemeral_volume = self.ephemeral_storage.get(volume_name)
+        if ephemeral_volume is None:
+            return None
+        read_path = ephemeral_volume.values_file_path.read_path
+        if read_path is None:
+            return None
+        values_fragment: Any = values
+        for helm_key in read_path:
+            if not isinstance(values_fragment, dict):
+                return None
+            values_fragment = values_fragment.get(helm_key)
+            if values_fragment is None:
+                return None
+        return values_fragment
 
     @abc.abstractmethod
     def owns_manifest_named(self, manifest_name: str) -> bool:
@@ -380,6 +408,17 @@ class ComponentDetails(DeployableDetails):
         return self
 
 
+RENDERED_CONFIG = EphemeralStorageVolume(
+    ValuesFilePath.read_write("matrixTools", "ephemeralStorage", "renderedConfig", "sizeLimit")
+)
+
+SYNAPSE_EPHEMERAL_STORAGE = {
+    "tmp": EphemeralStorageVolume(ValuesFilePath.read_write("synapse", "ephemeralStorage", "tmp", "sizeLimit")),
+    "media": EphemeralStorageVolume(ValuesFilePath.read_write("synapse", "ephemeralStorage", "media", "sizeLimit")),
+    "rendered-config": RENDERED_CONFIG,
+}
+
+
 def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> SubComponentDetails:
     values_file_path_overrides: dict[PropertyType, ValuesFilePath] = {
         PropertyType.AdditionalConfig: ValuesFilePath.read_elsewhere("synapse", "additional"),
@@ -415,6 +454,7 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
         content_volumes_mapping={
             "/media": ("media_store",),
         },
+        ephemeral_storage=SYNAPSE_EPHEMERAL_STORAGE,
     )
 
 
@@ -538,6 +578,14 @@ all_components_details = [
                 "/var/run/postgresql",
             )
         },
+        ephemeral_storage={
+            "temp": EphemeralStorageVolume(
+                ValuesFilePath.read_write("postgres", "ephemeralStorage", "temp", "sizeLimit")
+            ),
+            "var-run": EphemeralStorageVolume(
+                ValuesFilePath.read_write("postgres", "ephemeralStorage", "varRun", "sizeLimit")
+            ),
+        },
     ),
     ComponentDetails(
         name="redis",
@@ -577,6 +625,7 @@ all_components_details = [
                 has_ingress=False,
                 is_singleton=True,
                 makes_outbound_requests=False,
+                ephemeral_storage={"rendered-config": RENDERED_CONFIG},
             ),
         ),
         additional_secret_values_files=(
@@ -592,6 +641,11 @@ all_components_details = [
         has_service_monitor=False,
         makes_outbound_requests=False,
         ignore_unreferenced_mounts={"element-admin": ("/tmp",)},
+        ephemeral_storage={
+            "nginx-tmp": EphemeralStorageVolume(
+                ValuesFilePath.read_write("elementAdmin", "ephemeralStorage", "nginxTemporaryFiles", "sizeLimit")
+            ),
+        },
     ),
     ComponentDetails(
         name="element-web",
@@ -621,6 +675,11 @@ all_components_details = [
             )
         },
         content_volumes_mapping={"/tmp": ("element-web-config",)},
+        ephemeral_storage={
+            "nginx-tmp": EphemeralStorageVolume(
+                ValuesFilePath.read_write("elementWeb", "ephemeralStorage", "nginxTemporaryFiles", "sizeLimit")
+            ),
+        },
     ),
     ComponentDetails(
         name="hookshot",
@@ -633,6 +692,12 @@ all_components_details = [
             "hookshot": ("/bin/matrix-hookshot/App/BridgeApp.js",),
         },
         additional_values_files=("hookshot-encryption-enabled-values.yaml",),
+        ephemeral_storage={
+            "temp": EphemeralStorageVolume(
+                ValuesFilePath.read_write("hookshot", "ephemeralStorage", "temp", "sizeLimit")
+            ),
+            "rendered-config": RENDERED_CONFIG,
+        },
     ),
     ComponentDetails(
         name="matrix-authentication-service",
@@ -683,8 +748,17 @@ all_components_details = [
                 is_hook=True,
                 has_mount_context=False,
                 makes_outbound_requests=False,
+                ephemeral_storage={
+                    "rendered-config": RENDERED_CONFIG,
+                    "tmp-mas-cli": EphemeralStorageVolume(
+                        ValuesFilePath.read_write(
+                            "matrixAuthenticationService", "syn2mas", "ephemeralStorage", "tmpMasCli", "sizeLimit"
+                        )
+                    ),
+                },
             ),
         ),
+        ephemeral_storage={"rendered-config": RENDERED_CONFIG},
     ),
     ComponentDetails(
         name="synapse",
@@ -743,8 +817,10 @@ all_components_details = [
                 content_volumes_mapping={
                     "/media": ("media_store",),
                 },
+                ephemeral_storage=SYNAPSE_EPHEMERAL_STORAGE,
             ),
         ),
+        ephemeral_storage=SYNAPSE_EPHEMERAL_STORAGE,
     ),
     ComponentDetails(
         name="well-known",

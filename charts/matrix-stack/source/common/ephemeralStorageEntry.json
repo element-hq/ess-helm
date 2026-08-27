@@ -1,0 +1,9 @@
+{
+  "type": "object",
+  "properties": {
+    "sizeLimit": {
+      "type": "string",
+      "description": "The maximum size of the emptyDir volume, as a Kubernetes quantity string e.g. 10Mi."
+    }
+  }
+}

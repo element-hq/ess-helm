@@ -16,6 +16,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 matrixTools:
 {{ image(registry="ghcr.io", repository="element-hq/ess-helm/matrix-tools", tag="0.10.0") | indent(2) }}
 
+  ## Configures sizeLimit (maximum size) for the shared rendered-config emptyDir volume.
+  ## The rendered-config volume is used by multiple components to hold rendered YAML configuration.
+  ## sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
+  ephemeralStorage:
+    renderedConfig:
+      sizeLimit: 10Mi
+
 ## CertManager Issuer to configure by default automatically on all ingresses
 ## If configured, the chart will automatically generate the tlsSecret name for all ingresses
 certManager: {}
@@ -600,6 +607,17 @@ networking:
 ## Most settings are configurable but some settings are owned by the chart and can't overwritten
 {{ key }}: {}
 {% endmacro %}
+
+{% macro ephemeralStorage(entries) %}
+## Configures sizeLimit (maximum size) for this component's emptyDir volumes.
+## Each sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
+ephemeralStorage:
+{%- for key, description, sizeLimit in entries %}
+  ## {{ description }}
+  {{ key }}:
+    sizeLimit: {{ sizeLimit }}
+{%- endfor %}
+{%- endmacro %}
 
 {% macro extraVolumes(component, with_context=False) %}
 # Extra volumes to mount in {{ component }}, as a yaml array

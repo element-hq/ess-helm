@@ -213,6 +213,17 @@
     "startupProbe": {
       "$ref": "file://common/probe.json"
     },
+    "ephemeralStorage": {
+      "type": "object",
+      "properties": {
+        "media": {
+          "$ref": "file://common/ephemeralStorageEntry.json"
+        },
+        "tmp": {
+          "$ref": "file://common/ephemeralStorageEntry.json"
+        }
+      }
+    },
     "workers": {
       "type": "object",
       "properties": {

@@ -75,6 +75,14 @@
     },
     "startupProbe": {
       "$ref": "file://common/probe.json"
+    },
+    "ephemeralStorage": {
+      "type": "object",
+      "properties": {
+        "nginxTemporaryFiles": {
+          "$ref": "file://common/ephemeralStorageEntry.json"
+        }
+      }
     }
   }
 }

@@ -34,3 +34,4 @@ replicas: 1
 {{- sub_schema_values.probe("liveness") }}
 {{- sub_schema_values.probe("readiness") }}
 {{- sub_schema_values.probe("startup") }}
+{{- sub_schema_values.ephemeralStorage([("nginxTemporaryFiles", "nginx temporary files (nginx-tmp)", "10Mi")]) }}

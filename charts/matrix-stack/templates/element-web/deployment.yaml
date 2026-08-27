@@ -101,6 +101,9 @@ spec:
         name: nginx-config
       - emptyDir:
           medium: Memory
+          {{- with $.Values.elementWeb.ephemeralStorage.nginxTemporaryFiles.sizeLimit }}
+          sizeLimit: {{ . }}
+          {{- end }}
         name: nginx-tmp
 {{- range .extraVolumes }}
       - {{- (tpl (. | toYaml) $) | nindent 8 }}

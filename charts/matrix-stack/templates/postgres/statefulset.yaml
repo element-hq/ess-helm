@@ -198,9 +198,15 @@ spec:
       volumes:
       - emptyDir:
           medium: Memory
+          {{- with $.Values.postgres.ephemeralStorage.temp.sizeLimit }}
+          sizeLimit: {{ . }}
+          {{- end }}
         name: temp
       - emptyDir:
           medium: Memory
+          {{- with $.Values.postgres.ephemeralStorage.varRun.sizeLimit }}
+          sizeLimit: {{ . }}
+          {{- end }}
         name: var-run
 {{- if and $.Values.initSecrets.enabled (include "element-io.init-secrets.postgres-generated-secrets" (dict "root" $)) }}
       - secret:

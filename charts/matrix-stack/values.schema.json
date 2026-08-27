@@ -129,6 +129,22 @@
             }
           },
           "additionalProperties": false
+        },
+        "ephemeralStorage": {
+          "type": "object",
+          "properties": {
+            "renderedConfig": {
+              "type": "object",
+              "properties": {
+                "sizeLimit": {
+                  "type": "string",
+                  "description": "The maximum size of the emptyDir volume, as a Kubernetes quantity string e.g. 10Mi."
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -8626,6 +8642,22 @@
             }
           },
           "additionalProperties": false
+        },
+        "ephemeralStorage": {
+          "type": "object",
+          "properties": {
+            "nginxTemporaryFiles": {
+              "type": "object",
+              "properties": {
+                "sizeLimit": {
+                  "type": "string",
+                  "description": "The maximum size of the emptyDir volume, as a Kubernetes quantity string e.g. 10Mi."
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -10092,6 +10124,22 @@
                 "null"
               ],
               "minimum": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "ephemeralStorage": {
+          "type": "object",
+          "properties": {
+            "nginxTemporaryFiles": {
+              "type": "object",
+              "properties": {
+                "sizeLimit": {
+                  "type": "string",
+                  "description": "The maximum size of the emptyDir volume, as a Kubernetes quantity string e.g. 10Mi."
+                }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -13574,6 +13622,22 @@
             }
           },
           "additionalProperties": false
+        },
+        "ephemeralStorage": {
+          "type": "object",
+          "properties": {
+            "temp": {
+              "type": "object",
+              "properties": {
+                "sizeLimit": {
+                  "type": "string",
+                  "description": "The maximum size of the emptyDir volume, as a Kubernetes quantity string e.g. 10Mi."
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -15210,6 +15274,22 @@
                 "type": "object",
                 "additionalProperties": false
               }
+            },
+            "ephemeralStorage": {
+              "type": "object",
+              "properties": {
+                "tmpMasCli": {
+                  "type": "object",
+                  "properties": {
+                    "sizeLimit": {
+                      "type": "string",
+                      "description": "The maximum size of the emptyDir volume, as a Kubernetes quantity string e.g. 10Mi."
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -18940,6 +19020,32 @@
                 },
                 "additionalProperties": false
               }
+            }
+          },
+          "additionalProperties": false
+        },
+        "ephemeralStorage": {
+          "type": "object",
+          "properties": {
+            "temp": {
+              "type": "object",
+              "properties": {
+                "sizeLimit": {
+                  "type": "string",
+                  "description": "The maximum size of the emptyDir volume, as a Kubernetes quantity string e.g. 10Mi."
+                }
+              },
+              "additionalProperties": false
+            },
+            "varRun": {
+              "type": "object",
+              "properties": {
+                "sizeLimit": {
+                  "type": "string",
+                  "description": "The maximum size of the emptyDir volume, as a Kubernetes quantity string e.g. 10Mi."
+                }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -23138,6 +23244,32 @@
                 "null"
               ],
               "minimum": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "ephemeralStorage": {
+          "type": "object",
+          "properties": {
+            "media": {
+              "type": "object",
+              "properties": {
+                "sizeLimit": {
+                  "type": "string",
+                  "description": "The maximum size of the emptyDir volume, as a Kubernetes quantity string e.g. 10Mi."
+                }
+              },
+              "additionalProperties": false
+            },
+            "tmp": {
+              "type": "object",
+              "properties": {
+                "sizeLimit": {
+                  "type": "string",
+                  "description": "The maximum size of the emptyDir volume, as a Kubernetes quantity string e.g. 10Mi."
+                }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false

@@ -114,6 +114,7 @@ replicas: 1
 {{- sub_schema_values.probe("liveness", failureThreshold=8, periodSeconds=6, timeoutSeconds=12) }}
 {{- sub_schema_values.probe("readiness", failureThreshold=8, periodSeconds=2, successThreshold=2, timeoutSeconds=12) }}
 {{- sub_schema_values.probe("startup", failureThreshold=54, periodSeconds=2) }}
+{{- sub_schema_values.ephemeralStorage([("media", "media store emptyDir fallback (media)", "100Mi"), ("tmp", "temporary files (tmp)", "10Mi")]) }}
 
 ## Extra command line arguments to provide to Synapse
 extraArgs: []
