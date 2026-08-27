@@ -17,6 +17,7 @@ class PropertyType(Enum):
     ContainersSecurityContext = "containersSecurityContext"
     Enabled = "enabled"
     Env = "extraEnv"
+    EphemeralStorages = "ephemeralStorages"
     ExposedServices = "exposedServices"
     HostAliases = "hostAliases"
     Image = "image"
@@ -77,11 +78,6 @@ class ValuesFilePath:
         assert error_msg in str(err), f"{expected_path} did not cause {error_msg} in {str(err)}"
 
 
-@dataclass(frozen=True)
-class EphemeralStorageVolume:
-    values_file_path: ValuesFilePath  # read_write path to the sizeLimit scalar
-
-
 # We introduce 4 DataClasses to store details of the deployables this chart manages
 # * ComponentDetails - details of a top-level deployable. This includes both the headline
 #   components like Synapse, Element Web, etc and components that have their own independent
@@ -136,6 +132,7 @@ class DeployableDetails(abc.ABC):
     is_hook: bool = field(default=False, hash=False)
     has_mount_context: bool = field(default=None, hash=False)  # type: ignore[assignment]
     is_synapse_process: bool = field(default=False, hash=False)
+    has_ephemeral_storage: bool = field(default=False, hash=False)
 
     # Use this to skip mounts point we expect not to be referenced in commands, configs, etc
     # The format is expected to be `container_name: <list of mounts to ignore>`
@@ -151,7 +148,7 @@ class DeployableDetails(abc.ABC):
     # even if they're not being created by the chart templates
     content_volumes_mapping: dict[str, tuple[str, ...]] = field(default_factory=dict, hash=False)
     # Maps emptyDir volume names to the values path of their sizeLimit
-    ephemeral_storage: dict[str, EphemeralStorageVolume] = field(default_factory=dict, hash=False)
+    ephemeral_storages: dict[str, str] = field(default_factory=dict, hash=False)
 
     def __post_init__(self):
         if self.values_file_path is None:
@@ -241,27 +238,6 @@ class DeployableDetails(abc.ABC):
                     values_fragment[propertyType.value] = values_to_set
             else:
                 values_fragment = values_fragment.setdefault(helm_key, {})
-
-    def get_ephemeral_storage_size_limit(self, volume_name: str, values: dict[str, Any]) -> str | None:
-        """
-        Returns the configured sizeLimit for the given emptyDir volume name by walking
-        the registered EphemeralStorageVolume's values_file_path.read_path through the values.
-        Returns None if the volume is not registered or the value is unset.
-        """
-        ephemeral_volume = self.ephemeral_storage.get(volume_name)
-        if ephemeral_volume is None:
-            return None
-        read_path = ephemeral_volume.values_file_path.read_path
-        if read_path is None:
-            return None
-        values_fragment: Any = values
-        for helm_key in read_path:
-            if not isinstance(values_fragment, dict):
-                return None
-            values_fragment = values_fragment.get(helm_key)
-            if values_fragment is None:
-                return None
-        return values_fragment
 
     @abc.abstractmethod
     def owns_manifest_named(self, manifest_name: str) -> bool:
@@ -408,21 +384,11 @@ class ComponentDetails(DeployableDetails):
         return self
 
 
-RENDERED_CONFIG = EphemeralStorageVolume(
-    ValuesFilePath.read_write("matrixTools", "ephemeralStorage", "renderedConfig", "sizeLimit")
-)
-
-SYNAPSE_EPHEMERAL_STORAGE = {
-    "tmp": EphemeralStorageVolume(ValuesFilePath.read_write("synapse", "ephemeralStorage", "tmp", "sizeLimit")),
-    "media": EphemeralStorageVolume(ValuesFilePath.read_write("synapse", "ephemeralStorage", "media", "sizeLimit")),
-    "rendered-config": RENDERED_CONFIG,
-}
-
-
 def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> SubComponentDetails:
     values_file_path_overrides: dict[PropertyType, ValuesFilePath] = {
         PropertyType.AdditionalConfig: ValuesFilePath.read_elsewhere("synapse", "additional"),
         PropertyType.Env: ValuesFilePath.read_elsewhere("synapse", "extraEnv"),
+        PropertyType.EphemeralStorages: ValuesFilePath.read_elsewhere("synapse", "ephemeralStorages"),
         PropertyType.HostAliases: ValuesFilePath.read_elsewhere("synapse", "hostAliases"),
         PropertyType.Image: ValuesFilePath.read_elsewhere("synapse", "image"),
         PropertyType.InitContainers: ValuesFilePath.read_elsewhere("synapse", "extraInitContainers"),
@@ -446,6 +412,7 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
         f"synapse-{worker_name}",
         values_file_path=ValuesFilePath.read_write("synapse", "workers", worker_name),
         values_file_path_overrides=values_file_path_overrides,
+        has_ephemeral_storage=True,
         has_ingress=False,
         is_synapse_process=True,
         is_singleton=(worker_type != "scalable"),
@@ -454,7 +421,7 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
         content_volumes_mapping={
             "/media": ("media_store",),
         },
-        ephemeral_storage=SYNAPSE_EPHEMERAL_STORAGE,
+        ephemeral_storages={"tmp": "tmp", "media": "media"},
     )
 
 
@@ -551,6 +518,7 @@ all_components_details = [
         name="postgres",
         has_additional_config=False,
         has_ingress=False,
+        has_ephemeral_storage=True,
         has_storage=True,
         sidecars=(
             SidecarDetails(
@@ -578,14 +546,7 @@ all_components_details = [
                 "/var/run/postgresql",
             )
         },
-        ephemeral_storage={
-            "temp": EphemeralStorageVolume(
-                ValuesFilePath.read_write("postgres", "ephemeralStorage", "temp", "sizeLimit")
-            ),
-            "var-run": EphemeralStorageVolume(
-                ValuesFilePath.read_write("postgres", "ephemeralStorage", "varRun", "sizeLimit")
-            ),
-        },
+        ephemeral_storages={"temp": "temp", "var-run": "varRun"},
     ),
     ComponentDetails(
         name="redis",
@@ -616,6 +577,7 @@ all_components_details = [
         values_file_path=ValuesFilePath.read_write("matrixRTC"),
         is_singleton=True,
         has_additional_config=False,
+        has_ephemeral_storage=True,
         has_service_monitor=False,
         sub_components=(
             SubComponentDetails(
@@ -623,9 +585,9 @@ all_components_details = [
                 values_file_path=ValuesFilePath.read_write("matrixRTC", "sfu"),
                 has_exposed_services=True,
                 has_ingress=False,
+                has_ephemeral_storage=True,
                 is_singleton=True,
                 makes_outbound_requests=False,
-                ephemeral_storage={"rendered-config": RENDERED_CONFIG},
             ),
         ),
         additional_secret_values_files=(
@@ -639,19 +601,17 @@ all_components_details = [
         has_additional_config=False,
         has_credentials=False,
         has_service_monitor=False,
+        has_ephemeral_storage=True,
         makes_outbound_requests=False,
         ignore_unreferenced_mounts={"element-admin": ("/tmp",)},
-        ephemeral_storage={
-            "nginx-tmp": EphemeralStorageVolume(
-                ValuesFilePath.read_write("elementAdmin", "ephemeralStorage", "nginxTemporaryFiles", "sizeLimit")
-            ),
-        },
+        ephemeral_storages={"nginx-tmp": "nginxTemporaryFiles"},
     ),
     ComponentDetails(
         name="element-web",
         values_file_path=ValuesFilePath.read_write("elementWeb"),
         has_credentials=False,
         has_service_monitor=False,
+        has_ephemeral_storage=True,
         makes_outbound_requests=False,
         ignore_paths_mismatches={
             "element-web": (
@@ -675,15 +635,12 @@ all_components_details = [
             )
         },
         content_volumes_mapping={"/tmp": ("element-web-config",)},
-        ephemeral_storage={
-            "nginx-tmp": EphemeralStorageVolume(
-                ValuesFilePath.read_write("elementWeb", "ephemeralStorage", "nginxTemporaryFiles", "sizeLimit")
-            ),
-        },
+        ephemeral_storages={"nginx-tmp": "nginxTemporaryFiles"},
     ),
     ComponentDetails(
         name="hookshot",
         has_storage=True,
+        has_ephemeral_storage=True,
         values_file_path_overrides={
             PropertyType.Storage: ValuesFilePath.read_write("hookshot", "storage"),
         },
@@ -692,17 +649,13 @@ all_components_details = [
             "hookshot": ("/bin/matrix-hookshot/App/BridgeApp.js",),
         },
         additional_values_files=("hookshot-encryption-enabled-values.yaml",),
-        ephemeral_storage={
-            "temp": EphemeralStorageVolume(
-                ValuesFilePath.read_write("hookshot", "ephemeralStorage", "temp", "sizeLimit")
-            ),
-            "rendered-config": RENDERED_CONFIG,
-        },
+        ephemeral_storages={"temp": "temp"},
     ),
     ComponentDetails(
         name="matrix-authentication-service",
         values_file_path=ValuesFilePath.read_write("matrixAuthenticationService"),
         has_db=True,
+        has_ephemeral_storage=True,
         sub_components=(
             SubComponentDetails(
                 name="syn2mas",
@@ -745,20 +698,13 @@ all_components_details = [
                 has_ingress=False,
                 has_automount_service_account_token=True,
                 has_service_monitor=False,
+                has_ephemeral_storage=True,
                 is_hook=True,
                 has_mount_context=False,
                 makes_outbound_requests=False,
-                ephemeral_storage={
-                    "rendered-config": RENDERED_CONFIG,
-                    "tmp-mas-cli": EphemeralStorageVolume(
-                        ValuesFilePath.read_write(
-                            "matrixAuthenticationService", "syn2mas", "ephemeralStorage", "tmpMasCli", "sizeLimit"
-                        )
-                    ),
-                },
+                ephemeral_storages={"tmp-mas-cli": "tmpMasCli"},
             ),
         ),
-        ephemeral_storage={"rendered-config": RENDERED_CONFIG},
     ),
     ComponentDetails(
         name="synapse",
@@ -766,6 +712,7 @@ all_components_details = [
             PropertyType.Storage: ValuesFilePath.read_write("synapse", "media", "storage"),
         },
         has_db=True,
+        has_ephemeral_storage=True,
         has_storage=True,
         is_synapse_process=True,
         additional_values_files=("synapse-worker-example-values.yaml",),
@@ -783,6 +730,7 @@ all_components_details = [
                 values_file_path_overrides={
                     PropertyType.AdditionalConfig: ValuesFilePath.read_elsewhere("synapse", "additional"),
                     PropertyType.Env: ValuesFilePath.read_elsewhere("synapse", "extraEnv"),
+                    PropertyType.EphemeralStorages: ValuesFilePath.read_elsewhere("synapse", "ephemeralStorages"),
                     PropertyType.Image: ValuesFilePath.read_elsewhere("synapse", "image"),
                     PropertyType.InitContainers: ValuesFilePath.read_elsewhere("synapse", "extraInitContainers"),
                     # Job so no livenessProbe
@@ -809,6 +757,7 @@ all_components_details = [
                     PropertyType.VolumeMounts: ValuesFilePath.read_elsewhere("synapse", "extraVolumeMounts"),
                     PropertyType.Replicas: ValuesFilePath.not_supported(),
                 },
+                has_ephemeral_storage=True,
                 has_ingress=False,
                 has_service_monitor=False,
                 is_hook=True,
@@ -817,10 +766,10 @@ all_components_details = [
                 content_volumes_mapping={
                     "/media": ("media_store",),
                 },
-                ephemeral_storage=SYNAPSE_EPHEMERAL_STORAGE,
+                ephemeral_storages={"tmp": "tmp", "media": "media"},
             ),
         ),
-        ephemeral_storage=SYNAPSE_EPHEMERAL_STORAGE,
+        ephemeral_storages={"tmp": "tmp", "media": "media"},
     ),
     ComponentDetails(
         name="well-known",
@@ -828,6 +777,7 @@ all_components_details = [
         values_file_path_overrides={
             PropertyType.Replicas: ValuesFilePath.not_supported(),
         },
+        has_ephemeral_storage=True,
         has_additional_config=True,
         has_credentials=False,
         has_workloads=False,
