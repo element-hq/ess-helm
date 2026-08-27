@@ -500,10 +500,15 @@ networking:
   requests:
     memory: {{ requests_memory }}
     cpu: {{ requests_cpu }}
+    ## No ephemeral-storage requests by default
+    # ephemeral-storage:
 
   ## Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
   limits:
     memory: {{ limits_memory }}
+    ## No CPU or ephemeral-storage limits by default
+    # cpu:
+    # ephemeral-storage:
 {%- endmacro %}
 
 {% macro serviceAccount(key='serviceAccount') %}
