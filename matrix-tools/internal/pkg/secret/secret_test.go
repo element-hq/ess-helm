@@ -7,6 +7,8 @@ package secret
 
 import (
 	"context"
+	"crypto/ecdh"
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/hex"
 	"reflect"
@@ -200,6 +202,34 @@ func TestGenerateSecret(t *testing.T) {
 			expectedError:         false,
 			expectedChange:        true,
 		},
+		{
+			name:                  "Create X25519 key with der format",
+			namespace:             "x25519-der",
+			initLabels:            map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-init-secrets", "app.kubernetes.io/name": "create-secret"},
+			secretLabels:          map[string]string{"app.kubernetes.io/name": "test-secret"},
+			generatedSecretsTypes: map[string]SecretType{"key": X25519},
+			secretName:            "test-x25519-der",
+			secretKeys:            []string{"key"},
+			secretType:            X25519,
+			secretData:            nil,
+			secretGeneratorArgs:   []string{"der"},
+			expectedError:         false,
+			expectedChange:        true,
+		},
+		{
+			name:                  "Create X25519 key with base64 format",
+			namespace:             "x25519-base64",
+			initLabels:            map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-init-secrets", "app.kubernetes.io/name": "create-secret"},
+			secretLabels:          map[string]string{"app.kubernetes.io/name": "test-secret"},
+			generatedSecretsTypes: map[string]SecretType{"key": X25519},
+			secretName:            "test-x25519-base64",
+			secretKeys:            []string{"key"},
+			secretType:            X25519,
+			secretData:            nil,
+			secretGeneratorArgs:   []string{"paddedBase64"},
+			expectedError:         false,
+			expectedChange:        true,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -314,6 +344,40 @@ func TestGenerateSecret(t *testing.T) {
 							}
 							if len(data["hs_token"].(string)) != 32 {
 								t.Fatalf("Unexpected data,  as_token should be a random 32 bytes string, found %v", data)
+							}
+						case X25519:
+							if len(tc.secretGeneratorArgs) < 1 {
+								t.Fatalf("X25519 requires format argument")
+							}
+							format := tc.secretGeneratorArgs[0]
+							switch format {
+							case "der":
+								// Decode the PKCS#8 DER-encoded key and verify it contains 32 bytes of private key material
+								key, err := x509.ParsePKCS8PrivateKey(value)
+								if err != nil {
+									t.Fatalf("Failed to parse X25519 DER key as PKCS#8: %v", err)
+								}
+								// Type assert to ecdh.PrivateKey and verify the private key bytes are 32 bytes
+								ecdhKey, ok := key.(*ecdh.PrivateKey)
+								if !ok {
+									t.Fatalf("Parsed key is not an ecdh.PrivateKey, got type %T", key)
+								}
+								privateKeyBytes := ecdhKey.Bytes()
+								if len(privateKeyBytes) != 32 {
+									t.Fatalf("Unexpected X25519 private key length. Expected 32 bytes, got %d", len(privateKeyBytes))
+								}
+							case "paddedBase64":
+								// Base64-encoded raw 32-byte private key
+								decoded, err := base64.StdEncoding.DecodeString(string(value))
+								if err != nil {
+									t.Fatalf("Failed to decode base64 X25519 value: %v", err)
+								}
+								// X25519 private key should be 32 bytes
+								if len(decoded) != 32 {
+									t.Fatalf("Unexpected X25519 base64 decoded length. Expected 32 bytes, got %d", len(decoded))
+								}
+							default:
+								t.Fatalf("Unexpected X25519 format: %s", format)
 							}
 						}
 					}

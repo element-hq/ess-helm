@@ -6,11 +6,13 @@
 package secret
 
 import (
+	"crypto/ecdh"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/pem"
 	"fmt"
 )
@@ -53,4 +55,24 @@ func generateEcdsaPrime256v1DER() ([]byte, error) {
 		return nil, err
 	}
 	return marshallKeyIntoDER(ecdsaPrivateKey)
+}
+
+func generateX25519(format string) ([]byte, error) {
+	// X25519 private key is 32 bytes
+	curve := ecdh.X25519()
+	privateKey, err := curve.GenerateKey(rand.Reader)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate X25519 private key: %w", err)
+	}
+
+	switch format {
+	case "der":
+		// Marshal the X25519 private key as PKCS#8 DER
+		return marshallKeyIntoDER(privateKey)
+	case "paddedBase64":
+		// Return base64-encoded raw 32-byte private key
+		return []byte(base64.StdEncoding.EncodeToString(privateKey.Bytes())), nil
+	default:
+		return nil, fmt.Errorf("%s key format unsupported for X25519", format)
+	}
 }
