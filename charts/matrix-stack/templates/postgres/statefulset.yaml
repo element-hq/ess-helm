@@ -198,13 +198,13 @@ spec:
       volumes:
       - emptyDir:
           medium: Memory
-          {{- with $.Values.postgres.ephemeralStorage.temp.sizeLimit }}
+          {{- with $.Values.postgres.ephemeralStorages.temp.sizeLimit }}
           sizeLimit: {{ . }}
           {{- end }}
         name: temp
       - emptyDir:
           medium: Memory
-          {{- with $.Values.postgres.ephemeralStorage.varRun.sizeLimit }}
+          {{- with $.Values.postgres.ephemeralStorages.varRun.sizeLimit }}
           sizeLimit: {{ . }}
           {{- end }}
         name: var-run

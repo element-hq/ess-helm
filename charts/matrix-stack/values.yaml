@@ -37,12 +37,12 @@ matrixTools:
     ## - name: dockerhub
     pullSecrets: []
 
-  ## Configures sizeLimit (maximum size) for the shared rendered-config emptyDir volume.
-  ## The rendered-config volume is used by multiple components to hold rendered YAML configuration.
-  ## sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
-  ephemeralStorage:
+  ## Configures sizeLimit (maximum size) for this component's emptyDir volumes.
+  ## Each sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
+  ephemeralStorages:
+    ## rendered-config emptyDir used in all components to render configuration
     renderedConfig:
-      sizeLimit: 10Mi
+      sizeLimit: 1Mi
 
 ## CertManager Issuer to configure by default automatically on all ingresses
 ## If configured, the chart will automatically generate the tlsSecret name for all ingresses
@@ -1613,7 +1613,7 @@ elementAdmin:
     timeoutSeconds: 1
   ## Configures sizeLimit (maximum size) for this component's emptyDir volumes.
   ## Each sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
-  ephemeralStorage:
+  ephemeralStorages:
     ## nginx temporary files (nginx-tmp)
     nginxTemporaryFiles:
       sizeLimit: 10Mi
@@ -1912,7 +1912,7 @@ elementWeb:
     timeoutSeconds: 1
   ## Configures sizeLimit (maximum size) for this component's emptyDir volumes.
   ## Each sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
-  ephemeralStorage:
+  ephemeralStorages:
     ## nginx temporary files (nginx-tmp)
     nginxTemporaryFiles:
       sizeLimit: 10Mi
@@ -2624,7 +2624,7 @@ hookshot:
 
   ## Configures sizeLimit (maximum size) for this component's emptyDir volumes.
   ## Each sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
-  ephemeralStorage:
+  ephemeralStorages:
     ## temporary files (temp)
     temp:
       sizeLimit: 10Mi
@@ -3300,7 +3300,7 @@ matrixAuthenticationService:
     topologySpreadConstraints: []
     ## Configures sizeLimit (maximum size) for this component's emptyDir volumes.
     ## Each sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
-    ephemeralStorage:
+    ephemeralStorages:
       ## temporary mas-cli copy (tmp-mas-cli)
       tmpMasCli:
         sizeLimit: 10Mi
@@ -3770,7 +3770,7 @@ postgres:
     timeoutSeconds: 1
   ## Configures sizeLimit (maximum size) for this component's emptyDir volumes.
   ## Each sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
-  ephemeralStorage:
+  ephemeralStorages:
     ## temporary files (temp)
     temp:
       sizeLimit: 10Mi
@@ -5927,6 +5927,15 @@ synapse:
       ## No CPU or ephemeral-storage limits by default
       # cpu:
       # ephemeral-storage:
+  ## Configures sizeLimit (maximum size) for this component's emptyDir volumes.
+  ## Each sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
+  ephemeralStorages:
+    ## media store emptyDir fallback (media)
+    media:
+      sizeLimit: 100Mi
+    ## temporary files (tmp)
+    tmp:
+      sizeLimit: 10Mi
   ## Controls configuration of the ServiceAccount for this component
   serviceAccount:
     ## Whether a ServiceAccount should be created by the chart or not
@@ -6026,15 +6035,6 @@ synapse:
 
     ## Number of seconds after which the probe times out
     timeoutSeconds: 1
-  ## Configures sizeLimit (maximum size) for this component's emptyDir volumes.
-  ## Each sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
-  ephemeralStorage:
-    ## media store emptyDir fallback (media)
-    media:
-      sizeLimit: 100Mi
-    ## temporary files (tmp)
-    tmp:
-      sizeLimit: 10Mi
 
   ## Extra command line arguments to provide to Synapse
   extraArgs: []

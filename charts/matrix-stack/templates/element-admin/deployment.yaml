@@ -73,7 +73,7 @@ spec:
       volumes:
       - emptyDir:
           medium: Memory
-          {{- with $.Values.elementAdmin.ephemeralStorage.nginxTemporaryFiles.sizeLimit }}
+          {{- with $.Values.elementAdmin.ephemeralStorages.nginxTemporaryFiles.sizeLimit }}
           sizeLimit: {{ . }}
           {{- end }}
         name: nginx-tmp

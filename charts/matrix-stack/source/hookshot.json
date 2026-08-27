@@ -128,11 +128,11 @@
     "startupProbe": {
       "$ref": "file://common/probe.json"
     },
-    "ephemeralStorage": {
+    "ephemeralStorages": {
       "type": "object",
       "properties": {
         "temp": {
-          "$ref": "file://common/ephemeralStorageEntry.json"
+          "$ref": "file://common/ephemeralStorage.json"
         }
       }
     }

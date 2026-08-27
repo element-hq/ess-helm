@@ -107,11 +107,11 @@
         "topologySpreadConstraints": {
           "$ref": "file://common/topologySpreadConstraints.json"
         },
-        "ephemeralStorage": {
+        "ephemeralStorages": {
           "type": "object",
           "properties": {
             "tmpMasCli": {
-              "$ref": "file://common/ephemeralStorageEntry.json"
+              "$ref": "file://common/ephemeralStorage.json"
             }
           }
         }

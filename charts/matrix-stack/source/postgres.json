@@ -126,14 +126,14 @@
     "serviceMonitors": {
       "$ref": "file://common/serviceMonitors.json"
     },
-    "ephemeralStorage": {
+    "ephemeralStorages": {
       "type": "object",
       "properties": {
         "temp": {
-          "$ref": "file://common/ephemeralStorageEntry.json"
+          "$ref": "file://common/ephemeralStorage.json"
         },
         "varRun": {
-          "$ref": "file://common/ephemeralStorageEntry.json"
+          "$ref": "file://common/ephemeralStorage.json"
         }
       }
     }

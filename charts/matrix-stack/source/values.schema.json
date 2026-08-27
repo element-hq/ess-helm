@@ -50,11 +50,11 @@
         "image": {
           "$ref": "file://common/image.json"
         },
-        "ephemeralStorage": {
+        "ephemeralStorages": {
           "type": "object",
           "properties": {
             "renderedConfig": {
-              "$ref": "file://common/ephemeralStorageEntry.json"
+              "$ref": "file://common/ephemeralStorage.json"
             }
           }
         }
