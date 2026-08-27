@@ -339,10 +339,15 @@ initSecrets:
     requests:
       memory: 50Mi
       cpu: 50m
+      ## No ephemeral-storage requests by default
+      # ephemeral-storage:
 
     ## Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
     limits:
       memory: 200Mi
+      ## No CPU or ephemeral-storage limits by default
+      # cpu:
+      # ephemeral-storage:
   ## Controls configuration of the ServiceAccount for this component
   serviceAccount:
     ## Whether a ServiceAccount should be created by the chart or not
@@ -515,10 +520,15 @@ deploymentMarkers:
     requests:
       memory: 50Mi
       cpu: 50m
+      ## No ephemeral-storage requests by default
+      # ephemeral-storage:
 
     ## Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
     limits:
       memory: 200Mi
+      ## No CPU or ephemeral-storage limits by default
+      # cpu:
+      # ephemeral-storage:
   ## Controls configuration of the ServiceAccount for this component
   serviceAccount:
     ## Whether a ServiceAccount should be created by the chart or not
@@ -779,10 +789,15 @@ matrixRTC:
     requests:
       memory: 50Mi
       cpu: 50m
+      ## No ephemeral-storage requests by default
+      # ephemeral-storage:
 
     ## Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
     limits:
       memory: 200Mi
+      ## No CPU or ephemeral-storage limits by default
+      # cpu:
+      # ephemeral-storage:
   ## Whether to deploy ServiceMonitors into the cluster for this component
   ## Requires the ServiceMonitor CRDs to be in the cluster
   serviceMonitors:
@@ -1195,10 +1210,15 @@ matrixRTC:
       requests:
         memory: 150Mi
         cpu: 100m
+        ## No ephemeral-storage requests by default
+        # ephemeral-storage:
 
       ## Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
       limits:
         memory: 4Gi
+        ## No CPU or ephemeral-storage limits by default
+        # cpu:
+        # ephemeral-storage:
     ## Controls configuration of the ServiceAccount for this component
     serviceAccount:
       ## Whether a ServiceAccount should be created by the chart or not
@@ -1487,10 +1507,15 @@ elementAdmin:
     requests:
       memory: 50Mi
       cpu: 50m
+      ## No ephemeral-storage requests by default
+      # ephemeral-storage:
 
     ## Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
     limits:
       memory: 200Mi
+      ## No CPU or ephemeral-storage limits by default
+      # cpu:
+      # ephemeral-storage:
   ## Controls configuration of the ServiceAccount for this component
   serviceAccount:
     ## Whether a ServiceAccount should be created by the chart or not
@@ -1775,10 +1800,15 @@ elementWeb:
     requests:
       memory: 50Mi
       cpu: 50m
+      ## No ephemeral-storage requests by default
+      # ephemeral-storage:
 
     ## Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
     limits:
       memory: 200Mi
+      ## No CPU or ephemeral-storage limits by default
+      # cpu:
+      # ephemeral-storage:
   ## Controls configuration of the ServiceAccount for this component
   serviceAccount:
     ## Whether a ServiceAccount should be created by the chart or not
@@ -2022,10 +2052,15 @@ haproxy:
     requests:
       memory: 100Mi
       cpu: 100m
+      ## No ephemeral-storage requests by default
+      # ephemeral-storage:
 
     ## Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
     limits:
       memory: 200Mi
+      ## No CPU or ephemeral-storage limits by default
+      # cpu:
+      # ephemeral-storage:
   ## Controls configuration of the ServiceAccount for this component
   serviceAccount:
     ## Whether a ServiceAccount should be created by the chart or not
@@ -2308,10 +2343,15 @@ hookshot:
     requests:
       memory: 100Mi
       cpu: 10m
+      ## No ephemeral-storage requests by default
+      # ephemeral-storage:
 
     ## Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
     limits:
       memory: 1000Mi
+      ## No CPU or ephemeral-storage limits by default
+      # cpu:
+      # ephemeral-storage:
 
   # Extra volumes to mount in Hookshot, as a yaml array
   # This supports helm templating
@@ -2754,10 +2794,15 @@ matrixAuthenticationService:
     requests:
       memory: 50Mi
       cpu: 50m
+      ## No ephemeral-storage requests by default
+      # ephemeral-storage:
 
     ## Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
     limits:
       memory: 350Mi
+      ## No CPU or ephemeral-storage limits by default
+      # cpu:
+      # ephemeral-storage:
 
   ## Labels to add to all manifest for this component
   labels: {}
@@ -3162,10 +3207,15 @@ matrixAuthenticationService:
       requests:
         memory: 50Mi
         cpu: 50m
+        ## No ephemeral-storage requests by default
+        # ephemeral-storage:
 
       ## Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
       limits:
         memory: 350Mi
+        ## No CPU or ephemeral-storage limits by default
+        # cpu:
+        # ephemeral-storage:
     ## Controls configuration of the ServiceAccount for this component
     serviceAccount:
       ## Whether a ServiceAccount should be created by the chart or not
@@ -3264,10 +3314,15 @@ postgres:
       requests:
         memory: 10Mi
         cpu: 10m
+        ## No ephemeral-storage requests by default
+        # ephemeral-storage:
 
       ## Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
       limits:
         memory: 500Mi
+        ## No CPU or ephemeral-storage limits by default
+        # cpu:
+        # ephemeral-storage:
     # Extra volumes to mount in PostgresExporter, as a yaml array
     extraVolumeMounts: []
 
@@ -3572,10 +3627,15 @@ postgres:
     requests:
       memory: 100Mi
       cpu: 100m
+      ## No ephemeral-storage requests by default
+      # ephemeral-storage:
 
     ## Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
     limits:
       memory: 4Gi
+      ## No CPU or ephemeral-storage limits by default
+      # cpu:
+      # ephemeral-storage:
   ## Controls configuration of the ServiceAccount for this component
   serviceAccount:
     ## Whether a ServiceAccount should be created by the chart or not
@@ -3837,10 +3897,15 @@ redis:
     requests:
       memory: 50Mi
       cpu: 50m
+      ## No ephemeral-storage requests by default
+      # ephemeral-storage:
 
     ## Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
     limits:
       memory: 50Mi
+      ## No CPU or ephemeral-storage limits by default
+      # cpu:
+      # ephemeral-storage:
   ## Controls configuration of the ServiceAccount for this component
   serviceAccount:
     ## Whether a ServiceAccount should be created by the chart or not
@@ -3974,10 +4039,15 @@ redis:
       requests:
         memory: 10Mi
         cpu: 10m
+        ## No ephemeral-storage requests by default
+        # ephemeral-storage:
 
       ## Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
       limits:
         memory: 50Mi
+        ## No CPU or ephemeral-storage limits by default
+        # cpu:
+        # ephemeral-storage:
     # Extra volumes to mount in Redis Exporter, as a yaml array
     extraVolumeMounts: []
 
@@ -4090,10 +4160,15 @@ synapse:
       requests:
         memory: 50Mi
         cpu: 50m
+        ## No ephemeral-storage requests by default
+        # ephemeral-storage:
 
       ## Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
       limits:
         memory: 200Mi
+        ## No CPU or ephemeral-storage limits by default
+        # cpu:
+        # ephemeral-storage:
   ## Details of the external Postgres Database to use
   ## Does not need to be set if postgres.enabled=True
   # postgres:
@@ -5801,10 +5876,15 @@ synapse:
     requests:
       memory: 100Mi
       cpu: 100m
+      ## No ephemeral-storage requests by default
+      # ephemeral-storage:
 
     ## Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
     limits:
       memory: 4Gi
+      ## No CPU or ephemeral-storage limits by default
+      # cpu:
+      # ephemeral-storage:
   ## Controls configuration of the ServiceAccount for this component
   serviceAccount:
     ## Whether a ServiceAccount should be created by the chart or not
