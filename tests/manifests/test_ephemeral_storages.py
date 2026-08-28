@@ -112,7 +112,7 @@ async def test_ephemeral_storage_passed_through(values, base_values, make_templa
 
 
 def _non_default_medium(default_medium: str) -> str:
-    # "Memory" -> "" (omit from manifest); "" -> "Memory"
+    # "Memory" -> "" ; "" -> "Memory"
     return "" if default_medium == "Memory" else "Memory"
 
 
@@ -130,8 +130,8 @@ async def test_ephemeral_storage_medium_configurable(values, base_values, make_t
         "medium"
     ] = rendered_config_non_default
 
-    # Configure each component-specific ephemeral storage's medium via set_helm_values.
-    def set_ephemeral_storage_medium(deployable_details: DeployableDetails):
+    # Configure each component-specific ephemeral storage to non default medium value
+    def set_ephemeral_storage_with_non_default_medium(deployable_details: DeployableDetails):
         ephemeral_storages = deployable_details.get_helm_values(base_values, PropertyType.EphemeralStorages)
         assert ephemeral_storages is not None, (
             f"{deployable_details.name}: compement has `has_ephemeral_storage` but no EphemeralStorages values"
@@ -147,7 +147,8 @@ async def test_ephemeral_storage_medium_configurable(values, base_values, make_t
             deployable_details.set_helm_values(values, PropertyType.EphemeralStorages, values_to_set)
 
     iterate_deployables_parts(
-        set_ephemeral_storage_medium, lambda deployable_details: deployable_details.has_ephemeral_storage
+        set_ephemeral_storage_with_non_default_medium,
+        lambda deployable_details: deployable_details.has_ephemeral_storage,
     )
 
     templates = await make_templates(values)
