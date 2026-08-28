@@ -1,5 +1,5 @@
 # Copyright 2024-2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -26,10 +26,14 @@ async def get_client_token(mas_fqdn: str, generated_data: ESSData, ssl_context: 
         RetryClient(session, retry_options=retry_options, raise_for_status=True) as retry,
         retry.post(
             url.replace(host, "127.0.0.1"),
-            headers={"Host": host},
+            headers={
+                "Host": host,
+                "Authorization": aiohttp.encode_basic_auth(
+                    "000000000000000PYTESTADM1N", generated_data.mas_oidc_client_secret
+                ),
+            },
             server_hostname=host,
             data=client_credentials_data,
-            auth=aiohttp.BasicAuth("000000000000000PYTESTADM1N", generated_data.mas_oidc_client_secret),
         ) as response,
     ):
         return (await response.json())["access_token"]
