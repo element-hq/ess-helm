@@ -64,6 +64,8 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- $root := .root -}}
 {{- with required "element-io.matrix-rtc-authorisation-service.overrideEnv missing context" .context -}}
 env:
+- name: "LIVEKIT_REDIS_URL"
+  value: "redis://{{ $root.Release.Name }}-redis.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:6379/2"
 - name: "LIVEKIT_KEY"
   value: {{ .livekitAuth.key }}
 - name: "LIVEKIT_SECRET_FROM_FILE"
