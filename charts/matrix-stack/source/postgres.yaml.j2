@@ -48,3 +48,4 @@ essPasswords: {}
 {{- sub_schema_values.probe("liveness", timeoutSeconds=2) }}
 {{- sub_schema_values.probe("readiness", timeoutSeconds=2) }}
 {{- sub_schema_values.probe("startup", failureThreshold=8) }}
+{{- sub_schema_values.ephemeralStorages([("tmp", "temporary files (/tmp)", "10Mi"), ("varRun", "postgresql runtime directory (/var/run)", "1Mi")]) }}

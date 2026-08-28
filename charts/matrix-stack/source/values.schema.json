@@ -49,6 +49,14 @@
       "properties": {
         "image": {
           "$ref": "file://common/image.json"
+        },
+        "ephemeralStorages": {
+          "type": "object",
+          "properties": {
+            "renderedConfig": {
+              "$ref": "file://common/ephemeralStorage.json"
+            }
+          }
         }
       }
     },

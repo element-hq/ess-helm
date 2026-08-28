@@ -127,6 +127,14 @@
     },
     "startupProbe": {
       "$ref": "file://common/probe.json"
+    },
+    "ephemeralStorages": {
+      "type": "object",
+      "properties": {
+        "tmp": {
+          "$ref": "file://common/ephemeralStorage.json"
+        }
+      }
     }
   }
 }

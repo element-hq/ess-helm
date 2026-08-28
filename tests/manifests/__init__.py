@@ -17,6 +17,7 @@ class PropertyType(Enum):
     ContainersSecurityContext = "containersSecurityContext"
     Enabled = "enabled"
     Env = "extraEnv"
+    EphemeralStorages = "ephemeralStorages"
     ExposedServices = "exposedServices"
     HostAliases = "hostAliases"
     Image = "image"
@@ -131,6 +132,7 @@ class DeployableDetails(abc.ABC):
     is_hook: bool = field(default=False, hash=False)
     has_mount_context: bool = field(default=None, hash=False)  # type: ignore[assignment]
     is_synapse_process: bool = field(default=False, hash=False)
+    has_ephemeral_storage: bool = field(default=True, hash=False)
 
     # Use this to skip mounts point we expect not to be referenced in commands, configs, etc
     # The format is expected to be `container_name: <list of mounts to ignore>`
@@ -145,6 +147,8 @@ class DeployableDetails(abc.ABC):
     # Use this property to add files that we know to be present in PVC/EmptyDirs
     # even if they're not being created by the chart templates
     content_volumes_mapping: dict[str, tuple[str, ...]] = field(default_factory=dict, hash=False)
+    # Maps emptyDir volume names to the values path of their sizeLimit
+    ephemeral_storages: dict[str, str] = field(default_factory=dict, hash=False)
 
     def __post_init__(self):
         if self.values_file_path is None:
@@ -281,6 +285,8 @@ class SidecarDetails(DeployableDetails):
             self.parent.makes_outbound_requests = True
             # As we won't have the properties ourselves
             self.makes_outbound_requests = False
+        # The sidecar volumes depends on the parent volumes
+        self.has_ephemeral_storage = parent.has_ephemeral_storage
 
     def owns_manifest_named(self, manifest_name: str) -> bool:
         # Sidecars shouldn't own anything that their parent could possibly own
@@ -384,6 +390,7 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
     values_file_path_overrides: dict[PropertyType, ValuesFilePath] = {
         PropertyType.AdditionalConfig: ValuesFilePath.read_elsewhere("synapse", "additional"),
         PropertyType.Env: ValuesFilePath.read_elsewhere("synapse", "extraEnv"),
+        PropertyType.EphemeralStorages: ValuesFilePath.read_elsewhere("synapse", "ephemeralStorages"),
         PropertyType.HostAliases: ValuesFilePath.read_elsewhere("synapse", "hostAliases"),
         PropertyType.Image: ValuesFilePath.read_elsewhere("synapse", "image"),
         PropertyType.InitContainers: ValuesFilePath.read_elsewhere("synapse", "extraInitContainers"),
@@ -410,11 +417,11 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
         has_ingress=False,
         is_synapse_process=True,
         is_singleton=(worker_type != "scalable"),
-        ignore_unreferenced_mounts={"synapse": ("/tmp",)},
         has_mount_context=True,
         content_volumes_mapping={
             "/media": ("media_store",),
         },
+        ephemeral_storages={"media": "media"},
     )
 
 
@@ -463,6 +470,7 @@ all_components_details = [
         },
         has_additional_config=False,
         has_credentials=False,
+        has_ephemeral_storage=False,
         has_image=False,
         has_ingress=False,
         has_automount_service_account_token=True,
@@ -486,6 +494,7 @@ all_components_details = [
             PropertyType.Replicas: ValuesFilePath.not_supported(),
         },
         has_additional_config=False,
+        has_ephemeral_storage=False,
         has_image=False,
         has_ingress=False,
         has_automount_service_account_token=True,
@@ -501,6 +510,7 @@ all_components_details = [
         has_credentials=False,
         has_ingress=False,
         is_shared_component=True,
+        has_ephemeral_storage=False,
         makes_outbound_requests=False,
         ignore_unreferenced_mounts={
             "haproxy": ("/usr/local/etc/haproxy/placeholder",),
@@ -538,6 +548,7 @@ all_components_details = [
                 "/var/run/postgresql",
             )
         },
+        ephemeral_storages={"tmp": "tmp", "var-run": "varRun"},
     ),
     ComponentDetails(
         name="redis",
@@ -547,6 +558,7 @@ all_components_details = [
         has_ingress=False,
         is_singleton=True,
         makes_outbound_requests=False,
+        has_ephemeral_storage=False,
         sidecars=(
             SidecarDetails(
                 name="redis-exporter",
@@ -568,6 +580,7 @@ all_components_details = [
         values_file_path=ValuesFilePath.read_write("matrixRTC"),
         is_singleton=True,
         has_additional_config=False,
+        has_ephemeral_storage=False,
         has_service_monitor=False,
         sub_components=(
             SubComponentDetails(
@@ -592,6 +605,7 @@ all_components_details = [
         has_service_monitor=False,
         makes_outbound_requests=False,
         ignore_unreferenced_mounts={"element-admin": ("/tmp",)},
+        ephemeral_storages={"tmp": "tmp"},
     ),
     ComponentDetails(
         name="element-web",
@@ -621,6 +635,7 @@ all_components_details = [
             )
         },
         content_volumes_mapping={"/tmp": ("element-web-config",)},
+        ephemeral_storages={"tmp": "tmp"},
     ),
     ComponentDetails(
         name="hookshot",
@@ -633,6 +648,7 @@ all_components_details = [
             "hookshot": ("/bin/matrix-hookshot/App/BridgeApp.js",),
         },
         additional_values_files=("hookshot-encryption-enabled-values.yaml",),
+        ephemeral_storages={"tmp": "tmp"},
     ),
     ComponentDetails(
         name="matrix-authentication-service",
@@ -683,6 +699,7 @@ all_components_details = [
                 is_hook=True,
                 has_mount_context=False,
                 makes_outbound_requests=False,
+                ephemeral_storages={"tmp-mas-cli": "tmpMasCli"},
             ),
         ),
     ),
@@ -696,7 +713,6 @@ all_components_details = [
         is_synapse_process=True,
         additional_values_files=("synapse-worker-example-values.yaml",),
         skip_path_consistency_for_files=("path_map_file", "path_map_file_get"),
-        ignore_unreferenced_mounts={"synapse": ("/tmp",)},
         has_mount_context=True,
         content_volumes_mapping={
             "/media": ("media_store",),
@@ -709,6 +725,7 @@ all_components_details = [
                 values_file_path_overrides={
                     PropertyType.AdditionalConfig: ValuesFilePath.read_elsewhere("synapse", "additional"),
                     PropertyType.Env: ValuesFilePath.read_elsewhere("synapse", "extraEnv"),
+                    PropertyType.EphemeralStorages: ValuesFilePath.read_elsewhere("synapse", "ephemeralStorages"),
                     PropertyType.Image: ValuesFilePath.read_elsewhere("synapse", "image"),
                     PropertyType.InitContainers: ValuesFilePath.read_elsewhere("synapse", "extraInitContainers"),
                     # Job so no livenessProbe
@@ -739,12 +756,13 @@ all_components_details = [
                 has_service_monitor=False,
                 is_hook=True,
                 makes_outbound_requests=False,
-                ignore_unreferenced_mounts={"synapse": ("/tmp",)},
                 content_volumes_mapping={
                     "/media": ("media_store",),
                 },
+                ephemeral_storages={"media": "media"},
             ),
         ),
+        ephemeral_storages={"media": "media"},
     ),
     ComponentDetails(
         name="well-known",

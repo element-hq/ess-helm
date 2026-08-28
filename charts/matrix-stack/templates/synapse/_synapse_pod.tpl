@@ -175,9 +175,6 @@ We have an init container to render & merge the config for several reasons:
       - mountPath: /media
         name: media
         readOnly: false
-      - mountPath: /tmp
-        name: tmp
-        readOnly: false
     volumes:
     {{- include "element-io.ess-library.render-config-volumes" (dict "root" $root "context"
             (dict "additionalPath" "synapse.additional"
@@ -210,10 +207,10 @@ We have an init container to render & merge the config for several reasons:
 {{- else }}
     - emptyDir:
         medium: Memory
+        {{- with $root.Values.synapse.ephemeralStorages.media.sizeLimit }}
+        sizeLimit: {{ . }}
+        {{- end }}
       name: "media"
 {{- end }}
-    - emptyDir:
-        medium: Memory
-      name: "tmp"
 {{- end }}
 {{- end }}

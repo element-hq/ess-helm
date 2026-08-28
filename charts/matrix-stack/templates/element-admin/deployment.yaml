@@ -66,14 +66,17 @@ spec:
 {{- end }}
         volumeMounts:
         - mountPath: /tmp
-          name: nginx-tmp
+          name: tmp
 {{- range .extraVolumeMounts }}
         - {{ (. | toYaml) | nindent 10 }}
 {{- end }}
       volumes:
       - emptyDir:
           medium: Memory
-        name: nginx-tmp
+          {{- with $.Values.elementAdmin.ephemeralStorages.tmp.sizeLimit }}
+          sizeLimit: {{ . }}
+          {{- end }}
+        name: tmp
 {{- range .extraVolumes }}
       - {{- (tpl (. | toYaml) $) | nindent 8 }}
 {{- end }}

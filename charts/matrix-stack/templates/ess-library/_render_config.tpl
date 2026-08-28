@@ -103,6 +103,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- end }}
 - emptyDir:
     medium: Memory
+    {{- with $root.Values.matrixTools.ephemeralStorages.renderedConfig.sizeLimit }}
+    sizeLimit: {{ . }}
+    {{- end }}
   name: "rendered-config"
 {{- end -}}
 {{- end -}}

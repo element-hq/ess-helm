@@ -37,6 +37,13 @@ matrixTools:
     ## - name: dockerhub
     pullSecrets: []
 
+  ## Configures sizeLimit (maximum size) for this component's emptyDir volumes.
+  ## Each sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
+  ephemeralStorages:
+    ## rendered-config emptyDir used in all components to render configuration
+    renderedConfig:
+      sizeLimit: 1Mi
+
 ## CertManager Issuer to configure by default automatically on all ingresses
 ## If configured, the chart will automatically generate the tlsSecret name for all ingresses
 certManager: {}
@@ -1604,6 +1611,12 @@ elementAdmin:
 
     ## Number of seconds after which the probe times out
     timeoutSeconds: 1
+  ## Configures sizeLimit (maximum size) for this component's emptyDir volumes.
+  ## Each sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
+  ephemeralStorages:
+    ## nginx temporary files (/tmp)
+    tmp:
+      sizeLimit: 10Mi
 
 elementWeb:
   enabled: true
@@ -1897,6 +1910,12 @@ elementWeb:
 
     ## Number of seconds after which the probe times out
     timeoutSeconds: 1
+  ## Configures sizeLimit (maximum size) for this component's emptyDir volumes.
+  ## Each sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
+  ephemeralStorages:
+    ## nginx temporary files (/tmp)
+    tmp:
+      sizeLimit: 10Mi
 
 haproxy:
   replicas: 1
@@ -2603,6 +2622,13 @@ hookshot:
     ## Number of seconds after which the probe times out
     timeoutSeconds: 1
 
+  ## Configures sizeLimit (maximum size) for this component's emptyDir volumes.
+  ## Each sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
+  ephemeralStorages:
+    ## temporary files (/tmp)
+    tmp:
+      sizeLimit: 10Mi
+
 matrixAuthenticationService:
   enabled: true
   # Details of the image to be used
@@ -3272,6 +3298,12 @@ matrixAuthenticationService:
     ##   # nodeTaintsPolicy: Honor/Ignore
     ##   # whenUnsatisfiable: DoNotSchedule/ScheduleAnyway
     topologySpreadConstraints: []
+    ## Configures sizeLimit (maximum size) for this component's emptyDir volumes.
+    ## Each sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
+    ephemeralStorages:
+      ## temporary mas-cli copy (/tmp-mas-cli)
+      tmpMasCli:
+        sizeLimit: 100Mi
 
     ## Runs the syn2mas process in dryRun mode.
     ## Force the authentication to happen with legacy authentication.
@@ -3736,6 +3768,15 @@ postgres:
 
     ## Number of seconds after which the probe times out
     timeoutSeconds: 1
+  ## Configures sizeLimit (maximum size) for this component's emptyDir volumes.
+  ## Each sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
+  ephemeralStorages:
+    ## temporary files (/tmp)
+    tmp:
+      sizeLimit: 10Mi
+    ## postgresql runtime directory (/var/run)
+    varRun:
+      sizeLimit: 1Mi
 
 redis:
   # redis maxmemory and maxmemory-policy settings. See https://redis.io/docs/latest/develop/reference/eviction/
@@ -5886,6 +5927,12 @@ synapse:
       ## No CPU or ephemeral-storage limits by default
       # cpu:
       # ephemeral-storage:
+  ## Configures sizeLimit (maximum size) for this component's emptyDir volumes.
+  ## Each sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
+  ephemeralStorages:
+    ## media store emptyDir fallback (/media)
+    media:
+      sizeLimit: 100Mi
   ## Controls configuration of the ServiceAccount for this component
   serviceAccount:
     ## Whether a ServiceAccount should be created by the chart or not
