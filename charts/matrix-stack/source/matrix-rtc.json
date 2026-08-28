@@ -148,6 +148,9 @@
             "podIP"
           ]
         },
+        "redis": {
+          "$ref": "file://common/redis.json"
+        },
         "additional": {
           "$ref": "file://common/additional.json"
         },

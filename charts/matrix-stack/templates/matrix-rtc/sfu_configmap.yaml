@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2024 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -14,7 +14,7 @@ kind: ConfigMap
 metadata:
   labels:
     {{- include "element-io.matrix-rtc-sfu.labels" (dict "root" $ "context" .) | nindent 4 }}
-  name: {{ $.Release.Name }}-matrix-rtc-sfu
+  name: {{ include "element-io.matrix-rtc-sfu.configmap-name" (dict "root" $ "context" .) }}
   namespace: {{ $.Release.Namespace }}
 data:
   {{- (include "element-io.matrix-rtc-sfu.configmap-data" (dict "root" $ "context" .)) | nindent 2 }}

@@ -948,6 +948,33 @@ matrixRTC:
     ## Most settings are configurable but some settings are owned by the chart and can't overwritten
     additional: {}
 
+    ## Details of the external Redis to use
+    ## Does not need to be set if the internal Redis should be used
+    ## This is useful for production environments where you want to use
+    ## managed Redis services (AWS Elasticache, Azure Cache for Redis, etc.)
+    # redis:
+      ## Redis host
+      # host:
+
+      ## Redis port
+      # port: 6379
+
+      ## Redis database number (0-15)
+      # db: 0
+
+      ## Redis password (optional - many managed services require auth).
+      ## It can either be provided inline in the Helm chart e.g.:
+      ## password:
+      ##   value: SecretValue
+      ##
+      ## Or it can be provided via an existing Secret e.g.:
+      ## password:
+      ##   secret: existing-secret
+      ##   secretKey: key-in-secret
+      # password: {}
+
+      ## Enable TLS for Redis connection
+      # tls: false
 
     # Use 0 replicas to stop the SFU
     replicas: 1

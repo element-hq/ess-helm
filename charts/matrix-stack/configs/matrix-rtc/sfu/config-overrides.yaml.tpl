@@ -74,6 +74,20 @@ turn:
 {{- end }}
 {{- end }}
 
+redis:
+{{- if .redis }}
+  address: {{ tpl .redis.host $root }}:{{ .redis.port | default 6379 }}
+{{- with .redis.db }}
+  db: {{ . }}
+{{- end }}
+{{- if .redis.password }}
+  password: ${SFU_REDIS_PASSWORD}
+{{- end }}
+{{- else }}
+  address: "{{ $root.Release.Name }}-redis.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:6379"
+  db: 3
+{{- end }}
+
 room:
   auto_create: false
 

@@ -50,6 +50,25 @@ env:
         )
       )
     }}
+{{- if $root.Values.matrixRTC.sfu.redis }}
+{{- if $root.Values.matrixRTC.sfu.redis.password }}
+- name: SFU_REDIS_PASSWORD
+  value: >-
+    {{
+      printf "{{ readfile \"/secrets/%s\" | quote }}"
+        (
+          include "element-io.ess-library.provided-secret-path" (
+            dict "root" $root
+            "context" (dict
+              "secretPath" "matrixRTC.sfu.redis.password"
+              "defaultSecretName" (include "element-io.matrix-rtc-sfu.secret-name" (dict "root" $root "context" .))
+              "defaultSecretKey" "REDIS_PASSWORD"
+            )
+          )
+        )
+    }}
+{{- end }}
+{{- end }}
 {{- end -}}
 {{- end -}}
 
@@ -61,6 +80,13 @@ env:
 {{- $prop := index $root.Values.matrixRTC.sfu.additional $key }}
 {{- if $prop.configSecret }}
 {{ $configSecrets = append $configSecrets (tpl $prop.configSecret $root) }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- with $root.Values.matrixRTC.sfu.redis }}
+{{- if .password }}
+{{- if .password.secret }}
+{{ $configSecrets = append $configSecrets (tpl .password.secret $root) }}
 {{- end }}
 {{- end }}
 {{- end }}
@@ -101,6 +127,12 @@ keys-template.yaml: |
 {{- if $prop.config }}
 user-{{ $key }}: {{ $prop.config | b64enc }}
 {{- end }}
+{{- end }}
+{{- end }}
+{{- with ($root.Values.matrixRTC.sfu.redis).password }}
+{{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "matrixRTC.sfu.redis.password" "initIfAbsent" false)) -}}
+{{- with .value }}
+REDIS_PASSWORD: {{ . | b64enc | quote }}
 {{- end }}
 {{- end }}
 {{- end }}

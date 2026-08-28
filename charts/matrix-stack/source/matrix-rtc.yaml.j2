@@ -76,6 +76,8 @@ sfu:
   ## Full details on available configuration options can be found at https://docs.livekit.io/home/self-hosting/deployment/#configuration
   {{- sub_schema_values.additionalConfig() | indent(2) }}
 
+  {{- sub_schema_values.redis() | indent(2) }}
+
   # Use 0 replicas to stop the SFU
   replicas: 1
 
