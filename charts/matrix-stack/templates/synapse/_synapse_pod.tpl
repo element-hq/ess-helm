@@ -205,14 +205,7 @@ We have an init container to render & merge the config for several reasons:
         claimName: {{ include "element-io.synapse.pvcName" (dict "root" $root "context" .) }}
       name: "media"
 {{- else }}
-    - emptyDir:
-        {{- with $root.Values.synapse.ephemeralStorages.media.medium }}
-        medium: {{ . }}
-        {{- end }}
-        {{- with $root.Values.synapse.ephemeralStorages.media.sizeLimit }}
-        sizeLimit: {{ . }}
-        {{- end }}
-      name: "media"
+{{- include "element-io.ess-library.empty-dir" (dict "root" $root "context" (dict "componentValues" $root.Values.synapse "ephemeralStorage" "media" "volumeName" "media")) | nindent 4 }}
 {{- end }}
 {{- end }}
 {{- end }}

@@ -162,6 +162,23 @@ timeoutSeconds: {{ . }}
 {{- end }}
 {{- end }}
 
+{{- define "element-io.ess-library.empty-dir" -}}
+{{- $root := .root -}}
+{{- with required "element-io.ess-library.empty-dir missing context" .context -}}
+{{- $ephemeralStorage := required "element-io.ess-library.empty-dir missing ephemeralStorage" .ephemeralStorage -}}
+{{- $volumeName := required "element-io.ess-library.empty-dir missing volumeName" .volumeName -}}
+{{- $storage := get .componentValues.ephemeralStorages $ephemeralStorage -}}
+- emptyDir:
+{{- with $storage.medium }}
+    medium: {{ . }}
+{{- end }}
+{{- with $storage.sizeLimit }}
+    sizeLimit: {{ . }}
+{{- end }}
+  name: {{ $volumeName }}
+{{- end }}
+{{- end }}
+
 {{- define "element-io.ess-library.pods.env" -}}
 {{- $root := .root -}}
 {{- with required "element-io.ess-library.pods.env missing context" .context -}}

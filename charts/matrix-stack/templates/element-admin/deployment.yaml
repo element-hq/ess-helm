@@ -71,14 +71,7 @@ spec:
         - {{ (. | toYaml) | nindent 10 }}
 {{- end }}
       volumes:
-      - emptyDir:
-          {{- with $.Values.elementAdmin.ephemeralStorages.tmp.medium }}
-          medium: {{ . }}
-          {{- end }}
-          {{- with $.Values.elementAdmin.ephemeralStorages.tmp.sizeLimit }}
-          sizeLimit: {{ . }}
-          {{- end }}
-        name: tmp
+{{- include "element-io.ess-library.empty-dir" (dict "root" $ "context" (dict "componentValues" $.Values.elementAdmin "ephemeralStorage" "tmp" "volumeName" "tmp")) | nindent 6 }}
 {{- range .extraVolumes }}
       - {{- (tpl (. | toYaml) $) | nindent 8 }}
 {{- end }}

@@ -158,13 +158,6 @@ spec:
         persistentVolumeClaim:
           claimName: {{ include "element-io.hookshot.pvcName" (dict "root" $) }}
 {{- end }}
-      - emptyDir:
-          {{- with $.Values.hookshot.ephemeralStorages.tmp.medium }}
-          medium: {{ . }}
-          {{- end }}
-          {{- with $.Values.hookshot.ephemeralStorages.tmp.sizeLimit }}
-          sizeLimit: {{ . }}
-          {{- end }}
-        name: tmp
+{{- include "element-io.ess-library.empty-dir" (dict "root" $ "context" (dict "componentValues" $.Values.hookshot "ephemeralStorage" "tmp" "volumeName" "tmp")) | nindent 6 }}
 {{- end }}
 {{- end -}}
