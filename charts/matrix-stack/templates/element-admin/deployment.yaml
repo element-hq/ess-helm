@@ -72,7 +72,9 @@ spec:
 {{- end }}
       volumes:
       - emptyDir:
-          medium: Memory
+          {{- with $.Values.elementAdmin.ephemeralStorages.tmp.medium }}
+          medium: {{ . }}
+          {{- end }}
           {{- with $.Values.elementAdmin.ephemeralStorages.tmp.sizeLimit }}
           sizeLimit: {{ . }}
           {{- end }}

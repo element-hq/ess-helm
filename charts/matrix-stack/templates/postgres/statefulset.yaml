@@ -197,13 +197,17 @@ spec:
       terminationGracePeriodSeconds: 60
       volumes:
       - emptyDir:
-          medium: Memory
+          {{- with $.Values.postgres.ephemeralStorages.tmp.medium }}
+          medium: {{ . }}
+          {{- end }}
           {{- with $.Values.postgres.ephemeralStorages.tmp.sizeLimit }}
           sizeLimit: {{ . }}
           {{- end }}
         name: tmp
       - emptyDir:
-          medium: Memory
+          {{- with $.Values.postgres.ephemeralStorages.varRun.medium }}
+          medium: {{ . }}
+          {{- end }}
           {{- with $.Values.postgres.ephemeralStorages.varRun.sizeLimit }}
           sizeLimit: {{ . }}
           {{- end }}

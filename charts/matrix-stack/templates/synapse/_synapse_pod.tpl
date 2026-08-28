@@ -206,7 +206,9 @@ We have an init container to render & merge the config for several reasons:
       name: "media"
 {{- else }}
     - emptyDir:
-        medium: Memory
+        {{- with $root.Values.synapse.ephemeralStorages.media.medium }}
+        medium: {{ . }}
+        {{- end }}
         {{- with $root.Values.synapse.ephemeralStorages.media.sizeLimit }}
         sizeLimit: {{ . }}
         {{- end }}

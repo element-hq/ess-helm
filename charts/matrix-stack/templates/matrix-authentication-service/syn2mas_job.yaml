@@ -231,13 +231,17 @@ spec:
       - {{- (tpl (. | toYaml) $) | nindent 8 }}
 {{- end }}
       - emptyDir:
-          medium: Memory
+          {{- with $.Values.matrixTools.ephemeralStorages.renderedConfig.medium }}
+          medium: {{ . }}
+          {{- end }}
           {{- with $.Values.matrixTools.ephemeralStorages.renderedConfig.sizeLimit }}
           sizeLimit: {{ . }}
           {{- end }}
         name: "rendered-config"
       - emptyDir:
-          medium: Memory
+          {{- with $.Values.matrixAuthenticationService.syn2mas.ephemeralStorages.tmpMasCli.medium }}
+          medium: {{ . }}
+          {{- end }}
           {{- with $.Values.matrixAuthenticationService.syn2mas.ephemeralStorages.tmpMasCli.sizeLimit }}
           sizeLimit: {{ . }}
           {{- end }}

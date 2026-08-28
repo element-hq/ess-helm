@@ -100,7 +100,9 @@ spec:
           name: {{ $.Release.Name }}-element-web-nginx
         name: nginx-config
       - emptyDir:
-          medium: Memory
+          {{- with $.Values.elementWeb.ephemeralStorages.tmp.medium }}
+          medium: {{ . }}
+          {{- end }}
           {{- with $.Values.elementWeb.ephemeralStorages.tmp.sizeLimit }}
           sizeLimit: {{ . }}
           {{- end }}

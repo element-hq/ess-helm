@@ -109,3 +109,73 @@ async def test_ephemeral_storage_passed_through(values, base_values, make_templa
     for pod_template_details in iterate_pod_template(templates):
         deployable_details = pod_template_details.deployable_details()
         _assert_empty_dir_volumes(pod_template_details, deployable_details, values, base_values)
+
+
+def _non_default_medium(default_medium: str) -> str:
+    # "Memory" -> "" (omit from manifest); "" -> "Memory"
+    return "" if default_medium == "Memory" else "Memory"
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_ephemeral_storage_medium_configurable(values, base_values, make_templates):
+    """Each ephemeral storage's medium is configurable in both directions.
+
+    Every emptyDir volume is set to the non-default of its own default medium
+    """
+    # Configure the shared rendered-config volume directly, preserving its sizeLimit.
+    rendered_config_default_medium = base_values["matrixTools"]["ephemeralStorages"]["renderedConfig"]["medium"]
+    rendered_config_non_default = _non_default_medium(rendered_config_default_medium)
+    values.setdefault("matrixTools", {}).setdefault("ephemeralStorages", {}).setdefault("renderedConfig", {})[
+        "medium"
+    ] = rendered_config_non_default
+
+    # Configure each component-specific ephemeral storage's medium via set_helm_values.
+    def set_ephemeral_storage_medium(deployable_details: DeployableDetails):
+        ephemeral_storages = deployable_details.get_helm_values(base_values, PropertyType.EphemeralStorages)
+        if not ephemeral_storages:
+            return
+        values_to_set = {}
+        for ephemeral_storage in deployable_details.ephemeral_storages.values():
+            default_medium = ephemeral_storages[ephemeral_storage]["medium"]
+            values_to_set[ephemeral_storage] = {
+                "medium": _non_default_medium(default_medium),
+                "sizeLimit": ephemeral_storages[ephemeral_storage]["sizeLimit"],
+            }
+        if values_to_set:
+            deployable_details.set_helm_values(values, PropertyType.EphemeralStorages, values_to_set)
+
+    iterate_deployables_parts(
+        set_ephemeral_storage_medium, lambda deployable_details: deployable_details.has_ephemeral_storage
+    )
+
+    templates = await make_templates(values)
+    for pod_template_details in iterate_pod_template(templates):
+        deployable_details = pod_template_details.deployable_details()
+        volumes = pod_template_details.pod_template["spec"].get("volumes", [])
+        for volume in volumes:
+            if "emptyDir" not in volume:
+                continue
+            volume_name = volume["name"]
+            if volume_name == "rendered-config":
+                expected_medium = rendered_config_non_default
+            else:
+                assert volume_name in deployable_details.ephemeral_storages, (
+                    f"{pod_template_details.manifest_id}: emptyDir volume '{volume_name}' "
+                    f"is not registered in {deployable_details.name}'s ephemeral_storage"
+                )
+                ephemeral_storage = deployable_details.ephemeral_storages[volume_name]
+                default_medium = deployable_details.get_helm_values(base_values, PropertyType.EphemeralStorages)[
+                    ephemeral_storage
+                ]["medium"]
+                expected_medium = _non_default_medium(default_medium)
+            if expected_medium == "":
+                assert "medium" not in volume["emptyDir"], (
+                    f"{pod_template_details.manifest_id}: emptyDir volume '{volume_name}' "
+                    f"should omit medium (expected node default storage)"
+                )
+            else:
+                assert volume["emptyDir"].get("medium") == expected_medium, (
+                    f"{pod_template_details.manifest_id}: emptyDir volume '{volume_name}' "
+                    f"medium is {volume['emptyDir'].get('medium')!r} but expected {expected_medium!r}"
+                )

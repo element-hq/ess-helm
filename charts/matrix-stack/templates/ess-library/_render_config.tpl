@@ -102,7 +102,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- end }}
 {{- end }}
 - emptyDir:
-    medium: Memory
+    {{- with $root.Values.matrixTools.ephemeralStorages.renderedConfig.medium }}
+    medium: {{ . }}
+    {{- end }}
     {{- with $root.Values.matrixTools.ephemeralStorages.renderedConfig.sizeLimit }}
     sizeLimit: {{ . }}
     {{- end }}
