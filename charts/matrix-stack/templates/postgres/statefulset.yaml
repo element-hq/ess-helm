@@ -196,8 +196,10 @@ spec:
 {{- end }}
       terminationGracePeriodSeconds: 60
       volumes:
-{{- include "element-io.ess-library.empty-dir" (dict "root" $ "context" (dict "componentValues" $.Values.postgres "ephemeralStorage" "tmp" "volumeName" "tmp")) | nindent 6 }}
-{{- include "element-io.ess-library.empty-dir" (dict "root" $ "context" (dict "componentValues" $.Values.postgres "ephemeralStorage" "varRun" "volumeName" "var-run")) | nindent 6 }}
+      - emptyDir: {{- $.Values.postgres.ephemeralStorages.tmp | toYaml | nindent 10 }}
+        name: tmp
+      - emptyDir: {{- $.Values.postgres.ephemeralStorages.varRun | toYaml | nindent 10 }}
+        name: var-run
 {{- if and $.Values.initSecrets.enabled (include "element-io.init-secrets.postgres-generated-secrets" (dict "root" $)) }}
       - secret:
           secretName: {{ $.Release.Name }}-generated

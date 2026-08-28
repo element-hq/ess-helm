@@ -158,6 +158,7 @@ spec:
         persistentVolumeClaim:
           claimName: {{ include "element-io.hookshot.pvcName" (dict "root" $) }}
 {{- end }}
-{{- include "element-io.ess-library.empty-dir" (dict "root" $ "context" (dict "componentValues" $.Values.hookshot "ephemeralStorage" "tmp" "volumeName" "tmp")) | nindent 6 }}
+      - emptyDir: {{- $.Values.hookshot.ephemeralStorages.tmp | toYaml | nindent 10 }}
+        name: tmp
 {{- end }}
 {{- end -}}

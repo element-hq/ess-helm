@@ -205,7 +205,8 @@ We have an init container to render & merge the config for several reasons:
         claimName: {{ include "element-io.synapse.pvcName" (dict "root" $root "context" .) }}
       name: "media"
 {{- else }}
-{{- include "element-io.ess-library.empty-dir" (dict "root" $root "context" (dict "componentValues" $root.Values.synapse "ephemeralStorage" "media" "volumeName" "media")) | nindent 4 }}
+    - emptyDir: {{- $root.Values.synapse.ephemeralStorages.media | toYaml | nindent 8 }}
+      name: media
 {{- end }}
 {{- end }}
 {{- end }}

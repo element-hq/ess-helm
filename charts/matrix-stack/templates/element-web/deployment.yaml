@@ -99,7 +99,8 @@ spec:
           defaultMode: 420
           name: {{ $.Release.Name }}-element-web-nginx
         name: nginx-config
-{{- include "element-io.ess-library.empty-dir" (dict "root" $ "context" (dict "componentValues" $.Values.elementWeb "ephemeralStorage" "tmp" "volumeName" "tmp")) | nindent 6 }}
+      - emptyDir: {{- $.Values.elementWeb.ephemeralStorages.tmp | toYaml | nindent 10 }}
+        name: tmp
 {{- range .extraVolumes }}
       - {{- (tpl (. | toYaml) $) | nindent 8 }}
 {{- end }}

@@ -101,7 +101,8 @@ SPDX-License-Identifier: AGPL-3.0-only
   name: secret-{{ . | sha256sum | trunc 12  }}
 {{- end }}
 {{- end }}
-{{- include "element-io.ess-library.empty-dir" (dict "root" $root "context" (dict "componentValues" $root.Values.matrixTools "ephemeralStorage" "renderedConfig" "volumeName" "rendered-config")) | nindent 0 }}
+- emptyDir: {{- $root.Values.matrixTools.ephemeralStorages.renderedConfig | toYaml | nindent 4 }}
+  name: rendered-config
 {{- end -}}
 {{- end -}}
 

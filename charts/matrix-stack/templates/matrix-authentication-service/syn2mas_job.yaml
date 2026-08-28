@@ -230,8 +230,10 @@ spec:
 {{- range .extraVolumes }}
       - {{- (tpl (. | toYaml) $) | nindent 8 }}
 {{- end }}
-{{- include "element-io.ess-library.empty-dir" (dict "root" $ "context" (dict "componentValues" $.Values.matrixTools "ephemeralStorage" "renderedConfig" "volumeName" "rendered-config")) | nindent 6 }}
-{{- include "element-io.ess-library.empty-dir" (dict "root" $ "context" (dict "componentValues" $.Values.matrixAuthenticationService.syn2mas "ephemeralStorage" "tmpMasCli" "volumeName" "tmp-mas-cli")) | nindent 6 }}
+      - emptyDir: {{- $.Values.matrixTools.ephemeralStorages.renderedConfig | toYaml | nindent 10 }}
+        name: rendered-config
+      - emptyDir: {{- $.Values.matrixAuthenticationService.syn2mas.ephemeralStorages.tmpMasCli | toYaml | nindent 10 }}
+        name: tmp-mas-cli
 {{- end }}
 {{- end }}
 {{- end }}

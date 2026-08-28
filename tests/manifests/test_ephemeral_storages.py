@@ -169,13 +169,7 @@ async def test_ephemeral_storage_medium_configurable(values, base_values, make_t
                     ephemeral_storage
                 ]["medium"]
                 expected_medium = _non_default_medium(default_medium)
-            if expected_medium == "":
-                assert "medium" not in volume["emptyDir"], (
-                    f"{pod_template_details.manifest_id}: emptyDir volume '{volume_name}' "
-                    f"should omit medium (expected node default storage)"
-                )
-            else:
-                assert volume["emptyDir"].get("medium") == expected_medium, (
-                    f"{pod_template_details.manifest_id}: emptyDir volume '{volume_name}' "
-                    f"medium is {volume['emptyDir'].get('medium')!r} but expected {expected_medium!r}"
-                )
+            assert volume["emptyDir"].get("medium") == expected_medium, (
+                f"{pod_template_details.manifest_id}: emptyDir volume '{volume_name}' "
+                f"medium is {volume['emptyDir'].get('medium')!r} but expected {expected_medium!r}"
+            )
