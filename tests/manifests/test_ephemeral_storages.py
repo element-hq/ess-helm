@@ -133,8 +133,9 @@ async def test_ephemeral_storage_medium_configurable(values, base_values, make_t
     # Configure each component-specific ephemeral storage's medium via set_helm_values.
     def set_ephemeral_storage_medium(deployable_details: DeployableDetails):
         ephemeral_storages = deployable_details.get_helm_values(base_values, PropertyType.EphemeralStorages)
-        if not ephemeral_storages:
-            return
+        assert ephemeral_storages is not None, (
+            f"{deployable_details.name}: compement has `has_ephemeral_storage` but no EphemeralStorages values"
+        )
         values_to_set = {}
         for ephemeral_storage in deployable_details.ephemeral_storages.values():
             default_medium = ephemeral_storages[ephemeral_storage]["medium"]
