@@ -99,11 +99,7 @@ spec:
           defaultMode: 420
           name: {{ $.Release.Name }}-element-web-nginx
         name: nginx-config
-      - emptyDir:
-          medium: Memory
-          {{- with $.Values.elementWeb.ephemeralStorages.tmp.sizeLimit }}
-          sizeLimit: {{ . }}
-          {{- end }}
+      - emptyDir: {{- $.Values.elementWeb.ephemeralStorages.tmp | toYaml | nindent 10 }}
         name: tmp
 {{- range .extraVolumes }}
       - {{- (tpl (. | toYaml) $) | nindent 8 }}

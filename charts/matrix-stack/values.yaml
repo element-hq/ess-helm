@@ -37,12 +37,14 @@ matrixTools:
     ## - name: dockerhub
     pullSecrets: []
 
-  ## Configures sizeLimit (maximum size) for this component's emptyDir volumes.
+  ## Configures sizeLimit (maximum size) and medium for this component's emptyDir volumes.
   ## Each sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
+  ## medium is either "Memory" (tmpfs-backed) or "" (node default storage).
   ephemeralStorages:
     ## rendered-config emptyDir used in all components to render configuration
     renderedConfig:
       sizeLimit: 1Mi
+      medium: Memory
 
 ## CertManager Issuer to configure by default automatically on all ingresses
 ## If configured, the chart will automatically generate the tlsSecret name for all ingresses
@@ -1611,12 +1613,14 @@ elementAdmin:
 
     ## Number of seconds after which the probe times out
     timeoutSeconds: 1
-  ## Configures sizeLimit (maximum size) for this component's emptyDir volumes.
+  ## Configures sizeLimit (maximum size) and medium for this component's emptyDir volumes.
   ## Each sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
+  ## medium is either "Memory" (tmpfs-backed) or "" (node default storage).
   ephemeralStorages:
     ## nginx temporary files (/tmp)
     tmp:
       sizeLimit: 10Mi
+      medium: Memory
 
 elementWeb:
   enabled: true
@@ -1910,12 +1914,14 @@ elementWeb:
 
     ## Number of seconds after which the probe times out
     timeoutSeconds: 1
-  ## Configures sizeLimit (maximum size) for this component's emptyDir volumes.
+  ## Configures sizeLimit (maximum size) and medium for this component's emptyDir volumes.
   ## Each sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
+  ## medium is either "Memory" (tmpfs-backed) or "" (node default storage).
   ephemeralStorages:
     ## nginx temporary files (/tmp)
     tmp:
       sizeLimit: 10Mi
+      medium: Memory
 
 haproxy:
   replicas: 1
@@ -2622,12 +2628,14 @@ hookshot:
     ## Number of seconds after which the probe times out
     timeoutSeconds: 1
 
-  ## Configures sizeLimit (maximum size) for this component's emptyDir volumes.
+  ## Configures sizeLimit (maximum size) and medium for this component's emptyDir volumes.
   ## Each sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
+  ## medium is either "Memory" (tmpfs-backed) or "" (node default storage).
   ephemeralStorages:
     ## temporary files (/tmp)
     tmp:
       sizeLimit: 10Mi
+      medium: Memory
 
 matrixAuthenticationService:
   enabled: true
@@ -3298,12 +3306,14 @@ matrixAuthenticationService:
     ##   # nodeTaintsPolicy: Honor/Ignore
     ##   # whenUnsatisfiable: DoNotSchedule/ScheduleAnyway
     topologySpreadConstraints: []
-    ## Configures sizeLimit (maximum size) for this component's emptyDir volumes.
+    ## Configures sizeLimit (maximum size) and medium for this component's emptyDir volumes.
     ## Each sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
+    ## medium is either "Memory" (tmpfs-backed) or "" (node default storage).
     ephemeralStorages:
       ## temporary mas-cli copy (/tmp-mas-cli)
       tmpMasCli:
         sizeLimit: 100Mi
+        medium: Memory
 
     ## Runs the syn2mas process in dryRun mode.
     ## Force the authentication to happen with legacy authentication.
@@ -3768,15 +3778,18 @@ postgres:
 
     ## Number of seconds after which the probe times out
     timeoutSeconds: 1
-  ## Configures sizeLimit (maximum size) for this component's emptyDir volumes.
+  ## Configures sizeLimit (maximum size) and medium for this component's emptyDir volumes.
   ## Each sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
+  ## medium is either "Memory" (tmpfs-backed) or "" (node default storage).
   ephemeralStorages:
     ## temporary files (/tmp)
     tmp:
       sizeLimit: 10Mi
+      medium: Memory
     ## postgresql runtime directory (/var/run)
     varRun:
       sizeLimit: 1Mi
+      medium: Memory
 
 redis:
   # redis maxmemory and maxmemory-policy settings. See https://redis.io/docs/latest/develop/reference/eviction/
@@ -5927,12 +5940,14 @@ synapse:
       ## No CPU or ephemeral-storage limits by default
       # cpu:
       # ephemeral-storage:
-  ## Configures sizeLimit (maximum size) for this component's emptyDir volumes.
+  ## Configures sizeLimit (maximum size) and medium for this component's emptyDir volumes.
   ## Each sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
+  ## medium is either "Memory" (tmpfs-backed) or "" (node default storage).
   ephemeralStorages:
     ## media store emptyDir fallback (/media)
     media:
       sizeLimit: 100Mi
+      medium: Memory
   ## Controls configuration of the ServiceAccount for this component
   serviceAccount:
     ## Whether a ServiceAccount should be created by the chart or not

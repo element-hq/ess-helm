@@ -196,17 +196,9 @@ spec:
 {{- end }}
       terminationGracePeriodSeconds: 60
       volumes:
-      - emptyDir:
-          medium: Memory
-          {{- with $.Values.postgres.ephemeralStorages.tmp.sizeLimit }}
-          sizeLimit: {{ . }}
-          {{- end }}
+      - emptyDir: {{- $.Values.postgres.ephemeralStorages.tmp | toYaml | nindent 10 }}
         name: tmp
-      - emptyDir:
-          medium: Memory
-          {{- with $.Values.postgres.ephemeralStorages.varRun.sizeLimit }}
-          sizeLimit: {{ . }}
-          {{- end }}
+      - emptyDir: {{- $.Values.postgres.ephemeralStorages.varRun | toYaml | nindent 10 }}
         name: var-run
 {{- if and $.Values.initSecrets.enabled (include "element-io.init-secrets.postgres-generated-secrets" (dict "root" $)) }}
       - secret:

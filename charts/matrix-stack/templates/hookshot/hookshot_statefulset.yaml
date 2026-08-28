@@ -158,11 +158,7 @@ spec:
         persistentVolumeClaim:
           claimName: {{ include "element-io.hookshot.pvcName" (dict "root" $) }}
 {{- end }}
-      - emptyDir:
-          medium: Memory
-          {{- with $.Values.hookshot.ephemeralStorages.tmp.sizeLimit }}
-          sizeLimit: {{ . }}
-          {{- end }}
+      - emptyDir: {{- $.Values.hookshot.ephemeralStorages.tmp | toYaml | nindent 10 }}
         name: tmp
 {{- end }}
 {{- end -}}

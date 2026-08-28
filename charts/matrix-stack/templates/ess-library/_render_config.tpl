@@ -101,12 +101,8 @@ SPDX-License-Identifier: AGPL-3.0-only
   name: secret-{{ . | sha256sum | trunc 12  }}
 {{- end }}
 {{- end }}
-- emptyDir:
-    medium: Memory
-    {{- with $root.Values.matrixTools.ephemeralStorages.renderedConfig.sizeLimit }}
-    sizeLimit: {{ . }}
-    {{- end }}
-  name: "rendered-config"
+- emptyDir: {{- $root.Values.matrixTools.ephemeralStorages.renderedConfig | toYaml | nindent 4 }}
+  name: rendered-config
 {{- end -}}
 {{- end -}}
 

@@ -205,12 +205,8 @@ We have an init container to render & merge the config for several reasons:
         claimName: {{ include "element-io.synapse.pvcName" (dict "root" $root "context" .) }}
       name: "media"
 {{- else }}
-    - emptyDir:
-        medium: Memory
-        {{- with $root.Values.synapse.ephemeralStorages.media.sizeLimit }}
-        sizeLimit: {{ . }}
-        {{- end }}
-      name: "media"
+    - emptyDir: {{- $root.Values.synapse.ephemeralStorages.media | toYaml | nindent 8 }}
+      name: media
 {{- end }}
 {{- end }}
 {{- end }}

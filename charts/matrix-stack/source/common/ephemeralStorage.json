@@ -5,6 +5,14 @@
       "type": "string",
       "pattern": "^([+-]?[0-9.]+)([eEinumkKMGTP]*[-+]?[0-9]*)$",
       "description": "The maximum size of the emptyDir volume, as a Kubernetes quantity string e.g. 10Mi."
+    },
+    "medium": {
+      "type": "string",
+      "enum": [
+        "",
+        "Memory"
+      ],
+      "description": "The storage medium of the emptyDir volume. \"Memory\" uses tmpfs (RAM-backed); empty string uses the node's default storage."
     }
   }
 }

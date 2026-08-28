@@ -71,11 +71,7 @@ spec:
         - {{ (. | toYaml) | nindent 10 }}
 {{- end }}
       volumes:
-      - emptyDir:
-          medium: Memory
-          {{- with $.Values.elementAdmin.ephemeralStorages.tmp.sizeLimit }}
-          sizeLimit: {{ . }}
-          {{- end }}
+      - emptyDir: {{- $.Values.elementAdmin.ephemeralStorages.tmp | toYaml | nindent 10 }}
         name: tmp
 {{- range .extraVolumes }}
       - {{- (tpl (. | toYaml) $) | nindent 8 }}
