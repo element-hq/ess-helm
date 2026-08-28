@@ -219,6 +219,7 @@ redis:
 {{- end }}
 {{- else }}
   host: "{{ $root.Release.Name }}-redis.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}"
+  dbid: 0
 {{- end }}
 {{- if include "element-io.synapse.streamWriterWorkers" (dict "root" $root) | fromJsonArray }}
 
