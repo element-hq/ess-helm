@@ -57,8 +57,12 @@ def _assert_empty_dir_volumes(
 @pytest.mark.asyncio_cooperative
 async def test_ephemeral_storage_defaults(templates, values, base_values):
     """Every shipped default sizeLimit flows through to the rendered manifest."""
+
     for pod_template_details in iterate_pod_template(templates):
         volumes = pod_template_details.pod_template["spec"].get("volumes", [])
+        assert (
+            any("emptyDir" in v for v in volumes) == pod_template_details.deployable_details().has_ephemeral_storage
+        ), f"{pod_template_details.manifest_id}: emptyDir volumes is not consistent with has_ephemeral_storage"
         for volume in volumes:
             if "emptyDir" not in volume:
                 continue

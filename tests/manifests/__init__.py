@@ -132,7 +132,7 @@ class DeployableDetails(abc.ABC):
     is_hook: bool = field(default=False, hash=False)
     has_mount_context: bool = field(default=None, hash=False)  # type: ignore[assignment]
     is_synapse_process: bool = field(default=False, hash=False)
-    has_ephemeral_storage: bool = field(default=False, hash=False)
+    has_ephemeral_storage: bool = field(default=True, hash=False)
 
     # Use this to skip mounts point we expect not to be referenced in commands, configs, etc
     # The format is expected to be `container_name: <list of mounts to ignore>`
@@ -285,6 +285,8 @@ class SidecarDetails(DeployableDetails):
             self.parent.makes_outbound_requests = True
             # As we won't have the properties ourselves
             self.makes_outbound_requests = False
+        # The sidecar volumes depends on the parent volumes
+        self.has_ephemeral_storage = parent.has_ephemeral_storage
 
     def owns_manifest_named(self, manifest_name: str) -> bool:
         # Sidecars shouldn't own anything that their parent could possibly own
@@ -412,7 +414,6 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
         f"synapse-{worker_name}",
         values_file_path=ValuesFilePath.read_write("synapse", "workers", worker_name),
         values_file_path_overrides=values_file_path_overrides,
-        has_ephemeral_storage=True,
         has_ingress=False,
         is_synapse_process=True,
         is_singleton=(worker_type != "scalable"),
@@ -469,6 +470,7 @@ all_components_details = [
         },
         has_additional_config=False,
         has_credentials=False,
+        has_ephemeral_storage=False,
         has_image=False,
         has_ingress=False,
         has_automount_service_account_token=True,
@@ -492,6 +494,7 @@ all_components_details = [
             PropertyType.Replicas: ValuesFilePath.not_supported(),
         },
         has_additional_config=False,
+        has_ephemeral_storage=False,
         has_image=False,
         has_ingress=False,
         has_automount_service_account_token=True,
@@ -507,6 +510,7 @@ all_components_details = [
         has_credentials=False,
         has_ingress=False,
         is_shared_component=True,
+        has_ephemeral_storage=False,
         makes_outbound_requests=False,
         ignore_unreferenced_mounts={
             "haproxy": ("/usr/local/etc/haproxy/placeholder",),
@@ -517,7 +521,6 @@ all_components_details = [
         name="postgres",
         has_additional_config=False,
         has_ingress=False,
-        has_ephemeral_storage=True,
         has_storage=True,
         sidecars=(
             SidecarDetails(
@@ -555,6 +558,7 @@ all_components_details = [
         has_ingress=False,
         is_singleton=True,
         makes_outbound_requests=False,
+        has_ephemeral_storage=False,
         sidecars=(
             SidecarDetails(
                 name="redis-exporter",
@@ -576,7 +580,7 @@ all_components_details = [
         values_file_path=ValuesFilePath.read_write("matrixRTC"),
         is_singleton=True,
         has_additional_config=False,
-        has_ephemeral_storage=True,
+        has_ephemeral_storage=False,
         has_service_monitor=False,
         sub_components=(
             SubComponentDetails(
@@ -584,7 +588,6 @@ all_components_details = [
                 values_file_path=ValuesFilePath.read_write("matrixRTC", "sfu"),
                 has_exposed_services=True,
                 has_ingress=False,
-                has_ephemeral_storage=True,
                 is_singleton=True,
                 makes_outbound_requests=False,
             ),
@@ -600,7 +603,6 @@ all_components_details = [
         has_additional_config=False,
         has_credentials=False,
         has_service_monitor=False,
-        has_ephemeral_storage=True,
         makes_outbound_requests=False,
         ignore_unreferenced_mounts={"element-admin": ("/tmp",)},
         ephemeral_storages={"nginx-tmp": "nginxTemporaryFiles"},
@@ -610,7 +612,6 @@ all_components_details = [
         values_file_path=ValuesFilePath.read_write("elementWeb"),
         has_credentials=False,
         has_service_monitor=False,
-        has_ephemeral_storage=True,
         makes_outbound_requests=False,
         ignore_paths_mismatches={
             "element-web": (
@@ -639,7 +640,6 @@ all_components_details = [
     ComponentDetails(
         name="hookshot",
         has_storage=True,
-        has_ephemeral_storage=True,
         values_file_path_overrides={
             PropertyType.Storage: ValuesFilePath.read_write("hookshot", "storage"),
         },
@@ -654,7 +654,6 @@ all_components_details = [
         name="matrix-authentication-service",
         values_file_path=ValuesFilePath.read_write("matrixAuthenticationService"),
         has_db=True,
-        has_ephemeral_storage=True,
         sub_components=(
             SubComponentDetails(
                 name="syn2mas",
@@ -697,7 +696,6 @@ all_components_details = [
                 has_ingress=False,
                 has_automount_service_account_token=True,
                 has_service_monitor=False,
-                has_ephemeral_storage=True,
                 is_hook=True,
                 has_mount_context=False,
                 makes_outbound_requests=False,
@@ -711,7 +709,6 @@ all_components_details = [
             PropertyType.Storage: ValuesFilePath.read_write("synapse", "media", "storage"),
         },
         has_db=True,
-        has_ephemeral_storage=True,
         has_storage=True,
         is_synapse_process=True,
         additional_values_files=("synapse-worker-example-values.yaml",),
@@ -755,7 +752,6 @@ all_components_details = [
                     PropertyType.VolumeMounts: ValuesFilePath.read_elsewhere("synapse", "extraVolumeMounts"),
                     PropertyType.Replicas: ValuesFilePath.not_supported(),
                 },
-                has_ephemeral_storage=True,
                 has_ingress=False,
                 has_service_monitor=False,
                 is_hook=True,
@@ -774,7 +770,6 @@ all_components_details = [
         values_file_path_overrides={
             PropertyType.Replicas: ValuesFilePath.not_supported(),
         },
-        has_ephemeral_storage=True,
         has_additional_config=True,
         has_credentials=False,
         has_workloads=False,
