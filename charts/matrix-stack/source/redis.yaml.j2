@@ -36,7 +36,7 @@ replicas: 1
 {{- sub_schema_values.probe("startup", failureThreshold=5) }}
 
 redisExporter:
-  {{- sub_schema_values.image(registry='ghcr.io', repository='oliver006/redis_exporter', tag='v1.89.0') | indent(2) }}
+  {{- sub_schema_values.image(registry='ghcr.io', repository='oliver006/redis_exporter', tag='v1.90.0') | indent(2) }}
   {{- sub_schema_values.resources(requests_memory='10Mi', requests_cpu='10m', limits_memory='50Mi')| indent(2) }}
   {{- sub_schema_values.extraVolumeMounts("Redis Exporter") | indent(2) }}
   {{- sub_schema_values.containersSecurityContext() | indent(2) }}
