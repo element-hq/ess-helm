@@ -218,9 +218,6 @@
       "properties": {
         "media": {
           "$ref": "file://common/ephemeralStorage.json"
-        },
-        "tmp": {
-          "$ref": "file://common/ephemeralStorage.json"
         }
       }
     },

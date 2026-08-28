@@ -5933,9 +5933,6 @@ synapse:
     ## media store emptyDir fallback (media)
     media:
       sizeLimit: 100Mi
-    ## temporary files (tmp)
-    tmp:
-      sizeLimit: 10Mi
   ## Controls configuration of the ServiceAccount for this component
   serviceAccount:
     ## Whether a ServiceAccount should be created by the chart or not

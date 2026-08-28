@@ -416,12 +416,11 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
         has_ingress=False,
         is_synapse_process=True,
         is_singleton=(worker_type != "scalable"),
-        ignore_unreferenced_mounts={"synapse": ("/tmp",)},
         has_mount_context=True,
         content_volumes_mapping={
             "/media": ("media_store",),
         },
-        ephemeral_storages={"tmp": "tmp", "media": "media"},
+        ephemeral_storages={"media": "media"},
     )
 
 
@@ -717,7 +716,6 @@ all_components_details = [
         is_synapse_process=True,
         additional_values_files=("synapse-worker-example-values.yaml",),
         skip_path_consistency_for_files=("path_map_file", "path_map_file_get"),
-        ignore_unreferenced_mounts={"synapse": ("/tmp",)},
         has_mount_context=True,
         content_volumes_mapping={
             "/media": ("media_store",),
@@ -762,14 +760,13 @@ all_components_details = [
                 has_service_monitor=False,
                 is_hook=True,
                 makes_outbound_requests=False,
-                ignore_unreferenced_mounts={"synapse": ("/tmp",)},
                 content_volumes_mapping={
                     "/media": ("media_store",),
                 },
-                ephemeral_storages={"tmp": "tmp", "media": "media"},
+                ephemeral_storages={"media": "media"},
             ),
         ),
-        ephemeral_storages={"tmp": "tmp", "media": "media"},
+        ephemeral_storages={"media": "media"},
     ),
     ComponentDetails(
         name="well-known",
