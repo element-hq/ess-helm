@@ -70,6 +70,12 @@ async def test_ephemeral_storage_defaults(templates, values, base_values):
             assert volume["emptyDir"].get("sizeLimit"), (
                 f"{pod_template_details.manifest_id}: emptyDir volume '{volume_name}' is lacking sizeLimit"
             )
+            assert "medium" in volume["emptyDir"], (
+                f"{pod_template_details.manifest_id} has emptyDir {volume['name']} but doesn't set the medium"
+            )
+            assert volume["emptyDir"]["medium"] == "Memory", (
+                f"{pod_template_details.manifest_id} has emptyDir {volume['name']} that isn't Memory backed"
+            )
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)

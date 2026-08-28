@@ -10,26 +10,9 @@ from frozendict import deepfreeze
 from . import (
     DeployableDetails,
     PropertyType,
-    secret_values_files_to_test,
     values_files_to_test,
 )
 from .utils import iterate_deployables_workload_parts, iterate_pod_template
-
-
-@pytest.mark.parametrize("values_file", values_files_to_test | secret_values_files_to_test)
-@pytest.mark.asyncio_cooperative
-async def test_emptyDirs_are_memory(templates):
-    for pod_template_details in iterate_pod_template(templates):
-        for volume in pod_template_details.pod_template["spec"].get("volumes", []):
-            if "emptyDir" not in volume:
-                continue
-
-            assert "medium" in volume["emptyDir"], (
-                f"{pod_template_details.manifest_id} has emptyDir {volume['name']} but doesn't set the medium"
-            )
-            assert volume["emptyDir"]["medium"] == "Memory", (
-                f"{pod_template_details.manifest_id} has emptyDir {volume['name']} that isn't Memory backed"
-            )
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
