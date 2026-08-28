@@ -138,6 +138,7 @@
               "properties": {
                 "sizeLimit": {
                   "type": "string",
+                  "pattern": "^([+-]?[0-9.]+)([eEinumkKMGTP]*[-+]?[0-9]*)$",
                   "description": "The maximum size of the emptyDir volume, as a Kubernetes quantity string e.g. 10Mi."
                 }
               },
@@ -8651,6 +8652,7 @@
               "properties": {
                 "sizeLimit": {
                   "type": "string",
+                  "pattern": "^([+-]?[0-9.]+)([eEinumkKMGTP]*[-+]?[0-9]*)$",
                   "description": "The maximum size of the emptyDir volume, as a Kubernetes quantity string e.g. 10Mi."
                 }
               },
@@ -10136,6 +10138,7 @@
               "properties": {
                 "sizeLimit": {
                   "type": "string",
+                  "pattern": "^([+-]?[0-9.]+)([eEinumkKMGTP]*[-+]?[0-9]*)$",
                   "description": "The maximum size of the emptyDir volume, as a Kubernetes quantity string e.g. 10Mi."
                 }
               },
@@ -13631,6 +13634,7 @@
               "properties": {
                 "sizeLimit": {
                   "type": "string",
+                  "pattern": "^([+-]?[0-9.]+)([eEinumkKMGTP]*[-+]?[0-9]*)$",
                   "description": "The maximum size of the emptyDir volume, as a Kubernetes quantity string e.g. 10Mi."
                 }
               },
@@ -15283,6 +15287,7 @@
                   "properties": {
                     "sizeLimit": {
                       "type": "string",
+                      "pattern": "^([+-]?[0-9.]+)([eEinumkKMGTP]*[-+]?[0-9]*)$",
                       "description": "The maximum size of the emptyDir volume, as a Kubernetes quantity string e.g. 10Mi."
                     }
                   },
@@ -19032,6 +19037,7 @@
               "properties": {
                 "sizeLimit": {
                   "type": "string",
+                  "pattern": "^([+-]?[0-9.]+)([eEinumkKMGTP]*[-+]?[0-9]*)$",
                   "description": "The maximum size of the emptyDir volume, as a Kubernetes quantity string e.g. 10Mi."
                 }
               },
@@ -19042,6 +19048,7 @@
               "properties": {
                 "sizeLimit": {
                   "type": "string",
+                  "pattern": "^([+-]?[0-9.]+)([eEinumkKMGTP]*[-+]?[0-9]*)$",
                   "description": "The maximum size of the emptyDir volume, as a Kubernetes quantity string e.g. 10Mi."
                 }
               },
@@ -23256,6 +23263,7 @@
               "properties": {
                 "sizeLimit": {
                   "type": "string",
+                  "pattern": "^([+-]?[0-9.]+)([eEinumkKMGTP]*[-+]?[0-9]*)$",
                   "description": "The maximum size of the emptyDir volume, as a Kubernetes quantity string e.g. 10Mi."
                 }
               },
