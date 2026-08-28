@@ -3774,7 +3774,7 @@ postgres:
     ## temporary files (/tmp)
     tmp:
       sizeLimit: 10Mi
-    ## postgresql runtime directory (var-run)
+    ## postgresql runtime directory (/var/run)
     varRun:
       sizeLimit: 1Mi
 
@@ -5930,7 +5930,7 @@ synapse:
   ## Configures sizeLimit (maximum size) for this component's emptyDir volumes.
   ## Each sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
   ephemeralStorages:
-    ## media store emptyDir fallback (media)
+    ## media store emptyDir fallback (/media)
     media:
       sizeLimit: 100Mi
   ## Controls configuration of the ServiceAccount for this component
