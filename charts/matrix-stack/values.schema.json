@@ -8647,7 +8647,7 @@
         "ephemeralStorages": {
           "type": "object",
           "properties": {
-            "nginxTemporaryFiles": {
+            "tmp": {
               "type": "object",
               "properties": {
                 "sizeLimit": {
@@ -10133,7 +10133,7 @@
         "ephemeralStorages": {
           "type": "object",
           "properties": {
-            "nginxTemporaryFiles": {
+            "tmp": {
               "type": "object",
               "properties": {
                 "sizeLimit": {
@@ -13629,7 +13629,7 @@
         "ephemeralStorages": {
           "type": "object",
           "properties": {
-            "temp": {
+            "tmp": {
               "type": "object",
               "properties": {
                 "sizeLimit": {
@@ -19032,7 +19032,7 @@
         "ephemeralStorages": {
           "type": "object",
           "properties": {
-            "temp": {
+            "tmp": {
               "type": "object",
               "properties": {
                 "sizeLimit": {

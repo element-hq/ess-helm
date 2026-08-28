@@ -85,7 +85,7 @@
     "ephemeralStorages": {
       "type": "object",
       "properties": {
-        "nginxTemporaryFiles": {
+        "tmp": {
           "$ref": "file://common/ephemeralStorage.json"
         }
       }

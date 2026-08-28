@@ -548,7 +548,7 @@ all_components_details = [
                 "/var/run/postgresql",
             )
         },
-        ephemeral_storages={"temp": "temp", "var-run": "varRun"},
+        ephemeral_storages={"tmp": "tmp", "var-run": "varRun"},
     ),
     ComponentDetails(
         name="redis",
@@ -605,7 +605,7 @@ all_components_details = [
         has_service_monitor=False,
         makes_outbound_requests=False,
         ignore_unreferenced_mounts={"element-admin": ("/tmp",)},
-        ephemeral_storages={"nginx-tmp": "nginxTemporaryFiles"},
+        ephemeral_storages={"tmp": "tmp"},
     ),
     ComponentDetails(
         name="element-web",
@@ -635,7 +635,7 @@ all_components_details = [
             )
         },
         content_volumes_mapping={"/tmp": ("element-web-config",)},
-        ephemeral_storages={"nginx-tmp": "nginxTemporaryFiles"},
+        ephemeral_storages={"tmp": "tmp"},
     ),
     ComponentDetails(
         name="hookshot",
@@ -648,7 +648,7 @@ all_components_details = [
             "hookshot": ("/bin/matrix-hookshot/App/BridgeApp.js",),
         },
         additional_values_files=("hookshot-encryption-enabled-values.yaml",),
-        ephemeral_storages={"temp": "temp"},
+        ephemeral_storages={"tmp": "tmp"},
     ),
     ComponentDetails(
         name="matrix-authentication-service",

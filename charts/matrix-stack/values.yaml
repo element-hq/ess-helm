@@ -1614,8 +1614,8 @@ elementAdmin:
   ## Configures sizeLimit (maximum size) for this component's emptyDir volumes.
   ## Each sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
   ephemeralStorages:
-    ## nginx temporary files (nginx-tmp)
-    nginxTemporaryFiles:
+    ## nginx temporary files (/tmp)
+    tmp:
       sizeLimit: 10Mi
 
 elementWeb:
@@ -1913,8 +1913,8 @@ elementWeb:
   ## Configures sizeLimit (maximum size) for this component's emptyDir volumes.
   ## Each sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
   ephemeralStorages:
-    ## nginx temporary files (nginx-tmp)
-    nginxTemporaryFiles:
+    ## nginx temporary files (/tmp)
+    tmp:
       sizeLimit: 10Mi
 
 haproxy:
@@ -2625,8 +2625,8 @@ hookshot:
   ## Configures sizeLimit (maximum size) for this component's emptyDir volumes.
   ## Each sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
   ephemeralStorages:
-    ## temporary files (temp)
-    temp:
+    ## temporary files (/tmp)
+    tmp:
       sizeLimit: 10Mi
 
 matrixAuthenticationService:
@@ -3771,8 +3771,8 @@ postgres:
   ## Configures sizeLimit (maximum size) for this component's emptyDir volumes.
   ## Each sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
   ephemeralStorages:
-    ## temporary files (temp)
-    temp:
+    ## temporary files (/tmp)
+    tmp:
       sizeLimit: 10Mi
     ## postgresql runtime directory (var-run)
     varRun:

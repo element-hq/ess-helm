@@ -131,7 +131,7 @@
     "ephemeralStorages": {
       "type": "object",
       "properties": {
-        "temp": {
+        "tmp": {
           "$ref": "file://common/ephemeralStorage.json"
         }
       }

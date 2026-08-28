@@ -86,7 +86,7 @@ spec:
           readOnly: true
           subPath: security_headers.conf
         - mountPath: /tmp
-          name: nginx-tmp
+          name: tmp
 {{- range .extraVolumeMounts }}
         - {{ (. | toYaml) | nindent 10 }}
 {{- end }}
@@ -101,10 +101,10 @@ spec:
         name: nginx-config
       - emptyDir:
           medium: Memory
-          {{- with $.Values.elementWeb.ephemeralStorages.nginxTemporaryFiles.sizeLimit }}
+          {{- with $.Values.elementWeb.ephemeralStorages.tmp.sizeLimit }}
           sizeLimit: {{ . }}
           {{- end }}
-        name: nginx-tmp
+        name: tmp
 {{- range .extraVolumes }}
       - {{- (tpl (. | toYaml) $) | nindent 8 }}
 {{- end }}

@@ -160,9 +160,9 @@ spec:
 {{- end }}
       - emptyDir:
           medium: Memory
-          {{- with $.Values.hookshot.ephemeralStorages.temp.sizeLimit }}
+          {{- with $.Values.hookshot.ephemeralStorages.tmp.sizeLimit }}
           sizeLimit: {{ . }}
           {{- end }}
-        name: temp
+        name: tmp
 {{- end }}
 {{- end -}}
