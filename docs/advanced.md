@@ -16,6 +16,7 @@ SPDX-License-Identifier: AGPL-3.0-only
    - [Configuring Element Web](#configuring-element-web)
    - [Configuring Hookshot](#configuring-hookshot)
    - [Configuring Synapse](#configuring-synapse)
+     - [Worked example: disabling homeserver usage statistics](#worked-example-disabling-homeserver-usage-statistics)
    - [Configuring Matrix Authentication Service](#configuring-matrix-authentication-service)
    - [Configuring Matrix RTC](#configuring-matrix-rtc)
      - [Networking](#networking)
@@ -168,6 +169,19 @@ synapse:
 One common Synapse configuration option that can't be set by this mechanism is `max_upload_size`.
 This is controlled by `synapse.media.maxUploadSize`.
 This is so that Ingress controller specific annotations can be adjusted to match.
+
+#### Worked example: disabling homeserver usage statistics
+
+By default ESS Community submits [homeserver usage statistics](https://element-hq.github.io/synapse/latest/usage/administration/monitoring/reporting_homeserver_usage_statistics.html).
+[`charts/matrix-stack/ci/fragments/synapse-disable-usage-statistics.yaml`] or below show how these can be disabled:
+
+```yml
+synapse:
+  additional:
+    disable-usage-statistics.yaml:
+      config: |
+        report_stats: false
+```
 
 ### Configuring Matrix Authentication Service
 
