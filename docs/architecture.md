@@ -1,6 +1,6 @@
 <!--
 Copyright 2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 -->
@@ -22,9 +22,10 @@ Synapse is a Matrix homeserver. It provides the core functionality of a Matrix s
 
 Synapse can be deployed as a multiple-workers deployment. Adding specialized workers will offload processes and traffic from the main process, and allow to handle more users without compromising performance. See the [Synapse Workers documentation](https://github.com/element-hq/synapse/blob/develop/docs/workers.md) for more informations.
 
-### Redis Pub/Sub
+### Valkey Pub/Sub & small cache
 
-Redis Pub/Sub allows Synapse to broadcast events between Synapse workers.
+Valkey Pub/Sub allows Synapse to broadcast events between Synapse workers.
+Valkey is also used as a small cache for Hookshot to make MatrixRTC restart-safe.
 
 ### HAproxy
 
@@ -65,4 +66,3 @@ The Chart provides a check-config hook that runs synapse's `synapse.config` comm
 ### Init Secrets Hook
 
 Init secrets allows the chart to generate random passwords with a Helm Hook without having to generate them beforehand. For a production deployment, you should save the generated secret somewhere to be able to recover it if needed.
-

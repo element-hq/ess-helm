@@ -51,5 +51,6 @@ templatable
 threepids
 towncrier
 Traefik
+Valkey
 Wifi
 zizmor
