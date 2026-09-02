@@ -16,6 +16,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 ## Added
 
 - Add support for `emptyDir.medium` configurability. (#1554)
+- Add `ephemeralStorages` configuration to all components having `emptyDir` volumes. This allows to configure `sizeLimit` for all of those volumes.
+
+  Note that `matrixTools` related volumes like `rendered-config` are handled globally at `matrixTools.ephemeralStorages.renderedConfig`. (#1545)
 
 ## Changed
 
@@ -68,9 +71,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 
   (#1539)
 - Make clearer which requests and limits are set by default vs omitted by default. (#1544)
-- Add `ephemeralStorages` configuration to all components having `emptyDir` volumes. This allows to configure `sizeLimit` for all of those volumes.
-
-  Note that `matrixTools` related volumes like `rendered-config` are handled globally at `matrixTools.ephemeralStorages.renderedConfig`. (#1545)
 - Remove `/tmp` emptyDir from Synapse pods. If your modules or configuration need a read-write access to /tmp, you should now use `synapse.extraVolumes` and `synapse.extraVolumeMounts` to add this mount point. (#1545)
 - Make the `dbid` Synapse uses in Redis explicit. (#1555)
 - Configure Redis against the MatrixRTC SFU given it is now deployed for MatrixRTC. (#1555)
