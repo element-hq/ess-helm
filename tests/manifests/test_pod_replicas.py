@@ -30,6 +30,12 @@ async def test_deployments_statefulsets_have_replicas_by_default(values, templat
         )
 
         if pod_template_details.manifest["kind"] == "Deployment":
+            if deployable_details.name == "redis":
+                assert manifest_spec["strategy"]["type"] == "Recreate"
+                assert "rollingUpdate" not in manifest_spec["strategy"]
+                continue
+
+            assert manifest_spec["strategy"]["type"] == "RollingUpdate"
             max_unavailable = manifest_spec["strategy"]["rollingUpdate"]["maxUnavailable"]
             if expected_replicas > 1:
                 assert max_unavailable == 1, (
@@ -64,6 +70,10 @@ async def test_deployments_statefulsets_respect_replicas(values, make_templates)
         )
 
         if pod_template_details.manifest["kind"] == "Deployment":
+            if deployable_details.name == "redis":
+                assert "rollingUpdate" not in manifest_spec["strategy"]
+                continue
+
             max_unavailable = manifest_spec["strategy"]["rollingUpdate"]["maxUnavailable"]
             if deployable_details.is_singleton:
                 assert max_unavailable == 0, (
