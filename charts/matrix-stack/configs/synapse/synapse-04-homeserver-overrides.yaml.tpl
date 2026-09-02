@@ -218,7 +218,7 @@ redis:
   use_tls: true
 {{- end }}
 {{- else }}
-  host: "{{ $root.Release.Name }}-redis.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}"
+  host: "{{ $root.Release.Name }}-valkey.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}"
   dbid: 0
 {{- end }}
 {{- if include "element-io.synapse.streamWriterWorkers" (dict "root" $root) | fromJsonArray }}

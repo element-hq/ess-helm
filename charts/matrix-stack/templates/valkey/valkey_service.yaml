@@ -4,26 +4,26 @@ Copyright 2026 Element Creations Ltd
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 
-{{- if (include "element-io.redis.internalRedisEnabled" (dict "root" $)) -}}
+{{- if (include "element-io.valkey.internalValkeyEnabled" (dict "root" $)) -}}
 {{- with (mustMergeOverwrite ($.Values.valkey | deepCopy) ($.Values.redis | deepCopy)) -}}
 apiVersion: v1
 kind: Service
 metadata:
   labels:
-    {{- include "element-io.redis.labels" (dict "root" $ "context" .) | nindent 4 }}
-  name: {{ $.Release.Name }}-redis
+    {{- include "element-io.valkey.labels" (dict "root" $ "context" .) | nindent 4 }}
+  name: {{ $.Release.Name }}-valkey
   namespace: {{ $.Release.Namespace }}
 spec:
   type: ClusterIP
   ipFamilyPolicy: PreferDualStack
   ports:
   - port: 6379
-    targetPort: redis
-    name: redis
+    targetPort: valkey
+    name: valkey
   - port: 9121
     targetPort: metrics
     name: metrics
   selector:
-    app.kubernetes.io/instance: "{{ $.Release.Name }}-redis"
+    app.kubernetes.io/instance: "{{ $.Release.Name }}-valkey"
 {{- end }}
 {{- end }}

@@ -4,7 +4,7 @@ Copyright 2026 Element Creations Ltd
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 
-{{- if (include "element-io.redis.internalRedisEnabled" (dict "root" $)) -}}
+{{- if (include "element-io.valkey.internalValkeyEnabled" (dict "root" $)) -}}
 {{- with (mustMergeOverwrite ($.Values.valkey | deepCopy) ($.Values.redis | deepCopy)) -}}
 {{- if $.Capabilities.APIVersions.Has "monitoring.coreos.com/v1/ServiceMonitor" }}
 {{- if .serviceMonitors.enabled }}
@@ -12,8 +12,8 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   labels:
-    {{- include "element-io.redis.labels" (dict "root" $ "context" .) | nindent 4 }}
-  name: {{ $.Release.Name }}-redis
+    {{- include "element-io.valkey.labels" (dict "root" $ "context" .) | nindent 4 }}
+  name: {{ $.Release.Name }}-valkey
   namespace: {{ $.Release.Namespace }}
 spec:
   endpoints:
@@ -32,7 +32,7 @@ spec:
     {{- end }}
   selector:
     matchLabels:
-      app.kubernetes.io/instance: {{ $.Release.Name }}-redis
+      app.kubernetes.io/instance: {{ $.Release.Name }}-valkey
 {{- end }}
 {{- end }}
 {{- end -}}

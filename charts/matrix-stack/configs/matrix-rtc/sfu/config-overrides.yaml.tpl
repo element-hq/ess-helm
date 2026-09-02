@@ -84,7 +84,7 @@ redis:
   password: ${SFU_REDIS_PASSWORD}
 {{- end }}
 {{- else }}
-  address: "{{ $root.Release.Name }}-redis.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:6379"
+  address: "{{ $root.Release.Name }}-valkey.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:6379"
   db: 3
 {{- end }}
 

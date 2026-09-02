@@ -551,7 +551,7 @@ all_components_details = [
         ephemeral_storages={"tmp": "tmp", "var-run": "varRun"},
     ),
     ComponentDetails(
-        name="redis",
+        name="valkey",
         values_file_path=ValuesFilePath.read_write("valkey"),
         is_shared_component=True,
         has_additional_config=False,
@@ -561,7 +561,7 @@ all_components_details = [
         has_ephemeral_storage=False,
         sidecars=(
             SidecarDetails(
-                name="redis-exporter",
+                name="valkey-exporter",
                 values_file_path=ValuesFilePath.read_write("valkey", "valkeyExporter"),
                 values_file_path_overrides={
                     # No manifests of its own, so no labels to set

@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 
 {{- $root := .root -}}
-{{- with required "redis.conf.tpl missing context" .context -}}
+{{- with required "valkey.conf.tpl missing context" .context -}}
 
 # Do not require a password
 protected-mode no
@@ -17,7 +17,7 @@ tcp-keepalive 300
 # Never close the connection
 timeout 0
 
-# We run the redis in a container so disable both of these
+# We run the Valkey in a container so disable both of these
 daemonize no
 supervised no
 
