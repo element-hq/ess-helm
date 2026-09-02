@@ -1,0 +1,19 @@
+{{- /*
+Copyright 2026 Element Creations Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+
+{{- if (include "element-io.valkey.internalValkeyEnabled" (dict "root" $)) -}}
+{{- with (mustMergeOverwrite ($.Values.valkey | deepCopy) ($.Values.redis | deepCopy)) -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    {{- include "element-io.valkey.labels" (dict "root" $ "context" .) | nindent 4 }}
+  name: {{ $.Release.Name }}-valkey
+  namespace: {{ $.Release.Namespace }}
+data:
+  {{- include "element-io.valkey.configmap-data" (dict "root" $ "context" .) | nindent 2 }}
+{{- end -}}
+{{- end -}}

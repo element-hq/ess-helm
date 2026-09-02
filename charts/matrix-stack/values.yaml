@@ -948,21 +948,21 @@ matrixRTC:
     ## Most settings are configurable but some settings are owned by the chart and can't overwritten
     additional: {}
 
-    ## Details of the external Redis to use
-    ## Does not need to be set if the internal Redis should be used
+    ## Details of the external Redis/Valkey to use
+    ## Does not need to be set if the internal Valkey should be used
     ## This is useful for production environments where you want to use
-    ## managed Redis services (AWS Elasticache, Azure Cache for Redis, etc.)
-    # redis:
-      ## Redis host
+    ## managed Redis/Valkey services (AWS Elasticache, Azure Cache for Redis, etc.)
+    # redisOrValkey:
+      ## Redis/Valkey host
       # host:
 
-      ## Redis port
+      ## Redis/Valkey port
       # port: 6379
 
-      ## Redis database number (0-15)
+      ## Redis/Valkey database number (0-15)
       # db: 0
 
-      ## Redis password (optional - many managed services require auth).
+      ## Redis/Valkey password (optional - many managed services require auth).
       ## It can either be provided inline in the Helm chart e.g.:
       ## password:
       ##   value: SecretValue
@@ -973,7 +973,7 @@ matrixRTC:
       ##   secretKey: key-in-secret
       # password: {}
 
-      ## Enable TLS for Redis connection
+      ## Enable TLS for Redis/Valkey connection
       # tls: false
 
     # Use 0 replicas to stop the SFU
@@ -2286,21 +2286,21 @@ hookshot:
   ##   secretKey: key-in-secret
   # passkey: {}
 
-  ## Details of the external Redis to use
-  ## Does not need to be set if the internal Redis should be used
+  ## Details of the external Redis/Valkey to use
+  ## Does not need to be set if the internal Valkey should be used
   ## This is useful for production environments where you want to use
-  ## managed Redis services (AWS Elasticache, Azure Cache for Redis, etc.)
-  # redis:
-    ## Redis host
+  ## managed Redis/Valkey services (AWS Elasticache, Azure Cache for Redis, etc.)
+  # redisOrValkey:
+    ## Redis/Valkey host
     # host:
 
-    ## Redis port
+    ## Redis/Valkey port
     # port: 6379
 
-    ## Redis database number (0-15)
+    ## Redis/Valkey database number (0-15)
     # db: 0
 
-    ## Redis password (optional - many managed services require auth).
+    ## Redis/Valkey password (optional - many managed services require auth).
     ## It can either be provided inline in the Helm chart e.g.:
     ## password:
     ##   value: SecretValue
@@ -2311,7 +2311,7 @@ hookshot:
     ##   secretKey: key-in-secret
     # password: {}
 
-    ## Enable TLS for Redis connection
+    ## Enable TLS for Redis/Valkey connection
     # tls: false
 
   ## How this ingress should be constructed
@@ -3818,13 +3818,13 @@ postgres:
       sizeLimit: 1Mi
       medium: Memory
 
-redis:
+valkey:
   # redis maxmemory and maxmemory-policy settings. See https://redis.io/docs/latest/develop/reference/eviction/
-  # This value should be updated with changes to Redis' memory requests and limits below
+  # This value should be updated with changes to Valkey's memory requests and limits below
   maxMemory: 40mb
   maxMemoryPolicy: allkeys-lru
 
-  # Use 0 replicas to stop Redis
+  # Use 0 replicas to stop Valkey
   replicas: 1
   # Details of the image to be used
   image:
@@ -3833,11 +3833,11 @@ redis:
     registry: docker.io
 
     ## The path in the registry where the container image is located
-    repository: library/redis
+    repository: valkey/valkey
 
     ## The tag of the container image to use.
     ## One of tag or digest must be provided.
-    tag: "7.4-alpine"
+    tag: "9.1-alpine"
 
     ## Container digest to use. Used to pull the image instead of the image tag if set
     ## The tag will still be set as the app.kubernetes.io/version label
@@ -3897,7 +3897,7 @@ redis:
   # Extra volumes to mount in , as a yaml array
   extraVolumeMounts: []
 
-  # Extra initContainers to add to Redis, as a yaml array
+  # Extra initContainers to add to Valkey, as a yaml array
   extraInitContainers: []
 
   ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
@@ -4088,7 +4088,7 @@ redis:
     ## Number of seconds after which the probe times out
     timeoutSeconds: 1
 
-  redisExporter:
+  valkeyExporter:
     # Details of the image to be used
     image:
       ## The host and (optional) port of the container image registry for this component.
@@ -4130,7 +4130,7 @@ redis:
         ## No CPU or ephemeral-storage limits by default
         # cpu:
         # ephemeral-storage:
-    # Extra volumes to mount in Redis Exporter, as a yaml array
+    # Extra volumes to mount in Valkey Exporter, as a yaml array
     extraVolumeMounts: []
 
     ## A subset of SecurityContext. ContainersSecurityContext holds pod-level security attributes and common container settings
@@ -4215,6 +4215,10 @@ redis:
 
       ## Number of seconds after which the probe times out
       timeoutSeconds: 1
+
+# Temporarily left for backwards compatibility with existing installations that override values here but the charts now sets no defaults
+# Everything will come from Valkey
+redis: {}
 
 synapse:
   enabled: true
@@ -4347,21 +4351,21 @@ synapse:
   ##   secret: existing-secret
   ##   secretKey: key-in-secret
   # macaroon: {}
-  ## Details of the external Redis to use
-  ## Does not need to be set if the internal Redis should be used
+  ## Details of the external Redis/Valkey to use
+  ## Does not need to be set if the internal Valkey should be used
   ## This is useful for production environments where you want to use
-  ## managed Redis services (AWS Elasticache, Azure Cache for Redis, etc.)
-  # redis:
-    ## Redis host
+  ## managed Redis/Valkey services (AWS Elasticache, Azure Cache for Redis, etc.)
+  # redisOrValkey:
+    ## Redis/Valkey host
     # host:
 
-    ## Redis port
+    ## Redis/Valkey port
     # port: 6379
 
-    ## Redis database number (0-15)
+    ## Redis/Valkey database number (0-15)
     # db: 0
 
-    ## Redis password (optional - many managed services require auth).
+    ## Redis/Valkey password (optional - many managed services require auth).
     ## It can either be provided inline in the Helm chart e.g.:
     ## password:
     ##   value: SecretValue
@@ -4372,7 +4376,7 @@ synapse:
     ##   secretKey: key-in-secret
     # password: {}
 
-    ## Enable TLS for Redis connection
+    ## Enable TLS for Redis/Valkey connection
     # tls: false
 
   ## Additional configuration to provide to all Synapse processes.

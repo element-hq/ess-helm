@@ -201,24 +201,26 @@ instance_map:
 {{- end }}
 {{- end }}
 
-{{- if or .redis $enabledWorkers }}
+{{- if or .redisOrValkey .redis $enabledWorkers }}
 
 redis:
   enabled: true
-{{- if .redis }}
-  host: "{{ tpl .redis.host $root }}"
-  port: {{ .redis.port | default 6379 }}
-{{- if .redis.db }}
-  dbid: {{ .redis.db }}
+{{- if or .redisOrValkey .redis }}
+{{- with coalesce .redisOrValkey .redis }}
+  host: "{{ tpl .host $root }}"
+  port: {{ .port | default 6379 }}
+{{- if .db }}
+  dbid: {{ .db }}
 {{- end }}
-{{- if .redis.password }}
+{{- if .password }}
   password: ${SYNAPSE_REDIS_PASSWORD}
 {{- end }}
-{{- if .redis.tls }}
+{{- if .tls }}
   use_tls: true
 {{- end }}
+{{- end }}
 {{- else }}
-  host: "{{ $root.Release.Name }}-redis.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}"
+  host: "{{ $root.Release.Name }}-valkey.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}"
   dbid: 0
 {{- end }}
 {{- if include "element-io.synapse.streamWriterWorkers" (dict "root" $root) | fromJsonArray }}

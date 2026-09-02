@@ -148,6 +148,9 @@
             "podIP"
           ]
         },
+        "redisOrValkey": {
+          "$ref": "file://common/redis.json"
+        },
         "redis": {
           "$ref": "file://common/redis.json"
         },

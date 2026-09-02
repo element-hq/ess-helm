@@ -50,7 +50,25 @@ env:
         )
       )
     }}
-{{- if $root.Values.matrixRTC.sfu.redis }}
+{{- if $root.Values.matrixRTC.sfu.redisOrValkey }}
+{{- if $root.Values.matrixRTC.sfu.redisOrValkey.password }}
+- name: SFU_REDIS_PASSWORD
+  value: >-
+    {{
+      printf "{{ readfile \"/secrets/%s\" | quote }}"
+        (
+          include "element-io.ess-library.provided-secret-path" (
+            dict "root" $root
+            "context" (dict
+              "secretPath" "matrixRTC.sfu.redisOrValkey.password"
+              "defaultSecretName" (include "element-io.matrix-rtc-sfu.secret-name" (dict "root" $root "context" .))
+              "defaultSecretKey" "REDIS_PASSWORD"
+            )
+          )
+        )
+    }}
+{{- end }}
+{{- else if $root.Values.matrixRTC.sfu.redis }}
 {{- if $root.Values.matrixRTC.sfu.redis.password }}
 - name: SFU_REDIS_PASSWORD
   value: >-
@@ -83,7 +101,7 @@ env:
 {{- end }}
 {{- end }}
 {{- end }}
-{{- with $root.Values.matrixRTC.sfu.redis }}
+{{- with coalesce $root.Values.matrixRTC.sfu.redisOrValkey $root.Values.matrixRTC.sfu.redis }}
 {{- if .password }}
 {{- if .password.secret }}
 {{ $configSecrets = append $configSecrets (tpl .password.secret $root) }}
@@ -129,10 +147,19 @@ user-{{ $key }}: {{ $prop.config | b64enc }}
 {{- end }}
 {{- end }}
 {{- end }}
-{{- with ($root.Values.matrixRTC.sfu.redis).password }}
+{{- if $root.Values.matrixRTC.sfu.redisOrValkey }}
+{{- with $root.Values.matrixRTC.sfu.redisOrValkey.password }}
+{{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "matrixRTC.sfu.redisOrValkey.password" "initIfAbsent" false)) -}}
+{{- with .value }}
+REDIS_PASSWORD: {{ . | b64enc | quote }}
+{{- end }}
+{{- end }}
+{{- else if $root.Values.matrixRTC.sfu.redis }}
+{{- with $root.Values.matrixRTC.sfu.redis.password }}
 {{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "matrixRTC.sfu.redis.password" "initIfAbsent" false)) -}}
 {{- with .value }}
 REDIS_PASSWORD: {{ . | b64enc | quote }}
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}

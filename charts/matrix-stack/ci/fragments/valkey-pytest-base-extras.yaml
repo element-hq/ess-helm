@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-synapse:
-  redis:
-    host: "external-redis.example.com"
-    port: 6379
+
+valkey:
+  podSecurityContext:
+    runAsGroup: 0

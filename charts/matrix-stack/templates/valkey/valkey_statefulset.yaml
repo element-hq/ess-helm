@@ -4,82 +4,82 @@ Copyright 2026 Element Creations Ltd
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 
-{{- if (include "element-io.redis.internalRedisEnabled" (dict "root" $)) -}}
-{{- with $.Values.redis -}}
+{{- if (include "element-io.valkey.internalValkeyEnabled" (dict "root" $)) -}}
+{{- with (mustMergeOverwrite ($.Values.valkey | deepCopy) ($.Values.redis | deepCopy)) -}}
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
 {{- with .annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
 {{- end }}
   labels:
-    {{- include "element-io.redis.labels" (dict "root" $ "context" (dict "image" .image "labels" .labels)) | nindent 4 }}
-    k8s.element.io/redis-config-hash: "{{ include "element-io.redis.configmap-data" (dict "root" $ "context" .) | sha1sum }}"
-  name: {{ $.Release.Name }}-redis
+    {{- include "element-io.valkey.labels" (dict "root" $ "context" (dict "image" .image "labels" .labels)) | nindent 4 }}
+    k8s.element.io/valkey-config-hash: "{{ include "element-io.valkey.configmap-data" (dict "root" $ "context" .) | sha1sum }}"
+  name: {{ $.Release.Name }}-valkey
   namespace: {{ $.Release.Namespace }}
 spec:
-  {{ include "element-io.ess-library.workloads.commonSpec" (dict "root" $ "context" (dict "nameSuffix" "redis" "kind" "Deployment" "componentValues" .)) | nindent 2 }}
+  {{ include "element-io.ess-library.workloads.commonSpec" (dict "root" $ "context" (dict "nameSuffix" "valkey" "kind" "StatefulSet" "componentValues" .)) | nindent 2 }}
   template:
     metadata:
       labels:
-        {{- include "element-io.redis.labels" (dict "root" $ "context" (dict "image" .image "labels" .labels "withChartVersion" false)) | nindent 8 }}
-        k8s.element.io/redis-config-hash: "{{ include "element-io.redis.configmap-data" (dict "root" $ "context" .) | sha1sum }}"
+        {{- include "element-io.valkey.labels" (dict "root" $ "context" (dict "image" .image "labels" .labels "withChartVersion" false)) | nindent 8 }}
+        k8s.element.io/valkey-config-hash: "{{ include "element-io.valkey.configmap-data" (dict "root" $ "context" .) | sha1sum }}"
 {{- with .annotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
 {{- end }}
     spec:
-{{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "redis" "kind" "Deployment")) | nindent 6 }}
+{{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "valkey" "kind" "StatefulSet")) | nindent 6 }}
 {{- with .extraInitContainers }}
       initContainers:
       {{- toYaml . | nindent 6 }}
 {{- end }}
       containers:
-      - name: redis
+      - name: valkey
         args:
-        - "/config/redis.conf"
+        - "/config/valkey.conf"
         {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" .image) | nindent 8 }}
 {{- with .containersSecurityContext }}
         securityContext:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-        {{- include "element-io.ess-library.pods.env" (dict "root" $ "context" (dict "componentValues" . "componentName" "redis")) | nindent 8 }}
+        {{- include "element-io.ess-library.pods.env" (dict "root" $ "context" (dict "componentValues" . "componentName" "valkey")) | nindent 8 }}
         ports:
         - containerPort: 6379
-          name: redis
+          name: valkey
           protocol: TCP
         startupProbe: {{- include "element-io.ess-library.pods.probe" .startupProbe | nindent 10 }}
           tcpSocket:
-            port: redis
+            port: valkey
         livenessProbe: {{- include "element-io.ess-library.pods.probe" .livenessProbe | nindent 10 }}
           tcpSocket:
-            port: redis
+            port: valkey
         readinessProbe: {{- include "element-io.ess-library.pods.probe" .readinessProbe | nindent 10 }}
           exec:
             command:
-            - redis-cli
+            - valkey-cli
             - ping
 {{- with .resources }}
         resources:
           {{- toYaml . | nindent 10 }}
 {{- end }}
         volumeMounts:
-        - mountPath: /config/redis.conf
+        - mountPath: /config/valkey.conf
           name: config
           readOnly: true
-          subPath: redis.conf
+          subPath: valkey.conf
 {{- range .extraVolumeMounts }}
         - {{ (. | toYaml) | nindent 10 }}
 {{- end }}
-{{- with .redisExporter }}
-      - name: redis-exporter
+{{- with (mustMergeOverwrite (.valkeyExporter | deepCopy) ((.redisExporter | default dict) | deepCopy)) }}
+      - name: valkey-exporter
         {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" .image) | nindent 8 }}
 {{- with .containersSecurityContext }}
         securityContext:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-        {{- include "element-io.ess-library.pods.env" (dict "root" $ "context" (dict "componentValues" . "componentName" "redis-exporter")) | nindent 8 }}
+        {{- include "element-io.ess-library.pods.env" (dict "root" $ "context" (dict "componentValues" . "componentName" "valkey-exporter")) | nindent 8 }}
         ports:
         - name: metrics
           containerPort: 9121
@@ -108,7 +108,7 @@ spec:
 {{- end }}
       volumes:
       - configMap:
-          name: "{{ $.Release.Name }}-redis"
+          name: "{{ $.Release.Name }}-valkey"
           defaultMode: 420
         name: config
 {{- range .extraVolumes }}

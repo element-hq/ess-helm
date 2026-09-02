@@ -69,7 +69,7 @@ async def test_service_monitor_defaults(templates):
         component_name = template["metadata"]["labels"]["app.kubernetes.io/name"]
         if component_name == "synapse":
             assert len(template["spec"]["endpoints"][0]["relabelings"]) == 2
-        elif component_name == "redis":
+        elif component_name == "valkey":
             assert len(template["spec"]["endpoints"][0]["relabelings"]) == 1
         else:
             assert "relabelings" not in template["spec"]["endpoints"][0]
@@ -109,7 +109,7 @@ async def test_service_monitors_allow_adding_relabelings(values, make_templates)
         if component_name == "synapse":
             assert len(template["spec"]["endpoints"][0]["relabelings"]) == 3
             assert_relabeling(template["spec"]["endpoints"][0]["relabelings"][2])
-        elif component_name == "redis":
+        elif component_name == "valkey":
             assert len(template["spec"]["endpoints"][0]["relabelings"]) == 2
             assert_relabeling(template["spec"]["endpoints"][0]["relabelings"][1])
         else:

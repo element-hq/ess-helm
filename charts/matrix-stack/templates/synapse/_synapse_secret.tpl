@@ -47,10 +47,19 @@ data:
 {{- with (.signingKey).value }}
   SIGNING_KEY: {{ .| b64enc }}
 {{- end }}
-{{- with (.redis).password }}
+{{- if .redisOrValkey }}
+{{- with .redisOrValkey.password }}
+{{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "synapse.redisOrValkey.password" "initIfAbsent" false)) -}}
+{{- with .value }}
+  REDIS_PASSWORD: {{ . | b64enc | quote }}
+{{- end }}
+{{- end }}
+{{- else if .redis }}
+{{- with .redis.password }}
 {{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "synapse.redis.password" "initIfAbsent" false)) -}}
 {{- with .value }}
   REDIS_PASSWORD: {{ . | b64enc | quote }}
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}

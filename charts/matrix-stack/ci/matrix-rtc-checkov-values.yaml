@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# source_fragments: init-secrets-checkov.yaml init-secrets-minimal.yaml matrix-rtc-checkov.yaml matrix-rtc-minimal.yaml redis-checkov.yaml
+# source_fragments: init-secrets-checkov.yaml init-secrets-minimal.yaml matrix-rtc-checkov.yaml matrix-rtc-minimal.yaml valkey-checkov.yaml
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
 # postgres don't have any required properties to be set and defaults to enabled
@@ -32,12 +32,12 @@ matrixRTC:
       checkov.io/skip1: CKV_K8S_11=We deliberately don't set CPU limits. Pod is BestEffort not Guaranteed
       checkov.io/skip2: CKV_K8S_43=No digests
       checkov.io/skip3: CKV2_K8S_6=No network policy yet
-redis:
+synapse:
+  enabled: false
+valkey:
   annotations:
     checkov.io/skip1: CKV_K8S_11=We deliberately don't set CPU limits. Pod is BestEffort not Guaranteed
     checkov.io/skip2: CKV_K8S_43=No digests
     checkov.io/skip3: CKV2_K8S_6=No network policy yet
-synapse:
-  enabled: false
 wellKnownDelegation:
   enabled: false
