@@ -19,10 +19,14 @@ selector:
     app.kubernetes.io/instance: {{ $root.Release.Name }}-{{ $nameSuffix }}
 {{- if eq "Deployment" $kind }}
 strategy:
+{{- if ne "redis" $nameSuffix }}
   type: RollingUpdate
   rollingUpdate:
     maxSurge: 2
     maxUnavailable: {{ min (max 0 (sub .replicas 1)) 1 }}
+{{- else }}
+  type: Recreate
+{{- end }}
 {{- else }}
 serviceName: {{ $root.Release.Name }}-{{ $serviceNameSuffix }}
 updateStrategy:
