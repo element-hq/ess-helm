@@ -7,6 +7,90 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.9.0 (2026-09-02)
+
+## Removed / Breaking Changes
+
+- Restrict MatrixRTC authoriser to 1 replica for reliable delayed events support. (#1546)
+
+## Added
+
+- Add support for `emptyDir.medium` configurability. (#1554)
+
+## Changed
+
+- Upgrade `matrix-tools` to to 0.10.0.
+
+  - Introduces a new `randbytes` init-secrets generator, which replaces the `hex32` generator.
+  - Introduces a new `x25519` init-secrets generator, supporting `der` and `paddedBase64` outputs.
+
+  (#1528, #1529, #1533, #1543)
+- Upgrade Element Web to v1.12.27.
+
+  Highlights:
+  - Room list: add settings to consider activity as unread
+  - Render knock membership events in notifications
+
+  Full Changelogs:
+  - [v1.12.27](https://github.com/element-hq/element-web/releases/tag/v1.12.27)
+
+  (#1531)
+- Upgrade HAProxy to v3.4.
+
+  Full Changelogs:
+  - [v3.4](https://www.haproxy.com/blog/announcing-haproxy-3-4)
+
+  (#1536)
+- Upgrade Postgres Exporter to v0.20.1.
+
+  Full Changelogs:
+  - [v0.19.0](https://github.com/prometheus-community/postgres_exporter/releases/tag/v0.19.0)
+  - [v0.19.1](https://github.com/prometheus-community/postgres_exporter/releases/tag/v0.19.1)
+  - [v0.20.0](https://github.com/prometheus-community/postgres_exporter/releases/tag/v0.20.0)
+  - [v0.20.1](https://github.com/prometheus-community/postgres_exporter/releases/tag/v0.20.1)
+
+  (#1537)
+- Upgrade Redis Exporter to v1.90.0.
+
+  Full Changelogs:
+  - [v1.85.0](https://github.com/oliver006/redis_exporter/releases/tag/v1.85.0)
+  - [v1.86.0](https://github.com/oliver006/redis_exporter/releases/tag/v1.86.0)
+  - [v1.87.0](https://github.com/oliver006/redis_exporter/releases/tag/v1.87.0)
+  - [v1.88.0](https://github.com/oliver006/redis_exporter/releases/tag/v1.88.0)
+  - [v1.89.0](https://github.com/oliver006/redis_exporter/releases/tag/v1.89.0)
+  - [v1.90.0](https://github.com/oliver006/redis_exporter/releases/tag/v1.90.0)
+
+  (#1538, #1552)
+- Upgrade MatrixRTC SFU to v1.13.6.
+
+  Full Changelogs:
+  - [v1.13.6](https://github.com/livekit/livekit/releases/tag/v1.13.6)
+
+  (#1539)
+- Make clearer which requests and limits are set by default vs omitted by default. (#1544)
+- Add `ephemeralStorages` configuration to all components having `emptyDir` volumes. This allows to configure `sizeLimit` for all of those volumes.
+
+  Note that `matrixTools` related volumes like `rendered-config` are handled globally at `matrixTools.ephemeralStorages.renderedConfig`. (#1545)
+- Remove `/tmp` emptyDir from Synapse pods. If your modules or configuration need a read-write access to /tmp, you should now use `synapse.extraVolumes` and `synapse.extraVolumeMounts` to add this mount point. (#1545)
+- Make the `dbid` Synapse uses in Redis explicit. (#1555)
+- Configure Redis against the MatrixRTC SFU given it is now deployed for MatrixRTC. (#1555)
+- Configure Redis against the MatrixRTC authoriser to prevent calls from failing after restarting it.
+
+  Using an external Redis with the MatrixRTC authoriser is not yet supported. (#1555)
+- Move Hookshot to a distinct `dbid` on the shared Redis. (#1555)
+
+## Fixed
+
+- Fix manifests rendering empty `annotations` fields when no pod annotations are configured. (#1540, #1542)
+
+## Internal
+
+- Use `element-io.synapse.ingress.additionalPaths` helper instead of `synapse.ingress.additionalPaths` in `haproxy-partial.cfg`. (#1534)
+- Remove leading newlines from values files fragments. (#1541)
+- CI: fix annotations test not looking at `Pod` annotations. (#1542)
+- CI: Fix deprecation warning about `aiohttp` authentication headers. (#1553)
+
+
 # ESS Community Helm Chart 26.8.1 (2026-08-21)
 
 ## Removed / Breaking Changes
