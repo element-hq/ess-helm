@@ -3818,13 +3818,13 @@ postgres:
       sizeLimit: 1Mi
       medium: Memory
 
-redis:
+valkey:
   # redis maxmemory and maxmemory-policy settings. See https://redis.io/docs/latest/develop/reference/eviction/
-  # This value should be updated with changes to Redis' memory requests and limits below
+  # This value should be updated with changes to Valkey's memory requests and limits below
   maxMemory: 40mb
   maxMemoryPolicy: allkeys-lru
 
-  # Use 0 replicas to stop Redis
+  # Use 0 replicas to stop Valkey
   replicas: 1
   # Details of the image to be used
   image:
@@ -3897,7 +3897,7 @@ redis:
   # Extra volumes to mount in , as a yaml array
   extraVolumeMounts: []
 
-  # Extra initContainers to add to Redis, as a yaml array
+  # Extra initContainers to add to Valkey, as a yaml array
   extraInitContainers: []
 
   ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
@@ -4088,7 +4088,7 @@ redis:
     ## Number of seconds after which the probe times out
     timeoutSeconds: 1
 
-  redisExporter:
+  valkeyExporter:
     # Details of the image to be used
     image:
       ## The host and (optional) port of the container image registry for this component.
@@ -4130,7 +4130,7 @@ redis:
         ## No CPU or ephemeral-storage limits by default
         # cpu:
         # ephemeral-storage:
-    # Extra volumes to mount in Redis Exporter, as a yaml array
+    # Extra volumes to mount in Valkey Exporter, as a yaml array
     extraVolumeMounts: []
 
     ## A subset of SecurityContext. ContainersSecurityContext holds pod-level security attributes and common container settings
@@ -4215,6 +4215,10 @@ redis:
 
       ## Number of seconds after which the probe times out
       timeoutSeconds: 1
+
+# Temporarily left for backwards compatibility with existing installations that override values here but the charts now sets no defaults
+# Everything will come from Valkey
+redis: {}
 
 synapse:
   enabled: true

@@ -552,7 +552,7 @@ all_components_details = [
     ),
     ComponentDetails(
         name="redis",
-        values_file_path=ValuesFilePath.read_write("redis"),
+        values_file_path=ValuesFilePath.read_write("valkey"),
         is_shared_component=True,
         has_additional_config=False,
         has_ingress=False,
@@ -562,11 +562,11 @@ all_components_details = [
         sidecars=(
             SidecarDetails(
                 name="redis-exporter",
-                values_file_path=ValuesFilePath.read_write("redis", "redisExporter"),
+                values_file_path=ValuesFilePath.read_write("valkey", "valkeyExporter"),
                 values_file_path_overrides={
                     # No manifests of its own, so no labels to set
                     PropertyType.Labels: ValuesFilePath.not_supported(),
-                    PropertyType.Replicas: ValuesFilePath.read_elsewhere("redis.replicas"),
+                    PropertyType.Replicas: ValuesFilePath.read_elsewhere("valkey.replicas"),
                 },
                 has_additional_config=False,
                 has_ingress=False,

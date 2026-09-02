@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 
 {{- if (include "element-io.redis.internalRedisEnabled" (dict "root" $)) -}}
-{{- with $.Values.redis -}}
+{{- with (mustMergeOverwrite ($.Values.valkey | deepCopy) ($.Values.redis | deepCopy)) -}}
 {{- if $.Capabilities.APIVersions.Has "monitoring.coreos.com/v1/ServiceMonitor" }}
 {{- if .serviceMonitors.enabled }}
 apiVersion: monitoring.coreos.com/v1

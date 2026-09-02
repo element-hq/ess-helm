@@ -5,11 +5,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 #}
 
 # redis maxmemory and maxmemory-policy settings. See https://redis.io/docs/latest/develop/reference/eviction/
-# This value should be updated with changes to Redis' memory requests and limits below
+# This value should be updated with changes to Valkey's memory requests and limits below
 maxMemory: 40mb
 maxMemoryPolicy: allkeys-lru
 
-# Use 0 replicas to stop Redis
+# Use 0 replicas to stop Valkey
 replicas: 1
 
 {{- sub_schema_values.image(registry='docker.io', repository='valkey/valkey', tag='9.1-alpine') }}
@@ -19,7 +19,7 @@ replicas: 1
 {{- sub_schema_values.extraEnv() }}
 {{- sub_schema_values.extraVolumes(name) }}
 {{- sub_schema_values.extraVolumeMounts(name) }}
-{{- sub_schema_values.extraInitContainers("Redis") }}
+{{- sub_schema_values.extraInitContainers("Valkey") }}
 {{- sub_schema_values.nodeSelector() }}
 {{- sub_schema_values.priorityClassName() }}
 {{- sub_schema_values.schedulerName() }}
@@ -35,10 +35,10 @@ replicas: 1
 {{- sub_schema_values.probe("readiness") }}
 {{- sub_schema_values.probe("startup", failureThreshold=5) }}
 
-redisExporter:
+valkeyExporter:
   {{- sub_schema_values.image(registry='ghcr.io', repository='oliver006/redis_exporter', tag='v1.90.0') | indent(2) }}
   {{- sub_schema_values.resources(requests_memory='10Mi', requests_cpu='10m', limits_memory='50Mi')| indent(2) }}
-  {{- sub_schema_values.extraVolumeMounts("Redis Exporter") | indent(2) }}
+  {{- sub_schema_values.extraVolumeMounts("Valkey Exporter") | indent(2) }}
   {{- sub_schema_values.containersSecurityContext() | indent(2) }}
   {{- sub_schema_values.extraEnv() | indent(2) }}
   {{- sub_schema_values.probe("liveness", periodSeconds=6, timeoutSeconds=2) | indent(2) }}

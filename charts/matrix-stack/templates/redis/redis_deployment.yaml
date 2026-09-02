@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 
 {{- if (include "element-io.redis.internalRedisEnabled" (dict "root" $)) -}}
-{{- with $.Values.redis -}}
+{{- with (mustMergeOverwrite ($.Values.valkey | deepCopy) ($.Values.redis | deepCopy)) -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -72,7 +72,7 @@ spec:
 {{- range .extraVolumeMounts }}
         - {{ (. | toYaml) | nindent 10 }}
 {{- end }}
-{{- with .redisExporter }}
+{{- with (mustMergeOverwrite (.valkeyExporter | deepCopy) ((.redisExporter | default dict) | deepCopy)) }}
       - name: redis-exporter
         {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" .image) | nindent 8 }}
 {{- with .containersSecurityContext }}
