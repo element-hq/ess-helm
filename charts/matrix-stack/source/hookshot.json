@@ -19,6 +19,9 @@
       "type": "boolean",
       "description": "Experimental: Enable encryption support"
     },
+    "redisOrValkey": {
+      "$ref": "file://common/redis.json"
+    },
     "redis": {
       "$ref": "file://common/redis.json"
     },

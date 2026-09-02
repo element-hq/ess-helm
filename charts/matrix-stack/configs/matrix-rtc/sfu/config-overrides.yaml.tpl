@@ -75,13 +75,15 @@ turn:
 {{- end }}
 
 redis:
-{{- if .redis }}
-  address: {{ tpl .redis.host $root }}:{{ .redis.port | default 6379 }}
-{{- with .redis.db }}
+{{- if or .redisOrValkey .redis }}
+{{- with coalesce .redisOrValkey .redis }}
+  address: {{ tpl .host $root }}:{{ .port | default 6379 }}
+{{- with .db }}
   db: {{ . }}
 {{- end }}
-{{- if .redis.password }}
+{{- if .password }}
   password: ${SFU_REDIS_PASSWORD}
+{{- end }}
 {{- end }}
 {{- else }}
   address: "{{ $root.Release.Name }}-valkey.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:6379"

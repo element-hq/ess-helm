@@ -426,7 +426,7 @@ networking:
 {{ (credential("PostgreSQL password", "password") | indent(2)) }}
 {%- endmacro %}
 
-{% macro redisOrValkey(key="redis") %}
+{% macro redisOrValkey(key="redisOrValkey") %}
 ## Details of the external Redis/Valkey to use
 ## Does not need to be set if the internal Valkey should be used
 ## This is useful for production environments where you want to use

@@ -952,7 +952,7 @@ matrixRTC:
     ## Does not need to be set if the internal Valkey should be used
     ## This is useful for production environments where you want to use
     ## managed Redis/Valkey services (AWS Elasticache, Azure Cache for Redis, etc.)
-    # redis:
+    # redisOrValkey:
       ## Redis/Valkey host
       # host:
 
@@ -2290,7 +2290,7 @@ hookshot:
   ## Does not need to be set if the internal Valkey should be used
   ## This is useful for production environments where you want to use
   ## managed Redis/Valkey services (AWS Elasticache, Azure Cache for Redis, etc.)
-  # redis:
+  # redisOrValkey:
     ## Redis/Valkey host
     # host:
 
@@ -4355,7 +4355,7 @@ synapse:
   ## Does not need to be set if the internal Valkey should be used
   ## This is useful for production environments where you want to use
   ## managed Redis/Valkey services (AWS Elasticache, Azure Cache for Redis, etc.)
-  # redis:
+  # redisOrValkey:
     ## Redis/Valkey host
     # host:
 

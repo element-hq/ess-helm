@@ -195,8 +195,10 @@ responsibleForMedia
 {{- with (.signingKey).secret -}}
 {{ $configSecrets = append $configSecrets (tpl . $root) }}
 {{- end -}}
-{{- with ((.redis).password).secret }}
+{{- with coalesce .redisOrValkey .redis }}
+{{- with (.password).secret }}
 {{ $configSecrets = append $configSecrets (tpl . $root) }}
+{{- end }}
 {{- end }}
 {{- with .additional -}}
 {{- range $key := (. | keys | uniq | sortAlpha) -}}
