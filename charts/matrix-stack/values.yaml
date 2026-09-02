@@ -948,21 +948,21 @@ matrixRTC:
     ## Most settings are configurable but some settings are owned by the chart and can't overwritten
     additional: {}
 
-    ## Details of the external Redis to use
-    ## Does not need to be set if the internal Redis should be used
+    ## Details of the external Redis/Valkey to use
+    ## Does not need to be set if the internal Valkey should be used
     ## This is useful for production environments where you want to use
-    ## managed Redis services (AWS Elasticache, Azure Cache for Redis, etc.)
+    ## managed Redis/Valkey services (AWS Elasticache, Azure Cache for Redis, etc.)
     # redis:
-      ## Redis host
+      ## Redis/Valkey host
       # host:
 
-      ## Redis port
+      ## Redis/Valkey port
       # port: 6379
 
-      ## Redis database number (0-15)
+      ## Redis/Valkey database number (0-15)
       # db: 0
 
-      ## Redis password (optional - many managed services require auth).
+      ## Redis/Valkey password (optional - many managed services require auth).
       ## It can either be provided inline in the Helm chart e.g.:
       ## password:
       ##   value: SecretValue
@@ -973,7 +973,7 @@ matrixRTC:
       ##   secretKey: key-in-secret
       # password: {}
 
-      ## Enable TLS for Redis connection
+      ## Enable TLS for Redis/Valkey connection
       # tls: false
 
     # Use 0 replicas to stop the SFU
@@ -2286,21 +2286,21 @@ hookshot:
   ##   secretKey: key-in-secret
   # passkey: {}
 
-  ## Details of the external Redis to use
-  ## Does not need to be set if the internal Redis should be used
+  ## Details of the external Redis/Valkey to use
+  ## Does not need to be set if the internal Valkey should be used
   ## This is useful for production environments where you want to use
-  ## managed Redis services (AWS Elasticache, Azure Cache for Redis, etc.)
+  ## managed Redis/Valkey services (AWS Elasticache, Azure Cache for Redis, etc.)
   # redis:
-    ## Redis host
+    ## Redis/Valkey host
     # host:
 
-    ## Redis port
+    ## Redis/Valkey port
     # port: 6379
 
-    ## Redis database number (0-15)
+    ## Redis/Valkey database number (0-15)
     # db: 0
 
-    ## Redis password (optional - many managed services require auth).
+    ## Redis/Valkey password (optional - many managed services require auth).
     ## It can either be provided inline in the Helm chart e.g.:
     ## password:
     ##   value: SecretValue
@@ -2311,7 +2311,7 @@ hookshot:
     ##   secretKey: key-in-secret
     # password: {}
 
-    ## Enable TLS for Redis connection
+    ## Enable TLS for Redis/Valkey connection
     # tls: false
 
   ## How this ingress should be constructed
@@ -4351,21 +4351,21 @@ synapse:
   ##   secret: existing-secret
   ##   secretKey: key-in-secret
   # macaroon: {}
-  ## Details of the external Redis to use
-  ## Does not need to be set if the internal Redis should be used
+  ## Details of the external Redis/Valkey to use
+  ## Does not need to be set if the internal Valkey should be used
   ## This is useful for production environments where you want to use
-  ## managed Redis services (AWS Elasticache, Azure Cache for Redis, etc.)
+  ## managed Redis/Valkey services (AWS Elasticache, Azure Cache for Redis, etc.)
   # redis:
-    ## Redis host
+    ## Redis/Valkey host
     # host:
 
-    ## Redis port
+    ## Redis/Valkey port
     # port: 6379
 
-    ## Redis database number (0-15)
+    ## Redis/Valkey database number (0-15)
     # db: 0
 
-    ## Redis password (optional - many managed services require auth).
+    ## Redis/Valkey password (optional - many managed services require auth).
     ## It can either be provided inline in the Helm chart e.g.:
     ## password:
     ##   value: SecretValue
@@ -4376,7 +4376,7 @@ synapse:
     ##   secretKey: key-in-secret
     # password: {}
 
-    ## Enable TLS for Redis connection
+    ## Enable TLS for Redis/Valkey connection
     # tls: false
 
   ## Additional configuration to provide to all Synapse processes.

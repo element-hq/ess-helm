@@ -5472,7 +5472,7 @@
               "properties": {
                 "host": {
                   "type": "string",
-                  "description": "Redis host address"
+                  "description": "Redis/Valkey host address"
                 },
                 "port": {
                   "type": "integer",
@@ -11850,7 +11850,7 @@
           "properties": {
             "host": {
               "type": "string",
-              "description": "Redis host address"
+              "description": "Redis/Valkey host address"
             },
             "port": {
               "type": "integer",
@@ -23193,7 +23193,7 @@
           "properties": {
             "host": {
               "type": "string",
-              "description": "Redis host address"
+              "description": "Redis/Valkey host address"
             },
             "port": {
               "type": "integer",
