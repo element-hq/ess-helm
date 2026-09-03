@@ -227,9 +227,6 @@
     "ephemeralStorages": {
       "type": "object",
       "properties": {
-        "media": {
-          "$ref": "file://common/ephemeralStorage.json"
-        },
         "nonMediaTmp": {
           "$ref": "file://common/ephemeralStorage.json"
         }

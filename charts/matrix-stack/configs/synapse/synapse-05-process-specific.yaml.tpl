@@ -82,8 +82,12 @@ worker_listeners:
 
 {{- $enabledWorkers := (include "element-io.synapse.enabledWorkers" (dict "root" $root)) | fromJson }}
 {{- if (include "element-io.synapse.process.responsibleForMedia" (dict "root" $root "context" (dict "processType" .processType "enabledWorkerTypes" (keys $enabledWorkers)))) }}
+# This is still required despite media_storage_providers as otherwise Synapse attempts to mkdir media_store at the root of the container
+media_store_path: "/media/media_store"
 enable_media_repo: true
 {{- else }}
+# This is still required despite media_storage_providers as otherwise Synapse attempts to mkdir media_store at the root of the container
+media_store_path: "/tmp/media_store"
 enable_local_media_storage: false
 {{- end }}
 {{- end }}

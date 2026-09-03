@@ -161,8 +161,6 @@ federation_sender_instances:
 send_federation: true
 {{- end }}
 
-# This is still required despite media_storage_providers as otherwise Synapse attempts to mkdir media_store at the root of the container
-media_store_path: "/media/media_store"
 max_upload_size: "{{ .media.maxUploadSize }}"
 {{- if dig "media-repository" "enabled" false .workers }}
 media_instance_running_background_jobs: "{{ $root.Release.Name }}-synapse-{{- include "element-io.synapse.process.workerTypeName" (dict "root" $root "context" "media-repository") }}-0"
