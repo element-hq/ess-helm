@@ -109,6 +109,12 @@ async def upload_media(
 
     params = {"filename": filename}
 
+    # Workaround to the fact that aiohttp hardcodes sending a chuncked upload
+    # when it receives an async iterator
+    # See https://github.com/fsspec/filesystem_spec/issues/1390#issuecomment-1765886388
+    payload = aiohttp.payload.AsyncIterablePayload(_generate_random_bytes(file_size))
+    payload._size = file_size
+
     async with (
         aiohttp_client(ssl_context) as client,
         client.post(
@@ -116,7 +122,7 @@ async def upload_media(
             server_hostname=synapse_fqdn,
             headers=headers,
             params=params,
-            data=aiohttp.payload.AsyncIterablePayload(_generate_random_bytes(file_size), size=file_size),
+            data=payload,
         ) as response,
     ):
         response_json = await response.json()
