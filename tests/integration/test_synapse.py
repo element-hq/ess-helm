@@ -4,15 +4,15 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 import asyncio
-import hashlib
 import ipaddress
+import os
 import re
 import uuid
-from pathlib import Path
 
 import aiohttp
 import pyhelm3
 import pytest
+import semver
 from lightkube import AsyncClient
 
 from .fixtures import ESSData, User
@@ -222,6 +222,12 @@ async def test_routes_to_synapse_workers_correctly(
 
 
 @pytest.mark.skipif(value_file_has("synapse.enabled", False), reason="Synapse not deployed")
+@pytest.mark.xfail(
+    semver.Version.is_valid(os.environ.get("MATRIX_TEST_FROM_REF", ""))
+    and semver.VersionInfo.parse(os.environ.get("MATRIX_TEST_FROM_REF", "")).compare("26.9.0") == 0
+    and os.environ.get("PYTEST_CI_FIRST_STEP", "") == "1",
+    reason="26.9.0 introduced a regression preventing uploads larger than 100KB to succeed",
+)
 @pytest.mark.parametrize("users", [(User(name="media-upload-unauth"),)], indirect=True)
 @pytest.mark.asyncio_cooperative
 async def test_synapse_media_upload_fetch_authenticated(
@@ -232,14 +238,12 @@ async def test_synapse_media_upload_fetch_authenticated(
 ):
     user_access_token = users[0].access_token
 
-    filepath = Path(__file__).parent.resolve() / Path("artifacts/files/minimal.png")
-    with open(filepath, "rb") as file:
-        source_sha256 = hashlib.file_digest(file, "sha256").hexdigest()
-
-    content_upload_json = await upload_media(
+    content_upload_json, source_sha256 = await upload_media(
         synapse_fqdn=f"synapse.{generated_data.server_name}",
         user_access_token=user_access_token,
-        file_path=filepath,
+        # We upload a 200KB file to make sure it successfully uploads with tmp dirs
+        file_size=200 * 1024,
+        filename="randombytes.bin",
         ssl_context=ssl_context,
     )
 

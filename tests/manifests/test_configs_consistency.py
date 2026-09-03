@@ -349,8 +349,11 @@ class ConfigMapPathConsumer(PathConsumer):
     data: dict[str, str] = field(default_factory=dict)
 
     @classmethod
-    def from_configmap(cls, configmap):
-        return cls(data=get_or_empty(configmap, "data"))
+    def from_configmap(cls, configmap, subpath=None):
+        data = get_or_empty(configmap, "data")
+        if data and subpath:
+            data = {subpath: data[subpath]}
+        return cls(data)
 
     def path_is_used_in_content(self, path) -> bool:
         return any(find_path_in_content(path, [content]) for _, content in self.data.items())
@@ -564,7 +567,9 @@ class ValidatedContainerConfig(ValidatedConfig):
                 if not is_matrix_tools_command(container_spec, "render-config"):
                     # We only consume ConfigMaps in render-config
                     # We do not need a SecretPathConsumer as we do not have configuration stored in secrets
-                    validated_config.paths_consumers.append(ConfigMapPathConsumer.from_configmap(configmap))
+                    validated_config.paths_consumers.append(
+                        ConfigMapPathConsumer.from_configmap(configmap, volume_mount.get("subPath"))
+                    )
             elif "emptyDir" in current_volume:
                 # An empty dir can be mounted multiple times on a container if using subPath
                 # So we need to keep track of them, create them without any rendered output

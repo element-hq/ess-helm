@@ -258,11 +258,11 @@ env:
 04-homeserver-overrides.yaml: |
 {{- (tpl ($root.Files.Get "configs/synapse/synapse-04-homeserver-overrides.yaml.tpl") (dict "root" $root "context" (mustMergeOverwrite ($root.Values.synapse | deepCopy) (dict "isHook" $isHook)))) | nindent 2 }}
 05-main.yaml: |
-{{- (tpl ($root.Files.Get "configs/synapse/synapse-05-process-specific.yaml.tpl") (dict "root" $root "context" (dict "processType" "main"))) | nindent 2 }}
+{{- (tpl ($root.Files.Get "configs/synapse/synapse-05-process-specific.yaml.tpl") (dict "root" $root "context" (dict "processType" "main" "isHook" $isHook))) | nindent 2 }}
 {{- if not $isHook }}
 {{- range $workerType, $workerDetails := (include "element-io.synapse.enabledWorkers" (dict "root" $root)) | fromJson }}
 05-{{ $workerType }}.yaml: |
-{{- (tpl ($root.Files.Get "configs/synapse/synapse-05-process-specific.yaml.tpl") (dict "root" $root "context" (dict "processType" $workerType))) | nindent 2 }}
+{{- (tpl ($root.Files.Get "configs/synapse/synapse-05-process-specific.yaml.tpl") (dict "root" $root "context" (dict "processType" $workerType "isHook" $isHook))) | nindent 2 }}
 {{- end }}
 {{- end }}
 log_config.yaml: |

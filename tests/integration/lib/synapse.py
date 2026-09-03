@@ -1,12 +1,12 @@
 # Copyright 2024-2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
 import hashlib
 import hmac
-import mimetypes
-from pathlib import Path
+import os
+from collections.abc import AsyncIterator
 from ssl import SSLContext
 
 import aiohttp
@@ -89,33 +89,47 @@ async def create_synapse_user(
     return response["access_token"]
 
 
-async def upload_media(synapse_fqdn: str, user_access_token: str, file_path: Path, ssl_context: SSLContext):
+async def upload_media(
+    synapse_fqdn: str, user_access_token: str, file_size: int, filename: str, ssl_context: SSLContext
+):
     headers = {}
     headers["Authorization"] = f"Bearer {user_access_token}"
     headers["Host"] = synapse_fqdn
 
-    content_type, _ = mimetypes.guess_type(file_path)
-    if not content_type:
-        content_type = "application/octet-stream"
+    sha256_hash: hashlib._Hash = hashlib.sha256()
 
-    params = {"filename": file_path.name}
+    async def _generate_random_bytes(size_in_bytes: int, chunk_size: int = 4096) -> AsyncIterator[bytes]:
+        nonlocal sha256_hash
+        remaining = size_in_bytes
+        while remaining > 0:
+            chunk = os.urandom(min(chunk_size, remaining))
+            sha256_hash.update(chunk)
+            yield chunk
+            remaining -= len(chunk)
 
-    with open(file_path, "rb") as f:
-        async with (
-            aiohttp_client(ssl_context) as client,
-            client.post(
-                "https://127.0.0.1/_matrix/media/v3/upload",
-                server_hostname=synapse_fqdn,
-                headers=headers,
-                params=params,
-                data=f.read(),
-            ) as response,
-        ):
-            response_json = await response.json()
+    params = {"filename": filename}
 
-            assert response_json["content_uri"].startswith("mxc://")
+    # Workaround to the fact that aiohttp hardcodes sending a chuncked upload
+    # when it receives an async iterator
+    # See https://github.com/fsspec/filesystem_spec/issues/1390#issuecomment-1765886388
+    payload = aiohttp.payload.AsyncIterablePayload(_generate_random_bytes(file_size))
+    payload._size = file_size
 
-            return response_json
+    async with (
+        aiohttp_client(ssl_context) as client,
+        client.post(
+            "https://127.0.0.1/_matrix/media/v3/upload",
+            server_hostname=synapse_fqdn,
+            headers=headers,
+            params=params,
+            data=payload,
+        ) as response,
+    ):
+        response_json = await response.json()
+
+        assert response_json["content_uri"].startswith("mxc://")
+
+        return response_json, sha256_hash.hexdigest()
 
 
 async def download_media(

@@ -21,9 +21,11 @@ checkConfigHook:
 ## Configures the media store for Synapse
 media:
 {{- sub_schema_values.persistentVolumeClaim("storage") | indent(2) }}
+{{- sub_schema_values.ephemeralStorages([("tmp", "media tmp directory, used to upload files larger than 100KB", "1Gi", "Memory"),]) | indent(2) }}
 
   ## The maximum size (in bytes ending in M or K) that Synapse will accept for media uploads
   ## You may need to adjust your ingress controller to also allow uploads of this size
+  ## You may also need to adjust your synapse.media.ephemeralStorages.tmp directory sizeLimit to support buffering of large upload files
   maxUploadSize: 100M
 
 {{- sub_schema_values.credential("Key used to sign events and federation requests.\n## This needs to be the full signing key starting `ed25519 ...`", "signingKey", initIfAbsent=True) }}
@@ -107,7 +109,7 @@ replicas: 1
 {{- sub_schema_values.affinity() }}
 {{- sub_schema_values.podSecurityContext(user_id='10091', group_id='10091') }}
 {{- sub_schema_values.resources(requests_memory='100Mi', requests_cpu='100m', limits_memory='4Gi') }}
-{{- sub_schema_values.ephemeralStorages([("media", "media store emptyDir fallback (/media)", "100Mi", "Memory"),]) }}
+{{- sub_schema_values.ephemeralStorages([("nonMediaTmp", "non-media tmp directory. See synapse.media.ephemeralStorages.tmp for tmp directory for media uploads", "10Mi", "Memory"),]) }}
 {{- sub_schema_values.serviceAccount() }}
 {{- sub_schema_values.serviceMonitors() }}
 {{- sub_schema_values.tolerations() }}

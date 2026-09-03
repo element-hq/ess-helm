@@ -172,8 +172,13 @@ We have an init container to render & merge the config for several reasons:
         name: plain-config
         subPath: log_config.yaml
         readOnly: false
+{{- if (include "element-io.synapse.process.responsibleForMedia" (dict "root" $root "context" (dict "processType" $processType "enabledWorkerTypes" (keys $enabledWorkers)))) }}
       - mountPath: /media
         name: media
+        readOnly: false
+{{- end }}
+      - mountPath: /tmp
+        name: tmp
         readOnly: false
     volumes:
     {{- include "element-io.ess-library.render-config-volumes" (dict "root" $root "context"
@@ -204,9 +209,11 @@ We have an init container to render & merge the config for several reasons:
     - persistentVolumeClaim:
         claimName: {{ include "element-io.synapse.pvcName" (dict "root" $root "context" .) }}
       name: "media"
+    - emptyDir: {{- $root.Values.synapse.media.ephemeralStorages.tmp | toYaml | nindent 8 }}
+      name: tmp
 {{- else }}
-    - emptyDir: {{- $root.Values.synapse.ephemeralStorages.media | toYaml | nindent 8 }}
-      name: media
+    - emptyDir: {{- $root.Values.synapse.ephemeralStorages.nonMediaTmp | toYaml | nindent 8 }}
+      name: tmp
 {{- end }}
 {{- end }}
 {{- end }}

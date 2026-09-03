@@ -418,10 +418,15 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
         is_synapse_process=True,
         is_singleton=(worker_type != "scalable"),
         has_mount_context=True,
+        ignore_unreferenced_mounts={
+            # twisted requires a /tmp dir to store buffered files
+            # https://github.com/twisted/twisted/blob/64c03b8b43da8c3c63f5c2b4c5a4506b5373f6b7/src/twisted/web/http.py#L785-L798
+            "synapse": ("/tmp",),
+        },
         content_volumes_mapping={
             "/media": ("media_store",),
         },
-        ephemeral_storages={"media": "media"},
+        ephemeral_storages={"tmp": "nonMediaTmp"},
     )
 
 
@@ -670,14 +675,10 @@ all_components_details = [
                     "copy-mas-cli": ("/usr/local/bin/mas-cli",),
                     # syn2mas has the homeserver.yaml which contains the media store path
                     # it is actually not mounted in syn2mas
-                    "syn2mas-check": (
-                        "/as/0/bridge_registration.yaml",
-                        "/media/media_store",
-                    ),
-                    "syn2mas-migrate": (
-                        "/as/0/bridge_registration.yaml",
-                        "/media/media_store",
-                    ),
+                    # depending on the running phase, as a hook the path will be rendered under `/tmp`
+                    # while as a non-hook, it will be rendered under `/media`
+                    "syn2mas-check": ("/as/0/bridge_registration.yaml", "/tmp/media_store", "/media/media_store"),
+                    "syn2mas-migrate": ("/as/0/bridge_registration.yaml", "/tmp/media_store", "/media/media_store"),
                 },
                 content_volumes_mapping={"/tmp-mas-cli": ("mas-cli",)},
                 values_file_path_overrides={
@@ -714,6 +715,11 @@ all_components_details = [
         additional_values_files=("synapse-worker-example-values.yaml",),
         skip_path_consistency_for_files=("path_map_file", "path_map_file_get"),
         has_mount_context=True,
+        ignore_unreferenced_mounts={
+            # twisted requires a /tmp dir to store buffered files
+            # https://github.com/twisted/twisted/blob/64c03b8b43da8c3c63f5c2b4c5a4506b5373f6b7/src/twisted/web/http.py#L785-L798
+            "synapse": ("/tmp",),
+        },
         content_volumes_mapping={
             "/media": ("media_store",),
         },
@@ -756,13 +762,18 @@ all_components_details = [
                 has_service_monitor=False,
                 is_hook=True,
                 makes_outbound_requests=False,
-                content_volumes_mapping={
-                    "/media": ("media_store",),
+                ignore_unreferenced_mounts={
+                    # twisted requires a /tmp dir to store buffered files
+                    # https://github.com/twisted/twisted/blob/64c03b8b43da8c3c63f5c2b4c5a4506b5373f6b7/src/twisted/web/http.py#L785-L798
+                    "synapse": ("/tmp",),
                 },
-                ephemeral_storages={"media": "media"},
+                content_volumes_mapping={
+                    "/tmp": ("media_store",),
+                },
+                ephemeral_storages={"tmp": "nonMediaTmp"},
             ),
         ),
-        ephemeral_storages={"media": "media"},
+        ephemeral_storages={"tmp": "nonMediaTmp"},
     ),
     ComponentDetails(
         name="well-known",

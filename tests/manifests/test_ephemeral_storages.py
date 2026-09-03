@@ -11,45 +11,74 @@ from . import DeployableDetails, PropertyType, values_files_to_test
 from .utils import iterate_deployables_parts, iterate_pod_template
 
 
+def _non_default_medium(default_medium: str) -> str:
+    # "Memory" -> "" ; "" -> "Memory"
+    return "" if default_medium == "Memory" else "Memory"
+
+
 def _assert_empty_dir_volumes(
     pod_template_details, deployable_details: DeployableDetails, values: dict[str, Any], base_values: dict[str, Any]
 ):
-    rendered_config_size_limit = values.get("matrixTools", base_values["matrixTools"])["ephemeralStorages"][
+
+    rendered_config_ephemeral_storage = values.get("matrixTools", base_values["matrixTools"])["ephemeralStorages"][
         "renderedConfig"
-    ]["sizeLimit"]
+    ]
     volumes = pod_template_details.pod_template["spec"].get("volumes", [])
     expected_ephemeral_storages = deployable_details.get_helm_values(values, PropertyType.EphemeralStorages)
+    # Special case for Synapse media
+    synapse_media_worker_enabled = (
+        values.get("synapse", {}).get("workers", {}).get("media-repository", {}).get("enabled")
+    )
 
     for volume in volumes:
         if "emptyDir" not in volume:
             continue
         volume_name = volume["name"]
-
         assert deployable_details.has_ephemeral_storage, (
             f"{pod_template_details.manifest_id}: found an emptyDir volume '{volume_name}' but deployable is not "
             "defined with ephemeral storage"
         )
+
         if volume_name == "rendered-config":
-            actual = volume["emptyDir"].get("sizeLimit")
-            assert rendered_config_size_limit == actual, (
+            actual = volume["emptyDir"]
+            assert rendered_config_ephemeral_storage["sizeLimit"] == actual["sizeLimit"], (
                 f"{pod_template_details.manifest_id}: emptyDir volume '{volume_name}' "
-                f"sizeLimit is {actual!r} but expected {rendered_config_size_limit!r}"
+                f"sizeLimit is {actual!r} but expected {rendered_config_ephemeral_storage['sizeLimit']!r}"
+            )
+            assert rendered_config_ephemeral_storage["medium"] == actual["medium"], (
+                f"{pod_template_details.manifest_id}: emptyDir volume '{volume_name}' "
+                f"medium is {actual!r} but expected {rendered_config_ephemeral_storage['medium']!r}"
             )
         else:
+            assert expected_ephemeral_storages, (
+                f"{pod_template_details.manifest_id}: emptyDir volume '{volume_name}' but no ephemeralVolume is defined"
+            )
             assert volume_name in deployable_details.ephemeral_storages, (
                 f"{pod_template_details.manifest_id}: emptyDir volume '{volume_name}' "
                 f"is not registered in {deployable_details.name}'s ephemeral_storage"
             )
-            assert expected_ephemeral_storages, (
-                f"{pod_template_details.manifest_id}: emptyDir volume '{volume_name}' but no ephemeralVolume is defined"
-            )
-            expected_ephemeral_volume = expected_ephemeral_storages[deployable_details.ephemeral_storages[volume_name]][
-                "sizeLimit"
-            ]
-            actual = volume["emptyDir"].get("sizeLimit")
-            assert expected_ephemeral_volume == actual, (
+            expected_ephemeral_volume = expected_ephemeral_storages[deployable_details.ephemeral_storages[volume_name]]
+
+            # Special case for Synapse: The process responsible for media needs a larger /tmp to
+            # store buffered uploaded media. It is configured through synase.media.ephemeralStorages.tmp
+            if (
+                deployable_details.name == "synapse" and not synapse_media_worker_enabled
+            ) or deployable_details.name == "synapse-media-repository":
+                default_media_tmp_dir = base_values["synapse"]["media"]["ephemeralStorages"]["tmp"]
+                configured_media_tmp_dir = (
+                    values.get("synapse", {}).get("media", {}).get("ephemeralStorages", {}).get("tmp", {})
+                )
+                expected_tmp_dir = default_media_tmp_dir | configured_media_tmp_dir
+                expected_ephemeral_volume = expected_tmp_dir
+            actual_size_limit = volume["emptyDir"].get("sizeLimit")
+            assert expected_ephemeral_volume["sizeLimit"] == actual_size_limit, (
                 f"{pod_template_details.manifest_id}: emptyDir volume '{volume_name}' "
-                f"sizeLimit is {actual!r} but expected {expected_ephemeral_volume!r}"
+                f"sizeLimit is {actual!r} but expected {expected_ephemeral_volume['sizeLimit']!r}"
+            )
+            actual_medium = volume["emptyDir"].get("medium")
+            assert expected_ephemeral_volume["medium"] == actual_medium, (
+                f"{pod_template_details.manifest_id}: emptyDir volume '{volume_name}' "
+                f"medium is {actual_medium!r} but expected {expected_ephemeral_volume['medium']!r}"
             )
 
 
@@ -88,90 +117,46 @@ async def test_ephemeral_storage_passed_through(values, base_values, make_templa
     while correctly-shared volumes (e.g. rendered-config) still match.
     """
     counter = 0
+    rendered_config_default_medium = base_values["matrixTools"]["ephemeralStorages"]["renderedConfig"]["medium"]
+    values.setdefault("matrixTools", {}).setdefault("ephemeralStorages", {}).setdefault("renderedConfig", {})[
+        "medium"
+    ] = _non_default_medium(rendered_config_default_medium)
     values.setdefault("matrixTools", {}).setdefault("ephemeralStorages", {}).setdefault("renderedConfig", {})[
         "sizeLimit"
     ] = f"{counter}Mi"
 
-    def set_ephemeral_storage_empty_dir_size_limit(deployable_details: DeployableDetails):
+    def set_ephemeral_storage(deployable_details: DeployableDetails):
         nonlocal counter
-        ephemeral_storages = {}
+        ephemeral_storages = deployable_details.get_helm_values(base_values, PropertyType.EphemeralStorages)
+        assert ephemeral_storages is not None, (
+            f"{deployable_details.name}: compement has `has_ephemeral_storage` but no EphemeralStorages values"
+        )
         for ephemeral_volume in deployable_details.ephemeral_storages.values():
             counter += 1
-            ephemeral_storages[ephemeral_volume] = {"sizeLimit": f"{counter}Mi"}
+            default_medium = ephemeral_storages[ephemeral_volume]["medium"]
+            ephemeral_storages[ephemeral_volume] = {
+                "sizeLimit": f"{counter}Mi",
+                "medium": _non_default_medium(default_medium),
+            }
         if ephemeral_storages:
             deployable_details.set_helm_values(values, PropertyType.EphemeralStorages, ephemeral_storages)
 
     iterate_deployables_parts(
-        set_ephemeral_storage_empty_dir_size_limit, lambda deployable_details: deployable_details.has_ephemeral_storage
+        set_ephemeral_storage, lambda deployable_details: deployable_details.has_ephemeral_storage
     )
+
+    counter += 1
+    default_synapse_media_tmp_dir = base_values["synapse"]["media"]["ephemeralStorages"]["tmp"]
+    configured_synapse_media_tmp_dir = (
+        values.get("synapse", {}).get("media", {}).get("ephemeralStorages", {}).get("tmp", {})
+    )
+    expected_synapse_media_tmp_dir = default_synapse_media_tmp_dir | configured_synapse_media_tmp_dir
+    values.setdefault("synapse", {}).setdefault("media", {}).setdefault("ephemeralStorages", {})["tmp"] = {
+        "sizeLimit": f"{counter}Mi",
+        "medium": _non_default_medium(expected_synapse_media_tmp_dir["medium"]),
+    }
 
     templates = await make_templates(values)
     for pod_template_details in iterate_pod_template(templates):
         deployable_details = pod_template_details.deployable_details()
         _assert_empty_dir_volumes(pod_template_details, deployable_details, values, base_values)
-
-
-def _non_default_medium(default_medium: str) -> str:
-    # "Memory" -> "" ; "" -> "Memory"
-    return "" if default_medium == "Memory" else "Memory"
-
-
-@pytest.mark.parametrize("values_file", values_files_to_test)
-@pytest.mark.asyncio_cooperative
-async def test_ephemeral_storage_medium_configurable(values, base_values, make_templates):
-    """Each ephemeral storage's medium is configurable in both directions.
-
-    Every emptyDir volume is set to the non-default of its own default medium
-    """
-    # Configure the shared rendered-config volume directly, preserving its sizeLimit.
-    rendered_config_default_medium = base_values["matrixTools"]["ephemeralStorages"]["renderedConfig"]["medium"]
-    rendered_config_non_default = _non_default_medium(rendered_config_default_medium)
-    values.setdefault("matrixTools", {}).setdefault("ephemeralStorages", {}).setdefault("renderedConfig", {})[
-        "medium"
-    ] = rendered_config_non_default
-
-    # Configure each component-specific ephemeral storage to non default medium value
-    def set_ephemeral_storage_with_non_default_medium(deployable_details: DeployableDetails):
-        ephemeral_storages = deployable_details.get_helm_values(base_values, PropertyType.EphemeralStorages)
-        assert ephemeral_storages is not None, (
-            f"{deployable_details.name}: compement has `has_ephemeral_storage` but no EphemeralStorages values"
-        )
-        values_to_set = {}
-        for ephemeral_storage in deployable_details.ephemeral_storages.values():
-            default_medium = ephemeral_storages[ephemeral_storage]["medium"]
-            values_to_set[ephemeral_storage] = {
-                "medium": _non_default_medium(default_medium),
-                "sizeLimit": ephemeral_storages[ephemeral_storage]["sizeLimit"],
-            }
-        if values_to_set:
-            deployable_details.set_helm_values(values, PropertyType.EphemeralStorages, values_to_set)
-
-    iterate_deployables_parts(
-        set_ephemeral_storage_with_non_default_medium,
-        lambda deployable_details: deployable_details.has_ephemeral_storage,
-    )
-
-    templates = await make_templates(values)
-    for pod_template_details in iterate_pod_template(templates):
-        deployable_details = pod_template_details.deployable_details()
-        volumes = pod_template_details.pod_template["spec"].get("volumes", [])
-        for volume in volumes:
-            if "emptyDir" not in volume:
-                continue
-            volume_name = volume["name"]
-            if volume_name == "rendered-config":
-                expected_medium = rendered_config_non_default
-            else:
-                assert volume_name in deployable_details.ephemeral_storages, (
-                    f"{pod_template_details.manifest_id}: emptyDir volume '{volume_name}' "
-                    f"is not registered in {deployable_details.name}'s ephemeral_storage"
-                )
-                ephemeral_storage = deployable_details.ephemeral_storages[volume_name]
-                default_medium = deployable_details.get_helm_values(base_values, PropertyType.EphemeralStorages)[
-                    ephemeral_storage
-                ]["medium"]
-                expected_medium = _non_default_medium(default_medium)
-            assert volume["emptyDir"].get("medium") == expected_medium, (
-                f"{pod_template_details.manifest_id}: emptyDir volume '{volume_name}' "
-                f"medium is {volume['emptyDir'].get('medium')!r} but expected {expected_medium!r}"
-            )

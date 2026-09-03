@@ -41,6 +41,14 @@
         "storage": {
           "$ref": "file://common/persistentVolumeClaim.json"
         },
+        "ephemeralStorages": {
+          "type": "object",
+          "properties": {
+            "tmp": {
+              "$ref": "file://common/ephemeralStorage.json"
+            }
+          }
+        },
         "maxUploadSize": {
           "type": "string",
           "pattern": "^[0-9]+[MK]$"
@@ -219,7 +227,7 @@
     "ephemeralStorages": {
       "type": "object",
       "properties": {
-        "media": {
+        "nonMediaTmp": {
           "$ref": "file://common/ephemeralStorage.json"
         }
       }
