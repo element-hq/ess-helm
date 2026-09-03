@@ -4,12 +4,10 @@
 
 import asyncio
 import json
-import os
 import time
 from urllib.parse import urlparse
 
 import pytest
-import semver
 from lightkube import AsyncClient
 
 from .fixtures import ESSData, User
@@ -259,12 +257,6 @@ async def test_hookshot_webhook(
 # This creates an unencrypted room, invites hookshot, creates a webhook,
 # and verifies that hookshot posts webhook payloads to the room
 @pytest.mark.skipif(not value_file_has("hookshot.enabled", True), reason="Hookshot not enabled")
-@pytest.mark.skipif(
-    semver.Version.is_valid(os.environ.get("MATRIX_TEST_FROM_REF", ""))
-    and semver.VersionInfo.parse(os.environ.get("MATRIX_TEST_FROM_REF", "")).compare("26.1.3") <= 0
-    and os.environ.get("PYTEST_CI_FIRST_STEP", "") == "1",
-    reason="26.1.3 or earlier doesn't correctly mount widgets on the Synapse Ingress, so it fails before upgrading.",
-)
 @pytest.mark.asyncio_cooperative
 async def test_hookshot_widget(
     kube_client: AsyncClient,
