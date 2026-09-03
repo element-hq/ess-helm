@@ -232,14 +232,12 @@ async def test_synapse_media_upload_fetch_authenticated(
 ):
     user_access_token = users[0].access_token
 
-    filepath = Path(__file__).parent.resolve() / Path("artifacts/files/minimal.png")
-    with open(filepath, "rb") as file:
-        source_sha256 = hashlib.file_digest(file, "sha256").hexdigest()
-
-    content_upload_json = await upload_media(
+    content_upload_json, source_sha256 = await upload_media(
         synapse_fqdn=f"synapse.{generated_data.server_name}",
         user_access_token=user_access_token,
-        file_path=filepath,
+        # We upload a 200KB file to make sure it successfully uploads with tmp dirs
+        file_size=200 * 1024,
+        filename="randombytes.bin",
         ssl_context=ssl_context,
     )
 
