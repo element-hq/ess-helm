@@ -36,6 +36,7 @@ newsfragment
 newsfragments
 OpenProject
 passthrough
+Playwright
 postgres
 PostgreSQL
 prometheus

@@ -164,6 +164,9 @@ Verifies that the deployed workloads behave as expected and integrates well toge
 
 From the project root : `pytest-ess`
 
+Some tests drive Element Web and Element Admin in a headless Chromium with [Playwright](https://playwright.dev/python/).
+Install the browser once with `uv run playwright install chromium`.
+
 Pytest caches the namespace name and created user tokens between run. To start a run from scratch,
 run `pytest-ess -- --cache-clear`.
 
