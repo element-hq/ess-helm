@@ -1,11 +1,10 @@
 # Copyright 2024-2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
 import hashlib
 import hmac
-import mimetypes
 import os
 from collections.abc import AsyncIterator
 from ssl import SSLContext
@@ -124,7 +123,7 @@ async def upload_media(
 
         assert response_json["content_uri"].startswith("mxc://")
 
-        return response_json, sha256_hash
+        return response_json, sha256_hash.hexdigest()
 
 
 async def download_media(
