@@ -19,9 +19,10 @@ def _non_default_medium(default_medium: str) -> str:
 def _assert_empty_dir_volumes(
     pod_template_details, deployable_details: DeployableDetails, values: dict[str, Any], base_values: dict[str, Any]
 ):
-    rendered_config_size_limit = values.get("matrixTools", base_values["matrixTools"])["ephemeralStorages"][
+
+    rendered_config_ephemeral_storage = values.get("matrixTools", base_values["matrixTools"])["ephemeralStorages"][
         "renderedConfig"
-    ]["sizeLimit"]
+    ]
     volumes = pod_template_details.pod_template["spec"].get("volumes", [])
     expected_ephemeral_storages = deployable_details.get_helm_values(values, PropertyType.EphemeralStorages)
     # Special case for Synapse media
@@ -39,10 +40,14 @@ def _assert_empty_dir_volumes(
         )
 
         if volume_name == "rendered-config":
-            actual = volume["emptyDir"].get("sizeLimit")
-            assert rendered_config_size_limit == actual, (
+            actual = volume["emptyDir"]
+            assert rendered_config_ephemeral_storage["sizeLimit"] == actual["sizeLimit"], (
                 f"{pod_template_details.manifest_id}: emptyDir volume '{volume_name}' "
-                f"sizeLimit is {actual!r} but expected {rendered_config_size_limit!r}"
+                f"sizeLimit is {actual!r} but expected {rendered_config_ephemeral_storage['sizeLimit']!r}"
+            )
+            assert rendered_config_ephemeral_storage["medium"] == actual["medium"], (
+                f"{pod_template_details.manifest_id}: emptyDir volume '{volume_name}' "
+                f"medium is {actual!r} but expected {rendered_config_ephemeral_storage['medium']!r}"
             )
         else:
             assert expected_ephemeral_storages, (
@@ -112,6 +117,10 @@ async def test_ephemeral_storage_passed_through(values, base_values, make_templa
     while correctly-shared volumes (e.g. rendered-config) still match.
     """
     counter = 0
+    rendered_config_default_medium = base_values["matrixTools"]["ephemeralStorages"]["renderedConfig"]["medium"]
+    values.setdefault("matrixTools", {}).setdefault("ephemeralStorages", {}).setdefault("renderedConfig", {})[
+        "medium"
+    ] = _non_default_medium(rendered_config_default_medium)
     values.setdefault("matrixTools", {}).setdefault("ephemeralStorages", {}).setdefault("renderedConfig", {})[
         "sizeLimit"
     ] = f"{counter}Mi"
