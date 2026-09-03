@@ -675,14 +675,10 @@ all_components_details = [
                     "copy-mas-cli": ("/usr/local/bin/mas-cli",),
                     # syn2mas has the homeserver.yaml which contains the media store path
                     # it is actually not mounted in syn2mas
-                    "syn2mas-check": (
-                        "/as/0/bridge_registration.yaml",
-                        "/media/media_store",
-                    ),
-                    "syn2mas-migrate": (
-                        "/as/0/bridge_registration.yaml",
-                        "/media/media_store",
-                    ),
+                    # depending on the running phase, as a hook the path will be rendered under `/tmp`
+                    # while as a non-hook, it will be rendered under `/media`
+                    "syn2mas-check": ("/as/0/bridge_registration.yaml", "/tmp/media_store", "/media/media_store"),
+                    "syn2mas-migrate": ("/as/0/bridge_registration.yaml", "/tmp/media_store", "/media/media_store"),
                 },
                 content_volumes_mapping={"/tmp-mas-cli": ("mas-cli",)},
                 values_file_path_overrides={
@@ -771,9 +767,8 @@ all_components_details = [
                     # https://github.com/twisted/twisted/blob/64c03b8b43da8c3c63f5c2b4c5a4506b5373f6b7/src/twisted/web/http.py#L785-L798
                     "synapse": ("/tmp",),
                 },
-                ignore_paths_mismatches={
-                    # We dont care that /media is not mounted in the check-config pod
-                    "synapse": ("/media/media_store",),
+                content_volumes_mapping={
+                    "/tmp": ("media_store",),
                 },
                 ephemeral_storages={"tmp": "nonMediaTmp"},
             ),

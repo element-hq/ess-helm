@@ -7,6 +7,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 {{- $root := .root -}}
 {{- with required "synapse/synapse-05-process-specific.yaml.tpl missing context" .context }}
+{{- $isHook := required "synapse/synapse-05-process-specific.yaml.tpl requires context.isHook" .isHook -}}
 worker_app: {{ include "element-io.synapse.process.app" (dict "root" $root "context" .processType) }}
 
 {{- if eq .processType "main" }}
@@ -83,7 +84,10 @@ worker_listeners:
 {{- $enabledWorkers := (include "element-io.synapse.enabledWorkers" (dict "root" $root)) | fromJson }}
 {{- if (include "element-io.synapse.process.responsibleForMedia" (dict "root" $root "context" (dict "processType" .processType "enabledWorkerTypes" (keys $enabledWorkers)))) }}
 # This is still required despite media_storage_providers as otherwise Synapse attempts to mkdir media_store at the root of the container
-media_store_path: "/media/media_store"
+{{- /* The check config job tries to write the media_store directory, it fails as it does not mount the PVC.
+       This workaround will make it create the media_store directory in /tmp
+*/}}
+media_store_path: "{{ if $isHook }}/tmp/{{ else }}/media/{{ end }}media_store"
 enable_media_repo: true
 {{- else }}
 # This is still required despite media_storage_providers as otherwise Synapse attempts to mkdir media_store at the root of the container
