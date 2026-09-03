@@ -771,8 +771,9 @@ all_components_details = [
                     # https://github.com/twisted/twisted/blob/64c03b8b43da8c3c63f5c2b4c5a4506b5373f6b7/src/twisted/web/http.py#L785-L798
                     "synapse": ("/tmp",),
                 },
-                content_volumes_mapping={
-                    "/media": ("media_store",),
+                ignore_paths_mismatches={
+                    # We dont care that /media is not mounted in the check-config pod
+                    "synapse": ("/media/media_store",),
                 },
                 ephemeral_storages={"tmp": "nonMediaTmp"},
             ),
