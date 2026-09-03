@@ -4310,9 +4310,18 @@ synapse:
       ## The top-level storage.resourcePolicy value is used, if not provided.
       ## Ignored if existingClaim is provided.
       # resourcePolicy: keep
+    ## Configures sizeLimit (maximum size) and medium for this component's emptyDir volumes.
+    ## Each sizeLimit is a Kubernetes quantity string, e.g. 10Mi.
+    ## medium is either "Memory" (tmpfs-backed) or "" (node default storage).
+    ephemeralStorages:
+      ## media tmp directory, used to upload files larger than 200KB
+      tmp:
+        sizeLimit: 1Gi
+        medium: Memory
 
     ## The maximum size (in bytes ending in M or K) that Synapse will accept for media uploads
     ## You may need to adjust your ingress controller to also allow uploads of this size
+    ## You may also need to adjust your .media.ephemeralStorages.tmp directory sizeLimit to support buffering of large upload files
     maxUploadSize: 100M
   ## Key used to sign events and federation requests.
   ## This needs to be the full signing key starting `ed25519 ...`.
@@ -5978,6 +5987,10 @@ synapse:
     ## media store emptyDir fallback (/media)
     media:
       sizeLimit: 100Mi
+      medium: Memory
+    ## non-media tmp directory. See .media.ephemeralStorages.tmp for tmp directory for media uploads
+    nonMediaTmp:
+      sizeLimit: 10Mi
       medium: Memory
   ## Controls configuration of the ServiceAccount for this component
   serviceAccount:
