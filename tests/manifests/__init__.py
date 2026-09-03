@@ -421,7 +421,7 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
         content_volumes_mapping={
             "/media": ("media_store",),
         },
-        ephemeral_storages={"media": "media"},
+        ephemeral_storages={"media": "media", "tmp": "nonMediaTmp"},
     )
 
 
@@ -759,10 +759,10 @@ all_components_details = [
                 content_volumes_mapping={
                     "/media": ("media_store",),
                 },
-                ephemeral_storages={"media": "media"},
+                ephemeral_storages={"media": "media", "tmp": "nonMediaTmp"},
             ),
         ),
-        ephemeral_storages={"media": "media"},
+        ephemeral_storages={"media": "media", "tmp": "nonMediaTmp"},
     ),
     ComponentDetails(
         name="well-known",
