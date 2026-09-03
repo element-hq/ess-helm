@@ -59,9 +59,11 @@ def _assert_empty_dir_volumes(
             if (
                 deployable_details.name == "synapse" and not synapse_media_worker_enabled
             ) or deployable_details.name == "synapse-media-repository":
-                expected_tmp_dir = base_values["synapse"]["media"]["ephemeralStorages"]["tmp"] | values.get(
-                    "synapse", {}
-                ).get("media", {}).get("ephemeralStorages", {}).get("tmp", {})
+                default_media_tmp_dir = base_values["synapse"]["media"]["ephemeralStorages"]["tmp"]
+                configured_media_tmp_dir = (
+                    values.get("synapse", {}).get("media", {}).get("ephemeralStorages", {}).get("tmp", {})
+                )
+                expected_tmp_dir = default_media_tmp_dir | configured_media_tmp_dir
                 expected_ephemeral_volume = expected_tmp_dir
             actual_size_limit = volume["emptyDir"].get("sizeLimit")
             assert expected_ephemeral_volume["sizeLimit"] == actual_size_limit, (
