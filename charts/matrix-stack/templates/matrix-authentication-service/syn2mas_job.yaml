@@ -215,14 +215,16 @@ spec:
       volumes:
       - name: plain-syn-config
         configMap:
-          defaultMode: 420
+          defaultMode: 256
           name: {{ include "element-io.synapse.configmap-name" (dict "root" $ "context" (dict "isHook" $isHook)) }}
       - name: plain-mas-config
         configMap:
+          defaultMode: 256
           name: {{ include "element-io.matrix-authentication-service.configmap-name" (dict "root" $ "context" (dict "isHook" $isHook)) }}
 {{- range $_, $secret := include "element-io.syn2mas.configSecrets" (dict "root" $ "context" (dict "synapseContext" $synapseContext "masContext" $masContext)) | fromJsonArray }}
 {{- with tpl $secret $ }}
       - secret:
+          defaultMode: 256
           secretName: {{ . }}
         name: "secret-{{ . | sha256sum | trunc 12 }}"
 {{- end }}

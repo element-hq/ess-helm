@@ -91,12 +91,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- with required "element-io.ess-library.render-config-volumes missing context" .context -}}
 {{- $nameSuffix := required "element-io.ess-library.render-config-volumes missing context.nameSuffix" .nameSuffix -}}
 - configMap:
-    defaultMode: 420
+    defaultMode: 256
     name: {{ include (printf "element-io.%s.configmap-name" $nameSuffix) (dict "root" $root "context" .) }}
   name: plain-config
 {{- range $secret := include (printf "element-io.%s.configSecrets" $nameSuffix) (dict "root" $root "context" .) | fromJsonArray }}
 {{- with (tpl $secret $root) }}
 - secret:
+    defaultMode: 256
     secretName: {{ . }}
   name: secret-{{ . | sha256sum | trunc 12  }}
 {{- end }}
