@@ -85,6 +85,7 @@ spec:
 {{- range $secret := include "element-io.matrix-rtc-authorisation-service.configSecrets" (dict "root" $ "context" $.Values.matrixRTC) | fromJsonArray }}
 {{- with (tpl $secret $) }}
       - secret:
+          defaultMode: 256
           secretName: {{ . }}
         name: "secret-{{ . | sha256sum | trunc 12 }}"
 {{- end }}

@@ -197,11 +197,12 @@ We have an init container to render & merge the config for several reasons:
     - name: as-{{ $idx }}
 {{- with $appservice.configMap }}
       configMap:
-        defaultMode: 420
+        defaultMode: 256
         name: "{{ tpl . $root }}"
 {{- end }}
 {{- with $appservice.secret }}
       secret:
+        defaultMode: 256
         secretName: "{{ tpl . $root }}"
 {{- end }}
 {{- end }}
