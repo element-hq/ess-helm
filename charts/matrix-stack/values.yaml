@@ -1136,6 +1136,18 @@ matrixRTC:
     # Extra initContainers to add to Matrix RTC SFU, as a yaml array
     extraInitContainers: []
 
+    ## The list of hosts aliases to configure on the pod spec.
+    ## It should be avoid as much as possible to use this feature.
+    ## Please prefer using an DNS entry to resolve your hostnames.
+    ## This can be used as a workaround when entries cannot be resolved using DNS, for example for our automated testings.
+    ## e.g.
+    ## hostAliases:
+    ## - ip: 192.0.2.1  # An IP resolution to add to /etc/hosts
+    ##   # A list of hostnames to be associated with the above IP
+    ##   hostnames:
+    ##   - ess.localhost
+    ##   - synapse.ess.localhost
+    hostAliases: []
     ## Labels to add to all manifest for this component
     labels: {}
     ## Defines the annotations to add to the workload

@@ -11,6 +11,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $instanceSuffix := required "element-io.ess-library.pods.commonSpec missing context.instanceSuffix" .instanceSuffix -}}
 {{- $serviceAccountNameSuffix := .serviceAccountNameSuffix | default .instanceSuffix -}}
 {{- $usesMatrixTools := .usesMatrixTools | default false -}}
+{{- $makesOutboundRequests := .makesOutboundRequests | default false -}}
 {{- $mountServiceAccountToken := .mountServiceAccountToken | default false -}}
 {{- $kind := required "element-io.ess-library.pods.commonSpec missing context.kind" .kind -}}
 {{- if not (has $kind (list "Deployment" "StatefulSet" "Job")) -}}
@@ -20,6 +21,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 automountServiceAccountToken: {{ $mountServiceAccountToken }}
 serviceAccountName: {{ include "element-io.ess-library.serviceAccountName" (dict "root" $root "context" (dict "serviceAccount" .serviceAccount "nameSuffix" $serviceAccountNameSuffix)) }}
 {{- include "element-io.ess-library.pods.pullSecrets" (dict "root" $root "context" (dict "pullSecrets" ((.image).pullSecrets | default list) "usesMatrixTools" $usesMatrixTools)) }}
+{{- if $makesOutboundRequests }}
+{{- with .hostAliases }}
+hostAliases:
+  {{- tpl (toYaml . | nindent 2) $root }}
+{{- end }}
+{{- end }}
 {{- with .podSecurityContext }}
 securityContext:
   {{- toYaml . | nindent 2 }}
