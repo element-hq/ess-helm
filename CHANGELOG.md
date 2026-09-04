@@ -7,6 +7,78 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.9.1 (2026-09-04)
+
+## Deprecated
+
+- Synapse: Drop `synapse.ephemeralStorages.media` as non-media processes now mount the media store in `/tmp`. (#1566)
+
+## Changed
+
+- Change the Redis `Deployment` to be a `StatefulSet` after the Valkey migration. (#1368)
+- Replace Redis with Valkey.
+
+  The `redis` key at the top-level in the values file is deprecated.
+  It is replaced by the top-level `valkey` key.
+  The schema is identical apart from `redis.redisExporter` which is replaced by `valkey.valkeyExporter`.
+
+  Values from `redis` are merged into `valkey` to control deployment of Valkey
+
+  The top-level `redis` key will be removed in a later release and any user set values under `redis` should be moved to `valkey`.
+
+  The external Redis keys in `hookshot`, `synapse` and `matrixRTC.sfu` have replacements for `redis` in the form of `redisOrValkey`.
+  Values from `{hookshot,synapse,matrixRTC.sfu}.redis` should be move to `{hookshot,synapse,matrixRTC.sfu}.redisOrValkey`.
+  `{hookshot,synapse,matrixRTC.sfu}.redis` will be removed in a later release. (#1368, #1558, #1559, #1561, #1562, #1563)
+- Upgrade Synapse to v1.160.0.
+
+  Highlights:
+  - Add optional support for [MSC4262: Profile Updates for Sliding Sync](https://github.com/matrix-org/matrix-spec-proposals/pull/4262)
+  - Fix a bug where stream positions (presence, to-device message, etc.) could stop being sent to clients
+  - Speed up the conversion of device list changes into outbound federation pokes
+
+  Full Changelogs:
+  - [v1.160.0](https://github.com/element-hq/synapse/blob/release-v1.160/CHANGES.md)
+
+  (#1532)
+- Switch Matrix Authentication Service to pull from oci.element.io. (#1535)
+- Upgrade Matrix Authentication Service to v1.24.0.
+
+  Highlights:
+  - Update `h2` to address security vulnerability (`RUSTSEC-2026-0258`)
+  - Translation updates
+
+  Full Changelogs:
+  - [v1.24.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.24.0)
+
+  (#1535)
+- Upgrade Element Admin to v0.1.13.
+
+  Highlights:
+  - Add a dedicated page to manage user devices and applications being used
+  - Fix the accessibility issues the new test suite found
+
+  Full Changelogs:
+  - [v0.1.13](https://github.com/element-hq/element-admin/releases/tag/v0.1.13)
+
+  (#1564)
+
+## Fixed
+
+- Fix there being multiple independent Redis `Pods` running during upgrades. (#1557)
+- Synapse: Restore the `/tmp` directory.
+
+  Fix an issue where media uploads larger than 100KB would failed due to missing a tmp directory available for writing buffered files.
+
+   - `synapse.ephemeralStorages.nonMediaTmp` handles the `/tmp` directory properties of non-media workers.
+   - `synapse.media.ephemeralStorages.media.tmp` handles the `/tmp` directory properties of media workers. (#1566)
+
+## Internal
+
+- Fix configuration consistency tests when `ConfigMaps` were mounted with a `subPath`. (#1566)
+- CI: Cleanup old tests skips. (#1567)
+- CI: unpin Helm in the tests from v4.2.0. (#1568)
+
+
 # ESS Community Helm Chart 26.9.0 (2026-09-02)
 
 ## Removed / Breaking Changes
