@@ -33,14 +33,11 @@ spec:
         {{- toYaml . | nindent 8 }}
 {{- end }}
     spec:
-{{- with .hostAliases }}
-      hostAliases:
-        {{- tpl (toYaml . | nindent 8) $ }}
-{{- end }}
 {{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" .
                                                                                     "instanceSuffix" "hookshot"
                                                                                     "kind" "StatefulSet"
                                                                                     "usesMatrixTools" true
+                                                                                    "makesOutboundRequests" true
                                                                                     "mountServiceAccountToken" false)) | nindent 6 }}
       initContainers:
       {{- include "element-io.ess-library.render-config-container" (dict "root" $ "context"
