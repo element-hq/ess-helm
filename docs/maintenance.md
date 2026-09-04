@@ -23,16 +23,49 @@ In order to upgrade your deployment, you should:
 3. Adjust your values if necessary.
 2. Re-run the [install](https://github.com/element-hq/ess-helm/tree/main?tab=readme-ov-file#installation) command. It will upgrade your installation to the latest version of the chart.
 
+## Database Backups and caveats
+
+### Daily backups
+
+Doing daily backups only can cause issues on restore. E2EE server-side will be desynchronized with the clients, causing a various of identifiers and key conflicts. It will cause a lot of UTDs, prevent users from reading their room history.
+
+It should be used carefully, as a simple way to backup your Synapse & MAS database, but you should be prepared for issues during restore.
+
+### Point-in-time backups
+
+Point-in-time backups allow you to restore your data at any point in time on a given retention period. It usually consists of a daily full-backup and incremental backups restored on top of it.
+
+Cloud-managed databases usually handle this as "Automated backups".
+
+Alternatively, [`wal-g`](https://github.com/wal-g/wal-g) is often used for the purpose of storing Postgres WAL files on an external object storage.
+
+When restoring your database, make sure to restore the most frequent and valid database to avoid the E2EE issues mentioned above.
+
+#### Matrix Authentication Service Tokens TTL
+
+If using snapshots without also archiving WALs, you should configure Matrix Authentication Service to have an `access_token_ttl` value longer than twice the frequency of your snapshots:
+
+```yaml
+matrixAuthenticationService:
+  additional:
+    access-token-ttl.yml:
+      config: |
+        experimental:
+            access_token_ttl: 1200s
+```
+
+When restoring a database, if the client Access token is not valid any more according to its TTL window, it will cause a disconnection and the local encryption keys will be nuked. Users will have to reconnect their encryption storage after logging in. Having Access Tokens TTL longer than the expected snapshot restore time avoids this issue.
+
 ## Backup & restore
 
-### Backup
+### Full Backup of the ESS Community Deployment
 
 You need to backup a couple of things to be able to restore your deployment:
 
-1. Stop Synapse and Matrix Authentication Service workloads:
+1. Stop all ESS Community workloads:
 ```sh
-kubectl scale sts -l "app.kubernetes.io/component=matrix-server" -n ess --replicas=0
-kubectl scale deploy -l "app.kubernetes.io/component=matrix-authentication" -n ess --replicas=0
+kubectl scale sts -l "app.kubernetes.io/part-of=matrix-stack" -n ess --replicas=0
+kubectl scale deploy -l "app.kubernetes.io/part-of=matrix-stack" -n ess --replicas=0
 ```
 2. The database. You need to backup your database and restore it on a new deployment.
   1. If you are using the provided Postgres database, build a dump using the command `kubectl exec --namespace ess -it sts/ess-postgres -- pg_dumpall -U postgres > dump.sql`. Adjust to your own kubernetes namespace and release name if required.
@@ -52,10 +85,10 @@ kubectl -n ess apply -f secrets.yaml
 kubectl -n ess apply -f configmaps.yaml
 ```
 2. Redeploy the chart using the values backed-up in step 2.
-3. Stop Synapse and Matrix Authentication Service workloads:
+3. Stop all ESS Community workloads:
 ```sh
-kubectl scale sts -l "app.kubernetes.io/component=matrix-server" -n ess --replicas=0
-kubectl scale deploy -l "app.kubernetes.io/component=matrix-authentication" -n ess --replicas=0
+kubectl scale sts -l "app.kubernetes.io/part-of=matrix-stack" -n ess --replicas=0
+kubectl scale deploy -l "app.kubernetes.io/part-of=matrix-stack" -n ess --replicas=0
 ```
 4. Restore the postgres dump. If you are using the provided Postgres database, this can be achieved using the following commands:
 ```sh
