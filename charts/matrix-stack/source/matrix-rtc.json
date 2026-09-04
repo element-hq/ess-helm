@@ -132,6 +132,9 @@
         "annotations": {
           "$ref": "file://common/workloadAnnotations.json"
         },
+        "hostAliases": {
+          "$ref": "file://common/hostAliases.json"
+        },
         "hostNetwork": {
           "type": "boolean"
         },

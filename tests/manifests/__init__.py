@@ -594,7 +594,6 @@ all_components_details = [
                 has_exposed_services=True,
                 has_ingress=False,
                 is_singleton=True,
-                makes_outbound_requests=False,
             ),
         ),
         additional_secret_values_files=(

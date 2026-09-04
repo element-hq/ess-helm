@@ -96,6 +96,7 @@ sfu:
 {{- sub_schema_values.extraVolumes("Matrix RTC SFU") | indent(2) }}
 {{- sub_schema_values.extraVolumeMounts("Matrix RTC SFU") | indent(2) }}
 {{- sub_schema_values.extraInitContainers("Matrix RTC SFU") | indent(2) }}
+{{- sub_schema_values.hostAliases() | indent(2) }}
 {{- sub_schema_values.labels() | indent(2) }}
 {{- sub_schema_values.workloadAnnotations() | indent(2) }}
 {{- sub_schema_values.containersSecurityContext() | indent(2) }}
