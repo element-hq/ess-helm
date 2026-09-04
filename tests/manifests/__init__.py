@@ -15,6 +15,7 @@ class PropertyType(Enum):
     AdditionalConfig = "additional"
     Affinity = "affinity"
     ContainersSecurityContext = "containersSecurityContext"
+    DNSPolicy = "dnsPolicy"
     Enabled = "enabled"
     Env = "extraEnv"
     EphemeralStorages = "ephemeralStorages"
@@ -389,6 +390,7 @@ class ComponentDetails(DeployableDetails):
 def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> SubComponentDetails:
     values_file_path_overrides: dict[PropertyType, ValuesFilePath] = {
         PropertyType.AdditionalConfig: ValuesFilePath.read_elsewhere("synapse", "additional"),
+        PropertyType.DNSPolicy: ValuesFilePath.read_elsewhere("synapse", "dnsPolicy"),
         PropertyType.Env: ValuesFilePath.read_elsewhere("synapse", "extraEnv"),
         PropertyType.EphemeralStorages: ValuesFilePath.read_elsewhere("synapse", "ephemeralStorages"),
         PropertyType.HostAliases: ValuesFilePath.read_elsewhere("synapse", "hostAliases"),
@@ -729,6 +731,7 @@ all_components_details = [
                 values_file_path=ValuesFilePath.read_write("synapse", "checkConfigHook"),
                 values_file_path_overrides={
                     PropertyType.AdditionalConfig: ValuesFilePath.read_elsewhere("synapse", "additional"),
+                    PropertyType.DNSPolicy: ValuesFilePath.read_elsewhere("synapse", "dnsPolicy"),
                     PropertyType.Env: ValuesFilePath.read_elsewhere("synapse", "extraEnv"),
                     PropertyType.EphemeralStorages: ValuesFilePath.read_elsewhere("synapse", "ephemeralStorages"),
                     PropertyType.Image: ValuesFilePath.read_elsewhere("synapse", "image"),

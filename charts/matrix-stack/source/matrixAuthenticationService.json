@@ -132,6 +132,9 @@
     "containersSecurityContext": {
       "$ref": "file://common/containersSecurityContext.json"
     },
+    "dnsPolicy": {
+      "type": "string"
+    },
     "extraEnv": {
       "$ref": "file://common/extraEnv.json"
     },

@@ -22,6 +22,9 @@ automountServiceAccountToken: {{ $mountServiceAccountToken }}
 serviceAccountName: {{ include "element-io.ess-library.serviceAccountName" (dict "root" $root "context" (dict "serviceAccount" .serviceAccount "nameSuffix" $serviceAccountNameSuffix)) }}
 {{- include "element-io.ess-library.pods.pullSecrets" (dict "root" $root "context" (dict "pullSecrets" ((.image).pullSecrets | default list) "usesMatrixTools" $usesMatrixTools)) }}
 {{- if $makesOutboundRequests }}
+{{- with (tpl .dnsPolicy $root) }}
+dnsPolicy: {{ . }}
+{{- end }}
 {{- with .hostAliases }}
 hostAliases:
   {{- tpl (toYaml . | nindent 2) $root }}
