@@ -58,6 +58,9 @@
     "containersSecurityContext": {
       "$ref": "file://common/containersSecurityContext.json"
     },
+    "dnsPolicy": {
+      "type": "string"
+    },
     "serviceMonitors": {
       "$ref": "file://common/serviceMonitors.json"
     },
@@ -208,6 +211,9 @@
         },
         "containersSecurityContext": {
           "$ref": "file://common/containersSecurityContext.json"
+        },
+        "dnsPolicy": {
+          "type": "string"
         },
         "nodeSelector": {
           "$ref": "file://common/nodeSelector.json"

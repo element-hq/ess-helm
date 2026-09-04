@@ -692,6 +692,8 @@ matrixRTC:
     ## localhostProfile must only be set set if type Localhost. It indicates the path of the pre-configured profile on the node, relative to the kubelet's configured Seccomp profile location (configured with the --root-dir flag).
     # seccompProfile:
     #  type: RuntimeDefault
+  ## Set DNS policy for the pod. Kubernetes defaults to ClusterFirst if no value is provided here
+  dnsPolicy: ""
   ## The list of hosts aliases to configure on the pod spec.
   ## It should be avoid as much as possible to use this feature.
   ## Please prefer using an DNS entry to resolve your hostnames.
@@ -1180,6 +1182,8 @@ matrixRTC:
       ## localhostProfile must only be set set if type Localhost. It indicates the path of the pre-configured profile on the node, relative to the kubelet's configured Seccomp profile location (configured with the --root-dir flag).
       # seccompProfile:
       #  type: RuntimeDefault
+    ## Set DNS policy for the pod. Kubernetes defaults to ClusterFirst if no value is provided here
+    dnsPolicy: "{{ $.Values.matrixRTC.sfu.hostNetwork | ternary \"ClusterFirstWithHostNet\" \"\" }}"
     ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
     nodeSelector: {}
     ## If specified, indicates the pod's priority and must reference the name of an existing PriorityClass object.
@@ -2580,6 +2584,9 @@ hookshot:
     # seccompProfile:
     #  type: RuntimeDefault
 
+  ## Set DNS policy for the pod. Kubernetes defaults to ClusterFirst if no value is provided here
+  dnsPolicy: ""
+
   ## Defines the annotations to add to the workload
   # annotations: {}
 
@@ -3039,6 +3046,9 @@ matrixAuthenticationService:
     ## localhostProfile must only be set set if type Localhost. It indicates the path of the pre-configured profile on the node, relative to the kubelet's configured Seccomp profile location (configured with the --root-dir flag).
     # seccompProfile:
     #  type: RuntimeDefault
+
+  ## Set DNS policy for the pod. Kubernetes defaults to ClusterFirst if no value is provided here
+  dnsPolicy: ""
 
   ## Defines the annotations to add to the workload
   # annotations: {}
@@ -5886,6 +5896,8 @@ synapse:
     ## localhostProfile must only be set set if type Localhost. It indicates the path of the pre-configured profile on the node, relative to the kubelet's configured Seccomp profile location (configured with the --root-dir flag).
     # seccompProfile:
     #  type: RuntimeDefault
+  ## Set DNS policy for the pod. Kubernetes defaults to ClusterFirst if no value is provided here
+  dnsPolicy: ""
   ## Defines additional environment variables to be injected onto this workload
   ## e.g.
   ## extraEnv:

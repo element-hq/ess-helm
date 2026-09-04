@@ -3956,6 +3956,9 @@
           "type": "object",
           "additionalProperties": false
         },
+        "dnsPolicy": {
+          "type": "string"
+        },
         "serviceMonitors": {
           "type": "object",
           "properties": {
@@ -6040,6 +6043,9 @@
               },
               "type": "object",
               "additionalProperties": false
+            },
+            "dnsPolicy": {
+              "type": "string"
             },
             "nodeSelector": {
               "type": "object",
@@ -12463,6 +12469,9 @@
           "type": "object",
           "additionalProperties": false
         },
+        "dnsPolicy": {
+          "type": "string"
+        },
         "extraEnv": {
           "type": "array",
           "items": {
@@ -15776,6 +15785,9 @@
           },
           "type": "object",
           "additionalProperties": false
+        },
+        "dnsPolicy": {
+          "type": "string"
         },
         "extraEnv": {
           "type": "array",
@@ -24117,6 +24129,9 @@
           },
           "type": "object",
           "additionalProperties": false
+        },
+        "dnsPolicy": {
+          "type": "string"
         },
         "extraEnv": {
           "type": "array",
