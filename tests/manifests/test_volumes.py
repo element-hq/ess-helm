@@ -17,6 +17,25 @@ from .utils import iterate_deployables_workload_parts, iterate_pod_template
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
+async def test_volume_default_mode(values, templates):
+    for pod_template_details in iterate_pod_template(templates):
+        for v in pod_template_details.pod_template["spec"].get("volumes", []):
+            if "configMap" in v:
+                default_mode = v["configMap"].get("defaultMode")
+            elif "secret" in v:
+                default_mode = v["secret"].get("secret")
+            else:
+                continue
+
+            # 256 (decimal) = 400 (octal)
+            # 320 (decimal) = 500 (octal)
+            assert default_mode in (256, 320), (
+                f"{pod_template_details.manifest_id} volume {v['name']} does not have an accepted mode"
+            )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
 async def test_extra_volumes(values, make_templates, release_name):
     def extra_volumes(deployable_details: DeployableDetails):
         return deepfreeze(
