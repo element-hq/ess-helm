@@ -202,6 +202,7 @@ spec:
         name: var-run
 {{- if and $.Values.initSecrets.enabled (include "element-io.init-secrets.postgres-generated-secrets" (dict "root" $)) }}
       - secret:
+          defaultMode: 256
           secretName: {{ $.Release.Name }}-generated
         name: secret-generated
 {{- end }}
