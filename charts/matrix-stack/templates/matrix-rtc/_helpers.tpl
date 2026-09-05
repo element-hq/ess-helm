@@ -9,8 +9,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $root := .root -}}
 {{- with required "element-io.matrix-rtc.validations missing context" .context -}}
 {{ $messages := list }}
-{{- if not .ingress.host -}}
-{{ $messages = append $messages "matrixRTC.ingress.host is required when matrixRTC.enabled=true" }}
+{{- $trafficHandler := include "element-io.ess-library.inboundTrafficHandler.name" (dict "root" $root "context" (dict "component" .)) -}}
+{{- if and $trafficHandler (not (include "element-io.ess-library.inboundTrafficHandler.host" (dict "root" $root "context" (dict "component" .)))) -}}
+{{ $messages = append $messages (printf "matrixRTC.%s.host is required when matrixRTC.enabled=true and inboundTrafficHandler is %s" $trafficHandler $trafficHandler) }}
 {{- end }}
 {{- if and .sfu.exposedServices.turnTLS.enabled .sfu.exposedServices.turnTLS.tlsTerminationOnPod (not .sfu.exposedServices.turnTLS.tlsSecret) (not $root.Values.certManager) -}}
 {{ $messages = append $messages "matrixRTC.sfu.exposedServices.turnTLS.enabled with tlsTerminationOnPod=true requires either .sfu.exposedServices.turnTLS.tlsSecret or certManager to be configured." }}
@@ -80,7 +81,7 @@ env:
         )) }}
 {{- if .sfu.enabled }}
 - name: "LIVEKIT_URL"
-  value: {{ printf "wss://%s" (tpl .ingress.host $root) }}
+  value: {{ printf "wss://%s" (include "element-io.ess-library.inboundTrafficHandler.host" (dict "root" $root "context" (dict "component" .))) }}
 {{- end }}
 - name: "LIVEKIT_FULL_ACCESS_HOMESERVERS"
 {{- if $root.Values.serverName }}

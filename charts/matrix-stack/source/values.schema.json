@@ -90,6 +90,9 @@
     "storage": {
       "$ref": "file://common/storage_global.json"
     },
+    "routes": {
+      "$ref": "file://common/routes_global.json"
+    },
     "tolerations": {
       "$ref": "file://common/tolerations.json"
     },
@@ -123,6 +126,37 @@
           ]
         }
       }
+    },
+    "gateway": {
+      "type": "object",
+      "properties": {
+        "create": {
+          "type": "boolean"
+        },
+        "className": {
+          "type": "string"
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "listenFor": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "inboundTrafficHandler": {
+      "type": "string",
+      "enum": [
+        "ingress",
+        "routes",
+        "none"
+      ]
     },
     "deploymentMarkers": {
       "$ref": "file://deployment-markers.json"
