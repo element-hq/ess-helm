@@ -31,11 +31,7 @@ spec:
         {{- toYaml . | nindent 8 }}
 {{- end }}
     spec:
-{{- with .hostAliases }}
-      hostAliases:
-        {{- tpl (toYaml . | nindent 8) $ }}
-{{- end }}
-{{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "matrix-rtc-authorisation-service" "kind" "Deployment")) | nindent 6 }}
+{{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "matrix-rtc-authorisation-service" "kind" "Deployment" "makesOutboundRequests" true)) | nindent 6 }}
 {{- with .extraInitContainers }}
       initContainers:
       {{- toYaml . | nindent 6 }}

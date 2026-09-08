@@ -3956,6 +3956,9 @@
           "type": "object",
           "additionalProperties": false
         },
+        "dnsPolicy": {
+          "type": "string"
+        },
         "serviceMonitors": {
           "type": "object",
           "properties": {
@@ -5448,6 +5451,24 @@
                 "type": "string"
               }
             },
+            "hostAliases": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "ip": {
+                    "type": "string"
+                  },
+                  "hostnames": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
             "hostNetwork": {
               "type": "boolean"
             },
@@ -6022,6 +6043,9 @@
               },
               "type": "object",
               "additionalProperties": false
+            },
+            "dnsPolicy": {
+              "type": "string"
             },
             "nodeSelector": {
               "type": "object",
@@ -12445,6 +12469,9 @@
           "type": "object",
           "additionalProperties": false
         },
+        "dnsPolicy": {
+          "type": "string"
+        },
         "extraEnv": {
           "type": "array",
           "items": {
@@ -15758,6 +15785,9 @@
           },
           "type": "object",
           "additionalProperties": false
+        },
+        "dnsPolicy": {
+          "type": "string"
         },
         "extraEnv": {
           "type": "array",
@@ -24099,6 +24129,9 @@
           },
           "type": "object",
           "additionalProperties": false
+        },
+        "dnsPolicy": {
+          "type": "string"
         },
         "extraEnv": {
           "type": "array",

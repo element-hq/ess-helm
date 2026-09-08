@@ -44,14 +44,9 @@ template:
                                           "instanceSuffix" ($isHook | ternary "synapse-check-config" (printf "synapse-%s" $processType))
                                           "serviceAccountNameSuffix" ($isHook | ternary "synapse-check-config" "synapse")
                                           "kind" ($isHook | ternary "Job" "StatefulSet")
+                                          "makesOutboundRequests" (not $isHook)
                                           "usesMatrixTools" true)
                                     ) | nindent 4 }}
-{{- if not $isHook }}
-{{- with .hostAliases }}
-    hostAliases:
-      {{- tpl (toYaml . | nindent 6) $root }}
-{{- end }}
-{{- end }}
 {{- /*
 We have an init container to render & merge the config for several reasons:
 * We have external, user-supplied Secrets and don't want to use `lookup` as that doesn't work with things like ArgoCD
