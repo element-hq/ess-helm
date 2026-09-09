@@ -192,6 +192,20 @@ escapedKey: \${REPLACE_WITH}
 			},
 			err: false,
 		},
+		{
+			name: "Preserves ${thing} within env vars used as replacements",
+			readers: []io.Reader{
+				bytes.NewBuffer([]byte(`
+fromEnvVar: ${ENV_VAR}`)),
+			},
+			env: map[string]string{
+				"ENV_VAR": "here is ${something} that looks like an env var replacement",
+			},
+			expected: map[string]any{
+				"fromEnvVar": "here is ${something} that looks like an env var replacement",
+			},
+			err: false,
+		},
 	}
 
 	for _, tc := range testCases {
