@@ -273,5 +273,12 @@ true
 env:
 - name: "NAMESPACE"
   value: {{ $root.Release.Namespace | quote }}
+{{- if $root.Values.deploymentMarkers.enabled }}
+- name: "CURRENT_MARKER_STATE"
+  valueFrom:
+    configMapKeyRef:
+      name: "{{ $root.Release.Name }}-markers"
+      key: MATRIX_STACK_MSC3861
+{{- end }}
 {{- end -}}
 {{- end -}}

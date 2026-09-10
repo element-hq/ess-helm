@@ -25,6 +25,15 @@ func Run(options *Syn2MasOptions) {
 		os.Exit(1)
 	}
 
+	currentMarkerState := os.Getenv("CURRENT_MARKER_STATE")
+	// We don't need to consider the `delegated_auth`` state (i.e. after a deployment has happened with syn2mas has been turned off)
+	// Because we don't allow transitioning back from `delegated_auth`` -> `syn2mas_migrated``
+	// If deploymentMarkers is off then we won't have any record in cluster and we'll have the empty string here and migration will proceed
+	if currentMarkerState == "syn2mas_migrated" {
+		fmt.Println("The cluster is recording the syn2mas migration as already having occurred. Skipping the migration")
+		os.Exit(0)
+	}
+
 	// Dry-run (and check) is always executed before doing a real migration
 	executor.DryRunSyn2MAS(options.SynapseConfig, options.MASConfig)
 	if !options.DryRun {

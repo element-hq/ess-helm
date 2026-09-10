@@ -53,8 +53,8 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" $
         {{- /* We're only dry-run migrating so we're still stuck in legacy auth */ -}}
 - {{ (printf "%s-markers" $root.Release.Name) }}:MATRIX_STACK_MSC3861:legacy_auth:legacy_auth
       {{- else }}
-        {{- /* We're running the migration for real so allow to go legacy auth -> migrated but don't allow to stay in this state after another deploy */ -}}
-- {{ (printf "%s-markers" $root.Release.Name) }}:MATRIX_STACK_MSC3861:syn2mas_migrated:legacy_auth
+        {{- /* We're running the migration for real so allow to go legacy auth -> migrated as well as allowing to stay in this state after another deploy (the migration process will no-op) */ -}}
+- {{ (printf "%s-markers" $root.Release.Name) }}:MATRIX_STACK_MSC3861:syn2mas_migrated:legacy_auth;syn2mas_migrated
       {{- end }}
     {{- else }}
       {{- /* We've started with MAS or migrated to MAS, so allow to come from migrated -> MAS as well as staying with MAS */ -}}
