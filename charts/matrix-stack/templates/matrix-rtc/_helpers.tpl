@@ -64,8 +64,27 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- $root := .root -}}
 {{- with required "element-io.matrix-rtc-authorisation-service.overrideEnv missing context" .context -}}
 env:
+{{- if .redisOrValkey }}
+{{- with .redisOrValkey }}
+- name: "LIVEKIT_REDIS_URL"
+  value: "redis{{ if .tls }}s{{ end }}://{{ tpl .host $root }}:{{ .port | default 6379 }}/{{ .db | default 0 }}"
+{{- with .password }}
+- name: LIVEKIT_REDIS_PASSWORD
+  valueFrom:
+    secretKeyRef:
+{{ if .value }}
+      name: {{ (printf "%s-matrix-rtc-authorisation-service" $root.Release.Name) | quote }}
+      key: REDIS_PASSWORD
+{{- else }}
+      name: {{ (tpl .secret $root) | quote }}
+      key: {{ (tpl .secretKey $root) | quote }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- else }}
 - name: "LIVEKIT_REDIS_URL"
   value: "redis://{{ $root.Release.Name }}-valkey.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:6379/2"
+{{- end }}
 - name: "LIVEKIT_KEY"
   value: {{ .livekitAuth.key }}
 - name: "LIVEKIT_SECRET_FROM_FILE"
@@ -109,6 +128,9 @@ env:
 {{- with (.livekitAuth.secret).secret -}}
 {{ $configSecrets = append $configSecrets (tpl . $root) }}
 {{- end -}}
+{{- with ((.redisOrValkey).password).secret }}
+{{ $configSecrets = append $configSecrets (tpl . $root) }}
+{{- end }}
 {{ $configSecrets | uniq | toJson }}
 {{- end }}
 {{- end }}
@@ -122,5 +144,11 @@ env:
 {{- with (.livekitAuth.secret).value -}}
 LIVEKIT_SECRET: {{ . | b64enc }}
 {{- end -}}
+{{- with (.redisOrValkey).password }}
+{{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "matrixRTC.redisOrValkey.password" "initIfAbsent" false)) -}}
+{{- with .value }}
+REDIS_PASSWORD: {{ . | b64enc | quote }}
+{{- end }}
+{{- end }}
 {{- end -}}
 {{- end -}}
