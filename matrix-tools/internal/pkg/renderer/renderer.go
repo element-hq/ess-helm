@@ -131,7 +131,7 @@ func RenderConfig(sourceConfigs []io.Reader, arrayOverwriteKeys []string) (map[s
 			// We need to capture any (non-escaping) character before the env var so that we can
 			// re-add it into replacementValue below or it gets lost as it was part of the regex so gets replaced
 			nonEscapedEnvVarsRe := regexp.MustCompile(`([^\\]|^)\$\{` + envVar + `\}`)
-			replacementValue = []byte("${1}" + buffer.String())
+			replacementValue = []byte("${1}" + strings.ReplaceAll(buffer.String(), "$", "$$"))
 			fileContent = nonEscapedEnvVarsRe.ReplaceAll(fileContent, replacementValue)
 		}
 
