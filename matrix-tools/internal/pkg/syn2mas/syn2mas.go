@@ -1,5 +1,5 @@
 // Copyright 2025 New Vector Ltd
-// Copyright 2025 Element Creations Ltd
+// Copyright 2025-2026 Element Creations Ltd
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 // internal/pkg/secret/secret.go
@@ -127,31 +127,45 @@ func scaleBack(client kubernetes.Interface, namespace string, scaledSts map[stri
 	}
 }
 
-func RunSyn2MAS(client kubernetes.Interface, namespace string, synapseConfigPath string, masConfigMap string) {
-	originStsReplicas := scaleDownSynapse(client, namespace)
-	// Run syn2mas cli, and in case of failure, scale back synapse up
-	fmt.Println("Running syn2mas")
-	cmd := exec.Command("/tmp-mas-cli/mas-cli", "syn2mas", "migrate", "--config", masConfigMap, "--synapse-config", synapseConfigPath)
+func CallSyn2Mas(description string, arg ...string) int {
+	fmt.Println("Running", description)
+	cmd := exec.Command("/tmp-mas-cli/mas-cli", arg...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
-	fmt.Println("syn2mas run ended")
+	fmt.Println(description, "ended")
 	var exitError *exec.ExitError
 	var ok bool
 	if err != nil {
 		// Detailed error handling
 		if exitError, ok = err.(*exec.ExitError); ok {
 			fmt.Printf("Command failed with status: %v\n", exitError.ExitCode())
+			return exitError.ExitCode()
 		} else {
-			fmt.Println(err)
+			return 1
 		}
 	}
-	scaleBack(client, namespace, originStsReplicas)
-	if exitError != nil {
-		os.Exit(exitError.ExitCode())
-	} else if err != nil {
-		os.Exit(1)
-	} else {
-		os.Exit(0)
+	return 0
+}
+
+func DryRunSyn2MAS(synapseConfigPath string, masConfigMap string) {
+	// Run syn2mas check first
+	ret := CallSyn2Mas("syn2mas check", "syn2mas", "check", "--config", masConfigMap, "--synapse-config", synapseConfigPath)
+	if ret > 0 {
+		os.Exit(ret)
 	}
+
+	// Then run migrate --dry-run
+	ret = CallSyn2Mas("syn2mas migrate --dry-run", "syn2mas", "migrate", "--dry-run", "--config", masConfigMap, "--synapse-config", synapseConfigPath)
+	if ret > 0 {
+		os.Exit(ret)
+	}
+}
+
+func RunSyn2MAS(client kubernetes.Interface, namespace string, synapseConfigPath string, masConfigMap string) {
+	originStsReplicas := scaleDownSynapse(client, namespace)
+	// Run syn2mas cli, and in case of failure, scale back synapse up
+	ret := CallSyn2Mas("syn2mas", "syn2mas", "migrate", "--config", masConfigMap, "--synapse-config", synapseConfigPath)
+	scaleBack(client, namespace, originStsReplicas)
+	os.Exit(ret)
 }

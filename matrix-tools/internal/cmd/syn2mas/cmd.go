@@ -1,5 +1,5 @@
 // Copyright 2025 New Vector Ltd
-// Copyright 2025 Element Creations Ltd
+// Copyright 2025-2026 Element Creations Ltd
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 
@@ -24,5 +24,10 @@ func Run(options *Syn2MasOptions) {
 		fmt.Println("Error, $NAMESPACE is not defined")
 		os.Exit(1)
 	}
-	executor.RunSyn2MAS(clientset, namespace, options.SynapseConfig, options.MASConfig)
+
+	// Dry-run (and check) is always executed before doing a real migration
+	executor.DryRunSyn2MAS(options.SynapseConfig, options.MASConfig)
+	if !options.DryRun {
+		executor.RunSyn2MAS(clientset, namespace, options.SynapseConfig, options.MASConfig)
+	}
 }
