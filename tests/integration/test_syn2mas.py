@@ -1,5 +1,5 @@
 # Copyright 2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -69,10 +69,10 @@ async def test_run_syn2mas_upgrade(
     # Syn2Mas is running in migrate mode, so the state must have changed
     assert await get_deployment_marker(kube_client, generated_data, "MATRIX_STACK_MSC3861") == "syn2mas_migrated"
 
-    # Assert we cant run syn2mas again
-    revision, error = await deploy_with_values_patch(generated_data, helm_client, {}, timeout="15s")
-    assert error is not None, "There was no error"
-    assert revision.status == pyhelm3.ReleaseRevisionStatus.FAILED
+    # Assert we can run syn2mas again (same values as last run)
+    revision, error = await deploy_with_values_patch(generated_data, helm_client, {})
+    assert error is None, error
+    assert revision.status == pyhelm3.ReleaseRevisionStatus.DEPLOYED
 
     # Auth metadata endpoint should be reachable
     response = await aiohttp_get_json(

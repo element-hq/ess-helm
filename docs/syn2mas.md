@@ -18,8 +18,8 @@ The syn2mas migration will run in a couple of minutes. It involves **three key s
 | Step | Action | Result |
 |------|--------|--------|
 | 1 | Setup Matrix Authentication Service and enable `syn2mas` in dryRun mode | System remains in `legacy_auth`. Matrix Authentication Service is deployed in `read-only` mode. It initializes the database. Users are still able to login using the legacy authentication. |
-| 2 | Run migration (dry run disabled) | System transitions to `syn2mas_migrated`. Users now login using the delegated authentication. Rollback to legacy authentication is not possible any more.  syn2mas cannot be run any more. |
-| 3 | Disable syn2mas | System finalizes to `delegated_auth`. |
+| 2 | Run migration (dry run disabled) | System transitions to `syn2mas_migrated`. Users now login using the delegated authentication. Rollback to legacy authentication is not possible any more. |
+| 3 | Disable syn2mas | System finalizes to `delegated_auth` and stops attempting to run the `syn2mas` job. |
 
 ## Important Notes
 
@@ -80,12 +80,12 @@ helm upgrade --namespace "ess" ess oci://ghcr.io/element-hq/ess-helm/matrix-stac
    - Matrix Authentication Service restarts and is ready to serve the delegated authentication
    - The `MATRIX_STACK_MSC3861` marker is updated to reflect the `syn2mas_migrated` state.
 
-Your users are now able to login using the delegated authentication. It is not possible to rollback to `legacy_auth` any more, nor to run the syn2mas migration again.
+Your users are now able to login using the delegated authentication. It is not possible to rollback to `legacy_auth` any more. The `syn2mas` job will keep running but will not do anything again.
 
 
 ### Step 3: Disable syn2mas
 
-When in `syn2mas_migrated` state, running `helm upgrade` will prevent any deployment until `syn2mas` is disabled and the state becomes `delegated_auth`.
+When in `syn2mas_migrated` state, running `helm upgrade` will succeed but will keep running a no-op `syn2mas` job until `syn2mas` is disabled and the state is finalised at `delegated_auth`.
 
 2. Run the helm upgrade command without syn2mas arguments:
 
