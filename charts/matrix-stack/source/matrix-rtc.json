@@ -23,6 +23,9 @@
         }
       }
     },
+    "redisOrValkey": {
+      "$ref": "file://common/redis.json"
+    },
     "replicas": {
       "minimum": 0,
       "maximum": 1,

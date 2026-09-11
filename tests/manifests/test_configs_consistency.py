@@ -401,7 +401,7 @@ class GenericContainerSpecPathConsumer(PathConsumer):
             if "emptyDir" in volume and volume["name"] in previously_mounted_empty_dirs:
                 mounted_empty_dirs[volume["name"]] = previously_mounted_empty_dirs[volume["name"]]
         return cls(
-            env={e["name"]: e["value"] for e in container_spec.get("env", [])},
+            env={e["name"]: e["value"] for e in container_spec.get("env", []) if "valueFrom" not in e},
             args=container_spec.get("command") or container_spec.get("args", []),
             exec_properties={
                 p: "\n".join(container_spec[p]["exec"]["command"])

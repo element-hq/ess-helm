@@ -1,5 +1,5 @@
 # Copyright 2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -8,6 +8,7 @@ matrixRTC:
     checkov.io/skip1: CKV_K8S_11=We deliberately don't set CPU limits. Pod is BestEffort not Guaranteed
     checkov.io/skip2: CKV_K8S_43=No digests
     checkov.io/skip3: CKV2_K8S_6=No network policy yet
+    checkov.io/skip4: CKV_K8S_35=Redis passwords can only be loaded from env vars at present
   sfu:
     annotations:
       checkov.io/skip1: CKV_K8S_11=We deliberately don't set CPU limits. Pod is BestEffort not Guaranteed
