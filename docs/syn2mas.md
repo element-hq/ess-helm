@@ -1,6 +1,6 @@
 <!--
 Copyright 2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 -->
@@ -25,6 +25,7 @@ The syn2mas migration will run in a couple of minutes. It involves **three key s
 
 - Please make sure to backup the synapse database before running the migration.
 - The migration is a **one-way process**.Once the system is in the `delegated_auth` state, it cannot be rolled back to `legacy_auth`.
+- The migration process only works if Synapse is deployed and managed by this instance of the chart. You cannot use the migration process to migrate from an external Synapse to an in-chart MAS.
 
 ## Step-by-Step Upgrade Process
 

@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -43,38 +43,27 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" $
 
 {{- define "element-io.deployment-markers.markers" -}}
 {{- $root := .root -}}
-{{- /* We allow deploying of Synapse without Matrix Authentication Service, only
-   * if it was initialized as legacy_auth. This effectively prevents enabling Matrix Authentication Service
-   * until Synapse 2 Matrix Authentication Service has been run.
-   * We can run with Matrix Authentication Service enabled if we are running syn2mas.
-   * We stay in legacy_auth mode after the dryRun mode has been completed.
-   **/}}
-{{- if and $root.Values.synapse.enabled
-           (or (not $root.Values.matrixAuthenticationService.enabled)
-              (and $root.Values.matrixAuthenticationService.enabled
-                    $root.Values.matrixAuthenticationService.syn2mas.enabled
-                    $root.Values.matrixAuthenticationService.syn2mas.dryRun)) }}
+{{- /* We can't set any sensible marker if Synapse isn't enabled:
+     * If a MAS suddenly appears here we have no way of knowing whether it was previously deployed externally or not
+    */ -}}
+{{- if $root.Values.synapse.enabled }}
+  {{- if $root.Values.matrixAuthenticationService.enabled }}
+    {{- if $root.Values.matrixAuthenticationService.syn2mas.enabled }}
+      {{- if $root.Values.matrixAuthenticationService.syn2mas.dryRun }}
+        {{- /* We're only dry-run migrating so we're still stuck in legacy auth */ -}}
 - {{ (printf "%s-markers" $root.Release.Name) }}:MATRIX_STACK_MSC3861:legacy_auth:legacy_auth
-{{- end }}
-
-{{- /* We allow migrating from legacy_auth to syn2mas_migrated, if we are running syn2mas in migrate mode.
-  **/}}
-{{- if and $root.Values.synapse.enabled
-          $root.Values.matrixAuthenticationService.enabled
-          $root.Values.matrixAuthenticationService.syn2mas.enabled
-          (not $root.Values.matrixAuthenticationService.syn2mas.dryRun) }}
+      {{- else }}
+        {{- /* We're running the migration for real so allow to go legacy auth -> migrated but don't allow to stay in this state after another deploy */ -}}
 - {{ (printf "%s-markers" $root.Release.Name) }}:MATRIX_STACK_MSC3861:syn2mas_migrated:legacy_auth
-{{- end }}
-
-{{- /* We allow deploying of Synapse with Matrix Authentication Service, only
-   * if it was initialized as delegated_auth, or if syn2mas was just ran and migration was completed.
-   * This effectively prevents disabling Matrix Authentication Service
-   * once it has been enabled.
-  **/}}
-{{- if and $root.Values.synapse.enabled
-           $root.Values.matrixAuthenticationService.enabled
-           (not $root.Values.matrixAuthenticationService.syn2mas.enabled) }}
+      {{- end }}
+    {{- else }}
+      {{- /* We've started with MAS or migrated to MAS, so allow to come from migrated -> MAS as well as staying with MAS */ -}}
 - {{ (printf "%s-markers" $root.Release.Name) }}:MATRIX_STACK_MSC3861:delegated_auth:delegated_auth;syn2mas_migrated
+    {{- end }}
+  {{- else }}
+    {{- /* MAS not enabled at all, we're using legacy auth */ -}}
+- {{ (printf "%s-markers" $root.Release.Name) }}:MATRIX_STACK_MSC3861:legacy_auth:legacy_auth
+  {{- end }}
 {{- end }}
 {{- end }}
 
