@@ -51,6 +51,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- end }}
 {{- end }}
 
+{{- with $.Values.gateway }}
+{{- if and .create (not .className) }}
+{{- $messages = append $messages "gateway.className is required when gateway.create is true" }}
+{{- end }}
+{{- end }}
+
 {{- if gt (len $messages) 0 }}
 {{ fail (printf "\n- %s" ($messages | join "\n- " )) }}
 {{- end }}

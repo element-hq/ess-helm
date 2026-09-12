@@ -8,7 +8,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $root := .root -}}
 {{- with required "synapse/synapse-04-homeserver-overrides.yaml.tpl missing context" .context }}
 {{- $isHook := required "element-io.synapse.config.shared-overrides requires context.isHook" .isHook -}}
-public_baseurl: https://{{ tpl .ingress.host $root }}/
+public_baseurl: https://{{ include "element-io.ess-library.inboundTrafficHandler.host" (dict "root" $root "context" (dict "component" .)) }}/
 server_name: {{ tpl $root.Values.serverName $root }}
 signing_key_path: /secrets/{{
   include "element-io.ess-library.init-secret-path" (
@@ -131,7 +131,7 @@ password_config:
 matrix_rtc:
   transports:
   - type: livekit
-    livekit_service_url: {{ (printf "https://%s" $root.Values.matrixRTC.ingress.host) }}
+    livekit_service_url: {{ (printf "https://%s" (include "element-io.ess-library.inboundTrafficHandler.host" (dict "root" $root "context" (dict "component" $root.Values.matrixRTC)))) }}
 {{- end }}
 
 {{- if dig "appservice" "enabled" false .workers }}

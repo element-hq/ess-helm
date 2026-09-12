@@ -56,13 +56,13 @@ k8s.element.io/target-instance: {{ $root.Release.Name }}-haproxy
 {{- with required "element-io.well-known-delegation.client missing context" .context -}}
 {{- $config := dict -}}
 {{- if $root.Values.synapse.enabled -}}
-{{- with required "WellKnownDelegation requires synapse.ingress.host set" $root.Values.synapse.ingress.host -}}
+{{- with required "WellKnownDelegation requires a host to be set for Synapse's active inbound traffic handler" (include "element-io.ess-library.inboundTrafficHandler.host" (dict "root" $root "context" (dict "component" $root.Values.synapse))) -}}
 {{- $mHomeserver := dict "base_url" (printf "https://%s" .) -}}
 {{- $_ := set $config "m.homeserver" $mHomeserver -}}
 {{- end -}}
 {{- end -}}
 {{- if $root.Values.matrixRTC.enabled -}}
-{{- $_ := set $config "org.matrix.msc4143.rtc_foci" (list (dict "type" "livekit" "livekit_service_url" (printf "https://%s" $root.Values.matrixRTC.ingress.host))) -}}
+{{- $_ := set $config "org.matrix.msc4143.rtc_foci" (list (dict "type" "livekit" "livekit_service_url" (printf "https://%s" (include "element-io.ess-library.inboundTrafficHandler.host" (dict "root" $root "context" (dict "component" $root.Values.matrixRTC)))))) -}}
 {{- end -}}
 {{- $additional := .additional.client | fromJson -}}
 {{- tpl (toPrettyJson (mustMergeOverwrite $additional $config)) $root -}}
@@ -74,7 +74,7 @@ k8s.element.io/target-instance: {{ $root.Release.Name }}-haproxy
 {{- with required "element-io.well-known-delegation.server missing context" .context -}}
 {{- $config := dict -}}
 {{- if $root.Values.synapse.enabled -}}
-{{- with required "WellKnownDelegation requires synapse.ingress.host set" $root.Values.synapse.ingress.host -}}
+{{- with required "WellKnownDelegation requires a host to be set for Synapse's active inbound traffic handler" (include "element-io.ess-library.inboundTrafficHandler.host" (dict "root" $root "context" (dict "component" $root.Values.synapse))) -}}
 {{- $_ := set $config "m.server" (printf "%s:443" .) -}}
 {{- end -}}
 {{- end -}}
@@ -101,5 +101,16 @@ server: |
   {{- (tpl (include "element-io.well-known-delegation.server" (dict "root" $root "context" .)) $root) | nindent 2 }}
 support: |
   {{- (tpl (include "element-io.well-known-delegation.support" (dict "root" $root "context" .)) $root) | nindent 2 }}
+{{- end -}}
+{{- end -}}
+
+{{- define "element-io.well-known-delegation.httproute-path" -}}
+{{- $root := .root -}}
+{{- with required "element-io.well-known-delegation.httproute-path missing context" .context -}}
+{{- if and .enabled (or $root.Values.elementWeb.enabled .url) -}}
+/
+{{- else -}}
+/.well-known/matrix
+{{- end -}}
 {{- end -}}
 {{- end -}}

@@ -9,7 +9,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- with required "matrix-authentication-service/config.yaml.tpl missing context" .context }}
 {{- $context := . -}}
 http:
-  public_base: "https://{{ tpl .ingress.host $root }}"
+  public_base: "https://{{ include "element-io.ess-library.inboundTrafficHandler.host" (dict "root" $root "context" (dict "component" .)) }}"
   listeners:
   - name: web
     binds:

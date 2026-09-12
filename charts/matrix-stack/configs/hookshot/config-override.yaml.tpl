@@ -53,7 +53,7 @@ listeners:
     bindAddress: {{ ( has $root.Values.networking.ipFamily (list "ipv6" "dual-stack")) | ternary "::" "0.0.0.0" | quote }}
     resources:
       - webhooks
-{{- if and $root.Values.synapse.enabled (not .ingress.host) }}
+{{- if and $root.Values.synapse.enabled (not (include "element-io.ess-library.inboundTrafficHandler.host" (dict "root" $root "context" (dict "component" .)))) }}
     prefix: "/_matrix/hookshot"
 {{- end }}
   - port: 7777
@@ -66,22 +66,22 @@ listeners:
     bindAddress: {{ ( has $root.Values.networking.ipFamily (list "ipv6" "dual-stack")) | ternary "::" "0.0.0.0" | quote }}
     resources:
       - widgets
-{{- if and $root.Values.synapse.enabled (not .ingress.host) }}
+{{- if and $root.Values.synapse.enabled (not (include "element-io.ess-library.inboundTrafficHandler.host" (dict "root" $root "context" (dict "component" .)))) }}
     prefix: "/_matrix/hookshot"
 {{- end }}
 
 generic:
-{{ if .ingress.host }}
-  urlPrefix: https://{{ (tpl .ingress.host $root) }}/webhook
+{{ if include "element-io.ess-library.inboundTrafficHandler.host" (dict "root" $root "context" (dict "component" .)) }}
+  urlPrefix: https://{{ include "element-io.ess-library.inboundTrafficHandler.host" (dict "root" $root "context" (dict "component" .)) }}/webhook
 {{ else if $root.Values.synapse.enabled }}
-  urlPrefix: https://{{ (tpl $root.Values.synapse.ingress.host $root) }}/_matrix/hookshot/webhook
+  urlPrefix: https://{{ include "element-io.ess-library.inboundTrafficHandler.host" (dict "root" $root "context" (dict "component" $root.Values.synapse)) }}/_matrix/hookshot/webhook
 {{ end }}
 
 widgets:
-{{- if .ingress.host }}
-  publicUrl: https://{{ tpl .ingress.host $root }}/widgetapi/v1/static
+{{- if include "element-io.ess-library.inboundTrafficHandler.host" (dict "root" $root "context" (dict "component" .)) }}
+  publicUrl: https://{{ include "element-io.ess-library.inboundTrafficHandler.host" (dict "root" $root "context" (dict "component" .)) }}/widgetapi/v1/static
 {{ else if $root.Values.synapse.enabled }}
-  publicUrl: https://{{ tpl $root.Values.synapse.ingress.host $root }}/_matrix/hookshot/widgetapi/v1/static
+  publicUrl: https://{{ include "element-io.ess-library.inboundTrafficHandler.host" (dict "root" $root "context" (dict "component" $root.Values.synapse)) }}/_matrix/hookshot/widgetapi/v1/static
 {{ end }}
 
 {{- end -}}

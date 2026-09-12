@@ -9,8 +9,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{ $root := .root }}
 {{- with required "element-io.synapse.validations missing context" .context -}}
 {{ $messages := list }}
-{{- if not .ingress.host -}}
-{{ $messages = append $messages "synapse.ingress.host is required when synapse.enabled=true" }}
+{{- $trafficHandler := include "element-io.ess-library.inboundTrafficHandler.name" (dict "root" $root "context" (dict "component" .)) -}}
+{{- if and $trafficHandler (not (include "element-io.ess-library.inboundTrafficHandler.host" (dict "root" $root "context" (dict "component" .)))) -}}
+{{ $messages = append $messages (printf "synapse.%s.host is required when synapse.enabled=true and inboundTrafficHandler is %s" $trafficHandler $trafficHandler) }}
 {{- end }}
 {{- if not $root.Values.serverName -}}
 {{ $messages = append $messages "serverName is required when synapse.enabled=true" }}
@@ -128,6 +129,7 @@ env:
 
 {{- define "element-io.synapse.ingress.additionalPaths" -}}
 {{- $root := .root -}}
+{{- $type := include "element-io.ess-library.inboundTrafficHandler.name" (dict "root" $root "context" (dict "component" $root.Values.synapse)) }}
 {{- with required "element-io.synapse.ingress.additionalPaths missing context" .context -}}
 {{- if include "element-io.matrix-authentication-service.readyToHandleAuth" (dict "root" $root) }}
 {{- range $apiVersion := list "api/v1" "r0" "v3" "unstable" }}
@@ -138,22 +140,31 @@ env:
     name: "{{ $root.Release.Name }}-matrix-authentication-service"
     port:
       name: http
+      {{- if eq $type "routes" }}
+      number: 8080
+      {{- end }}
 {{- end }}
 {{- end }}
 {{- end }}
-{{- if and $root.Values.hookshot.enabled (not $root.Values.hookshot.ingress.host) }}
+{{- if and $root.Values.hookshot.enabled (not (include "element-io.ess-library.inboundTrafficHandler.host" (dict "root" $root "context" (dict "component" $root.Values.hookshot)))) }}
 - path: "/_matrix/hookshot/widgetapi/v1"
   availability: only_externally
   service:
     name: "{{ $root.Release.Name }}-hookshot"
     port:
       name: widgets
+      {{- if eq $type "routes" }}
+      number: 7778
+      {{- end }}
 - path: "/_matrix/hookshot"
   availability: only_externally
   service:
     name: "{{ $root.Release.Name }}-hookshot"
     port:
       name: webhooks
+      {{- if eq $type "routes" }}
+      number: 7775
+      {{- end }}
 {{- end -}}
 {{- range $root.Values.synapse.ingress.additionalPaths }}
 - {{ . | toYaml | indent 2 | trim }}

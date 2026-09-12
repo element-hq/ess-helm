@@ -1,0 +1,35 @@
+{{- /*
+Copyright 2026 Element Creations Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+{{- with .Values.matrixAuthenticationService -}}
+{{- if eq (include "element-io.ess-library.inboundTrafficHandler.isEnabled" (dict "root" $ "context" (dict "component" . "trafficHandler" "routes"))) "true" -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+{{- include "element-io.ess-library.ingress.annotations" (dict "root" $ "context" (dict "ingress" .routes)) | nindent 2 }}
+  labels:
+    {{- include "element-io.matrix-authentication-service.labels" (dict "root" $ "context" .) | nindent 4 }}
+  name: {{ $.Release.Name }}-matrix-authentication-service
+  namespace: {{ $.Release.Namespace }}
+spec:
+  parentRefs:
+    {{- include "element-io.ess-library.ingress.parentRefs" (dict "root" $ "context" (dict "component" . "serviceName" "matrix-authentication-service")) | nindent 4 }}
+  hostnames:
+    - {{ (tpl .routes.host $) | quote }}
+  rules:
+    - matches:
+      - path:
+          type: PathPrefix
+          value: /
+      backendRefs:
+        - name: {{ $.Release.Name }}-matrix-authentication-service
+          port: 8080
+          group: ""
+          kind: Service
+{{- if eq (include "element-io.ess-library.routes.tls.isEnabled" (dict "root" $ "context" .routes)) "true" }}
+{{ include "element-io.ess-library.httpRedirectRoute" (dict "root" $ "context" (dict "component" . "serviceName" "matrix-authentication-service" "host" (tpl .routes.host $) "labels" (include "element-io.matrix-authentication-service.labels" (dict "root" $ "context" .)))) }}
+{{- end }}
+{{- end }}
+{{- end }}

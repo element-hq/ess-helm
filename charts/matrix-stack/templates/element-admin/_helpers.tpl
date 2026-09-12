@@ -9,8 +9,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $root := .root -}}
 {{- with required "element-io.element-admin.validations missing context" .context -}}
 {{ $messages := list }}
-{{- if not .ingress.host -}}
-{{ $messages = append $messages "elementAdmin.ingress.host is required when elementAdmin.enabled=true" }}
+{{- $trafficHandler := include "element-io.ess-library.inboundTrafficHandler.name" (dict "root" $root "context" (dict "component" .)) -}}
+{{- if and $trafficHandler (not (include "element-io.ess-library.inboundTrafficHandler.host" (dict "root" $root "context" (dict "component" .)))) -}}
+{{ $messages = append $messages (printf "elementAdmin.%s.host is required when elementAdmin.enabled=true and inboundTrafficHandler is %s" $trafficHandler $trafficHandler) }}
 {{- end }}
 {{ $messages | toJson }}
 {{- end }}
