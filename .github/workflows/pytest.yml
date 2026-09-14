@@ -127,6 +127,8 @@ jobs:
         else
           echo "The integration test does not exist in previous ref, skipping..."
         fi
+      # syn2mas is a special case that cannot run twice by design
+      if: ${{ matrix.test-component != 'matrix-authentication-service-syn2mas' }}
 
     - name: Checkout values files back
       run: |
@@ -144,8 +146,6 @@ jobs:
         # shellcheck source=/dev/null
         . "tests/integration/env/${MATRIX_TEST_COMPONENT}.rc"
         pytest-ess --test-suite "${MATRIX_TEST_COMPONENT}" --keep -- -vv
-      # syn2mas is a special case that cannot run twice by design
-      if: ${{ matrix.test-component != 'matrix-authentication-service-syn2mas' }}
 
     - name: Save pyhelm cache
       if: always() && steps.cache-pyhelm.outputs.cache-hit != 'true'

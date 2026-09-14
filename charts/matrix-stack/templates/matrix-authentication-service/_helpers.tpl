@@ -15,6 +15,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- if and (not $root.Values.postgres.enabled) (not .postgres) -}}
 {{ $messages = append $messages "matrixAuthenticationService.postgres is required when matrixAuthenticationService.enabled=true but postgres.enabled=false" }}
 {{- end }}
+{{- if and (not $root.Values.synapse.enabled) (.syn2mas.enabled) -}}
+{{ $messages = append $messages "synapse.enabled is required when matrixAuthenticationService.syn2mas.enabled=true" }}
+{{- end }}
 {{- with .additional }}
   {{- range $key := (. | keys | uniq | sortAlpha) }}
     {{- $prop := index $root.Values.matrixAuthenticationService.additional $key }}
@@ -270,5 +273,12 @@ true
 env:
 - name: "NAMESPACE"
   value: {{ $root.Release.Namespace | quote }}
+{{- if $root.Values.deploymentMarkers.enabled }}
+- name: "CURRENT_MARKER_STATE"
+  valueFrom:
+    configMapKeyRef:
+      name: "{{ $root.Release.Name }}-markers"
+      key: MATRIX_STACK_MSC3861
+{{- end }}
 {{- end -}}
 {{- end -}}
