@@ -36,8 +36,7 @@ env: []
 {{- $root := .root -}}
 {{- $synapseNeedsRedis := and $root.Values.synapse.enabled (not $root.Values.synapse.redisOrValkey) (not $root.Values.synapse.redis) (include "element-io.synapse.enabledWorkers" (dict "root" $root) | fromJson) -}}
 {{- $hookshotNeedsRedis := and $root.Values.hookshot.enabled (not $root.Values.hookshot.redisOrValkey) (not $root.Values.hookshot.redis) -}}
-{{- /* This very deliberately doesn't allow for external Redis right now as the authoriser doesn't support auth with the password coming from a file (i.e. an existing Secret) */ -}}
-{{- $matrixRTCNeedsRedis := $root.Values.matrixRTC.enabled -}}
+{{- $matrixRTCNeedsRedis := and $root.Values.matrixRTC.enabled (not $root.Values.matrixRTC.redisOrValkey) (not $root.Values.matrixRTC.sfu.redisOrValkey) (not $root.Values.matrixRTC.sfu.redis) -}}
 {{- if or $synapseNeedsRedis $hookshotNeedsRedis $matrixRTCNeedsRedis -}}
 true
 {{- end }}
