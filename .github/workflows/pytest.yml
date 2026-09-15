@@ -155,13 +155,13 @@ jobs:
         path: .pyhelm_cache
 
     - name: Export logs
-      if: ${{ failure() }}
+      if: ${{ !cancelled() }}
       shell: bash
       run: |
         collect-ess-logs --system-logs
 
     - name: Upload logs
-      if: ${{ failure() }}
+      if: ${{ !cancelled() }}
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: ess-helm-logs-${{ matrix.test-component }}-${{ matrix.test-from-ref }}
