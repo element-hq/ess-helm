@@ -7,6 +7,95 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.9.2 (2026-09-17)
+
+## Added
+
+- Add the ability to configure `dnsPolicy` on components that make outbound requests. (#1575)
+
+## Changed
+
+- Allow configuration of `hostAliases` on the MatrixRTC SFU.
+
+  It now makes outbound requests to Redis and the MatrixRTC authoriser. (#1574)
+- Unify `hostAliases` handling in supported components. (#1574)
+- Default the MatrixRTC SFU to `dnsPolicy: ClusterFirstWithHostNet` when running with `hostNetwork: true`. (#1575)
+- Update Synapse to v1.161.0.
+
+  Highlights:
+  - [MSC4140: Cancellable delayed events](https://github.com/matrix-org/matrix-spec-proposals/pull/4140): Add an endpoint for getting a single delayed event
+  - Add experimental support for letting application services proxy namespaces in the C-S and S-S API as per [MSC4512](https://github.com/matrix-org/matrix-spec-proposals/pull/4512)
+  - Add experimental support for sending federation requests from application services as per [MSC4512](https://github.com/matrix-org/matrix-spec-proposals/pull/4512)
+  - Add a config option that limits the time period in which local users can redact their own messages
+
+  Full Changelogs:
+  - [v1.161.0](https://github.com/element-hq/synapse/blob/release-v1.161/CHANGES.md)
+
+  (#1580)
+- Upgrade Element Web to v1.12.28.
+
+  Highlights:
+  - Fix [`GHSA-wqmv-r2qj-2j9p`](https://github.com/element-hq/element-web/security/advisories/GHSA-wqmv-r2qj-2j9p)
+  - Room list: add an Invites section
+  - Room list: add a People section
+  - Add user status in timeline pills
+  - Add a wait for first sync before showing the Home screen
+
+  Full Changelogs:
+  - [v1.12.28](https://github.com/element-hq/element-web/releases/tag/v1.12.28)
+
+  (#1582)
+- Validate that the in-chart Synapse is enabled if `syn2mas` has been enabled. (#1583)
+- Improve the clarity of the deployment markers logic. (#1583)
+- Allow the `syn2mas` migration process to stay in stage 2 for multiple deployments.
+
+  The actual `syn2mas` Helm hooks will keep running but will not doing anything until `matrixAuthenticationService.syn2mas.enabled: false` and the migration is finalised. (#1584)
+- Always run a `syn2mas migrate --dry-run` before doing a real migration.
+
+  We also move the `syn2mas check` under `matrix-tools` control too so that we can skip it in the next commit. (#1584)
+- Upgrade MatrixRTC Authoriser to v0.7.0.
+
+  Highlights:
+  - Rewrite in Rust to improve the service's resource footprint and simplifies future changes
+  - Check the user rather than the server room membership in the federation `/get_token` endpoint
+
+  Full Changelogs
+  - [v0.7.0](https://github.com/element-hq/lk-jwt-service/releases/tag/v0.7.0)
+
+  (#1585)
+- Extend MatrixRTC Redis support to include an external Redis/Valkey with `matrixRTC.redisOrValkey`.
+
+  Unlike with other components configuring via `matrixRTC.redis` is not supported as `<component>.redis` is deprecated.
+
+  If both the MatrixRTC Authoriser and SFU are configured with an external Redis/Valkey, the in-chart Valkey is not constructed for the purposes of MatrixRTC (it may still be constructed for Synapse and/or Hookshot). (#1586)
+- Always use HTTPS when redirecting to Element Web from unknown paths on `serverName`. (#1589)
+- Upgrade MatrixRTC SFU to v1.13.7.
+
+  Full Changelogs:
+  - [v1.13.7](https://github.com/livekit/livekit/releases/tag/v1.13.7)
+
+  (#1590)
+- Upgrade Redis Exporter to v1.91.1.
+
+  Full Changelogs:
+  - [v1.91.0](https://github.com/oliver006/redis_exporter/releases/tag/v1.91.0)
+  - [v1.91.1](https://github.com/oliver006/redis_exporter/releases/tag/v1.91.1)
+
+  (#1591)
+
+## Fixed
+
+- Fix `${thing}` within an environment variable that is used as a replacement not being preserved. (#1579)
+
+## Internal
+
+- CI: run the `syn2mas` integration test in the 2nd phase only rather than the 1st phase only.
+
+  Running it in the 1st phase only means that we're actually testing the old version of the chart. (#1584)
+- CI: upload integration test logs on successful runs too. (#1592)
+- Keep integration test logs for 3 days. (#1592)
+
+
 # ESS Community Helm Chart 26.9.1 (2026-09-04)
 
 ## Deprecated
