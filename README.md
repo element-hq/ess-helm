@@ -510,6 +510,70 @@ admin.example.com chat.example.com account.example.com mrtc.example.com matrix.e
 
 </details>
 
+<details><summary>Tailscale</summary>
+
+[Tailscale](https://tailscale.com/) creates a private overlay network (tailnet) that provides connectivity without port forwarding or a public IP, making it well suited for hosting ESS for a trusted group of friends or family behind CGNAT.
+
+**Before you start:**
+- All ESS users must be members of your Tailscale tailnet.
+- A domain name is required. Create DNS A records pointing all ESS subdomains to your server's Tailscale IP (find it with `tailscale ip -4`). Since this is a private address, only tailnet members can reach the services despite the public DNS records.
+- Because the server is not publicly accessible on port 80, you must use cert-manager's [DNS01 challenge](https://cert-manager.io/docs/configuration/acme/dns01/) instead of the HTTP01 challenge shown in the [Let's Encrypt](#lets-encrypt) section above. This requires your DNS provider to expose an API supported by cert-manager (e.g. [Cloudflare](https://cert-manager.io/docs/configuration/acme/dns01/providers/cloudflare/), [Route 53](https://cert-manager.io/docs/configuration/acme/dns01/providers/route53/)).
+
+Install Tailscale on your K3s node before proceeding:
+
+```sh
+curl -fsSL https://tailscale.com/install.sh | sh
+tailscale up
+```
+
+Then follow the [Using an existing reverse proxy](#using-an-existing-reverse-proxy) steps. When configuring your reverse proxy, bind it to the Tailscale interface to restrict access to tailnet members only. Replace `<tailscale-ip>` in the examples below with the output of `tailscale ip -4`.
+
+Nginx:
+```
+server {
+    listen <tailscale-ip>:443 ssl http2;
+
+    ssl_certificate /path/to/cert;
+    ssl_certificate_key /path/to/key;
+
+    server_name example.com matrix.example.com account.example.com mrtc.example.com chat.example.com admin.example.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        proxy_read_timeout 86400s;
+        proxy_send_timeout 86400s;
+        proxy_buffering off;
+    }
+}
+
+server {
+    listen <tailscale-ip>:80;
+    server_name example.com matrix.example.com account.example.com mrtc.example.com chat.example.com admin.example.com;
+    return 301 https://$host$request_uri;
+}
+```
+
+Caddy:
+```
+{
+    default_bind <tailscale-ip>
+}
+
+example.com matrix.example.com account.example.com mrtc.example.com chat.example.com admin.example.com {
+    reverse_proxy http://127.0.0.1:8080
+}
+```
+
+</details>
+
 ### Configuring the database
 
 You can either use the database provided with ESS Community or you use a dedicated PostgreSQL Server. We recommend [using a PostgreSQL server](./docs/advanced.md#using-a-dedicated-postgresql-database) installed with your own distribution packages. For a quick set up, feel free to use the internal PostgreSQL database, which the chart will configure automatically for you by default with no required configuration.
