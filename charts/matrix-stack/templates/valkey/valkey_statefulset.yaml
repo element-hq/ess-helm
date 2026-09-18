@@ -109,7 +109,7 @@ spec:
       volumes:
       - configMap:
           name: "{{ $.Release.Name }}-valkey"
-          defaultMode: 420
+          defaultMode: 256
         name: config
 {{- range .extraVolumes }}
       - {{- (tpl (. | toYaml) $) | nindent 8 }}
