@@ -91,6 +91,19 @@ func TestGenerateSecret(t *testing.T) {
 			expectedError:       false,
 		},
 		{
+			name:                "ReGenerate a registration file",
+			namespace:           "create-secret",
+			secretName:          "test-appservice-registration",
+			initLabels:          map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-init-secrets", "app.kubernetes.io/name": "create-secret"},
+			secretLabels:        map[string]string{"app.kubernetes.io/name": "test-secret"},
+			secretKeys:          []string{"registration.yaml"},
+			secretType:          Registration,
+			secretData:          map[string][]byte{"registration.yaml": []byte("hs_token: A\nas_token: B\nstatic: old value")},
+			secretGeneratorArgs: []string{"testdata/registration.yaml"},
+			expectedError:       false,
+			expectedChange:      true,
+		},
+		{
 			name:                  "Secret exists with data",
 			namespace:             "secret-exists",
 			initLabels:            map[string]string{"app.kubernetes.io/managed-by": "matrix-tools-init-secrets", "app.kubernetes.io/name": "create-secret"},
@@ -272,10 +285,31 @@ func TestGenerateSecret(t *testing.T) {
 				if value, ok := secret.Data[secretKey]; ok {
 					if valueExistsBeforeGen {
 						if tc.expectedChange && reflect.DeepEqual(value, existingSecretValue) {
-							t.Fatalf("The secret has not been updated with the new value but the wrong signing key should overwrite: %s", string(value))
+							t.Fatalf("The secret has not been updated with the new value but it should overwrite: %s", string(value))
 						}
 						if !tc.expectedChange && !reflect.DeepEqual(value, existingSecretValue) {
 							t.Fatalf("The secret has been updated with the new value but it should not overwrite: %s", string(value))
+						}
+
+						switch tc.secretType {
+						case Registration:
+							newData := make(map[string]any)
+							oldData := make(map[string]any)
+							if err := yaml.Unmarshal(value, &newData); err != nil {
+								t.Fatalf("Unexpected new data: %v", value)
+							}
+							if err := yaml.Unmarshal(existingSecretValue, &oldData); err != nil {
+								t.Fatalf("Unexpected old data: %v", existingSecretValue)
+							}
+							if newData["static"].(string) != "values" {
+								t.Fatalf("Unexpected data, 'static' key should be 'values', found %v", newData)
+							}
+							if newData["as_token"].(string) != oldData["as_token"].(string) {
+								t.Fatalf("Unexpected data, as_token should be the same as before: %v vs %s", newData, oldData)
+							}
+							if newData["hs_token"].(string) != oldData["hs_token"].(string) {
+								t.Fatalf("Unexpected data, hs_token should be the same as before: %v vs %s", newData, oldData)
+							}
 						}
 					} else {
 						switch tc.secretType {
@@ -334,16 +368,16 @@ func TestGenerateSecret(t *testing.T) {
 						case Registration:
 							data := make(map[string]any)
 							if err := yaml.Unmarshal(value, &data); err != nil {
-								t.Fatalf("Unexpected data: %v", data)
+								t.Fatalf("Unexpected data: %v", value)
 							}
 							if data["static"].(string) != "values" {
 								t.Fatalf("Unexpected data, 'static' key should be 'values', found %v", data)
 							}
 							if len(data["as_token"].(string)) != 32 {
-								t.Fatalf("Unexpected data,  as_token should be a random 32 bytes string, found %v", data)
+								t.Fatalf("Unexpected data, as_token should be a random 32 bytes string, found %v", data)
 							}
 							if len(data["hs_token"].(string)) != 32 {
-								t.Fatalf("Unexpected data,  as_token should be a random 32 bytes string, found %v", data)
+								t.Fatalf("Unexpected data, hs_token should be a random 32 bytes string, found %v", data)
 							}
 						case X25519:
 							if len(tc.secretGeneratorArgs) < 1 {

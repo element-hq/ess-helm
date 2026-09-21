@@ -69,8 +69,8 @@ func GenerateSecret(client kubernetes.Interface, secretLabels map[string]string,
 	if existingSecret.Data == nil {
 		existingSecret.Data = make(map[string][]byte)
 	}
-	if _, ok := existingSecret.Data[key]; !ok || (secretType == SigningKey &&
-		mustBeRotated(existingSecret.Data, key)) {
+	if existingData, ok := existingSecret.Data[key]; !ok || (secretType == SigningKey &&
+		mustBeRotated(existingSecret.Data, key) || secretType == Registration) {
 		switch secretType {
 		case Rand32:
 			if randomString, err := generateRandomString(32); err == nil {
@@ -127,10 +127,10 @@ func GenerateSecret(client kubernetes.Interface, secretLabels map[string]string,
 				return fmt.Errorf("failed to generate : %w", err)
 			}
 		case Registration:
-			if registrationString, err := generateRegistration(generatorArgs[0]); err == nil {
+			if registrationString, err := generateOrUpdateRegistration(generatorArgs[0], existingData); err == nil {
 				existingSecret.Data[key] = registrationString
 			} else {
-				return fmt.Errorf("failed to generate registration: %w", err)
+				return fmt.Errorf("failed to generate or update registration: %w", err)
 			}
 		default:
 			return fmt.Errorf("unknown secret type for: %s:%s", name, key)
