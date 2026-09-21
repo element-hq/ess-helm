@@ -191,14 +191,6 @@ jobs:
     - name: Set up UV environment
       run: uv sync
 
-    # Helm >= 3.19.5 (including Helm v4) have https://github.com/helm/helm/issues/31643
-    # which breaks one of the Ingress tests
-    - name: Pin Helm with asdf
-      uses: ./.github/actions/asdf-cache
-      with:
-        tool-versions: |
-          helm 3.19.4
-
     - name: Restore pytest cache
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
       with:
