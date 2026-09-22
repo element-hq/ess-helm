@@ -135,6 +135,9 @@
     "dnsPolicy": {
       "type": "string"
     },
+    "dnsConfig": {
+      "$ref": "file://common/dnsConfig.json"
+    },
     "extraEnv": {
       "$ref": "file://common/extraEnv.json"
     },

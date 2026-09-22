@@ -64,6 +64,9 @@
     "dnsPolicy": {
       "type": "string"
     },
+    "dnsConfig": {
+      "$ref": "file://common/dnsConfig.json"
+    },
     "serviceMonitors": {
       "$ref": "file://common/serviceMonitors.json"
     },
@@ -217,6 +220,9 @@
         },
         "dnsPolicy": {
           "type": "string"
+        },
+        "dnsConfig": {
+          "$ref": "file://common/dnsConfig.json"
         },
         "nodeSelector": {
           "$ref": "file://common/nodeSelector.json"
