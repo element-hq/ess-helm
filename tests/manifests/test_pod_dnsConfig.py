@@ -33,7 +33,7 @@ async def test_pod_gets_configured_dnsConfig(values, make_templates):
     def set_dnsConfig(deployable_details: DeployableDetails):
         deployable_details.set_helm_values(values, PropertyType.DnsConfig, dns_config)
 
-    iterate_deployables_workload_parts(set_dnsConfig)
+    iterate_deployables_parts(set_dnspolicy, lambda deployable_details: deployable_details.makes_outbound_requests)
     for pod_template_details in iterate_pod_template(await make_templates(values)):
         pod_spec = pod_template_details.pod_template["spec"]
         assert "dnsConfig" in pod_spec, (
