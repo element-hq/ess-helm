@@ -111,6 +111,13 @@ storage:
   ## Whether to instruct Helm to keep or delete all constructed PersistentVolumeClaims by default when uninstalling the chart
   resourcePolicy: keep
 
+## NodeSelector is a selector which must be true for the pod to fit on a node.
+## The Selector which must match a node's labels for the pod to be scheduled on that node.
+## More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+##
+## The global nodeSelector is used if a component does not provide its own nodeSelector.
+nodeSelector: {}
+
 ## Workload tolerations allows Pods that are part of a (sub)component to 'tolerate' any taint that matches the triple <key,value,effect> using the matching operator <operator>.
 ##
 ## * effect indicates the taint effect to match. Empty means match all taint effects. When specified, allowed values are NoSchedule, PreferNoSchedule and NoExecute.
@@ -269,7 +276,11 @@ initSecrets:
   # Extra initContainers to add to Init Secrets, as a yaml array
   extraInitContainers: []
 
-  ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  ## NodeSelector is a selector which must be true for the pod to fit on a node.
+  ## The Selector which must match a node's labels for the pod to be scheduled on that node.
+  ## More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  ##
+  ## Overrides the global nodeSelector if specified
   nodeSelector: {}
   ## If specified, indicates the pod's priority and must reference the name of an existing PriorityClass object.
   ## "system-cluster-critical" and "system-node-critical" are two special built-in classes indicating the highest priorities.
@@ -450,7 +461,11 @@ deploymentMarkers:
   # Extra initContainers to add to Deployment Markers, as a yaml array
   extraInitContainers: []
 
-  ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  ## NodeSelector is a selector which must be true for the pod to fit on a node.
+  ## The Selector which must match a node's labels for the pod to be scheduled on that node.
+  ## More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  ##
+  ## Overrides the global nodeSelector if specified
   nodeSelector: {}
   ## If specified, indicates the pod's priority and must reference the name of an existing PriorityClass object.
   ## "system-cluster-critical" and "system-node-critical" are two special built-in classes indicating the highest priorities.
@@ -751,7 +766,11 @@ matrixRTC:
   # Extra initContainers to add to Matrix RTC, as a yaml array
   extraInitContainers: []
 
-  ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  ## NodeSelector is a selector which must be true for the pod to fit on a node.
+  ## The Selector which must match a node's labels for the pod to be scheduled on that node.
+  ## More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  ##
+  ## Overrides the global nodeSelector if specified
   nodeSelector: {}
   ## If specified, indicates the pod's priority and must reference the name of an existing PriorityClass object.
   ## "system-cluster-critical" and "system-node-critical" are two special built-in classes indicating the highest priorities.
@@ -1215,7 +1234,11 @@ matrixRTC:
     dnsPolicy: "{{ $.Values.matrixRTC.sfu.hostNetwork | ternary \"ClusterFirstWithHostNet\" \"\" }}"
     ## Pod-level DNS configuration. Only effective when dnsPolicy is set to "None".
     dnsConfig: {}
-    ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+    ## NodeSelector is a selector which must be true for the pod to fit on a node.
+    ## The Selector which must match a node's labels for the pod to be scheduled on that node.
+    ## More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+    ##
+    ## Overrides the global nodeSelector if specified
     nodeSelector: {}
     ## If specified, indicates the pod's priority and must reference the name of an existing PriorityClass object.
     ## "system-cluster-critical" and "system-node-critical" are two special built-in classes indicating the highest priorities.
@@ -1512,7 +1535,11 @@ elementAdmin:
     ## localhostProfile must only be set set if type Localhost. It indicates the path of the pre-configured profile on the node, relative to the kubelet's configured Seccomp profile location (configured with the --root-dir flag).
     # seccompProfile:
     #  type: RuntimeDefault
-  ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  ## NodeSelector is a selector which must be true for the pod to fit on a node.
+  ## The Selector which must match a node's labels for the pod to be scheduled on that node.
+  ## More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  ##
+  ## Overrides the global nodeSelector if specified
   nodeSelector: {}
   ## If specified, indicates the pod's priority and must reference the name of an existing PriorityClass object.
   ## "system-cluster-critical" and "system-node-critical" are two special built-in classes indicating the highest priorities.
@@ -1813,7 +1840,11 @@ elementWeb:
     ## localhostProfile must only be set set if type Localhost. It indicates the path of the pre-configured profile on the node, relative to the kubelet's configured Seccomp profile location (configured with the --root-dir flag).
     # seccompProfile:
     #  type: RuntimeDefault
-  ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  ## NodeSelector is a selector which must be true for the pod to fit on a node.
+  ## The Selector which must match a node's labels for the pod to be scheduled on that node.
+  ## More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  ##
+  ## Overrides the global nodeSelector if specified
   nodeSelector: {}
   ## If specified, indicates the pod's priority and must reference the name of an existing PriorityClass object.
   ## "system-cluster-critical" and "system-node-critical" are two special built-in classes indicating the highest priorities.
@@ -2073,7 +2104,11 @@ haproxy:
   # Extra initContainers to add to HAProxy, as a yaml array
   extraInitContainers: []
 
-  ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  ## NodeSelector is a selector which must be true for the pod to fit on a node.
+  ## The Selector which must match a node's labels for the pod to be scheduled on that node.
+  ## More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  ##
+  ## Overrides the global nodeSelector if specified
   nodeSelector: {}
   ## If specified, indicates the pod's priority and must reference the name of an existing PriorityClass object.
   ## "system-cluster-critical" and "system-node-critical" are two special built-in classes indicating the highest priorities.
@@ -2480,7 +2515,11 @@ hookshot:
     ## Annotations to add to the service account
     annotations: {}
 
-  ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  ## NodeSelector is a selector which must be true for the pod to fit on a node.
+  ## The Selector which must match a node's labels for the pod to be scheduled on that node.
+  ## More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  ##
+  ## Overrides the global nodeSelector if specified
   nodeSelector: {}
   ## If specified, indicates the pod's priority and must reference the name of an existing PriorityClass object.
   ## "system-cluster-critical" and "system-node-critical" are two special built-in classes indicating the highest priorities.
@@ -2933,7 +2972,11 @@ matrixAuthenticationService:
     ## Annotations to add to the service account
     annotations: {}
 
-  ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  ## NodeSelector is a selector which must be true for the pod to fit on a node.
+  ## The Selector which must match a node's labels for the pod to be scheduled on that node.
+  ## More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  ##
+  ## Overrides the global nodeSelector if specified
   nodeSelector: {}
   ## If specified, indicates the pod's priority and must reference the name of an existing PriorityClass object.
   ## "system-cluster-critical" and "system-node-critical" are two special built-in classes indicating the highest priorities.
@@ -3249,7 +3292,11 @@ matrixAuthenticationService:
       ## localhostProfile must only be set set if type Localhost. It indicates the path of the pre-configured profile on the node, relative to the kubelet's configured Seccomp profile location (configured with the --root-dir flag).
       # seccompProfile:
       #  type: RuntimeDefault
-    ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+    ## NodeSelector is a selector which must be true for the pod to fit on a node.
+    ## The Selector which must match a node's labels for the pod to be scheduled on that node.
+    ## More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+    ##
+    ## Overrides the global nodeSelector if specified
     nodeSelector: {}
     ## If specified, indicates the pod's priority and must reference the name of an existing PriorityClass object.
     ## "system-cluster-critical" and "system-node-critical" are two special built-in classes indicating the highest priorities.
@@ -3677,7 +3724,11 @@ postgres:
     ## localhostProfile must only be set set if type Localhost. It indicates the path of the pre-configured profile on the node, relative to the kubelet's configured Seccomp profile location (configured with the --root-dir flag).
     # seccompProfile:
     #  type: RuntimeDefault
-  ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  ## NodeSelector is a selector which must be true for the pod to fit on a node.
+  ## The Selector which must match a node's labels for the pod to be scheduled on that node.
+  ## More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  ##
+  ## Overrides the global nodeSelector if specified
   nodeSelector: {}
   ## If specified, indicates the pod's priority and must reference the name of an existing PriorityClass object.
   ## "system-cluster-critical" and "system-node-critical" are two special built-in classes indicating the highest priorities.
@@ -3959,7 +4010,11 @@ valkey:
   # Extra initContainers to add to Valkey, as a yaml array
   extraInitContainers: []
 
-  ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  ## NodeSelector is a selector which must be true for the pod to fit on a node.
+  ## The Selector which must match a node's labels for the pod to be scheduled on that node.
+  ## More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  ##
+  ## Overrides the global nodeSelector if specified
   nodeSelector: {}
   ## If specified, indicates the pod's priority and must reference the name of an existing PriorityClass object.
   ## "system-cluster-critical" and "system-node-critical" are two special built-in classes indicating the highest priorities.
@@ -5955,7 +6010,11 @@ synapse:
   ##   - ess.localhost
   ##   - synapse.ess.localhost
   hostAliases: []
-  ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  ## NodeSelector is a selector which must be true for the pod to fit on a node.
+  ## The Selector which must match a node's labels for the pod to be scheduled on that node.
+  ## More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  ##
+  ## Overrides the global nodeSelector if specified
   nodeSelector: {}
   ## If specified, indicates the pod's priority and must reference the name of an existing PriorityClass object.
   ## "system-cluster-critical" and "system-node-critical" are two special built-in classes indicating the highest priorities.

@@ -265,6 +265,12 @@
       },
       "additionalProperties": false
     },
+    "nodeSelector": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
     "tolerations": {
       "type": "array",
       "items": {
