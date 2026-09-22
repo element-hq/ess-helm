@@ -721,7 +721,7 @@ matrixRTC:
     #  type: RuntimeDefault
   ## Set DNS policy for the pod. Kubernetes defaults to ClusterFirst if no value is provided here
   dnsPolicy: ""
-  ## Pod-level DNS configuration. Only effective when dnsPolicy is set to None.
+  ## Pod-level DNS configuration. Only effective when dnsPolicy is set to "None".
   dnsConfig: {}
   ## The list of hosts aliases to configure on the pod spec.
   ## It should be avoid as much as possible to use this feature.
@@ -1213,7 +1213,7 @@ matrixRTC:
       #  type: RuntimeDefault
     ## Set DNS policy for the pod. Kubernetes defaults to ClusterFirst if no value is provided here
     dnsPolicy: "{{ $.Values.matrixRTC.sfu.hostNetwork | ternary \"ClusterFirstWithHostNet\" \"\" }}"
-    ## Pod-level DNS configuration. Only effective when dnsPolicy is set to None.
+    ## Pod-level DNS configuration. Only effective when dnsPolicy is set to "None".
     dnsConfig: {}
     ## NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
     nodeSelector: {}
@@ -2618,7 +2618,7 @@ hookshot:
   ## Set DNS policy for the pod. Kubernetes defaults to ClusterFirst if no value is provided here
   dnsPolicy: ""
 
-  ## Pod-level DNS configuration. Only effective when dnsPolicy is set to None.
+  ## Pod-level DNS configuration. Only effective when dnsPolicy is set to "None".
   dnsConfig: {}
 
   ## Defines the annotations to add to the workload
@@ -3084,7 +3084,7 @@ matrixAuthenticationService:
   ## Set DNS policy for the pod. Kubernetes defaults to ClusterFirst if no value is provided here
   dnsPolicy: ""
 
-  ## Pod-level DNS configuration. Only effective when dnsPolicy is set to None.
+  ## Pod-level DNS configuration. Only effective when dnsPolicy is set to "None".
   dnsConfig: {}
 
   ## Defines the annotations to add to the workload
@@ -5935,7 +5935,7 @@ synapse:
     #  type: RuntimeDefault
   ## Set DNS policy for the pod. Kubernetes defaults to ClusterFirst if no value is provided here
   dnsPolicy: ""
-  ## Pod-level DNS configuration. Only effective when dnsPolicy is set to None.
+  ## Pod-level DNS configuration. Only effective when dnsPolicy is set to "None".
   dnsConfig: {}
   ## Defines additional environment variables to be injected onto this workload
   ## e.g.
