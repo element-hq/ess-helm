@@ -7,6 +7,70 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.9.3 (2026-09-22)
+
+## Added
+
+- Add the ability to configure `dnsConfig` on components that make outbound requests. (#1604)
+- Allow configuration of a global `nodeSelector`.
+
+  The existing per-component `nodeSelector` values take precedence if configured and the two are not merged.
+
+  This allows administrators to set a common, default `nodeSelector` rather than having to reconfigure it in every component. (#1605)
+
+## Changed
+
+- Upgrade Matrix Authentication Service to v1.25.1.
+
+  Highlights:
+  - Return `M_APPSERVICE_LOGIN_UNSUPPORTED` for `m.login.application_service` logins
+  - Fix template rendering errors when no `state` parameter given or an empty `code` field
+
+  Full Changelogs:
+  - [v1.25.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.25.0)
+  - [v1.25.1](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.25.1)
+
+  (#1581)
+- Allow Hookshot with encryption to be started up with Matrix Authentication Service.
+
+  This is still an *experimental* configuration. (#1594)
+- Ensure registration files match the template when running `initSecrets`. (#1602)
+- Upgrade Element Admin to v0.1.14.
+
+  Highlights:
+  - Fix the personal token expiry display and the expiry input
+  - Fix scheduled room deletion timestamp display
+
+  Full Changelogs:
+  - [v0.1.14](https://github.com/element-hq/element-admin/releases/tag/v0.1.14)
+
+  (#1606)
+- Upgrade Element Web to v1.12.29.
+
+  Highlights:
+  - Update modules in container image
+
+  Full Changelogs
+  - [v1.12.29](https://github.com/element-hq/element-web/releases/tag/v1.12.29)
+
+  (#1607)
+- Upgrade Hookshot to v7.5.0.
+
+  Highlights:
+  - Fix compatibility with Synapse v1.161.0 / stable `MSC3202` support
+
+  Full Changelogs:
+  - [v7.5.0](https://github.com/matrix-org/matrix-hookshot/releases/tag/7.5.0)
+
+  (#1608)
+
+## Internal
+
+- CI: test Hookshot with Matrix Authentication and encryption turned on (experimental, default disabled). (#1594)
+- CI: timeout uploading integration test logs after 5 minutes. (#1600)
+- CI: unpin Helm in the manifest tests. (#1603)
+
+
 # ESS Community Helm Chart 26.9.2 (2026-09-17)
 
 ## Added
