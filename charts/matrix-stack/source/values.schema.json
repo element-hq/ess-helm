@@ -90,6 +90,9 @@
     "storage": {
       "$ref": "file://common/storage_global.json"
     },
+    "nodeSelector": {
+      "$ref": "file://common/nodeSelector.json"
+    },
     "tolerations": {
       "$ref": "file://common/tolerations.json"
     },

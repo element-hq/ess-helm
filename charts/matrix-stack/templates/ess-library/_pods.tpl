@@ -38,7 +38,7 @@ hostAliases:
 securityContext:
   {{- toYaml . | nindent 2 }}
 {{- end }}
-{{- with .nodeSelector }}
+{{- with (coalesce .nodeSelector $root.Values.nodeSelector) }}
 nodeSelector:
   {{- toYaml . | nindent 2 }}
 {{- end }}
