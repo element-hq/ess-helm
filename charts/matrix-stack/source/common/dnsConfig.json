@@ -25,7 +25,6 @@
             "type": "string"
           }
         },
-        "additionalProperties": false
       }
     }
   },
