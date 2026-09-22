@@ -116,7 +116,7 @@ networking:
 {%- endmacro %}
 
 {% macro dnsConfig(key="dnsConfig") %}
-## Pod-level DNS configuration. Only effective when dnsPolicy is set to None.
+## Pod-level DNS configuration. Only effective when dnsPolicy is set to "None".
 {{ key }}: {}
 {%- endmacro %}
 
