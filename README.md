@@ -91,6 +91,8 @@ A full comparison between the editions can be found [here](https://element.io/pr
 - [Troubleshooting](#troubleshooting)
 - [Maintenance](#maintenance)
 - [Uninstalling](#uninstalling)
+- [FAQ](#faq)
+
 
 # Architecture and components
 
@@ -635,3 +637,18 @@ rm -rf /usr/local/bin/helm $HOME/.cache/helm $HOME/.config/helm $HOME/.local/sha
 # (Optional) Remove config
 rm -rf ~/ess-config-values ~/.kube
 ```
+# FAQ
+## Is ESS Community fully open source?
+Yes, it is fully open source under the AGPLv3 license and does not contain any proprietary or closed parts.
+
+## Is there an enforcement of usage limits in ESS Community?
+No, there isn't. ESS Community does not impose any arbitrary, hard user limits. Generally speaking, you are free to use it with as many users as you want.
+
+BUT, as the description says, it is tailored to small-/mid-scale use cases (we say about 100 users to give an indication; obviously this all depends heavily on usage patterns). Furthermore tailoring to these use cases means setting configuration for performance tuning (i.e., Synapse performance settings), scalability (i.e., worker config) and alike to match the use case. That means you might have to accept degraded performance and related issues if you try to use it for other use cases which will not be appropriate for professional use.
+
+For professional and/or commercial use we hence provide ESS Pro which out-of-the-box comes with automatic scalability (i.e., number of workers and their config), in-cluster high availability, performance improvements and resource cost savings, essentially resulting in a great end user experience at all times (assuming resource availability) while allowing you to save cost compared to using a self-built setup or ESS Community. ESS Pro also gets you a lot of additional features for professional use as well as services around L3 support and LTS, etc.. You can find a detailed comparison [here](https://element.io/en/pricing).
+
+Original question and answer are from [this public ticket](https://github.com/element-hq/ess-helm/issues/1027#issuecomment-3870430999).
+
+## Can ESS Community be used commercially?
+Yes, there is nothing preventing you from using it commercially as long as you comply with the terms of the repository. We do not recommend using it commercially as it does not meet typical requirements of commercial environments regarding functionality, certifications or services. This question was asked and answered in [this public ticket](https://github.com/element-hq/ess-helm/issues/624).
