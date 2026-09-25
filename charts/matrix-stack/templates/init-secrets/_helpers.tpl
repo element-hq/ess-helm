@@ -46,6 +46,9 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" $
 {{- if not .livekitAuth.secret }}
 - {{ (printf "%s-generated" $root.Release.Name) }}:ELEMENT_CALL_LIVEKIT_SECRET:rand32
 {{- end }}
+{{- if and $root.Values.synapse.enabled (not .appserviceRegistration) }}
+- {{ (printf "%s-generated" $root.Release.Name) }}:MATRIX_RTC_REGISTRATION:registration:/registration-templates/matrix-rtc-registration.yaml
+{{- end }}
 {{- end }}
 {{- end }}
 {{- with $root.Values.synapse }}
@@ -103,6 +106,14 @@ env:
 
 {{- define "element-io.init-secrets.registration-templates" -}}
 {{- $root := .root -}}
+{{- with $root.Values.matrixRTC }}
+{{- if and .enabled $root.Values.synapse.enabled -}}
+{{- if not .appserviceRegistration }}
+matrix-rtc-registration.yaml: |
+{{- (tpl ($root.Files.Get "configs/matrix-rtc/registration.yaml.tpl") (dict "root" $root)) | nindent 2 }}
+{{- end }}
+{{- end }}
+{{- end }}
 {{- with $root.Values.hookshot }}
 {{- if .enabled -}}
 {{- if not .appserviceRegistration }}
