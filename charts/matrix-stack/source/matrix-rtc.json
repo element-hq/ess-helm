@@ -23,6 +23,9 @@
         }
       }
     },
+    "appserviceRegistration": {
+      "$ref": "file://common/credential.json"
+    },
     "redisOrValkey": {
       "$ref": "file://common/redis.json"
     },
