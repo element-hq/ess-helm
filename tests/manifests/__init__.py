@@ -823,6 +823,8 @@ _extra_secret_values_files_to_test = [
     "matrix-authentication-service-synapse-syn2mas-migrate-secrets-externally-values.yaml",
     "synapse-hookshot-secrets-in-helm-values.yaml",
     "synapse-hookshot-secrets-externally-values.yaml",
+    "synapse-matrix-rtc-secrets-in-helm-values.yaml",
+    "synapse-matrix-rtc-secrets-externally-values.yaml",
 ]
 
 _extra_services_values_files_to_test = [
