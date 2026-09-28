@@ -100,7 +100,7 @@ async def test_hookshot_webhook(
     )
 
     # Generate a random webhook id
-    webhook_id = f"{generated_data.server_name}-{create_room['room_id'][1:].split(':')[0]}"
+    webhook_id = f"{generated_data.server_name}-{create_room['room_id']}"[:64]
     webhook_command = {
         "msgtype": "m.text",
         "body": f"!hookshot webhook {webhook_id}",
