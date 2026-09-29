@@ -20,8 +20,7 @@ dependencies = [
   "lightkube>=1.0.0",
   "platformdirs>=4.9.2",
   "prometheus-client>=0.26.0",
-  # For https://github.com/azimuth-cloud/pyhelm3/pull/36 & https://github.com/azimuth-cloud/pyhelm3/pull/37 & https://github.com/azimuth-cloud/pyhelm3/pull/39
-  "pyhelm3 @ git+https://github.com/element-hq/pyhelm3.git@efa509e7501edeb9d04f2a9e688f6e0088305954",
+  "pyhelm3>=0.5.7",
   "pytest-asyncio-cooperative>=0.40.0",
   "pytest-kubernetes>=0.7.2",
   "pytest>=8.4.2,<9", # pytest 9 breaks pytest-asyncio-cooperative (see #1301)

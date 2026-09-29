@@ -943,7 +943,7 @@ requires-dist = [
     { name = "lightkube", specifier = ">=1.0.0" },
     { name = "platformdirs", specifier = ">=4.9.2" },
     { name = "prometheus-client", specifier = ">=0.26.0" },
-    { name = "pyhelm3", git = "https://github.com/element-hq/pyhelm3.git?rev=efa509e7501edeb9d04f2a9e688f6e0088305954" },
+    { name = "pyhelm3", specifier = ">=0.5.7" },
     { name = "pytest", specifier = ">=8.4.2,<9" },
     { name = "pytest-asyncio-cooperative", specifier = ">=0.40.0" },
     { name = "pytest-kubernetes", specifier = ">=0.7.2" },
@@ -2388,11 +2388,16 @@ wheels = [
 
 [[package]]
 name = "pyhelm3"
-version = "0.1.dev40+gefa509e75"
-source = { git = "https://github.com/element-hq/pyhelm3.git?rev=efa509e7501edeb9d04f2a9e688f6e0088305954#efa509e7501edeb9d04f2a9e688f6e0088305954" }
+version = "0.5.7"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pydantic" },
     { name = "pyyaml" },
+    { name = "semver" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/eb/ae/b5e23d37d0689e94e015a64b4734eff7631071393b6684891f1062586949/pyhelm3-0.5.7.tar.gz", hash = "sha256:dc5997e154d7bb1a9af202eb751974b169f80989a556b8245e5cff17751d3f29", size = 21900, upload-time = "2026-09-23T09:19:22.779Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c4/42/0007df1d27c98e97edc65493d7b58595292f22196881e5f8f1123a044cb7/pyhelm3-0.5.7-py3-none-any.whl", hash = "sha256:d7db708ac4a6e6b580427619b5be629abe27b94801c0568c1bebb7018ba8d353", size = 22466, upload-time = "2026-09-23T09:19:21.73Z" },
 ]
 
 [[package]]
