@@ -1,0 +1,30 @@
+{{- /*
+Copyright 2026 Element Creations Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+
+
+{{- with $.Values.hookshot -}}
+{{- if .enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $.Release.Name }}-hookshot-appservice
+  namespace: {{ $.Release.Namespace }}
+{{- include "element-io.ess-library.ingress-service.annotations" (dict "root" $ "context" .ingress) | nindent 2 }}
+  labels:
+    {{- include "element-io.hookshot.labels" (dict "root" $ "context" (set (. | deepCopy) "appservice" true)) | nindent 4 }}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ipFamilyPolicy: PreferDualStack
+  publishNotReadyAddresses: true
+  ports:
+  - port: 9993
+    name: appservice
+    protocol: TCP
+  selector:
+    app.kubernetes.io/instance: "{{ $.Release.Name }}-hookshot"
+{{- end -}}
+{{- end -}}

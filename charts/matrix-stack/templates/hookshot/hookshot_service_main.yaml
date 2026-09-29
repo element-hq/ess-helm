@@ -17,11 +17,7 @@ metadata:
     {{- include "element-io.hookshot.labels" (dict "root" $ "context" .) | nindent 4 }}
 spec:
 {{- include "element-io.ess-library.ingress-service.spec" (dict "root" $ "context" (mustMergeOverwrite (dict "headlessService" true) .ingress)) | nindent 2 }}
-  publishNotReadyAddresses: true
   ports:
-  - port: 9993
-    name: appservice
-    protocol: TCP
   - port: 7775
     name: webhooks
     protocol: TCP

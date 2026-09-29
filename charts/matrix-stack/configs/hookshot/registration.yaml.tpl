@@ -10,7 +10,7 @@ namespaces: {}
 id: hookshot
 as_token: "${AS_TOKEN}"
 hs_token: "${HS_TOKEN}"
-url: "http://{{ $root.Release.Name }}-hookshot.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:9993"
+url: "http://{{ $root.Release.Name }}-hookshot-appservice.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:9993"
 sender_localpart: {{ $root.Values.hookshot.user.localpart }}
 
 receive_ephemeral: true
