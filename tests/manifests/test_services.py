@@ -609,3 +609,30 @@ async def test_services_specify_type_by_default(templates):
                 f"{template_id(template)} has externalIPs defined but no external IPs were configured. "
                 f"Remove externalIPs field or configure external IPs in values."
             )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_publishNotReadyAddresses_only_on_appservice_services(templates):
+    """
+    Asserts that the only usage of Service.spec.publishNotReadyAddresses: true is for app services.
+
+    Some app services do a dance where, as part of their startup sequence, they cause Synapse to make a
+    request back to them. As they aren't fully started up a standard Service isn't publishing addresses
+    for the app service yet, hence publishNotReadyAddresses: true. However we don't want to route any
+    other traffic (HTTPS Ingress, Metrics), until the app service is fully started up.
+
+    It does not assert the other side of the link: that all app services use publishNotReadyAddresses: true
+    as this doesn't appear to be required for all app services at this time
+    """
+    for template in templates:
+        if template["kind"] == "Service":
+            if not template["spec"].get("publishNotReadyAddresses", False):
+                continue
+
+            assert len(template["spec"]["ports"]) == 1, (
+                f"{template_id(template)} has publishNotReadyAddresses=True but has more ports than just 'appservice'"
+            )
+            assert template["spec"]["ports"][0]["name"] == "appservice", (
+                f"{template_id(template)} is directing non-appservice traffic"
+            )

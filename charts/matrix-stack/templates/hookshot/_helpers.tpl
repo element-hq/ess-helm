@@ -34,8 +34,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- with required "element-io.hookshot.labels missing context" .context -}}
 {{ include "element-io.ess-library.labels.common" (dict "root" $root "context" (dict "labels" .labels "withChartVersion" .withChartVersion)) }}
 app.kubernetes.io/component: matrix-integrations
-app.kubernetes.io/name: hookshot
-app.kubernetes.io/instance: {{ $root.Release.Name }}-hookshot
+app.kubernetes.io/name: hookshot{{- (.appservice | default false) | ternary "-appservice" "" }}
+app.kubernetes.io/instance: {{ $root.Release.Name }}-hookshot{{- (.appservice | default false) | ternary "-appservice" "" }}
 app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .image.tag }}
 {{- end }}
 {{- end }}
