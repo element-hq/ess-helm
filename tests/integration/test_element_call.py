@@ -4,11 +4,13 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 import asyncio
+import os
 import ssl
 from urllib.parse import quote
 
 import aiohttp
 import pytest
+import semver
 from lightkube import AsyncClient
 from lightkube.resources.core_v1 import Service
 
@@ -19,6 +21,15 @@ from .lib.utils import (
     aiohttp_put_json,
     async_retry_with_timeout,
     value_file_has,
+)
+
+# Synapse proxies these endpoints to the MatrixRTC Authorisation Service (MSC4512)
+PROXIED_MATRIX_RTC_PATH = "/_matrix/client/unstable/io.element.msc4195/rtc/livekit"
+
+# The first step of the upgrade tests deploys the chart of the latest release
+DEPLOYS_PREVIOUS_RELEASE = (
+    semver.Version.is_valid(os.environ.get("MATRIX_TEST_FROM_REF", ""))
+    and os.environ.get("PYTEST_CI_FIRST_STEP", "") == "1"
 )
 
 
@@ -158,6 +169,78 @@ async def test_matrix_rtc_get_token_with_delegated_delayed_leave(
 
     # The user never connects to the SFU. After `delay_timeout` the authorisation service gives up waiting
     # and sends the leave event on behalf of the user
+    assert await wait_for_leave_event(generated_data, users[0], room["room_id"], ssl_context) == {}
+
+
+def proxied_matrix_rtc_request(generated_data: ESSData, user: User, room_id: str) -> dict:
+    return {
+        "url": f"wss://mrtc.{generated_data.server_name}",
+        "room_id": room_id,
+        "slot_id": "m.call#ROOM",
+        "member": matrix_rtc_member(generated_data, user),
+    }
+
+
+@pytest.mark.skipif(value_file_has("matrixRTC.enabled", False), reason="Matrix RTC not deployed")
+@pytest.mark.skipif(value_file_has("synapse.enabled", False), reason="Synapse not deployed")
+@pytest.mark.skipif(DEPLOYS_PREVIOUS_RELEASE, reason="The previous release may not proxy the Matrix RTC endpoints")
+@pytest.mark.parametrize("users", [(User(name="matrix-rtc-proxied-token-user"),)], indirect=True)
+@pytest.mark.asyncio_cooperative
+async def test_matrix_rtc_get_token_through_synapse(ingress_ready, users, generated_data: ESSData, ssl_context):
+    await ingress_ready("synapse")
+    await ingress_ready("matrix-rtc")
+    synapse = f"https://synapse.{generated_data.server_name}"
+    headers = {"Authorization": f"Bearer {users[0].access_token}"}
+
+    room = await aiohttp_post_json(f"{synapse}/_matrix/client/v3/createRoom", {}, headers, ssl_context)
+
+    # Synapse authenticates the user and forwards the request to the authorisation service with its hs_token.
+    # The authorisation service then checks with its as_token that the user is joined to the room (MSC4502)
+    livekit_jwt = await aiohttp_post_json(
+        f"{synapse}{PROXIED_MATRIX_RTC_PATH}/get_token",
+        proxied_matrix_rtc_request(generated_data, users[0], room["room_id"]),
+        headers,
+        ssl_context,
+    )
+    assert "jwt" in livekit_jwt
+
+    with pytest.raises(aiohttp.ClientResponseError) as not_joined:
+        await aiohttp_post_json(
+            f"{synapse}{PROXIED_MATRIX_RTC_PATH}/get_token",
+            proxied_matrix_rtc_request(generated_data, users[0], f"!not-joined:{generated_data.server_name}"),
+            headers,
+            ssl_context,
+        )
+    assert not_joined.value.status == 403
+
+
+@pytest.mark.skipif(value_file_has("matrixRTC.enabled", False), reason="Matrix RTC not deployed")
+@pytest.mark.skipif(value_file_has("synapse.enabled", False), reason="Synapse not deployed")
+@pytest.mark.skipif(DEPLOYS_PREVIOUS_RELEASE, reason="The previous release may not proxy the Matrix RTC endpoints")
+@pytest.mark.parametrize("users", [(User(name="matrix-rtc-proxied-leave-user"),)], indirect=True)
+@pytest.mark.asyncio_cooperative
+async def test_matrix_rtc_delayed_leave_delegated_through_synapse(
+    ingress_ready, users, generated_data: ESSData, ssl_context
+):
+    await ingress_ready("synapse")
+    await ingress_ready("matrix-rtc")
+    synapse = f"https://synapse.{generated_data.server_name}"
+    headers = {"Authorization": f"Bearer {users[0].access_token}"}
+
+    room = await aiohttp_post_json(f"{synapse}/_matrix/client/v3/createRoom", {}, headers, ssl_context)
+    # The leave event is scheduled far enough in the future to not be sent by Synapse during the test
+    delay_id = await schedule_delayed_leave(generated_data, users[0], room["room_id"], 3600000, ssl_context)
+
+    # The user never connects to the SFU. After `delay_timeout` the authorisation service gives up waiting
+    # and sends the leave event on behalf of the user, authenticating as an appservice asserting the user
+    await aiohttp_post_json(
+        f"{synapse}{PROXIED_MATRIX_RTC_PATH}/delegate_delayed_leave",
+        proxied_matrix_rtc_request(generated_data, users[0], room["room_id"])
+        | {"delay_id": delay_id, "delay_timeout": 2000},
+        headers,
+        ssl_context,
+    )
+
     assert await wait_for_leave_event(generated_data, users[0], room["room_id"], ssl_context) == {}
 
 
