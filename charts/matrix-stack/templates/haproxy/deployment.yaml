@@ -124,18 +124,18 @@ spec:
       volumes:
       - configMap:
           name: "{{ $.Release.Name }}-haproxy"
-          defaultMode: 420
+          defaultMode: 256
         name: haproxy-config
 {{- if $.Values.synapse.enabled }}
       - configMap:
           name: "{{ $.Release.Name }}-synapse-haproxy"
-          defaultMode: 420
+          defaultMode: 256
         name: synapse-haproxy
 {{- end }}
 {{- if $.Values.wellKnownDelegation.enabled }}
       - configMap:
           name: "{{ $.Release.Name }}-well-known-haproxy"
-          defaultMode: 420
+          defaultMode: 256
         name: well-known-haproxy
 {{- end }}
 {{- range .extraVolumes }}

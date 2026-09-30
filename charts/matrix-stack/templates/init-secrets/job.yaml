@@ -78,7 +78,7 @@ spec:
 {{- end }}
 {{- if include "element-io.init-secrets.registration-templates" (dict "root" $) }}
       - configMap:
-          defaultMode: 420
+          defaultMode: 256
           name: {{ $.Release.Name }}-init-secrets
         name: registration-templates
 {{- end -}}
