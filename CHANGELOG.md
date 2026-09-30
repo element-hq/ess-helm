@@ -7,6 +7,65 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.9.4 (2026-09-30)
+
+## Changed
+
+- Upgrade Synapse to v1.162.0.
+
+  Highlights:
+  - Raise default room version to "12"
+  - Fix flawed `MSC4311` partial implementation introduced in Synapse v1.136.0 for invites/knocks: client-side API's like `/sync` use stripped state events and we now send full PDUs on the federation-side
+  - Add a rate limit on the client profile lookup endpoints, configurable via `rc_profile`
+
+  Full Changelogs:
+  - [v1.162.0](https://github.com/element-hq/synapse/blob/release-v1.162/CHANGES.md)
+
+  (#1614)
+- Upgrade Matrix Authentication Service to v1.26.0.
+
+  Highlights:
+  - Rate limit device code link attempts
+  - Show the reason on the policy violation page for admin scopes and disallowed clients
+  - Add [MSC4198](https://github.com/matrix-org/matrix-spec-proposals/pull/4198) `login_hint_types_supported` discovery metadata
+
+  Full Changelogs:
+  - [v1.26.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.26.0)
+
+  (#1615)
+- Upgrade Element Web to v1.12.30.
+
+  Highlights:
+  - Room list: improve performance
+  - Handle `M_INVITE_BLOCKED` when an invite is rejected
+  - Remove legacy Module & Customisation API
+
+  Full Changelogs:
+  - [v1.12.30](https://github.com/element-hq/element-web/releases/tag/v1.12.30)
+
+  (#1616)
+- Upgrade Redis/Valkey Exporter to v1.92.1.
+
+  Full Changelogs:
+  - [v1.92.0](https://github.com/oliver006/redis_exporter/releases/tag/v1.92.0)
+  - [v1.92.1](https://github.com/oliver006/redis_exporter/releases/tag/v1.92.1)
+
+  (#1617)
+- Use a distinct `Service` for Hookshot's app service port.
+
+  This allows restricting of `Service.spec.publishNotReadyAddresses: true` to just the app service traffic. (#1622)
+
+## Documentation
+
+- Add FAQ section to the README. (#1613)
+
+## Internal
+
+- Use released `pyhelm3` dependency rather than our fork. (#1612)
+- CI: support room v12 in Hookshot integration tests. (#1620)
+- CI: Fix usage of methods not available before python 3.14. (#1623)
+
+
 # ESS Community Helm Chart 26.9.3 (2026-09-22)
 
 ## Added
