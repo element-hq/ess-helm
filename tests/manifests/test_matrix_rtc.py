@@ -275,7 +275,7 @@ async def test_appservice_registration_is_generated_and_loaded_by_synapse(releas
     assert registration["as_token"] == "${AS_TOKEN}"
     assert registration["hs_token"] == "${HS_TOKEN}"
     assert registration["url"] is None
-    assert registration["namespaces"] == {"users": [{"exclusive": False, "regex": ".*"}]}
+    assert registration["namespaces"] == {"users": [{"exclusive": False, "regex": f"@.*:{values['serverName']}"}]}
     assert registration["io.element.msc4502.scopes"] == ["urn:matrix:client:io.element.msc4502:rooms:is_joined"]
     assert registration["io.element.msc4512.proxy_prefix"] == "rtc/livekit"
     assert registration["io.element.msc4512.proxy_url"] == (

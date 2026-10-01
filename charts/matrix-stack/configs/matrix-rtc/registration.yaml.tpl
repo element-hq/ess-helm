@@ -9,11 +9,11 @@ id: matrix-rtc-authorisation-service
 as_token: "${AS_TOKEN}"
 hs_token: "${HS_TOKEN}"
 sender_localpart: _lk_jwt_service
-# The service asserts the identity of the users it acts for (e.g. MSC4140 delayed leave events)
+# The service asserts the identity of the local users it acts for (e.g. MSC4140 delayed leave events)
 namespaces:
   users:
   - exclusive: false
-    regex: ".*"
+    regex: "@.*:{{ tpl $root.Values.serverName $root }}"
 # The service doesn't need any events pushed to it
 url: null
 # MSC4502: let the service check room memberships without joining the rooms
