@@ -354,11 +354,32 @@ async def test_appservice_registration_from_helm_values(release_name, values, te
 
 @pytest.mark.parametrize("values_file", ["matrix-rtc-minimal-values.yaml"])
 @pytest.mark.asyncio_cooperative
-async def test_no_appservice_without_synapse_or_registration(release_name, templates):
+async def test_no_appservice_without_server_name_or_registration(release_name, templates):
     assert not any("MATRIX_RTC_REGISTRATION" in secret for secret in init_secrets_requested(templates, release_name))
     env = authorisation_service_env(templates, release_name)
     assert "LIVEKIT_AS_REGISTRATION_FILE" not in env
     assert "LIVEKIT_HS_SERVER_NAME" not in env
+
+
+@pytest.mark.parametrize("values_file", ["matrix-rtc-minimal-values.yaml"])
+@pytest.mark.asyncio_cooperative
+async def test_appservice_registration_is_generated_without_synapse(release_name, values, make_templates):
+    values["serverName"] = "remote.example.com"
+    templates = await make_templates(values)
+
+    # The registration is generated for the homeserver, which isn't deployed by the chart, to load it
+    assert (
+        f"{release_name}-generated:MATRIX_RTC_REGISTRATION:registration:/registration-templates/matrix-rtc-registration.yaml"
+        in init_secrets_requested(templates, release_name)
+    )
+    registration = yaml.safe_load(
+        get_template(templates, "ConfigMap", f"{release_name}-init-secrets")["data"]["matrix-rtc-registration.yaml"]
+    )
+    assert registration["namespaces"] == {"users": [{"exclusive": False, "regex": "@.*:remote.example.com"}]}
+
+    env = authorisation_service_env(templates, release_name)
+    assert env["LIVEKIT_AS_REGISTRATION_FILE"] == f"/secrets/{release_name}-generated/MATRIX_RTC_REGISTRATION"
+    assert env["LIVEKIT_HS_SERVER_NAME"] == "remote.example.com"
 
 
 @pytest.mark.parametrize("values_file", ["matrix-rtc-minimal-values.yaml"])

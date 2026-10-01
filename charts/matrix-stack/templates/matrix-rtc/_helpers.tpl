@@ -75,13 +75,13 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- end }}
 
 {{- /*
-The authorisation service runs as an application service when Synapse is deployed by the chart
-(the registration is then generated if needed and loaded by Synapse) or when a registration is provided.
+The authorisation service runs as an application service when a registration is provided or can be generated,
+which needs the serverName. Synapse loads it when deployed by the chart, otherwise the homeserver must load it.
 */}}
 {{- define "element-io.matrix-rtc-authorisation-service.isAppservice" -}}
 {{- $root := .root -}}
 {{- with $root.Values.matrixRTC -}}
-{{- if and .enabled (or $root.Values.synapse.enabled .appserviceRegistration) -}}
+{{- if and .enabled (or $root.Values.serverName .appserviceRegistration) -}}
 true
 {{- end -}}
 {{- end -}}
@@ -200,7 +200,7 @@ env:
 LIVEKIT_SECRET: {{ . | b64enc }}
 {{- end -}}
 {{- if include "element-io.matrix-rtc-authorisation-service.isAppservice" (dict "root" $root) }}
-{{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "matrixRTC.appserviceRegistration" "initIfAbsent" $root.Values.synapse.enabled)) }}
+{{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "matrixRTC.appserviceRegistration" "initIfAbsent" true)) }}
 {{- with (.appserviceRegistration).value }}
 REGISTRATION: {{ . | b64enc }}
 {{- end -}}
