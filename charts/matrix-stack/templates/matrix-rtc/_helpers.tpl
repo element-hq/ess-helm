@@ -202,7 +202,7 @@ LIVEKIT_SECRET: {{ . | b64enc }}
 {{- if include "element-io.matrix-rtc-authorisation-service.isAppservice" (dict "root" $root) }}
 {{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "matrixRTC.appserviceRegistration" "initIfAbsent" true)) }}
 {{- with (.appserviceRegistration).value }}
-REGISTRATION: {{ . | b64enc }}
+REGISTRATION: {{ tpl . $root | b64enc }}
 {{- end -}}
 {{- end -}}
 {{- with (.redisOrValkey).password }}

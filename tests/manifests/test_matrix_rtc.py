@@ -332,14 +332,17 @@ async def test_appservice_registration_from_external_secret(release_name, values
 
 @pytest.mark.parametrize("values_file", ["synapse-matrix-rtc-secrets-in-helm-values.yaml"])
 @pytest.mark.asyncio_cooperative
-async def test_appservice_registration_from_helm_values(release_name, values, templates):
-    registration = values["matrixRTC"]["appserviceRegistration"]["value"]
+async def test_appservice_registration_from_helm_values(release_name, namespace, templates):
     for secret_name in [
         f"{release_name}-matrix-rtc-authorisation-service",
         f"{release_name}-matrix-rtc-authorisation-service-pre",
     ]:
         secret = get_template(templates, "Secret", secret_name)
-        assert base64.b64decode(secret["data"]["REGISTRATION"]).decode("utf-8") == registration
+        # The registration provided in the values is templated
+        registration = yaml.safe_load(base64.b64decode(secret["data"]["REGISTRATION"]).decode("utf-8"))
+        assert registration["io.element.msc4512.proxy_url"] == (
+            f"http://{release_name}-matrix-rtc-authorisation-service.{namespace}.svc.cluster.local.:8080"
+        )
 
     registration_path = f"/secrets/{release_name}-matrix-rtc-authorisation-service/REGISTRATION"
     homeserver_overrides = synapse_homeserver_overrides(templates, f"{release_name}-synapse")
