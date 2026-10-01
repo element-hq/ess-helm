@@ -90,7 +90,7 @@ true
 {{- define "element-io.matrix-rtc-authorisation-service.appservice-registration-path" -}}
 {{- $root := .root -}}
 {{- with required "element-io.matrix-rtc-authorisation-service.appservice-registration-path requires context" .context -}}
-{{- include "element-io.ess-library.init-secret-path" (
+/secrets/{{- include "element-io.ess-library.init-secret-path" (
       dict "root" $root
       "context" (dict
         "secretPath" "matrixRTC.appserviceRegistration"
@@ -156,7 +156,7 @@ env:
 {{- end }}
 {{- if include "element-io.matrix-rtc-authorisation-service.isAppservice" (dict "root" $root) }}
 - name: "LIVEKIT_AS_REGISTRATION_FILE"
-  value: {{ printf "/secrets/%s" (include "element-io.matrix-rtc-authorisation-service.appservice-registration-path" (dict "root" $root "context" (dict "isHook" false))) }}
+  value: {{ include "element-io.matrix-rtc-authorisation-service.appservice-registration-path" (dict "root" $root "context" (dict "isHook" false)) }}
 - name: "LIVEKIT_HS_SERVER_NAME"
   value: {{ tpl $root.Values.serverName $root | quote }}
 {{- end }}

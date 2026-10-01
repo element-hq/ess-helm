@@ -311,8 +311,8 @@ ess-version.json: |
                     ))) -}}
 {{- end -}}
 {{- if include "element-io.matrix-rtc-authorisation-service.isAppservice" (dict "root" $root) -}}
-{{- $appservicesFiles = append $appservicesFiles (printf "/secrets/%s"
-                (include "element-io.matrix-rtc-authorisation-service.appservice-registration-path" (dict "root" $root "context" (dict "isHook" $isHook)))) -}}
+{{- $appservicesFiles = append $appservicesFiles
+                (include "element-io.matrix-rtc-authorisation-service.appservice-registration-path" (dict "root" $root "context" (dict "isHook" $isHook))) -}}
 {{- end -}}
 {{- $appservicesFiles | toJson -}}
 {{- end }}
