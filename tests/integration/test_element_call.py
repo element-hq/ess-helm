@@ -10,7 +10,6 @@ from urllib.parse import quote
 
 import aiohttp
 import pytest
-import semver
 from lightkube import AsyncClient
 from lightkube.resources.core_v1 import Service
 
@@ -26,11 +25,11 @@ from .lib.utils import (
 # Synapse proxies these endpoints to the MatrixRTC Authorisation Service (MSC4512)
 PROXIED_MATRIX_RTC_PATH = "/_matrix/client/unstable/io.element.msc4195/rtc/livekit"
 
-# The first step of the upgrade tests deploys the chart of the latest release
-DEPLOYS_PREVIOUS_RELEASE = (
-    semver.Version.is_valid(os.environ.get("MATRIX_TEST_FROM_REF", ""))
-    and os.environ.get("PYTEST_CI_FIRST_STEP", "") == "1"
-)
+# The upgrade tests first deploy the latest release, which doesn't proxy the Matrix RTC endpoints yet
+# TODO: set to the most recent release before merging
+LAST_RELEASE_WITHOUT_RTC_PROXY = "26.9.4"
+UPGRADE_TEST_STARTS_FROM_IT = os.environ.get("MATRIX_TEST_FROM_REF", "") == LAST_RELEASE_WITHOUT_RTC_PROXY
+RUNS_RELEASE_WITHOUT_RTC_PROXY = UPGRADE_TEST_STARTS_FROM_IT and os.environ.get("PYTEST_CI_FIRST_STEP", "") == "1"
 
 
 def user_id(generated_data: ESSData, user: User) -> str:
@@ -183,7 +182,9 @@ def proxied_matrix_rtc_request(generated_data: ESSData, user: User, room_id: str
 
 @pytest.mark.skipif(value_file_has("matrixRTC.enabled", False), reason="Matrix RTC not deployed")
 @pytest.mark.skipif(value_file_has("synapse.enabled", False), reason="Synapse not deployed")
-@pytest.mark.skipif(DEPLOYS_PREVIOUS_RELEASE, reason="The previous release may not proxy the Matrix RTC endpoints")
+@pytest.mark.skipif(
+    RUNS_RELEASE_WITHOUT_RTC_PROXY, reason=f"{LAST_RELEASE_WITHOUT_RTC_PROXY} doesn't proxy the Matrix RTC endpoints"
+)
 @pytest.mark.parametrize("users", [(User(name="matrix-rtc-proxied-token-user"),)], indirect=True)
 @pytest.mark.asyncio_cooperative
 async def test_matrix_rtc_get_token_through_synapse(ingress_ready, users, generated_data: ESSData, ssl_context):
@@ -216,7 +217,9 @@ async def test_matrix_rtc_get_token_through_synapse(ingress_ready, users, genera
 
 @pytest.mark.skipif(value_file_has("matrixRTC.enabled", False), reason="Matrix RTC not deployed")
 @pytest.mark.skipif(value_file_has("synapse.enabled", False), reason="Synapse not deployed")
-@pytest.mark.skipif(DEPLOYS_PREVIOUS_RELEASE, reason="The previous release may not proxy the Matrix RTC endpoints")
+@pytest.mark.skipif(
+    RUNS_RELEASE_WITHOUT_RTC_PROXY, reason=f"{LAST_RELEASE_WITHOUT_RTC_PROXY} doesn't proxy the Matrix RTC endpoints"
+)
 @pytest.mark.parametrize("users", [(User(name="matrix-rtc-proxied-leave-user"),)], indirect=True)
 @pytest.mark.asyncio_cooperative
 async def test_matrix_rtc_delayed_leave_delegated_through_synapse(
