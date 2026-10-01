@@ -8,7 +8,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 id: matrix-rtc-authorisation-service
 as_token: "${AS_TOKEN}"
 hs_token: "${HS_TOKEN}"
-sender_localpart: _lk_jwt_service
+sender_localpart: {{ $root.Values.matrixRTC.user.localpart }}
 # The service asserts the identity of the local users it acts for (e.g. MSC4140 delayed leave events)
 namespaces:
   users:

@@ -274,6 +274,7 @@ async def test_appservice_registration_is_generated_and_loaded_by_synapse(releas
     )
     assert registration["as_token"] == "${AS_TOKEN}"
     assert registration["hs_token"] == "${HS_TOKEN}"
+    assert registration["sender_localpart"] == "_lk_jwt_service"
     assert registration["url"] is None
     assert registration["namespaces"] == {"users": [{"exclusive": False, "regex": f"@.*:{values['serverName']}"}]}
     assert registration["io.element.msc4502.scopes"] == ["urn:matrix:client:io.element.msc4502:rooms:is_joined"]
@@ -298,6 +299,18 @@ async def test_appservice_registration_is_generated_and_loaded_by_synapse(releas
     # Still needed for the routes that are not proxied by Synapse
     assert "LIVEKIT_FULL_ACCESS_HOMESERVERS" in env
     assert "LIVEKIT_CS_API_URL_OVERRIDES" in env
+
+
+@pytest.mark.parametrize("values_file", ["example-default-enabled-components-values.yaml"])
+@pytest.mark.asyncio_cooperative
+async def test_appservice_registration_sender_localpart_is_configurable(release_name, values, make_templates):
+    values["matrixRTC"].setdefault("user", {})["localpart"] = "rtc-appservice"
+
+    templates = await make_templates(values)
+    registration = yaml.safe_load(
+        get_template(templates, "ConfigMap", f"{release_name}-init-secrets")["data"]["matrix-rtc-registration.yaml"]
+    )
+    assert registration["sender_localpart"] == "rtc-appservice"
 
 
 @pytest.mark.parametrize("values_file", ["synapse-matrix-rtc-secrets-externally-values.yaml"])

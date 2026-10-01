@@ -630,6 +630,12 @@ matrixRTC:
   ##   secret: existing-secret
   ##   secretKey: key-in-secret
   # appserviceRegistration: {}
+
+  # The application service user of the MatrixRTC Authorisation Service, i.e. the `sender_localpart` of its registration.
+  # The service doesn't act as this user, only on behalf of the users of the homeserver.
+  # Ignored if appserviceRegistration is provided.
+  user:
+    localpart: _lk_jwt_service
   ## Details of the external Redis/Valkey to use
   ## Does not need to be set if the internal Valkey should be used
   ## This is useful for production environments where you want to use

@@ -3670,6 +3670,16 @@
           },
           "additionalProperties": false
         },
+        "user": {
+          "type": "object",
+          "properties": {
+            "localpart": {
+              "type": "string",
+              "description": "The localpart of the application service user of the MatrixRTC Authorisation Service"
+            }
+          },
+          "additionalProperties": false
+        },
         "redisOrValkey": {
           "type": "object",
           "required": [
