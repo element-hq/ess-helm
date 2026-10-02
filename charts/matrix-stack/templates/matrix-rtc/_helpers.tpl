@@ -12,6 +12,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- if not .ingress.host -}}
 {{ $messages = append $messages "matrixRTC.ingress.host is required when matrixRTC.enabled=true" }}
 {{- end }}
+{{- if and .appserviceRegistration (not $root.Values.serverName) -}}
+{{ $messages = append $messages "serverName is required when matrixRTC.appserviceRegistration is set" }}
+{{- end }}
 {{- if and .sfu.exposedServices.turnTLS.enabled .sfu.exposedServices.turnTLS.tlsTerminationOnPod (not .sfu.exposedServices.turnTLS.tlsSecret) (not $root.Values.certManager) -}}
 {{ $messages = append $messages "matrixRTC.sfu.exposedServices.turnTLS.enabled with tlsTerminationOnPod=true requires either .sfu.exposedServices.turnTLS.tlsSecret or certManager to be configured." }}
 {{- end }}
@@ -58,6 +61,46 @@ app.kubernetes.io/instance: {{ $root.Release.Name }}-matrix-rtc-authorisation-se
 app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .image.tag }}
 {{- end }}
 {{- end }}
+
+{{- define "element-io.matrix-rtc-authorisation-service.secret-name" -}}
+{{- $root := .root -}}
+{{- with required "element-io.matrix-rtc-authorisation-service.secret-name requires context" .context -}}
+{{- $isHook := .isHook }}
+{{- if $isHook -}}
+{{ $root.Release.Name }}-matrix-rtc-authorisation-service-pre
+{{- else -}}
+{{ $root.Release.Name }}-matrix-rtc-authorisation-service
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{- /*
+The authorisation service runs as an application service when a registration is provided or can be generated,
+which needs the serverName. Synapse loads it when deployed by the chart, otherwise the homeserver must load it.
+*/}}
+{{- define "element-io.matrix-rtc-authorisation-service.isAppservice" -}}
+{{- $root := .root -}}
+{{- with $root.Values.matrixRTC -}}
+{{- if and .enabled (or $root.Values.serverName .appserviceRegistration) -}}
+true
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "element-io.matrix-rtc-authorisation-service.appservice-registration-path" -}}
+{{- $root := .root -}}
+{{- with required "element-io.matrix-rtc-authorisation-service.appservice-registration-path requires context" .context -}}
+/secrets/{{- include "element-io.ess-library.init-secret-path" (
+      dict "root" $root
+      "context" (dict
+        "secretPath" "matrixRTC.appserviceRegistration"
+        "initSecretKey" "MATRIX_RTC_REGISTRATION"
+        "defaultSecretName" (include "element-io.matrix-rtc-authorisation-service.secret-name" (dict "root" $root "context" (dict "isHook" .isHook)))
+        "defaultSecretKey" "REGISTRATION"
+      )
+    ) -}}
+{{- end -}}
+{{- end -}}
 
 
 {{- define "element-io.matrix-rtc-authorisation-service.overrideEnv" }}
@@ -111,6 +154,12 @@ env:
 - name: "LIVEKIT_CS_API_URL_OVERRIDES"
   value: "{{ tpl $root.Values.serverName $root }}=http://{{ include "element-io.synapse.internal-hostport" (dict "root" $root) }}"
 {{- end }}
+{{- if include "element-io.matrix-rtc-authorisation-service.isAppservice" (dict "root" $root) }}
+- name: "LIVEKIT_AS_REGISTRATION_FILE"
+  value: {{ include "element-io.matrix-rtc-authorisation-service.appservice-registration-path" (dict "root" $root "context" (dict "isHook" false)) }}
+- name: "LIVEKIT_HS_SERVER_NAME"
+  value: {{ tpl $root.Values.serverName $root | quote }}
+{{- end }}
 {{- end -}}
 {{- end -}}
 
@@ -128,6 +177,12 @@ env:
 {{- with (.livekitAuth.secret).secret -}}
 {{ $configSecrets = append $configSecrets (tpl . $root) }}
 {{- end -}}
+{{- if (.appserviceRegistration).value -}}
+{{ $configSecrets = append $configSecrets (include "element-io.matrix-rtc-authorisation-service.secret-name" (dict "root" $root "context" (dict "isHook" false))) }}
+{{- end -}}
+{{- with (.appserviceRegistration).secret -}}
+{{ $configSecrets = append $configSecrets (tpl . $root) }}
+{{- end -}}
 {{- with ((.redisOrValkey).password).secret }}
 {{ $configSecrets = append $configSecrets (tpl . $root) }}
 {{- end }}
@@ -143,6 +198,12 @@ env:
 {{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "matrixRTC.livekitAuth.secret" "initIfAbsent" $root.Values.matrixRTC.sfu.enabled)) }}
 {{- with (.livekitAuth.secret).value -}}
 LIVEKIT_SECRET: {{ . | b64enc }}
+{{- end -}}
+{{- if include "element-io.matrix-rtc-authorisation-service.isAppservice" (dict "root" $root) }}
+{{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "matrixRTC.appserviceRegistration" "initIfAbsent" true)) }}
+{{- with (.appserviceRegistration).value }}
+REGISTRATION: {{ tpl . $root | b64enc }}
+{{- end -}}
 {{- end -}}
 {{- with (.redisOrValkey).password }}
 {{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "matrixRTC.redisOrValkey.password" "initIfAbsent" false)) -}}
