@@ -15,11 +15,10 @@ The ESS Community Integration Tests project is designed to facilitate the testin
 - Customize test runs with additional values files.
 
 ## Prerequisites
-- Python 3.11 or higher
+- Python 3.11 or higher (the browser tests run in a container built with the host's Python version)
 - Docker
 - [k3d](https://k3d.io/stable/)
 - [Helm](https://helm.sh/docs/intro/install)
-- A Chromium install for [Playwright](https://playwright.dev/python/), for the browser based tests: `playwright install chromium`
 - Optional: [uv](https://docs.astral.sh/uv/getting-started/installation/) to install from git
 
 ## Installation
