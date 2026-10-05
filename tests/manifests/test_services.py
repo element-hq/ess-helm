@@ -17,7 +17,13 @@ from . import (
     services_values_files_to_test,
     values_files_to_test,
 )
-from .utils import PERSISTENT_WORKLOAD_KINDS, iterate_deployables_parts, template_id, template_to_deployable_details
+from .utils import (
+    PERSISTENT_WORKLOAD_KINDS,
+    iterate_deployables_parts,
+    iterate_pod_template,
+    template_id,
+    template_to_deployable_details,
+)
 
 
 @pytest.mark.parametrize("values_file", services_values_files_to_test)
@@ -138,6 +144,40 @@ async def test_exposed_services_port_and_type(values, make_templates):
                     f"Expected {num_of_expected_exposed_services[deployable_details.name]} services, "
                     f"found {len(found_exposed_services[deployable_details.name])}: "
                     f"{[template_id(s) for s in found_exposed_services[deployable_details.name]]}"
+                )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_service_ports_match_container_port_protocols(templates):
+    """
+    Service ports must use the protocol of the container port they target.
+
+    A Service matches its target container port by number or name only, so a container port declared with the wrong
+    protocol goes unnoticed while traffic reaches it through a Service. With a `hostPort` however, the container port's
+    protocol is what the node forwards, and traffic of the other protocol is dropped.
+    """
+    workloads = list(iterate_pod_template(templates, kinds=PERSISTENT_WORKLOAD_KINDS))
+    for service in templates:
+        if service["kind"] != "Service" or not service["spec"].get("selector"):
+            continue
+        selector = service["spec"]["selector"]
+        for workload in workloads:
+            labels = workload.pod_template["metadata"].get("labels", {})
+            if any(labels.get(key) != value for key, value in selector.items()):
+                continue
+            container_ports = [
+                port for container in workload.pod_template["spec"]["containers"] for port in container.get("ports", [])
+            ]
+            for service_port in service["spec"]["ports"]:
+                target = service_port.get("targetPort", service_port["port"])
+                targeted = [port for port in container_ports if target in (port.get("name"), port["containerPort"])]
+                if not targeted:
+                    continue
+                protocol = service_port.get("protocol", "TCP")
+                assert any(port.get("protocol", "TCP") == protocol for port in targeted), (
+                    f"{template_id(service)} port {service_port.get('name', target)} ({protocol}) targets "
+                    f"{workload.manifest_id} container ports with other protocols: {targeted}"
                 )
 
 
