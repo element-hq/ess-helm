@@ -26,7 +26,7 @@ essPasswords: {}
   {{- sub_schema_values.credential("Matrix Authentication Service DB Password", "matrixAuthenticationService", initIfAbsent=true) | indent(2) }}
 
 {{- sub_schema_values.persistentVolumeClaim("storage") }}
-{{- sub_schema_values.image(registry='docker.io', repository='postgres', tag='17-alpine') }}
+{{- sub_schema_values.image(registry='docker.io', repository='postgres', tag='17.11-alpine') }}
 {{- sub_schema_values.extraEnv() }}
 {{- sub_schema_values.extraVolumes("Postgres") }}
 {{- sub_schema_values.extraVolumeMounts("Postgres") }}
