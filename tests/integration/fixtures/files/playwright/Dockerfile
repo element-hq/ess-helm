@@ -12,6 +12,11 @@ ARG PYTHON_VERSION=3.14
 FROM python:${PYTHON_VERSION}-slim
 
 WORKDIR /build
+# The package is copied so that the `pip install .` below can build it and, more
+# importantly, install its dependency tree into the image: that is all this copy is
+# for. At runtime the host's tests directory is mounted over /ess-helm/tests and
+# PYTHONPATH points to it, so the code the container runs is always the mounted one,
+# and code changes do not require a rebuild.
 COPY pyproject.toml README.md ./
 COPY integration ./integration
 

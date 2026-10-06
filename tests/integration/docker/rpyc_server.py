@@ -12,13 +12,16 @@ which the container shares with the host network.
 """
 
 import asyncio
+import importlib
 import io
+import pkgutil
 import sys
 import threading
 import traceback
 from typing import Any, TextIO
 
 import cloudpickle
+import integration
 import rpyc
 
 _local = threading.local()
@@ -73,7 +76,21 @@ class DockerPlaywrightService(rpyc.Service):
         return (output.getvalue(), error, tuple(traces))
 
 
+def _import_test_package() -> None:
+    """Import every module of the test package, before the server serves any connection.
+
+    Unpickling a payload imports the modules of the classes it references, and the test
+    bodies import more of them lazily (eg integration.lib.browser). As every connection
+    runs on its own thread, concurrent first imports of a package whose __init__ imports
+    its submodules (integration.fixtures) deadlock the import system: importing
+    everything up front, single-threaded, means no run ever triggers a first import.
+    """
+    for module_info in pkgutil.walk_packages(integration.__path__, f"{integration.__name__}."):
+        importlib.import_module(module_info.name)
+
+
 def main() -> None:
+    _import_test_package()
     sys.stdout = _RunOutput(sys.stdout)
     sys.stderr = _RunOutput(sys.stderr)
     server = rpyc.ThreadedServer(DockerPlaywrightService, hostname="127.0.0.1", port=int(sys.argv[1]))
