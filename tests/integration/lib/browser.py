@@ -11,6 +11,7 @@ not be imported from code that runs on the pytest host, or from fixtures.
 import asyncio
 import subprocess
 import tempfile
+import threading
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -19,6 +20,9 @@ from playwright.async_api import Page, async_playwright
 
 CA_NICKNAME = "ess-helm-test-ca"
 _installed_cas: set[str] = set()
+# Tests run concurrently in the test container: concurrent certutil invocations on the
+# same NSS database would race, so the installations are serialized
+_install_lock = threading.Lock()
 
 
 async def _browser_trust_ca(ca_pem: str) -> None:
@@ -32,25 +36,28 @@ async def _browser_trust_ca(ca_pem: str) -> None:
         return
 
     def _trust_ca(ca_pem: str) -> None:
-        nssdb = Path.home() / ".pki" / "nssdb"
-        nssdb.mkdir(parents=True, exist_ok=True)
-        database = f"sql:{nssdb}"
-        # Creating an already existing database fails, and so does dropping an entry that is
-        # not there; both are fine to ignore. Importing a nickname that exists duplicates it,
-        # so any previous entry with ours is dropped first.
-        subprocess.run(["certutil", "-N", "--empty-password", "-d", database], capture_output=True)
-        subprocess.run(["certutil", "-D", "-d", database, "-n", CA_NICKNAME], capture_output=True)
-        with tempfile.NamedTemporaryFile("w", suffix=".pem") as ca_file:
-            ca_file.write(ca_pem)
-            ca_file.flush()
-            subprocess.run(
-                ["certutil", "-A", "-t", "C,,", "-n", CA_NICKNAME, "-d", database, "-i", ca_file.name],
-                check=True,
-                capture_output=True,
-            )
+        with _install_lock:
+            if ca_pem in _installed_cas:
+                return
+            nssdb = Path.home() / ".pki" / "nssdb"
+            nssdb.mkdir(parents=True, exist_ok=True)
+            database = f"sql:{nssdb}"
+            # Creating an already existing database fails, and so does dropping an entry that is
+            # not there; both are fine to ignore. Importing a nickname that exists duplicates it,
+            # so any previous entry with ours is dropped first.
+            subprocess.run(["certutil", "-N", "--empty-password", "-d", database], capture_output=True)
+            subprocess.run(["certutil", "-D", "-d", database, "-n", CA_NICKNAME], capture_output=True)
+            with tempfile.NamedTemporaryFile("w", suffix=".pem") as ca_file:
+                ca_file.write(ca_pem)
+                ca_file.flush()
+                subprocess.run(
+                    ["certutil", "-A", "-t", "C,,", "-n", CA_NICKNAME, "-d", database, "-i", ca_file.name],
+                    check=True,
+                    capture_output=True,
+                )
+            _installed_cas.add(ca_pem)
 
     await asyncio.to_thread(_trust_ca, ca_pem)
-    _installed_cas.add(ca_pem)
 
 
 @asynccontextmanager

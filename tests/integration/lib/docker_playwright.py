@@ -11,9 +11,9 @@ resolved on the host as for any other cooperative test, and its body runs inside
 container: the test function and the fixture values are sent there with cloudpickle, which
 serializes the function by value, so the exact code that was collected runs remotely,
 without the container importing (or collecting) the test modules. The container runs an
-rpyc server (see integration/docker/rpyc_server.py) which the host connects to once per
-session, and it shares the host network so that the browser can reach the k3d ingress
-proxy on the loopback interface.
+rpyc server (see integration/docker/rpyc_server.py) which the host opens a connection to
+for each test, and it shares the host network so that the browser can reach the k3d
+ingress proxy on the loopback interface.
 """
 
 import asyncio
@@ -41,12 +41,8 @@ SERVER_PORT = 47474
 DEFAULT_TIMEOUT = 600
 
 _container_id: str | None = None
-_connection: rpyc.Connection | None = None
-# Reentrant: _get_connection holds it while calling _start_container, which takes it too
+# Reentrant: _connect_run holds it while calling _start_container, which takes it too
 _container_lock = threading.RLock()
-# The browser scenarios of the tests run in the same container, one at a time: they are
-# heavyweight, and running them concurrently makes the deployments they drive flaky
-_run_lock = threading.Lock()
 
 TestFunction = Callable[..., Coroutine[Any, Any, None]]
 
@@ -121,16 +117,15 @@ def _start_container() -> str:
         return _container_id
 
 
-def _get_connection() -> rpyc.Connection:
-    """Connect to the container's rpyc server, reusing the session's connection.
+def _connect_run() -> rpyc.Connection:
+    """Open a connection to the container's rpyc server for one test run.
 
-    The container is restarted if it died, e.g. after the machine ran out of memory.
+    The server runs each connection's requests in their own thread, so test bodies sent on
+    separate connections run in parallel inside the container. The container is restarted
+    if it died, e.g. after the machine ran out of memory.
     """
-    global _connection, _container_id
+    global _container_id
     with _container_lock:
-        if _connection is not None and not _connection.closed:
-            return _connection
-
         if not _container_alive():
             _container_id = None
         _start_container()
@@ -138,8 +133,7 @@ def _get_connection() -> rpyc.Connection:
         deadline = time.monotonic() + 60
         while True:
             try:
-                _connection = rpyc.connect("127.0.0.1", SERVER_PORT, config={"sync_request_timeout": None})
-                return _connection
+                return rpyc.connect("127.0.0.1", SERVER_PORT, config={"sync_request_timeout": None})
             except OSError:
                 if time.monotonic() >= deadline:
                     raise
@@ -148,20 +142,18 @@ def _get_connection() -> rpyc.Connection:
 
 def stop_container() -> None:
     """Stop the test container, if one was started. Called when the pytest session ends."""
-    global _container_id, _connection
+    global _container_id
     with _container_lock:
-        if _connection is not None:
-            _connection.close()
-            _connection = None
         if _container_id is not None:
             docker.remove(_container_id, force=True)
             _container_id = None
 
 
 def _run_in_container(function: TestFunction, kwargs: dict[str, Any], timeout: float) -> None:
-    with _run_lock:
-        payload = _dumps_payload(function, kwargs, timeout)
-        async_result = rpyc.async_(_get_connection().root.run)(payload)
+    payload = _dumps_payload(function, kwargs, timeout)
+    connection = _connect_run()
+    try:
+        async_result = rpyc.async_(connection.root.run)(payload)
         # The container enforces the timeout on the test itself; the extra minute is a
         # backstop for the case where it cannot, e.g. because the machine is overloaded
         async_result.set_expiry(timeout + 60)
@@ -171,6 +163,8 @@ def _run_in_container(function: TestFunction, kwargs: dict[str, Any], timeout: f
             raise DockerPlaywrightTestFailure(f"The test did not report back within {timeout + 60} seconds") from None
         except Exception as error:
             raise DockerPlaywrightTestFailure(f"The test failed inside the playwright container:\n{error}") from None
+    finally:
+        connection.close()
     if output:
         print(output, end="")
 
