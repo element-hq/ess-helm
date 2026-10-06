@@ -8,24 +8,65 @@ This module imports playwright, which is only installed inside the test containe
 not be imported from code that runs on the pytest host, or from fixtures.
 """
 
+import asyncio
+import subprocess
+import tempfile
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from playwright.async_api import Page, async_playwright
 
+CA_NICKNAME = "ess-helm-test-ca"
+_installed_cas: set[str] = set()
+
+
+async def _browser_trust_ca(ca_pem: str) -> None:
+    """Install ca_pem in the trust store the browser reads, so that it validates the
+    certificates it is served. No-op if it is already installed.
+
+    Chromium has no option to hand it a CA, and it does not read the system trust store:
+    on Linux it trusts the locally-managed roots of the NSS database in ~/.pki/nssdb.
+    """
+    if ca_pem in _installed_cas:
+        return
+
+    def _trust_ca(ca_pem: str) -> None:
+        nssdb = Path.home() / ".pki" / "nssdb"
+        nssdb.mkdir(parents=True, exist_ok=True)
+        database = f"sql:{nssdb}"
+        # Creating an already existing database fails, and so does dropping an entry that is
+        # not there; both are fine to ignore. Importing a nickname that exists duplicates it,
+        # so any previous entry with ours is dropped first.
+        subprocess.run(["certutil", "-N", "--empty-password", "-d", database], capture_output=True)
+        subprocess.run(["certutil", "-D", "-d", database, "-n", CA_NICKNAME], capture_output=True)
+        with tempfile.NamedTemporaryFile("w", suffix=".pem") as ca_file:
+            ca_file.write(ca_pem)
+            ca_file.flush()
+            subprocess.run(
+                ["certutil", "-A", "-t", "C,,", "-n", CA_NICKNAME, "-d", database, "-i", ca_file.name],
+                check=True,
+                capture_output=True,
+            )
+
+    await asyncio.to_thread(_trust_ca, ca_pem)
+    _installed_cas.add(ca_pem)
+
 
 @asynccontextmanager
-async def browser_page() -> AsyncGenerator[Page]:
+async def browser_page(ca_pem: str) -> AsyncGenerator[Page]:
     """A playwright chromium page to run a browser scenario with.
 
-    The test CA isn't in the browser's trust store, so certificate validation is skipped.
+    The certificates served by the ingress are signed by the test CA, which ca_pem holds:
+    it is installed in the browser's trust store so that they are actually validated.
     Chromium resolves *.localhost to the loopback address itself, which is where the
     ingress proxy listens.
     """
+    await _browser_trust_ca(ca_pem)
     async with async_playwright() as playwright:
         browser = await playwright.chromium.launch()
         try:
-            context = await browser.new_context(ignore_https_errors=True)
+            context = await browser.new_context()
             page = await context.new_page()
             yield page
         finally:

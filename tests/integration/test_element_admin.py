@@ -7,8 +7,9 @@ import re
 
 import pytest
 
+from .artifacts import CertKey
 from .fixtures import ESSData, User
-from .lib.utils import aiohttp_client, value_file_has
+from .lib.utils import aiohttp_client, value_file_has, wait_for_ingress
 
 
 @pytest.mark.skipif(value_file_has("elementAdmin.enabled", False), reason="elementAdmin not deployed")
@@ -33,16 +34,15 @@ async def test_element_admin_can_access_root(ingress_ready, generated_data: ESSD
 @pytest.mark.parametrize("users", [[User("browser-admin-user", admin=True)]], indirect=True)
 @pytest.mark.asyncio_cooperative
 @pytest.mark.docker_playwright
-async def test_element_admin_login(generated_data: ESSData, users: list[User]):
+async def test_element_admin_login(browser_ingress_ready, generated_data: ESSData, users: list[User], root_ca: CertKey):
     # Imported here: playwright is only installed inside the test container
     from playwright.async_api import expect
 
     from .lib.browser import browser_page, login_on_mas_page
-    from .lib.utils import wait_for_ingress
 
-    await wait_for_ingress(f"admin.{generated_data.server_name}", generated_data._root_ca.cert_as_pem())
+    await wait_for_ingress(f"admin.{generated_data.server_name}", root_ca.cert_bundle_as_pem())
 
-    async with browser_page() as page:
+    async with browser_page(generated_data._root_ca.cert_as_pem()) as page:
         await page.goto(f"https://admin.{generated_data.server_name}/")
         await page.get_by_role("button", name="Get started").click()
 
@@ -60,16 +60,15 @@ async def test_element_admin_login(generated_data: ESSData, users: list[User]):
 @pytest.mark.parametrize("users", [[User("browser-non-admin-user")]], indirect=True)
 @pytest.mark.asyncio_cooperative
 @pytest.mark.docker_playwright
-async def test_element_admin_login_rejects_non_admin(generated_data: ESSData, users: list[User]):
+async def test_element_admin_login_rejects_non_admin(generated_data: ESSData, users: list[User], root_ca: CertKey):
     # Imported here: playwright is only installed inside the test container
     from playwright.async_api import expect
 
     from .lib.browser import browser_page, login_on_mas_page
-    from .lib.utils import wait_for_ingress
 
-    await wait_for_ingress(f"admin.{generated_data.server_name}", generated_data._root_ca.cert_as_pem())
+    await wait_for_ingress(f"admin.{generated_data.server_name}", root_ca.cert_bundle_as_pem())
 
-    async with browser_page() as page:
+    async with browser_page(root_ca.cert_bundle_as_pem()) as page:
         await page.goto(f"https://admin.{generated_data.server_name}/")
         await page.get_by_role("button", name="Get started").click()
 
