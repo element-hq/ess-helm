@@ -50,7 +50,7 @@ DOCKERFILE = PLAYWRIGHT_DIR / "Dockerfile"
 # bump
 PLAYWRIGHT_REQUIREMENTS = PLAYWRIGHT_DIR / "requirements.txt"
 CONTAINER_TESTS_DIR = "/ess-helm/tests"
-SERVER_PATH = f"{CONTAINER_TESTS_DIR}/integration/docker/rpyc_server.py"
+SERVER_PATH = f"{CONTAINER_TESTS_DIR}/integration/fixtures/files/playwright//rpyc_server.py"
 SERVER_PORT = 47474
 DEFAULT_TIMEOUT = 600
 # Where the failure traces sent back by the container are saved. It is next to the
