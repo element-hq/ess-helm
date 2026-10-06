@@ -13,7 +13,7 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from ssl import SSLContext, create_default_context
+from ssl import SSLContext
 from typing import Any
 from urllib.parse import urlparse
 
@@ -173,32 +173,6 @@ async def aiohttp_put_json(url: str, data: dict, headers: dict, ssl_context: SSL
             return await response.json()
         else:
             return {}
-
-
-async def wait_for_https_endpoint(hostname: str, ca_pem: str, timeout: int = 120) -> None:
-    """Wait until the ingress serving hostname answers HTTPS with a certificate signed by ca_pem.
-
-    The k3d ingress proxy listens on the loopback interface of the host running pytest, and of the
-    test container which shares the host network. The hostname is passed with the Host header and
-    SNI, like aiohttp_get_json does.
-
-    Args:
-        hostname (str): The hostname served by the ingress
-        ca_pem (str): The PEM of the CA that signed the ingress certificate
-        timeout (int): How many seconds to wait for the ingress
-    """
-    ssl_context = create_default_context()
-    ssl_context.load_verify_locations(cadata=ca_pem)
-
-    async def probe():
-        async with (
-            aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=ssl_context)) as session,
-            session.get("https://127.0.0.1/", headers={"Host": hostname}, server_hostname=hostname) as response,
-        ):
-            if response.status >= 500:
-                raise RuntimeError(f"Ingress for {hostname} is not ready yet: {response.status}")
-
-    await async_retry_with_timeout(probe, max_retries=60, timeout_seconds=timeout, delay=2)
 
 
 def merge(a: dict, b: dict, path=None):

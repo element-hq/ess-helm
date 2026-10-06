@@ -6,7 +6,7 @@
 from .ca import delegated_ca, root_ca, ssl_context
 from .cluster import cert_manager, cluster, ess_namespace, helm_client, ingress, kube_client, prometheus_operator_crds
 from .data import ESSData, generated_data
-from .helm import helm_prerequisites, ingress_ready, matrix_stack, secrets_generated
+from .helm import helm_prerequisites, ingress_ready, ingress_ready_for, matrix_stack, secrets_generated
 from .matrix_tools import build_matrix_tools, loaded_matrix_tools
 from .users import User, users
 
@@ -21,6 +21,7 @@ __all__ = [
     "helm_client",
     "helm_prerequisites",
     "ingress_ready",
+    "ingress_ready_for",
     "ingress",
     "kube_client",
     "loaded_matrix_tools",

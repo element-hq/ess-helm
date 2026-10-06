@@ -259,6 +259,17 @@ def ingress_ready(cluster, kube_client: AsyncClient, matrix_stack, generated_dat
     return _ingress_ready
 
 
+@pytest.fixture
+async def ingress_ready_for(request, ingress_ready):
+    """Wait for the ingress named by the indirect parameter to be ready, on the host.
+
+    docker_playwright tests use this instead of waiting inside their body: their fixtures
+    are resolved on the host, which can check the ingress readiness against the kube API,
+    while their body runs in the playwright container, which cannot.
+    """
+    await ingress_ready(request.param)
+
+
 @pytest.fixture(scope="session")
 def secrets_generated(cluster, kube_client: AsyncClient, matrix_stack, generated_data: ESSData):
     async def _secrets_generated(secret_key) -> str:
