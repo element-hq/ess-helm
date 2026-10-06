@@ -101,7 +101,7 @@ def _start_container() -> str:
         if not docker.image.exists(tag):
             docker.build(
                 context_path=TESTS_DIR,
-                file=TESTS_DIR / "integration" / "docker" / "Dockerfile",
+                file=TESTS_DIR / "integration" / "fixtures" / "files" / "playwright" / "Dockerfile",
                 tags=[tag],
                 build_args={"PYTHON_VERSION": f"{sys.version_info.major}.{sys.version_info.minor}"},
             )

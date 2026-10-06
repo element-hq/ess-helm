@@ -19,3 +19,9 @@ COPY integration ./integration
 # playwright (e.g. Alpine) must still be able to run the test suite.
 RUN pip install --no-cache-dir . "playwright>=1.62.0" \
     && python -m playwright install --with-deps chromium
+
+# certutil, to install the test CA in the browser's trust store (the NSS database
+# chromium reads locally-managed roots from), so that it validates the ingress certificates
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libnss3-tools \
+    && rm -rf /var/lib/apt/lists/*
