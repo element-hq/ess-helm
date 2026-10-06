@@ -13,17 +13,21 @@ serializes the function by value, so the exact code that was collected runs remo
 without the container importing (or collecting) the test modules. The container runs an
 rpyc server (see integration/docker/rpyc_server.py) which the host opens a connection to
 for each test, and it shares the host network so that the browser can reach the k3d
-ingress proxy on the loopback interface.
+ingress proxy on the loopback interface. When a test fails, the traces recorded of its
+browser contexts come back over the same connection, and are exported to the host (the
+container's only mount is read-only), into playwright-traces/, to be replayed in the
+playwright trace viewer.
 """
 
 import asyncio
 import collections.abc
 import contextlib
 import inspect
+import re
 import sys
 import threading
 import time
-from collections.abc import Callable, Coroutine
+from collections.abc import Callable, Coroutine, Sequence
 from pathlib import Path
 from typing import Any
 
@@ -39,6 +43,9 @@ CONTAINER_TESTS_DIR = "/ess-helm/tests"
 SERVER_PATH = f"{CONTAINER_TESTS_DIR}/integration/docker/rpyc_server.py"
 SERVER_PORT = 47474
 DEFAULT_TIMEOUT = 600
+# Where the failure traces the container sends back are exported, next to the
+# ess-helm-logs collect-ess-logs writes, which the CI job uploads alongside them
+TRACES_DIR = Path("playwright-traces")
 
 _container_id: str | None = None
 # Reentrant: _connect_run holds it while calling _start_container, which takes it too
@@ -149,7 +156,21 @@ def stop_container() -> None:
             _container_id = None
 
 
-def _run_in_container(function: TestFunction, kwargs: dict[str, Any], timeout: float) -> None:
+def _write_failure_traces(test_name: str, traces: Sequence[bytes]) -> list[Path]:
+    """Write the traces the container recorded of the failing test; returns their paths.
+
+    The container cannot export them itself: its only mount is read-only, so they travel
+    back with the failure, over the same rpyc connection.
+    """
+    TRACES_DIR.mkdir(parents=True, exist_ok=True)
+    name = re.sub(r"[^\w.-]", "_", test_name)
+    paths = [TRACES_DIR / f"{name}-{index}.zip" for index in range(len(traces))]
+    for path, trace in zip(paths, traces, strict=True):
+        path.write_bytes(trace)
+    return paths
+
+
+def _run_in_container(function: TestFunction, test_name: str, kwargs: dict[str, Any], timeout: float) -> None:
     payload = _dumps_payload(function, kwargs, timeout)
     connection = _connect_run()
     try:
@@ -158,13 +179,23 @@ def _run_in_container(function: TestFunction, kwargs: dict[str, Any], timeout: f
         # backstop for the case where it cannot, e.g. because the machine is overloaded
         async_result.set_expiry(timeout + 60)
         try:
-            output = async_result.value
+            output, error, traces = async_result.value
         except rpyc.AsyncResultTimeout:
             raise DockerPlaywrightTestFailure(f"The test did not report back within {timeout + 60} seconds") from None
-        except Exception as error:
-            raise DockerPlaywrightTestFailure(f"The test failed inside the playwright container:\n{error}") from None
+        except Exception as failure:
+            raise DockerPlaywrightTestFailure(f"The test failed inside the playwright container:\n{failure}") from None
     finally:
         connection.close()
+
+    if error:
+        # The container sends the traces it recorded of the failing test's browser
+        # contexts back with the failure: its only mount is read-only, so it cannot
+        # export them itself
+        paths = _write_failure_traces(test_name, traces)
+        message = f"The test failed inside the playwright container:\n{error}"
+        for path in paths:
+            message += f"\nFailure trace exported to {path}, replay it with: npx playwright show-trace {path}"
+        raise DockerPlaywrightTestFailure(message)
     if output:
         print(output, end="")
 
@@ -207,7 +238,7 @@ async def _run_item(item: pytest.Function) -> None:
 
     report_item.start = time.time()
     try:
-        await asyncio.to_thread(_run_in_container, function, kwargs, timeout)
+        await asyncio.to_thread(_run_in_container, function, item.name, kwargs, timeout)
     except BaseException:
         # Do the teardowns, otherwise we might leave fixtures with locks acquired
         report_item.stop = time.time()

@@ -44,22 +44,33 @@ class _RunOutput(io.TextIOBase):
 class DockerPlaywrightService(rpyc.Service):
     """Runs the cloudpickled test bodies the host sends, one `run` call per connection"""
 
-    def exposed_run(self, payload: bytes) -> str:
+    def exposed_run(self, payload: bytes) -> tuple[str, str | None, tuple[bytes, ...]]:
         """Run one cloudpickled test body; returns its captured output.
 
-        Raises with the output and the traceback if it fails, so that the host can
-        report both.
+        Also returns the traceback, and the traces recorded of the failing test's browser
+        contexts (see integration.lib.browser.pop_failure_traces), for the host to report
+        and export: it cannot read files inside the container. The traces are a tuple so
+        that the whole return value travels by value over rpyc, and stays readable once
+        the connection is closed.
         """
         data: dict[str, Any] = cloudpickle.loads(payload)
         output = io.StringIO()
         _local.buffer = output
+        # Imported here: browser imports playwright, which the pytest host does not have
+        from integration.lib.browser import pop_failure_traces
+
         try:
             asyncio.run(asyncio.wait_for(data["func"](**data["kwargs"]), timeout=data["timeout"]))
+            error = None
         except BaseException:
-            raise RuntimeError(f"{output.getvalue()}\n{traceback.format_exc()}") from None
+            error = f"{output.getvalue()}\n{traceback.format_exc()}"
         finally:
+            # Pop the traces of the browser contexts the test had open: they are returned
+            # with the failure, or discarded if it passed (e.g. it swallowed a failure
+            # itself, which must not be attributed to a later run on the same thread)
+            traces = pop_failure_traces()
             _local.buffer = None
-        return output.getvalue()
+        return (output.getvalue(), error, tuple(traces))
 
 
 def main() -> None:

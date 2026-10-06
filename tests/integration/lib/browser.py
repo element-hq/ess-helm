@@ -16,13 +16,38 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from playwright.async_api import Page, async_playwright
+from playwright.async_api import BrowserContext, Page, async_playwright
 
 CA_NICKNAME = "ess-helm-test-ca"
 _installed_cas: set[str] = set()
 # Tests run concurrently in the test container: concurrent certutil invocations on the
 # same NSS database would race, so the installations are serialized
 _install_lock = threading.Lock()
+
+# The traces recorded of the browser contexts a failing test had open, keyed by the
+# thread the test ran on: the rpyc server runs each test in its own thread, and pops the
+# ones its test recorded to send them back to the host, which cannot read files inside
+# the container
+_failure_traces: dict[int, list[bytes]] = {}
+
+
+def pop_failure_traces() -> list[bytes]:
+    """Return and clear the failure traces recorded by the calling thread's test, if any"""
+    return _failure_traces.pop(threading.get_ident(), [])
+
+
+async def _record_failure_trace(context: BrowserContext) -> None:
+    """Record a trace of context for pop_failure_traces to return to the host.
+
+    Best effort: a failure may have taken the browser down with it, in which case there
+    is no trace to record, and no reason to mask the original failure.
+    """
+    try:
+        with tempfile.NamedTemporaryFile(suffix=".zip") as trace_file:
+            await context.tracing.stop(path=trace_file.name)
+            _failure_traces.setdefault(threading.get_ident(), []).append(Path(trace_file.name).read_bytes())
+    except Exception:
+        return
 
 
 async def _browser_trust_ca(ca_pem: str) -> None:
@@ -68,14 +93,26 @@ async def browser_page(ca_pem: str) -> AsyncGenerator[Page]:
     it is installed in the browser's trust store so that they are actually validated.
     Chromium resolves *.localhost to the loopback address itself, which is where the
     ingress proxy listens.
+
+    Everything the page does is traced, and if the test body fails the trace is recorded
+    for the host to export (see pop_failure_traces): it replays in the playwright trace
+    viewer, screenshots and DOM snapshots included.
     """
     await _browser_trust_ca(ca_pem)
     async with async_playwright() as playwright:
         browser = await playwright.chromium.launch()
         try:
             context = await browser.new_context()
+            await context.tracing.start(screenshots=True, snapshots=True, sources=True)
             page = await context.new_page()
-            yield page
+            try:
+                yield page
+            except BaseException:
+                # Records the trace and stops it; on success it is stopped and discarded
+                await _record_failure_trace(context)
+                raise
+            else:
+                await context.tracing.stop()
         finally:
             await browser.close()
 
