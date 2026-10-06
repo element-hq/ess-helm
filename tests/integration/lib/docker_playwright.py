@@ -21,6 +21,7 @@ the container is read-only), to be opened in the playwright trace viewer.
 import asyncio
 import collections.abc
 import contextlib
+import hashlib
 import inspect
 import re
 import sys
@@ -37,7 +38,17 @@ from pytest_asyncio_cooperative.fixtures import fill_fixtures
 from python_on_whales import docker
 
 TESTS_DIR = Path(__file__).parent.parent.parent
-IMAGE_NAME = "ess-helm-integration-tests"
+# The image the decorated tests run in. CI publishes it to the registry under this
+# name, tagged with image_tag(). Pulling it is much faster and less flaky than
+# building it on every CI run. Hosts without registry access build it locally, under
+# the same name and tag
+IMAGE_NAME = "ghcr.io/element-hq/ess-helm/playwright-tests"
+PLAYWRIGHT_DIR = TESTS_DIR / "integration" / "fixtures" / "files" / "playwright"
+DOCKERFILE = PLAYWRIGHT_DIR / "Dockerfile"
+# The requirements file pins the playwright version the image installs, so that
+# renovate can bump it: its sha is part of the image tag, the image is rebuilt on a
+# bump
+PLAYWRIGHT_REQUIREMENTS = PLAYWRIGHT_DIR / "requirements.txt"
 CONTAINER_TESTS_DIR = "/ess-helm/tests"
 SERVER_PATH = f"{CONTAINER_TESTS_DIR}/integration/docker/rpyc_server.py"
 SERVER_PORT = 47474
@@ -71,13 +82,29 @@ def _dumps_payload(function: TestFunction, kwargs: dict[str, Any], timeout: floa
         cloudpickle.unregister_pickle_by_value(module)
 
 
-def _image_tag() -> str:
-    # A cloudpickle payload can only be read by the same cloudpickle version. The code
-    # it contains only runs on the same Python minor version. The rpyc protocol is
-    # only guaranteed within the same major version. The image must be rebuilt when
-    # any of them changes
+def image_tag() -> str:
+    """The tag of the image, fully identifying the environment the tests need.
+
+    It contains the hash of uv.lock and of the playwright requirements file, and the
+    Python minor version of the host. The lock pins the exact versions of everything
+    else the image installs, including the cloudpickle and rpyc versions it must
+    match: a cloudpickle payload can only be read by the same cloudpickle version,
+    and the rpyc protocol is only guaranteed within the same major version. The
+    playwright requirements file pins playwright, the hash of the file in the tag
+    makes the image rebuilt on a bump. The Python minor version is a property of the
+    host, not of the files: the payloads only run on the Python minor version they
+    were created with. The pytest workflow uses the same function to tag the image
+    it publishes.
+    """
+    # The files are hashed as they are on disk: uncommitted changes to them give a
+    # different tag, hence a rebuild. Their order is part of the hash. A change of
+    # the Dockerfile alone does not change the tag: delete the image to force a
+    # rebuild after one
     python = f"py{sys.version_info.major}.{sys.version_info.minor}"
-    return f"{IMAGE_NAME}:{python}-cp{cloudpickle.__version__}-r{rpyc.__version__}"
+    digest = hashlib.sha256()
+    for path in (TESTS_DIR.parent / "uv.lock", PLAYWRIGHT_REQUIREMENTS):
+        digest.update(path.read_bytes())
+    return f"{IMAGE_NAME}:{python}-{digest.hexdigest()}"
 
 
 def _container_alive() -> bool:
@@ -87,6 +114,30 @@ def _container_alive() -> bool:
         return bool(docker.container.inspect(_container_id).state.running)
     except Exception:
         return False
+
+
+def _build_image(tag: str) -> None:
+    # The build context is the repo root: the Dockerfile copies the root pyproject.toml
+    # and the workspace uv.lock, which lives outside the tests directory. BuildKit only
+    # sends the files the Dockerfile actually copies.
+    docker.build(
+        context_path=TESTS_DIR.parent,
+        file=DOCKERFILE,
+        tags=[tag],
+        build_args={"PYTHON_VERSION": f"{sys.version_info.major}.{sys.version_info.minor}"},
+    )
+
+
+def ensure_image(tag: str) -> None:
+    """Make the image available locally: pull it, or build it when it is not in the
+    registry, e.g. its tag is new and CI did not publish it yet, or the host has no
+    registry credentials (e.g. a fork CI run)."""
+    if docker.image.exists(tag):
+        return
+    try:
+        docker.pull(tag)
+    except Exception:
+        _build_image(tag)
 
 
 def _start_container() -> str:
@@ -101,17 +152,8 @@ def _start_container() -> str:
         if _container_id is not None:
             return _container_id
 
-        tag = _image_tag()
-        if not docker.image.exists(tag):
-            # The build context is the repo root: the Dockerfile copies the root
-            # pyproject.toml and the workspace uv.lock, which lives outside the tests
-            # directory. BuildKit only sends the files the Dockerfile actually copies.
-            docker.build(
-                context_path=TESTS_DIR.parent,
-                file=TESTS_DIR / "integration" / "fixtures" / "files" / "playwright" / "Dockerfile",
-                tags=[tag],
-                build_args={"PYTHON_VERSION": f"{sys.version_info.major}.{sys.version_info.minor}"},
-            )
+        tag = image_tag()
+        ensure_image(tag)
 
         container = docker.run(
             tag,

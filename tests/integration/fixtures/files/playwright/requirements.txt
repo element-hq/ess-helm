@@ -1,0 +1,8 @@
+# Copyright 2026 Element Creations Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# The playwright version the docker_playwright image installs. It is pinned in a
+# requirements file so that renovate can bump it. docker_playwright hashes this file
+# into the image tag: the image is rebuilt when it changes.
+playwright==1.62.0

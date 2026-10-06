@@ -46,9 +46,75 @@ jobs:
         LATEST_TAG=$(git describe --abbrev=0 --tags --match '[0-9]*.[0-9]*.[0-9]*')
         echo "upgradeFrom=$LATEST_TAG" | tee -a "$GITHUB_OUTPUT"
 
+  playwright-image:
+    runs-on: ubuntu-latest
+    # Build and publish the playwright image the integration tests run in, tagged with
+    # the hash of its dependency files (uv.lock, playwright requirements): a run then
+    # pulls the image built from exactly its dependencies. Docker only uploads the
+    # layers that are not in the registry already. Skipped on pull requests from
+    # forks: their token is read-only, it cannot push to the registry.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == 'element-hq/ess-helm' }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      with:
+        persist-credentials: false
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4  # v10.1.0
+      with:
+        # No cache: this job publishes an artifact the other CI runs pull, it must
+        # not be buildable from a poisoned cache
+        enable-cache: false
+        activate-environment: true
+
+    - name: Set up UV environment
+      run: uv sync
+
+    - name: Compute the image reference
+      # The reference is the Python version of the environment above and the hash of
+      # uv.lock and of the playwright requirements file: they pin the exact versions
+      # of everything the image installs, including the cloudpickle and rpyc versions
+      # it must match. docker_playwright computes the same reference on the test
+      # runners
+      id: compute
+      run: |
+        echo "image=$(python -c 'from integration.lib.docker_playwright import image_tag; print(image_tag())')" | tee -a "$GITHUB_OUTPUT"
+        echo "playwright-python-version=$(python -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')" | tee -a "$GITHUB_OUTPUT"
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f  # v4.6.0
+      with:
+        registry: ghcr.io
+        username: ${{ env.GHCR_USERNAME }}
+        password: ${{ env.GHCR_TOKEN }}
+
+    - name: Build the image
+      env:
+        IMAGE:  ${{  steps.compute.outputs.image }}
+        PLAYWRIGHT_PYTHON_VERSION:  ${{  steps.compute.outputs.playwright-python-version }}
+      run: |
+        docker build \
+          --file tests/integration/fixtures/files/playwright/Dockerfile \
+          --build-arg "PYTHON_VERSION=${PLAYWRIGHT_PYTHON_VERSION}" \
+          --tag "${IMAGE}" \
+          .
+
+    # Docker only uploads the layers that the registry does not have already
+    - name: Push the image
+      env:
+        IMAGE:  ${{  steps.compute.outputs.image }}
+      run: docker push "${IMAGE}"
+
   pytest-integration:
     runs-on: ubuntu-latest
     needs: pytest-setup
+    permissions:
+      contents: read
+      # To pull the playwright image from ghcr instead of building it
+      packages: read
     strategy:
       fail-fast: false
       matrix:
@@ -103,6 +169,15 @@ jobs:
         registry: docker.io
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Login to GitHub Container Registry
+      # So the playwright image is pulled from there instead of being built
+      uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f  # v4.6.0
+      if: ${{ github.event.pull_request.head.repo.full_name == 'element-hq/ess-helm' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+      with:
+        registry: ghcr.io
+        username: ${{ env.GHCR_USERNAME }}
+        password: ${{ env.GHCR_TOKEN }}
 
     - uses: ./.github/actions/asdf-cache
       with:
