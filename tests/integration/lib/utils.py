@@ -175,7 +175,7 @@ async def aiohttp_put_json(url: str, data: dict, headers: dict, ssl_context: SSL
             return {}
 
 
-async def wait_for_ingress(hostname: str, ca_pem: str, timeout: int = 120) -> None:
+async def wait_for_https_endpoint(hostname: str, ca_pem: str, timeout: int = 120) -> None:
     """Wait until the ingress serving hostname answers HTTPS with a certificate signed by ca_pem.
 
     The k3d ingress proxy listens on the loopback interface of the host running pytest, and of the
