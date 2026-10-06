@@ -267,7 +267,10 @@ async def ingress_ready_for(request, ingress_ready):
     are resolved on the host, which can check the ingress readiness against the kube API,
     while their body runs in the playwright container, which cannot.
     """
-    await ingress_ready(request.param)
+    # Same as the users fixture: read the parameter from the callspec rather than
+    # request.param, which pytest-asyncio-cooperative makes unreliable when a test has
+    # more than one indirect fixture (see fixtures/users.py)
+    await ingress_ready(request.node.callspec.params["ingress_ready_for"])
 
 
 @pytest.fixture(scope="session")
