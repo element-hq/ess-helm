@@ -12,17 +12,24 @@ ARG PYTHON_VERSION=3.14
 FROM python:${PYTHON_VERSION}-slim
 
 WORKDIR /build
-# The package is copied so that the `pip install .` below can build it and install all
-# of its dependencies into the image. That is the only reason for this copy. At
-# runtime, the host's tests directory is mounted over /ess-helm/tests, and PYTHONPATH
-# points to it. The container always runs the host's code. Code changes do not need a
-# rebuild of the image.
-COPY pyproject.toml README.md ./
-COPY integration ./integration
+# uv, to export the package's requirements from the workspace lock file below
+COPY --from=ghcr.io/astral-sh/uv:0.11.19 /uv /uvx /usr/local/bin/
+# Only the files needed to export the test package's requirements are copied, never
+# the package code itself: the container never runs the code baked into the image.
+# At runtime, the host's tests directory is mounted over /ess-helm/tests, and
+# PYTHONPATH points to it. cloudpickle only pickles the code of the test bodies by
+# value: the rpyc server, the test package and everything the test bodies import by
+# name come from that mount. Code changes therefore do not need a rebuild of the
+# image: copying the real tests directory here would invalidate the cache of the
+# expensive layers below on every code change. The lock file pins the exact versions
+# installed in the image; it must be regenerated when the requirements change.
+COPY pyproject.toml uv.lock ./
+COPY tests/pyproject.toml tests/
 
 # playwright is not a dependency of the test package on purpose: hosts that cannot run
 # playwright (e.g. Alpine) must still be able to run the test suite.
-RUN pip install --no-cache-dir . "playwright>=1.62.0" \
+RUN uv export --frozen --package ess-community-integration-tests --format requirements.txt --no-hashes --no-emit-project -o requirements.txt \
+    && pip install --no-cache-dir -r requirements.txt "playwright>=1.62.0" \
     && python -m playwright install --with-deps chromium
 
 # certutil, to install the test CA in the browser's trust store. The browser then

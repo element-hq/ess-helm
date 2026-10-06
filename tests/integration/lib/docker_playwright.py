@@ -103,8 +103,11 @@ def _start_container() -> str:
 
         tag = _image_tag()
         if not docker.image.exists(tag):
+            # The build context is the repo root: the Dockerfile copies the root
+            # pyproject.toml and the workspace uv.lock, which lives outside the tests
+            # directory. BuildKit only sends the files the Dockerfile actually copies.
             docker.build(
-                context_path=TESTS_DIR,
+                context_path=TESTS_DIR.parent,
                 file=TESTS_DIR / "integration" / "fixtures" / "files" / "playwright" / "Dockerfile",
                 tags=[tag],
                 build_args={"PYTHON_VERSION": f"{sys.version_info.major}.{sys.version_info.minor}"},
