@@ -7,6 +7,7 @@ artifacthub
 Artifacthub
 asyncio
 checkov
+cloudpickle
 deployables
 dialog
 Distroless
@@ -44,6 +45,7 @@ pytest
 Pytest
 Referer
 relabeling
+rpyc
 SCIM
 shellcheck
 signaling
