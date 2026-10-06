@@ -20,27 +20,30 @@ from playwright.async_api import BrowserContext, Page, async_playwright
 
 CA_NICKNAME = "ess-helm-test-ca"
 _installed_cas: set[str] = set()
-# Tests run concurrently in the test container: concurrent certutil invocations on the
-# same NSS database would race, so the installations are serialized
+# Tests run at the same time in the test container. certutil commands on the same NSS
+# database would conflict, so installations are run one after the other
 _install_lock = threading.Lock()
 
-# The traces recorded of the browser contexts a failing test had open, keyed by the
-# thread the test ran on: the rpyc server runs each test in its own thread, and pops the
-# ones its test recorded to send them back to the host, which cannot read files inside
-# the container
+# The traces recorded for the browser contexts a failing test had open, stored per
+# thread id. The rpyc server runs each test in its own thread. It takes out the traces
+# its test recorded and sends them to the host, which cannot read files inside the
+# container
 _failure_traces: dict[int, list[bytes]] = {}
 
 
 def pop_failure_traces() -> list[bytes]:
-    """Return and clear the failure traces recorded by the calling thread's test, if any"""
+    """Return and delete the failure traces of the test that ran on the calling thread.
+    Returns an empty list if there are none.
+    """
     return _failure_traces.pop(threading.get_ident(), [])
 
 
 async def _record_failure_trace(context: BrowserContext) -> None:
-    """Record a trace of context for pop_failure_traces to return to the host.
+    """Record a trace of context, for pop_failure_traces to return it to the host.
 
-    Best effort: a failure may have taken the browser down with it, in which case there
-    is no trace to record, and no reason to mask the original failure.
+    Never fail here. The failure being handled may have stopped the browser too. There
+    is then no trace to record, and the original failure must not be hidden by a new
+    error.
     """
     try:
         with tempfile.NamedTemporaryFile(suffix=".zip") as trace_file:
@@ -51,11 +54,12 @@ async def _record_failure_trace(context: BrowserContext) -> None:
 
 
 async def _browser_trust_ca(ca_pem: str) -> None:
-    """Install ca_pem in the trust store the browser reads, so that it validates the
-    certificates it is served. No-op if it is already installed.
+    """Install ca_pem in the trust store the browser reads. The browser then accepts
+    the certificates it is served. Does nothing if it is already installed.
 
-    Chromium has no option to hand it a CA, and it does not read the system trust store:
-    on Linux it trusts the locally-managed roots of the NSS database in ~/.pki/nssdb.
+    Chromium has no option to be given a CA. It also does not read the system trust
+    store: on Linux, it reads the CAs it manages itself from the NSS database in
+    ~/.pki/nssdb.
     """
     if ca_pem in _installed_cas:
         return
@@ -67,9 +71,10 @@ async def _browser_trust_ca(ca_pem: str) -> None:
             nssdb = Path.home() / ".pki" / "nssdb"
             nssdb.mkdir(parents=True, exist_ok=True)
             database = f"sql:{nssdb}"
-            # Creating an already existing database fails, and so does dropping an entry that is
-            # not there; both are fine to ignore. Importing a nickname that exists duplicates it,
-            # so any previous entry with ours is dropped first.
+            # Creating an existing database fails. Deleting an entry that does not
+            # exist fails too. Both failures are fine to ignore. Importing a name that
+            # already exists would create a duplicate, so any old entry with our name
+            # is deleted first
             subprocess.run(["certutil", "-N", "--empty-password", "-d", database], capture_output=True)
             subprocess.run(["certutil", "-D", "-d", database, "-n", CA_NICKNAME], capture_output=True)
             with tempfile.NamedTemporaryFile("w", suffix=".pem") as ca_file:
@@ -89,14 +94,14 @@ async def _browser_trust_ca(ca_pem: str) -> None:
 async def browser_page(ca_pem: str) -> AsyncGenerator[Page]:
     """A playwright chromium page to run a browser scenario with.
 
-    The certificates served by the ingress are signed by the test CA, which ca_pem holds:
-    it is installed in the browser's trust store so that they are actually validated.
-    Chromium resolves *.localhost to the loopback address itself, which is where the
-    ingress proxy listens.
+    The certificates served by the ingress are signed by the test CA. ca_pem holds the
+    CA in PEM form. It is installed in the browser's trust store, so the browser
+    accepts them. Chromium itself resolves *.localhost to the localhost address, where
+    the ingress proxy listens.
 
-    Everything the page does is traced, and if the test body fails the trace is recorded
-    for the host to export (see pop_failure_traces): it replays in the playwright trace
-    viewer, screenshots and DOM snapshots included.
+    Everything the page does is traced. If the test body fails, the trace is recorded
+    for the host to save (see pop_failure_traces). It can be opened in the playwright
+    trace viewer, with screenshots and DOM snapshots.
     """
     await _browser_trust_ca(ca_pem)
     async with async_playwright() as playwright:
@@ -108,7 +113,8 @@ async def browser_page(ca_pem: str) -> AsyncGenerator[Page]:
             try:
                 yield page
             except BaseException:
-                # Records the trace and stops it; on success it is stopped and discarded
+                # Record the trace and stop tracing; on success, tracing is stopped and
+                # the trace is thrown away
                 await _record_failure_trace(context)
                 raise
             else:

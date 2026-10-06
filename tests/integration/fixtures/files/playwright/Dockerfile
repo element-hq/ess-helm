@@ -5,18 +5,18 @@
 # Image for the integration tests run by the docker_playwright decorator, e.g. the
 # playwright browser tests (playwright cannot run on every host, e.g. Alpine).
 #
-# The Python major.minor version matches the host running pytest, and the tests
-# directory is mounted over the one baked in at runtime, so that code changes do
-# not require a rebuild.
+# The Python version matches the host running pytest. At runtime, the host's tests
+# directory is mounted over the image's one. Code changes therefore do not need a
+# rebuild of the image.
 ARG PYTHON_VERSION=3.14
 FROM python:${PYTHON_VERSION}-slim
 
 WORKDIR /build
-# The package is copied so that the `pip install .` below can build it and, more
-# importantly, install its dependency tree into the image: that is all this copy is
-# for. At runtime the host's tests directory is mounted over /ess-helm/tests and
-# PYTHONPATH points to it, so the code the container runs is always the mounted one,
-# and code changes do not require a rebuild.
+# The package is copied so that the `pip install .` below can build it and install all
+# of its dependencies into the image. That is the only reason for this copy. At
+# runtime, the host's tests directory is mounted over /ess-helm/tests, and PYTHONPATH
+# points to it. The container always runs the host's code. Code changes do not need a
+# rebuild of the image.
 COPY pyproject.toml README.md ./
 COPY integration ./integration
 
@@ -25,8 +25,9 @@ COPY integration ./integration
 RUN pip install --no-cache-dir . "playwright>=1.62.0" \
     && python -m playwright install --with-deps chromium
 
-# certutil, to install the test CA in the browser's trust store (the NSS database
-# chromium reads locally-managed roots from), so that it validates the ingress certificates
+# certutil, to install the test CA in the browser's trust store. The browser then
+# accepts the ingress certificates. On Linux, chromium reads the CAs it manages
+# itself from the NSS database, hence libnss3-tools.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libnss3-tools \
     && rm -rf /var/lib/apt/lists/*

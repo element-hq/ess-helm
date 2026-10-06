@@ -6,17 +6,16 @@
 able to run them (e.g. Alpine).
 
 A test marked `@pytest.mark.asyncio_cooperative` and `@pytest.mark.docker_playwright`
-(`install()` teaches pytest-asyncio-cooperative about the marker) has its fixtures
-resolved on the host as for any other cooperative test, and its body runs inside the
-container: the test function and the fixture values are sent there with cloudpickle, which
-serializes the function by value, so the exact code that was collected runs remotely,
-without the container importing (or collecting) the test modules. The container runs an
-rpyc server (see integration/docker/rpyc_server.py) which the host opens a connection to
-for each test, and it shares the host network so that the browser can reach the k3d
-ingress proxy on the loopback interface. When a test fails, the traces recorded of its
-browser contexts come back over the same connection, and are exported to the host (the
-container's only mount is read-only), into playwright-traces/, to be replayed in the
-playwright trace viewer.
+(`install()` registers the marker with pytest-asyncio-cooperative) has its fixtures set
+up on the host, like for any other cooperative test. Its body runs inside the container.
+The test function and the fixture values are sent there with cloudpickle, which
+serializes the code of the function itself. The exact code that was collected runs
+remotely. The container does not import (or collect) the test modules. It runs an rpyc
+server (see integration/docker/rpyc_server.py). The host opens one connection to it per
+test. The container shares the network of the host, so the browser can reach the k3d
+ingress proxy on localhost. When a test fails, the traces of its browser contexts come
+back on the same connection. They are saved to playwright-traces/ (the only mount of
+the container is read-only), to be opened in the playwright trace viewer.
 """
 
 import asyncio
@@ -43,12 +42,14 @@ CONTAINER_TESTS_DIR = "/ess-helm/tests"
 SERVER_PATH = f"{CONTAINER_TESTS_DIR}/integration/docker/rpyc_server.py"
 SERVER_PORT = 47474
 DEFAULT_TIMEOUT = 600
-# Where the failure traces the container sends back are exported, next to the
-# ess-helm-logs collect-ess-logs writes, which the CI job uploads alongside them
+# Where the failure traces sent back by the container are saved. It is next to the
+# ess-helm-logs directory written by collect-ess-logs, which the CI job uploads
+# together with the traces
 TRACES_DIR = Path("playwright-traces")
 
 _container_id: str | None = None
-# Reentrant: _connect_run holds it while calling _start_container, which takes it too
+# The same thread can take this lock more than once (it is an RLock): _connect_run
+# holds it while calling _start_container, which takes it too
 _container_lock = threading.RLock()
 
 TestFunction = Callable[..., Coroutine[Any, Any, None]]
@@ -60,9 +61,9 @@ class DockerPlaywrightTestFailure(Exception):
 
 def _dumps_payload(function: TestFunction, kwargs: dict[str, Any], timeout: float) -> bytes:
     module = sys.modules[function.__module__]
-    # Pickle the test body by value, so that the container runs the exact code that was
-    # collected on the host. Everything else goes by reference: the test package is
-    # mounted in the container and its dependencies are installed in the image.
+    # Pickle the code of the test body itself. The container then runs the exact code
+    # that was collected on the host. Everything else is pickled by name: the test
+    # package is mounted in the container, and its dependencies are in the image
     cloudpickle.register_pickle_by_value(module)
     try:
         return cloudpickle.dumps({"func": function, "kwargs": kwargs, "timeout": timeout})
@@ -71,10 +72,10 @@ def _dumps_payload(function: TestFunction, kwargs: dict[str, Any], timeout: floa
 
 
 def _image_tag() -> str:
-    # cloudpickle payloads are only readable by the same cloudpickle version, the code
-    # objects they embed only run on the same Python minor version, and the rpyc wire
-    # protocol is only guaranteed within a major version: rebuild the image when any
-    # of them changes
+    # A cloudpickle payload can only be read by the same cloudpickle version. The code
+    # it contains only runs on the same Python minor version. The rpyc protocol is
+    # only guaranteed within the same major version. The image must be rebuilt when
+    # any of them changes
     python = f"py{sys.version_info.major}.{sys.version_info.minor}"
     return f"{IMAGE_NAME}:{python}-cp{cloudpickle.__version__}-r{rpyc.__version__}"
 
@@ -89,11 +90,11 @@ def _container_alive() -> bool:
 
 
 def _start_container() -> str:
-    """Start the container the decorated tests run in, if not started yet.
+    """Start the container the decorated tests run in, if it is not started yet.
 
-    It lives for the whole pytest session: browser tests typically run in the same session
-    as the async tests that deploy the stack, and starting the container is not free. Its
-    main process is the rpyc server the host connects to.
+    It lives for the whole pytest session. Browser tests usually run in the same session
+    as the async tests that deploy the stack, and starting the container takes time.
+    Its main process is the rpyc server the host connects to.
     """
     global _container_id
     with _container_lock:
@@ -127,9 +128,9 @@ def _start_container() -> str:
 def _connect_run() -> rpyc.Connection:
     """Open a connection to the container's rpyc server for one test run.
 
-    The server runs each connection's requests in their own thread, so test bodies sent on
-    separate connections run in parallel inside the container. The container is restarted
-    if it died, e.g. after the machine ran out of memory.
+    The server runs each connection in its own thread. Test bodies sent on separate
+    connections therefore run at the same time inside the container. The container is
+    started again if it stopped, e.g. because the machine ran out of memory.
     """
     global _container_id
     with _container_lock:
@@ -157,9 +158,9 @@ def stop_container() -> None:
 
 
 def _write_failure_traces(test_name: str, traces: Sequence[bytes]) -> list[Path]:
-    """Write the traces the container recorded of the failing test; returns their paths.
+    """Write the traces the container recorded for the failing test. Returns their paths.
 
-    The container cannot export them itself: its only mount is read-only, so they travel
+    The container cannot save them itself. Its only mount is read-only, so they come
     back with the failure, over the same rpyc connection.
     """
     TRACES_DIR.mkdir(parents=True, exist_ok=True)
@@ -175,8 +176,9 @@ def _run_in_container(function: TestFunction, test_name: str, kwargs: dict[str, 
     connection = _connect_run()
     try:
         async_result = rpyc.async_(connection.root.run)(payload)
-        # The container enforces the timeout on the test itself; the extra minute is a
-        # backstop for the case where it cannot, e.g. because the machine is overloaded
+        # The container applies the timeout to the test itself. The extra minute is a
+        # safety margin, in case the container cannot apply it (e.g. the machine is
+        # overloaded)
         async_result.set_expiry(timeout + 60)
         try:
             output, error, traces = async_result.value
@@ -188,25 +190,24 @@ def _run_in_container(function: TestFunction, test_name: str, kwargs: dict[str, 
         connection.close()
 
     if error:
-        # The container sends the traces it recorded of the failing test's browser
-        # contexts back with the failure: its only mount is read-only, so it cannot
-        # export them itself
+        # The container sends the traces of the failing test's browser contexts back
+        # with the failure. Its only mount is read-only, so it cannot save them itself
         paths = _write_failure_traces(test_name, traces)
         message = f"The test failed inside the playwright container:\n{error}"
         for path in paths:
-            message += f"\nFailure trace exported to {path}, replay it with: npx playwright show-trace {path}"
+            message += f"\nFailure trace saved to {path}, open it with: npx playwright show-trace {path}"
         raise DockerPlaywrightTestFailure(message)
     if output:
         print(output, end="")
 
 
 async def _run_item(item: pytest.Function) -> None:
-    """Run a docker_playwright-marked test in the container, in the cooperative loop.
+    """Run a docker_playwright-marked test in the container, inside the cooperative loop.
 
-    Mirrors the plugin's own test wrapper: the fixtures are filled on the host as for any
-    other cooperative test, but instead of awaiting the test body it is sent with its
-    fixture values to the container, and awaited from a thread so that the other
-    cooperative tests keep running. The item attributes and the teardowns are what the
+    This works like the plugin's own test wrapper. The fixtures are set up on the host,
+    like for any other cooperative test. The body is not awaited here: it is sent to the
+    container with its fixture values, and awaited from a thread. The other cooperative
+    tests keep running meanwhile. The item attributes and the teardowns are what the
     plugin uses for its durations and reporting.
     """
     marker = item.get_closest_marker("docker_playwright")
@@ -214,15 +215,15 @@ async def _run_item(item: pytest.Function) -> None:
     function = item.function
     fixture_names = list(inspect.signature(function).parameters)
 
-    # The cooperative plugin reads these attributes on the item for its durations and
-    # reporting, in the same way as in its own test wrapper, which this mirrors
+    # The cooperative plugin reads these attributes to report durations, like its own
+    # test wrapper does
     report_item: Any = item
     report_item.start_setup = time.time()
     fixture_values, teardowns = await fill_fixtures(item)
     report_item.stop_setup = time.time()
 
-    # A misalignment between the fixture names and values would mean the remote body is
-    # called with the wrong arguments, so fail loudly instead of truncating
+    # Mismatched fixture names and values would call the remote body with the wrong
+    # arguments. Fail immediately instead of silently dropping values
     kwargs = dict(zip(fixture_names, fixture_values, strict=True))
 
     async def do_teardowns():
@@ -240,7 +241,7 @@ async def _run_item(item: pytest.Function) -> None:
     try:
         await asyncio.to_thread(_run_in_container, function, item.name, kwargs, timeout)
     except BaseException:
-        # Do the teardowns, otherwise we might leave fixtures with locks acquired
+        # Run the teardowns, otherwise fixtures may be left holding their locks
         report_item.stop = time.time()
         await do_teardowns()
         raise
@@ -249,11 +250,11 @@ async def _run_item(item: pytest.Function) -> None:
 
 
 def install() -> None:
-    """Teach pytest-asyncio-cooperative to run docker_playwright-marked tests remotely.
+    """Make pytest-asyncio-cooperative run docker_playwright-marked tests remotely.
 
-    It plugs into the same dispatch the plugin uses for its hypothesis support, so that
-    marked tests are collected, timed, torn down and reported like any other test. Called
-    from the conftest at configure time.
+    It hooks into the same function the plugin uses for its hypothesis support. Marked
+    tests are then collected, timed, torn down and reported like any other test.
+    Called from the conftest when pytest starts.
     """
     from pytest_asyncio_cooperative import plugin as cooperative
 

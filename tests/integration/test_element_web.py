@@ -22,7 +22,7 @@ async def test_element_web_can_access_config_json(ingress_ready, generated_data:
     assert json_content["some_key"]["some_value"] == f"https://test.{generated_data.server_name}"
 
 
-# Runs inside the playwright container, as the host may not be able to run a browser (e.g. Alpine)
+# Runs inside the playwright container, because the host may not be able to run a browser (e.g. Alpine)
 @pytest.mark.skipif(value_file_has("elementWeb.enabled", False), reason="ElementWeb not deployed")
 @pytest.mark.parametrize("ingress_ready_for", ["element-web"], indirect=True)
 @pytest.mark.asyncio_cooperative
@@ -39,7 +39,7 @@ async def test_element_web_loads_in_browser(generated_data: ESSData, root_ca: Ce
         await expect(page).to_have_title(re.compile("Element"))
 
 
-# Runs inside the playwright container, as the host may not be able to run a browser (e.g. Alpine)
+# Runs inside the playwright container, because the host may not be able to run a browser (e.g. Alpine)
 @pytest.mark.skipif(value_file_has("elementWeb.enabled", False), reason="ElementWeb not deployed")
 @pytest.mark.skipif(value_file_has("matrixAuthenticationService.enabled", False), reason="MAS not deployed")
 @pytest.mark.parametrize("users", [[User("browser-element-web-user")]], indirect=True)

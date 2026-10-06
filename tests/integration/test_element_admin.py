@@ -28,7 +28,7 @@ async def test_element_admin_can_access_root(ingress_ready, generated_data: ESSD
         assert response.status == 200
 
 
-# Runs inside the playwright container, as the host may not be able to run a browser (e.g. Alpine)
+# Runs inside the playwright container, because the host may not be able to run a browser (e.g. Alpine)
 @pytest.mark.skipif(value_file_has("elementAdmin.enabled", False), reason="elementAdmin not deployed")
 @pytest.mark.skipif(value_file_has("matrixAuthenticationService.enabled", False), reason="MAS not deployed")
 @pytest.mark.parametrize("users", [[User("browser-admin-user", admin=True)]], indirect=True)
@@ -53,7 +53,7 @@ async def test_element_admin_login(generated_data: ESSData, users: list[User], r
         await expect(page).to_have_title(f"Dashboard • {generated_data.server_name} • Element Admin")
 
 
-# Runs inside the playwright container, as the host may not be able to run a browser (e.g. Alpine)
+# Runs inside the playwright container, because the host may not be able to run a browser (e.g. Alpine)
 @pytest.mark.skipif(value_file_has("elementAdmin.enabled", False), reason="elementAdmin not deployed")
 @pytest.mark.skipif(value_file_has("matrixAuthenticationService.enabled", False), reason="MAS not deployed")
 @pytest.mark.parametrize("users", [[User("browser-non-admin-user")]], indirect=True)
@@ -74,7 +74,7 @@ async def test_element_admin_login_rejects_non_admin(
 
         await login_on_mas_page(page, users[0].name, generated_data.secrets_random)
 
-        # The rejection happens either in MAS, or in Element Admin after the OAuth roundtrip
+        # The user can be rejected in two places: by MAS, or by Element Admin after the OAuth login flow
         await expect(page.get_by_role("heading")).to_contain_text(
             re.compile("Administrator access required|The authorization request was denied by the policy")
         )

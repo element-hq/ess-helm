@@ -33,10 +33,11 @@ async def users(
     if value_file_has("matrixAuthenticationService.enabled", True):
         await ingress_ready("matrix-authentication-service")
 
-    # The test's own request.param cannot be used here: pytest-asyncio-cooperative fills
-    # the fixtures of an item concurrently and writes every indirect parameter to the
-    # same request.param, so two indirect fixtures (eg users and ingress_ready_for) would
-    # clobber each other. Read this fixture's own parameter from the callspec instead.
+    # request.param cannot be used here. pytest-asyncio-cooperative sets up the
+    # fixtures of a test at the same time. It writes the parameter of every indirect
+    # fixture to the same request.param. With two indirect fixtures (e.g. users and
+    # ingress_ready_for), one would overwrite the other. Read this fixture's parameter
+    # from the callspec instead.
     users = request.node.callspec.params["users"]
     assert isinstance(users, Iterable)
 

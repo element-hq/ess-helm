@@ -71,10 +71,11 @@ class CertKey:
         }
 
     def __reduce__(self):
-        # The cert and key objects from cryptography cannot be pickled, e.g. to send them
-        # to the docker_playwright container: transport their PEM form instead. The
-        # reconstructor must be a module-level function: cloudpickle only pickles
-        # callables by reference if it can find them with getattr, which classmethods fail
+        # The cert and key objects from cryptography cannot be pickled, e.g. to send
+        # them to the docker_playwright container. Send their PEM text instead.
+        # The function that rebuilds the object from that text must live at the top
+        # level of the module. cloudpickle only pickles a function by name if it can
+        # find it with getattr, which fails for classmethods.
         return _certkey_from_mapping, (self.to_json_mapping(),)
 
 
