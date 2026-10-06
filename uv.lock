@@ -846,6 +846,9 @@ version = "0.1.0"
 source = { virtual = "." }
 
 [package.dev-dependencies]
+browser = [
+    { name = "playwright" },
+]
 dev = [
     { name = "aiohttp" },
     { name = "checkov" },
@@ -878,6 +881,7 @@ dev = [
 [package.metadata]
 
 [package.metadata.requires-dev]
+browser = [{ name = "playwright", specifier = ">=1.62.0" }]
 dev = [
     { name = "aiohttp", specifier = ">=3.14.3" },
     { name = "checkov", specifier = ">=3.2.530" },
@@ -919,7 +923,6 @@ dependencies = [
     { name = "jsonschema" },
     { name = "lightkube" },
     { name = "platformdirs" },
-    { name = "playwright" },
     { name = "prometheus-client" },
     { name = "pyhelm3" },
     { name = "pytest" },
@@ -943,7 +946,6 @@ requires-dist = [
     { name = "jsonschema", specifier = ">=4.26.0" },
     { name = "lightkube", specifier = ">=1.0.0" },
     { name = "platformdirs", specifier = ">=4.9.2" },
-    { name = "playwright", specifier = ">=1.62.0" },
     { name = "prometheus-client", specifier = ">=0.26.0" },
     { name = "pyhelm3", specifier = ">=0.5.7" },
     { name = "pytest", specifier = ">=8.4.2,<9" },
@@ -1243,8 +1245,8 @@ name = "httpcore2"
 version = "2.12.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "h11" },
-    { name = "truststore" },
+    { name = "h11", marker = "python_full_version < '3.12' or python_full_version >= '3.14' or sys_platform != 'emscripten'" },
+    { name = "truststore", marker = "python_full_version < '3.12' or python_full_version >= '3.14' or sys_platform != 'emscripten'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/be/ad/f4f0e57345f1870f3e8cb624e058d7eca6e5a27d33bcc3311d9b618734cd/httpcore2-2.12.0.tar.gz", hash = "sha256:9293522bba0aa7c4c8e9e3f040c16575bd8868e155a77fa30c7a9085a5eae648", size = 67548, upload-time = "2026-08-18T13:22:08.211Z" }
 wheels = [

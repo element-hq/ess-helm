@@ -4,12 +4,17 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 from ssl import SSLContext
+from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
 import aiohttp
 import pytest
 from aiohttp_retry import RetryClient
-from playwright.async_api import Page
+
+# The import is only used in annotations. This way the tests can still be collected when
+# playwright is not installed: the browser tests are then skipped.
+if TYPE_CHECKING:
+    from playwright.async_api import Page
 
 from ..fixtures import ESSData
 from .utils import aiohttp_get_json, aiohttp_post_json, retry_options
@@ -138,7 +143,7 @@ async def create_mas_user(
     return response["data"]["createOauth2Session"]["accessToken"]
 
 
-async def login_on_mas_page(page: Page, username: str, password: str):
+async def login_on_mas_page(page: "Page", username: str, password: str):
     """Fill and submit the MAS password login form the page is currently showing"""
     await page.get_by_role("textbox", name="Username").fill(username)
     await page.get_by_role("textbox", name="Password").fill(password)

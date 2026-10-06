@@ -165,7 +165,12 @@ Verifies that the deployed workloads behave as expected and integrates well toge
 From the project root : `pytest-ess`
 
 Some tests drive Element Web and Element Admin in a headless Chromium with [Playwright](https://playwright.dev/python/).
-Install the browser once with `uv run playwright install chromium`.
+The Chromium runs in a docker container. The Playwright controller runs on the host and drives it.
+No browser needs to be installed locally. The docker image is built on first use.
+On glibc hosts, install the controller with `uv sync --group browser`.
+On musl hosts (e.g. Alpine Linux), Playwright has no packages. Run
+`scripts/setup_playwright_controller.sh` instead: it installs the controller into `.venv`.
+A plain `uv sync` removes the controller again: re-run the script afterwards. `uv run` keeps it.
 
 Pytest caches the namespace name and created user tokens between run. To start a run from scratch,
 run `pytest-ess -- --cache-clear`.

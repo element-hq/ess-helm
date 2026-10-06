@@ -19,8 +19,12 @@ The ESS Community Integration Tests project is designed to facilitate the testin
 - Docker
 - [k3d](https://k3d.io/stable/)
 - [Helm](https://helm.sh/docs/intro/install)
-- A Chromium install for [Playwright](https://playwright.dev/python/), for the browser based tests: `playwright install chromium`
 - Optional: [uv](https://docs.astral.sh/uv/getting-started/installation/) to install from git
+
+The browser based tests drive a Chromium running in a docker container, so no browser needs to be
+installed locally. They need the optional `browser` dependency group. On glibc hosts, install it
+with `uv sync --group browser`. On musl-based hosts (e.g. Alpine Linux), run
+`scripts/setup_playwright_controller.sh` instead. Without it, the browser tests are skipped.
 
 ## Installation
 
