@@ -144,24 +144,38 @@ async def browser(root_ca: CertKey) -> AsyncIterator[Browser]:
             volumes=[(ca_file, CA_MOUNT_PATH, "ro")],
         )
         try:
-            ws_endpoint = await _wait_for_ws_endpoint(container)
             async with controller() as playwright:
-                browser = await playwright.chromium.connect(ws_endpoint)
+                browser = await _wait_for_browser(playwright, container)
                 yield browser
                 await browser.close()
         finally:
             docker.container.remove(container, force=True)
 
 
-async def _wait_for_ws_endpoint(container: Container) -> str:
+async def _wait_for_browser(playwright: Any, container: Container) -> Browser:
+    """A connection to the browser server in the container.
+
+    The websocket address is read from the container logs. The server prints it, and its
+    random path is not known otherwise. The printed line alone does not prove that the
+    server accepts connections. So the connection is the real test: it is retried
+    until the server accepts it, and the last error is reported when it never does.
+    """
     deadline = time.monotonic() + _BROWSER_SERVER_STARTUP_TIMEOUT
+    last_error: Exception | None = None
     while time.monotonic() < deadline:
         if match := _WS_ENDPOINT_PATTERN.search(container.logs()):
-            return match.group(0)
+            try:
+                return await playwright.chromium.connect(match.group(0), timeout=2000)
+            except Exception as error:
+                # The server printed its address but refused the connection. It may
+                # not be ready yet. Try again until the deadline.
+                last_error = error
         if not docker.container.inspect(container).state.running:
             raise RuntimeError(f"browser server container exited:\n{container.logs()}")
         await asyncio.sleep(0.5)
-    raise TimeoutError(f"browser server did not print its websocket endpoint within {_BROWSER_SERVER_STARTUP_TIMEOUT}s")
+    raise TimeoutError(
+        f"could not connect to the browser server within {_BROWSER_SERVER_STARTUP_TIMEOUT}s: {last_error}"
+    )
 
 
 @pytest.fixture
