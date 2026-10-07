@@ -40,10 +40,16 @@ if [[ "$libc_version" != *musl* ]]; then
   exit 0
 fi
 
-if [ "$(uname -m)" != "x86_64" ]; then
-  echo "unsupported architecture: $(uname -m), only x86_64 is supported" >&2
+# Playwright publishes no musl wheels. This script installs the glibc wheels instead, so
+# the platform tag must match the architecture of the host. The glibc version is left
+# open: uv then picks the matching wheel, whatever manylinux version it is built for.
+# uv names both supported architectures the same as uname -m does.
+arch="$(uname -m)"
+if [[ "$arch" != "x86_64" && "$arch" != "aarch64" ]]; then
+  echo "unsupported architecture: $arch, only x86_64 and aarch64 are supported" >&2
   exit 1
 fi
+wheel_platform="${arch}-unknown-linux-gnu"
 
 # The node driver needs node 20 or newer. Use the node of the system. Install the system
 # package when there is none.
@@ -81,7 +87,7 @@ fi
 # uv.lock. This also installs the packages playwright needs: greenlet and pyee.
 # Playwright is always installed again, even when it is already there. This restores the
 # original files, in case an older version of this script replaced them.
-uv pip install --python "$PYTHON" --python-platform x86_64-manylinux_2_40 \
+uv pip install --python "$PYTHON" --python-platform "$wheel_platform" \
   --python-version "$PYTHON_VERSION" --reinstall-package playwright \
   -r <(printf '%s\n' "$browser_requirements")
 
