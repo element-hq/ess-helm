@@ -34,9 +34,7 @@ jobs:
         activate-environment: true
 
     - name: Set up UV environment
-      run: |
-        uv sync --all-packages
-        scripts/setup_playwright_controller.sh
+      run: uv sync --all-packages
 
     - name: Set version
       env:
@@ -51,9 +49,12 @@ jobs:
     - name: Build
       run: uv build --package ess-community-integration-tests
 
-    # Check that basic features work and we didn't miss to include crucial files
+    # Check that basic features work and we didn't miss to include crucial files.
+    # This installs the package the same way a consumer does: from the source
+    # distribution only, without the development environment and without the optional
+    # playwright dependency. The browser tests are skipped in that case.
     - name: Smoke test (source distribution)
-      run: uv run --isolated --group browser --with dist/*.tar.gz pytest-ess --test-suite synapse -- --setup-plan
+      run: uv run --isolated --no-project --with dist/*.tar.gz pytest-ess --test-suite synapse -- --setup-plan
 
     - name: Dry-run Publish ESS test suite to PyPI
       run: uv publish --dry-run dist/*

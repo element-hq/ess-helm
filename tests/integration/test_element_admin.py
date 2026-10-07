@@ -5,7 +5,15 @@
 
 
 import pytest
-from playwright.async_api import Page, expect
+
+# Playwright is optional: it is installed by scripts/setup_playwright_controller.sh. When
+# it is missing, the browser tests are skipped by the browser_page fixture. The imports
+# must not fail here: otherwise pytest cannot collect the tests of this file at all.
+try:
+    from playwright.async_api import Page, expect
+except ImportError:
+    Page = None  # type: ignore[assignment, misc]
+    expect = None  # type: ignore[assignment, misc]
 
 from .fixtures import ESSData, User
 from .lib.matrix_authentication_service import login_on_mas_page
