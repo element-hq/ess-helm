@@ -10,7 +10,7 @@ import time
 from collections.abc import AsyncIterator
 from importlib.metadata import version as package_version
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 
 import pytest
 from python_on_whales import Container, docker
@@ -132,18 +132,12 @@ async def browser(root_ca: CertKey) -> AsyncIterator[Browser]:
 async def _wait_for_ws_endpoint(container: Container) -> str:
     deadline = time.monotonic() + _BROWSER_SERVER_STARTUP_TIMEOUT
     while time.monotonic() < deadline:
-        if match := _WS_ENDPOINT_PATTERN.search(_container_logs(container)):
+        if match := _WS_ENDPOINT_PATTERN.search(container.logs()):
             return match.group(0)
         if not docker.container.inspect(container).state.running:
-            raise RuntimeError(f"browser server container exited:\n{_container_logs(container)}")
+            raise RuntimeError(f"browser server container exited:\n{container.logs()}")
         await asyncio.sleep(0.5)
     raise TimeoutError(f"browser server did not print its websocket endpoint within {_BROWSER_SERVER_STARTUP_TIMEOUT}s")
-
-
-def _container_logs(container: Container) -> str:
-    # python_on_whales says this function can also return another type. Here it always
-    # returns a string.
-    return cast("str", docker.container.logs(container))
 
 
 @pytest.fixture
