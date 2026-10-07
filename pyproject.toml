@@ -15,8 +15,9 @@ dependencies = []
 [tool.uv]
 [dependency-groups]
 # Playwright is optional. It publishes no packages for musl hosts (e.g. Alpine Linux), so
-# it is not installed there by default. On glibc hosts, install it with
-# `uv sync --group browser`. On musl hosts, run scripts/setup_playwright_controller.sh.
+# it is not installed there by default. Install it with scripts/setup_playwright_controller.sh,
+# on every host: on glibc hosts it runs `uv sync --group browser`, on musl hosts it uses a
+# workaround (see the script header).
 browser = [
   "playwright>=1.62.0",
 ]

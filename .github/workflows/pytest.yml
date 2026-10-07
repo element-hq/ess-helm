@@ -134,7 +134,9 @@ jobs:
         activate-environment: true
 
     - name: Set up UV environment
-      run: uv sync --group browser
+      run: |
+        uv sync
+        scripts/setup_playwright_controller.sh
 
     - name: Get current week number and home dir
       id: cache-input

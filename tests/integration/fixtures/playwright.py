@@ -20,10 +20,9 @@ from ..artifacts import CertKey
 try:
     from playwright.async_api import Browser, async_playwright
 except ImportError:
-    # Playwright is only installed in the development environment. `uv sync
-    # --group browser` installs it on glibc hosts, scripts/setup_playwright_controller.sh
-    # on musl ones. When it is missing, the browser tests are skipped instead of failing
-    # with an error.
+    # Playwright is only installed in the development environment, by
+    # scripts/setup_playwright_controller.sh. When it is missing, the browser tests are
+    # skipped instead of failing with an error.
     Browser = None  # type: ignore[assignment, misc]
     async_playwright = None  # type: ignore[assignment, misc]
 
@@ -85,7 +84,7 @@ def _ensure_image() -> str:
 
 def _require_controller() -> Any:
     if async_playwright is None:
-        pytest.skip("playwright is not installed: see scripts/setup_playwright_controller.sh")
+        pytest.skip("playwright is not installed: run scripts/setup_playwright_controller.sh")
     return async_playwright
 
 

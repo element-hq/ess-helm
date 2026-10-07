@@ -4,11 +4,13 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# Install the Playwright controller in the project's virtual environment (.venv), on musl
-# hosts (e.g. Alpine Linux). On glibc hosts this script is not needed: `uv sync
-# --group browser` installs playwright there.
+# Install the Playwright controller in the project's virtual environment (.venv).
+# Run this script on every host.
 #
-# Playwright publishes no packages for musl. This script works around it:
+# On glibc hosts it is simple: `uv sync --group browser` installs playwright.
+#
+# On musl hosts (e.g. Alpine Linux) this is not possible. Playwright publishes no packages
+# for musl. This script works around it:
 # - it installs the playwright package as if the host was a glibc host. The package itself
 #   is plain Python, so it works anyway;
 # - playwright also contains a helper program, the "node driver". This program needs
@@ -28,7 +30,10 @@ cd "$ROOT"
 
 libc_version="$(ldd --version 2>&1 | head -n1 || true)"
 if [[ "$libc_version" != *musl* ]]; then
-  echo "glibc detected: 'uv sync --group browser' installs the playwright controller, nothing to do."
+  echo "glibc detected: installing the playwright controller with 'uv sync --group browser'."
+  uv sync --group browser
+  echo "Playwright controller installed in .venv."
+  echo "Note that a plain 'uv sync' removes it again: re-run this script afterwards."
   exit 0
 fi
 

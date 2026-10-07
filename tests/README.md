@@ -22,9 +22,8 @@ The ESS Community Integration Tests project is designed to facilitate the testin
 - Optional: [uv](https://docs.astral.sh/uv/getting-started/installation/) to install from git
 
 The browser based tests drive a Chromium running in a docker container, so no browser needs to be
-installed locally. They need the optional `browser` dependency group. On glibc hosts, install it
-with `uv sync --group browser`. On musl-based hosts (e.g. Alpine Linux), run
-`scripts/setup_playwright_controller.sh` instead. Without it, the browser tests are skipped.
+installed locally. They need the optional `browser` dependency group. Install it with
+`scripts/setup_playwright_controller.sh`, on every host. Without it, the browser tests are skipped.
 
 ## Installation
 
