@@ -83,6 +83,9 @@ jobs:
         echo "image=$(python -c 'from integration.fixtures.playwright import image_reference; print(image_reference())')" | tee -a "$GITHUB_OUTPUT"
         echo "playwright-version=$(python -c 'from importlib.metadata import version; print(version("playwright"))')" | tee -a "$GITHUB_OUTPUT"
 
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069  # v4.4.1
+
     - name: Login to GitHub Container Registry
       uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f  # v4.6.0
       with:
@@ -90,22 +93,15 @@ jobs:
         username: ${{ env.GHCR_USERNAME }}
         password: ${{ env.GHCR_TOKEN }}
 
-    - name: Build the image
-      env:
-        IMAGE: ${{ steps.compute.outputs.image }}
-        PLAYWRIGHT_VERSION: ${{ steps.compute.outputs.playwright-version }}
-      run: docker buildx bake
-        --load
-        --file docker-bake.hcl
-        --set "*.tags=${IMAGE}"
-        --set "*.args.PLAYWRIGHT_VERSION=${PLAYWRIGHT_VERSION}"
-        playwright-browser
-
-    # Docker only uploads the parts that the registry does not have already
-    - name: Push the image
-      env:
-        IMAGE: ${{ steps.compute.outputs.image }}
-      run: docker push "${IMAGE}"
+    - name: Build and push the image
+      uses: docker/bake-action@018cb6412ab401ebaa809aa5f85966b74628600f  # v7.4.0
+      with:
+        push: true
+        files: docker-bake.hcl
+        targets: playwright-browser
+        set: |
+          *.tags=${{ steps.compute.outputs.image }}
+          *.args.PLAYWRIGHT_VERSION=${{ steps.compute.outputs.playwright-version }}
 
   pytest-integration:
     runs-on: ubuntu-latest
