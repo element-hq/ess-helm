@@ -16,7 +16,7 @@
 #   and uses them to start the helper program.
 #
 # The browser is never installed on the host. The tests use a browser that runs in a
-# docker container (see tests/integration/docker/Dockerfile).
+# docker container (see tests/integration/fixtures/playwright.py).
 #
 # A plain `uv sync` removes playwright again. Re-run this script after it. `uv run` keeps
 # playwright.

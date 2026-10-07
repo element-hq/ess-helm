@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 import asyncio
+import hashlib
 import re
 import time
 from collections.abc import AsyncIterator
@@ -23,12 +24,50 @@ except ImportError:
     Browser = None  # type: ignore[assignment, misc]
     async_playwright = None  # type: ignore[assignment, misc]
 
-TESTS_DIR = Path(__file__).parent.parent.parent
-DOCKERFILE = TESTS_DIR / "integration" / "docker" / "Dockerfile"
+# The docker image the browser runs in. CI builds it and puts it in the registry under this
+# name. The tag is computed by image_reference(). This way the tests can download the image
+# instead of building it on every CI run. Hosts that cannot reach the registry build it
+# locally, with the same name and tag.
+IMAGE_NAME = "ghcr.io/element-hq/ess-helm/playwright-browser"
+DOCKERFILE = Path(__file__).parent / "files" / "playwright" / "Dockerfile"
 
 # The browser server prints the websocket address it listens on, e.g. ws://127.0.0.1:xxxx/
 _WS_ENDPOINT_PATTERN = re.compile(r"ws://\S+")
 _BROWSER_SERVER_STARTUP_TIMEOUT = 60
+
+
+def image_reference() -> str:
+    """The name and tag of the docker image the browser runs in.
+
+    The tag says exactly what the image is built from:
+    - the playwright version. It sets the base image and the npm package the Dockerfile
+      installs on top of it;
+    - a hash of the Dockerfile.
+    So any change gives a new tag, and so a new image.
+    CI uses this same function to name the image it publishes.
+    """
+    playwright_version = package_version("playwright")
+    dockerfile_hash = hashlib.sha256(DOCKERFILE.read_bytes()).hexdigest()[:12]
+    return f"{IMAGE_NAME}:v{playwright_version}-{dockerfile_hash}"
+
+
+def _ensure_image() -> str:
+    """Make sure the browser image is on this machine: download it from the registry, or
+    build it when the download fails. That can happen when CI has not published the image
+    yet, or when this machine cannot log in to the registry (e.g. a CI run of a fork)."""
+    reference = image_reference()
+    if docker.image.exists(reference):
+        return reference
+    try:
+        docker.pull(reference)
+    except Exception:
+        docker.build(
+            context_path=DOCKERFILE.parent,
+            file=DOCKERFILE,
+            tags=[reference],
+            build_args={"PLAYWRIGHT_VERSION": package_version("playwright")},
+        )
+    return reference
 
 
 def _require_controller() -> Any:
@@ -48,19 +87,10 @@ async def browser() -> AsyncIterator[Browser]:
     server's websocket address.
     """
     controller = _require_controller()
-    playwright_version = package_version("playwright")
-    # The browser container must use the same playwright version as the controller.
-    # Otherwise they cannot talk to each other.
-    image_tag = f"ess-helm-playwright-browser:v{playwright_version}"
-    if not docker.image.exists(image_tag):
-        docker.build(
-            context_path=DOCKERFILE.parent,
-            file=DOCKERFILE,
-            tags=[image_tag],
-            build_args={"PLAYWRIGHT_VERSION": playwright_version},
-        )
     container = docker.run(
-        image_tag,
+        _ensure_image(),
+        # The start command of the image starts the browser server. The server prints its
+        # websocket address. It listens on a random port of the loopback interface.
         detach=True,
         init=True,
         remove=True,
