@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 import asyncio
+import hashlib
 import ipaddress
 import os
 import re
@@ -23,7 +24,11 @@ from .lib.utils import (
     aiohttp_client,
     aiohttp_get_json,
     aiohttp_post_json,
+    async_iterable_payload,
+    async_retry_with_timeout,
     forward_matching_logs,
+    random_bytes,
+    retry_options,
     stream_logs_from_pods_matching_labels,
     value_file_has,
 )
@@ -238,13 +243,25 @@ async def test_synapse_media_upload_fetch_authenticated(
 ):
     user_access_token = users[0].access_token
 
-    content_upload_json, source_sha256 = await upload_media(
-        synapse_fqdn=f"synapse.{generated_data.server_name}",
-        user_access_token=user_access_token,
-        # We upload a 200KB file to make sure it successfully uploads with tmp dirs
-        file_size=200 * 1024,
-        filename="randombytes.bin",
-        ssl_context=ssl_context,
+    # We upload a 200KB file to make sure it successfully uploads with tmp dirs
+    file_size = 200 * 1024
+
+    async def upload() -> tuple[dict, str]:
+        # A fresh stream and hash are built on every attempt, so a retry never mixes two uploads.
+        sha256_hash = hashlib.sha256()
+        payload = await async_iterable_payload(random_bytes(file_size, sha256_hash), file_size)
+        content_upload_json = await upload_media(
+            synapse_fqdn=f"synapse.{generated_data.server_name}",
+            user_access_token=user_access_token,
+            payload=payload,
+            filename="randombytes.bin",
+            ssl_context=ssl_context,
+        )
+        return content_upload_json, sha256_hash.hexdigest()
+
+    content_upload_json, source_sha256 = await async_retry_with_timeout(
+        upload,
+        should_retry=lambda e: isinstance(e, aiohttp.ClientResponseError) and e.status in retry_options.statuses,
     )
 
     content_download_sha256 = await download_media(

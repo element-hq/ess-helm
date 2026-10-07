@@ -5,10 +5,11 @@
 
 import asyncio
 import base64
+import hashlib
 import json
 import os
 import shutil
-from collections.abc import AsyncGenerator, Awaitable, Callable
+from collections.abc import AsyncGenerator, AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -294,6 +295,28 @@ async def chart_from_ci_cache(helm_client: pyhelm3.Client, chart_ref: str) -> py
                 ) from e
     else:
         return await helm_client.get_chart(chart_ref)
+
+
+async def async_iterable_payload(value: AsyncIterator[bytes], file_size: int) -> aiohttp.payload.AsyncIterablePayload:
+    # Workaround to the fact that aiohttp hardcodes sending a chuncked upload
+    # when it receives an async iterator
+    # See https://github.com/fsspec/filesystem_spec/issues/1390#issuecomment-1765886388
+    payload = aiohttp.payload.AsyncIterablePayload(value)
+    payload._size = file_size
+    return payload
+
+
+async def random_bytes(
+    size_in_bytes: int,
+    sha256_hash: hashlib._Hash,
+    chunk_size: int = 4096,
+) -> AsyncIterator[bytes]:
+    remaining = size_in_bytes
+    while remaining > 0:
+        chunk = os.urandom(min(chunk_size, remaining))
+        sha256_hash.update(chunk)
+        yield chunk
+        remaining -= len(chunk)
 
 
 async def async_retry_with_timeout(
