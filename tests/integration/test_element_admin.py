@@ -62,6 +62,4 @@ async def test_element_admin_login_rejects_non_admin(
 
     await login_on_mas_page(browser_page, users[0].name, generated_data.secrets_random)
 
-    await expect(browser_page.get_by_role("heading")).to_contain_text(
-        "The authorization request was denied by the policy enforced by this service"
-    )
+    await expect(browser_page.get_by_role("heading")).to_contain_text("Administrator access required")
