@@ -357,11 +357,12 @@ async def test_appservice_registration_from_helm_values(release_name, namespace,
 
 @pytest.mark.parametrize("values_file", ["matrix-rtc-minimal-values.yaml"])
 @pytest.mark.asyncio_cooperative
-async def test_no_appservice_without_server_name_or_registration(release_name, templates):
-    assert not any("MATRIX_RTC_REGISTRATION" in secret for secret in init_secrets_requested(templates, release_name))
-    env = authorisation_service_env(templates, release_name)
-    assert "LIVEKIT_AS_REGISTRATION_FILE" not in env
-    assert "LIVEKIT_HS_SERVER_NAME" not in env
+async def test_server_name_is_required(values, make_templates):
+    del values["serverName"]
+    with pytest.raises(
+        pyhelm3.errors.FailedToRenderChartError, match="serverName is required when matrixRTC.enabled=true"
+    ):
+        await make_templates(values)
 
 
 @pytest.mark.parametrize("values_file", ["matrix-rtc-minimal-values.yaml"])
@@ -392,12 +393,6 @@ async def test_appservice_registration_without_synapse(release_name, values, mak
         "secret": "{{ $.Release.Name }}-matrix-rtc-external-registration",
         "secretKey": "registration.yaml",
     }
-    with pytest.raises(
-        pyhelm3.errors.FailedToRenderChartError,
-        match="serverName is required when matrixRTC.appserviceRegistration is set",
-    ):
-        await make_templates(values)
-
     values["serverName"] = "remote.example.com"
     templates = await make_templates(values)
     env = authorisation_service_env(templates, release_name)

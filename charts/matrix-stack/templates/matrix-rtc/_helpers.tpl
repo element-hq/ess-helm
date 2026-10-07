@@ -74,19 +74,6 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- end }}
 {{- end }}
 
-{{- /*
-The authorisation service runs as an application service when a registration is provided or can be generated,
-which needs the serverName. Synapse loads it when deployed by the chart, otherwise the homeserver must load it.
-*/}}
-{{- define "element-io.matrix-rtc-authorisation-service.isAppservice" -}}
-{{- $root := .root -}}
-{{- with $root.Values.matrixRTC -}}
-{{- if and .enabled (or $root.Values.serverName .appserviceRegistration) -}}
-true
-{{- end -}}
-{{- end -}}
-{{- end -}}
-
 {{- define "element-io.matrix-rtc-authorisation-service.appservice-registration-path" -}}
 {{- $root := .root -}}
 {{- with required "element-io.matrix-rtc-authorisation-service.appservice-registration-path requires context" .context -}}
@@ -145,21 +132,15 @@ env:
   value: {{ printf "wss://%s" (tpl .ingress.host $root) }}
 {{- end }}
 - name: "LIVEKIT_FULL_ACCESS_HOMESERVERS"
-{{- if $root.Values.serverName }}
   value: {{ (.restrictRoomCreationToLocalUsers | ternary (tpl $root.Values.serverName $root) "*") | quote }}
-{{- else }}
-  value: "*"
-{{- end -}}
 {{- if $root.Values.synapse.enabled }}
 - name: "LIVEKIT_CS_API_URL_OVERRIDES"
   value: "{{ tpl $root.Values.serverName $root }}=http://{{ include "element-io.synapse.internal-hostport" (dict "root" $root) }}"
 {{- end }}
-{{- if include "element-io.matrix-rtc-authorisation-service.isAppservice" (dict "root" $root) }}
 - name: "LIVEKIT_AS_REGISTRATION_FILE"
   value: {{ include "element-io.matrix-rtc-authorisation-service.appservice-registration-path" (dict "root" $root "context" (dict "isHook" false)) }}
 - name: "LIVEKIT_HS_SERVER_NAME"
   value: {{ tpl $root.Values.serverName $root | quote }}
-{{- end }}
 {{- end -}}
 {{- end -}}
 
@@ -199,11 +180,9 @@ env:
 {{- with (.livekitAuth.secret).value -}}
 LIVEKIT_SECRET: {{ . | b64enc }}
 {{- end -}}
-{{- if include "element-io.matrix-rtc-authorisation-service.isAppservice" (dict "root" $root) }}
 {{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "matrixRTC.appserviceRegistration" "initIfAbsent" true)) }}
 {{- with (.appserviceRegistration).value }}
 REGISTRATION: {{ tpl . $root | b64enc }}
-{{- end -}}
 {{- end -}}
 {{- with (.redisOrValkey).password }}
 {{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "matrixRTC.redisOrValkey.password" "initIfAbsent" false)) -}}

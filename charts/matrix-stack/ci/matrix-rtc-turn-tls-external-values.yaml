@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# source_fragments: matrix-rtc-exposed-services.yaml matrix-rtc-minimal.yaml matrix-rtc-turn-tls-external.yaml
+# source_fragments: matrix-rtc-exposed-services.yaml matrix-rtc-minimal.yaml matrix-rtc-turn-tls-external.yaml server-name.yaml
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
 # initSecrets, postgres don't have any required properties to be set and defaults to enabled
@@ -37,6 +37,7 @@ matrixRTC:
         port: 31002
         # Explicitly disable TLS termination on pod for external termination
         tlsTerminationOnPod: false
+serverName: ess.localhost
 synapse:
   enabled: false
 wellKnownDelegation:
