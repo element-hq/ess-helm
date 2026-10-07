@@ -14,6 +14,7 @@ requires-python = ">=3.11.7,<4.0"
 dependencies = [
   "aiohttp-retry>=2.9.1",
   "aiohttp>=3.14.3",
+  "cloudpickle>=3.1.2", # pickles the test functions sent to the docker_playwright container
   "cryptography>=50.0.0",
   "httpx-retries>=0.6.0",
   "jsonschema>=4.26.0",
@@ -28,6 +29,7 @@ dependencies = [
   "python-on-whales>=0.80.0",
   "pyyaml>=6.0.3",
   "rapidfuzz>=3.14.3",
+  "rpyc>=5.5.0", # runs the test bodies inside the docker_playwright container
   "semver>=3.0.4",
   "signedjson>=1.1.4",
   "typer>=0.27.1",

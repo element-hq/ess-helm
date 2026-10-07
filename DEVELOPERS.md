@@ -164,6 +164,15 @@ Verifies that the deployed workloads behave as expected and integrates well toge
 
 From the project root : `pytest-ess`
 
+Some tests drive Element Web and Element Admin in a headless Chromium with [Playwright](https://playwright.dev/python/).
+Those tests are marked `@pytest.mark.asyncio_cooperative` and `@pytest.mark.docker_playwright`
+(`tests/integration/lib/docker_playwright.py`) and their body
+runs inside a Docker container, as Playwright cannot run on every host (e.g. Alpine). Their fixtures are resolved
+as usual on the host, and the test function and its fixture values are sent to the container with
+[cloudpickle](https://github.com/cloudpipe/cloudpickle), over an [rpyc](https://rpyc.readthedocs.io) connection to the server that is the container's main process. The container image is built from
+`tests/integration/fixtures/files/playwright/Dockerfile` on the first run, with the same Python, cloudpickle and rpyc
+versions as the host, and shares the host network to reach the k3d cluster.
+
 Pytest caches the namespace name and created user tokens between run. To start a run from scratch,
 run `pytest-ess -- --cache-clear`.
 

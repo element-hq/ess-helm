@@ -259,6 +259,20 @@ def ingress_ready(cluster, kube_client: AsyncClient, matrix_stack, generated_dat
     return _ingress_ready
 
 
+@pytest.fixture
+async def ingress_ready_for(request, ingress_ready):
+    """Wait, on the host, for the ingress named by the indirect parameter to be ready.
+
+    docker_playwright tests use this instead of waiting inside their body. Their
+    fixtures are set up on the host, which can ask the Kubernetes API if the ingress
+    is ready. Their body runs in the playwright container, which cannot.
+    """
+    # Same as the users fixture: read the parameter from the callspec instead of
+    # request.param. pytest-asyncio-cooperative makes request.param unreliable when a
+    # test has more than one indirect fixture (see fixtures/users.py)
+    await ingress_ready(request.node.callspec.params["ingress_ready_for"])
+
+
 @pytest.fixture(scope="session")
 def secrets_generated(cluster, kube_client: AsyncClient, matrix_stack, generated_data: ESSData):
     async def _secrets_generated(secret_key) -> str:

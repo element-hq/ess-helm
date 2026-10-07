@@ -15,7 +15,7 @@ The ESS Community Integration Tests project is designed to facilitate the testin
 - Customize test runs with additional values files.
 
 ## Prerequisites
-- Python 3.11 or higher
+- Python 3.11 or higher (the browser tests run in a container built with the host's Python version)
 - Docker
 - [k3d](https://k3d.io/stable/)
 - [Helm](https://helm.sh/docs/intro/install)

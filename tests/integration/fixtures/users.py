@@ -1,5 +1,5 @@
 # Copyright 2024-2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -33,7 +33,12 @@ async def users(
     if value_file_has("matrixAuthenticationService.enabled", True):
         await ingress_ready("matrix-authentication-service")
 
-    users = request.param
+    # request.param cannot be used here. pytest-asyncio-cooperative sets up the
+    # fixtures of a test at the same time. It writes the parameter of every indirect
+    # fixture to the same request.param. With two indirect fixtures (e.g. users and
+    # ingress_ready_for), one would overwrite the other. Read this fixture's parameter
+    # from the callspec instead.
+    users = request.node.callspec.params["users"]
     assert isinstance(users, Iterable)
 
     wait_for_users = []
@@ -54,7 +59,7 @@ async def users(
             )
     else:
         synapse_registration_shared_secret = await secrets_generated("SYNAPSE_REGISTRATION_SHARED_SECRET")
-        for user in request.param:
+        for user in users:
             wait_for_users.append(
                 create_synapse_user(
                     f"synapse.{generated_data.server_name}",

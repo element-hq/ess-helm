@@ -8,6 +8,8 @@ import os
 
 import pytest
 
+from .lib import docker_playwright
+
 pytest_plugins = [
     "integration.fixtures",
 ]
@@ -28,9 +30,22 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "env_setup: mark test as run only when doing env setup")
+    config.addinivalue_line(
+        "markers",
+        "docker_playwright: run the body of the test in the playwright container (requires asyncio_cooperative)",
+    )
+    docker_playwright.install()
+
+
+def pytest_sessionfinish(session, exitstatus):
+    docker_playwright.stop_container()
 
 
 def pytest_collection_modifyitems(config, items):
+    for item in items:
+        if "docker_playwright" in item.keywords and "asyncio_cooperative" not in item.keywords:
+            pytest.exit(f"{item.nodeid} is marked docker_playwright but not asyncio_cooperative")
+
     if config.getoption("--env-setup"):
         skip_tests = pytest.mark.skip(reason="running with --env-setup, skipping test")
 

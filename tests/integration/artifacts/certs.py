@@ -70,6 +70,18 @@ class CertKey:
             "key": self.key_as_pem(),
         }
 
+    def __reduce__(self):
+        # The cert and key objects from cryptography cannot be pickled, e.g. to send
+        # them to the docker_playwright container. Send their PEM text instead.
+        # The function that rebuilds the object from that text must live at the top
+        # level of the module. cloudpickle only pickles a function by name if it can
+        # find it with getattr, which fails for classmethods.
+        return _certkey_from_mapping, (self.to_json_mapping(),)
+
+
+def _certkey_from_mapping(kv) -> CertKey:
+    return CertKey.from_dict(kv)
+
 
 def get_ca(name, issuing_ca=None) -> CertKey:
     ca_filename = Path(user_cache_dir("pytest-ess", "element")) / Path(name.lower().replace(" ", "-"))
