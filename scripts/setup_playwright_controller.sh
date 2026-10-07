@@ -63,26 +63,27 @@ uv sync
 PYTHON=".venv/bin/python"
 PYTHON_VERSION="$("$PYTHON" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
 
-# Read the versions from uv.lock. The browser container uses the same playwright version.
-lock_version() {
-  local name="name = \"$1\""
-  awk -v want="$name" '$0 == want { getline; if ($1 != "version") exit 1; gsub(/"/, "", $3); print $3; exit }' uv.lock
+# Read the pinned versions from uv.lock with `uv export`. The browser container uses the
+# same playwright version.
+browser_requirements="$(uv export --only-group browser --locked --no-hashes \
+  --no-emit-project --format requirements-txt)"
+# uv export prints one "name==version" line per package.
+package_version() {
+  sed -n "s/^$1==//p" <<<"$browser_requirements"
 }
-PLAYWRIGHT_VERSION="$(lock_version playwright)"
-GREENLET_VERSION="$(lock_version greenlet)"
-PYEE_VERSION="$(lock_version pyee)"
+PLAYWRIGHT_VERSION="$(package_version playwright)"
+if [ -z "$PLAYWRIGHT_VERSION" ]; then
+  echo "playwright not found in uv.lock" >&2
+  exit 1
+fi
 
-# Install playwright as if the host was a glibc host, with the version from uv.lock.
-# Playwright needs two other packages, greenlet and pyee. They are installed after this.
+# Install the browser group as if the host was a glibc host, with the versions from
+# uv.lock. This also installs the packages playwright needs: greenlet and pyee.
 # Playwright is always installed again, even when it is already there. This restores the
 # original files, in case an older version of this script replaced them.
-install_playwright() {
-  uv pip install --python "$PYTHON" --python-platform x86_64-manylinux_2_40 \
-    --python-version "$PYTHON_VERSION" --no-deps --reinstall-package playwright \
-    "playwright==$PLAYWRIGHT_VERSION"
-}
-install_playwright
-uv pip install --python "$PYTHON" "greenlet==$GREENLET_VERSION" "pyee==$PYEE_VERSION"
+uv pip install --python "$PYTHON" --python-platform x86_64-manylinux_2_40 \
+  --python-version "$PYTHON_VERSION" --reinstall-package playwright \
+  -r <(printf '%s\n' "$browser_requirements")
 
 # Run the node driver once now, with the same environment variable as the tests. If
 # something is broken, this script fails here with a clear error. Otherwise the tests
