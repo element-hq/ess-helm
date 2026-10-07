@@ -33,6 +33,7 @@ except ImportError:
 # locally, with the same name and tag.
 IMAGE_NAME = "ghcr.io/element-hq/ess-helm/playwright-browser"
 DOCKERFILE = Path(__file__).parent / "files" / "playwright" / "Dockerfile"
+REPO_ROOT = Path(__file__).parent.parent.parent.parent.resolve()
 
 # The path where the test CA certificate is mounted in the container. The start script of
 # the image installs it in the browser before the browser server starts (see the Dockerfile).
@@ -70,11 +71,14 @@ def _ensure_image() -> str:
     try:
         docker.pull(reference)
     except Exception:
-        docker.build(
-            context_path=DOCKERFILE.parent,
-            file=DOCKERFILE,
-            tags=[reference],
-            build_args={"PLAYWRIGHT_VERSION": package_version("playwright")},
+        docker.buildx.bake(
+            files=REPO_ROOT / "docker-bake.hcl",
+            targets="playwright-browser",
+            set={
+                "*.tags": reference,
+                "*.args.PLAYWRIGHT_VERSION": package_version("playwright"),
+            },
+            load=True,
         )
     return reference
 

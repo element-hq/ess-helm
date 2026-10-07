@@ -94,11 +94,12 @@ jobs:
       env:
         IMAGE: ${{ steps.compute.outputs.image }}
         PLAYWRIGHT_VERSION: ${{ steps.compute.outputs.playwright-version }}
-      run: docker build
-        --file tests/integration/fixtures/files/playwright/Dockerfile
-        --build-arg "PLAYWRIGHT_VERSION=${PLAYWRIGHT_VERSION}"
-        --tag "${IMAGE}"
-        tests/integration/fixtures/files/playwright
+      run: docker buildx bake
+        --load
+        --file docker-bake.hcl
+        --set "*.tags=${IMAGE}"
+        --set "*.args.PLAYWRIGHT_VERSION=${PLAYWRIGHT_VERSION}"
+        playwright-browser
 
     # Docker only uploads the parts that the registry does not have already
     - name: Push the image
