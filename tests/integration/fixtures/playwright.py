@@ -4,7 +4,10 @@
 
 import asyncio
 import hashlib
+import os
 import re
+import shutil
+import sys
 import tempfile
 import time
 from collections.abc import AsyncIterator
@@ -82,9 +85,31 @@ def _ensure_image() -> str:
     return reference
 
 
+def _set_playwright_node() -> None:
+    """Configure which node version to use on the controller.
+
+    Playwright ships its node driver as a glibc binary. On musl hosts (e.g. Alpine Linux)
+    that binary cannot run. The driver itself is plain JavaScript: a node of the system
+    runs it too. Playwright reads the node path from the PLAYWRIGHT_NODEJS_PATH
+    environment variable. The setup script checks that the node is new enough.
+    """
+    if sys.platform != "linux" or "PLAYWRIGHT_NODEJS_PATH" in os.environ:
+        return
+    try:
+        os.confstr("CS_GNU_LIBC_VERSION")  # works only on a glibc host
+    except OSError:
+        pass  # musl host: the bundled node cannot run
+    else:
+        return  # glibc host: the bundled node runs
+    node = shutil.which("node")
+    if node is not None:
+        os.environ["PLAYWRIGHT_NODEJS_PATH"] = node
+
+
 def _require_controller() -> Any:
     if async_playwright is None:
         pytest.skip("playwright is not installed: run scripts/setup_playwright_controller.sh")
+    _set_playwright_node()
     return async_playwright
 
 
