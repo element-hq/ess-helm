@@ -34,7 +34,9 @@ jobs:
         activate-environment: true
 
     - name: Set up UV environment
-      run: uv sync --all-packages
+      run: |
+        uv sync --all-packages
+        scripts/setup_playwright_controller.sh
 
     - name: Set version
       env:
@@ -51,7 +53,7 @@ jobs:
 
     # Check that basic features work and we didn't miss to include crucial files
     - name: Smoke test (source distribution)
-      run: uv run --isolated --no-project --with dist/*.tar.gz pytest-ess --test-suite synapse -- --setup-plan
+      run: uv run --isolated --group browser --with dist/*.tar.gz pytest-ess --test-suite synapse -- --setup-plan
 
     - name: Dry-run Publish ESS test suite to PyPI
       run: uv publish --dry-run dist/*
