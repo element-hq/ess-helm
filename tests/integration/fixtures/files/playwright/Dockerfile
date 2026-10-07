@@ -17,6 +17,11 @@ FROM mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION}
 ARG PLAYWRIGHT_VERSION
 RUN npm install --global playwright@${PLAYWRIGHT_VERSION}
 
-# The browser server prints its websocket address on stdout, e.g.
-# ws://127.0.0.1:xxxx/
-CMD ["playwright", "run-server"]
+# certutil. The start script below uses it to install the test CA certificate in the browser.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libnss3-tools \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --chmod=755 start-browser-server.sh /usr/local/bin/start-browser-server
+
+CMD ["start-browser-server"]

@@ -5,6 +5,7 @@
 import asyncio
 import hashlib
 import re
+import tempfile
 import time
 from collections.abc import AsyncIterator
 from importlib.metadata import version as package_version
@@ -13,6 +14,8 @@ from typing import Any, cast
 
 import pytest
 from python_on_whales import Container, docker
+
+from ..artifacts import CertKey
 
 try:
     from playwright.async_api import Browser, async_playwright
@@ -31,6 +34,10 @@ except ImportError:
 IMAGE_NAME = "ghcr.io/element-hq/ess-helm/playwright-browser"
 DOCKERFILE = Path(__file__).parent / "files" / "playwright" / "Dockerfile"
 
+# The path where the test CA certificate is mounted in the container. The start script of
+# the image installs it in the browser before the browser server starts (see the Dockerfile).
+CA_MOUNT_PATH = "/ess-helm-test-ca.pem"
+
 # The browser server prints the websocket address it listens on, e.g. ws://127.0.0.1:xxxx/
 _WS_ENDPOINT_PATTERN = re.compile(r"ws://\S+")
 _BROWSER_SERVER_STARTUP_TIMEOUT = 60
@@ -42,13 +49,15 @@ def image_reference() -> str:
     The tag says exactly what the image is built from:
     - the playwright version. It sets the base image and the npm package the Dockerfile
       installs on top of it;
-    - a hash of the Dockerfile.
+    - a hash of the Dockerfile directory (the Dockerfile and the start script it copies).
     So any change gives a new tag, and so a new image.
     CI uses this same function to name the image it publishes.
     """
     playwright_version = package_version("playwright")
-    dockerfile_hash = hashlib.sha256(DOCKERFILE.read_bytes()).hexdigest()[:12]
-    return f"{IMAGE_NAME}:v{playwright_version}-{dockerfile_hash}"
+    context_hash = hashlib.sha256(
+        b"".join(file.read_bytes() for file in sorted(DOCKERFILE.parent.iterdir()) if file.is_file())
+    ).hexdigest()[:12]
+    return f"{IMAGE_NAME}:v{playwright_version}-{context_hash}"
 
 
 def _ensure_image() -> str:
@@ -77,7 +86,7 @@ def _require_controller() -> Any:
 
 
 @pytest.fixture(scope="session")
-async def browser() -> AsyncIterator[Browser]:
+async def browser(root_ca: CertKey) -> AsyncIterator[Browser]:
     """A Chromium running in a docker container. The tests talk to it over a websocket.
 
     The browser runs in a docker container, so nothing has to be installed on the host.
@@ -85,26 +94,35 @@ async def browser() -> AsyncIterator[Browser]:
     (e.g. Alpine Linux). The container uses the network of the host. So the browser can
     reach the ingress on the loopback interface. And the tests can reach the browser
     server's websocket address.
+
+    The test CA signs the certificates of the ingress. It is mounted into the container.
+    The image installs it in the browser before the browser server starts. So the browser
+    accepts the certificates of the ingress.
     """
     controller = _require_controller()
-    container = docker.run(
-        _ensure_image(),
-        # The start command of the image starts the browser server. The server prints its
-        # websocket address. It listens on a random port of the loopback interface.
-        detach=True,
-        init=True,
-        remove=True,
-        networks=["host"],
-        shm_size="1g",
-    )
-    try:
-        ws_endpoint = await _wait_for_ws_endpoint(container)
-        async with controller() as playwright:
-            browser = await playwright.chromium.connect(ws_endpoint)
-            yield browser
-            await browser.close()
-    finally:
-        docker.container.remove(container, force=True)
+    with tempfile.TemporaryDirectory() as ca_dir:
+        ca_file = Path(ca_dir) / "ess-helm-test-ca.pem"
+        ca_file.write_text(root_ca.cert_as_pem())
+        container = docker.run(
+            _ensure_image(),
+            # The start script of the image installs the mounted CA certificate in the
+            # browser. Then it starts the browser server. The server prints its websocket
+            # address. It listens on a random port of the loopback interface.
+            detach=True,
+            init=True,
+            remove=True,
+            networks=["host"],
+            shm_size="1g",
+            volumes=[(ca_file, CA_MOUNT_PATH, "ro")],
+        )
+        try:
+            ws_endpoint = await _wait_for_ws_endpoint(container)
+            async with controller() as playwright:
+                browser = await playwright.chromium.connect(ws_endpoint)
+                yield browser
+                await browser.close()
+        finally:
+            docker.container.remove(container, force=True)
 
 
 async def _wait_for_ws_endpoint(container: Container) -> str:
@@ -126,9 +144,10 @@ def _container_logs(container: Container) -> str:
 
 @pytest.fixture
 async def browser_page(browser: Browser):
-    # The browser does not know the test CA. So it does not check the certificates.
-    # Chromium sends *.localhost names to the loopback address. The ingress listens there.
-    context = await browser.new_context(ignore_https_errors=True)
+    # The browser knows the test CA (see the browser fixture). So it accepts the
+    # certificates of the ingress. Chromium sends *.localhost names to the loopback
+    # address. The ingress listens there.
+    context = await browser.new_context()
     page = await context.new_page()
     yield page
     await context.close()
