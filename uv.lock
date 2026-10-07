@@ -937,6 +937,11 @@ dependencies = [
     { name = "typer" },
 ]
 
+[package.optional-dependencies]
+browser = [
+    { name = "playwright" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "aiohttp", specifier = ">=3.14.3" },
@@ -946,6 +951,7 @@ requires-dist = [
     { name = "jsonschema", specifier = ">=4.26.0" },
     { name = "lightkube", specifier = ">=1.0.0" },
     { name = "platformdirs", specifier = ">=4.9.2" },
+    { name = "playwright", marker = "extra == 'browser'", specifier = ">=1.62.0" },
     { name = "prometheus-client", specifier = ">=0.26.0" },
     { name = "pyhelm3", specifier = ">=0.5.7" },
     { name = "pytest", specifier = ">=8.4.2,<9" },
@@ -959,6 +965,7 @@ requires-dist = [
     { name = "signedjson", specifier = ">=1.1.4" },
     { name = "typer", specifier = ">=0.27.1" },
 ]
+provides-extras = ["browser"]
 
 [[package]]
 name = "ess-migration-tool"

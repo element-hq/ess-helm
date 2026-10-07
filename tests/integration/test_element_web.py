@@ -3,22 +3,24 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
+# Annotations are stored as text and not evaluated when this file is imported.
+# This allows the type-checking-only `Page` import below, even when playwright is missing.
+# Python 3.14 behaves like this by default; this is a backport for older versions.
+from __future__ import annotations
+
 import re
+from typing import TYPE_CHECKING
 
 import pytest
-
-# Playwright is optional: it is installed by scripts/setup_playwright_controller.sh. When
-# it is missing, the browser tests are skipped by the browser_page fixture. The imports
-# must not fail here: otherwise pytest cannot collect the tests of this file at all.
-try:
-    from playwright.async_api import Page, expect
-except ImportError:
-    Page = None  # type: ignore[assignment, misc]
-    expect = None  # type: ignore[assignment, misc]
 
 from .fixtures import ESSData, User
 from .lib.matrix_authentication_service import login_on_mas_page
 from .lib.utils import aiohttp_get_json, value_file_has
+
+# Playwright is optional: it is installed by scripts/setup_playwright_controller.sh. When
+# it is missing, the browser tests are skipped by the browser_page fixture.
+if TYPE_CHECKING:
+    from playwright.async_api import Page
 
 
 @pytest.mark.skipif(value_file_has("elementWeb.enabled", False), reason="ElementWeb not deployed")
@@ -34,6 +36,8 @@ async def test_element_web_can_access_config_json(ingress_ready, generated_data:
 @pytest.mark.skipif(value_file_has("elementWeb.enabled", False), reason="ElementWeb not deployed")
 @pytest.mark.asyncio_cooperative
 async def test_element_web_loads_in_browser(ingress_ready, generated_data: ESSData, browser_page: Page):
+    from playwright.async_api import expect
+
     await ingress_ready("element-web")
 
     await browser_page.goto(f"https://element.{generated_data.server_name}/")
@@ -46,6 +50,8 @@ async def test_element_web_loads_in_browser(ingress_ready, generated_data: ESSDa
 @pytest.mark.asyncio_cooperative
 @pytest.mark.parametrize("users", [[User("browser-element-web-user")]], indirect=True)
 async def test_element_web_login_via_mas(ingress_ready, generated_data: ESSData, browser_page: Page, users: list[User]):
+    from playwright.async_api import expect
+
     await ingress_ready("element-web")
     await ingress_ready("matrix-authentication-service")
 

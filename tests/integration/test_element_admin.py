@@ -4,20 +4,23 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 
-import pytest
+# Annotations are stored as text and not evaluated when this file is imported.
+# This allows the type-checking-only `Page` import below, even when playwright is missing.
+# Python 3.14 behaves like this by default; this is a backport for older versions.
+from __future__ import annotations
 
-# Playwright is optional: it is installed by scripts/setup_playwright_controller.sh. When
-# it is missing, the browser tests are skipped by the browser_page fixture. The imports
-# must not fail here: otherwise pytest cannot collect the tests of this file at all.
-try:
-    from playwright.async_api import Page, expect
-except ImportError:
-    Page = None  # type: ignore[assignment, misc]
-    expect = None  # type: ignore[assignment, misc]
+from typing import TYPE_CHECKING
+
+import pytest
 
 from .fixtures import ESSData, User
 from .lib.matrix_authentication_service import login_on_mas_page
 from .lib.utils import aiohttp_client, value_file_has
+
+# Playwright is optional: it is installed by scripts/setup_playwright_controller.sh. When
+# it is missing, the browser tests are skipped by the browser_page fixture.
+if TYPE_CHECKING:
+    from playwright.async_api import Page
 
 
 @pytest.mark.skipif(value_file_has("elementAdmin.enabled", False), reason="elementAdmin not deployed")
@@ -41,6 +44,8 @@ async def test_element_admin_can_access_root(ingress_ready, generated_data: ESSD
 @pytest.mark.asyncio_cooperative
 @pytest.mark.parametrize("users", [[User("browser-admin-user", admin=True)]], indirect=True)
 async def test_element_admin_login(ingress_ready, generated_data: ESSData, browser_page: Page, users: list[User]):
+    from playwright.async_api import expect
+
     await ingress_ready("element-admin")
     await ingress_ready("matrix-authentication-service")
 
@@ -62,6 +67,8 @@ async def test_element_admin_login(ingress_ready, generated_data: ESSData, brows
 async def test_element_admin_login_rejects_non_admin(
     ingress_ready, generated_data: ESSData, browser_page: Page, users: list[User]
 ):
+    from playwright.async_api import expect
+
     await ingress_ready("element-admin")
     await ingress_ready("matrix-authentication-service")
 
