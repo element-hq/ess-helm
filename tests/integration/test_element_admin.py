@@ -3,12 +3,6 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-
-# Annotations are stored as text and not evaluated when this file is imported.
-# This allows the type-checking-only `Page` import below, even when playwright is missing.
-# Python 3.14 behaves like this by default; this is a backport for older versions.
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 import pytest
@@ -43,7 +37,7 @@ async def test_element_admin_can_access_root(ingress_ready, generated_data: ESSD
 @pytest.mark.skipif(value_file_has("matrixAuthenticationService.enabled", False), reason="MAS not deployed")
 @pytest.mark.asyncio_cooperative
 @pytest.mark.parametrize("users", [[User("browser-admin-user", admin=True)]], indirect=True)
-async def test_element_admin_login(ingress_ready, generated_data: ESSData, browser_page: Page, users: list[User]):
+async def test_element_admin_login(ingress_ready, generated_data: ESSData, browser_page: "Page", users: list[User]):
     from playwright.async_api import expect
 
     await ingress_ready("element-admin")
@@ -65,7 +59,7 @@ async def test_element_admin_login(ingress_ready, generated_data: ESSData, brows
 @pytest.mark.asyncio_cooperative
 @pytest.mark.parametrize("users", [[User("browser-non-admin-user")]], indirect=True)
 async def test_element_admin_login_rejects_non_admin(
-    ingress_ready, generated_data: ESSData, browser_page: Page, users: list[User]
+    ingress_ready, generated_data: ESSData, browser_page: "Page", users: list[User]
 ):
     from playwright.async_api import expect
 
