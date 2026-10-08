@@ -106,10 +106,12 @@ def collect_ess_logs():
                     f"kubectl --context=k3d-ess-helm get {resource} -o yaml -n {ns}", f"{output_file_prefix}.yaml"
                 )
 
-            # Get events
+            # Get metrics of pods
             run_command_to_file(
                 f"kubectl --context=k3d-ess-helm top pods -n {ns}",
                 f"{destination}/{ns}/top.txt",
+                # ignore failures that can happen when the test executes too fast
+                check=False,
             )
 
             # Get events
