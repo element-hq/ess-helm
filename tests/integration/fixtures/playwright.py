@@ -4,6 +4,7 @@
 
 import asyncio
 import hashlib
+import json
 import os
 import re
 import shutil
@@ -19,6 +20,7 @@ import pytest
 from python_on_whales import Container, docker
 
 from ..artifacts import CertKey
+from .cluster import PotentiallyExistingK3dCluster
 
 try:
     from playwright.async_api import Browser, async_playwright
@@ -41,8 +43,14 @@ REPO_ROOT = Path(__file__).parent.parent.parent.parent.resolve()
 # the image installs it in the browser before the browser server starts (see the Dockerfile).
 CA_MOUNT_PATH = "/ess-helm-test-ca.pem"
 
-# The browser server prints the websocket address it listens on, e.g. ws://127.0.0.1:xxxx/
-_WS_ENDPOINT_PATTERN = re.compile(r"ws://\S+")
+# The path where the browser server launch config is mounted in the container. The start
+# script of the image reads it when it starts the browser server.
+LAUNCH_CONFIG_MOUNT_PATH = "/ess-helm-browser-launch-config.json"
+
+# The browser server prints the websocket address it listens on, e.g. ws://0.0.0.0:xxxx/<random path>.
+# The host of the printed address is only meaningful inside the container. The tests connect
+# to the IP of the container instead, so the host part is replaced (see _wait_for_browser).
+_WS_ENDPOINT_PATTERN = re.compile(r"ws://\S+:(?P<port>\d+)(?P<path>/\S*)")
 _BROWSER_SERVER_STARTUP_TIMEOUT = 60
 
 
@@ -113,59 +121,115 @@ def _require_controller() -> Any:
     return async_playwright
 
 
+def _container_ip(container: Container, network: str) -> str:
+    """The IP of a container on a docker network."""
+    networks = docker.container.inspect(container).network_settings.networks
+    assert networks, f"the container is not attached to the network {network}"
+    ip = networks[network].ip_address
+    assert ip, f"the container has no IP on the network {network}"
+    return ip
+
+
+def _traefik_ingress_ip(cluster: PotentiallyExistingK3dCluster, network: str) -> str:
+    """The IP of the Traefik ingress controller on the docker network of the cluster.
+
+    The load balancer container of k3d listens on the ports 80 and 443 of the docker
+    network, and forwards them to Traefik. So this IP is how the ingress is reached from
+    the containers on that network, e.g. the browser container.
+    """
+    load_balancer = docker.container.inspect(f"k3d-{cluster.cluster_name}-serverlb")
+    return _container_ip(load_balancer, network)
+
+
+def _launch_config(ingress_ip: str) -> dict[str, Any]:
+    """The launch config of the browser server, as playwright expects it.
+
+    The server listens on all interfaces, so the tests can reach its websocket through the
+    docker network of the cluster.
+
+    The browser resolves the *.localhost names of the tests to the IP of the ingress.
+    Chromium has that built in: it sends them to the loopback address. That is why the
+    mapping cannot go into /etc/hosts: Chromium never looks there for these names, and
+    /etc/hosts has no wildcards anyway. The host resolver rules of Chromium override its
+    built-in loopback mapping.
+    """
+    return {
+        "host": "0.0.0.0",
+        "args": [f"--host-resolver-rules=MAP *.localhost {ingress_ip}"],
+    }
+
+
 @pytest.fixture(scope="session")
-async def browser(root_ca: CertKey) -> AsyncIterator[Browser]:
+async def browser(cluster: PotentiallyExistingK3dCluster, root_ca: CertKey) -> AsyncIterator[Browser]:
     """A Chromium running in a docker container. The tests talk to it over a websocket.
 
     The browser runs in a docker container, so nothing has to be installed on the host.
     The tests also work on hosts where Playwright cannot install or run a browser locally
-    (e.g. Alpine Linux). The container uses the network of the host. So the browser can
-    reach the ingress on the loopback interface. And the tests can reach the browser
-    server's websocket address.
+    (e.g. Alpine Linux).
+
+    The container is attached to the docker network of the k3d cluster, not to the network
+    of the host. So the tests do not rely on host networking, and they also work when they
+    run inside a container themselves: the websocket address of the browser server is the
+    IP of the browser container on that network.
+
+    On that network, the ingress is reached at the IP of the k3d load balancer that fronts
+    Traefik. The browser resolves the *.localhost names of the tests to that IP (see
+    _launch_config).
 
     The test CA signs the certificates of the ingress. It is mounted into the container.
     The image installs it in the browser before the browser server starts. So the browser
     accepts the certificates of the ingress.
     """
     controller = _require_controller()
+    network = f"k3d-{cluster.cluster_name}"
     with tempfile.TemporaryDirectory() as ca_dir:
         ca_file = Path(ca_dir) / "ess-helm-test-ca.pem"
         ca_file.write_text(root_ca.cert_as_pem())
+        launch_config_file = Path(ca_dir) / "ess-helm-browser-launch-config.json"
+        launch_config_file.write_text(json.dumps(_launch_config(_traefik_ingress_ip(cluster, network))))
         container = docker.run(
             _ensure_image(),
             # The start script of the image installs the mounted CA certificate in the
-            # browser. Then it starts the browser server. The server prints its websocket
-            # address. It listens on a random port of the loopback interface.
+            # browser. Then it starts the browser server with the mounted launch config.
+            # The server prints its websocket address. It listens on a random port of all
+            # interfaces.
             detach=True,
             init=True,
             remove=True,
-            networks=["host"],
+            networks=[network],
             shm_size="1g",
-            volumes=[(ca_file, CA_MOUNT_PATH, "ro")],
+            volumes=[
+                (ca_file, CA_MOUNT_PATH, "ro"),
+                (launch_config_file, LAUNCH_CONFIG_MOUNT_PATH, "ro"),
+            ],
         )
+        container_ip = _container_ip(container, network)
         try:
             async with controller() as playwright:
-                browser = await _wait_for_browser(playwright, container)
+                browser = await _wait_for_browser(playwright, container, container_ip)
                 yield browser
                 await browser.close()
         finally:
             docker.container.remove(container, force=True)
 
 
-async def _wait_for_browser(playwright: Any, container: Container) -> Browser:
+async def _wait_for_browser(playwright: Any, container: Container, container_ip: str) -> Browser:
     """A connection to the browser server in the container.
 
     The websocket address is read from the container logs. The server prints it, and its
-    random path is not known otherwise. The printed line alone does not prove that the
-    server accepts connections. So the connection is the real test: it is retried
-    until the server accepts it, and the last error is reported when it never does.
+    random path is not known otherwise. The printed host is replaced with the IP of the
+    container on the network of the cluster: the printed one is only reachable inside the
+    container. The printed line alone does not prove that the server accepts connections.
+    So the connection is the real test: it is retried until the server accepts it, and the
+    last error is reported when it never does.
     """
     deadline = time.monotonic() + _BROWSER_SERVER_STARTUP_TIMEOUT
     last_error: Exception | None = None
     while time.monotonic() < deadline:
         if match := _WS_ENDPOINT_PATTERN.search(container.logs()):
+            endpoint = f"ws://{container_ip}:{match['port']}{match['path']}"
             try:
-                return await playwright.chromium.connect(match.group(0), timeout=2000)
+                return await playwright.chromium.connect(endpoint, timeout=2000)
             except Exception as error:
                 # The server printed its address but refused the connection. It may
                 # not be ready yet. Try again until the deadline.
@@ -181,8 +245,8 @@ async def _wait_for_browser(playwright: Any, container: Container) -> Browser:
 @pytest.fixture
 async def browser_page(browser: Browser):
     # The browser knows the test CA (see the browser fixture). So it accepts the
-    # certificates of the ingress. Chromium sends *.localhost names to the loopback
-    # address. The ingress listens there.
+    # certificates of the ingress. The browser resolves the *.localhost names of the tests
+    # to the IP of the ingress (see the browser fixture).
     context = await browser.new_context()
     page = await context.new_page()
     yield page

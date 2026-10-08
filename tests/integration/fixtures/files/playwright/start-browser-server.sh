@@ -20,5 +20,9 @@ mkdir -p "$HOME/.pki/nssdb"
 certutil -N --empty-password -d "sql:$HOME/.pki/nssdb" || true
 certutil -A -t "C,," -n ess-helm-test-ca -d "sql:$HOME/.pki/nssdb" -i /ess-helm-test-ca.pem
 
-# The browser server prints its websocket address on stdout, e.g. ws://127.0.0.1:xxxx/
-exec playwright run-server
+# Start the browser server with the launch config the tests mount at
+# /ess-helm-browser-launch-config.json. The config makes the server listen on all
+# interfaces, so the tests can reach the websocket from outside the container. And it maps
+# the *.localhost names of the tests to the IP of the ingress on the docker network of
+# the cluster (see fixtures/playwright.py for why the mapping is not in /etc/hosts).
+exec playwright launch-server --browser chromium --config /ess-helm-browser-launch-config.json
