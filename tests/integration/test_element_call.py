@@ -26,7 +26,6 @@ from .lib.utils import (
 PROXIED_MATRIX_RTC_PATH = "/_matrix/client/unstable/io.element.msc4195/rtc/livekit"
 
 # The upgrade tests first deploy the latest release, which doesn't proxy the Matrix RTC endpoints yet
-# TODO: set to the most recent release before merging
 LAST_RELEASE_WITHOUT_RTC_PROXY = "26.9.4"
 UPGRADE_TEST_STARTS_FROM_IT = os.environ.get("MATRIX_TEST_FROM_REF", "") == LAST_RELEASE_WITHOUT_RTC_PROXY
 RUNS_RELEASE_WITHOUT_RTC_PROXY = UPGRADE_TEST_STARTS_FROM_IT and os.environ.get("PYTEST_CI_FIRST_STEP", "") == "1"
