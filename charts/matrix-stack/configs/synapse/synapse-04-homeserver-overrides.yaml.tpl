@@ -110,6 +110,10 @@ experimental_features:
   # MSC4222 needed for syncv2 state_after. This allow clients to
   # correctly track the state of the room.
   msc4222_enabled: true
+  # MSC4502 lets the MatrixRTC Authorisation Service check room memberships without joining the rooms
+  msc4502_enabled: true
+  # MSC4512 proxies the MatrixRTC Authorisation Service endpoints (rtc/livekit) on the C-S and S-S APIs
+  msc4512_enabled: true
 {{- end }}
 {{- if $root.Values.hookshot.enabled }}
   # MSCs required for Hookshot encryption support

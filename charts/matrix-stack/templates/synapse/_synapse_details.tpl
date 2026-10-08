@@ -221,6 +221,18 @@ responsibleForMedia
     {{- end }}
   {{- end }}
 {{- end }}
+{{- with $root.Values.matrixRTC -}}
+  {{- if .enabled }}
+    {{- with .appserviceRegistration }}
+      {{- with .value }}
+        {{- $configSecrets = append $configSecrets (include "element-io.matrix-rtc-authorisation-service.secret-name" (dict "root" $root "context" (dict "isHook" $isHook))) -}}
+      {{- end }}
+      {{- with .secret }}
+        {{- $configSecrets = append $configSecrets (tpl . $root) -}}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
 {{ $configSecrets | uniq | toJson }}
 {{- end }}
 {{- end }}

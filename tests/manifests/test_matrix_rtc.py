@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
+import base64
+
 import pyhelm3
 import pytest
 import yaml
@@ -234,3 +236,168 @@ async def test_turn_tls_pod_termination_with_secret(values, templates):
     assert "key_file" in turn_config, "key_file should exist for pod termination with manual secret"
     assert turn_config["cert_file"] == "/turn-tls/tls.crt", "cert_file path incorrect"
     assert turn_config["key_file"] == "/turn-tls/tls.key", "key_file path incorrect"
+
+
+def get_template(templates, kind, name):
+    for template in templates:
+        if template["kind"] == kind and template["metadata"]["name"] == name:
+            return template
+    raise AssertionError(f"{kind}/{name} not found")
+
+
+def authorisation_service_env(templates, release_name):
+    deployment = get_template(templates, "Deployment", f"{release_name}-matrix-rtc-authorisation-service")
+    return {env["name"]: env.get("value") for env in deployment["spec"]["template"]["spec"]["containers"][0]["env"]}
+
+
+def synapse_homeserver_overrides(templates, configmap_name):
+    return yaml.safe_load(get_template(templates, "ConfigMap", configmap_name)["data"]["04-homeserver-overrides.yaml"])
+
+
+def init_secrets_requested(templates, release_name):
+    for template in templates:
+        if template["kind"] == "Job" and template["metadata"]["name"] == f"{release_name}-init-secrets":
+            return template["spec"]["template"]["spec"]["containers"][0]["args"][2].split(",")
+    return []
+
+
+@pytest.mark.parametrize("values_file", ["example-default-enabled-components-values.yaml"])
+@pytest.mark.asyncio_cooperative
+async def test_appservice_registration_is_generated_and_loaded_by_synapse(release_name, namespace, values, templates):
+    assert (
+        f"{release_name}-generated:MATRIX_RTC_REGISTRATION:registration:/registration-templates/matrix-rtc-registration.yaml"
+        in init_secrets_requested(templates, release_name)
+    )
+
+    registration = yaml.safe_load(
+        get_template(templates, "ConfigMap", f"{release_name}-init-secrets")["data"]["matrix-rtc-registration.yaml"]
+    )
+    assert registration["as_token"] == "${AS_TOKEN}"
+    assert registration["hs_token"] == "${HS_TOKEN}"
+    assert registration["sender_localpart"] == "_lk_jwt_service"
+    assert registration["url"] is None
+    assert registration["namespaces"] == {"users": [{"exclusive": False, "regex": f"@.*:{values['serverName']}"}]}
+    assert registration["io.element.msc4502.scopes"] == ["urn:matrix:client:io.element.msc4502:rooms:is_joined"]
+    assert registration["io.element.msc4512.proxy_prefix"] == "rtc/livekit"
+    assert registration["io.element.msc4512.proxy_url"] == (
+        f"http://{release_name}-matrix-rtc-authorisation-service.{namespace}.svc.cluster.local.:8080"
+    )
+    # The proxy_url must target the authorisation service port
+    service = get_template(templates, "Service", f"{release_name}-matrix-rtc-authorisation-service")
+    assert {"name": "http", "port": 8080, "targetPort": "http"} in service["spec"]["ports"]
+
+    registration_path = f"/secrets/{release_name}-generated/MATRIX_RTC_REGISTRATION"
+    for configmap_name in [f"{release_name}-synapse", f"{release_name}-synapse-hook"]:
+        homeserver_overrides = synapse_homeserver_overrides(templates, configmap_name)
+        assert registration_path in homeserver_overrides["app_service_config_files"]
+        assert homeserver_overrides["experimental_features"]["msc4502_enabled"] is True
+        assert homeserver_overrides["experimental_features"]["msc4512_enabled"] is True
+
+    env = authorisation_service_env(templates, release_name)
+    assert env["LIVEKIT_AS_REGISTRATION_FILE"] == registration_path
+    assert env["LIVEKIT_HS_SERVER_NAME"] == values["serverName"]
+    # Still needed for the routes that are not proxied by Synapse
+    assert "LIVEKIT_FULL_ACCESS_HOMESERVERS" in env
+    assert "LIVEKIT_CS_API_URL_OVERRIDES" in env
+
+
+@pytest.mark.parametrize("values_file", ["example-default-enabled-components-values.yaml"])
+@pytest.mark.asyncio_cooperative
+async def test_appservice_registration_sender_localpart_is_configurable(release_name, values, make_templates):
+    values["matrixRTC"].setdefault("user", {})["localpart"] = "rtc-appservice"
+
+    templates = await make_templates(values)
+    registration = yaml.safe_load(
+        get_template(templates, "ConfigMap", f"{release_name}-init-secrets")["data"]["matrix-rtc-registration.yaml"]
+    )
+    assert registration["sender_localpart"] == "rtc-appservice"
+
+
+@pytest.mark.parametrize("values_file", ["synapse-matrix-rtc-secrets-externally-values.yaml"])
+@pytest.mark.asyncio_cooperative
+async def test_appservice_registration_from_external_secret(release_name, values, make_templates):
+    values["initSecrets"] = {"enabled": True}
+    templates = await make_templates(values)
+
+    assert not any("MATRIX_RTC_REGISTRATION" in secret for secret in init_secrets_requested(templates, release_name))
+    for template in templates:
+        if template["kind"] == "ConfigMap" and template["metadata"]["name"] == f"{release_name}-init-secrets":
+            assert "matrix-rtc-registration.yaml" not in template["data"]
+
+    registration_path = f"/secrets/{release_name}-matrix-rtc-external-registration/registration.yaml"
+    for configmap_name in [f"{release_name}-synapse", f"{release_name}-synapse-hook"]:
+        assert registration_path in synapse_homeserver_overrides(templates, configmap_name)["app_service_config_files"]
+    assert authorisation_service_env(templates, release_name)["LIVEKIT_AS_REGISTRATION_FILE"] == registration_path
+
+
+@pytest.mark.parametrize("values_file", ["synapse-matrix-rtc-secrets-in-helm-values.yaml"])
+@pytest.mark.asyncio_cooperative
+async def test_appservice_registration_from_helm_values(release_name, namespace, templates):
+    for secret_name in [
+        f"{release_name}-matrix-rtc-authorisation-service",
+        f"{release_name}-matrix-rtc-authorisation-service-pre",
+    ]:
+        secret = get_template(templates, "Secret", secret_name)
+        # The registration provided in the values is templated
+        registration = yaml.safe_load(base64.b64decode(secret["data"]["REGISTRATION"]).decode("utf-8"))
+        assert registration["io.element.msc4512.proxy_url"] == (
+            f"http://{release_name}-matrix-rtc-authorisation-service.{namespace}.svc.cluster.local.:8080"
+        )
+
+    registration_path = f"/secrets/{release_name}-matrix-rtc-authorisation-service/REGISTRATION"
+    homeserver_overrides = synapse_homeserver_overrides(templates, f"{release_name}-synapse")
+    assert registration_path in homeserver_overrides["app_service_config_files"]
+    assert authorisation_service_env(templates, release_name)["LIVEKIT_AS_REGISTRATION_FILE"] == registration_path
+
+    # The check-config hook runs before the non-hook Secret exists
+    hook_registration_path = f"/secrets/{release_name}-matrix-rtc-authorisation-service-pre/REGISTRATION"
+    hook_homeserver_overrides = synapse_homeserver_overrides(templates, f"{release_name}-synapse-hook")
+    assert hook_registration_path in hook_homeserver_overrides["app_service_config_files"]
+
+
+@pytest.mark.parametrize("values_file", ["matrix-rtc-minimal-values.yaml"])
+@pytest.mark.asyncio_cooperative
+async def test_server_name_is_required(values, make_templates):
+    del values["serverName"]
+    with pytest.raises(
+        pyhelm3.errors.FailedToRenderChartError, match="serverName is required when matrixRTC.enabled=true"
+    ):
+        await make_templates(values)
+
+
+@pytest.mark.parametrize("values_file", ["matrix-rtc-minimal-values.yaml"])
+@pytest.mark.asyncio_cooperative
+async def test_appservice_registration_is_generated_without_synapse(release_name, values, make_templates):
+    values["serverName"] = "remote.example.com"
+    templates = await make_templates(values)
+
+    # The registration is generated for the homeserver, which isn't deployed by the chart, to load it
+    assert (
+        f"{release_name}-generated:MATRIX_RTC_REGISTRATION:registration:/registration-templates/matrix-rtc-registration.yaml"
+        in init_secrets_requested(templates, release_name)
+    )
+    registration = yaml.safe_load(
+        get_template(templates, "ConfigMap", f"{release_name}-init-secrets")["data"]["matrix-rtc-registration.yaml"]
+    )
+    assert registration["namespaces"] == {"users": [{"exclusive": False, "regex": "@.*:remote.example.com"}]}
+
+    env = authorisation_service_env(templates, release_name)
+    assert env["LIVEKIT_AS_REGISTRATION_FILE"] == f"/secrets/{release_name}-generated/MATRIX_RTC_REGISTRATION"
+    assert env["LIVEKIT_HS_SERVER_NAME"] == "remote.example.com"
+
+
+@pytest.mark.parametrize("values_file", ["matrix-rtc-minimal-values.yaml"])
+@pytest.mark.asyncio_cooperative
+async def test_appservice_registration_without_synapse(release_name, values, make_templates):
+    values["matrixRTC"]["appserviceRegistration"] = {
+        "secret": "{{ $.Release.Name }}-matrix-rtc-external-registration",
+        "secretKey": "registration.yaml",
+    }
+    values["serverName"] = "remote.example.com"
+    templates = await make_templates(values)
+    env = authorisation_service_env(templates, release_name)
+    assert (
+        env["LIVEKIT_AS_REGISTRATION_FILE"]
+        == f"/secrets/{release_name}-matrix-rtc-external-registration/registration.yaml"
+    )
+    assert env["LIVEKIT_HS_SERVER_NAME"] == "remote.example.com"

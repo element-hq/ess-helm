@@ -23,6 +23,18 @@
         }
       }
     },
+    "appserviceRegistration": {
+      "$ref": "file://common/credential.json"
+    },
+    "user": {
+      "type": "object",
+      "properties": {
+        "localpart": {
+          "type": "string",
+          "description": "The localpart of the application service user of the MatrixRTC Authorisation Service"
+        }
+      }
+    },
     "redisOrValkey": {
       "$ref": "file://common/redis.json"
     },
