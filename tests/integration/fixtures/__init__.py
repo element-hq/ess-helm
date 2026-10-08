@@ -9,6 +9,7 @@ from .data import ESSData, generated_data
 from .helm import helm_prerequisites, ingress_ready, matrix_stack, secrets_generated
 from .matrix_tools import build_matrix_tools, loaded_matrix_tools
 from .playwright import browser, browser_page
+from .proxy import proxy_server
 from .users import User, users
 
 __all__ = [
@@ -29,6 +30,7 @@ __all__ = [
     "loaded_matrix_tools",
     "matrix_stack",
     "prometheus_operator_crds",
+    "proxy_server",
     "root_ca",
     "secrets_generated",
     "ssl_context",

@@ -15,10 +15,10 @@ async def browser():
 
 
 @pytest.fixture
-async def browser_page(browser: Browser):
+async def browser_page(browser: Browser, proxy_server: str):
     # The test CA isn't in the browser's trust store, so certificate validation is skipped.
-    # Chromium resolves *.localhost to the loopback address itself, which is where the ingress listens.
-    context = await browser.new_context(ignore_https_errors=True)
+    # proxy_server routes *.localhost to the loopback address, where the ingress listens.
+    context = await browser.new_context(proxy={"server": proxy_server}, ignore_https_errors=True)
     page = await context.new_page()
     yield page
     await context.close()
