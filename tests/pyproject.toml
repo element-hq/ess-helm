@@ -33,6 +33,15 @@ dependencies = [
   "typer>=0.27.1",
 ]
 
+# Playwright is optional: it publishes no packages for musl hosts (e.g. Alpine Linux).
+# On glibc hosts, consumers can install it with this extra:
+#   pip install ess-community-integration-tests[browser]
+# On musl hosts, use scripts/setup_playwright_controller.sh instead (see its header).
+[project.optional-dependencies]
+browser = [
+  "playwright>=1.62.0",
+]
+
 
 [tool.uv.build-backend]
     module-name = "integration"

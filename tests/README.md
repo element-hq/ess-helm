@@ -21,12 +21,27 @@ The ESS Community Integration Tests project is designed to facilitate the testin
 - [Helm](https://helm.sh/docs/intro/install)
 - Optional: [uv](https://docs.astral.sh/uv/getting-started/installation/) to install from git
 
+The browser based tests drive a Chromium running in a docker container, so no browser needs to be
+installed locally. They need the optional Playwright controller:
+- On glibc hosts, install it with the `browser` extra, e.g. `pipx install ess-community-integration-tests[browser]`.
+- On musl hosts (e.g. Alpine Linux), Playwright publishes no packages: install it with
+  `scripts/setup_playwright_controller.sh` instead.
+
+Without it, the browser tests are skipped.
+
 ## Installation
 
 
 ```sh
 pipx install ess-community-integration-tests
 uvx ess-community-integration-tests
+```
+
+To also run the browser based tests, install the `browser` extra:
+
+```sh
+pipx install ess-community-integration-tests[browser]
+uvx --from 'ess-community-integration-tests[browser]' pytest-ess
 ```
 
 You can also install it from the git repository :

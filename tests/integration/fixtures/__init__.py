@@ -8,9 +8,12 @@ from .cluster import cert_manager, cluster, ess_namespace, helm_client, ingress,
 from .data import ESSData, generated_data
 from .helm import helm_prerequisites, ingress_ready, matrix_stack, secrets_generated
 from .matrix_tools import build_matrix_tools, loaded_matrix_tools
+from .playwright import browser, browser_page
 from .users import User, users
 
 __all__ = [
+    "browser",
+    "browser_page",
     "build_matrix_tools",
     "cert_manager",
     "cluster",

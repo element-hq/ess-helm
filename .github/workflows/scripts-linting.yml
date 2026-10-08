@@ -43,7 +43,9 @@ jobs:
         activate-environment: true
 
     - name: Set up UV environment
-      run: uv sync --all-packages
+      run: |
+        uv sync
+        scripts/setup_playwright_controller.sh
 
     - name: Run ruff check
       run: |
