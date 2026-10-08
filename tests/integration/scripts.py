@@ -108,6 +108,12 @@ def collect_ess_logs():
 
             # Get events
             run_command_to_file(
+                f"kubectl --context=k3d-ess-helm top pods -n {ns}",
+                f"{destination}/{ns}/top.txt",
+            )
+
+            # Get events
+            run_command_to_file(
                 f"kubectl --context=k3d-ess-helm get events --sort-by=.metadata.creationTimestamp -n {ns}",
                 f"{destination}/{ns}/events.txt",
             )
