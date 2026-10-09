@@ -23,7 +23,7 @@ jobs:
         persist-credentials: false
         fetch-depth: 0
 
-    - uses: ./.github/actions/asdf-cache
+    - uses: $/.github/actions/asdf-cache
       with:
         tool-versions: |
           dyff 1.10.1
