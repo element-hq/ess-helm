@@ -3,13 +3,13 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 import asyncio
+import base64
 import hashlib
 import json
 import os
 import re
 import shutil
 import sys
-import tempfile
 import time
 from collections.abc import AsyncIterator
 from importlib.metadata import version as package_version
@@ -39,13 +39,12 @@ IMAGE_NAME = "ghcr.io/element-hq/ess-helm/playwright-browser"
 DOCKERFILE = Path(__file__).parent / "files" / "playwright" / "Dockerfile"
 REPO_ROOT = Path(__file__).parent.parent.parent.parent.resolve()
 
-# The path where the test CA certificate is mounted in the container. The start script of
-# the image installs it in the browser before the browser server starts (see the Dockerfile).
-CA_MOUNT_PATH = "/ess-helm-test-ca.pem"
-
-# The path where the browser server launch config is mounted in the container. The start
-# script of the image reads it when it starts the browser server.
-LAUNCH_CONFIG_MOUNT_PATH = "/ess-helm-browser-launch-config.json"
+# The environment variables the tests pass to the browser container. The start script of
+# the image reads them, writes the files it needs, and installs the CA certificate in the
+# browser before the browser server starts (see the Dockerfile). The CA is a PEM string,
+# base64 encoded so that it survives as a single value.
+CA_ENV_VAR = "ESS_HELM_BROWSER_CA_PEM"
+LAUNCH_CONFIG_ENV_VAR = "ESS_HELM_BROWSER_LAUNCH_CONFIG"
 
 # The browser server prints the websocket address it listens on, e.g. ws://0.0.0.0:xxxx/<random path>.
 # The host of the printed address is only meaningful inside the container. The tests connect
@@ -176,41 +175,38 @@ async def browser(cluster: PotentiallyExistingK3dCluster, root_ca: CertKey) -> A
     Traefik. The browser resolves the *.localhost names of the tests to that IP (see
     _launch_config).
 
-    The test CA signs the certificates of the ingress. It is mounted into the container.
-    The image installs it in the browser before the browser server starts. So the browser
-    accepts the certificates of the ingress.
+    The test CA signs the certificates of the ingress. It is passed to the container in
+    an environment variable (see CA_ENV_VAR). The image installs it in the browser before
+    the browser server starts. So the browser accepts the certificates of the ingress.
     """
     controller = _require_controller()
     network = f"k3d-{cluster.cluster_name}"
-    with tempfile.TemporaryDirectory() as ca_dir:
-        ca_file = Path(ca_dir) / "ess-helm-test-ca.pem"
-        ca_file.write_text(root_ca.cert_as_pem())
-        launch_config_file = Path(ca_dir) / "ess-helm-browser-launch-config.json"
-        launch_config_file.write_text(json.dumps(_launch_config(_traefik_ingress_ip(cluster, network))))
-        container = docker.run(
-            _ensure_image(),
-            # The start script of the image installs the mounted CA certificate in the
-            # browser. Then it starts the browser server with the mounted launch config.
-            # The server prints its websocket address. It listens on a random port of all
-            # interfaces.
-            detach=True,
-            init=True,
-            remove=True,
-            networks=[network],
-            shm_size="1g",
-            volumes=[
-                (ca_file, CA_MOUNT_PATH, "ro"),
-                (launch_config_file, LAUNCH_CONFIG_MOUNT_PATH, "ro"),
-            ],
-        )
-        container_ip = _container_ip(container, network)
-        try:
-            async with controller() as playwright:
-                browser = await _wait_for_browser(playwright, container, container_ip)
-                yield browser
-                await browser.close()
-        finally:
-            docker.container.remove(container, force=True)
+    container = docker.run(
+        _ensure_image(),
+        # The start script of the image writes the CA certificate of the environment
+        # variable into a file and installs it in the browser. Then it starts the browser
+        # server with the launch config of the other environment variable. The server
+        # prints its websocket address. It listens on a random port of all interfaces.
+        detach=True,
+        init=True,
+        remove=True,
+        networks=[network],
+        shm_size="1g",
+        envs={
+            CA_ENV_VAR: base64.b64encode(root_ca.cert_as_pem().encode()).decode(),
+            LAUNCH_CONFIG_ENV_VAR: base64.b64encode(
+                json.dumps(_launch_config(_traefik_ingress_ip(cluster, network))).encode()
+            ).decode(),
+        },
+    )
+    container_ip = _container_ip(container, network)
+    try:
+        async with controller() as playwright:
+            browser = await _wait_for_browser(playwright, container, container_ip)
+            yield browser
+            await browser.close()
+    finally:
+        docker.container.remove(container, force=True)
 
 
 async def _wait_for_browser(playwright: Any, container: Container, container_ip: str) -> Browser:
