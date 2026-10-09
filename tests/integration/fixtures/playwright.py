@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from pytest_asyncio_cooperative import Lock  # type: ignore[import-untyped]
 from python_on_whales import Container, docker
 
 from ..artifacts import CertKey
@@ -56,6 +57,9 @@ _BROWSER_SERVER_STARTUP_TIMEOUT = 60
 # working directory. collect-ess-logs exports this directory with the other logs, so CI
 # uploads the traces with the logs of the run.
 TRACES_DIR = Path("ess-helm-logs") / "playwright-traces"
+
+
+_playwright_lock = Lock()
 
 
 def image_reference() -> str:
@@ -277,3 +281,10 @@ async def browser_page(browser: Browser, browser_traces_run_dir: Path, request: 
         await context.tracing.stop(path=trace_path)
     finally:
         await context.close()
+
+
+@pytest.fixture
+async def playwright_lock():
+    # A lock for playwright tests that should run sequentially
+    async with _playwright_lock():
+        yield
