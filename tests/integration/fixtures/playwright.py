@@ -52,6 +52,11 @@ LAUNCH_CONFIG_ENV_VAR = "ESS_HELM_BROWSER_LAUNCH_CONFIG"
 _WS_ENDPOINT_PATTERN = re.compile(r"ws://\S+:(?P<port>\d+)(?P<path>/\S*)")
 _BROWSER_SERVER_STARTUP_TIMEOUT = 60
 
+# The traces of the browser tests are written under this directory, next to the current
+# working directory. collect-ess-logs exports this directory with the other logs, so CI
+# uploads the traces with the logs of the run.
+TRACES_DIR = Path("ess-helm-logs") / "playwright-traces"
+
 
 def image_reference() -> str:
     """The name and tag of the docker image the browser runs in.
@@ -238,12 +243,37 @@ async def _wait_for_browser(playwright: Any, container: Container, container_ip:
     )
 
 
+@pytest.fixture(scope="session")
+def browser_traces_run_dir() -> Path:
+    """The directory the traces of this test run are written to.
+
+    CI runs the tests twice against the same cluster: once after a fresh deploy, once
+    after an upgrade. The timestamp keeps the traces of the two runs apart.
+    """
+    return TRACES_DIR / time.strftime("%Y%m%d-%H%M%S")
+
+
+def _trace_path(browser_traces_run_dir: Path, request: pytest.FixtureRequest) -> Path:
+    """The trace file of a test, named after it. Characters that a file name cannot contain are replaced."""
+    test_id = re.sub(r"[^A-Za-z0-9._-]", "_", request.node.nodeid)
+    return browser_traces_run_dir / f"{test_id}.zip"
+
+
 @pytest.fixture
-async def browser_page(browser: Browser):
+async def browser_page(browser: Browser, browser_traces_run_dir: Path, request: pytest.FixtureRequest):
     # The browser knows the test CA (see the browser fixture). So it accepts the
     # certificates of the ingress. The browser resolves the *.localhost names of the tests
     # to the IP of the ingress (see the browser fixture).
     context = await browser.new_context()
+    # Record what the test does in the browser. The trace shows it step by step, also
+    # after the run: view it with `playwright show-trace <file>` or on https://trace.playwright.dev.
+    await context.tracing.start(screenshots=True, snapshots=True, sources=True)
     page = await context.new_page()
     yield page
-    await context.close()
+    # Stopping the recording writes the trace file. The context must still be open then.
+    trace_path = _trace_path(browser_traces_run_dir, request)
+    trace_path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        await context.tracing.stop(path=trace_path)
+    finally:
+        await context.close()
