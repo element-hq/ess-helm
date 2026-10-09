@@ -39,9 +39,11 @@ def is_k3d_running():
 
 
 def export_docker_containers(destination: Path):
-    """Write the logs and the inspect content of every docker container."""
+    """Write the logs and the inspect content of every container attached to the k3d network."""
     destination.mkdir(exist_ok=True)
-    containers = run_command("docker ps -a --format '{{.Names}}'", check=False).splitlines()
+    containers = run_command(
+        "docker ps -a --filter network=k3d-ess-helm --format '{{.Names}}'", check=False
+    ).splitlines()
     for container in containers:
         # docker logs fails on containers that never started, so we ignore errors
         run_command_to_file(f"docker logs {container}", destination / f"{container}.logs", check=False)
@@ -67,7 +69,7 @@ def collect_ess_logs():
         Path(destination).mkdir(exist_ok=True)
 
         if system_logs:
-            # Get logs and inspect content of all docker containers
+            # Get logs and inspect content of all containers attached to the k3d network
             export_docker_containers(destination / "docker")
 
         if not is_k3d_running():
