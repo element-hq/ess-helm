@@ -22,4 +22,4 @@ rules:
   superfluous-actions:
     ignore:
       # The high-level action-gh-release is preferred over the CLI
-      - releasing.yml:190
+      - releasing.yml:194
