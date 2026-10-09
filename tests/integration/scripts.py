@@ -15,8 +15,8 @@ HERE = Path(__file__).resolve().parent
 existing_test_suites = [file.stem for file in (HERE / "env").glob("*.rc")]
 
 
-def run_command(cmd):
-    result = subprocess.run(cmd, shell=True, check=True, text=True, capture_output=True)
+def run_command(cmd, check=True):
+    result = subprocess.run(cmd, shell=True, check=check, text=True, capture_output=True)
     return result.stdout
 
 
@@ -25,6 +25,29 @@ def run_command_to_file(cmd, output_file, check=True, text=True):
     with open(output_file, "w") as f:
         f.write("----\n")
         subprocess.run(cmd, shell=True, check=check, stdout=f, stderr=subprocess.STDOUT, text=text)
+
+
+def is_k3d_running():
+    """Tell if the k3d ess-helm cluster server container is running."""
+    result = subprocess.run(
+        "docker inspect --format '{{.State.Running}}' k3d-ess-helm-server-0",
+        shell=True,
+        text=True,
+        capture_output=True,
+    )
+    return result.returncode == 0 and result.stdout.strip() == "true"
+
+
+def export_docker_containers(destination: Path):
+    """Write the logs and the inspect content of every container attached to the k3d network."""
+    destination.mkdir(exist_ok=True)
+    containers = run_command(
+        "docker ps -a --filter network=k3d-ess-helm --format '{{.Names}}'", check=False
+    ).splitlines()
+    for container in containers:
+        # docker logs fails on containers that never started, so we ignore errors
+        run_command_to_file(f"docker logs {container}", destination / f"{container}.logs", check=False)
+        run_command_to_file(f"docker inspect {container}", destination / f"{container}.inspect.json", check=False)
 
 
 def censor_secrets_yaml(yaml_content):
@@ -46,10 +69,15 @@ def collect_ess_logs():
         Path(destination).mkdir(exist_ok=True)
 
         if system_logs:
-            # Get k3d server logs
-            run_command_to_file(
-                "docker logs k3d-ess-helm-server-0", f"{destination}/k3d-ess-helm-server-0.logs", check=False
+            # Get logs and inspect content of all containers attached to the k3d network
+            export_docker_containers(destination / "docker")
+
+        if not is_k3d_running():
+            typer.echo(
+                "Warning: the k3d ess-helm cluster is not running. Skipping the collection of the Kubernetes resources."
             )
+            typer.echo(f"Logs and resources collected in {destination}")
+            return
 
         # Merge kubeconfig
         subprocess.run("k3d kubeconfig merge ess-helm -ds", shell=True, check=True)
