@@ -13,6 +13,8 @@
 # for musl. This script works around it:
 # - it installs the playwright package as if the host was a glibc host. The package itself
 #   is plain Python, so it works anyway;
+# - the packages playwright needs are installed the normal way instead: the glibc build
+#   of greenlet does not work on musl;
 # - playwright also contains a helper program, the "node driver". The package ships it as a
 #   glibc binary, which musl cannot run. The driver itself is plain JavaScript: the node of
 #   the system runs it too. The tests point playwright to it with the environment variable
@@ -83,13 +85,15 @@ if [ -z "$PLAYWRIGHT_VERSION" ]; then
   exit 1
 fi
 
-# Install the browser group as if the host was a glibc host, with the versions from
-# uv.lock. This also installs the packages playwright needs: greenlet and pyee.
-# Playwright is always installed again, even when it is already there. This restores the
-# original files, in case an older version of this script replaced them.
+# Install playwright as if the host was a glibc host, with the version from uv.lock.
 uv pip install --python "$PYTHON" --python-platform "$wheel_platform" \
-  --python-version "$PYTHON_VERSION" --reinstall-package playwright \
-  -r <(printf '%s\n' "$browser_requirements")
+  --python-version "$PYTHON_VERSION" \
+  "playwright==$PLAYWRIGHT_VERSION"
+
+# Install the packages playwright needs the normal way: the glibc build of greenlet does
+# not work on musl.
+uv pip install --python "$PYTHON" \
+  -r <(sed '/^playwright==/d' <<<"$browser_requirements")
 
 # Run the node driver once now, with the same environment variable as the tests. If
 # something is broken, this script fails here with a clear error. Otherwise the tests
