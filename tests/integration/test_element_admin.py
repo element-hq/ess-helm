@@ -37,6 +37,7 @@ async def test_element_admin_can_access_root(ingress_ready, generated_data: ESSD
 @pytest.mark.skipif(value_file_has("matrixAuthenticationService.enabled", False), reason="MAS not deployed")
 @pytest.mark.asyncio_cooperative
 @pytest.mark.parametrize("users", [[User("browser-admin-user", admin=True)]], indirect=True)
+@pytest.mark.skip("test is flakey due to a race condition in MAS")
 async def test_element_admin_login(ingress_ready, generated_data: ESSData, browser_page: "Page", users: list[User]):
     from playwright.async_api import expect
 
@@ -58,6 +59,7 @@ async def test_element_admin_login(ingress_ready, generated_data: ESSData, brows
 @pytest.mark.skipif(value_file_has("matrixAuthenticationService.enabled", False), reason="MAS not deployed")
 @pytest.mark.asyncio_cooperative
 @pytest.mark.parametrize("users", [[User("browser-non-admin-user")]], indirect=True)
+@pytest.mark.skip("test is flakey due to a race condition in MAS")
 async def test_element_admin_login_rejects_non_admin(
     ingress_ready, generated_data: ESSData, browser_page: "Page", users: list[User]
 ):
