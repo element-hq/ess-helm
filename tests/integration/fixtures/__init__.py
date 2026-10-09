@@ -8,7 +8,7 @@ from .cluster import cert_manager, cluster, ess_namespace, helm_client, ingress,
 from .data import ESSData, generated_data
 from .helm import helm_prerequisites, ingress_ready, matrix_stack, secrets_generated
 from .matrix_tools import build_matrix_tools, loaded_matrix_tools
-from .playwright import browser, browser_page, browser_traces_run_dir
+from .playwright import browser, browser_page, browser_traces_run_dir, playwright_lock
 from .users import User, users
 
 __all__ = [
@@ -29,6 +29,7 @@ __all__ = [
     "kube_client",
     "loaded_matrix_tools",
     "matrix_stack",
+    "playwright_lock",
     "prometheus_operator_crds",
     "root_ca",
     "secrets_generated",
