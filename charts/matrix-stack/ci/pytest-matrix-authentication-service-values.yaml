@@ -63,5 +63,10 @@ synapse:
     tlsSecret: "{{ $.Release.Name }}-synapse-web-tls"
   podSecurityContext:
     runAsGroup: 0
+  workers:
+    # A Synapse worker for /auth_metadata HA
+    client-reader:
+      enabled: true
+      replicas: 2
 wellKnownDelegation:
   enabled: false
