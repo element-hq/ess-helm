@@ -22,6 +22,19 @@ def remaining_clusters_teardown():
     return
 
 
+# pytest-asyncio-cooperative fills the fixtures of the marked tests itself. It then clears
+# item.fixturenames, so the regular fixture setup does not run them again. But it clears
+# them only after the fill: when the fill fails, the regular setup runs the fixtures
+# synchronously. Async fixtures return raw coroutines then, and the resulting error masks
+# the real one (e.g. a skip becomes a TypeError deep inside another fixture). Clear the
+# names here instead: the regular setup does nothing, and the real error raises.
+# It's a hook implementation of https://github.com/element-hq/pytest-asyncio-cooperative/pull/2/changes
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_setup(item):
+    if "asyncio_cooperative" in item.keywords:
+        item.fixturenames = []
+
+
 def pytest_addoption(parser):
     parser.addoption("--env-setup", action="store_true", default=False, help="run test env setup")
 
