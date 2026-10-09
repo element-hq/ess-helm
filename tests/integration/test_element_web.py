@@ -8,12 +8,12 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from .fixtures import ESSData, User
+from .fixtures import BrowserPages, ESSData, User, run_scenario_with_page_refresh
 from .lib.matrix_authentication_service import login_on_mas_page
 from .lib.utils import aiohttp_get_json, value_file_has
 
 # Playwright is optional: it is installed by scripts/setup_playwright_controller.sh. When
-# it is missing, the browser tests are skipped by the browser_page fixture.
+# it is missing, the browser tests are skipped by the browser_pages fixture.
 if TYPE_CHECKING:
     from playwright.async_api import Page
 
@@ -30,14 +30,17 @@ async def test_element_web_can_access_config_json(ingress_ready, generated_data:
 
 @pytest.mark.skipif(value_file_has("elementWeb.enabled", False), reason="ElementWeb not deployed")
 @pytest.mark.asyncio_cooperative
-async def test_element_web_loads_in_browser(ingress_ready, generated_data: ESSData, browser_page: "Page"):
+async def test_element_web_loads_in_browser(ingress_ready, generated_data: ESSData, browser_pages: BrowserPages):
     from playwright.async_api import expect
 
-    await ingress_ready("element-web")
+    async def scenario(page: "Page"):
+        await ingress_ready("element-web")
 
-    await browser_page.goto(f"https://element.{generated_data.server_name}/")
+        await page.goto(f"https://element.{generated_data.server_name}/")
 
-    await expect(browser_page).to_have_title(re.compile("Element"))
+        await expect(page).to_have_title(re.compile("Element"))
+
+    await run_scenario_with_page_refresh(browser_pages, scenario)
 
 
 @pytest.mark.skipif(value_file_has("elementWeb.enabled", False), reason="ElementWeb not deployed")
@@ -45,20 +48,23 @@ async def test_element_web_loads_in_browser(ingress_ready, generated_data: ESSDa
 @pytest.mark.asyncio_cooperative
 @pytest.mark.parametrize("users", [[User("browser-element-web-user")]], indirect=True)
 async def test_element_web_login_via_mas(
-    ingress_ready, generated_data: ESSData, browser_page: "Page", users: list[User]
+    ingress_ready, generated_data: ESSData, browser_pages: BrowserPages, users: list[User]
 ):
     from playwright.async_api import expect
 
-    await ingress_ready("element-web")
-    await ingress_ready("matrix-authentication-service")
+    async def scenario(page: "Page"):
+        await ingress_ready("element-web")
+        await ingress_ready("matrix-authentication-service")
 
-    await browser_page.goto(f"https://element.{generated_data.server_name}/")
-    await browser_page.get_by_role("button", name="Continue").click()
-    await browser_page.wait_for_url(f"https://mas.{generated_data.server_name}/**")
+        await page.goto(f"https://element.{generated_data.server_name}/")
+        await page.get_by_role("button", name="Continue").click()
+        await page.wait_for_url(f"https://mas.{generated_data.server_name}/**")
 
-    await login_on_mas_page(browser_page, users[0].name, generated_data.secrets_random)
+        await login_on_mas_page(page, users[0].name, generated_data.secrets_random)
 
-    await expect(browser_page.get_by_role("heading")).to_contain_text("Continue to Element")
-    await browser_page.get_by_role("button", name="Continue").click()
+        await expect(page.get_by_role("heading")).to_contain_text("Continue to Element")
+        await page.get_by_role("button", name="Continue").click()
 
-    await browser_page.wait_for_url(f"https://element.{generated_data.server_name}/**")
+        await page.wait_for_url(f"https://element.{generated_data.server_name}/**")
+
+    await run_scenario_with_page_refresh(browser_pages, scenario)
