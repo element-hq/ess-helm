@@ -11,10 +11,11 @@ import re
 import shutil
 import sys
 import time
-from collections.abc import AsyncIterator
+import warnings
+from collections.abc import AsyncIterator, Awaitable, Callable
 from importlib.metadata import version as package_version
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from python_on_whales import Container, docker
@@ -30,6 +31,9 @@ except ImportError:
     # skipped instead of failing with an error.
     Browser = None  # type: ignore[assignment, misc]
     async_playwright = None  # type: ignore[assignment, misc]
+
+if TYPE_CHECKING:
+    from playwright.async_api import BrowserContext, Page
 
 # The docker image the browser runs in. CI builds it and puts it in the registry under this
 # name. The tag is computed by image_reference(). This way the tests can download the image
@@ -259,21 +263,92 @@ def _trace_path(browser_traces_run_dir: Path, request: pytest.FixtureRequest) ->
     return browser_traces_run_dir / f"{test_id}.zip"
 
 
+class BrowserPages:
+    """The pages of one browser test, built one at a time.
+
+    A test asks for a new page when it failed and runs again (see
+    run_scenario_with_page_refresh). The pages share one context: a retry starts with
+    the cookies of the failed attempt, like after a page refresh. The context accepts
+    the certificates of the ingress, and the pages resolve the *.localhost names of the
+    tests (see the browser fixture).
+    """
+
+    def __init__(self, context: "BrowserContext") -> None:
+        self._context = context
+        self._page: Page | None = None
+
+    async def new_page(self) -> "Page":
+        """Close the current page, if any, and build a fresh one."""
+        if self._page is not None:
+            await self._page.close()
+        self._page = await self._context.new_page()
+        return self._page
+
+    async def close(self) -> None:
+        """Close the current page and the context they all share."""
+        if self._page is not None:
+            await self._page.close()
+            self._page = None
+        await self._context.close()
+
+
 @pytest.fixture
-async def browser_page(browser: Browser, browser_traces_run_dir: Path, request: pytest.FixtureRequest):
-    # The browser knows the test CA (see the browser fixture). So it accepts the
-    # certificates of the ingress. The browser resolves the *.localhost names of the tests
-    # to the IP of the ingress (see the browser fixture).
+async def browser_pages(
+    browser: Browser, browser_traces_run_dir: Path, request: pytest.FixtureRequest
+) -> AsyncIterator[BrowserPages]:
+    """The pages of a browser test. Ask for one with new_page(), and for a fresh one
+    when a failed test runs again."""
     context = await browser.new_context()
     # Record what the test does in the browser. The trace shows it step by step, also
     # after the run: view it with `playwright show-trace <file>` or on https://trace.playwright.dev.
+    # All the pages of the test share the context, so the trace also covers the pages
+    # the test builds when it failed and runs again.
     await context.tracing.start(screenshots=True, snapshots=True, sources=True)
-    page = await context.new_page()
-    yield page
-    # Stopping the recording writes the trace file. The context must still be open then.
-    trace_path = _trace_path(browser_traces_run_dir, request)
-    trace_path.parent.mkdir(parents=True, exist_ok=True)
+    pages = BrowserPages(context)
     try:
-        await context.tracing.stop(path=trace_path)
+        yield pages
     finally:
-        await context.close()
+        # Stopping the recording writes the trace file. The context must still be open then.
+        trace_path = _trace_path(browser_traces_run_dir, request)
+        trace_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            await context.tracing.stop(path=trace_path)
+        finally:
+            await pages.close()
+
+
+# When the CI upgrades the deployment, the services restart while the tests run: the
+# ingress is ready first, then a service goes down and comes back. A browser test can
+# then fail on a page that shows a temporary error. The same test usually passes on a
+# fresh page, once the restarted service is back. That is why the scenario runs again on
+# a fresh page when it fails. It starts by waiting for the ingress and the services to
+# be ready, so a retry waits for the service first.
+PAGE_REFRESH_MAX_ATTEMPTS = 3
+
+
+async def run_scenario_with_page_refresh(pages: BrowserPages, scenario: Callable[["Page"], Awaitable[None]]) -> None:
+    """Run a browser scenario on a page of its own. When it fails, run it again on a
+    fresh page.
+
+    The retries only happen on the second CI step (PYTEST_CI_SECOND_STEP=1): the
+    deployment has just been upgraded, and the services restart while the tests run.
+    """
+    if os.environ.get("PYTEST_CI_SECOND_STEP", "") != "1":
+        await scenario(await pages.new_page())
+        return
+    for attempt in range(1, PAGE_REFRESH_MAX_ATTEMPTS + 1):
+        page = await pages.new_page()
+        try:
+            await scenario(page)
+            return
+        except Exception as error:
+            # The pytest outcomes (skip, fail, exit) are BaseExceptions: they are not
+            # caught here, so they never trigger a retry. Everything else does, e.g.
+            # the AssertionError of a playwright expectation.
+            if attempt == PAGE_REFRESH_MAX_ATTEMPTS:
+                raise
+            warnings.warn(
+                f"browser scenario failed, running it again on a fresh page"
+                f" (attempt {attempt + 1} of {PAGE_REFRESH_MAX_ATTEMPTS}): {error}",
+                stacklevel=1,
+            )

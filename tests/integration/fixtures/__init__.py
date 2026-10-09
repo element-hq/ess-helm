@@ -8,12 +8,13 @@ from .cluster import cert_manager, cluster, ess_namespace, helm_client, ingress,
 from .data import ESSData, generated_data
 from .helm import helm_prerequisites, ingress_ready, matrix_stack, secrets_generated
 from .matrix_tools import build_matrix_tools, loaded_matrix_tools
-from .playwright import browser, browser_page, browser_traces_run_dir
+from .playwright import BrowserPages, browser, browser_pages, browser_traces_run_dir, run_scenario_with_page_refresh
 from .users import User, users
 
 __all__ = [
     "browser",
-    "browser_page",
+    "BrowserPages",
+    "browser_pages",
     "browser_traces_run_dir",
     "build_matrix_tools",
     "cert_manager",
@@ -31,6 +32,7 @@ __all__ = [
     "matrix_stack",
     "prometheus_operator_crds",
     "root_ca",
+    "run_scenario_with_page_refresh",
     "secrets_generated",
     "ssl_context",
     "User",
