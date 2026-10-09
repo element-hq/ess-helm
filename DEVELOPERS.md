@@ -170,6 +170,11 @@ No browser needs to be installed locally. The docker image is built on first use
 Install the controller with `scripts/setup_playwright_controller.sh`, on every host (details in the
 script). A plain `uv sync` removes the controller again: re-run the script afterwards. `uv run` keeps it.
 
+Each browser test records a trace of what it did. The traces are written to
+`ess-helm-logs/playwright-traces/<run timestamp>/`, next to the current working directory.
+`collect-ess-logs` exports them with the other logs, so CI uploads them with the logs of the run.
+View a trace with `playwright show-trace <file>` or by opening it on [trace.playwright.dev](https://trace.playwright.dev).
+
 Pytest caches the namespace name and created user tokens between run. To start a run from scratch,
 run `pytest-ess -- --cache-clear`.
 

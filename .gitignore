@@ -10,3 +10,4 @@ __pycache__
 charts/*/user_values/*.yaml
 .pyhelm_cache
 dist/
+ess-helm-logs
