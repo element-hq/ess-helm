@@ -175,7 +175,7 @@ def proxied_matrix_rtc_request(generated_data: ESSData, user: User, room_id: str
         "url": f"wss://mrtc.{generated_data.server_name}",
         "room_id": room_id,
         "slot_id": "m.call#ROOM",
-        "member": matrix_rtc_member(generated_data, user),
+        "member_id": matrix_rtc_member(generated_data, user)["id"],
     }
 
 
@@ -230,15 +230,15 @@ async def test_matrix_rtc_delayed_leave_delegated_through_synapse(
     headers = {"Authorization": f"Bearer {users[0].access_token}"}
 
     room = await aiohttp_post_json(f"{synapse}/_matrix/client/v3/createRoom", {}, headers, ssl_context)
-    # The leave event is scheduled far enough in the future to not be sent by Synapse during the test
-    delay_id = await schedule_delayed_leave(generated_data, users[0], room["room_id"], 3600000, ssl_context)
+    # The authorisation service looks up the delay of the leave event on Synapse and waits that long for the user
+    # to connect, so the delay is kept short for the test to complete in time
+    delay_id = await schedule_delayed_leave(generated_data, users[0], room["room_id"], 5000, ssl_context)
 
-    # The user never connects to the SFU. After `delay_timeout` the authorisation service gives up waiting
+    # The user never connects to the SFU. After the delay the authorisation service gives up waiting
     # and sends the leave event on behalf of the user, authenticating as an appservice asserting the user
     await aiohttp_post_json(
         f"{synapse}{PROXIED_MATRIX_RTC_PATH}/delegate_delayed_leave",
-        proxied_matrix_rtc_request(generated_data, users[0], room["room_id"])
-        | {"delay_id": delay_id, "delay_timeout": 2000},
+        proxied_matrix_rtc_request(generated_data, users[0], room["room_id"]) | {"delay_id": delay_id},
         headers,
         ssl_context,
     )
