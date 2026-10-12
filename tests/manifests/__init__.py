@@ -627,7 +627,8 @@ all_components_details = [
                 # Files provided by the base image
                 "/50x.html",
                 "/config",
-                "/i18n",
+                "/i18n/",
+                "/usercontent/",
                 "/health",
                 "/index.html",
                 "/modules",
