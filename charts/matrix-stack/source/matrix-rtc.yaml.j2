@@ -63,6 +63,10 @@ replicas: 1
 sfu:
   enabled: true
 
+  ## URL for an external SFU, using the wss schema
+  ## Required if the in-chart SFU is disabled
+  # url: "wss://external.sfu.example.com"
+
   # Use STUN to resolve the server public IP
   useStunToDiscoverPublicIP: true
 

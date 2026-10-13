@@ -135,6 +135,7 @@ password_config:
 matrix_rtc:
   transports:
   - type: livekit
+    url: {{ include "element-io.matrix-rtc-sfu.url" (dict "root" $root) }}
     livekit_service_url: {{ (printf "https://%s" $root.Values.matrixRTC.ingress.host) }}
 {{- end }}
 
