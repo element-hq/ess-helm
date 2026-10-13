@@ -175,7 +175,7 @@ RSA_PASSKEY: {{ . | b64enc }}
   {{- end }}
   {{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "hookshot.appserviceRegistration" "initIfAbsent" true)) -}}
   {{- with (.appserviceRegistration).value }}
-REGISTRATION: {{ . | b64enc }}
+REGISTRATION: {{ tpl . $root | b64enc }}
   {{- end }}
   {{- if .redisOrValkey }}
   {{- with .redisOrValkey.password }}
