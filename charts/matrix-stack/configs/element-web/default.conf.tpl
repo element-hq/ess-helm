@@ -49,7 +49,11 @@ server {
       add_header Cache-Control "no-cache";
       include /etc/nginx/security_headers.conf;
   }
-  location = /i18n {
+  location = /i18n/ {
+      add_header Cache-Control "no-cache";
+      include /etc/nginx/security_headers.conf;
+  }
+  location = /usercontent/ {
       add_header Cache-Control "no-cache";
       include /etc/nginx/security_headers.conf;
   }
