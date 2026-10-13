@@ -514,7 +514,9 @@ async def test_not_too_many_ports_in_services(templates):
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_references_to_services_are_anchored_by_the_cluster_domain(values, make_templates):
+async def test_references_to_services_are_anchored_by_the_cluster_domain(
+    values, make_templates, release_name, namespace
+):
     """
     Service references must use proper cluster domain anchoring.
 
@@ -532,6 +534,12 @@ async def test_references_to_services_are_anchored_by_the_cluster_domain(values,
                 assert ".svc.cluster.local." in line, (
                     f"{template_id(template)} contains service reference that isn't properly anchored: {line=}. "
                     f"Expected '.svc.cluster.local.' but found '{line.strip()}'. "
+                    f"Service references must be fully qualified with the cluster domain."
+                )
+            if f"://{release_name}-" in line:
+                assert f".{namespace}.svc.cluster.local." in line, (
+                    f"{template_id(template)} contains service reference that isn't properly anchored: {line=}. "
+                    f"Expected '.{namespace}.svc.cluster.local.' but found '{line.strip()}'. "
                     f"Service references must be fully qualified with the cluster domain."
                 )
 
