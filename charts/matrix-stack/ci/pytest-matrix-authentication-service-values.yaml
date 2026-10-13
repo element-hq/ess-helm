@@ -49,6 +49,15 @@ postgres:
     runAsGroup: 0
 serverName: ess.localhost
 synapse:
+  additional:
+    00-login-rate-limits.yaml:
+      config: |
+        # Playwright tests log in many users from the same IP. The default
+        # limits are too low for that.
+        rc_login:
+          address:
+            per_second: 10
+            burst_count: 1000
   checkConfigHook:
     annotations:
       has-no-service-monitor: "true"
