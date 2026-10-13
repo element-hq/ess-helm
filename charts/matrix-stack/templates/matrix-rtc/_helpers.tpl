@@ -127,10 +127,8 @@ env:
               "defaultSecretKey" "LIVEKIT_SECRET"
               )
         )) }}
-{{- if .sfu.enabled }}
 - name: "LIVEKIT_URL"
-  value: {{ printf "wss://%s" (tpl .ingress.host $root) }}
-{{- end }}
+  value: {{ include "element-io.matrix-rtc-sfu.url" (dict "root" $root) }}
 - name: "LIVEKIT_FULL_ACCESS_HOMESERVERS"
   value: {{ (.restrictRoomCreationToLocalUsers | ternary (tpl $root.Values.serverName $root) "*") | quote }}
 {{- if $root.Values.synapse.enabled }}

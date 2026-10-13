@@ -123,9 +123,32 @@
     },
     "sfu": {
       "type": "object",
+      "if": {
+        "properties": {
+          "enabled": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "not": {
+          "required": [
+            "url"
+          ]
+        }
+      },
+      "else": {
+        "required": [
+          "url"
+        ]
+      },
       "properties": {
         "enabled": {
           "type": "boolean"
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^wss://.*"
         },
         "replicas": {
           "minimum": 0,
