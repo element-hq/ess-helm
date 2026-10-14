@@ -1,9 +1,0 @@
-# Copyright 2026 Element Creations Ltd
-#
-# SPDX-License-Identifier: AGPL-3.0-only
-
-haproxy:
-  annotations:
-    # HAProxy drains its connections itself using its grace and hard-stop-after configuration.
-    # Tests use this annotation to skip the preStop sleep requirement for such workloads.
-    handles-graceful-shutdown-natively: "yes"
