@@ -190,12 +190,12 @@ spec:
 {{- if .exposedServices.turnTLS.tlsSecret }}
       - name: secret-turn-tls
         secret:
-          defaultMode: 256
+          defaultMode: 288
           secretName: {{ tpl .exposedServices.turnTLS.tlsSecret $ }}
 {{- else if $.Values.certManager }}
       - name: secret-turn-tls
         secret:
-          defaultMode: 256
+          defaultMode: 288
           secretName: "{{ $.Release.Name }}-turn-tls-certmanager-tls"
 {{- end }}
 {{- end }}

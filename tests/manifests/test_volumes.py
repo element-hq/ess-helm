@@ -18,12 +18,37 @@ from .utils import iterate_deployables_workload_parts, iterate_pod_template
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_volume_default_mode(values, templates):
+    # Allowed defaultModes for ConfigMap and Secret volumes.
+    #
+    # The kubelet writes projected files itself, so they are ALWAYS owned by
+    # root (the container's runAsUser is never the owner). That makes the
+    # *owner* permission slot useless: only the group and other slots can
+    # ever apply to the container process.
+    #
+    # How the group slot gets used:
+    #   - The kubelet chgrps every file to spec.securityContext.fsGroup and
+    #     force-adds group read (chmod mode|0440) when fsGroup is set.
+    #   - It never adds execute bits on files, so a script must carry its own
+    #     group-execute bit.
+    #   - The process receives fsGroup as a *supplemental* group, so runAsGroup
+    #     is irrelevant here; group membership comes from fsGroup alone.
+    #
+    # As a consequence, 0500 (owner-only) make files unexecutable by any
+    #  non-root container, despite fsGroup.
+    #
+    # What we want to set in the chart:
+    #   - Group read (0440) is enough for plain data (configs, keys).
+    #   - Group read+execute (0550) is required for scripts
+    #
+    # NOTE: these modes assume fsGroup is set in the pod securityContext;
+    # without it, the files stay root:root and non-root containers cannot
+    # access them at all.
+    #
+    ## 288 (decimal) = 440 (octal): r--r-----  (readable data)
+    ## 360 (decimal) = 550 (octal): r-xr-x---  (executable scripts)
     allowed_default_modes = {
-        # For configmaps and Secrets, only owners & groups should be able to read the content
-        ## 256 (decimal) = 400 (octal)
-        ## 320 (decimal) = 500 (octal)
-        "configMap": (256, 320),
-        "secret": (256, 320),
+        "configMap": (288, 360),
+        "secret": (288, 360),
     }
     for pod_template_details in iterate_pod_template(templates):
         for v in pod_template_details.pod_template["spec"].get("volumes", []):
