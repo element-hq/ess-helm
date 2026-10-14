@@ -136,6 +136,9 @@ class DeployableDetails(abc.ABC):
     has_mount_context: bool = field(default=None, hash=False)  # type: ignore[assignment]
     is_synapse_process: bool = field(default=False, hash=False)
     has_ephemeral_storage: bool = field(default=True, hash=False)
+    # True when the workload handles its graceful shutdown itself, like HAProxy with its
+    # grace and hard-stop-after configuration. Such workloads do not need the preStop sleep.
+    has_native_graceful_shutdown: bool = field(default=False, hash=False)
 
     # Use this to skip mounts point we expect not to be referenced in commands, configs, etc
     # The format is expected to be `container_name: <list of mounts to ignore>`
@@ -524,6 +527,7 @@ all_components_details = [
         },
         has_additional_config=False,
         has_credentials=False,
+        has_native_graceful_shutdown=True,
         has_ingress=False,
         is_shared_component=True,
         has_ephemeral_storage=False,
