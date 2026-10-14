@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# source_fragments: init-secrets-minimal.yaml postgres-minimal.yaml server-name.yaml synapse-all-workers-running.yaml synapse-minimal.yaml
+# source_fragments: haproxy-pytest-extras.yaml init-secrets-minimal.yaml postgres-minimal.yaml server-name.yaml synapse-all-workers-running.yaml synapse-minimal.yaml
 # DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
 
 # initSecrets, postgres don't have any required properties to be set and defaults to enabled
@@ -13,6 +13,11 @@ elementAdmin:
   enabled: false
 elementWeb:
   enabled: false
+haproxy:
+  annotations:
+    # HAProxy drains its connections itself using its grace and hard-stop-after configuration.
+    # Tests use this annotation to skip the preStop sleep requirement for such workloads.
+    handles-graceful-shutdown-natively: "yes"
 matrixAuthenticationService:
   enabled: false
 matrixRTC:
