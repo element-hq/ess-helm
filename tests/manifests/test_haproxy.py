@@ -1,5 +1,5 @@
 # Copyright 2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -78,4 +78,37 @@ async def test_haproxy_config_ends_in_2_newlines(templates):
     assert "haproxy.cfg" in haproxy_configmap["data"], f"{template_id(haproxy_configmap)} didn't contain haproxy.cfg"
     assert haproxy_configmap["data"]["haproxy.cfg"].endswith("\n\n"), (
         f"{template_id(haproxy_configmap)}/haproxy.cfg should end with at least 2 \\n"
+    )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_haproxy_config_respects_grace_and_hard_stop_after(values, make_templates):
+    # HAProxy keeps its listeners open for `grace` when it starts stopping, then closes
+    # every remaining connection at the latest `hard-stop-after` after it starts stopping.
+    # This is how HAProxy drains its connections, so it must not also sleep before stopping.
+    haproxy_values = values.setdefault("haproxy", {})
+    haproxy_values["grace"] = "11s"
+    haproxy_values["hardStopAfter"] = "42s"
+
+    for template in await make_templates(values):
+        if template_to_deployable_details(template).name != "haproxy":
+            continue
+
+        if template["kind"] == "ConfigMap":
+            haproxy_configmap = template
+            break
+    else:
+        # HAProxy isn't deployed with this values file
+        return
+
+    assert "haproxy.cfg" in haproxy_configmap["data"], f"{template_id(haproxy_configmap)} didn't contain haproxy.cfg"
+
+    haproxy_cfg = haproxy_configmap["data"]["haproxy.cfg"]
+    assert "  grace 11s" in haproxy_cfg, (
+        f"{template_id(haproxy_configmap)}/haproxy.cfg doesn't keep the listeners open for 11s when stopping"
+    )
+    assert "  hard-stop-after 42s" in haproxy_cfg, (
+        f"{template_id(haproxy_configmap)}/haproxy.cfg doesn't close the remaining connections "
+        "42s after it starts stopping at the latest"
     )

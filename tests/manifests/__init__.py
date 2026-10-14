@@ -29,6 +29,7 @@ class PropertyType(Enum):
     LivenessProbe = "livenessProbe"
     NodeSelector = "nodeSelector"
     PodSecurityContext = "podSecurityContext"
+    PreStopSleepSeconds = "preStopSleepSeconds"
     Postgres = "postgres"
     PriorityClassName = "priorityClassName"
     RuntimeClassName = "runtimeClassName"
@@ -266,6 +267,7 @@ class SidecarDetails(DeployableDetails):
             PropertyType.InitContainers: ValuesFilePath.not_supported(),
             PropertyType.NodeSelector: ValuesFilePath.not_supported(),
             PropertyType.PodSecurityContext: ValuesFilePath.not_supported(),
+            PropertyType.PreStopSleepSeconds: ValuesFilePath.not_supported(),
             PropertyType.PriorityClassName: ValuesFilePath.not_supported(),
             PropertyType.RuntimeClassName: ValuesFilePath.not_supported(),
             PropertyType.SchedulerName: ValuesFilePath.not_supported(),
@@ -399,6 +401,7 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
         PropertyType.Image: ValuesFilePath.read_elsewhere("synapse", "image"),
         PropertyType.InitContainers: ValuesFilePath.read_elsewhere("synapse", "extraInitContainers"),
         PropertyType.Labels: ValuesFilePath.read_elsewhere("synapse", "labels"),
+        PropertyType.PreStopSleepSeconds: ValuesFilePath.read_write("synapse", "preStopSleepSeconds"),
         PropertyType.Affinity: ValuesFilePath.read_elsewhere("synapse", "affinity"),
         PropertyType.NodeSelector: ValuesFilePath.read_elsewhere("synapse", "nodeSelector"),
         PropertyType.ContainersSecurityContext: ValuesFilePath.read_elsewhere("synapse", "containersSecurityContext"),
@@ -515,6 +518,10 @@ all_components_details = [
     ),
     ComponentDetails(
         name="haproxy",
+        values_file_path_overrides={
+            # HAProxy handles graceful shutdown itself with grace and hard-stop-after
+            PropertyType.PreStopSleepSeconds: ValuesFilePath.not_supported(),
+        },
         has_additional_config=False,
         has_credentials=False,
         has_ingress=False,
