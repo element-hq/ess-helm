@@ -64,6 +64,11 @@ spec:
             path: /health
             port: element
             scheme: HTTP
+        # The Service needs time to update its iptables rules before the pod is killed.
+        lifecycle:
+          preStop:
+            sleep:
+              seconds: 3
 {{- with .resources }}
         resources:
           {{- toYaml . | nindent 10 }}
