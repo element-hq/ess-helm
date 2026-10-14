@@ -135,11 +135,13 @@ We have an init container to render & merge the config for several reasons:
           port: synapse-health
 {{- end }}
 {{- if and (ne $processType "main") (eq (include "element-io.synapse.process.scalingType" (dict "root" $root "context" $processType)) "statically_scalable") }}
+{{- with .preStopSleepSeconds }}
 {{- /* The Service needs time to update its iptables rules before the pod is killed. */}}
       lifecycle:
         preStop:
           sleep:
-            seconds: 3
+            seconds: {{ . }}
+{{- end }}
 {{- end }}
 {{- with .resources }}
       resources:

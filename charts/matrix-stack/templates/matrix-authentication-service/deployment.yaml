@@ -132,11 +132,13 @@ We don't want background jobs to get failed use up their retries because MAS has
             path: /health
             port: internal
             scheme: HTTP
+{{- with .preStopSleepSeconds }}
         # The Service needs time to update its iptables rules before the pod is killed.
         lifecycle:
           preStop:
             sleep:
-              seconds: 3
+              seconds: {{ . }}
+{{- end }}
         volumeMounts:
         {{- include "element-io.ess-library.render-config-volume-mounts" (dict "root" $ "context"
             (dict "nameSuffix" "matrix-authentication-service"

@@ -9048,6 +9048,13 @@
             }
           },
           "additionalProperties": false
+        },
+        "preStopSleepSeconds": {
+          "minimum": 1,
+          "type": [
+            "integer",
+            "null"
+          ]
         }
       },
       "additionalProperties": false
@@ -10542,6 +10549,13 @@
             }
           },
           "additionalProperties": false
+        },
+        "preStopSleepSeconds": {
+          "minimum": 1,
+          "type": [
+            "integer",
+            "null"
+          ]
         }
       },
       "additionalProperties": false
@@ -17475,6 +17489,13 @@
             }
           },
           "additionalProperties": false
+        },
+        "preStopSleepSeconds": {
+          "minimum": 1,
+          "type": [
+            "integer",
+            "null"
+          ]
         }
       },
       "additionalProperties": false
@@ -31201,6 +31222,13 @@
             }
           },
           "additionalProperties": false
+        },
+        "preStopSleepSeconds": {
+          "minimum": 1,
+          "type": [
+            "integer",
+            "null"
+          ]
         }
       },
       "additionalProperties": false

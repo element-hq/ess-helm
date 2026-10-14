@@ -8,6 +8,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {% import 'sub_schema_values.yaml.j2' as sub_schema_values -%}
 {% import 'synapse_sub_schema_values.yaml.j2' as synapse_sub_schema_values -%}
 enabled: true
+{{- sub_schema_values.preStopSleepSeconds() }}
 
 ## A hook job will make sure that Synapse config is valid before continuing
 checkConfigHook:

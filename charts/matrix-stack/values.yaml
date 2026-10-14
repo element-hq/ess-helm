@@ -1457,6 +1457,10 @@ elementAdmin:
 
   # Number of Element Admin replicas to start up
   replicas: 1
+  ## How long, in seconds, each container of this workload waits before stopping when it rolls out
+  ## This gives the Service time to update its iptables rules before the pod is killed
+  ## Unset this to stop the containers without waiting
+  preStopSleepSeconds: 3
   # Details of the image to be used
   image:
     ## The host and (optional) port of the container image registry for this component.
@@ -1762,6 +1766,10 @@ elementWeb:
 
   # Number of Element Web replicas to start up
   replicas: 1
+  ## How long, in seconds, each container of this workload waits before stopping when it rolls out
+  ## This gives the Service time to update its iptables rules before the pod is killed
+  ## Unset this to stop the containers without waiting
+  preStopSleepSeconds: 3
   # Details of the image to be used
   image:
     ## The host and (optional) port of the container image registry for this component.
@@ -2812,6 +2820,10 @@ matrixAuthenticationService:
     pullSecrets: []
 
   replicas: 1
+  ## How long, in seconds, each container of this workload waits before stopping when it rolls out
+  ## This gives the Service time to update its iptables rules before the pod is killed
+  ## Unset this to stop the containers without waiting
+  preStopSleepSeconds: 3
 
 
   ## Details of the external Postgres Database to use
@@ -4362,6 +4374,10 @@ redis: {}
 
 synapse:
   enabled: true
+  ## How long, in seconds, each container of this workload waits before stopping when it rolls out
+  ## This gives the Service time to update its iptables rules before the pod is killed
+  ## Unset this to stop the containers without waiting
+  preStopSleepSeconds: 3
 
   ## A hook job will make sure that Synapse config is valid before continuing
   checkConfigHook:
