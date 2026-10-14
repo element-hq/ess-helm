@@ -1457,10 +1457,6 @@ elementAdmin:
 
   # Number of Element Admin replicas to start up
   replicas: 1
-  ## How long, in seconds, each container of this workload waits before stopping when it rolls out
-  ## This gives the Service time to update its iptables rules before the pod is killed
-  ## Unset this to stop the containers without waiting
-  preStopSleepSeconds: 3
   # Details of the image to be used
   image:
     ## The host and (optional) port of the container image registry for this component.
@@ -1696,6 +1692,10 @@ elementAdmin:
   ##   # nodeTaintsPolicy: Honor/Ignore
   ##   # whenUnsatisfiable: DoNotSchedule/ScheduleAnyway
   topologySpreadConstraints: []
+  ## How long, in seconds, each container of this workload waits before stopping when it rolls out
+  ## This gives the Service time to update its iptables rules before the pod is killed
+  ## Unset this to stop the containers without waiting
+  preStopSleepSeconds: 3
   ## Configuration of the thresholds and frequencies of the livenessProbe
   livenessProbe:
     ## How many consecutive failures for the probe to be considered failed
@@ -1766,10 +1766,6 @@ elementWeb:
 
   # Number of Element Web replicas to start up
   replicas: 1
-  ## How long, in seconds, each container of this workload waits before stopping when it rolls out
-  ## This gives the Service time to update its iptables rules before the pod is killed
-  ## Unset this to stop the containers without waiting
-  preStopSleepSeconds: 3
   # Details of the image to be used
   image:
     ## The host and (optional) port of the container image registry for this component.
@@ -2005,6 +2001,10 @@ elementWeb:
   ##   # nodeTaintsPolicy: Honor/Ignore
   ##   # whenUnsatisfiable: DoNotSchedule/ScheduleAnyway
   topologySpreadConstraints: []
+  ## How long, in seconds, each container of this workload waits before stopping when it rolls out
+  ## This gives the Service time to update its iptables rules before the pod is killed
+  ## Unset this to stop the containers without waiting
+  preStopSleepSeconds: 3
   ## Configuration of the thresholds and frequencies of the livenessProbe
   livenessProbe:
     ## How many consecutive failures for the probe to be considered failed
@@ -2829,10 +2829,6 @@ matrixAuthenticationService:
     pullSecrets: []
 
   replicas: 1
-  ## How long, in seconds, each container of this workload waits before stopping when it rolls out
-  ## This gives the Service time to update its iptables rules before the pod is killed
-  ## Unset this to stop the containers without waiting
-  preStopSleepSeconds: 3
 
 
   ## Details of the external Postgres Database to use
@@ -3212,6 +3208,10 @@ matrixAuthenticationService:
   # Extra initContainers to add to Matrix Authentication Service, as a yaml array
   extraInitContainers: []
 
+  ## How long, in seconds, each container of this workload waits before stopping when it rolls out
+  ## This gives the Service time to update its iptables rules before the pod is killed
+  ## Unset this to stop the containers without waiting
+  preStopSleepSeconds: 3
 
   ## Configuration of the thresholds and frequencies of the livenessProbe
   livenessProbe:
@@ -4383,10 +4383,6 @@ redis: {}
 
 synapse:
   enabled: true
-  ## How long, in seconds, each container of this workload waits before stopping when it rolls out
-  ## This gives the Service time to update its iptables rules before the pod is killed
-  ## Unset this to stop the containers without waiting
-  preStopSleepSeconds: 3
 
   ## A hook job will make sure that Synapse config is valid before continuing
   checkConfigHook:
@@ -6212,6 +6208,10 @@ synapse:
   ##   # nodeTaintsPolicy: Honor/Ignore
   ##   # whenUnsatisfiable: DoNotSchedule/ScheduleAnyway
   topologySpreadConstraints: []
+  ## How long, in seconds, each container of this workload waits before stopping when it rolls out
+  ## This gives the Service time to update its iptables rules before the pod is killed
+  ## Unset this to stop the containers without waiting
+  preStopSleepSeconds: 3
   ## Configuration of the thresholds and frequencies of the livenessProbe
   livenessProbe:
     ## How many consecutive failures for the probe to be considered failed

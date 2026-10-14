@@ -8,7 +8,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 {% import 'sub_schema_values.yaml.j2' as sub_schema_values -%}
 {% import 'synapse_sub_schema_values.yaml.j2' as synapse_sub_schema_values -%}
 enabled: true
-{{- sub_schema_values.preStopSleepSeconds() }}
 
 ## A hook job will make sure that Synapse config is valid before continuing
 checkConfigHook:
@@ -117,6 +116,7 @@ replicas: 1
 {{- sub_schema_values.serviceMonitors() }}
 {{- sub_schema_values.tolerations() }}
 {{- sub_schema_values.topologySpreadConstraints() }}
+{{- sub_schema_values.preStopSleepSeconds() }}
 {{- sub_schema_values.probe("liveness", failureThreshold=8, periodSeconds=6, timeoutSeconds=12) }}
 {{- sub_schema_values.probe("readiness", failureThreshold=8, periodSeconds=2, successThreshold=2, timeoutSeconds=12) }}
 {{- sub_schema_values.probe("startup", failureThreshold=54, periodSeconds=2) }}
