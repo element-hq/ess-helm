@@ -202,12 +202,14 @@ spec:
         name: var-run
 {{- if and $.Values.initSecrets.enabled (include "element-io.init-secrets.postgres-generated-secrets" (dict "root" $)) }}
       - secret:
+          defaultMode: 256
           secretName: {{ $.Release.Name }}-generated
         name: secret-generated
 {{- end }}
 {{- range $secret := include "element-io.postgres.configSecrets" (dict "root" $ "context" .) | fromJsonArray }}
 {{- with (tpl $secret $) }}
       - secret:
+          defaultMode: 256
           secretName: {{ . }}
         name: "secret-{{ . | sha256sum | trunc 12 }}"
 {{- end }}
@@ -217,6 +219,7 @@ spec:
 {{- end }}
       - name: config
         configMap:
+          defaultMode: 256
           name: {{ $.Release.Name }}-postgres
       - name: database
         persistentVolumeClaim:

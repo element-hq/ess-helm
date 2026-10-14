@@ -92,11 +92,11 @@ spec:
 {{- end }}
       volumes:
       - configMap:
-          defaultMode: 420
+          defaultMode: 256
           name: {{ $.Release.Name }}-element-web
         name: config
       - configMap:
-          defaultMode: 420
+          defaultMode: 256
           name: {{ $.Release.Name }}-element-web-nginx
         name: nginx-config
       - emptyDir: {{- $.Values.elementWeb.ephemeralStorages.tmp | toYaml | nindent 10 }}
