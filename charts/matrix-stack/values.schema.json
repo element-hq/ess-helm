@@ -10569,6 +10569,14 @@
           "minimum": 0,
           "type": "integer"
         },
+        "grace": {
+          "pattern": "^[0-9]+(ms|s|m|h|d)?$",
+          "type": "string"
+        },
+        "hardStopAfter": {
+          "pattern": "^[0-9]+(ms|s|m|h|d)?$",
+          "type": "string"
+        },
         "image": {
           "type": "object",
           "required": [

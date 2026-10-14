@@ -18,6 +18,14 @@ global
   # Allow HAProxy Stats sockets
   stats socket ipv4@127.0.0.1:1999 level admin
 
+  # Keep the listeners open for this long after HAProxy starts stopping.
+  # This gives the Service time to update its iptables rules before the pod is killed.
+  grace {{ .grace }}
+
+  # Close every remaining connection at the latest this long after HAProxy starts stopping.
+  # This keeps the time HAProxy takes to stop below the pod's terminationGracePeriodSeconds.
+  hard-stop-after {{ .hardStopAfter }}
+
   # In a dual-stack cluster, HAProxy will receive both the A and AAAA records for each backing Pod.
   # This is either in the additional section of the response or when directly querying the hostname in the SRV response.
   # As a backend server can only have a single IP address and `resolve-prefer` doesn't appear to impact SRV results,
