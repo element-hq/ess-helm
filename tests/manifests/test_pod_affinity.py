@@ -94,12 +94,13 @@ async def test_pod_has_no_affinity_by_default(templates):
         )
 
 
-@pytest.mark.parametrize("affinity_type", AFFINITY_TYPES)
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_pod_gets_configured_affinity(affinity_type, values, make_templates, release_name):
+async def test_pod_gets_configured_affinity(values, make_templates):
+    # All 3 affinity types are configured at once: they don't interfere with each other, so a
+    # single render checks them all for every deployable.
     def set_affinity(deployable_details: DeployableDetails):
-        deployable_details.set_helm_values(values, PropertyType.Affinity, _affinity_for(affinity_type))
+        deployable_details.set_helm_values(values, PropertyType.Affinity, _all_affinity_types())
 
     iterate_deployables_workload_parts(set_affinity)
     for pod_template_details in iterate_pod_template(await make_templates(values)):
@@ -111,21 +112,20 @@ async def test_pod_gets_configured_affinity(affinity_type, values, make_template
         deployable_details = pod_template_details.deployable_details()
         expected_affinity = deployable_details.get_helm_values(values, PropertyType.Affinity)
         assert pod_spec["affinity"] == deepfreeze(expected_affinity), (
-            f"{pod_template_details.manifest_id} has an unexpected {affinity_type}"
+            f"{pod_template_details.manifest_id} has an unexpected affinity"
         )
 
 
-@pytest.mark.parametrize("affinity_type", AFFINITY_TYPES)
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_global_affinity_renders(affinity_type, values, make_templates):
-    global_affinity = _affinity_for(affinity_type)
+async def test_global_affinity_renders(values, make_templates):
+    global_affinity = _all_affinity_types()
     values["affinity"] = global_affinity
 
     for pod_template_details in iterate_pod_template(await make_templates(values)):
         pod_spec = pod_template_details.pod_template["spec"]
         assert pod_spec.get("affinity") == deepfreeze(global_affinity), (
-            f"{pod_template_details.manifest_id} doesn't inherit the global {affinity_type}"
+            f"{pod_template_details.manifest_id} doesn't inherit the global affinity"
         )
 
 
@@ -133,14 +133,13 @@ async def test_global_affinity_renders(affinity_type, values, make_templates):
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_component_override_is_isolated_to_its_type(affinity_type, values, make_templates):
-    # Global sets all 3 affinity types; a component overrides only one of them.
+    # Global sets all 3 affinity types; a component overrides only one of them. Which type is
+    # overridden can't be combined in a single render, hence the parametrization.
     global_affinity = _all_affinity_types()
     values["affinity"] = global_affinity
 
-    component_override = _affinity_for(affinity_type)
-
     def set_affinity(deployable_details: DeployableDetails):
-        deployable_details.set_helm_values(values, PropertyType.Affinity, component_override)
+        deployable_details.set_helm_values(values, PropertyType.Affinity, _affinity_for(affinity_type))
 
     iterate_deployables_workload_parts(set_affinity)
     for pod_template_details in iterate_pod_template(await make_templates(values)):
@@ -166,7 +165,8 @@ async def test_component_override_is_isolated_to_its_type(affinity_type, values,
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_component_can_blank_global_affinity_type(affinity_type, values, make_templates):
-    # Global sets all 3 affinity types; a component blanks out just one of them with {}.
+    # Global sets all 3 affinity types; a component blanks out just one of them with {}. Which
+    # type is blanked can't be combined in a single render, hence the parametrization.
     global_affinity = _all_affinity_types()
     values["affinity"] = global_affinity
 
