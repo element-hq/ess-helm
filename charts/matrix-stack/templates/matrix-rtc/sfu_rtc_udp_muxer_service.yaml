@@ -25,7 +25,7 @@ spec:
   {{- if hasKey .exposedServices.rtcMuxedUdp "externalIPs" }}
   externalIPs: {{ .exposedServices.rtcMuxedUdp.externalIPs | toYaml | nindent 4 }}
   {{- end }}
-  ipFamilyPolicy: PreferDualStack
+  {{- include "element-io.ess-library.service.ip-families" .exposedServices.rtcMuxedUdp.ipFamily | nindent 2 }}
   internalTrafficPolicy: {{ .exposedServices.rtcMuxedUdp.internalTrafficPolicy }}
   {{- if (ne .exposedServices.rtcMuxedUdp.portType "ClusterIP") }}
   externalTrafficPolicy: {{ .exposedServices.rtcMuxedUdp.externalTrafficPolicy }}

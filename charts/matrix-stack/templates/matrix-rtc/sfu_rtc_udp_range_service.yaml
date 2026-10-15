@@ -31,7 +31,7 @@ spec:
   {{- if hasKey $.Values.matrixRTC.sfu.exposedServices.rtcUdp "externalIPs" }}
   externalIPs: {{ $.Values.matrixRTC.sfu.exposedServices.rtcUdp.externalIPs | toYaml | nindent 4 }}
   {{- end }}
-  ipFamilyPolicy: PreferDualStack
+  {{- include "element-io.ess-library.service.ip-families" $.Values.matrixRTC.sfu.exposedServices.rtcUdp.ipFamily | nindent 2 }}
   internalTrafficPolicy: {{ $.Values.matrixRTC.sfu.exposedServices.rtcUdp.internalTrafficPolicy }}
   {{- if (ne $.Values.matrixRTC.sfu.exposedServices.rtcUdp.portType "ClusterIP") }}
   externalTrafficPolicy: {{ $.Values.matrixRTC.sfu.exposedServices.rtcUdp.externalTrafficPolicy }}

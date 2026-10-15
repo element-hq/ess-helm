@@ -22,7 +22,7 @@ metadata:
   namespace: {{ $.Release.Namespace }}
 spec:
   type: {{ .exposedServices.rtcTcp.portType }}
-  ipFamilyPolicy: PreferDualStack
+  {{- include "element-io.ess-library.service.ip-families" .exposedServices.rtcTcp.ipFamily | nindent 2 }}
   {{- if hasKey .exposedServices.rtcTcp "externalIPs" }}
   externalIPs: {{ .exposedServices.rtcTcp.externalIPs | toYaml | nindent 4 }}
   {{- end }}

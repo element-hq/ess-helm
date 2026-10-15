@@ -409,6 +409,7 @@ async def test_exposed_services_ip_family(values, make_templates):
         for service_name in exposed_services_values:
             exposed_services_values[service_name]["ipFamily"] = ip_family
             exposed_services_values[service_name]["annotations"] = test_annotations
+            num_of_expected_exposed_services[deployable_details.name] += 1
         deployable_details.set_helm_values(values, PropertyType.ExposedServices, exposed_services_values)
 
     found_exposed_services = {}
@@ -432,13 +433,13 @@ async def test_exposed_services_ip_family(values, make_templates):
                 if "exposed-service-ip-family" in template["metadata"].get("annotations", {}):
                     found_exposed_services[deployable_details.name].append(template)
                     if ip_family == "dual-stack":
-                        expected_ip_families = ["IPv4", "IPv6"]
+                        expected_ip_families = ("IPv4", "IPv6")
                         assert template["spec"]["ipFamilyPolicy"] == "PreferDualStack", (
                             f"{template_id(template)} should prefer dual-stack but has "
                             f"ipFamilyPolicy '{template['spec']['ipFamilyPolicy']}'"
                         )
                     else:
-                        expected_ip_families = ["IPv4"] if ip_family == "ipv4" else ["IPv6"]
+                        expected_ip_families = ("IPv4",) if ip_family == "ipv4" else ("IPv6",)
                         assert template["spec"]["ipFamilyPolicy"] == "SingleStack", (
                             f"{template_id(template)} with ipFamily '{ip_family}' should be single stack but has "
                             f"ipFamilyPolicy '{template['spec']['ipFamilyPolicy']}'"
