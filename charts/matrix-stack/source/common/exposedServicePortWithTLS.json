@@ -60,7 +60,12 @@
       }
     },
     "ipFamilyPolicy": {
-      "type": "string"
+      "type": "string",
+      "enum": [
+        "SingleStack",
+        "PreferDualStack",
+        "RequireDualStack"
+      ]
     },
     "ipFamilies": {
       "type": "array",

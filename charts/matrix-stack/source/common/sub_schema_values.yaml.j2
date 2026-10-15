@@ -679,8 +679,8 @@ extraInitContainers: []
   internalTrafficPolicy: Cluster
   externalTrafficPolicy: Cluster
   # The ipFamilyPolicy of the Service. Either SingleStack, PreferDualStack or RequireDualStack.
-  # The default is a helm template. It sets PreferDualStack if networking.ipFamily is dual-stack, SingleStack otherwise.
-  ipFamilyPolicy: '{% raw %}{{ (eq $.Values.networking.ipFamily "dual-stack") | ternary "PreferDualStack" "SingleStack" }}{% endraw %}'
+  # If unset, the Service uses PreferDualStack when networking.ipFamily is dual-stack, SingleStack otherwise.
+  # ipFamilyPolicy: PreferDualStack
   # The ipFamilies of the Service. A list containing IPv4 and/or IPv6.
   # If unset, Kubernetes picks the families based on the ipFamilyPolicy.
   # ipFamilies: []
@@ -713,8 +713,8 @@ extraInitContainers: []
   internalTrafficPolicy: Cluster
   externalTrafficPolicy: Cluster
   # The ipFamilyPolicy of the Service. Either SingleStack, PreferDualStack or RequireDualStack.
-  # The default is a helm template. It sets PreferDualStack if networking.ipFamily is dual-stack, SingleStack otherwise.
-  ipFamilyPolicy: '{% raw %}{{ (eq $.Values.networking.ipFamily "dual-stack") | ternary "PreferDualStack" "SingleStack" }}{% endraw %}'
+  # If unset, the Service uses PreferDualStack when networking.ipFamily is dual-stack, SingleStack otherwise.
+  # ipFamilyPolicy: PreferDualStack
   # The ipFamilies of the Service. A list containing IPv4 and/or IPv6.
   # If unset, Kubernetes picks the families based on the ipFamilyPolicy.
   # ipFamilies: []
