@@ -5924,6 +5924,24 @@
                       "items": {
                         "type": "string"
                       }
+                    },
+                    "ipFamilyPolicy": {
+                      "type": "string",
+                      "enum": [
+                        "SingleStack",
+                        "PreferDualStack",
+                        "RequireDualStack"
+                      ]
+                    },
+                    "ipFamilies": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "IPv4",
+                          "IPv6"
+                        ]
+                      }
                     }
                   },
                   "additionalProperties": false
@@ -5978,6 +5996,24 @@
                       "type": "array",
                       "items": {
                         "type": "string"
+                      }
+                    },
+                    "ipFamilyPolicy": {
+                      "type": "string",
+                      "enum": [
+                        "SingleStack",
+                        "PreferDualStack",
+                        "RequireDualStack"
+                      ]
+                    },
+                    "ipFamilies": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "IPv4",
+                          "IPv6"
+                        ]
                       }
                     }
                   },
@@ -6047,6 +6083,24 @@
                       "items": {
                         "type": "string"
                       }
+                    },
+                    "ipFamilyPolicy": {
+                      "type": "string",
+                      "enum": [
+                        "SingleStack",
+                        "PreferDualStack",
+                        "RequireDualStack"
+                      ]
+                    },
+                    "ipFamilies": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "IPv4",
+                          "IPv6"
+                        ]
+                      }
                     }
                   },
                   "additionalProperties": false
@@ -6111,6 +6165,24 @@
                       "items": {
                         "type": "string"
                       }
+                    },
+                    "ipFamilyPolicy": {
+                      "type": "string",
+                      "enum": [
+                        "SingleStack",
+                        "PreferDualStack",
+                        "RequireDualStack"
+                      ]
+                    },
+                    "ipFamilies": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "IPv4",
+                          "IPv6"
+                        ]
+                      }
                     }
                   },
                   "additionalProperties": false
@@ -6165,6 +6237,24 @@
                       "type": "array",
                       "items": {
                         "type": "string"
+                      }
+                    },
+                    "ipFamilyPolicy": {
+                      "type": "string",
+                      "enum": [
+                        "SingleStack",
+                        "PreferDualStack",
+                        "RequireDualStack"
+                      ]
+                    },
+                    "ipFamilies": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "IPv4",
+                          "IPv6"
+                        ]
                       }
                     }
                   },

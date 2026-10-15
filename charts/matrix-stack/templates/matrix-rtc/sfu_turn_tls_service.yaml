@@ -21,15 +21,7 @@ metadata:
   name: {{ $.Release.Name }}-matrix-rtc-sfu-turn-tls
   namespace: {{ $.Release.Namespace }}
 spec:
-  type: {{ .exposedServices.turnTLS.portType }}
-  ipFamilyPolicy: PreferDualStack
-  {{- if hasKey .exposedServices.turnTLS "externalIPs" }}
-  externalIPs: {{ .exposedServices.turnTLS.externalIPs | toYaml | nindent 4 }}
-  {{- end }}
-  internalTrafficPolicy: {{ .exposedServices.turnTLS.internalTrafficPolicy }}
-  {{- if (ne .exposedServices.turnTLS.portType "ClusterIP") }}
-  externalTrafficPolicy: {{ .exposedServices.turnTLS.externalTrafficPolicy }}
-  {{- end }}
+  {{- include "element-io.ess-library.service.spec" (dict "root" $ "exposedService" .exposedServices.turnTLS) | nindent 2 }}
   ports:
   - name: "turn-tls-tcp"
     protocol: "TCP"
