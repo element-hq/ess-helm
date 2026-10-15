@@ -21,15 +21,7 @@ metadata:
   name: {{ $.Release.Name }}-matrix-rtc-sfu-turn
   namespace: {{ $.Release.Namespace }}
 spec:
-  type: {{ .exposedServices.turn.portType }}
-  {{- include "element-io.ess-library.service.ip-families" (dict "root" $ "exposedService" .exposedServices.turn) | nindent 2 }}
-  {{- if hasKey .exposedServices.turn "externalIPs" }}
-  externalIPs: {{ .exposedServices.turn.externalIPs | toYaml | nindent 4 }}
-  {{- end }}
-  internalTrafficPolicy: {{ .exposedServices.turn.internalTrafficPolicy }}
-  {{- if (ne .exposedServices.turn.portType "ClusterIP") }}
-  externalTrafficPolicy: {{ .exposedServices.turn.externalTrafficPolicy }}
-  {{- end }}
+  {{- include "element-io.ess-library.service.spec" (dict "root" $ "exposedService" .exposedServices.turn) | nindent 2 }}
   ports:
   - name: "turn-udp"
     protocol: "UDP"
