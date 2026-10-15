@@ -1075,6 +1075,8 @@ matrixRTC:
         # Either Local or Cluster
         internalTrafficPolicy: Cluster
         externalTrafficPolicy: Cluster
+        # The IP family the Service should use. Either ipv4, ipv6 or dual-stack
+        ipFamily: dual-stack
         port: 30001
 
       rtcMuxedUdp:
@@ -1094,6 +1096,8 @@ matrixRTC:
         # Either Local or Cluster
         internalTrafficPolicy: Cluster
         externalTrafficPolicy: Cluster
+        # The IP family the Service should use. Either ipv4, ipv6 or dual-stack
+        ipFamily: dual-stack
         port: 30002
 
       rtcUdp:
@@ -1110,6 +1114,8 @@ matrixRTC:
         # Either Local or Cluster
         internalTrafficPolicy: Cluster
         externalTrafficPolicy: Cluster
+        # The IP family the Service should use. Either ipv4, ipv6 or dual-stack
+        ipFamily: dual-stack
         portRange:
           # The beginning port of the range
           startPort: 31000
@@ -1140,6 +1146,8 @@ matrixRTC:
         # Either Local or Cluster
         internalTrafficPolicy: Cluster
         externalTrafficPolicy: Cluster
+        # The IP family the Service should use. Either ipv4, ipv6 or dual-stack
+        ipFamily: dual-stack
         port: 30003
 
         # The domain of the service
@@ -1168,6 +1176,8 @@ matrixRTC:
         # Either Local or Cluster
         internalTrafficPolicy: Cluster
         externalTrafficPolicy: Cluster
+        # The IP family the Service should use. Either ipv4, ipv6 or dual-stack
+        ipFamily: dual-stack
         port: 30004
 
     # Details of the image to be used

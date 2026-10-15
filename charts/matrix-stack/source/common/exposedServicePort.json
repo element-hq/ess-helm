@@ -49,6 +49,14 @@
       "items": {
         "type": "string"
       }
+    },
+    "ipFamily": {
+      "type": "string",
+      "enum": [
+        "ipv4",
+        "ipv6",
+        "dual-stack"
+      ]
     }
   }
 }

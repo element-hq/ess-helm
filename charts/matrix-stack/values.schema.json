@@ -5924,6 +5924,14 @@
                       "items": {
                         "type": "string"
                       }
+                    },
+                    "ipFamily": {
+                      "type": "string",
+                      "enum": [
+                        "ipv4",
+                        "ipv6",
+                        "dual-stack"
+                      ]
                     }
                   },
                   "additionalProperties": false
@@ -5979,6 +5987,14 @@
                       "items": {
                         "type": "string"
                       }
+                    },
+                    "ipFamily": {
+                      "type": "string",
+                      "enum": [
+                        "ipv4",
+                        "ipv6",
+                        "dual-stack"
+                      ]
                     }
                   },
                   "additionalProperties": false
@@ -6047,6 +6063,14 @@
                       "items": {
                         "type": "string"
                       }
+                    },
+                    "ipFamily": {
+                      "type": "string",
+                      "enum": [
+                        "ipv4",
+                        "ipv6",
+                        "dual-stack"
+                      ]
                     }
                   },
                   "additionalProperties": false
@@ -6111,6 +6135,14 @@
                       "items": {
                         "type": "string"
                       }
+                    },
+                    "ipFamily": {
+                      "type": "string",
+                      "enum": [
+                        "ipv4",
+                        "ipv6",
+                        "dual-stack"
+                      ]
                     }
                   },
                   "additionalProperties": false
@@ -6166,6 +6198,14 @@
                       "items": {
                         "type": "string"
                       }
+                    },
+                    "ipFamily": {
+                      "type": "string",
+                      "enum": [
+                        "ipv4",
+                        "ipv6",
+                        "dual-stack"
+                      ]
                     }
                   },
                   "additionalProperties": false

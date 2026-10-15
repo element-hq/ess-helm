@@ -678,6 +678,8 @@ extraInitContainers: []
   # Either Local or Cluster
   internalTrafficPolicy: Cluster
   externalTrafficPolicy: Cluster
+  # The IP family the Service should use. Either ipv4, ipv6 or dual-stack
+  ipFamily: dual-stack
   port: {{ port }}
 {% if tlsSecret %}
   # The domain of the service
@@ -706,6 +708,8 @@ extraInitContainers: []
   # Either Local or Cluster
   internalTrafficPolicy: Cluster
   externalTrafficPolicy: Cluster
+  # The IP family the Service should use. Either ipv4, ipv6 or dual-stack
+  ipFamily: dual-stack
   portRange:
     # The beginning port of the range
     startPort: {{ startPort }}
