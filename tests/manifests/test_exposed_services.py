@@ -388,29 +388,29 @@ async def test_exposed_services_ip_family(values, make_templates):
     """
     Exposed services must configure the IP family policy and families of their Services.
 
-    When Helm values specify ipFamilyPolicy for exposed services,
-    Services must set spec.ipFamilyPolicy to that value.
-    When Helm values also specify ipFamilies, Services must set spec.ipFamilies to that list.
-    When ipFamilies is unset, Services must not set spec.ipFamilies, so the cluster
-    picks the families based on the ipFamilyPolicy.
-
-    Leaving ipFamilyPolicy unset keeps the chart default, which prefers dual-stack.
-    This is asserted by test_services_are_dual_stack_where_possible.
+    - When ipFamilyPolicy is unset, Services must use PreferDualStack if networking.ipFamily
+      is dual-stack, SingleStack otherwise.
+    - When Helm values specify ipFamilyPolicy for exposed services,
+      Services must set spec.ipFamilyPolicy to that value.
+    - When Helm values also specify ipFamilies, Services must set spec.ipFamilies to that list.
+    - When ipFamilies is unset, Services must not set spec.ipFamilies, so the cluster
+      picks the families based on the ipFamilyPolicy.
     """
     num_of_expected_exposed_services = {}
 
     def exposed_services_ip_family(
-        deployable_details: DeployableDetails, ip_family_policy: str, ip_families: tuple[str, ...] | None
+        deployable_details: DeployableDetails, ip_family_policy: str | None, ip_families: tuple[str, ...] | None
     ):
         nonlocal num_of_expected_exposed_services
         exposed_services = deployable_details.get_helm_values(values, PropertyType.ExposedServices)
         assert exposed_services is not None
         exposed_services_values = dict(exposed_services)
         test_annotations = {
-            "exposed-service-ip-family": ip_family_policy,
+            "exposed-service-ip-family": f"{ip_family_policy}-{ip_families}",
         }
         for service_name in exposed_services_values:
-            exposed_services_values[service_name]["ipFamilyPolicy"] = ip_family_policy
+            if ip_family_policy is not None:
+                exposed_services_values[service_name]["ipFamilyPolicy"] = ip_family_policy
             if ip_families is not None:
                 exposed_services_values[service_name]["ipFamilies"] = list(ip_families)
             exposed_services_values[service_name]["annotations"] = test_annotations
@@ -419,14 +419,23 @@ async def test_exposed_services_ip_family(values, make_templates):
 
     found_exposed_services = {}
     found_services = {}
-    for ip_family_policy, ip_families in (
-        # This case runs first because set_helm_values merges values across iterations.
-        # Once ipFamilies has been set on a service, later iterations cannot unset it.
-        ("PreferDualStack", None),
-        ("SingleStack", ("IPv4",)),
-        ("SingleStack", ("IPv6",)),
-        ("RequireDualStack", ("IPv4", "IPv6")),
+    # Cases with unset values must run first: set_helm_values merges values across iterations,
+    # so once ipFamilyPolicy or ipFamilies has been set, later iterations cannot unset them.
+    for networking_ip_family, ip_family_policy, ip_families in (
+        ("dual-stack", None, None),
+        ("ipv4", None, None),
+        ("ipv6", None, None),
+        ("dual-stack", "PreferDualStack", None),
+        ("dual-stack", "SingleStack", ("IPv4",)),
+        ("dual-stack", "SingleStack", ("IPv6",)),
+        ("dual-stack", "RequireDualStack", ("IPv4", "IPv6")),
     ):
+        values.setdefault("networking", {})["ipFamily"] = networking_ip_family
+        if ip_family_policy is None:
+            expected_ip_family_policy = "PreferDualStack" if networking_ip_family == "dual-stack" else "SingleStack"
+        else:
+            expected_ip_family_policy = ip_family_policy
+
         for deployable_details in all_deployables_details:
             num_of_expected_exposed_services[deployable_details.name] = 0
 
@@ -446,8 +455,8 @@ async def test_exposed_services_ip_family(values, make_templates):
                 found_services[deployable_details.name].append(template)
                 if "exposed-service-ip-family" in template["metadata"].get("annotations", {}):
                     found_exposed_services[deployable_details.name].append(template)
-                    assert template["spec"]["ipFamilyPolicy"] == ip_family_policy, (
-                        f"{template_id(template)} should have ipFamilyPolicy '{ip_family_policy}' but has "
+                    assert template["spec"]["ipFamilyPolicy"] == expected_ip_family_policy, (
+                        f"{template_id(template)} should have ipFamilyPolicy '{expected_ip_family_policy}' but has "
                         f"ipFamilyPolicy '{template['spec']['ipFamilyPolicy']}'"
                     )
                     if ip_families is None:
