@@ -9138,6 +9138,13 @@
             }
           },
           "additionalProperties": false
+        },
+        "preStopSleepSeconds": {
+          "minimum": 1,
+          "type": [
+            "integer",
+            "null"
+          ]
         }
       },
       "additionalProperties": false
@@ -10632,6 +10639,13 @@
             }
           },
           "additionalProperties": false
+        },
+        "preStopSleepSeconds": {
+          "minimum": 1,
+          "type": [
+            "integer",
+            "null"
+          ]
         }
       },
       "additionalProperties": false
@@ -10644,6 +10658,14 @@
         "replicas": {
           "minimum": 0,
           "type": "integer"
+        },
+        "grace": {
+          "pattern": "^[0-9]+(ms|s|m|h|d)?$",
+          "type": "string"
+        },
+        "hardStopAfter": {
+          "pattern": "^[0-9]+(ms|s|m|h|d)?$",
+          "type": "string"
         },
         "image": {
           "type": "object",
@@ -17565,6 +17587,13 @@
             }
           },
           "additionalProperties": false
+        },
+        "preStopSleepSeconds": {
+          "minimum": 1,
+          "type": [
+            "integer",
+            "null"
+          ]
         }
       },
       "additionalProperties": false
@@ -31291,6 +31320,13 @@
             }
           },
           "additionalProperties": false
+        },
+        "preStopSleepSeconds": {
+          "minimum": 1,
+          "type": [
+            "integer",
+            "null"
+          ]
         }
       },
       "additionalProperties": false

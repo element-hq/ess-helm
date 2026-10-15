@@ -186,6 +186,10 @@ jobs:
     - name: Deploy with pytest once
       env:
         PYTEST_CI_FIRST_STEP: "1"
+        # On the initial setup, the ingress controller does not know the backends yet.
+        # It can return 500 and 503 until it has picked them up. Once the setup is done,
+        # the preStop sleep and the HAProxy grace period keep the workloads present.
+        PYTEST_EXPECTED_HTTP_STATUS_CODES: "500,503"
       run: |
         if [ -f "tests/integration/env/${MATRIX_TEST_COMPONENT}.rc" ]; then
           # shellcheck source=/dev/null
@@ -203,7 +207,14 @@ jobs:
 
     - name: On upgrade, Synapse can restart, expect 429 to occur
       run: |
-        echo "PYTEST_EXPECTED_HTTP_STATUS_CODES=429,502,504" >> "$GITHUB_ENV"
+        codes="429"
+        # 26.10.0 is the last version without a preStop sleep on its pods.
+        # When upgrading from it, the old pods stop without a delay and the
+        # server can return 502 and 504 errors while the rollout happens.
+        if [ "${MATRIX_TEST_FROM_REF}" = "26.10.1" ]; then
+          codes="$codes,500,502,503,504"
+        fi
+        echo "PYTEST_EXPECTED_HTTP_STATUS_CODES=$codes" >> "$GITHUB_ENV"
       if: ${{ matrix.test-from-ref != github.event.pull_request.head.sha }}
 
     - name: Test with pytest (upgrade or idempotent setup)

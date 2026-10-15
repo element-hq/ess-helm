@@ -311,6 +311,13 @@
           "$ref": "file://synapse/single_worker.json"
         }
       }
+    },
+    "preStopSleepSeconds": {
+      "minimum": 1,
+      "type": [
+        "integer",
+        "null"
+      ]
     }
   }
 }

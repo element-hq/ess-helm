@@ -83,6 +83,13 @@
           "$ref": "file://common/ephemeralStorage.json"
         }
       }
+    },
+    "preStopSleepSeconds": {
+      "minimum": 1,
+      "type": [
+        "integer",
+        "null"
+      ]
     }
   }
 }

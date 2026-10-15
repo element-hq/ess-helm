@@ -29,6 +29,7 @@ class PropertyType(Enum):
     LivenessProbe = "livenessProbe"
     NodeSelector = "nodeSelector"
     PodSecurityContext = "podSecurityContext"
+    PreStopSleepSeconds = "preStopSleepSeconds"
     Postgres = "postgres"
     PriorityClassName = "priorityClassName"
     RuntimeClassName = "runtimeClassName"
@@ -135,6 +136,9 @@ class DeployableDetails(abc.ABC):
     has_mount_context: bool = field(default=None, hash=False)  # type: ignore[assignment]
     is_synapse_process: bool = field(default=False, hash=False)
     has_ephemeral_storage: bool = field(default=True, hash=False)
+    # True when the workload handles its graceful shutdown itself, like HAProxy with its
+    # grace and hard-stop-after configuration. Such workloads do not need the preStop sleep.
+    has_native_graceful_shutdown: bool = field(default=False, hash=False)
 
     # Use this to skip mounts point we expect not to be referenced in commands, configs, etc
     # The format is expected to be `container_name: <list of mounts to ignore>`
@@ -266,6 +270,7 @@ class SidecarDetails(DeployableDetails):
             PropertyType.InitContainers: ValuesFilePath.not_supported(),
             PropertyType.NodeSelector: ValuesFilePath.not_supported(),
             PropertyType.PodSecurityContext: ValuesFilePath.not_supported(),
+            PropertyType.PreStopSleepSeconds: ValuesFilePath.not_supported(),
             PropertyType.PriorityClassName: ValuesFilePath.not_supported(),
             PropertyType.RuntimeClassName: ValuesFilePath.not_supported(),
             PropertyType.SchedulerName: ValuesFilePath.not_supported(),
@@ -399,6 +404,7 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
         PropertyType.Image: ValuesFilePath.read_elsewhere("synapse", "image"),
         PropertyType.InitContainers: ValuesFilePath.read_elsewhere("synapse", "extraInitContainers"),
         PropertyType.Labels: ValuesFilePath.read_elsewhere("synapse", "labels"),
+        PropertyType.PreStopSleepSeconds: ValuesFilePath.read_write("synapse", "preStopSleepSeconds"),
         PropertyType.Affinity: ValuesFilePath.read_elsewhere("synapse", "affinity"),
         PropertyType.NodeSelector: ValuesFilePath.read_elsewhere("synapse", "nodeSelector"),
         PropertyType.ContainersSecurityContext: ValuesFilePath.read_elsewhere("synapse", "containersSecurityContext"),
@@ -515,8 +521,13 @@ all_components_details = [
     ),
     ComponentDetails(
         name="haproxy",
+        values_file_path_overrides={
+            # HAProxy handles graceful shutdown itself with grace and hard-stop-after
+            PropertyType.PreStopSleepSeconds: ValuesFilePath.not_supported(),
+        },
         has_additional_config=False,
         has_credentials=False,
+        has_native_graceful_shutdown=True,
         has_ingress=False,
         is_shared_component=True,
         has_ephemeral_storage=False,

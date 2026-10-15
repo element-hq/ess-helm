@@ -1722,6 +1722,10 @@ elementAdmin:
   ##   # nodeTaintsPolicy: Honor/Ignore
   ##   # whenUnsatisfiable: DoNotSchedule/ScheduleAnyway
   topologySpreadConstraints: []
+  ## How long, in seconds, each container of this workload waits before stopping when it rolls out
+  ## This gives the Service time to update its iptables rules before the pod is killed
+  ## Unset this to stop the containers without waiting
+  preStopSleepSeconds: 3
   ## Configuration of the thresholds and frequencies of the livenessProbe
   livenessProbe:
     ## How many consecutive failures for the probe to be considered failed
@@ -2027,6 +2031,10 @@ elementWeb:
   ##   # nodeTaintsPolicy: Honor/Ignore
   ##   # whenUnsatisfiable: DoNotSchedule/ScheduleAnyway
   topologySpreadConstraints: []
+  ## How long, in seconds, each container of this workload waits before stopping when it rolls out
+  ## This gives the Service time to update its iptables rules before the pod is killed
+  ## Unset this to stop the containers without waiting
+  preStopSleepSeconds: 3
   ## Configuration of the thresholds and frequencies of the livenessProbe
   livenessProbe:
     ## How many consecutive failures for the probe to be considered failed
@@ -2086,6 +2094,15 @@ elementWeb:
 
 haproxy:
   replicas: 1
+
+  ## How long HAProxy keeps its listeners open after the pod starts stopping, e.g. 5s
+  ## This gives the Service time to update its iptables rules before the pod is killed
+  grace: 5s
+
+  ## How long at most HAProxy takes to fully stop after the pod starts stopping, e.g. 25s
+  ## HAProxy closes every remaining connection when this time is up
+  ## Keep this below the pod's terminationGracePeriodSeconds, which defaults to 30s
+  hardStopAfter: 25s
   # Details of the image to be used
   image:
     ## The host and (optional) port of the container image registry for this component.
@@ -3221,6 +3238,10 @@ matrixAuthenticationService:
   # Extra initContainers to add to Matrix Authentication Service, as a yaml array
   extraInitContainers: []
 
+  ## How long, in seconds, each container of this workload waits before stopping when it rolls out
+  ## This gives the Service time to update its iptables rules before the pod is killed
+  ## Unset this to stop the containers without waiting
+  preStopSleepSeconds: 3
 
   ## Configuration of the thresholds and frequencies of the livenessProbe
   livenessProbe:
@@ -6217,6 +6238,10 @@ synapse:
   ##   # nodeTaintsPolicy: Honor/Ignore
   ##   # whenUnsatisfiable: DoNotSchedule/ScheduleAnyway
   topologySpreadConstraints: []
+  ## How long, in seconds, each container of this workload waits before stopping when it rolls out
+  ## This gives the Service time to update its iptables rules before the pod is killed
+  ## Unset this to stop the containers without waiting
+  preStopSleepSeconds: 3
   ## Configuration of the thresholds and frequencies of the livenessProbe
   livenessProbe:
     ## How many consecutive failures for the probe to be considered failed
