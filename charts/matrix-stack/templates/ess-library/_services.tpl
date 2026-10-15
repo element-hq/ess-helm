@@ -5,19 +5,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 
 {{- define "element-io.ess-library.service.ip-families" -}}
-{{- $ipFamily := . -}}
-{{- if eq $ipFamily "dual-stack" -}}
-ipFamilyPolicy: PreferDualStack
+{{- $root := .root -}}
+{{- $exposedService := .exposedService -}}
+ipFamilyPolicy: {{ tpl $exposedService.ipFamilyPolicy $root }}
+{{- if hasKey $exposedService "ipFamilies" }}
 ipFamilies:
-  - IPv4
-  - IPv6
-{{- else if eq $ipFamily "ipv6" -}}
-ipFamilyPolicy: SingleStack
-ipFamilies:
-  - IPv6
-{{- else -}}
-ipFamilyPolicy: SingleStack
-ipFamilies:
-  - IPv4
-{{- end -}}
+  {{- toYaml $exposedService.ipFamilies | nindent 2 }}
+{{- end }}
 {{- end -}}

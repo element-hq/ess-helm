@@ -5925,13 +5925,18 @@
                         "type": "string"
                       }
                     },
-                    "ipFamily": {
-                      "type": "string",
-                      "enum": [
-                        "ipv4",
-                        "ipv6",
-                        "dual-stack"
-                      ]
+                    "ipFamilyPolicy": {
+                      "type": "string"
+                    },
+                    "ipFamilies": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "IPv4",
+                          "IPv6"
+                        ]
+                      }
                     }
                   },
                   "additionalProperties": false
@@ -5988,13 +5993,18 @@
                         "type": "string"
                       }
                     },
-                    "ipFamily": {
-                      "type": "string",
-                      "enum": [
-                        "ipv4",
-                        "ipv6",
-                        "dual-stack"
-                      ]
+                    "ipFamilyPolicy": {
+                      "type": "string"
+                    },
+                    "ipFamilies": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "IPv4",
+                          "IPv6"
+                        ]
+                      }
                     }
                   },
                   "additionalProperties": false
@@ -6064,13 +6074,18 @@
                         "type": "string"
                       }
                     },
-                    "ipFamily": {
-                      "type": "string",
-                      "enum": [
-                        "ipv4",
-                        "ipv6",
-                        "dual-stack"
-                      ]
+                    "ipFamilyPolicy": {
+                      "type": "string"
+                    },
+                    "ipFamilies": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "IPv4",
+                          "IPv6"
+                        ]
+                      }
                     }
                   },
                   "additionalProperties": false
@@ -6136,13 +6151,18 @@
                         "type": "string"
                       }
                     },
-                    "ipFamily": {
-                      "type": "string",
-                      "enum": [
-                        "ipv4",
-                        "ipv6",
-                        "dual-stack"
-                      ]
+                    "ipFamilyPolicy": {
+                      "type": "string"
+                    },
+                    "ipFamilies": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "IPv4",
+                          "IPv6"
+                        ]
+                      }
                     }
                   },
                   "additionalProperties": false
@@ -6199,13 +6219,18 @@
                         "type": "string"
                       }
                     },
-                    "ipFamily": {
-                      "type": "string",
-                      "enum": [
-                        "ipv4",
-                        "ipv6",
-                        "dual-stack"
-                      ]
+                    "ipFamilyPolicy": {
+                      "type": "string"
+                    },
+                    "ipFamilies": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "IPv4",
+                          "IPv6"
+                        ]
+                      }
                     }
                   },
                   "additionalProperties": false

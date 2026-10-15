@@ -1075,8 +1075,12 @@ matrixRTC:
         # Either Local or Cluster
         internalTrafficPolicy: Cluster
         externalTrafficPolicy: Cluster
-        # The IP family the Service should use. Either ipv4, ipv6 or dual-stack
-        ipFamily: dual-stack
+        # The ipFamilyPolicy of the Service. Either SingleStack, PreferDualStack or RequireDualStack.
+        # The default is a helm template. It sets PreferDualStack if networking.ipFamily is dual-stack, SingleStack otherwise.
+        ipFamilyPolicy: '{{ (eq $.Values.networking.ipFamily "dual-stack") | ternary "PreferDualStack" "SingleStack" }}'
+        # The ipFamilies of the Service. A list containing IPv4 and/or IPv6.
+        # If unset, Kubernetes picks the families based on the ipFamilyPolicy.
+        # ipFamilies: []
         port: 30001
 
       rtcMuxedUdp:
@@ -1096,8 +1100,12 @@ matrixRTC:
         # Either Local or Cluster
         internalTrafficPolicy: Cluster
         externalTrafficPolicy: Cluster
-        # The IP family the Service should use. Either ipv4, ipv6 or dual-stack
-        ipFamily: dual-stack
+        # The ipFamilyPolicy of the Service. Either SingleStack, PreferDualStack or RequireDualStack.
+        # The default is a helm template. It sets PreferDualStack if networking.ipFamily is dual-stack, SingleStack otherwise.
+        ipFamilyPolicy: '{{ (eq $.Values.networking.ipFamily "dual-stack") | ternary "PreferDualStack" "SingleStack" }}'
+        # The ipFamilies of the Service. A list containing IPv4 and/or IPv6.
+        # If unset, Kubernetes picks the families based on the ipFamilyPolicy.
+        # ipFamilies: []
         port: 30002
 
       rtcUdp:
@@ -1114,8 +1122,12 @@ matrixRTC:
         # Either Local or Cluster
         internalTrafficPolicy: Cluster
         externalTrafficPolicy: Cluster
-        # The IP family the Service should use. Either ipv4, ipv6 or dual-stack
-        ipFamily: dual-stack
+        # The ipFamilyPolicy of the Service. Either SingleStack, PreferDualStack or RequireDualStack.
+        # The default is a helm template. It sets PreferDualStack if networking.ipFamily is dual-stack, SingleStack otherwise.
+        ipFamilyPolicy: '{{ (eq $.Values.networking.ipFamily "dual-stack") | ternary "PreferDualStack" "SingleStack" }}'
+        # The ipFamilies of the Service. A list containing IPv4 and/or IPv6.
+        # If unset, Kubernetes picks the families based on the ipFamilyPolicy.
+        # ipFamilies: []
         portRange:
           # The beginning port of the range
           startPort: 31000
@@ -1146,8 +1158,12 @@ matrixRTC:
         # Either Local or Cluster
         internalTrafficPolicy: Cluster
         externalTrafficPolicy: Cluster
-        # The IP family the Service should use. Either ipv4, ipv6 or dual-stack
-        ipFamily: dual-stack
+        # The ipFamilyPolicy of the Service. Either SingleStack, PreferDualStack or RequireDualStack.
+        # The default is a helm template. It sets PreferDualStack if networking.ipFamily is dual-stack, SingleStack otherwise.
+        ipFamilyPolicy: '{{ (eq $.Values.networking.ipFamily "dual-stack") | ternary "PreferDualStack" "SingleStack" }}'
+        # The ipFamilies of the Service. A list containing IPv4 and/or IPv6.
+        # If unset, Kubernetes picks the families based on the ipFamilyPolicy.
+        # ipFamilies: []
         port: 30003
 
         # The domain of the service
@@ -1176,8 +1192,12 @@ matrixRTC:
         # Either Local or Cluster
         internalTrafficPolicy: Cluster
         externalTrafficPolicy: Cluster
-        # The IP family the Service should use. Either ipv4, ipv6 or dual-stack
-        ipFamily: dual-stack
+        # The ipFamilyPolicy of the Service. Either SingleStack, PreferDualStack or RequireDualStack.
+        # The default is a helm template. It sets PreferDualStack if networking.ipFamily is dual-stack, SingleStack otherwise.
+        ipFamilyPolicy: '{{ (eq $.Values.networking.ipFamily "dual-stack") | ternary "PreferDualStack" "SingleStack" }}'
+        # The ipFamilies of the Service. A list containing IPv4 and/or IPv6.
+        # If unset, Kubernetes picks the families based on the ipFamilyPolicy.
+        # ipFamilies: []
         port: 30004
 
     # Details of the image to be used

@@ -22,7 +22,7 @@ metadata:
   namespace: {{ $.Release.Namespace }}
 spec:
   type: {{ .exposedServices.turnTLS.portType }}
-  {{- include "element-io.ess-library.service.ip-families" .exposedServices.turnTLS.ipFamily | nindent 2 }}
+  {{- include "element-io.ess-library.service.ip-families" (dict "root" $ "exposedService" .exposedServices.turnTLS) | nindent 2 }}
   {{- if hasKey .exposedServices.turnTLS "externalIPs" }}
   externalIPs: {{ .exposedServices.turnTLS.externalIPs | toYaml | nindent 4 }}
   {{- end }}
