@@ -7,6 +7,96 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.10.1 (2026-10-15)
+
+## Removed / Breaking Changes
+
+- MatrixRTC deployments with an external SFU now need to set `matrixRTC.sfu.url` to the web sockets URL of their SFU.
+
+  This replaces setting `matrixRTC.extraEnv` with an entry for `LIVEKIT_URL`. (#1664)
+
+## Changed
+
+- Change permissions of mounted ConfigMaps and Secrets to deny Read-Write access from others, and only give Read access to owners and groups. (#1573, #1673)
+- Upgrade Element Web to v1.12.31.
+
+  Highlights:
+  - Add a Markdown viewer for `.md` attachments in the right panel
+  - Add PDF viewer zoom buttons
+  - Offer 'Sign out' on the verification page instead of 'Remove this device'
+
+  Full Changelogs:
+  - [v1.12.31](https://github.com/element-hq/element-web/releases/tag/v1.12.31)
+
+  (#1659)
+- Upgrade Synapse to v1.163.0.
+
+  Highlights:
+  - Advertise support for Matrix v1.14 and v1.15
+  - Add push rules for [MSC4075](https://github.com/matrix-org/matrix-spec-proposals/pull/4075): MatrixRTC invites and notifications
+
+  Full Changelogs:
+  - [v1.163.0](https://github.com/element-hq/synapse/blob/release-v1.163/CHANGES.md)
+
+  (#1660)
+- Upgrade Matrix Authentication Service to v1.27.0.
+
+  Highlights:
+  - Allow password reset while signed in
+  - Remember which username was chosen when doing a registration through a social-login provider
+
+  Full Changelogs:
+  - [v1.27.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.27.0)
+
+  (#1661)
+- Configure Synapse with the MatrixRTC SFU URL if MatrixRTC is enabled. (#1664)
+- Upgrade Element Admin to v0.1.16.
+
+  Highlights:
+  - Retry transient failures during login discovery
+
+  Full Changelogs:
+  - [v0.1.16](https://github.com/element-hq/element-admin/releases/tag/v0.1.16)
+
+  (#1665)
+- Hookshot registration files provided as Helm values are now templated. (#1666)
+- Upgrade MatrixRTC authoriser to v0.9.0.
+
+  Highlights:
+  - Verify room membership on the standalone endpoints when `matrixRTC.restrictRoomCreationToLocalUsers: true`
+
+  Full Changelogs:
+  - [v0.9.0](https://call.pro.element.io/room/#/aa24a25d2e?roomId=!JinRWHoQHYpRDDTGcn:spa.pro.element.io&password=ae9fe21de9014d05b6c34166e4152ddf)
+
+  (#1667)
+- Upgrade to `matrix-tools` 0.10.4.
+
+  Highlights:
+  - Refresh dependencies
+
+  (#1670)
+- Upgrade MatrixRTC SFU to v1.13.10.
+
+  Full Changelogs:
+  - [v1.13.10](https://github.com/livekit/livekit/releases/tag/v1.13.10)
+
+  (#1671)
+- Upgrade HAProxy to v3.4.7. (#1674)
+- Upgrade Valkey Exporter to v1.94.0.
+
+  Full Changelogs
+  - [v1.93.0](https://github.com/oliver006/redis_exporter/releases/tag/v1.93.0)
+  - [v1.94.0](https://github.com/oliver006/redis_exporter/releases/tag/v1.94.0)
+
+  (#1675)
+
+## Internal
+
+- Create a room and join it before requesting a token from `/sfu/get` in the integration tests. (#1663)
+- CI: Increase Synapse logins rate limits. (#1668)
+- CI: test that references in `Services` are fully-qualified. (#1669)
+
+
 # ESS Community Helm Chart 26.10.0 (2026-10-09)
 
 ## Removed / Breaking Changes
