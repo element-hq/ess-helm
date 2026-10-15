@@ -67,23 +67,6 @@ def _all_affinity_types() -> dict:
     return affinity
 
 
-def _expected_affinity(global_affinity: dict, component_affinity: dict | None) -> dict:
-    """
-    Mirrors the per-type resolution the chart applies: for each affinity type a component that
-    sets it overrides only that type (an empty value blanks it out); otherwise it is inherited
-    from the global affinity.
-    """
-    component_affinity = component_affinity or {}
-    expected = {}
-    for affinity_type in AFFINITY_TYPES:
-        if affinity_type in component_affinity:
-            if component_affinity[affinity_type]:
-                expected[affinity_type] = component_affinity[affinity_type]
-        elif global_affinity.get(affinity_type):
-            expected[affinity_type] = global_affinity[affinity_type]
-    return expected
-
-
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_pod_has_no_affinity_by_default(templates):
@@ -129,61 +112,36 @@ async def test_global_affinity_renders(values, make_templates):
         )
 
 
-@pytest.mark.parametrize("affinity_type", AFFINITY_TYPES)
+@pytest.mark.parametrize("overridden_type", AFFINITY_TYPES)
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_component_override_is_isolated_to_its_type(affinity_type, values, make_templates):
-    # Global sets all 3 affinity types; a component overrides only one of them. Which type is
-    # overridden can't be combined in a single render, hence the parametrization.
+async def test_component_affinity_types_are_resolved_independently(overridden_type, values, make_templates):
+    # Global sets all 3 affinity types. Each render gives every component a fragment where each
+    # affinity type has a different treatment: one type is overridden, the next one is blanked
+    # out with {} and the last one is left out, so it stays inherited from the global affinity.
+    # The treatments rotate with the parametrization: across the 3 renders every type gets
+    # every treatment for every component, in half the renders these behaviors used to need.
+    type_index = AFFINITY_TYPES.index(overridden_type)
+    blanked_type = AFFINITY_TYPES[(type_index + 1) % len(AFFINITY_TYPES)]
+    inherited_type = AFFINITY_TYPES[(type_index + 2) % len(AFFINITY_TYPES)]
+
     global_affinity = _all_affinity_types()
     values["affinity"] = global_affinity
 
+    component_affinity = _affinity_for(overridden_type) | {blanked_type: {}}
+
     def set_affinity(deployable_details: DeployableDetails):
-        deployable_details.set_helm_values(values, PropertyType.Affinity, _affinity_for(affinity_type))
+        deployable_details.set_helm_values(values, PropertyType.Affinity, component_affinity)
 
     iterate_deployables_workload_parts(set_affinity)
     for pod_template_details in iterate_pod_template(await make_templates(values)):
-        pod_spec = pod_template_details.pod_template["spec"]
-        deployable_details = pod_template_details.deployable_details()
-        component_affinity = deployable_details.get_helm_values(values, PropertyType.Affinity)
-        expected_affinity = _expected_affinity(global_affinity, component_affinity)
-        assert pod_spec.get("affinity") == deepfreeze(expected_affinity), (
-            f"{pod_template_details.manifest_id} did not isolate the {affinity_type} override to that type"
+        affinity = pod_template_details.pod_template["spec"].get("affinity", {})
+        assert affinity.get(overridden_type) == deepfreeze(component_affinity[overridden_type]), (
+            f"{pod_template_details.manifest_id} did not override the global {overridden_type} with the component one"
         )
-        # The other affinity types must still come from the global affinity.
-        for other_type in AFFINITY_TYPES:
-            if other_type == affinity_type:
-                continue
-            if component_affinity and other_type in component_affinity:
-                continue
-            assert pod_spec["affinity"].get(other_type) == deepfreeze(global_affinity[other_type]), (
-                f"{pod_template_details.manifest_id} dropped the global {other_type} when overriding {affinity_type}"
-            )
-
-
-@pytest.mark.parametrize("affinity_type", AFFINITY_TYPES)
-@pytest.mark.parametrize("values_file", values_files_to_test)
-@pytest.mark.asyncio_cooperative
-async def test_component_can_blank_global_affinity_type(affinity_type, values, make_templates):
-    # Global sets all 3 affinity types; a component blanks out just one of them with {}. Which
-    # type is blanked can't be combined in a single render, hence the parametrization.
-    global_affinity = _all_affinity_types()
-    values["affinity"] = global_affinity
-
-    def blank_affinity(deployable_details: DeployableDetails):
-        deployable_details.set_helm_values(values, PropertyType.Affinity, {affinity_type: {}})
-
-    iterate_deployables_workload_parts(blank_affinity)
-    for pod_template_details in iterate_pod_template(await make_templates(values)):
-        pod_spec = pod_template_details.pod_template["spec"]
-        affinity = pod_spec.get("affinity", {})
-        assert affinity_type not in affinity, (
-            f"{pod_template_details.manifest_id} did not blank out the global {affinity_type}"
+        assert blanked_type not in affinity, (
+            f"{pod_template_details.manifest_id} did not blank out the global {blanked_type}"
         )
-        # The non-blanked affinity types must still be inherited from the global affinity.
-        for other_type in AFFINITY_TYPES:
-            if other_type == affinity_type:
-                continue
-            assert affinity.get(other_type) == deepfreeze(global_affinity[other_type]), (
-                f"{pod_template_details.manifest_id} dropped the global {other_type} when blanking {affinity_type}"
-            )
+        assert affinity.get(inherited_type) == deepfreeze(global_affinity[inherited_type]), (
+            f"{pod_template_details.manifest_id} dropped the global {inherited_type}"
+        )
