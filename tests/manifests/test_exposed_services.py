@@ -380,3 +380,81 @@ async def test_exposed_services_traffic_policy(values, make_templates):
                 f"found {len(found_exposed_services[deployable_details.name])}: "
                 f"{[template_id(s) for s in found_services[deployable_details.name]]}"
             )
+
+
+@pytest.mark.parametrize("values_file", services_values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_exposed_services_ip_family(values, make_templates):
+    """
+    Exposed services must configure the IP family of their Services.
+
+    When Helm values specify an ipFamily for exposed services:
+    - ipv4: Services must set spec.ipFamilies to [IPv4] and spec.ipFamilyPolicy to SingleStack
+    - ipv6: Services must set spec.ipFamilies to [IPv6] and spec.ipFamilyPolicy to SingleStack
+    - dual-stack: Services must set spec.ipFamilies to [IPv4, IPv6] and spec.ipFamilyPolicy to PreferDualStack
+
+    Leaving ipFamily unset keeps the historical chart behaviour of preferring dual-stack
+    without specifying ipFamilies, which is asserted by test_services_are_dual_stack_where_possible.
+    """
+    num_of_expected_exposed_services = {}
+
+    def exposed_services_ip_family(deployable_details: DeployableDetails, ip_family: str):
+        nonlocal num_of_expected_exposed_services
+        exposed_services = deployable_details.get_helm_values(values, PropertyType.ExposedServices)
+        assert exposed_services is not None
+        exposed_services_values = dict(exposed_services)
+        test_annotations = {
+            "exposed-service-ip-family": ip_family,
+        }
+        for service_name in exposed_services_values:
+            exposed_services_values[service_name]["ipFamily"] = ip_family
+            exposed_services_values[service_name]["annotations"] = test_annotations
+        deployable_details.set_helm_values(values, PropertyType.ExposedServices, exposed_services_values)
+
+    found_exposed_services = {}
+    found_services = {}
+    for ip_family in ("ipv4", "ipv6", "dual-stack"):
+        for deployable_details in all_deployables_details:
+            num_of_expected_exposed_services[deployable_details.name] = 0
+
+        for deployable_details in all_deployables_details:
+            found_exposed_services[deployable_details.name] = []
+            found_services[deployable_details.name] = []
+
+        iterate_deployables_parts(
+            lambda deployable_details, ip_family=ip_family: exposed_services_ip_family(deployable_details, ip_family),
+            lambda deployable_details: deployable_details.has_exposed_services,
+        )
+        for template in await make_templates(values):
+            deployable_details = template_to_deployable_details(template)
+            if deployable_details.has_exposed_services and template["kind"] == "Service":
+                found_services[deployable_details.name].append(template)
+                if "exposed-service-ip-family" in template["metadata"].get("annotations", {}):
+                    found_exposed_services[deployable_details.name].append(template)
+                    if ip_family == "dual-stack":
+                        expected_ip_families = ["IPv4", "IPv6"]
+                        assert template["spec"]["ipFamilyPolicy"] == "PreferDualStack", (
+                            f"{template_id(template)} should prefer dual-stack but has "
+                            f"ipFamilyPolicy '{template['spec']['ipFamilyPolicy']}'"
+                        )
+                    else:
+                        expected_ip_families = ["IPv4"] if ip_family == "ipv4" else ["IPv6"]
+                        assert template["spec"]["ipFamilyPolicy"] == "SingleStack", (
+                            f"{template_id(template)} with ipFamily '{ip_family}' should be single stack but has "
+                            f"ipFamilyPolicy '{template['spec']['ipFamilyPolicy']}'"
+                        )
+                    assert template["spec"]["ipFamilies"] == expected_ip_families, (
+                        f"{template_id(template)} with ipFamily '{ip_family}' should have "
+                        f"ipFamilies {expected_ip_families} but has {template['spec'].get('ipFamilies')}"
+                    )
+
+        for deployable_details in all_deployables_details:
+            assert (
+                len(found_exposed_services[deployable_details.name])
+                == num_of_expected_exposed_services[deployable_details.name]
+            ), (
+                f"IP family count mismatch for {deployable_details.name} with ipFamily {ip_family}: "
+                f"Expected {num_of_expected_exposed_services[deployable_details.name]} services with an IP family, "
+                f"found {len(found_exposed_services[deployable_details.name])}: "
+                f"{[template_id(s) for s in found_services[deployable_details.name]]}"
+            )
