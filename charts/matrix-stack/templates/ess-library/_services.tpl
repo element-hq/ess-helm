@@ -12,9 +12,9 @@ type: {{ $exposedService.portType }}
 externalIPs: {{ $exposedService.externalIPs | toYaml | nindent 2 }}
 {{- end }}
 ipFamilyPolicy: {{ $exposedService.ipFamilyPolicy | default ((eq $root.Values.networking.ipFamily "dual-stack") | ternary "PreferDualStack" "SingleStack") }}
-{{- if hasKey $exposedService "ipFamilies" }}
+{{- with $exposedService.ipFamilies }}
 ipFamilies:
-  {{- toYaml $exposedService.ipFamilies | nindent 2 }}
+  {{- toYaml . | nindent 2 }}
 {{- end }}
 internalTrafficPolicy: {{ $exposedService.internalTrafficPolicy }}
 {{- if ne $exposedService.portType "ClusterIP" }}
