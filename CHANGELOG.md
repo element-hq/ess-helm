@@ -7,6 +7,35 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.10.2 (2026-10-16)
+
+## Changed
+
+- HAProxy: Configure `grace` and `hard-stop-after` to avoid routing errors to terminated haproxy pods. (#1672)
+- Add `preStop` configuration to all non-singleton containers to sleep on shutdown, to avoid routing errors to terminated pods. (#1672, #1683)
+- MatrixRTC: exposed `Services`' `ipFamilyPolicy` now follows `networking.ipFamily` (`ipv4`, `ipv6` or `dual-stack`) by default.
+
+  This can be overridden on a per exposed `Service` basis by explicitly setting `ipFamilyPolicy` on it.
+
+  `ipFamilies` is also now configurable on a per exposed `Service` basis. It defaults to unset (as before) and so allows the cluster to maintain it (#1677)
+- Upgrade Element Web to v1.12.32.
+
+  Highlights:
+  - Remove support for NEB starter links in messages. Fixes GHSA-x2rg-2g77-mx2w
+  - Remove support for guest_access_token & guest_user_id. Fixes GHSA-c88w-7h6p-27xr
+
+  Full Changelogs:
+  - [v1.12.32](https://github.com/element-hq/element-web/releases/tag/v1.12.32)
+
+  (#1686)
+
+## Internal
+
+- CI: Wait actively for CRDs & Deployments of `prometheus-operator-crds` and `cert-manager` charts to avoid Helm v4 flakes. (#1678)
+- CI: Optimize pod affinity tests to reduce the number of rendering needed to verify it. (#1679)
+- CI: Use k3d 5.9.0 and update kubernetes tested version to 1.35+. (#1685)
+
+
 # ESS Community Helm Chart 26.10.1 (2026-10-15)
 
 ## Removed / Breaking Changes
