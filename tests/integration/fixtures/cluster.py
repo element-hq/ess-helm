@@ -25,13 +25,11 @@ from lightkube.config.kubeconfig import SingleConfig
 from lightkube.core.generic_client import GenericAsyncClient
 from lightkube.generic_resource import create_global_resource, create_namespaced_resource
 from lightkube.models.meta_v1 import ObjectMeta
-from lightkube.resources.apiextensions_v1 import CustomResourceDefinition
-from lightkube.resources.apps_v1 import Deployment
 from lightkube.resources.core_v1 import Namespace, Secret, Service
 from pytest_kubernetes.options import ClusterOptions
 from pytest_kubernetes.providers import K3dManagerBase
 
-from ..lib.utils import async_retry_with_timeout, b64encode, chart_from_ci_cache
+from ..lib.utils import b64encode, chart_from_ci_cache, install_release_and_wait_for_resources
 from .data import ESSData
 
 ClusterIssuer = create_global_resource(
@@ -166,54 +164,17 @@ async def cert_manager(helm_client, kube_client):
         return
 
     chart = await chart_from_ci_cache(helm_client, "oci://quay.io/jetstack/charts/cert-manager")
-    # The chart ships its CRDs in templates. We don't use helm's --wait:
-    # in flaky runs helm 4's status watcher never sees the CRDs as ready,
-    # even though they are established, and hangs until the timeout.
-    # See https://github.com/helm/helm/issues/32615
-    # We also don't use --atomic/--rollback-on-failure as it implies --wait.
-    # The readiness of the Deployments and CRDs is polled below instead.
-    await helm_client.install_or_upgrade_release(
+    # The chart ships its CRDs in templates.
+    # The webhook needs the Deployments to be ready to accept the certificate created right after this fixture.
+    # We create Certificates and ClusterIssuers from these CRDs right after this fixture.
+    await install_release_and_wait_for_resources(
+        helm_client,
+        kube_client,
         "cert-manager",
         chart,
         yaml.safe_load((Path(__file__).parent / "files/charts/cert-manager.yml").open()),
         namespace="cert-manager",
         create_namespace=True,
-    )
-
-    async def _deployments_are_ready():
-        # The webhook needs the Deployments to be ready
-        # to accept the certificate created right after this fixture
-        deployments = [deployment async for deployment in kube_client.list(Deployment, namespace="cert-manager")]
-        assert deployments, "No cert-manager Deployments found"
-        for deployment in deployments:
-            conditions = deployment.status.conditions if deployment.status else []
-            assert any(condition.type == "Available" and condition.status == "True" for condition in conditions), (
-                f"Deployment {deployment.metadata.name} not ready, conditions: {conditions}"
-            )
-
-    # Pulling images on a cold runner can take a while, so we allow up to 5 minutes
-    await async_retry_with_timeout(
-        _deployments_are_ready,
-        max_retries=150,
-        delay=2,
-        timeout_seconds=300,
-    )
-
-    async def _crds_are_established():
-        # We create Certificates and ClusterIssuers from these CRDs
-        # right after this fixture
-        for crd_name in ("certificates.cert-manager.io", "clusterissuers.cert-manager.io"):
-            crd = await kube_client.get(CustomResourceDefinition, name=crd_name)
-            conditions = crd.status.conditions if crd.status else []
-            assert any(condition.type == "Established" and condition.status == "True" for condition in conditions), (
-                f"{crd_name} CRD not established, conditions: {conditions}"
-            )
-
-    await async_retry_with_timeout(
-        _crds_are_established,
-        max_retries=30,
-        delay=2,
-        timeout_seconds=60,
     )
 
     ca_folder = Path(os.environ.get("HOME")) / ".config" / "ess-helm-ca"
@@ -285,34 +246,15 @@ async def prometheus_operator_crds(helm_client: pyhelm3.Client, kube_client: Asy
             helm_client,
             "oci://ghcr.io/prometheus-community/charts/prometheus-operator-crds",
         )
-        # The release only holds CRDs. We don't use helm's --wait:
-        # in flaky runs helm 4's status watcher never sees the CRDs as
-        # ready, even though they are established, and hangs until the timeout.
-        # The ServiceMonitor CRD readiness is polled below instead.
-        # See https://github.com/helm/helm/issues/32615
-        # We also don't use --atomic/--rollback-on-failure as it implies --wait.
-        await helm_client.install_or_upgrade_release(
+        # The release only holds CRDs.
+        await install_release_and_wait_for_resources(
+            helm_client,
+            kube_client,
             "prometheus-operator-crds",
             chart,
             {},
             namespace="prometheus-operator",
             create_namespace=True,
-        )
-
-        async def _service_monitor_crd_is_established():
-            # The ESS chart only creates ServiceMonitors from these CRDs,
-            # so this is the only CRD we need to be ready before continuing
-            crd = await kube_client.get(CustomResourceDefinition, name="servicemonitors.monitoring.coreos.com")
-            conditions = crd.status.conditions if crd.status else []
-            assert any(condition.type == "Established" and condition.status == "True" for condition in conditions), (
-                f"ServiceMonitor CRD not established, conditions: {conditions}"
-            )
-
-        await async_retry_with_timeout(
-            _service_monitor_crd_is_established,
-            max_retries=30,
-            delay=2,
-            timeout_seconds=60,
         )
 
 

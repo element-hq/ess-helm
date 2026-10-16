@@ -28,6 +28,7 @@ from lightkube.generic_resource import (
     get_generic_resource,
 )
 from lightkube.resources.apiextensions_v1 import CustomResourceDefinition
+from lightkube.resources.apps_v1 import Deployment
 from lightkube.resources.core_v1 import Pod
 from pytest_kubernetes.providers import AClusterManager
 
@@ -291,6 +292,90 @@ async def chart_from_ci_cache(helm_client: pyhelm3.Client, chart_ref: str) -> py
                 ) from e
     else:
         return await helm_client.get_chart(chart_ref)
+
+
+async def install_release_and_wait_for_resources(
+    helm_client: pyhelm3.Client,
+    kube_client: AsyncClient,
+    release_name: str,
+    chart: pyhelm3.Chart,
+    values: dict,
+    namespace: str,
+    create_namespace: bool,
+):
+    """Install or upgrade a Helm release without --wait, then poll its resources until ready.
+
+    We don't use helm's --wait: in flaky runs helm 4's status watcher never
+    sees the resources as ready, even though they are, and hangs until the timeout.
+    See https://github.com/helm/helm/issues/32615
+    We also don't use --atomic/--rollback-on-failure as it implies --wait.
+
+    The Deployments and CustomResourceDefinitions of the release are read from
+    its manifest, and their readiness is polled instead.
+    Note that CRDs placed in the chart's `crds/` folder are not part of the
+    release manifest, so they are not waited on.
+    """
+    revision = await helm_client.install_or_upgrade_release(
+        release_name,
+        chart,
+        values,
+        namespace=namespace,
+        create_namespace=create_namespace,
+    )
+
+    # The manifest does not always carry the namespace. Helm then installs
+    # the resource in the release namespace.
+    deployments = []
+    crd_names = []
+    for resource in await revision.resources():
+        # The manifest can hold empty documents between its --- separators.
+        # They are parsed as None, skip them.
+        if not resource:
+            continue
+        kind = resource.get("kind")
+        metadata = resource.get("metadata") or {}
+        name = metadata.get("name")
+        if not name:
+            continue
+        if kind == "Deployment":
+            deployments.append((name, metadata.get("namespace") or namespace))
+        elif kind == "CustomResourceDefinition":
+            crd_names.append(name)
+
+    if deployments:
+
+        async def _deployments_are_ready():
+            for deployment_name, deployment_namespace in deployments:
+                deployment = await kube_client.get(Deployment, name=deployment_name, namespace=deployment_namespace)
+                conditions = deployment.status.conditions if deployment.status else []
+                assert any(condition.type == "Available" and condition.status == "True" for condition in conditions), (
+                    f"Deployment {deployment_name} not ready, conditions: {conditions}"
+                )
+
+        # Pulling images on a cold runner can take a while, so we allow up to 5 minutes
+        await async_retry_with_timeout(
+            _deployments_are_ready,
+            max_retries=150,
+            delay=2,
+            timeout_seconds=300,
+        )
+
+    if crd_names:
+
+        async def _crds_are_established():
+            for crd_name in crd_names:
+                crd = await kube_client.get(CustomResourceDefinition, name=crd_name)
+                conditions = crd.status.conditions if crd.status else []
+                assert any(
+                    condition.type == "Established" and condition.status == "True" for condition in conditions
+                ), f"{crd_name} CRD not established, conditions: {conditions}"
+
+        await async_retry_with_timeout(
+            _crds_are_established,
+            max_retries=30,
+            delay=2,
+            timeout_seconds=60,
+        )
 
 
 async def async_iterable_payload(value: AsyncIterator[bytes], file_size: int) -> aiohttp.payload.AsyncIterablePayload:
