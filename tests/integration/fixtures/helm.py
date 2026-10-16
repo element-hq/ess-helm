@@ -14,12 +14,13 @@ import pytest
 import yaml
 from lightkube import AsyncClient
 from lightkube.models.meta_v1 import ObjectMeta
+from lightkube.resources.batch_v1 import Job
 from lightkube.resources.core_v1 import Namespace, Secret, Service
 from lightkube.resources.networking_v1 import Ingress
 
 from ..artifacts.certs import CertKey, generate_cert
 from ..lib.helpers import kubernetes_docker_secret, kubernetes_tls_secret, wait_for_endpoint_ready
-from ..lib.utils import DockerAuth, docker_config_json, merge, value_file_has
+from ..lib.utils import DockerAuth, async_retry_with_timeout, docker_config_json, merge, value_file_has
 from .data import ESSData
 
 
@@ -215,23 +216,27 @@ async def matrix_stack(
 
 
 @pytest.fixture(scope="session")
-def ingress_ready(cluster, kube_client: AsyncClient, matrix_stack, generated_data: ESSData, ssl_context: SSLContext):
+def ingress_ready(kube_client: AsyncClient, matrix_stack, generated_data: ESSData, ssl_context: SSLContext):
     async def _ingress_ready(ingress_suffix):
-        await asyncio.to_thread(
-            cluster.wait,
-            name=f"ingress/{generated_data.release_name}-{ingress_suffix}",
-            namespace=generated_data.ess_namespace,
-            waitfor="jsonpath='{.status.loadBalancer.ingress[0].ip}'",
-        )
-        ingress = await kube_client.get(
-            Ingress, f"{generated_data.release_name}-{ingress_suffix}", namespace=generated_data.ess_namespace
-        )
+        ingress_name = f"{generated_data.release_name}-{ingress_suffix}"
+
+        async def _ingress_has_an_ip():
+            ingress = await kube_client.get(Ingress, ingress_name, namespace=generated_data.ess_namespace)
+            assert ingress.status
+            assert ingress.status.loadBalancer
+            assert ingress.status.loadBalancer.ingress
+            assert ingress.status.loadBalancer.ingress[0].ip, f"Ingress {ingress_name} has no load balancer IP"
+            return ingress
+
+        # Give the load balancer up to 90 seconds to assign an IP to the Ingress
+        ingress = await async_retry_with_timeout(_ingress_has_an_ip, max_retries=90, delay=1, timeout_seconds=90)
+
         for rule in ingress.spec.rules:
             for path in rule.http.paths:
                 service = await kube_client.get(
                     Service, path.backend.service.name, namespace=generated_data.ess_namespace
                 )
-                await wait_for_endpoint_ready(service.metadata.name, generated_data.ess_namespace, cluster, kube_client)
+                await wait_for_endpoint_ready(service.metadata.name, generated_data.ess_namespace, kube_client)
 
             if rule.host:
                 attempt = 0
@@ -260,13 +265,18 @@ def ingress_ready(cluster, kube_client: AsyncClient, matrix_stack, generated_dat
 
 
 @pytest.fixture(scope="session")
-def secrets_generated(cluster, kube_client: AsyncClient, matrix_stack, generated_data: ESSData):
+def secrets_generated(kube_client: AsyncClient, matrix_stack, generated_data: ESSData):
     async def _secrets_generated(secret_key) -> str:
-        await asyncio.to_thread(
-            cluster.wait,
-            name=f"job/{generated_data.release_name}-init-secrets",
-            namespace=generated_data.ess_namespace,
-            waitfor="condition=complete",
+        # Fail early if the job fails, and give it up to 90 seconds to complete
+        await asyncio.wait_for(
+            kube_client.wait(
+                Job,
+                f"{generated_data.release_name}-init-secrets",
+                namespace=generated_data.ess_namespace,
+                for_conditions=["Complete"],
+                raise_for_conditions=["Failed"],
+            ),
+            timeout=90,
         )
         generated_secret = await kube_client.get(
             Secret, namespace=generated_data.ess_namespace, name=f"{generated_data.release_name}-generated"
