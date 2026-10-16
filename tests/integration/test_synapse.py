@@ -20,7 +20,6 @@ from .fixtures import ESSData, User
 from .lib.helpers import deploy_with_values_patch, get_deployment_marker
 from .lib.synapse import assert_downloaded_content, download_media, upload_media
 from .lib.utils import (
-    KubeCtl,
     aiohttp_client,
     aiohttp_get_json,
     aiohttp_post_json,
@@ -236,7 +235,7 @@ async def test_routes_to_synapse_workers_correctly(
 @pytest.mark.parametrize("users", [(User(name="media-upload-unauth"),)], indirect=True)
 @pytest.mark.asyncio_cooperative
 async def test_synapse_media_upload_fetch_authenticated(
-    cluster,
+    kube_client: AsyncClient,
     ssl_context,
     users,
     generated_data: ESSData,
@@ -278,7 +277,7 @@ async def test_synapse_media_upload_fetch_authenticated(
     media_pod = f"{generated_data.release_name}-{media_pod_suffix}"
 
     await assert_downloaded_content(
-        KubeCtl(cluster),
+        kube_client,
         media_pod,
         generated_data.ess_namespace,
         source_sha256,

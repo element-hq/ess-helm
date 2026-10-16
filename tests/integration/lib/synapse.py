@@ -9,8 +9,9 @@ from ssl import SSLContext
 
 import aiohttp
 import pytest
+from lightkube import AsyncClient
 
-from .utils import KubeCtl, aiohttp_client, aiohttp_get_json, aiohttp_post_json
+from .utils import aiohttp_client, aiohttp_get_json, aiohttp_post_json
 
 
 async def get_nonce(synapse_fqdn: str, ssl_context) -> str:
@@ -147,7 +148,7 @@ async def download_media(
 
 
 async def assert_downloaded_content(
-    kubectl: KubeCtl, media_pod, namespace, source_sha256, content_id, content_download_sha256
+    kube_client: AsyncClient, media_pod, namespace, source_sha256, content_id, content_download_sha256
 ):
     assert source_sha256 == content_download_sha256.split(" ")[0]
 
@@ -155,5 +156,10 @@ async def assert_downloaded_content(
     path = f"local_content/{content_id[0:2]}/{content_id[2:4]}/{content_id[4:]}"
     local_path = f"/media/media_store/{path}"
 
-    local_media_sha256 = await kubectl.exec(media_pod, namespace, ["sha256sum", local_path])
+    response = await kube_client.exec(
+        media_pod, namespace=namespace, command=["sha256sum", local_path], stdout=True, raise_on_error=True
+    )
+    # The exec call captures and decodes stdout as a string
+    assert isinstance(response.stdout, str)
+    local_media_sha256 = response.stdout
     assert source_sha256 == local_media_sha256.split(" ")[0]

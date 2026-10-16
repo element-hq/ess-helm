@@ -30,7 +30,6 @@ from lightkube.generic_resource import (
 from lightkube.resources.apiextensions_v1 import CustomResourceDefinition
 from lightkube.resources.apps_v1 import Deployment
 from lightkube.resources.core_v1 import Pod
-from pytest_kubernetes.providers import AClusterManager
 
 retry_options = JitterRetry(
     attempts=12,
@@ -44,18 +43,6 @@ class DockerAuth:
     registry: str
     username: str
     password: str
-
-
-@dataclass
-class KubeCtl:
-    """A class to execute kubectl against a pod asynchronously"""
-
-    cluster: AClusterManager
-
-    async def exec(self, pod, namespace, cmd):
-        return await asyncio.to_thread(
-            self.cluster.kubectl, as_dict=False, args=["exec", "-t", pod, "-n", namespace, "--", *cmd]
-        )
 
 
 def docker_config_json(auths: list[DockerAuth]) -> str:
