@@ -6,6 +6,7 @@ import pytest
 
 from . import PropertyType, values_files_to_test
 from .utils import (
+    EPHEMERAL_WORKLOAD_KINDS,
     PERSISTENT_WORKLOAD_KINDS,
     iterate_deployables_parts,
     iterate_pod_template,
@@ -22,10 +23,15 @@ from .utils import (
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
 async def test_non_singleton_workloads_have_prestop_sleep_by_default(values, templates):
-    for pod_template_details in iterate_pod_template(templates, kinds=PERSISTENT_WORKLOAD_KINDS):
+    for pod_template_details in iterate_pod_template(
+        templates, kinds=EPHEMERAL_WORKLOAD_KINDS + PERSISTENT_WORKLOAD_KINDS
+    ):
         deployable_details = pod_template_details.deployable_details()
-        no_prestop_needed = deployable_details.is_singleton or deployable_details.has_native_graceful_shutdown
-
+        no_prestop_needed = (
+            deployable_details.is_singleton
+            or deployable_details.has_native_graceful_shutdown
+            or pod_template_details.manifest["kind"] in EPHEMERAL_WORKLOAD_KINDS
+        )
         for container in pod_template_details.pod_template["spec"]["containers"]:
             id = f"{pod_template_details.manifest_id}/{container['name']}"
             prestop = container.get("lifecycle", {}).get("preStop")
@@ -63,9 +69,15 @@ async def test_non_singleton_workloads_respect_prestop_sleep(values, make_templa
         ),
     )
 
-    for pod_template_details in iterate_pod_template(await make_templates(values), kinds=PERSISTENT_WORKLOAD_KINDS):
+    for pod_template_details in iterate_pod_template(
+        await make_templates(values), kinds=PERSISTENT_WORKLOAD_KINDS + EPHEMERAL_WORKLOAD_KINDS
+    ):
         deployable_details = pod_template_details.deployable_details()
-        no_prestop_needed = deployable_details.is_singleton or deployable_details.has_native_graceful_shutdown
+        no_prestop_needed = (
+            deployable_details.is_singleton
+            or deployable_details.has_native_graceful_shutdown
+            or pod_template_details.manifest["kind"] in EPHEMERAL_WORKLOAD_KINDS
+        )
 
         for container in pod_template_details.pod_template["spec"]["containers"]:
             id = f"{pod_template_details.manifest_id}/{container['name']}"
@@ -98,9 +110,15 @@ async def test_non_singleton_workloads_can_unset_prestop_sleep(values, make_temp
         ),
     )
 
-    for pod_template_details in iterate_pod_template(await make_templates(values), kinds=PERSISTENT_WORKLOAD_KINDS):
+    for pod_template_details in iterate_pod_template(
+        await make_templates(values), kinds=EPHEMERAL_WORKLOAD_KINDS + PERSISTENT_WORKLOAD_KINDS
+    ):
         deployable_details = pod_template_details.deployable_details()
-        no_prestop_needed = deployable_details.is_singleton or deployable_details.has_native_graceful_shutdown
+        no_prestop_needed = (
+            deployable_details.is_singleton
+            or deployable_details.has_native_graceful_shutdown
+            or pod_template_details.manifest["kind"] in EPHEMERAL_WORKLOAD_KINDS
+        )
         if no_prestop_needed:
             # These workloads can have their own preStop, like Postgres with pg_ctl
             continue
