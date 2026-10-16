@@ -7,8 +7,6 @@ apiVersion: k3d.io/v1alpha5
 kind: Simple
 metadata:
   name: ess-helm
-# Until k3d comes with a recent k8s/k3s version
-image: rancher/k3s:v1.34.2-k3s1
 agents: 0
 servers: 1
 ports:
