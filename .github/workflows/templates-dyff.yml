@@ -73,7 +73,7 @@ jobs:
 
     - name: Upload new manifests
       id: upload-new
-      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
       with:
         name: new-manifests
         path: ${{ steps.generate-manifests.outputs.output_dir }}
@@ -192,7 +192,7 @@ jobs:
         echo "$PR_NUMBER" | tee "$RUNNER_TEMP/pr-number.txt"
 
     - name: Upload generated manifests
-      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
       with:
         name: dyff-templates
         path: ${{ steps.dyff.outputs.output_dir }}
