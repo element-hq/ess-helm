@@ -153,3 +153,25 @@ async def test_labels_values_are_valid(templates):
     for template in templates:
         for label_value in template["metadata"]["labels"].values():
             assert label_regex.match(label_value), f"{template_id(template)} : {label_value} is not a valid label"
+
+
+@pytest.mark.parametrize("values_file", ["element-web-minimal-values.yaml"])
+@pytest.mark.asyncio_cooperative
+async def test_image_tag_with_digest_has_valid_version_labels(values, make_templates):
+    image_tag = "v1.12.29@sha256:da32e88c8dafe2c3d4f40ca5e90ab2f43a7c9ac35f0977ec7662dcb4fdcd56d8"
+    values.setdefault("elementWeb", {}).setdefault("image", {})["tag"] = image_tag
+
+    templates = await make_templates(values)
+    label_regex = re.compile(r"^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$")
+    version_labels = [
+        template["metadata"]["labels"]["app.kubernetes.io/version"]
+        for template in templates
+        if (template.get("metadata", {}).get("labels", {}).get("app.kubernetes.io/version") or "").startswith(
+            "v1.12.29"
+        )
+    ]
+
+    expected_label = "v1.12.29_sha256_da32e88c8dafe2c3d4f40ca5e90ab2f43a7c9ac35f0977e"
+    assert version_labels
+    assert all(label == expected_label for label in version_labels)
+    assert all(label_regex.match(label) for label in version_labels)
