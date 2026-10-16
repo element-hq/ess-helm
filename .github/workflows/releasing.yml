@@ -46,6 +46,30 @@ jobs:
           uv version --directory tests/ --bump "dev=$GITHUB_RUN_ID"
         fi
 
+    # Because pytest-asyncio-cooperative is a git ref, the package cannot use it as direct dependencies when pushing to Pypi
+    # Instead we manually vendor pytest-asyncio-cooperative in the package when releasing it in CI
+    - name: Fetch pytest-asyncio-cooperative
+      run: |
+        # Extract the Git reference for pytest-asyncio-cooperative from pyproject.toml
+        PYTEST_ASYNCIO_GIT_REF=$(grep -oP 'pytest-asyncio-cooperative @ git\+https://github.com/element-hq/pytest-asyncio-cooperative.git@\K[^"]+' tests/pyproject.toml)
+        if [ -z "$PYTEST_ASYNCIO_GIT_REF" ]; then
+            echo "Error: Could not extract pytest-asyncio-cooperative Git reference from pyproject.toml."
+            exit 1
+        fi
+        echo "Extracted pytest-asyncio-cooperative Git reference: $PYTEST_ASYNCIO_GIT_REF"
+
+        # Clone and checkout the specific commit of pytest-asyncio-cooperative
+        git clone https://github.com/element-hq/pytest-asyncio-cooperative.git
+        cd pytest-asyncio-cooperative
+        git checkout "$PYTEST_ASYNCIO_GIT_REF"
+        cd -
+        mv pytest-asyncio-cooperative/pytest_asyncio_cooperative tests/pytest_asyncio_cooperative
+        rm -rf pytest-asyncio-cooperative
+
+        # Patch pyproject.toml to remove pytest-asyncio-cooperative dependency
+        sed -i '/pytest-asyncio-cooperative @ git+https:\/\/github.com\/element-hq\/pytest-asyncio-cooperative.git@'"$PYTEST_ASYNCIO_GIT_REF/d" "tests/pyproject.toml"
+        sed -i 's/\(module-name = "integration"\)/module-name = ["pytest_asyncio_cooperative", "integration"]/' "tests/pyproject.toml"
+
     - name: Build
       run: uv build --package ess-community-integration-tests
 
