@@ -79,7 +79,7 @@ async def test_services_have_matching_labels(kube_client: AsyncClient, generated
 
 
 @pytest.mark.asyncio_cooperative
-async def test_services_have_endpoints(cluster, kube_client: AsyncClient, generated_data: ESSData, matrix_stack):
+async def test_services_have_endpoints(kube_client: AsyncClient, generated_data: ESSData, matrix_stack):
     # Helm will stop waiting when 1 of replicas are ready
     # We need to wait for all replicas to be ready to check that services all have endpoints
     await wait_for_all_deployments_rolled_out(kube_client, generated_data.ess_namespace)
@@ -91,7 +91,7 @@ async def test_services_have_endpoints(cluster, kube_client: AsyncClient, genera
         assert service.metadata, f"Encountered a service without metadata : {service}"
         assert service.spec, f"Encountered a service without spec : {service}"
         endpoints_to_wait.append(
-            wait_for_endpoint_ready(service.metadata.name, generated_data.ess_namespace, cluster, kube_client)
+            wait_for_endpoint_ready(service.metadata.name, generated_data.ess_namespace, kube_client)
         )
         services[service.metadata.name] = service
 

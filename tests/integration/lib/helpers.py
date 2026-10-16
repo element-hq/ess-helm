@@ -1,5 +1,5 @@
 # Copyright 2024-2025 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -22,7 +22,7 @@ from lightkube.resources.apps_v1 import Deployment
 from lightkube.resources.core_v1 import ConfigMap, Endpoints, Namespace, Pod, Secret
 
 from ..artifacts import CertKey
-from .utils import merge
+from .utils import async_retry_with_timeout, merge
 
 
 def namespace(name: str) -> Namespace:
@@ -51,25 +51,20 @@ def kubernetes_tls_secret(name: str, namespace: str, certificate: CertKey) -> Se
     return secret
 
 
-async def wait_for_endpoint_ready(name, namespace, cluster, kube_client):
-    await asyncio.to_thread(
-        cluster.wait,
-        name=f"endpoints/{name}",
-        namespace=namespace,
-        waitfor="jsonpath='{.subsets[].addresses}'",
-    )
-    # We wait maximum 30 seconds for the endpoints to be ready
-    start_time = time.time()
-    while time.time() - start_time < 30:
-        endpoint = await kube_client.get(Endpoints, name=name, namespace=namespace)
+async def wait_for_endpoint_ready(name, namespace, kube_client):
+    """Wait for the addresses of an Endpoints object to be ready. Return the Endpoints object."""
 
+    async def _endpoint_is_ready():
+        endpoint = await kube_client.get(Endpoints, name=name, namespace=namespace)
+        assert endpoint.subsets, f"Endpoint {name} has no subsets"
         for subset in endpoint.subsets:
-            if not subset or subset.notReadyAddresses or not subset.addresses or not subset.ports:
-                await asyncio.sleep(0.1)
-                break
-        else:
-            break
-    return endpoint
+            assert subset.addresses, f"Endpoint {name} has a subset without addresses"
+            assert not subset.notReadyAddresses, f"Endpoint {name} has a subset with not ready addresses"
+            assert subset.ports, f"Endpoint {name} has a subset without ports"
+        return endpoint
+
+    # Give the endpoints up to 90 seconds to become ready
+    return await async_retry_with_timeout(_endpoint_is_ready, max_retries=90, delay=1, timeout_seconds=90)
 
 
 async def deploy_with_values_patch(
