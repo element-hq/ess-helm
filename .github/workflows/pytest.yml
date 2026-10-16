@@ -173,7 +173,10 @@ jobs:
 
     - uses: ./.github/actions/asdf-cache
       with:
+        # The comment inside tool-versions is used by Renovate to update the k3d version.
+        # asdf supports comments in .tool-versions files.
         tool-versions: |
+          # renovate: datasource=github-releases depName=k3d packageName=k3d-io/k3d
           k3d 5.9.0
 
     - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310  # v5.0.1
