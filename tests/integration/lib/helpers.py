@@ -147,14 +147,22 @@ async def run_pod_with_args(
     completed = False
     while start_time + 60 > now and not completed:
         found_pod = await kube_client.get(Pod, name=pod.metadata.name, namespace=pod.metadata.namespace)
-        if (
-            found_pod.status
-            and found_pod.status.containerStatuses
-            and found_pod.status.containerStatuses[0].state
-            and found_pod.status.containerStatuses[0].state.terminated
-            and found_pod.status.containerStatuses[0].state.terminated.reason == "Completed"
-        ):
+        container_statuses = found_pod.status and found_pod.status.containerStatuses
+        container_state = container_statuses and container_statuses[0].state
+        terminated = container_state and container_state.terminated
+        if terminated and terminated.reason == "Completed":
             completed = True
+        elif terminated and terminated.exitCode != 0:
+            # The command failed for good. Do not wait for a restart.
+            # Restarts use crash loop back off and would waste the whole timeout.
+            log_lines = ""
+            async for log_line in kube_client.log(pod.metadata.name, namespace=pod.metadata.namespace, container="cmd"):
+                log_lines += log_line
+            await kube_client.delete(Pod, name=pod.metadata.name, namespace=generated_data.ess_namespace)
+            raise RuntimeError(
+                f"Pod {pod.metadata.name} command failed with exit code {terminated.exitCode}: "
+                f"pod status: {found_pod.status}, logs: {log_lines}"
+            )
         else:
             now = time.time()
             await asyncio.sleep(1)
