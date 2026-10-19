@@ -8,6 +8,7 @@ import base64
 import hashlib
 import json
 import os
+import random
 import shutil
 from collections.abc import AsyncGenerator, AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
@@ -28,7 +29,7 @@ from lightkube.generic_resource import (
     get_generic_resource,
 )
 from lightkube.resources.apiextensions_v1 import CustomResourceDefinition
-from lightkube.resources.apps_v1 import Deployment
+from lightkube.resources.apps_v1 import Deployment, StatefulSet
 from lightkube.resources.core_v1 import Pod
 
 retry_options = JitterRetry(
@@ -297,8 +298,8 @@ async def install_release_and_wait_for_resources(
     See https://github.com/helm/helm/issues/32615
     We also don't use --atomic/--rollback-on-failure as it implies --wait.
 
-    The Deployments and CustomResourceDefinitions of the release are read from
-    its manifest, and their readiness is polled instead.
+    The Deployments, StatefulSets and CustomResourceDefinitions of the release
+    are read from its manifest, and their readiness is polled instead.
     Note that CRDs placed in the chart's `crds/` folder are not part of the
     release manifest, so they are not waited on.
     """
@@ -313,6 +314,7 @@ async def install_release_and_wait_for_resources(
     # The manifest does not always carry the namespace. Helm then installs
     # the resource in the release namespace.
     deployments = []
+    statefulsets = []
     crd_names = []
     for resource in await revision.resources():
         # The manifest can hold empty documents between its --- separators.
@@ -326,43 +328,63 @@ async def install_release_and_wait_for_resources(
             continue
         if kind == "Deployment":
             deployments.append((name, metadata.get("namespace") or namespace))
+        elif kind == "StatefulSet":
+            statefulsets.append((name, metadata.get("namespace") or namespace))
         elif kind == "CustomResourceDefinition":
             crd_names.append(name)
 
-    if deployments:
+    async def _deployments_are_ready():
+        for deployment_name, deployment_namespace in deployments:
+            deployment = await kube_client.get(Deployment, name=deployment_name, namespace=deployment_namespace)
+            conditions = deployment.status.conditions if deployment.status else []
+            if not any(condition.type == "Available" and condition.status == "True" for condition in conditions):
+                await asyncio.sleep(random.uniform(0, 1))
+                raise AssertionError(f"Deployment {deployment_name} not ready, conditions: {conditions}")
 
-        async def _deployments_are_ready():
-            for deployment_name, deployment_namespace in deployments:
-                deployment = await kube_client.get(Deployment, name=deployment_name, namespace=deployment_namespace)
-                conditions = deployment.status.conditions if deployment.status else []
-                assert any(condition.type == "Available" and condition.status == "True" for condition in conditions), (
-                    f"Deployment {deployment_name} not ready, conditions: {conditions}"
+    async def _statefulsets_are_ready():
+        for statefulset_name, statefulset_namespace in statefulsets:
+            statefulset = await kube_client.get(StatefulSet, name=statefulset_name, namespace=statefulset_namespace)
+            replicas = statefulset.spec.replicas if statefulset.spec else 0
+            ready_replicas = statefulset.status.readyReplicas if statefulset.status else 0
+            # StatefulSets only expose conditions on newer Kubernetes versions,
+            # so compare the ready replicas against the desired ones instead
+            if ready_replicas != replicas:
+                await asyncio.sleep(random.uniform(0, 1))
+                raise AssertionError(
+                    f"StatefulSet {statefulset_name} not ready, readyReplicas: {ready_replicas}/{replicas}"
                 )
 
-        # Pulling images on a cold runner can take a while, so we allow up to 5 minutes
-        await async_retry_with_timeout(
-            _deployments_are_ready,
-            max_retries=150,
-            delay=2,
-            timeout_seconds=300,
+    async def _crds_are_established():
+        for crd_name in crd_names:
+            crd = await kube_client.get(CustomResourceDefinition, name=crd_name)
+            conditions = crd.status.conditions if crd.status else []
+            if not any(condition.type == "Established" and condition.status == "True" for condition in conditions):
+                await asyncio.sleep(random.uniform(0, 1))
+                raise AssertionError(f"{crd_name} CRD not established, conditions: {conditions}")
+
+    # The three checks run concurrently on each attempt. return_exceptions=True
+    # lets them all run to completion, so that the reported failure isn't
+    # whichever kind happened to fail first
+    async def _resources_are_ready():
+        results = await asyncio.gather(
+            _deployments_are_ready(),
+            _statefulsets_are_ready(),
+            _crds_are_established(),
+            return_exceptions=True,
         )
+        for result in results:
+            if isinstance(result, BaseException):
+                raise result
 
-    if crd_names:
-
-        async def _crds_are_established():
-            for crd_name in crd_names:
-                crd = await kube_client.get(CustomResourceDefinition, name=crd_name)
-                conditions = crd.status.conditions if crd.status else []
-                assert any(
-                    condition.type == "Established" and condition.status == "True" for condition in conditions
-                ), f"{crd_name} CRD not established, conditions: {conditions}"
-
-        await async_retry_with_timeout(
-            _crds_are_established,
-            max_retries=30,
-            delay=2,
-            timeout_seconds=60,
-        )
+    # Pulling images on a cold runner can take a while, and building the API
+    # handlers for a batch of CRDs is CPU intensive for the kube-apiserver,
+    # so we allow up to 5 minutes for all of the release's resources.
+    await async_retry_with_timeout(
+        _resources_are_ready,
+        max_retries=150,
+        delay=2,
+        timeout_seconds=300,
+    )
 
 
 async def async_iterable_payload(value: AsyncIterator[bytes], file_size: int) -> aiohttp.payload.AsyncIterablePayload:
