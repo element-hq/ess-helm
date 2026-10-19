@@ -107,9 +107,7 @@ async def get_deployment_marker(kube_client, generated_data, marker: str):
     return configmap.data.get(marker)
 
 
-async def run_pod_with_args(
-    kube_client: AsyncClient, generated_data, image_name, pod_name, args, restart_policy="Never"
-):
+async def run_pod_with_args(kube_client: AsyncClient, generated_data, image_name, pod_name, args):
     pod_pull_secrets = []
     if os.environ.get("CI") and ("DOCKERHUB_USERNAME" in os.environ) and ("DOCKERHUB_TOKEN" in os.environ):
         pod_pull_secrets = [
@@ -118,7 +116,9 @@ async def run_pod_with_args(
     pod = Pod(
         metadata=ObjectMeta(name=pod_name + "-" + str(int(time.time() * 1000)), namespace=generated_data.ess_namespace),
         spec=PodSpec(
-            restartPolicy=restart_policy,
+            # The helper fails as soon as the container stops with a non zero exit code.
+            # A restart policy would never run, so use "Never" and let the command retry itself.
+            restartPolicy="Never",
             imagePullSecrets=pod_pull_secrets,
             containers=[
                 Container(
@@ -142,41 +142,48 @@ async def run_pod_with_args(
     assert pod.metadata.name
     assert pod.metadata.namespace
     await kube_client.create(pod)
-    start_time = time.time()
-    now = time.time()
-    completed = False
-    while start_time + 60 > now and not completed:
-        found_pod = await kube_client.get(Pod, name=pod.metadata.name, namespace=pod.metadata.namespace)
+
+    def _terminated_state(found_pod: Pod):
         container_statuses = found_pod.status and found_pod.status.containerStatuses
         container_state = container_statuses and container_statuses[0].state
-        terminated = container_state and container_state.terminated
-        if terminated and terminated.reason == "Completed":
-            completed = True
-        elif terminated and terminated.exitCode != 0:
-            # The command failed for good. Do not wait for a restart.
-            # Restarts use crash loop back off and would waste the whole timeout.
-            log_lines = ""
-            async for log_line in kube_client.log(pod.metadata.name, namespace=pod.metadata.namespace, container="cmd"):
-                log_lines += log_line
-            await kube_client.delete(Pod, name=pod.metadata.name, namespace=generated_data.ess_namespace)
+        return container_state and container_state.terminated
+
+    async def _container_terminated():
+        found_pod = await kube_client.get(Pod, name=pod.metadata.name, namespace=pod.metadata.namespace)
+        terminated = _terminated_state(found_pod)
+        if terminated is None:
+            # The container is still starting or running. Try again later.
+            raise RuntimeError(f"Pod {pod.metadata.name} command is still running")
+        return found_pod, terminated
+
+    try:
+        found_pod, terminated = await async_retry_with_timeout(
+            _container_terminated,
+            max_retries=60,
+            timeout_seconds=60,
+            delay=1,
+        )
+    except TimeoutError as e:
+        # The retry loop prints one line per attempt. Keep the status out of that message.
+        # Fetch the pod once more so the final error holds the full status.
+        found_pod = await kube_client.get(Pod, name=pod.metadata.name, namespace=pod.metadata.namespace)
+        terminated = _terminated_state(found_pod)
+        if terminated is None:
             raise RuntimeError(
-                f"Pod {pod.metadata.name} command failed with exit code {terminated.exitCode}: "
-                f"pod status: {found_pod.status}, logs: {log_lines}"
-            )
-        else:
-            now = time.time()
-            await asyncio.sleep(1)
-    else:
-        if start_time + 60 <= now:
-            raise RuntimeError(
-                f"Pod {pod.metadata.name} did not start in time "
-                f"(failed after {now - start_time} seconds), "
-                f"pod status: {found_pod.status}"
-            )
+                f"Pod {pod.metadata.name} command did not terminate in time, status: {found_pod.status}"
+            ) from e
+        # The container finished after the last attempt. Use its result below.
 
     log_lines = ""
     async for log_line in kube_client.log(pod.metadata.name, namespace=pod.metadata.namespace, container="cmd"):
         log_lines += log_line
+
+    if terminated.reason != "Completed":
+        # Keep the failed pod so it can be inspected by hand.
+        raise RuntimeError(
+            f"Pod {pod.metadata.name} command failed with exit code {terminated.exitCode}: "
+            f"pod status: {found_pod.status}, logs: {log_lines}"
+        )
     await kube_client.delete(Pod, name=pod.metadata.name, namespace=generated_data.ess_namespace)
     return log_lines
 

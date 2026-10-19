@@ -262,7 +262,6 @@ async def has_actual_metrics_on_endpoint(
                         "2",
                         f"http://{service.metadata.name}.{generated_data.ess_namespace}.svc.cluster.local:{port_spec.port}/metrics",
                     ],
-                    restart_policy="Never",
                 )
                 for metric_family in text_string_to_metric_families(metrics_data):
                     assert metric_family.name, "Metric family has no name"
