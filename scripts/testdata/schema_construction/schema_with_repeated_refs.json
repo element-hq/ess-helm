@@ -1,0 +1,13 @@
+{
+  "$id": "file://matrix-stack/charts/schema_with_repeated_refs",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "first": {
+      "$ref": "file://sub_schema2.json"
+    },
+    "second": {
+      "$ref": "file://sub_schema2.json"
+    }
+  }
+}

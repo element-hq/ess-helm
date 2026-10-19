@@ -11,6 +11,7 @@ and testing the new credential schema functionality.
 import json
 import logging
 from pathlib import Path
+from typing import Any
 
 import jsonschema  # type: ignore[import-untyped]
 import pytest
@@ -22,6 +23,7 @@ from ess_migration_tool.mas import MASMigration
 from ess_migration_tool.models import GlobalOptions
 from ess_migration_tool.synapse import SynapseMigration
 from ess_migration_tool.well_known import WellKnownMigration
+from referencing import Registry, Resource
 
 # Path to the Helm chart schema
 SCHEMA_PATH = Path("charts/matrix-stack/values.schema.json")
@@ -45,6 +47,14 @@ def validate_against_schema(data: dict, schema: dict):
         return False, str(e)
 
 
+def dereference(schema_part: Any, registry: Registry) -> Any:
+    """Follow the $refs of a schema part until a schema part without $ref is found."""
+    resolver = registry.resolver()
+    while isinstance(schema_part, dict) and "$ref" in schema_part:
+        schema_part = resolver.lookup(schema_part["$ref"]).contents
+    return schema_part
+
+
 def is_valid_schema_path(schema: dict, target_key: str | None) -> bool:
     """
     Check if a target_key path exists in the schema.
@@ -55,6 +65,7 @@ def is_valid_schema_path(schema: dict, target_key: str | None) -> bool:
 
     Handles nested paths like 'synapse.replicas' by traversing the schema.
     Handles wildcard paths (e.g., 'image.pullSecrets.*.name') via items.properties.
+    Resolves $refs through the schema's $defs while traversing.
     Does NOT validate:
     - oneOf/anyOf conditions
     - The 'additional' field (allows arbitrary config)
@@ -67,11 +78,13 @@ def is_valid_schema_path(schema: dict, target_key: str | None) -> bool:
         return True
 
     parts = target_key.split(".")
+    registry = Registry().with_resource("", Resource.from_contents(schema))
     current = schema
     i = 0
 
     while i < len(parts):
         part = parts[i]
+        current = dereference(current, registry)
 
         # Look ahead: if next part is a wildcard, handle array access
         if i + 1 < len(parts) and parts[i + 1] == "*":
@@ -80,7 +93,7 @@ def is_valid_schema_path(schema: dict, target_key: str | None) -> bool:
                 return False
             if part not in current["properties"]:
                 return False
-            array_schema = current["properties"][part]
+            array_schema = dereference(current["properties"][part], registry)
             if not isinstance(array_schema, dict):
                 return False
             # Check if it's an array with items
@@ -90,7 +103,7 @@ def is_valid_schema_path(schema: dict, target_key: str | None) -> bool:
             if i + 2 >= len(parts):
                 return False
             next_part = parts[i + 2]  # Part after the wildcard
-            items = array_schema["items"]
+            items = dereference(array_schema["items"], registry)
             if "properties" not in items:
                 return False
             if next_part not in items["properties"]:
