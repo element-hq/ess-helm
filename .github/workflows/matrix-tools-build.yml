@@ -1,0 +1,96 @@
+# Copyright 2025 New Vector Ltd
+# Copyright 2025-2026 Element Creations Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+name: Build the matrix-tools container image
+
+on:
+  workflow_call:
+    inputs:
+      push:
+        description: Push the built image to the registry
+        required: true
+        type: boolean
+    outputs:
+      image:
+        description: The reference of the built image, with its sha tag
+        value: ${{ jobs.build.outputs.image }}
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY_IMAGE: ghcr.io/${{ github.repository }}/matrix-tools
+
+jobs:
+  build:
+    name: Build matrix-tools container image
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.image.outputs.image }}
+    steps:
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069  # v4.4.1
+
+    - name: Checkout Repository
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      with:
+        persist-credentials: false
+
+    - name: Login to GHCR
+      if: ${{ inputs.push }}
+      uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f  # v4.6.0
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Get Release Tag
+      if: github.ref_type == 'tag' # Only for GitHub releases
+      run: |
+        echo "Converting $GITHUB_REF to tags"
+        echo "VERSION=${GITHUB_REF#refs\/tags\/matrix-tools-}" >> "$GITHUB_ENV"
+
+    - name: Docker meta
+      id: meta
+      uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302  # v6.2.0
+      with:
+        images: |
+          ${{ env.REGISTRY_IMAGE }}
+        flavor: |
+          latest=false
+        tags: |
+          type=raw,value=${{ env.VERSION }},enable=${{ github.ref_type == 'tag' }}
+          type=sha,prefix=sha-,format=short
+        labels: |
+          org.opencontainers.image.licenses=AGPL-3.0-only
+        annotations: |
+          org.opencontainers.image.licenses=AGPL-3.0-only
+
+    - name: Compute the image reference
+      # The callers reference the image through its sha tag: it says exactly which code
+      # the image was built from. The pytest workflow passes it to the integration tests,
+      # which deploy it in their k3d cluster.
+      id: image
+      env:
+        TAGS: ${{ steps.meta.outputs.tags }}
+      run: |
+        sha_tag="$(grep '^sha-' <<< "$TAGS" | head -n 1)"
+        echo "image=${REGISTRY_IMAGE}:${sha_tag}" | tee -a "$GITHUB_OUTPUT"
+
+    - name: Build and Push Image
+      uses: docker/bake-action@018cb6412ab401ebaa809aa5f85966b74628600f  # v7.4.0
+      with:
+        push: ${{ inputs.push }}
+        files: |
+          docker-bake.hcl
+          cwd://${{ steps.meta.outputs.bake-file }}
+        targets: matrix-tools
+        set: |
+          *.platform=linux/amd64,linux/arm64
+        # https://docs.zizmor.sh/audits/#cache-poisoning
+        # This is not catched by zizmor but arguably we need to disable cache for docker builds
+        # See related issue https://github.com/zizmorcore/zizmor/issues/774
+        no-cache: ${{ github.ref_type == 'tag' }}
