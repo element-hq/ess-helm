@@ -21,9 +21,10 @@ dependencies = [
   "platformdirs>=4.9.2",
   "prometheus-client>=0.26.0",
   "pyhelm3>=0.5.7",
-  "pytest-asyncio-cooperative>=0.40.0",
+  # `element` branch, containing https://github.com/element-hq/pytest-asyncio-cooperative/pull/1 for pytest9 compatibility
+  "pytest-asyncio-cooperative @ git+https://github.com/element-hq/pytest-asyncio-cooperative.git@73c7e9fae38549ffcc89acda8545ac0ef3e87c9d",
   "pytest-kubernetes>=0.7.2",
-  "pytest>=8.4.2,<9", # pytest 9 breaks pytest-asyncio-cooperative (see #1301)
+  "pytest>=9.1.1",
   "python-dotenv>=1.2.2",
   "python-on-whales>=0.80.0",
   "pyyaml>=6.0.3",
