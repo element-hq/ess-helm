@@ -109,25 +109,20 @@ jobs:
     # MATRIX_TOOLS_IMAGE environment variable. This way the tests run the image built from
     # exactly the code under test, instead of the last released one.
     # The build steps live in a reusable workflow, shared with the matrix-tools workflow.
-    # Pull requests from forks are skipped: their token is read-only, it cannot push to the
-    # registry. The tests then run with the released image.
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == 'element-hq/ess-helm' }}
+    # Pull requests from forks cannot push: their token is read-only. The image is still
+    # built, so the build itself is tested. The tests then run with the released image.
     permissions:
       contents: read
       packages: write
     uses: ./.github/workflows/matrix-tools-build.yml
     with:
-      push: true
+      push: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == 'element-hq/ess-helm' }}
 
   pytest-integration:
     runs-on: ubuntu-latest
     needs:
     - pytest-setup
     - matrix-tools-image
-    # matrix-tools-image is skipped on pull requests from forks. The tests then run with
-    # the released image, so they must still start. A failed build must fail the run
-    # instead: the tests could not run the code under test.
-    if: ${{ !cancelled() && !failure() }}
     strategy:
       fail-fast: false
       matrix:
@@ -138,8 +133,8 @@ jobs:
     env:
       MATRIX_TEST_COMPONENT: ${{ matrix.test-component }}
       MATRIX_TEST_FROM_REF: ${{ matrix.test-from-ref }}
-      # The matrix-tools image built by the matrix-tools-image job. Empty when that job
-      # was skipped: the tests then use the image from the chart values.
+      # The matrix-tools image built by the matrix-tools-image job. Empty when the image
+      # was not pushed: the tests then use the image from the chart values.
       MATRIX_TOOLS_IMAGE: ${{ needs.matrix-tools-image.outputs.image }}
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1

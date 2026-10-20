@@ -14,7 +14,8 @@ on:
         type: boolean
     outputs:
       image:
-        description: The reference of the built image, with its sha tag
+        description: The reference of the pushed image, with its sha tag. Empty when the
+          image was not pushed.
         value: ${{ jobs.build.outputs.image }}
 
 permissions:
@@ -72,7 +73,9 @@ jobs:
     - name: Compute the image reference
       # The callers reference the image through its sha tag: it says exactly which code
       # the image was built from. The pytest workflow passes it to the integration tests,
-      # which deploy it in their k3d cluster.
+      # which deploy it in their k3d cluster. Only a pushed image can be referenced: the
+      # tests could not download it otherwise.
+      if: ${{ inputs.push }}
       id: image
       env:
         TAGS: ${{ steps.meta.outputs.tags }}
