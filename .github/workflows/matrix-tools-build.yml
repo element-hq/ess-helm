@@ -80,7 +80,13 @@ jobs:
       env:
         TAGS: ${{ steps.meta.outputs.tags }}
       run: |
-        sha_tag="$(grep '^sha-' <<< "$TAGS" | head -n 1)"
+        # The tags output lists full references, e.g. "ghcr.io/<org>/<repo>/matrix-tools:sha-0123abcd"
+        sha_tag="$(grep -oE 'sha-[a-f0-9]+' <<< "$TAGS" | head -n 1)"
+        if [ -z "$sha_tag" ]; then
+          echo "No sha tag in the metadata tags:" >&2
+          echo "$TAGS" >&2
+          exit 1
+        fi
         echo "image=${REGISTRY_IMAGE}:${sha_tag}" | tee -a "$GITHUB_OUTPUT"
 
     - name: Build and Push Image
