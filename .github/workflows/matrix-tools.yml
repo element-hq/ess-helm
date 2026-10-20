@@ -78,7 +78,7 @@ jobs:
     - tests
     # The build lives in a reusable workflow. The pytest workflow builds the same image and
     # publishes it, so the integration tests can deploy it.
-    uses: ./.github/workflows/matrix-tools-build.yml
+    uses: ./.github/workflows/matrix-tools-build.yml  # zizmor: ignore[self-repository]  The $/ form is better, but actionlint rejects it for now. https://github.com/rhysd/actionlint/issues/760
     with:
       # The image is only published for releases
       push: ${{ github.ref_type == 'tag' }}

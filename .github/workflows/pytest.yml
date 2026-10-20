@@ -114,7 +114,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    uses: ./.github/workflows/matrix-tools-build.yml
+    uses: ./.github/workflows/matrix-tools-build.yml  # zizmor: ignore[self-repository]  The $/ form is better, but actionlint rejects it for now. https://github.com/rhysd/actionlint/issues/760
     with:
       push: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == 'element-hq/ess-helm' }}
 
