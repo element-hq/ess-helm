@@ -25,6 +25,7 @@ env:
   DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
   GHCR_USERNAME: ${{ github.actor }}
   GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  K3D_EXTRA_OPTIONS: "--no-rollback"
 
 jobs:
   pytest-setup:
