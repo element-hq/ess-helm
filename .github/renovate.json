@@ -1,6 +1,9 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "minimumReleaseAge": "7 days",
+  "ignorePaths": [
+    "charts/*/values.yaml"
+  ],
   "customManagers": [
     {
       "customType": "regex",
