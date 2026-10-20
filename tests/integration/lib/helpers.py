@@ -12,6 +12,7 @@ from lightkube import AsyncClient
 from lightkube.models.core_v1 import (
     Capabilities,
     Container,
+    ContainerStateTerminated,
     LocalObjectReference,
     PodSpec,
     SeccompProfile,
@@ -143,21 +144,24 @@ async def run_pod_with_args(kube_client: AsyncClient, generated_data, image_name
     assert pod.metadata.namespace
     await kube_client.create(pod)
 
-    def _terminated_state(found_pod: Pod):
-        container_statuses = found_pod.status and found_pod.status.containerStatuses
-        container_state = container_statuses and container_statuses[0].state
-        return container_state and container_state.terminated
+    def _terminated_state(found_pod: Pod) -> ContainerStateTerminated | None:
+        if not found_pod.status or not found_pod.status.containerStatuses:
+            return None
+        container_state = found_pod.status.containerStatuses[0].state
+        if container_state is None:
+            return None
+        return container_state.terminated
 
     async def _container_terminated():
         found_pod = await kube_client.get(Pod, name=pod.metadata.name, namespace=pod.metadata.namespace)
-        terminated = _terminated_state(found_pod)
-        if terminated is None:
+        terminated_state = _terminated_state(found_pod)
+        if terminated_state is None:
             # The container is still starting or running. Try again later.
             raise RuntimeError(f"Pod {pod.metadata.name} command is still running")
-        return found_pod, terminated
+        return found_pod, terminated_state
 
     try:
-        found_pod, terminated = await async_retry_with_timeout(
+        found_pod, terminated_state = await async_retry_with_timeout(
             _container_terminated,
             max_retries=60,
             timeout_seconds=60,
@@ -167,8 +171,8 @@ async def run_pod_with_args(kube_client: AsyncClient, generated_data, image_name
         # The retry loop prints one line per attempt. Keep the status out of that message.
         # Fetch the pod once more so the final error holds the full status.
         found_pod = await kube_client.get(Pod, name=pod.metadata.name, namespace=pod.metadata.namespace)
-        terminated = _terminated_state(found_pod)
-        if terminated is None:
+        terminated_state = _terminated_state(found_pod)
+        if terminated_state is None:
             raise RuntimeError(
                 f"Pod {pod.metadata.name} command did not terminate in time, status: {found_pod.status}"
             ) from e
@@ -178,10 +182,10 @@ async def run_pod_with_args(kube_client: AsyncClient, generated_data, image_name
     async for log_line in kube_client.log(pod.metadata.name, namespace=pod.metadata.namespace, container="cmd"):
         log_lines += log_line
 
-    if terminated.reason != "Completed":
+    if terminated_state.reason != "Completed":
         # Keep the failed pod so it can be inspected by hand.
         raise RuntimeError(
-            f"Pod {pod.metadata.name} command failed with exit code {terminated.exitCode}: "
+            f"Pod {pod.metadata.name} command failed with exit code {terminated_state.exitCode}: "
             f"pod status: {found_pod.status}, logs: {log_lines}"
         )
     await kube_client.delete(Pod, name=pod.metadata.name, namespace=generated_data.ess_namespace)
