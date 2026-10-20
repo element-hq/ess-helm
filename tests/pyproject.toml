@@ -53,5 +53,5 @@ pytest-ess = "integration:scripts.run_tests"
 collect-ess-logs = "integration:scripts.collect_ess_logs"
 
 [build-system]
-requires = ["uv_build>=0.12.2,<0.13.0"]
+requires = ["uv_build>=0.13.0,<0.14.0"]
 build-backend = "uv_build"
