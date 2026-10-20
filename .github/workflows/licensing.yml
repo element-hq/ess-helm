@@ -58,7 +58,7 @@ jobs:
         fi
 
     - name: Copyright dates
-      if: ${{ github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' }}
+      if: ${{ github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' && github.actor != 'renovate[bot]' }}
       env:
         BASE_REF: ${{ github.event.pull_request.base.sha }}
         HEAD_REF: ${{ github.event.pull_request.head.sha }}
