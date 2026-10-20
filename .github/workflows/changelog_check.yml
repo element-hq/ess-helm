@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   check-newsfile:
-    if: ${{ (github.event_name == 'pull_request') && (github.base_ref == 'main' || contains(github.base_ref, 'release-')) && github.actor != 'dependabot[bot]' && github.actor != 'github-actions[bot]' }}
+    if: ${{ (github.event_name == 'pull_request') && (github.base_ref == 'main' || contains(github.base_ref, 'release-')) && github.actor != 'dependabot[bot]' && github.actor != 'github-actions[bot]' && github.actor != 'renovate[bot]' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
