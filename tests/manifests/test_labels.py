@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 import re
+from copy import deepcopy
 from hashlib import sha1
 
 import pytest
@@ -155,23 +156,45 @@ async def test_labels_values_are_valid(templates):
             assert label_regex.match(label_value), f"{template_id(template)} : {label_value} is not a valid label"
 
 
-@pytest.mark.parametrize("values_file", ["element-web-minimal-values.yaml"])
+def _merge_values(defaults, overrides):
+    merged = deepcopy(defaults)
+    for key, value in overrides.items():
+        if isinstance(merged.get(key), dict) and isinstance(value, dict):
+            merged[key] = _merge_values(merged[key], value)
+        else:
+            merged[key] = deepcopy(value)
+    return merged
+
+
+def _set_all_image_tags(values, image_tag):
+    for key, value in values.items():
+        if key == "image" and isinstance(value, dict) and "tag" in value:
+            value["tag"] = image_tag
+        if isinstance(value, dict):
+            _set_all_image_tags(value, image_tag)
+        elif isinstance(value, list):
+            for item in value:
+                if isinstance(item, dict):
+                    _set_all_image_tags(item, image_tag)
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.asyncio_cooperative
-async def test_image_tag_with_digest_has_valid_version_labels(values, make_templates):
-    image_tag = "v1.12.29@sha256:da32e88c8dafe2c3d4f40ca5e90ab2f43a7c9ac35f0977ec7662dcb4fdcd56d8"
-    values.setdefault("elementWeb", {}).setdefault("image", {})["tag"] = image_tag
+async def test_image_tag_with_digest_has_valid_version_labels(values, base_values, make_templates):
+    # Truncation ends on the underscore replacing '@', so the final trim is needed.
+    image_tag = f"{'a' * 62}@sha256:da32e88c8dafe2c3d4f40ca5e90ab2f43a7c9ac35f0977ec7662dcb4fdcd56d8"
+    values = _merge_values(base_values, values)
+    _set_all_image_tags(values, image_tag)
 
     templates = await make_templates(values)
     label_regex = re.compile(r"^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$")
     version_labels = [
         template["metadata"]["labels"]["app.kubernetes.io/version"]
         for template in templates
-        if (template.get("metadata", {}).get("labels", {}).get("app.kubernetes.io/version") or "").startswith(
-            "v1.12.29"
-        )
+        if "app.kubernetes.io/version" in template.get("metadata", {}).get("labels", {})
     ]
 
-    expected_label = "v1.12.29_sha256_da32e88c8dafe2c3d4f40ca5e90ab2f43a7c9ac35f0977e"
+    expected_label = "a" * 62
     assert version_labels
     assert all(label == expected_label for label in version_labels)
     assert all(label_regex.match(label) for label in version_labels)
