@@ -1,0 +1,73 @@
+# Copyright 2024-2025 New Vector Ltd
+# Copyright 2025-2026 Element Creations Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+name: Run PyTest tests - Manifests
+
+on:
+  pull_request:
+  push:
+    branches:
+    - main
+    - 'maintenance/*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pytest-setup:
+    runs-on: ubuntu-latest
+    outputs:
+      envFiles: ${{ steps.data.outputs.envFiles }}
+      manifestTests: ${{ steps.data.outputs.manifestTests }}
+      upgradeFrom: ${{ steps.data.outputs.upgradeFrom }}
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      with:
+        persist-credentials: false
+        fetch-depth: 0
+        fetch-tags: true
+    - id: data
+      run: |
+        echo "manifestTests=$(find tests/manifests -name 'test_*.py' | sed 's|tests/manifests/||' | sed 's/.py$//' | jq -ncR '{manifestTests: [inputs]}')" | tee -a "$GITHUB_OUTPUT"
+
+  pytest-manifests:
+    runs-on: ubuntu-latest
+    needs: pytest-setup
+    strategy:
+      fail-fast: false
+      matrix:
+        manifest-test: ${{ fromJSON(needs.pytest-setup.outputs.manifestTests).manifestTests }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      with:
+        persist-credentials: false
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884  # v10.3.0
+      with:
+        enable-cache: true
+        activate-environment: true
+
+    - name: Set up UV environment
+      run: uv sync
+
+    - name: Restore pytest cache
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+      with:
+        path: .pytest_cache
+        key: pytest-manifests-cache-${{ matrix.manifest-test }}-${{ hashFiles('charts/matrix-stack/values.yaml') }}
+        restore-keys: |
+          pytest-manifests-cache-
+
+    - name: Run our manifest test
+      env:
+        MANIFEST_TEST: ${{ matrix.manifest-test }}
+      run: pytest -vv "tests/manifests/${MANIFEST_TEST}.py"
