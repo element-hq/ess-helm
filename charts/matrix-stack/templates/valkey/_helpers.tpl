@@ -32,6 +32,18 @@ env: []
 env: []
 {{- end -}}
 
+{{- define "element-io.valkey.host-port" -}}
+{{- $root := .root -}}
+{{- with required "element-io.valkey.host-port requires context" .context -}}
+{{- with (coalesce .redisOrValkey .redis) -}}
+{{ (tpl .host $root) }}:{{ .port | default 6379 }}
+{{- else -}}
+{{ $root.Release.Name }}-valkey.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:6379
+{{- end -}}
+{{- end -}}
+{{- end }}
+
+
 {{- define "element-io.valkey.internalValkeyEnabled" -}}
 {{- $root := .root -}}
 {{- $synapseNeedsRedis := and $root.Values.synapse.enabled (not $root.Values.synapse.redisOrValkey) (not $root.Values.synapse.redis) (include "element-io.synapse.enabledWorkers" (dict "root" $root) | fromJson) -}}

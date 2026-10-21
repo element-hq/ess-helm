@@ -31,9 +31,29 @@ spec:
         {{- toYaml . | nindent 8 }}
 {{- end }}
     spec:
-{{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "matrix-rtc-authorisation-service" "kind" "Deployment" "makesOutboundRequests" true)) | nindent 6 }}
-{{- with .extraInitContainers }}
+{{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "matrix-rtc-authorisation-service" "kind" "Deployment" "makesOutboundRequests" true "usesMatrixTools" true)) | nindent 6 }}
       initContainers:
+      - name: valkey-wait
+        {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" $.Values.matrixTools.image) | nindent 8 }}
+{{- with .containersSecurityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+{{- end }}
+        args:
+        - tcpwait
+        - -address
+        - {{ include "element-io.valkey.host-port" (dict "root" $ "context" .) | quote }}
+{{- with $.Values.matrixTools.resources.tcpWait }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+{{- end }}
+{{- with .extraVolumeMounts }}
+        volumeMounts:
+{{- range . }}
+        - {{ (. | toYaml) | nindent 10 }}
+{{- end }}
+{{- end }}
+{{- with .extraInitContainers }}
       {{- toYaml . | nindent 6 }}
 {{- end }}
       containers:

@@ -83,6 +83,33 @@ We have an init container to render & merge the config for several reasons:
 {{- end }}
 {{- end }}
 {{- end }}
+{{- if and (not $isHook) (or .redisOrValkey .redis $enabledWorkers) }}
+    - name: valkey-wait
+      {{- include "element-io.ess-library.pods.image" (dict "root" $root "context" $root.Values.matrixTools.image) | nindent 6 }}
+{{- with .containersSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+{{- end }}
+      args:
+      - tcpwait
+      - -address
+      - {{ include "element-io.valkey.host-port" (dict "root" $root "context" .) | quote }}
+{{- with $root.Values.matrixTools.resources.tcpWait }}
+      resources:
+        {{- toYaml . | nindent 8 }}
+{{- end }}
+{{- with .extraVolumeMounts }}
+      volumeMounts:
+{{- range . }}
+{{- if or (and $isHook ((list "hook" "both") | has (.mountContext | default "both")))
+          (and (not $isHook) ((list "runtime" "both") | has (.mountContext | default "both"))) -}}
+{{- $extraVolumeMount := . | deepCopy }}
+{{- $_ := unset $extraVolumeMount "mountContext" }}
+      - {{- ($extraVolumeMount | toYaml) | nindent 8 }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
 {{- with .extraInitContainers }}
     {{- toYaml . | nindent 4 }}
 {{- end }}
