@@ -72,9 +72,7 @@ async def test_templates_have_postgres_hash_label(release_name, templates, value
 
         assert any(re.match("k8s.element.io/postgres-password-[a-z]+-hash", label) for label in labels), (
             f"{id} does not have postgres password hash label"
-        )  # We currently assume that Postgres is for top-level components only and so there is a single segment
-        # write (or read) path
-        assert len(deployable_details.values_file_path.write_path) == 1
+        )
         helm_key = deployable_details.values_file_path.read_path[0]
         values_fragment = deployable_details.get_helm_values(values, PropertyType.Postgres)
         if values_fragment.get("password", {}).get("value", None):

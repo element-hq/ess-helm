@@ -410,6 +410,7 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
         PropertyType.PreStopSleepSeconds: ValuesFilePath.read_write("synapse", "preStopSleepSeconds"),
         PropertyType.Affinity: ValuesFilePath.read_elsewhere("synapse", "affinity"),
         PropertyType.NodeSelector: ValuesFilePath.read_elsewhere("synapse", "nodeSelector"),
+        PropertyType.Postgres: ValuesFilePath.read_elsewhere("synapse", "postgres"),
         PropertyType.ContainersSecurityContext: ValuesFilePath.read_elsewhere("synapse", "containersSecurityContext"),
         PropertyType.PodSecurityContext: ValuesFilePath.read_elsewhere("synapse", "podSecurityContext"),
         PropertyType.PriorityClassName: ValuesFilePath.read_elsewhere("synapse", "priorityClassName"),
@@ -430,6 +431,7 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
         has_ingress=False,
         is_synapse_process=True,
         has_redis=True,
+        has_db=True,
         is_singleton=(worker_type != "scalable"),
         has_mount_context=True,
         ignore_unreferenced_mounts={
@@ -715,11 +717,14 @@ all_components_details = [
                     PropertyType.StartupProbe: ValuesFilePath.not_supported(),
                     # Job so no replicas
                     PropertyType.Replicas: ValuesFilePath.not_supported(),
+                    # The postgres database is owned by the parent component
+                    PropertyType.Postgres: ValuesFilePath.read_elsewhere("matrixAuthenticationService", "postgres"),
                 },
                 has_ingress=False,
                 has_automount_service_account_token=True,
                 has_service_monitor=False,
                 is_hook=True,
+                has_db=True,
                 has_mount_context=False,
                 makes_outbound_requests=False,
                 ephemeral_storages={"tmp-mas-cli": "tmpMasCli"},

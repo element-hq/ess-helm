@@ -73,3 +73,19 @@ async def test_pod_redis_components_have_valkey_wait_init_container(values, make
             f"{pod_template_details.manifest_id} uses Redis/Valkey but doesn't wait for it "
             "with a valkey-wait initContainer"
         )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_pod_db_components_have_db_wait_init_container(values, make_templates):
+    for pod_template_details in iterate_pod_template(await make_templates(values)):
+        deployable_details = pod_template_details.deployable_details()
+        if not deployable_details.has_db:
+            continue
+        pod_spec = pod_template_details.pod_template["spec"]
+        init_container_names = [container["name"] for container in pod_spec.get("initContainers", [])]
+        # The syn2mas job waits for two databases, so its containers are named
+        # db-wait-mas and db-wait-syn. Other components use plain db-wait.
+        assert any(name.startswith("db-wait") for name in init_container_names), (
+            f"{pod_template_details.manifest_id} uses Postgres but doesn't wait for it with a db-wait initContainer"
+        )
