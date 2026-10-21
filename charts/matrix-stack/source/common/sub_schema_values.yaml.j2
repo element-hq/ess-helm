@@ -17,6 +17,11 @@ matrixTools:
 {{ image(registry="ghcr.io", repository="element-hq/ess-helm/matrix-tools", tag="0.10.4") | indent(2) }}
 {{ ephemeralStorages([("renderedConfig", "rendered-config emptyDir used in all components to render configuration", "1Mi", "Memory")]) | indent(2) }}
 
+  ## Common resources across various matrix-tools commands
+  resources:
+    {{- resources(key="renderConfig", requests_memory='50Mi', requests_cpu='10m', limits_memory='50Mi') | indent(4) }}
+    {{- resources(key="tcpWait", requests_memory='50Mi', requests_cpu='10m', limits_memory='50Mi') | indent(4) }}
+
 ## CertManager Issuer to configure by default automatically on all ingresses
 ## If configured, the chart will automatically generate the tlsSecret name for all ingresses
 certManager: {}

@@ -67,7 +67,7 @@ We have an init container to render & merge the config for several reasons:
       - tcpwait
       - -address
       - {{ include "element-io.ess-library.postgres-host-port" (dict "root" $root "context" (dict "postgres" .postgres)) | quote }}
-{{- with .resources }}
+{{- with $root.Values.matrixTools.resources.tcpWait }}
       resources:
         {{- toYaml . | nindent 8 }}
 {{- end }}
