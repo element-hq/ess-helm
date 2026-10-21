@@ -49,3 +49,27 @@ async def test_pod_gets_configured_extraInitContainers(values, make_templates):
         assert (
             template_id_to_init_containers[pod_template_details.manifest_id] + extra_init_containers
         ) == init_containers
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_pod_redis_components_have_valkey_wait_init_container(values, make_templates):
+
+    def _synapse_uses_redis() -> bool:
+        # Synapse only connects to Redis/Valkey when workers are running
+        workers = values.get("synapse", {}).get("workers", {})
+        workers_enabled = any(worker.get("enabled", False) for worker in workers.values())
+        return workers_enabled
+
+    for pod_template_details in iterate_pod_template(await make_templates(values)):
+        deployable_details = pod_template_details.deployable_details()
+        if not deployable_details.has_redis:
+            continue
+        if deployable_details.is_synapse_process and not _synapse_uses_redis():
+            continue
+        pod_spec = pod_template_details.pod_template["spec"]
+        init_container_names = [container["name"] for container in pod_spec.get("initContainers", [])]
+        assert "valkey-wait" in init_container_names, (
+            f"{pod_template_details.manifest_id} uses Redis/Valkey but doesn't wait for it "
+            "with a valkey-wait initContainer"
+        )
