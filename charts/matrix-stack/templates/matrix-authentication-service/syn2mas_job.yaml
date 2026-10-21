@@ -119,7 +119,7 @@ spec:
         - tcpwait
         - -address
         - {{ include "element-io.ess-library.postgres-host-port" (dict "root" $ "context" (dict "postgres" $masContext.postgres)) | quote }}
-{{- with .resources }}
+{{- with $.Values.matrixTools.resources.tcpWait }}
         resources:
           {{- toYaml . | nindent 10 }}
 {{- end }}
@@ -139,7 +139,7 @@ spec:
         - tcpwait
         - -address
         - {{ include "element-io.ess-library.postgres-host-port" (dict "root" $ "context" (dict "postgres" $synapseContext.postgres)) | quote }}
-{{- with .resources }}
+{{- with $.Values.matrixTools.resources.tcpWait }}
         resources:
           {{- toYaml . | nindent 10 }}
 {{- end }}

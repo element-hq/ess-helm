@@ -46,6 +46,39 @@ matrixTools:
       sizeLimit: 1Mi
       medium: Memory
 
+  ## Common resources across various matrix-tools commands
+  resources:
+    ## Kubernetes resources to allocate to each instance.
+    renderConfig:
+      ## Requests describes the minimum amount of compute resources required. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+      requests:
+        memory: 50Mi
+        cpu: 10m
+        ## No ephemeral-storage requests by default
+        # ephemeral-storage:
+
+      ## Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+      limits:
+        memory: 50Mi
+        ## No CPU or ephemeral-storage limits by default
+        # cpu:
+        # ephemeral-storage:
+    ## Kubernetes resources to allocate to each instance.
+    tcpWait:
+      ## Requests describes the minimum amount of compute resources required. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+      requests:
+        memory: 50Mi
+        cpu: 10m
+        ## No ephemeral-storage requests by default
+        # ephemeral-storage:
+
+      ## Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+      limits:
+        memory: 50Mi
+        ## No CPU or ephemeral-storage limits by default
+        # cpu:
+        # ephemeral-storage:
+
 ## CertManager Issuer to configure by default automatically on all ingresses
 ## If configured, the chart will automatically generate the tlsSecret name for all ingresses
 certManager: {}

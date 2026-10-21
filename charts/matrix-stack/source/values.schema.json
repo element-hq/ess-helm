@@ -57,6 +57,17 @@
               "$ref": "file://common/ephemeralStorage.json"
             }
           }
+        },
+        "resources": {
+          "type": "object",
+          "properties": {
+            "renderConfig": {
+              "$ref": "file://common/resources.json"
+            },
+            "tcpWait": {
+              "$ref": "file://common/resources.json"
+            }
+          }
         }
       }
     },

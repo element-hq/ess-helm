@@ -56,7 +56,7 @@ SPDX-License-Identifier: AGPL-3.0-only
   - /config-templates/{{ . }}
     {{- end }}
   {{- include "element-io.ess-library.pods.env" (dict "root" $root "context" (dict "componentValues" . "componentName" $nameSuffix "overrideEnvSuffix" "renderConfigOverrideEnv")) | nindent 2 }}
-{{- with .resources }}
+{{- with $root.Values.matrixTools.resources.renderConfig }}
   resources:
     {{- toYaml . | nindent 4 }}
 {{- end }}

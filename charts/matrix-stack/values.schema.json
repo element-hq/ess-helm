@@ -59,6 +59,18 @@
             }
           },
           "additionalProperties": false
+        },
+        "resources": {
+          "type": "object",
+          "properties": {
+            "renderConfig": {
+              "$ref": "#/$defs/common_resources"
+            },
+            "tcpWait": {
+              "$ref": "#/$defs/common_resources"
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -280,6 +292,40 @@
           "description": "The storage medium of the emptyDir volume. \"Memory\" uses tmpfs (RAM-backed); empty string uses the node's default storage."
         }
       },
+      "additionalProperties": false
+    },
+    "common_resources": {
+      "properties": {
+        "limits": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "pattern": "^(\\+|-)?(([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\\+|-)?(([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))))?$"
+          },
+          "type": "object"
+        },
+        "requests": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "pattern": "^(\\+|-)?(([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\\+|-)?(([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))))?$"
+          },
+          "type": "object"
+        }
+      },
+      "type": "object",
       "additionalProperties": false
     },
     "common_ingress_global": {
@@ -1004,40 +1050,6 @@
             "type": "integer"
           },
           "type": "array"
-        }
-      },
-      "type": "object",
-      "additionalProperties": false
-    },
-    "common_resources": {
-      "properties": {
-        "limits": {
-          "additionalProperties": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "string"
-              }
-            ],
-            "pattern": "^(\\+|-)?(([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\\+|-)?(([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))))?$"
-          },
-          "type": "object"
-        },
-        "requests": {
-          "additionalProperties": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "string"
-              }
-            ],
-            "pattern": "^(\\+|-)?(([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\\+|-)?(([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))))?$"
-          },
-          "type": "object"
         }
       },
       "type": "object",
