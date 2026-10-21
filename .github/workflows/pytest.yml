@@ -135,8 +135,11 @@ jobs:
       MATRIX_TEST_COMPONENT: ${{ matrix.test-component }}
       MATRIX_TEST_FROM_REF: ${{ matrix.test-from-ref }}
       # The matrix-tools image built by the matrix-tools-image job. Empty when the image
-      # was not pushed: the tests then use the image from the chart values.
+      # was not pushed: the tests then use the image from the chart values. The digest
+      # pins the image: a tag is mutable, another workflow run can push the same tag
+      # with a different image.
       MATRIX_TOOLS_IMAGE: ${{ needs.matrix-tools-image.outputs.image }}
+      MATRIX_TOOLS_DIGEST: ${{ needs.matrix-tools-image.outputs.digest }}
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       with:

@@ -17,6 +17,9 @@ on:
         description: The reference of the pushed image, with its sha tag. Empty when the
           image was not pushed.
         value: ${{ jobs.build.outputs.image }}
+      digest:
+        description: The digest of the pushed image
+        value: ${{ jobs.build.outputs.digest }}
 
 permissions:
   contents: read
@@ -31,6 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       image: ${{ steps.image.outputs.image }}
+      digest: ${{ steps.digest.outputs.digest }}
     steps:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069  # v4.4.1
@@ -103,3 +107,18 @@ jobs:
         # This is not catched by zizmor but arguably we need to disable cache for docker builds
         # See related issue https://github.com/zizmorcore/zizmor/issues/774
         no-cache: ${{ github.ref_type == 'tag' }}
+
+    - name: Compute the image digest
+      # The digest pins the exact image this job pushed. The pytest workflow
+      # passes it to the integration tests, so they test exactly this image.
+      if: ${{ inputs.push }}
+      id: digest
+      env:
+        IMAGE: ${{ steps.image.outputs.image }}
+      run: |
+        digest="$(docker buildx imagetools inspect "$IMAGE" --format '{{ .Manifest.Digest }}')"
+        if [ -z "$digest" ]; then
+          echo "Could not read the digest of $IMAGE" >&2
+          exit 1
+        fi
+        echo "digest=$digest" | tee -a "$GITHUB_OUTPUT"
