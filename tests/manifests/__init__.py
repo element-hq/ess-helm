@@ -139,6 +139,9 @@ class DeployableDetails(abc.ABC):
     # True when the workload handles its graceful shutdown itself, like HAProxy with its
     # grace and hard-stop-after configuration. Such workloads do not need the preStop sleep.
     has_native_graceful_shutdown: bool = field(default=False, hash=False)
+    # True when the component's workloads connect to Redis/Valkey. They must wait for it
+    # to be available with a valkey-wait init container before starting.
+    has_redis: bool = field(default=False, hash=False)
 
     # Use this to skip mounts point we expect not to be referenced in commands, configs, etc
     # The format is expected to be `container_name: <list of mounts to ignore>`
@@ -426,6 +429,7 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
         values_file_path_overrides=values_file_path_overrides,
         has_ingress=False,
         is_synapse_process=True,
+        has_redis=True,
         is_singleton=(worker_type != "scalable"),
         has_mount_context=True,
         ignore_unreferenced_mounts={
@@ -601,6 +605,7 @@ all_components_details = [
         is_singleton=True,
         has_additional_config=False,
         has_ephemeral_storage=False,
+        has_redis=True,
         has_service_monitor=False,
         sub_components=(
             SubComponentDetails(
@@ -608,6 +613,7 @@ all_components_details = [
                 values_file_path=ValuesFilePath.read_write("matrixRTC", "sfu"),
                 has_exposed_services=True,
                 has_ingress=False,
+                has_redis=True,
                 is_singleton=True,
             ),
         ),
@@ -660,6 +666,7 @@ all_components_details = [
     ComponentDetails(
         name="hookshot",
         has_storage=True,
+        has_redis=True,
         values_file_path_overrides={
             PropertyType.Storage: ValuesFilePath.read_write("hookshot", "storage"),
         },
@@ -725,6 +732,7 @@ all_components_details = [
             PropertyType.Storage: ValuesFilePath.read_write("synapse", "media", "storage"),
         },
         has_db=True,
+        has_redis=True,
         has_storage=True,
         is_synapse_process=True,
         additional_values_files=("synapse-worker-example-values.yaml",),
