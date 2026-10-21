@@ -39,8 +39,9 @@ def loaded_matrix_tools(cluster, build_matrix_tools: Image):
         }
     # CI builds the image in a dedicated job and passes its reference:
     # ghcr.io/element-hq/ess-helm/matrix-tools:sha-0123abcd. The registry and the repository
-    # match the chart defaults, only the tag differs.
-    elif matrix_tools_image := os.environ.get("MATRIX_TOOLS_IMAGE"):
-        return {"tag": matrix_tools_image.rpartition(":")[2]}
+    # match the chart defaults, only the tag differs. The digest pins the image.
+    elif matrix_tools_digest := os.environ.get("MATRIX_TOOLS_DIGEST"):
+        matrix_tools_image = os.environ["MATRIX_TOOLS_IMAGE"]
+        return {"tag": matrix_tools_image.rpartition(":")[2], "digest": matrix_tools_digest}
     else:
         return {}
