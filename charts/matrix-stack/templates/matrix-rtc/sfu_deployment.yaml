@@ -61,26 +61,7 @@ spec:
               "extraEnv" .extraEnv
               "extraVolumeMounts" .extraVolumeMounts
               )) | nindent 6 }}
-      - name: valkey-wait
-        {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" $.Values.matrixTools.image) | nindent 8 }}
-{{- with .containersSecurityContext }}
-        securityContext:
-          {{- toYaml . | nindent 10 }}
-{{- end }}
-        args:
-        - tcpwait
-        - -address
-        - {{ include "element-io.valkey.host-port" (dict "root" $ "context" .) | quote }}
-{{- with $.Values.matrixTools.resources.tcpWait }}
-        resources:
-          {{- toYaml . | nindent 10 }}
-{{- end }}
-{{- with .extraVolumeMounts }}
-        volumeMounts:
-{{- range . }}
-        - {{ (. | toYaml) | nindent 10 }}
-{{- end }}
-{{- end }}
+      {{- include "element-io.ess-library.pods.valkeyTcpWait" (dict "root" $ "context" .) | nindent 6 }}
 {{- with .extraInitContainers }}
       {{- toYaml . | nindent 6 }}
 {{- end }}

@@ -56,59 +56,27 @@ We have an init container to render & merge the config for several reasons:
 */}}
     initContainers:
     {{- include "element-io.synapse.render-config-container" (dict "root" $root "context" .) | nindent 4 }}
+{{- /* The tcpwait init containers only run in the runtime pods, so they only mount the mounts for that context. */ -}}
+{{- $runtimeExtraVolumeMounts := list -}}
+{{- range .extraVolumeMounts -}}
+{{- if ((list "runtime" "both") | has (.mountContext | default "both")) -}}
+{{- $extraVolumeMount := . | deepCopy -}}
+{{- $_ := unset $extraVolumeMount "mountContext" -}}
+{{- $runtimeExtraVolumeMounts = append $runtimeExtraVolumeMounts $extraVolumeMount -}}
+{{- end -}}
+{{- end -}}
 {{- if not $isHook }}
-    - name: db-wait
-      {{- include "element-io.ess-library.pods.image" (dict "root" $root "context" $root.Values.matrixTools.image) | nindent 6 }}
-{{- with .containersSecurityContext }}
-      securityContext:
-        {{- toYaml . | nindent 8 }}
-{{- end }}
-      args:
-      - tcpwait
-      - -address
-      - {{ include "element-io.ess-library.postgres-host-port" (dict "root" $root "context" (dict "postgres" .postgres)) | quote }}
-{{- with $root.Values.matrixTools.resources.tcpWait }}
-      resources:
-        {{- toYaml . | nindent 8 }}
-{{- end }}
-{{- with .extraVolumeMounts }}
-      volumeMounts:
-{{- range . }}
-{{- if or (and $isHook ((list "hook" "both") | has (.mountContext | default "both")))
-          (and (not $isHook) ((list "runtime" "both") | has (.mountContext | default "both"))) -}}
-{{- $extraVolumeMount := . | deepCopy }}
-{{- $_ := unset $extraVolumeMount "mountContext" }}
-      - {{- ($extraVolumeMount | toYaml) | nindent 8 }}
-{{- end }}
-{{- end }}
-{{- end }}
+    {{- include "element-io.ess-library.pods.postgresTcpWait" (dict "root" $root "context" (dict
+          "postgres" .postgres
+          "containersSecurityContext" .containersSecurityContext
+          "extraVolumeMounts" $runtimeExtraVolumeMounts)) | nindent 4 }}
 {{- end }}
 {{- if and (not $isHook) (or .redisOrValkey .redis $enabledWorkers) }}
-    - name: valkey-wait
-      {{- include "element-io.ess-library.pods.image" (dict "root" $root "context" $root.Values.matrixTools.image) | nindent 6 }}
-{{- with .containersSecurityContext }}
-      securityContext:
-        {{- toYaml . | nindent 8 }}
-{{- end }}
-      args:
-      - tcpwait
-      - -address
-      - {{ include "element-io.valkey.host-port" (dict "root" $root "context" .) | quote }}
-{{- with $root.Values.matrixTools.resources.tcpWait }}
-      resources:
-        {{- toYaml . | nindent 8 }}
-{{- end }}
-{{- with .extraVolumeMounts }}
-      volumeMounts:
-{{- range . }}
-{{- if or (and $isHook ((list "hook" "both") | has (.mountContext | default "both")))
-          (and (not $isHook) ((list "runtime" "both") | has (.mountContext | default "both"))) -}}
-{{- $extraVolumeMount := . | deepCopy }}
-{{- $_ := unset $extraVolumeMount "mountContext" }}
-      - {{- ($extraVolumeMount | toYaml) | nindent 8 }}
-{{- end }}
-{{- end }}
-{{- end }}
+    {{- include "element-io.ess-library.pods.valkeyTcpWait" (dict "root" $root "context" (dict
+          "redisOrValkey" .redisOrValkey
+          "redis" .redis
+          "containersSecurityContext" .containersSecurityContext
+          "extraVolumeMounts" $runtimeExtraVolumeMounts)) | nindent 4 }}
 {{- end }}
 {{- with .extraInitContainers }}
     {{- toYaml . | nindent 4 }}

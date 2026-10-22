@@ -199,3 +199,69 @@ env:
 {{- end -}}
 {{- end -}}
 {{- end -}}
+
+{{- /*
+Renders an init container, based on the matrix-tools image, that waits until a TCP endpoint
+accepts connections. The address must be a "host:port" string. The context requires
+"name" and "address", and accepts "containersSecurityContext" and "extraVolumeMounts".
+The output is indented for a container list and must be indented by the caller.
+*/ -}}
+{{- define "element-io.ess-library.pods.tcpWait" -}}
+{{- $root := .root -}}
+{{- with required "element-io.ess-library.pods.tcpWait missing context" .context -}}
+{{- $name := required "element-io.ess-library.pods.tcpWait missing context.name" .name -}}
+{{- $address := required "element-io.ess-library.pods.tcpWait missing context.address" .address -}}
+- name: {{ $name }}
+  {{- include "element-io.ess-library.pods.image" (dict "root" $root "context" $root.Values.matrixTools.image) | nindent 2 }}
+{{- with .containersSecurityContext }}
+  securityContext:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+  args:
+  - tcpwait
+  - -address
+  - {{ $address | quote }}
+{{- with $root.Values.matrixTools.resources.tcpWait }}
+  resources:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+{{- with .extraVolumeMounts }}
+  volumeMounts:
+  {{- range . }}
+  - {{ (. | toYaml) | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end -}}
+{{- end }}
+
+{{- /*
+Renders a tcpWait init container for the valkey endpoint of a component.
+The context is the component values. It must contain the valkey connection settings
+and accepts "suffixName", e.g. "-syn", to append to the default container name.
+*/ -}}
+{{- define "element-io.ess-library.pods.valkeyTcpWait" -}}
+{{- $root := .root -}}
+{{- with required "element-io.ess-library.pods.valkeyTcpWait missing context" .context -}}
+{{- include "element-io.ess-library.pods.tcpWait" (dict "root" $root "context" (dict
+      "name" (printf "valkey-wait%s" (.suffixName | default ""))
+      "address" (include "element-io.valkey.host-port" (dict "root" $root "context" .))
+      "containersSecurityContext" .containersSecurityContext
+      "extraVolumeMounts" .extraVolumeMounts)) -}}
+{{- end -}}
+{{- end }}
+
+{{- /*
+Renders a tcpWait init container for the postgres endpoint of a component.
+The context is the component values. It must contain "postgres" and accepts
+"suffixName", e.g. "-syn", to append to the default container name.
+*/ -}}
+{{- define "element-io.ess-library.pods.postgresTcpWait" -}}
+{{- $root := .root -}}
+{{- with required "element-io.ess-library.pods.postgresTcpWait missing context" .context -}}
+{{- include "element-io.ess-library.pods.tcpWait" (dict "root" $root "context" (dict
+      "name" (printf "db-wait%s" (.suffixName | default ""))
+      "address" (include "element-io.ess-library.postgres-host-port" (dict "root" $root "context" (dict "postgres" .postgres)))
+      "containersSecurityContext" .containersSecurityContext
+      "extraVolumeMounts" .extraVolumeMounts)) -}}
+{{- end -}}
+{{- end }}
