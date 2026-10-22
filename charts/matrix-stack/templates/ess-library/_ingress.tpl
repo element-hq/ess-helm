@@ -133,3 +133,51 @@ ImplementationSpecific
 Prefix
 {{- end -}}
 {{- end -}}
+
+{{- define "element-io.ess-library.inboundTrafficHandler.ingress" -}}
+{{- $root := .root -}}
+{{- with required "element-io.ess-library.inboundTrafficHandler.ingress missing context" .context -}}
+{{- $component := required "element-io.ess-library.inboundTrafficHandler.ingress missing component" .component -}}
+{{- $componentName := required "element-io.ess-library.inboundTrafficHandler.ingress missing componentName" .componentName -}}
+{{- $ingressName := required "element-io.ess-library.inboundTrafficHandler.ingress missing ingressName" .ingressName -}}
+{{- $labels := required "element-io.ess-library.inboundTrafficHandler.ingress missing labels" .labels -}}
+{{- $rawHost := .host | default (dig "ingress" "host" "" $component) -}}
+{{- $extraAnnotations := .extraAnnotations | default dict -}}
+{{- $render := and $component.enabled (eq (include "element-io.ess-library.inboundTrafficHandler.isEnabled" (dict "root" $root "context" (dict "component" $component "trafficHandler" "ingress"))) "true") -}}
+{{- if .requireHost -}}
+{{- $render = and $render (include "element-io.ess-library.inboundTrafficHandler.host" (dict "root" $root "context" (dict "component" $component))) -}}
+{{- end -}}
+{{- if $render -}}
+{{- $paths := include "element-io.ess-library.inboundTrafficHandler.publicPaths" (dict "root" $root "context" (dict "component" $component "componentName" $componentName)) | fromYamlArray }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+{{- include "element-io.ess-library.ingress.annotations" (dict "root" $root "context" (dict "ingress" $component.ingress "extraAnnotations" $extraAnnotations)) | nindent 2 }}
+  labels:
+    {{- $labels | nindent 4 }}
+  name: {{ $root.Release.Name }}-{{ $ingressName }}
+  namespace: {{ $root.Release.Namespace }}
+spec:
+{{- include "element-io.ess-library.ingress.tls" (dict "root" $root "context" (dict "ingress" $component.ingress "ingressName" $ingressName "host" $rawHost)) | nindent 2 }}
+{{- include "element-io.ess-library.ingress.className" (dict "root" $root "context" $component.ingress.className) | nindent 2 }}
+  rules:
+  - host: {{ (tpl $rawHost $root) | quote }}
+    http:
+      paths:
+{{- range $paths }}
+      - path: {{ .path }}
+        pathType: {{ if hasPrefix "/." .path }}{{ include "element-io.ess-library.ingress.ingress-nginx-dot-path-type" (dict "root" $root "context" $component.ingress.controllerType) | trim }}{{ else }}Prefix{{ end }}
+        backend:
+          service:
+            name: {{ .serviceName | quote }}
+            port:
+{{- if .servicePortName }}
+              name: {{ .servicePortName }}
+{{- else }}
+              number: {{ .servicePortNumber }}
+{{- end }}
+{{- end }}
+
+{{- end -}}
+{{- end -}}
+{{- end -}}
