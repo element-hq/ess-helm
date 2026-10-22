@@ -23,14 +23,14 @@ jobs:
         persist-credentials: false
         fetch-depth: 0
 
-    - uses: ./.github/actions/asdf-cache
+    - uses: ./.github/actions/asdf-cache  # zizmor: ignore[self-repository]  The $/ form is better, but actionlint rejects it for now. https://github.com/rhysd/actionlint/issues/760
       with:
         tool-versions: |
           dyff 1.10.1
 
     # helm template doesn't reliably order manifests within the same kind, so use yq to do it for us
     - name: Render the CI manifests of the PR
-      uses: ./.github/actions/render-ci-manifests
+      uses: ./.github/actions/render-ci-manifests  # zizmor: ignore[self-repository]  The $/ form is better, but actionlint rejects it for now. https://github.com/rhysd/actionlint/issues
       with:
         output-dir: ${{ runner.temp }}/new
 
@@ -44,7 +44,7 @@ jobs:
       run: git worktree add "$RUNNER_TEMP/base-tree" "$BASE_REF"
 
     - name: Render the CI manifests of the base
-      uses: ./.github/actions/render-ci-manifests
+      uses: ./.github/actions/render-ci-manifests  # zizmor: ignore[self-repository]  The $/ form is better, but actionlint rejects it for now. https://github.com/rhysd/actionlint/issues
       with:
         source-dir: ${{ runner.temp }}/base-tree
         output-dir: ${{ runner.temp }}/old

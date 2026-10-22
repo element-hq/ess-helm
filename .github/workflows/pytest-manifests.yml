@@ -38,7 +38,7 @@ jobs:
         fetch-tags: true
     - name: Install dyff
       if: ${{ github.event_name == 'pull_request' }}
-      uses: ./.github/actions/asdf-cache
+      uses: ./.github/actions/asdf-cache   # zizmor: ignore[self-repository]  The $/ form is better, but actionlint rejects it for now. https://github.com/rhysd/actionlint/issues/760
       with:
         tool-versions: |
           dyff 1.10.1
@@ -92,13 +92,13 @@ jobs:
 
     - name: Render the CI manifests of the PR
       if: ${{ github.event_name == 'pull_request' && steps.changes.outputs.runAll == 'false' }}
-      uses: ./.github/actions/render-ci-manifests
+      uses: ./.github/actions/render-ci-manifests  # zizmor: ignore[self-repository]  The $/ form is better, but actionlint rejects it for now. https://github.com/rhysd/actionlint/issues
       with:
         output-dir: ${{ runner.temp }}/new
 
     - name: Render the CI manifests of the base
       if: ${{ github.event_name == 'pull_request' && steps.changes.outputs.runAll == 'false' }}
-      uses: ./.github/actions/render-ci-manifests
+      uses: ./.github/actions/render-ci-manifests  # zizmor: ignore[self-repository]  The $/ form is better, but actionlint rejects it for now. https://github.com/rhysd/actionlint/issues
       with:
         source-dir: ${{ runner.temp }}/base-tree
         output-dir: ${{ runner.temp }}/old
