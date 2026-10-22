@@ -24,10 +24,8 @@ jobs:
   pytest-setup:
     runs-on: ubuntu-latest
     outputs:
-      envFiles: ${{ steps.data.outputs.envFiles }}
       manifestTests: ${{ steps.data.outputs.manifestTests }}
-      upgradeFrom: ${{ steps.data.outputs.upgradeFrom }}
-      pytestK: ${{ steps.dyff.outputs.pytestK }}
+      pytestMatchValuesFiles: ${{ steps.dyff.outputs.pytestMatchValuesFiles }}
       changedManifestTests: ${{ steps.changes.outputs.changedManifestTests }}
       runAll: ${{ steps.changes.outputs.runAll }}
     steps:
@@ -154,19 +152,19 @@ jobs:
           fi
         done
 
-        pytest_k=$(printf '%s or ' "${changed_values_files[@]}")
-        echo "pytestK=${pytest_k% or }" | tee -a "$GITHUB_OUTPUT"
+        pytest_match_values_files=$(printf '%s or ' "${changed_values_files[@]}")
+        echo "pytestMatchValuesFiles=${pytest_match_values_files% or }" | tee -a "$GITHUB_OUTPUT"
 
     - name: Select the manifest tests to run
       id: data
       env:
         RUN_ALL: ${{ steps.changes.outputs.runAll }}
-        PYTEST_K: ${{ steps.dyff.outputs.pytestK }}
+        PYTEST_MATCH_VALUES_FILES: ${{ steps.dyff.outputs.pytestMatchValuesFiles }}
         CHANGED_MANIFEST_TESTS: ${{ steps.changes.outputs.changedManifestTests }}
       run: |
         set -euo pipefail
 
-        if [ "$RUN_ALL" == "true" ] || [ -n "$PYTEST_K" ]; then
+        if [ "$RUN_ALL" == "true" ] || [ -n "$PYTEST_MATCH_VALUES_FILES" ]; then
           # The test files must run, either unfiltered or against the changed values files.
           manifest_tests=$(find tests/manifests -name 'test_*.py' | sed 's|tests/manifests/||' | sed 's/.py$//')
         else
@@ -181,7 +179,7 @@ jobs:
     needs: pytest-setup
     # Nothing to test when we can only run filtered tests, no values file has a dyff
     # and no test file changed.
-    if: ${{ needs.pytest-setup.outputs.runAll == 'true' || needs.pytest-setup.outputs.changedManifestTests != '[]' || needs.pytest-setup.outputs.pytestK != '' }}
+    if: ${{ needs.pytest-setup.outputs.runAll == 'true' || needs.pytest-setup.outputs.changedManifestTests != '[]' || needs.pytest-setup.outputs.pytestMatchValuesFiles != '' }}
     strategy:
       fail-fast: false
       matrix:
@@ -212,7 +210,7 @@ jobs:
     - name: Run our manifest test
       env:
         MANIFEST_TEST: ${{ matrix.manifest-test }}
-        PYTEST_K: ${{ needs.pytest-setup.outputs.pytestK }}
+        PYTEST_MATCH_VALUES_FILES: ${{ needs.pytest-setup.outputs.pytestMatchValuesFiles }}
         MANIFEST_TEST_CHANGED: ${{ contains(fromJSON(needs.pytest-setup.outputs.changedManifestTests), matrix.manifest-test) }}
         MANIFEST_RUN_ALL: ${{ needs.pytest-setup.outputs.runAll }}
       run: |
@@ -221,8 +219,8 @@ jobs:
           # We must run against all values files: this is not a pull request against
           # a base branch, a test infrastructure file changed, or this test file changed.
           echo "Running $MANIFEST_TEST against all values files"
-        elif [ -n "$PYTEST_K" ]; then
-          pytest_args+=(-k "$PYTEST_K")
+        elif [ -n "$PYTEST_MATCH_VALUES_FILES" ]; then
+          pytest_args+=(-k "$PYTEST_MATCH_VALUES_FILES")
         else
           # No values file has a dyff and this test file did not change.
           echo "Nothing to test for $MANIFEST_TEST"
