@@ -101,6 +101,9 @@
       },
       "additionalProperties": false
     },
+    "inboundTrafficHandler": {
+      "$ref": "#/$defs/common_inboundTrafficHandler"
+    },
     "ingress": {
       "$ref": "#/$defs/common_ingress_global"
     },
@@ -327,6 +330,13 @@
       },
       "type": "object",
       "additionalProperties": false
+    },
+    "common_inboundTrafficHandler": {
+      "type": "string",
+      "enum": [
+        "ingress",
+        "none"
+      ]
     },
     "common_ingress_global": {
       "type": "object",
@@ -1201,6 +1211,9 @@
         },
         "image": {
           "$ref": "#/$defs/common_image"
+        },
+        "inboundTrafficHandler": {
+          "$ref": "#/$defs/common_inboundTrafficHandler"
         },
         "ingress": {
           "$ref": "#/$defs/common_ingress"
@@ -2151,6 +2164,9 @@
         "image": {
           "$ref": "#/$defs/common_image"
         },
+        "inboundTrafficHandler": {
+          "$ref": "#/$defs/common_inboundTrafficHandler"
+        },
         "ingress": {
           "$ref": "#/$defs/common_ingress"
         },
@@ -2260,6 +2276,9 @@
         },
         "image": {
           "$ref": "#/$defs/common_image"
+        },
+        "inboundTrafficHandler": {
+          "$ref": "#/$defs/common_inboundTrafficHandler"
         },
         "ingress": {
           "$ref": "#/$defs/common_ingress"
@@ -2475,6 +2494,9 @@
         },
         "additional": {
           "$ref": "#/$defs/common_additional"
+        },
+        "inboundTrafficHandler": {
+          "$ref": "#/$defs/common_inboundTrafficHandler"
         },
         "ingress": {
           "$ref": "#/$defs/common_ingress"
@@ -2716,6 +2738,9 @@
             }
           },
           "additionalProperties": false
+        },
+        "inboundTrafficHandler": {
+          "$ref": "#/$defs/common_inboundTrafficHandler"
         },
         "ingress": {
           "$ref": "#/$defs/common_ingress"
@@ -3396,6 +3421,9 @@
           "maximum": 1,
           "type": "integer"
         },
+        "inboundTrafficHandler": {
+          "$ref": "#/$defs/common_inboundTrafficHandler"
+        },
         "ingress": {
           "$ref": "#/$defs/synapse_ingress_with_additional_paths"
         },
@@ -3811,6 +3839,9 @@
       "properties": {
         "enabled": {
           "type": "boolean"
+        },
+        "inboundTrafficHandler": {
+          "$ref": "#/$defs/common_inboundTrafficHandler"
         },
         "ingress": {
           "$ref": "#/$defs/common_ingress_without_host"
