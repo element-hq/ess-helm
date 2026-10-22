@@ -87,7 +87,11 @@ jobs:
 
           while read -r templates_file; do
             current_file="$(basename "$templates_file")"
-            if [[ "$current_file" == ".yaml" ]] && [ ! -s "$template_file" ]; then
+            if [[ "$current_file" == ".yaml" ]] \
+                && [ ! -s "$RUNNER_TEMP/old/$templates_file" ] \
+                && [ ! -s "$RUNNER_TEMP/new/$templates_file" ]; then
+              # helm sometimes renders an empty document and yq then writes an
+              # empty .yaml file. It is not a manifest, there is nothing to compare.
               continue
             fi
 
