@@ -11,6 +11,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $processType := required "element-io.synapse.pod-template requires context.processType" .processType }}
 {{- $isHook := required "element-io.synapse-pod-template requires context.isHook" .isHook -}}
 {{- $enabledWorkers := (include "element-io.synapse.enabledWorkers" (dict "root" $root)) | fromJson }}
+{{- $extraVolumeMounts := list -}}
+{{- range .extraVolumeMounts }}
+{{- if or (and $isHook ((list "hook" "both") | has (.mountContext | default "both")))
+          (and (not $isHook) ((list "runtime" "both") | has (.mountContext | default "both"))) -}}
+{{- $extraVolumeMount := . | deepCopy }}
+{{- $_ := unset $extraVolumeMount "mountContext" }}
+{{ $extraVolumeMounts = append $extraVolumeMounts $extraVolumeMount }}
+{{- end }}
+{{- end }}
 template:
   metadata:
     labels:
@@ -56,27 +65,19 @@ We have an init container to render & merge the config for several reasons:
 */}}
     initContainers:
     {{- include "element-io.synapse.render-config-container" (dict "root" $root "context" .) | nindent 4 }}
-{{- /* The tcpwait init containers only run in the runtime pods, so they only mount the mounts for that context. */ -}}
-{{- $runtimeExtraVolumeMounts := list -}}
-{{- range .extraVolumeMounts -}}
-{{- if ((list "runtime" "both") | has (.mountContext | default "both")) -}}
-{{- $extraVolumeMount := . | deepCopy -}}
-{{- $_ := unset $extraVolumeMount "mountContext" -}}
-{{- $runtimeExtraVolumeMounts = append $runtimeExtraVolumeMounts $extraVolumeMount -}}
-{{- end -}}
-{{- end -}}
+
 {{- if not $isHook }}
     {{- include "element-io.ess-library.pods.postgresTcpWait" (dict "root" $root "context" (dict
           "postgres" .postgres
           "containersSecurityContext" .containersSecurityContext
-          "extraVolumeMounts" $runtimeExtraVolumeMounts)) | nindent 4 }}
-{{- end }}
-{{- if and (not $isHook) (or .redisOrValkey .redis $enabledWorkers) }}
+          "extraVolumeMounts" $extraVolumeMounts)) | nindent 4 }}
+{{- if $enabledWorkers }}
     {{- include "element-io.ess-library.pods.valkeyTcpWait" (dict "root" $root "context" (dict
           "redisOrValkey" .redisOrValkey
           "redis" .redis
           "containersSecurityContext" .containersSecurityContext
-          "extraVolumeMounts" $runtimeExtraVolumeMounts)) | nindent 4 }}
+          "extraVolumeMounts" $extraVolumeMounts)) | nindent 4 }}
+{{- end }}
 {{- end }}
 {{- with .extraInitContainers }}
     {{- toYaml . | nindent 4 }}
@@ -143,13 +144,8 @@ We have an init container to render & merge the config for several reasons:
         {{- toYaml . | nindent 8 }}
 {{- end }}
       volumeMounts:
-{{- range .extraVolumeMounts }}
-{{- if or (and $isHook ((list "hook" "both") | has (.mountContext | default "both")))
-          (and (not $isHook) ((list "runtime" "both") | has (.mountContext | default "both"))) -}}
-{{- $extraVolumeMount := . | deepCopy }}
-{{- $_ := unset $extraVolumeMount "mountContext" }}
-      - {{- ($extraVolumeMount | toYaml) | nindent 8 }}
-{{- end }}
+{{- range $extraVolumeMounts }}
+      - {{- (. | toYaml) | nindent 8 }}
 {{- end }}
       {{- include "element-io.ess-library.render-config-volume-mounts" (dict "root" $root "context"
             (dict "nameSuffix" "synapse"
