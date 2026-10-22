@@ -23,6 +23,7 @@ class PropertyType(Enum):
     ExposedServices = "exposedServices"
     HostAliases = "hostAliases"
     Image = "image"
+    InboundTrafficHandler = "inboundTrafficHandler"
     Ingress = "ingress"
     InitContainers = "extraInitContainers"
     Labels = "labels"
