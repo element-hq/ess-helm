@@ -24,7 +24,8 @@ runs:
     run: |
       set -euo pipefail
 
-      for values in "$SOURCE_DIR"/charts/matrix-stack/ci*/*values.yaml; do
+      render_values_file() {
+        values=$1
         values_file=$(basename "$values" ".yaml")
         echo "Rendering the manifests of $values_file"
         mkdir -p "$OUTPUT_DIR/$values_file"
@@ -35,4 +36,11 @@ runs:
             -f "$values" charts/matrix-stack) | \
         yq ea '[.] | .[] | splitDoc' | \
         yq -s "\"$OUTPUT_DIR/$values_file/\""' + ([.kind, .metadata.name] | join("-") | downcase) + ".yaml"'
-      done
+      }
+      export -f render_values_file
+      export SOURCE_DIR OUTPUT_DIR
+
+      # Rendering the manifests is the slow part of a dyff. We render the
+      # values files in parallel to use all the CPU cores of the runner.
+      printf '%s\n' "$SOURCE_DIR"/charts/matrix-stack/ci*/*values.yaml | \
+        xargs -P "$(nproc)" -n1 bash -c 'set -euo pipefail; render_values_file "$1"' _
