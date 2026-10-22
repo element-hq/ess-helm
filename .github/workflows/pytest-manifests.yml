@@ -225,7 +225,11 @@ jobs:
           # a base branch, a test infrastructure file changed, or this test file changed.
           echo "Running $MANIFEST_TEST against all values files"
         elif [ -n "$PYTEST_MATCH_VALUES_FILES" ]; then
-          pytest_args+=(-k "$PYTEST_MATCH_VALUES_FILES")
+          # Every values file name ends in "values.yaml" and appears in the name of
+          # the tests parametrized on it. So "not values.yaml" matches the tests
+          # that don't depend on a values file, e.g. the test infrastructure
+          # tests: they always run alongside the tests of the changed values files.
+          pytest_args+=(-k "$PYTEST_MATCH_VALUES_FILES or not values.yaml")
         else
           # No values file has a dyff and this test file did not change.
           echo "Nothing to test for $MANIFEST_TEST"
@@ -236,7 +240,8 @@ jobs:
         pytest -vv "${pytest_args[@]}" "tests/manifests/${MANIFEST_TEST}.py" || pytest_exit_code=$?
 
         # pytest exits 5 when no test ran. No test in this file covers the
-        # values files with a dyff, so there is nothing to check.
+        # values files with a dyff and it has no test independent of a
+        # values file, so there is nothing to check.
         if [ "$pytest_exit_code" -eq 5 ]; then
           echo "No test to run for the changed values files"
           exit 0
