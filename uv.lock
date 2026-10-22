@@ -1,11 +1,11 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.11.7, <4.0"
 resolution-markers = [
     "python_full_version >= '3.15'",
     "python_full_version == '3.14.*'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten'",
-    "(python_full_version < '3.14' and sys_platform != 'emscripten') or (python_full_version < '3.12' and sys_platform == 'emscripten')",
+    "python_full_version < '3.12' or (python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten')",
 ]
 
 [manifest]
@@ -970,7 +970,7 @@ dev = [
     { name = "jsonschema", specifier = ">=4.26" },
     { name = "mypy", specifier = ">=2.3.0" },
     { name = "platformdirs", specifier = ">=4.11.0" },
-    { name = "pytest", specifier = ">=8.4.2,<9" },
+    { name = "pytest", specifier = ">=9.1.1,<10" },
     { name = "pytz", specifier = ">=2026.3.post1" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "rapidfuzz", specifier = ">=3.14.5" },
@@ -1032,7 +1032,7 @@ requires-dist = [
     { name = "playwright", marker = "extra == 'browser'", specifier = ">=1.62.0" },
     { name = "prometheus-client", specifier = ">=0.26.0" },
     { name = "pyhelm3", specifier = ">=0.5.7" },
-    { name = "pytest", specifier = ">=8.4.2,<9" },
+    { name = "pytest", specifier = ">=9.1.1,<10" },
     { name = "pytest-asyncio-cooperative", specifier = ">=0.40.0" },
     { name = "pytest-kubernetes", specifier = ">=0.7.2" },
     { name = "python-dotenv", specifier = ">=1.2.2" },
@@ -2725,7 +2725,7 @@ wheels = [
 
 [[package]]
 name = "pytest"
-version = "8.4.2"
+version = "9.1.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "colorama", marker = "sys_platform == 'win32'" },
@@ -2734,9 +2734,9 @@ dependencies = [
     { name = "pluggy" },
     { name = "pygments" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a3/5c/00a0e072241553e1a7496d638deababa67c5058571567b92a7eaa258397c/pytest-8.4.2.tar.gz", hash = "sha256:86c0d0b93306b961d58d62a4db4879f27fe25513d4b969df351abdddb3c30e01", size = 1519618, upload-time = "2025-09-04T14:34:22.711Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e4/47/b9efed96c114afcfa3c9d3fe98a76a1d14c74a9e266d397cf6eb64be5e01/pytest-9.1.1.tar.gz", hash = "sha256:1088fbde8f2b49d95a549a195707afa7a76a3ce9bcadc26b6d71f0ffda5fe313", size = 1636369, upload-time = "2026-06-19T10:58:32.857Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a8/a4/20da314d277121d6534b3a980b29035dcd51e6744bd79075a6ce8fa4eb8d/pytest-8.4.2-py3-none-any.whl", hash = "sha256:872f880de3fc3a5bdc88a11b39c9710c3497a547cfa9320bc3c5e62fbf272e79", size = 365750, upload-time = "2025-09-04T14:34:20.226Z" },
+    { url = "https://files.pythonhosted.org/packages/24/25/1de2678b631f5a49215c6c96fff41ba892b0a34df68d6d80292b1b48aa7f/pytest-9.1.1-py3-none-any.whl", hash = "sha256:37a86b45efb9a47a61a36449063e8e18d0cab3161329fc099eb21783169c4f0c", size = 386536, upload-time = "2026-06-19T10:58:31.347Z" },
 ]
 
 [[package]]
@@ -2750,15 +2750,15 @@ wheels = [
 
 [[package]]
 name = "pytest-kubernetes"
-version = "0.7.2"
+version = "0.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pytest" },
     { name = "pyyaml" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c9/ef/9292680bf57b46fdcf88c75dc99f1fd6c3713fb7f3bc497c4b7bb5cca75c/pytest_kubernetes-0.7.2.tar.gz", hash = "sha256:7733a224fb38092040bb03229b3513a9a065549bb1bbe0a9ed501ff1d5edc205", size = 18150, upload-time = "2025-10-23T07:16:42.552Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/81/3b/56d40b8caf4fa7e69f9e7ac2cb5b689f2cbef7c93ea53b43d1436663680e/pytest_kubernetes-0.9.0.tar.gz", hash = "sha256:000a0c5066b1c2d5c7a374bd66faf98194ce1e38fe484fa4864cf2619cb19264", size = 22243, upload-time = "2026-10-20T07:28:37.05Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/eb/3b/4e6759426c90a51690d5f7a5114fbeb7361572a41520a0e0916107c6bfab/pytest_kubernetes-0.7.2-py3-none-any.whl", hash = "sha256:8a38d654a3a678437e76441ac743f466ab9ba28fde61f0d76508989ff1485905", size = 20342, upload-time = "2025-10-23T07:16:40.993Z" },
+    { url = "https://files.pythonhosted.org/packages/9c/0c/9c5974cb305de394bd870ddb159a3a034974882f119a235a8f56abc5037b/pytest_kubernetes-0.9.0-py3-none-any.whl", hash = "sha256:b26499856058edc9ee0ec89f0eebfae0c141ce7c50d54eb9f69957f3c27973b6", size = 22369, upload-time = "2026-10-20T07:28:35.748Z" },
 ]
 
 [[package]]
