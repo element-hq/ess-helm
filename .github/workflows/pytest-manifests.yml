@@ -59,8 +59,8 @@ jobs:
 
         # actions/checkout only leaves remote tracking branches, so the base
         # branch is only reachable through its full ref.
-        base_ref="refs/remotes/origin/$BASE_REF"
-        changed_test_files=$(git diff --name-only "$base_ref" -- tests/manifests/)
+        base_ref_path="refs/remotes/origin/$BASE_REF"
+        changed_test_files=$(git diff --name-only "$base_ref_path" -- tests/manifests/)
 
         run_all="false"
         changed_manifest_tests=()
@@ -95,16 +95,11 @@ jobs:
 
     - name: Render the CI manifests of the PR
       if: ${{ github.event_name == 'pull_request' && steps.changes.outputs.runAll == 'false' }}
-      uses: ./.github/actions/render-ci-manifests  # zizmor: ignore[self-repository]  The $/ form is better, but actionlint rejects it for now. https://github.com/rhysd/actionlint/issues
-      with:
-        output-dir: ${{ runner.temp }}/new
+      run: scripts/render_ci_manifests.sh charts/matrix-stack "$RUNNER_TEMP/new"
 
     - name: Render the CI manifests of the base
       if: ${{ github.event_name == 'pull_request' && steps.changes.outputs.runAll == 'false' }}
-      uses: ./.github/actions/render-ci-manifests  # zizmor: ignore[self-repository]  The $/ form is better, but actionlint rejects it for now. https://github.com/rhysd/actionlint/issues
-      with:
-        source-dir: ${{ runner.temp }}/base-tree
-        output-dir: ${{ runner.temp }}/old
+      run: scripts/render_ci_manifests.sh "$RUNNER_TEMP/base-tree/charts/matrix-stack" "$RUNNER_TEMP/old"
 
     - name: Find values files with a dyff
       id: dyff
@@ -112,52 +107,15 @@ jobs:
       run: |
         set -euo pipefail
 
-        changed_values_files=()
-
-        for values in charts/matrix-stack/ci*/*values.yaml; do
-          values_file=$(basename "$values")
-          values_name=$(basename "$values" ".yaml")
-          echo "Checking $values_file"
-
-          if [ ! -d "$RUNNER_TEMP/old/$values_name" ]; then
-            # The values file is new, so all its rendered manifests are new.
-            echo "  $values_file is new"
-            changed_values_files+=("$values_file")
-            continue
-          fi
-
-          old_dir="$RUNNER_TEMP/old/$values_name"
-          new_dir="$RUNNER_TEMP/new/$values_name"
-          has_dyff="false"
-          while read -r templates_file; do
-            [ -n "$templates_file" ] || continue
-
-            if [ ! -f "$old_dir/$templates_file" ] || [ ! -f "$new_dir/$templates_file" ]; then
-              # A rendered manifest was added or removed.
-              echo "  $templates_file was added or removed"
-              has_dyff="true"
-              break
-            fi
-
-            dyff_exit_code=0
-            scripts/dyff_manifests.sh "$old_dir/$templates_file" "$new_dir/$templates_file" >/dev/null || dyff_exit_code=$?
-            if [ "$dyff_exit_code" -eq 2 ]; then
-              # The script has already printed why the files could not be compared
-              exit 1
-            fi
-            if [ "$dyff_exit_code" -eq 1 ]; then
-              echo "  $templates_file has a dyff"
-              has_dyff="true"
-              break
-            fi
-          done < <( { ls "$old_dir"; ls "$new_dir"; } | sort -u)
-
-          if [ "$has_dyff" == "true" ]; then
-            changed_values_files+=("$values_file")
-          fi
-        done
-
-        pytest_match_values_files=$(printf '%s or ' "${changed_values_files[@]}")
+        changed_values_files=$(scripts/dyff_ci_manifests.sh list "$RUNNER_TEMP/base-tree/charts/matrix-stack" "$RUNNER_TEMP/old" charts/matrix-stack "$RUNNER_TEMP/new")
+        # The name of a values file is the name of its rendered manifests
+        # directory with the .yaml extension. They are joined with " or " so the
+        # result can be used as a pytest -k expression.
+        pytest_match_values_files=""
+        while read -r values_name; do
+          [ -n "$values_name" ] || continue
+          pytest_match_values_files+="$values_name.yaml or "
+        done <<< "$changed_values_files"
         echo "pytestMatchValuesFiles=${pytest_match_values_files% or }" | tee -a "$GITHUB_OUTPUT"
 
     - name: Select the manifest tests to run
