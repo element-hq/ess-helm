@@ -30,9 +30,7 @@ jobs:
 
     # helm template doesn't reliably order manifests within the same kind, so use yq to do it for us
     - name: Render the CI manifests of the PR
-      uses: ./.github/actions/render-ci-manifests  # zizmor: ignore[self-repository]  The $/ form is better, but actionlint rejects it for now. https://github.com/rhysd/actionlint/issues
-      with:
-        output-dir: ${{ runner.temp }}/new
+      run: scripts/render_ci_manifests.sh charts/matrix-stack "$RUNNER_TEMP/new"
 
     # https://github.com/orgs/community/discussions/59677 says that github.event.pull_request.base.sha
     # is only calculated on creation of the PR, so we reference the target branch by ref.
@@ -44,10 +42,7 @@ jobs:
       run: git worktree add "$RUNNER_TEMP/base-tree" "$BASE_REF"
 
     - name: Render the CI manifests of the base
-      uses: ./.github/actions/render-ci-manifests  # zizmor: ignore[self-repository]  The $/ form is better, but actionlint rejects it for now. https://github.com/rhysd/actionlint/issues
-      with:
-        source-dir: ${{ runner.temp }}/base-tree
-        output-dir: ${{ runner.temp }}/old
+      run: scripts/render_ci_manifests.sh "$RUNNER_TEMP/base-tree/charts/matrix-stack" "$RUNNER_TEMP/old"
 
     - name: Upload new manifests
       id: upload-new
@@ -65,93 +60,8 @@ jobs:
         PR_NUMBER: ${{ github.event.pull_request.number }}
       run: |
         echo "output_dir=$RUNNER_TEMP" | tee -a "$GITHUB_OUTPUT"
-        values_directories=$(find "$RUNNER_TEMP/old" "$RUNNER_TEMP/new" -maxdepth 1 -type d | sed -E 's|'"$RUNNER_TEMP"'/(old\|new)||' | sed -E 's|^/||' | sort | uniq)
         header="# dyff of changes in rendered templates of CI manifests\n\n"
-        comment_body=""
-        while read -r values_dir; do
-          if [ -z "$values_dir" ]; then
-            continue
-          fi
-
-          templates_files=$(find "$RUNNER_TEMP/old" "$RUNNER_TEMP/new" -maxdepth 2 -name '*.yaml' | grep "/$values_dir/" | sed -E 's|'"$RUNNER_TEMP"'/(old\|new)/||' | sort | uniq)
-          comment_templates_body=""
-          values_file_suffix=""
-          on_both_branches="true"
-          if [ ! -d "$RUNNER_TEMP/old/$values_dir" ]; then
-            values_file_suffix=" (added)"
-            on_both_branches="false"
-          elif [ ! -d "$RUNNER_TEMP/new/$values_dir" ]; then
-            values_file_suffix=" (removed)"
-            on_both_branches="false"
-          fi
-
-          while read -r templates_file; do
-            current_file="$(basename "$templates_file")"
-            if [[ "$current_file" == ".yaml" ]] \
-                && [ ! -s "$RUNNER_TEMP/old/$templates_file" ] \
-                && [ ! -s "$RUNNER_TEMP/new/$templates_file" ]; then
-              # helm sometimes renders an empty document and yq then writes an
-              # empty .yaml file. It is not a manifest, there is nothing to compare.
-              continue
-            fi
-
-            if [ ! -f "$RUNNER_TEMP/old/$templates_file" ]; then
-              kind=$(yq '.kind' "$RUNNER_TEMP/new/$templates_file")
-              name=$(yq '.metadata.name' "$RUNNER_TEMP/new/$templates_file")
-              namespace=$(yq '.metadata.namespace' "$RUNNER_TEMP/new/$templates_file")
-              if [ "$on_both_branches" == "true" ]; then
-                comment_templates_body+="@@ $kind/$namespace/$name @@\n"
-                while IFS= read -r line; do
-                  comment_templates_body+="+ $line\n"
-                done < "$RUNNER_TEMP/new/$templates_file"
-                comment_templates_body+="\n\n"
-              else
-                comment_templates_body+="$kind/$namespace/$name added\n"
-              fi
-              continue
-            fi
-
-            if [ ! -f "$RUNNER_TEMP/new/$templates_file" ]; then
-              kind=$(yq '.kind' "$RUNNER_TEMP/old/$templates_file")
-              name=$(yq '.metadata.name' "$RUNNER_TEMP/old/$templates_file")
-              namespace=$(yq '.metadata.namespace' "$RUNNER_TEMP/old/$templates_file")
-              if [ "$on_both_branches" == "true" ]; then
-                comment_templates_body+="@@ $kind/$namespace/$name @@\n"
-                while IFS= read -r line; do
-                  comment_templates_body+="- $line\n"
-                done < "$RUNNER_TEMP/old/$templates_file"
-                comment_templates_body+="\n\n"
-              else
-                comment_templates_body+="$kind/$namespace/$name removed\n"
-              fi
-              continue
-            fi
-
-            exit_code=0
-            dyff_detail=$(scripts/dyff_manifests.sh "$RUNNER_TEMP/old/$templates_file" "$RUNNER_TEMP/new/$templates_file") || exit_code=$?
-            if [ "$exit_code" -eq 2 ]; then
-              # The script has already printed why the files could not be compared
-              exit 1
-            fi
-            if [ "$exit_code" -eq 1 ]; then
-              kind=$(yq '.kind' "$RUNNER_TEMP/new/$templates_file")
-              name=$(yq '.metadata.name' "$RUNNER_TEMP/new/$templates_file")
-              namespace=$(yq '.metadata.namespace' "$RUNNER_TEMP/new/$templates_file")
-              comment_templates_body+=$(sed -e '/^!/d' -e "s|^@@\(.*\)@@|@@ $kind/$namespace/$name -\1@@|" <<< "$dyff_detail")
-              comment_templates_body+="\n\n\n"
-            fi
-          done <<< "$templates_files"
-
-          if [[ -n "$comment_templates_body" ]]; then
-              comment_body+="<details><summary><b>$values_dir.yaml$values_file_suffix</b></summary>\n"
-              comment_body+='\n```diff\n'
-              comment_body+="$comment_templates_body"
-              comment_body+='```\n'
-              comment_body+="\n</details>\n"
-          fi
-
-        done <<< "$values_directories"
-
+        comment_body=$(scripts/dyff_ci_manifests.sh comment "$RUNNER_TEMP/base-tree/charts/matrix-stack" "$RUNNER_TEMP/old" charts/matrix-stack "$RUNNER_TEMP/new")
         if [ -z "$comment_body" ]; then
           comment_body="No changes in rendered templates"
         else
