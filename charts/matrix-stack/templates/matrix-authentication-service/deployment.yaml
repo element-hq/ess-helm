@@ -46,26 +46,7 @@ spec:
 {{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "matrix-authentication-service" "kind" "Deployment" "makesOutboundRequests" true "usesMatrixTools" true)) | nindent 6 }}
       initContainers:
       {{ include "element-io.matrix-authentication-service.render-config-container" (dict "root" $ "context" .) | nindent 6 }}
-      - name: db-wait
-        {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" $.Values.matrixTools.image) | nindent 8 }}
-{{- with .containersSecurityContext }}
-        securityContext:
-          {{- toYaml . | nindent 10 }}
-{{- end }}
-        args:
-        - tcpwait
-        - -address
-        - {{ include "element-io.ess-library.postgres-host-port" (dict "root" $ "context" (dict "postgres" .postgres)) | quote }}
-{{- with $.Values.matrixTools.resources.tcpWait }}
-        resources:
-          {{- toYaml . | nindent 10 }}
-{{- end }}
-{{- with .extraVolumeMounts }}
-        volumeMounts:
-{{- range . }}
-        - {{ (. | toYaml) | nindent 10 }}
-{{- end }}
-{{- end }}
+      {{- include "element-io.ess-library.pods.postgresTcpWait" (dict "root" $ "context" .) | nindent 6 }}
       - name: database-migrate
         args: ["database", "migrate"]
         {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" .image) | nindent 8 }}

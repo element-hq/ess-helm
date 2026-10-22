@@ -676,7 +676,7 @@ all_components_details = [
         ignore_paths_mismatches={
             "hookshot": ("/bin/matrix-hookshot/App/BridgeApp.js",),
         },
-        additional_values_files=("hookshot-encryption-enabled-values.yaml",),
+        additional_values_files=("hookshot-encryption-enabled-values.yaml", "synapse-hookshot-values.yaml"),
         ephemeral_storages={"tmp": "tmp"},
     ),
     ComponentDetails(
