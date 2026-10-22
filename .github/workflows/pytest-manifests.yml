@@ -57,6 +57,11 @@ jobs:
           exit 0
         fi
 
+        # actions/checkout only leaves remote tracking branches, so the base
+        # branch is only reachable through its full ref.
+        base_ref="refs/remotes/origin/$BASE_REF"
+        changed_test_files=$(git diff --name-only "$base_ref" -- tests/manifests/)
+
         run_all="false"
         changed_manifest_tests=()
         while read -r changed_file; do
@@ -74,7 +79,7 @@ jobs:
               run_all="true"
               ;;
           esac
-        done < <(git diff --name-only "$BASE_REF" -- tests/manifests/)
+        done <<< "$changed_test_files"
 
         if [ "$run_all" == "true" ]; then
           echo "A test infrastructure file changed, running all the tests"
@@ -86,7 +91,7 @@ jobs:
       if: ${{ github.event_name == 'pull_request' && steps.changes.outputs.runAll == 'false' }}
       env:
         BASE_REF: ${{ github.event.pull_request.base.ref }}
-      run: git worktree add "$RUNNER_TEMP/base-tree" "$BASE_REF"
+      run: git worktree add --detach "$RUNNER_TEMP/base-tree" "refs/remotes/origin/$BASE_REF"
 
     - name: Render the CI manifests of the PR
       if: ${{ github.event_name == 'pull_request' && steps.changes.outputs.runAll == 'false' }}
