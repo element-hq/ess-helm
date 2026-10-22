@@ -26,6 +26,7 @@ jobs:
     - uses: ./.github/actions/asdf-cache  # zizmor: ignore[self-repository]  The $/ form is better, but actionlint rejects it for now. https://github.com/rhysd/actionlint/issues/760
       with:
         tool-versions: |
+          # renovate: datasource=github-releases depName=dyff packageName=homeport/dyff
           dyff 1.10.1
 
     # helm template doesn't reliably order manifests within the same kind, so use yq to do it for us
