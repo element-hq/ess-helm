@@ -27,15 +27,133 @@ jobs:
       envFiles: ${{ steps.data.outputs.envFiles }}
       manifestTests: ${{ steps.data.outputs.manifestTests }}
       upgradeFrom: ${{ steps.data.outputs.upgradeFrom }}
+      pytestK: ${{ steps.dyff.outputs.pytestK }}
+      changedManifestTests: ${{ steps.changes.outputs.changedManifestTests }}
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       with:
         persist-credentials: false
         fetch-depth: 0
         fetch-tags: true
+    - name: Install dyff
+      if: ${{ github.event_name == 'pull_request' }}
+      uses: ./.github/actions/asdf-cache
+      with:
+        tool-versions: |
+          dyff 1.10.1
     - id: data
       run: |
         echo "manifestTests=$(find tests/manifests -name 'test_*.py' | sed 's|tests/manifests/||' | sed 's/.py$//' | jq -ncR '{manifestTests: [inputs]}')" | tee -a "$GITHUB_OUTPUT"
+
+    - name: Find changed test files
+      id: changes
+      env:
+        GITHUB_EVENT_NAME: ${{ github.event_name }}
+        BASE_REF: ${{ github.event.pull_request.base.ref }}
+      run: |
+        set -euo pipefail
+
+        if [ "$GITHUB_EVENT_NAME" != "pull_request" ]; then
+          # We can only compare against a base branch for pull requests.
+          # runAll makes every test run against all values files.
+          echo "runAll=true" | tee -a "$GITHUB_OUTPUT"
+          echo "changedManifestTests=[]" | tee -a "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        run_all="false"
+        changed_manifest_tests=()
+        while read -r changed_file; do
+          [ -n "$changed_file" ] || continue
+          case "$changed_file" in
+            tests/manifests/test_*.py)
+              changed_manifest_tests+=("$(basename "$changed_file" .py)")
+              ;;
+            *)
+              # Not a test file, e.g. utils.py. It can affect all the tests.
+              run_all="true"
+              ;;
+          esac
+        done < <(git diff --name-only "$BASE_REF" -- tests/manifests/)
+
+        if [ "$run_all" == "true" ]; then
+          echo "A test infrastructure file changed, running all the tests"
+        fi
+        echo "runAll=$run_all" | tee -a "$GITHUB_OUTPUT"
+        echo "changedManifestTests=$(printf '%s\n' "${changed_manifest_tests[@]}" | sed '/^$/d' | jq -ncR '[inputs]')" | tee -a "$GITHUB_OUTPUT"
+
+    - name: Checkout the base branch
+      if: ${{ github.event_name == 'pull_request' && steps.changes.outputs.runAll == 'false' }}
+      env:
+        BASE_REF: ${{ github.event.pull_request.base.ref }}
+      run: git worktree add "$RUNNER_TEMP/base-tree" "$BASE_REF"
+
+    - name: Render the CI manifests of the PR
+      if: ${{ github.event_name == 'pull_request' && steps.changes.outputs.runAll == 'false' }}
+      uses: ./.github/actions/render-ci-manifests
+      with:
+        output-dir: ${{ runner.temp }}/new
+
+    - name: Render the CI manifests of the base
+      if: ${{ github.event_name == 'pull_request' && steps.changes.outputs.runAll == 'false' }}
+      uses: ./.github/actions/render-ci-manifests
+      with:
+        source-dir: ${{ runner.temp }}/base-tree
+        output-dir: ${{ runner.temp }}/old
+
+    - name: Find values files with a dyff
+      id: dyff
+      if: ${{ github.event_name == 'pull_request' && steps.changes.outputs.runAll == 'false' }}
+      run: |
+        set -euo pipefail
+
+        changed_values_files=()
+
+        for values in charts/matrix-stack/ci*/*values.yaml; do
+          values_file=$(basename "$values")
+          values_name=$(basename "$values" ".yaml")
+          echo "Checking $values_file"
+
+          if [ ! -d "$RUNNER_TEMP/old/$values_name" ]; then
+            # The values file is new, so all its rendered manifests are new.
+            echo "  $values_file is new"
+            changed_values_files+=("$values_file")
+            continue
+          fi
+
+          old_dir="$RUNNER_TEMP/old/$values_name"
+          new_dir="$RUNNER_TEMP/new/$values_name"
+          has_dyff="false"
+          while read -r templates_file; do
+            [ -n "$templates_file" ] || continue
+
+            if [ ! -f "$old_dir/$templates_file" ] || [ ! -f "$new_dir/$templates_file" ]; then
+              # A rendered manifest was added or removed.
+              echo "  $templates_file was added or removed"
+              has_dyff="true"
+              break
+            fi
+
+            dyff_exit_code=0
+            scripts/dyff_manifests.sh "$old_dir/$templates_file" "$new_dir/$templates_file" >/dev/null || dyff_exit_code=$?
+            if [ "$dyff_exit_code" -eq 2 ]; then
+              # The script has already printed why the files could not be compared
+              exit 1
+            fi
+            if [ "$dyff_exit_code" -eq 1 ]; then
+              echo "  $templates_file has a dyff"
+              has_dyff="true"
+              break
+            fi
+          done < <( { ls "$old_dir"; ls "$new_dir"; } | sort -u)
+
+          if [ "$has_dyff" == "true" ]; then
+            changed_values_files+=("$values_file")
+          fi
+        done
+
+        pytest_k=$(printf '%s or ' "${changed_values_files[@]}")
+        echo "pytestK=${pytest_k% or }" | tee -a "$GITHUB_OUTPUT"
 
   pytest-manifests:
     runs-on: ubuntu-latest
@@ -70,4 +188,25 @@ jobs:
     - name: Run our manifest test
       env:
         MANIFEST_TEST: ${{ matrix.manifest-test }}
-      run: pytest -vv "tests/manifests/${MANIFEST_TEST}.py"
+        PYTEST_K: ${{ needs.pytest-setup.outputs.pytestK }}
+        MANIFEST_TEST_CHANGED: ${{ contains(fromJSON(needs.pytest-setup.outputs.changedManifestTests), matrix.manifest-test) }}
+      run: |
+        pytest_args=()
+        if [ "$MANIFEST_TEST_CHANGED" == "true" ]; then
+          # This test file changed, so we must run it against all values files.
+          echo "$MANIFEST_TEST changed, running it against all values files"
+        elif [ -n "$PYTEST_K" ]; then
+          pytest_args+=(-k "$PYTEST_K")
+        fi
+
+        pytest_exit_code=0
+        pytest -vv "${pytest_args[@]}" "tests/manifests/${MANIFEST_TEST}.py" || pytest_exit_code=$?
+
+        # pytest exits 5 when no test ran. No test in this file covers the
+        # values files with a dyff, so there is nothing to check.
+        if [ "$pytest_exit_code" -eq 5 ]; then
+          echo "No test to run for the changed values files"
+          exit 0
+        fi
+
+        exit "$pytest_exit_code"
