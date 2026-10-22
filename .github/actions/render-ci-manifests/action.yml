@@ -1,0 +1,38 @@
+# Copyright 2026 Element Creations Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+name: Render CI manifests
+description: Render the manifests of all the CI values files of the chart, one directory per values file
+
+inputs:
+  output-dir:
+    description: Directory to render the manifests into
+    required: true
+  source-dir:
+    description: Directory containing the chart to render
+    default: '.'
+
+runs:
+  using: composite
+  steps:
+  - name: Render the manifests of the CI values files
+    shell: bash
+    env:
+      SOURCE_DIR: ${{ inputs.source-dir }}
+      OUTPUT_DIR: ${{ inputs.output-dir }}
+    run: |
+      set -euo pipefail
+
+      for values in "$SOURCE_DIR"/charts/matrix-stack/ci*/*values.yaml; do
+        values_file=$(basename "$values" ".yaml")
+        echo "Rendering the manifests of $values_file"
+        mkdir -p "$OUTPUT_DIR/$values_file"
+        (cd "$SOURCE_DIR" && helm template \
+            -n ess-ci \
+            -a monitoring.coreos.com/v1/ServiceMonitor \
+            -a cert-manager.io/v1/Certificate \
+            -f "$values" charts/matrix-stack) | \
+        yq ea '[.] | .[] | splitDoc' | \
+        yq -s "\"$OUTPUT_DIR/$values_file/\""' + ([.kind, .metadata.name] | join("-") | downcase) + ".yaml"'
+      done
