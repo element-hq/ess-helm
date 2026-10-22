@@ -36,17 +36,17 @@ jobs:
 
     # https://github.com/orgs/community/discussions/59677 says that github.event.pull_request.base.sha
     # is only calculated on creation of the PR, so we reference the target branch by ref.
-    - name: Checkout target
-      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-      with:
-        persist-credentials: false
-        ref: ${{ github.event.pull_request.base.ref }}
-        # We dont clean as it would remove the .tool-versions file
-        clean: false
+    # The base branch is checked out in a worktree so that the workspace keeps the PR
+    # checkout: the local actions are only on the PR branch.
+    - name: Checkout the base branch
+      env:
+        BASE_REF: ${{ github.event.pull_request.base.ref }}
+      run: git worktree add "$RUNNER_TEMP/base-tree" "$BASE_REF"
 
     - name: Render the CI manifests of the base
       uses: ./.github/actions/render-ci-manifests
       with:
+        source-dir: ${{ runner.temp }}/base-tree
         output-dir: ${{ runner.temp }}/old
 
     - name: Upload new manifests
@@ -164,9 +164,3 @@ jobs:
         name: dyff-templates
         path: ${{ steps.dyff.outputs.output_dir }}
         retention-days: 1
-
-    # Restore the current PR git state for post-step actions
-    - name: Checkout
-      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-      with:
-        persist-credentials: false
