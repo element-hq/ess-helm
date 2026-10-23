@@ -91,32 +91,26 @@ while read -r values_name; do
         has_dyff="true"
         break
       fi
-      if [ ! -f "$old_dir/$templates_file" ]; then
-        kind=$(yq '.kind' "$new_dir/$templates_file")
-        name=$(yq '.metadata.name' "$new_dir/$templates_file")
-        namespace=$(yq '.metadata.namespace' "$new_dir/$templates_file")
-        if [ "$on_both_branches" == "true" ]; then
-          comment_templates_body+="@@ $kind/$namespace/$name @@\n"
-          while IFS= read -r line; do
-            comment_templates_body+="+ $line\n"
-          done < "$new_dir/$templates_file"
-          comment_templates_body+="\n\n"
-        else
-          comment_templates_body+="$kind/$namespace/$name added\n"
-        fi
+      if [ -f "$old_dir/$templates_file" ]; then
+        present_dir=$old_dir
+        file_state="removed"
+        sign="-"
       else
-        kind=$(yq '.kind' "$old_dir/$templates_file")
-        name=$(yq '.metadata.name' "$old_dir/$templates_file")
-        namespace=$(yq '.metadata.namespace' "$old_dir/$templates_file")
-        if [ "$on_both_branches" == "true" ]; then
-          comment_templates_body+="@@ $kind/$namespace/$name @@\n"
-          while IFS= read -r line; do
-            comment_templates_body+="- $line\n"
-          done < "$old_dir/$templates_file"
-          comment_templates_body+="\n\n"
-        else
-          comment_templates_body+="$kind/$namespace/$name removed\n"
-        fi
+        present_dir=$new_dir
+        file_state="added"
+        sign="+"
+      fi
+      kind=$(yq '.kind' "$present_dir/$templates_file")
+      name=$(yq '.metadata.name' "$present_dir/$templates_file")
+      namespace=$(yq '.metadata.namespace' "$present_dir/$templates_file")
+      if [ "$on_both_branches" == "true" ]; then
+        comment_templates_body+="@@ $kind/$namespace/$name @@\n"
+        while IFS= read -r line; do
+          comment_templates_body+="$sign $line\n"
+        done < "$present_dir/$templates_file"
+        comment_templates_body+="\n\n"
+      else
+        comment_templates_body+="$kind/$namespace/$name $file_state\n"
       fi
       continue
     fi
