@@ -24,22 +24,161 @@ jobs:
   pytest-setup:
     runs-on: ubuntu-latest
     outputs:
-      envFiles: ${{ steps.data.outputs.envFiles }}
       manifestTests: ${{ steps.data.outputs.manifestTests }}
-      upgradeFrom: ${{ steps.data.outputs.upgradeFrom }}
+      pytestMatch: ${{ steps.dyff.outputs.pytestMatch }}
+      changedManifestTests: ${{ steps.changes.outputs.changedManifestTests }}
+      runAll: ${{ steps.changes.outputs.runAll }}
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       with:
         persist-credentials: false
         fetch-depth: 0
         fetch-tags: true
-    - id: data
+    - name: Install dyff
+      if: ${{ github.event_name == 'pull_request' }}
+      uses: ./.github/actions/asdf-cache   # zizmor: ignore[self-repository]  The $/ form is better, but actionlint rejects it for now. https://github.com/rhysd/actionlint/issues/760
+      with:
+        tool-versions: |
+          # renovate: datasource=github-releases depName=dyff packageName=homeport/dyff
+          dyff 1.10.1
+
+    - name: Find changed test files
+      id: changes
+      env:
+        GITHUB_EVENT_NAME: ${{ github.event_name }}
+        BASE_REF: ${{ github.event.pull_request.base.ref }}
       run: |
-        echo "manifestTests=$(find tests/manifests -name 'test_*.py' | sed 's|tests/manifests/||' | sed 's/.py$//' | jq -ncR '{manifestTests: [inputs]}')" | tee -a "$GITHUB_OUTPUT"
+        set -euo pipefail
+
+        if [ "$GITHUB_EVENT_NAME" != "pull_request" ]; then
+          # We can only compare against a base branch for pull requests.
+          # runAll makes every test run against all values files.
+          echo "runAll=true" | tee -a "$GITHUB_OUTPUT"
+          echo "changedManifestTests=[]" | tee -a "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        # actions/checkout only leaves remote tracking branches, so the base
+        # branch is only reachable through its full ref.
+        base_ref_path="refs/remotes/origin/$BASE_REF"
+        changed_test_files=$(git diff --name-only "$base_ref_path" -- tests/manifests/)
+        changed_chart_files=$(git diff --name-only "$base_ref_path" -- charts/)
+
+        run_all="false"
+        changed_manifest_tests=()
+        while read -r changed_file; do
+          [ -n "$changed_file" ] || continue
+          if [ ! -f "$changed_file" ]; then
+            # The file was deleted, there is nothing to run for it
+            continue
+          fi
+          case "$changed_file" in
+            tests/manifests/test_*.py)
+              changed_manifest_tests+=("$(basename "$changed_file" .py)")
+              ;;
+            *)
+              # Not a test file, e.g. utils.py. It can affect all the tests.
+              run_all="true"
+              ;;
+          esac
+        done <<< "$changed_test_files"
+
+        # A component is a directory child of configs or templates. The changed
+        # file can be deeper in the component directory.
+        pytest_match_components=""
+        for component_path in charts/*/configs/* charts/*/templates/*; do
+          [ -d "$component_path" ] || continue
+          if ! grep -qF "$component_path/" <<< "$changed_chart_files"; then
+            # No changed file is in this component directory.
+            continue
+          fi
+          component=$(basename "$component_path")
+          if [ "$component" == "ess-library" ]; then
+            # ess-library is used by every component. Every test must run.
+            run_all="true"
+            continue
+          fi
+          # The tests of a component have its name in their name. -k can
+          # select them, even when the rendered manifests of no values file
+          # changed.
+          case " $pytest_match_components " in
+            *" $component "*)
+              # The component is already in the expression.
+              ;;
+            *)
+              pytest_match_components="${pytest_match_components:+$pytest_match_components or }$component"
+              ;;
+          esac
+        done
+
+        if [ "$run_all" == "true" ]; then
+          echo "A file that can affect all the tests changed, running all the tests"
+        fi
+        echo "runAll=$run_all" | tee -a "$GITHUB_OUTPUT"
+        echo "changedManifestTests=$(printf '%s\n' "${changed_manifest_tests[@]}" | sed '/^$/d' | jq -ncR '[inputs]')" | tee -a "$GITHUB_OUTPUT"
+        echo "pytestMatchComponents=$pytest_match_components" | tee -a "$GITHUB_OUTPUT"
+
+    - name: Checkout the base branch
+      if: ${{ github.event_name == 'pull_request' && steps.changes.outputs.runAll == 'false' }}
+      env:
+        BASE_REF: ${{ github.event.pull_request.base.ref }}
+      run: git worktree add --detach "$RUNNER_TEMP/base-tree" "refs/remotes/origin/$BASE_REF"
+
+    - name: Render the CI manifests of the PR
+      if: ${{ github.event_name == 'pull_request' && steps.changes.outputs.runAll == 'false' }}
+      run: scripts/render_ci_manifests.sh charts/matrix-stack "$RUNNER_TEMP/new"
+
+    - name: Render the CI manifests of the base
+      if: ${{ github.event_name == 'pull_request' && steps.changes.outputs.runAll == 'false' }}
+      run: scripts/render_ci_manifests.sh "$RUNNER_TEMP/base-tree/charts/matrix-stack" "$RUNNER_TEMP/old"
+
+    - name: Build the pytest match expression
+      id: dyff
+      if: ${{ github.event_name == 'pull_request' && steps.changes.outputs.runAll == 'false' }}
+      env:
+        PYTEST_MATCH_COMPONENTS: ${{ steps.changes.outputs.pytestMatchComponents }}
+      run: |
+        set -euo pipefail
+
+        changed_values_files=$(scripts/dyff_all_ci_values_files_manifests.sh list "$RUNNER_TEMP/old" "$RUNNER_TEMP/new")
+        # The name of a values file is the name of its rendered manifests
+        # directory with the .yaml extension. The values files and the changed
+        # components are joined with " or " so the result can be used as a
+        # pytest -k expression.
+        pytest_match=""
+        while read -r values_name; do
+          [ -n "$values_name" ] || continue
+          pytest_match+="$values_name.yaml or "
+        done <<< "$changed_values_files"
+        pytest_match+="$PYTEST_MATCH_COMPONENTS"
+        echo "pytestMatch=${pytest_match% or }" | tee -a "$GITHUB_OUTPUT"
+
+    - name: Select the manifest tests to run
+      id: data
+      env:
+        RUN_ALL: ${{ steps.changes.outputs.runAll }}
+        PYTEST_MATCH: ${{ steps.dyff.outputs.pytestMatch }}
+        CHANGED_MANIFEST_TESTS: ${{ steps.changes.outputs.changedManifestTests }}
+      run: |
+        set -euo pipefail
+
+        if [ "$RUN_ALL" == "true" ] || [ -n "$PYTEST_MATCH" ]; then
+          # The test files must run, either unfiltered or against the changed
+          # values files and components.
+          manifest_tests=$(find tests/manifests -name 'test_*.py' | sed 's|tests/manifests/||' | sed 's/.py$//')
+        else
+          # No values file has a dyff. Only the changed test files have something to check.
+          manifest_tests=$(echo "$CHANGED_MANIFEST_TESTS" | jq -r '.[]')
+        fi
+
+        echo "manifestTests=$(printf '%s' "$manifest_tests" | jq -ncR '{manifestTests: [inputs]}')" | tee -a "$GITHUB_OUTPUT"
 
   pytest-manifests:
     runs-on: ubuntu-latest
     needs: pytest-setup
+    # Nothing to test when we can only run filtered tests, no values file or
+    # component changed and no test file changed.
+    if: ${{ needs.pytest-setup.outputs.runAll == 'true' || needs.pytest-setup.outputs.changedManifestTests != '[]' || needs.pytest-setup.outputs.pytestMatch != '' }}
     strategy:
       fail-fast: false
       matrix:
@@ -70,4 +209,39 @@ jobs:
     - name: Run our manifest test
       env:
         MANIFEST_TEST: ${{ matrix.manifest-test }}
-      run: pytest -vv "tests/manifests/${MANIFEST_TEST}.py"
+        PYTEST_MATCH: ${{ needs.pytest-setup.outputs.pytestMatch }}
+        MANIFEST_TEST_CHANGED: ${{ contains(fromJSON(needs.pytest-setup.outputs.changedManifestTests), matrix.manifest-test) }}
+        MANIFEST_RUN_ALL: ${{ needs.pytest-setup.outputs.runAll }}
+      run: |
+        pytest_args=()
+        if [ "$MANIFEST_RUN_ALL" == "true" ] || [ "$MANIFEST_TEST_CHANGED" == "true" ]; then
+          # We must run against all values files: this is not a pull request against
+          # a base branch, a test infrastructure file or ess-library changed, or
+          # this test file changed.
+          echo "Running $MANIFEST_TEST against all values files"
+        elif [ -n "$PYTEST_MATCH" ]; then
+          # The expression contains the names of the changed values files and
+          # components. Every values file name ends in "values.yaml" and appears
+          # in the name of the tests parametrized on it. So "not values.yaml"
+          # matches the tests that don't depend on a values file, e.g. the test
+          # infrastructure tests: they always run alongside the tests of the
+          # changed values files.
+          pytest_args+=(-k "$PYTEST_MATCH or not values.yaml")
+        else
+          # No values file or component changed and this test file did not change.
+          echo "Nothing to test for $MANIFEST_TEST"
+          exit 0
+        fi
+
+        pytest_exit_code=0
+        pytest -vv "${pytest_args[@]}" "tests/manifests/${MANIFEST_TEST}.py" || pytest_exit_code=$?
+
+        # pytest exits 5 when no test ran. No test in this file covers the
+        # changed values files or components and it has no test independent of
+        # a values file, so there is nothing to check.
+        if [ "$pytest_exit_code" -eq 5 ]; then
+          echo "No test to run for the changed values files"
+          exit 0
+        fi
+
+        exit "$pytest_exit_code"

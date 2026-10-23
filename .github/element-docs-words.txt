@@ -11,6 +11,7 @@ deployables
 dialog
 Distroless
 dockerhub
+dyff
 ELEMENTSEC
 Famedly
 Gematik

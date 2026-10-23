@@ -39,9 +39,98 @@ jobs:
         persist-credentials: false
         fetch-depth: 0
         fetch-tags: true
-    - id: data
+
+    - name: Find the changed files
+      id: changes
+      env:
+        GITHUB_EVENT_NAME: ${{ github.event_name }}
+        BASE_REF: ${{ github.event.pull_request.base.ref }}
       run: |
-        echo "envFiles=$(find tests/integration/env -name '*.rc' | sed 's|tests/integration/env/||' | sed 's/.rc$//' | jq -ncR '{envFiles: [inputs]}')" | tee -a "$GITHUB_OUTPUT"
+        set -euo pipefail
+
+        if [ "$GITHUB_EVENT_NAME" != "pull_request" ]; then
+          # We can only compare against a base branch for pull requests.
+          # runAll makes every test suite run.
+          echo "runAll=true" | tee -a "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        # actions/checkout only leaves remote tracking branches, so the base
+        # branch is only reachable through its full ref.
+        base_ref_path="refs/remotes/origin/$BASE_REF"
+        changed_files=$(git diff --name-only "$base_ref_path" -- tests/integration/ charts/)
+
+        run_all="false"
+        # A python file of the integration tests can be used by any test suite.
+        # ess-library is used by every component. When one of them changed,
+        # every test suite must run. In the patterns, . also matches the / of
+        # a path.
+        if grep -Eq -e '^tests/integration/.*\.py$' \
+                  -e '^charts/[^/]*/templates/ess-library/' \
+                  <<< "$changed_files"; then
+          run_all="true"
+        fi
+
+        echo "runAll=$run_all" | tee -a "$GITHUB_OUTPUT"
+
+    - name: Install dyff
+      if: ${{ github.event_name == 'pull_request' && steps.changes.outputs.runAll == 'false' }}
+      uses: ./.github/actions/asdf-cache   # zizmor: ignore[self-repository]  The $/ form is better, but actionlint rejects it for now. https://github.com/rhysd/actionlint/issues/760
+      with:
+        tool-versions: |
+          # renovate: datasource=github-releases depName=dyff packageName=homeport/dyff
+          dyff 1.10.1
+
+    - name: Checkout the base branch
+      if: ${{ github.event_name == 'pull_request' && steps.changes.outputs.runAll == 'false' }}
+      env:
+        BASE_REF: ${{ github.event.pull_request.base.ref }}
+      run: git worktree add --detach "$RUNNER_TEMP/base-tree" "refs/remotes/origin/$BASE_REF"
+
+    - name: Render the CI manifests of the PR
+      if: ${{ github.event_name == 'pull_request' && steps.changes.outputs.runAll == 'false' }}
+      run: scripts/render_ci_manifests.sh charts/matrix-stack "$RUNNER_TEMP/new"
+
+    - name: Render the CI manifests of the base
+      if: ${{ github.event_name == 'pull_request' && steps.changes.outputs.runAll == 'false' }}
+      run: scripts/render_ci_manifests.sh "$RUNNER_TEMP/base-tree/charts/matrix-stack" "$RUNNER_TEMP/old"
+
+    - name: Find the values files with a dyff
+      if: ${{ github.event_name == 'pull_request' && steps.changes.outputs.runAll == 'false' }}
+      run: |
+        set -euo pipefail
+
+        scripts/dyff_all_ci_values_files_manifests.sh list \
+          "$RUNNER_TEMP/old" "$RUNNER_TEMP/new" \
+          > "$RUNNER_TEMP/changed_values_files"
+
+    - id: data
+      env:
+        RUN_ALL: ${{ steps.changes.outputs.runAll }}
+      run: |
+        set -euo pipefail
+
+        if [ "$RUN_ALL" == "true" ]; then
+          # Every test suite runs: this is not a pull request against a base
+          # branch, an integration test file or ess-library changed.
+          env_files=$(find tests/integration/env -name '*.rc' | sed 's|tests/integration/env/||' | sed 's/.rc$//')
+        else
+          # The integration tests run against the "pytest-" prefixed values
+          # files. A test suite runs when its values file has a dyff. The name
+          # of the test suite is not always the name of its values file, e.g.
+          # pytest-well-known-values.yaml belongs to well-known-delegation.
+          changed_pytest_values=$(grep '^pytest-' "$RUNNER_TEMP/changed_values_files" || true)
+          env_files=""
+          for rc_file in tests/integration/env/*.rc; do
+            test_suite=$(basename "$rc_file" .rc)
+            values_name=$(basename "$(sed -n 's|^TEST_VALUES_FILE=||p' "$rc_file")" .yaml)
+            if grep -Fxq "$values_name" <<< "$changed_pytest_values"; then
+              env_files+="$test_suite"$'\n'
+            fi
+          done
+        fi
+
+        echo "envFiles=$(printf '%s' "$env_files" | jq -ncR '{envFiles: [inputs]}')" | tee -a "$GITHUB_OUTPUT"
         LATEST_TAG=$(git describe --abbrev=0 --tags --match '[0-9]*.[0-9]*.[0-9]*')
         echo "upgradeFrom=$LATEST_TAG" | tee -a "$GITHUB_OUTPUT"
 
