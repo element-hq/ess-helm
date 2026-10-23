@@ -116,7 +116,7 @@ while read -r values_name; do
     fi
 
     dyff_exit_code=0
-    dyff_detail=$("$scripts_dir/dyff_manifests.sh" "$old_dir/$templates_file" "$new_dir/$templates_file") || dyff_exit_code=$?
+    dyff_detail=$("$scripts_dir/dyff_manifests_dirs.sh" "$old_dir/$templates_file" "$new_dir/$templates_file") || dyff_exit_code=$?
     if [ "$dyff_exit_code" -eq 2 ]; then
       # The script has already printed why the files could not be compared
       exit 1
