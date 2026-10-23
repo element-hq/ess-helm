@@ -9,8 +9,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $root := .root -}}
 {{- with required "element-io.matrix-rtc.validations missing context" .context -}}
 {{ $messages := list }}
-{{- if not .ingress.host -}}
-{{ $messages = append $messages "matrixRTC.ingress.host is required when matrixRTC.enabled=true" }}
+{{- with include "element-io.ess-library.inboundTrafficHandler.validateHost" (dict "root" $root "context" (dict "component" . "componentName" "matrixRTC")) }}
+{{ $messages = append $messages . }}
 {{- end }}
 {{- if not $root.Values.serverName -}}
 {{ $messages = append $messages "serverName is required when matrixRTC.enabled=true" }}
@@ -187,6 +187,30 @@ REGISTRATION: {{ tpl . $root | b64enc }}
 {{- with .value }}
 REDIS_PASSWORD: {{ . | b64enc | quote }}
 {{- end }}
+{{- end }}
+{{- end -}}
+{{- end -}}
+
+{{- define "element-io.matrix-rtc.inboundTrafficHandler.paths" -}}
+{{- $root := .root -}}
+{{- with required "element-io.matrix-rtc.inboundTrafficHandler.paths missing context" .context -}}
+{{- $authService := printf "%s-matrix-rtc-authorisation-service" $root.Release.Name -}}
+{{- range $path := list "/sfu/get" "/get_token" "/delegate_delayed_leave" }}
+- path: {{ $path }}
+  serviceName: {{ $authService }}
+  servicePortName: http
+  servicePortNumber: 8080
+{{- end }}
+{{- if .sfu.enabled }}
+- path: /
+  serviceName: {{ $root.Release.Name }}-matrix-rtc-sfu
+  servicePortName: http
+  servicePortNumber: 7880
+{{- else }}
+- path: /sfu_webhook
+  serviceName: {{ $authService }}
+  servicePortName: http
+  servicePortNumber: 8080
 {{- end }}
 {{- end -}}
 {{- end -}}

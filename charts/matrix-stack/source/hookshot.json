@@ -56,6 +56,9 @@
     "additional": {
       "$ref": "file://common/additional.json"
     },
+    "inboundTrafficHandler": {
+      "$ref": "file://common/inboundTrafficHandler.json"
+    },
     "ingress": {
       "$ref": "file://common/ingress.json"
     },

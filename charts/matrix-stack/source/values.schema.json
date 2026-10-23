@@ -95,6 +95,9 @@
         }
       }
     },
+    "inboundTrafficHandler": {
+      "$ref": "file://common/inboundTrafficHandler.json"
+    },
     "ingress": {
       "$ref": "file://common/ingress_global.json"
     },

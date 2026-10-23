@@ -95,8 +95,8 @@ def move_sub_schemas_to_defs(
         inlined_sub_schema.pop("$id", None)
         inlined_sub_schema.pop("$schema", None)
 
-        # We're only moving objects or arrays into $defs for now to keep this easy to reason about
-        assert inlined_sub_schema["type"] in ["object", "array"]
+        # Objects, arrays, and string enums.
+        assert inlined_sub_schema["type"] in ["object", "array", "string"]
 
         # Reserve the name before walking so that a sub-schema can reference itself
         sub_schemas[sub_schema_name] = {}

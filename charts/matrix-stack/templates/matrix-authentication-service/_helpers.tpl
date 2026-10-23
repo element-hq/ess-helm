@@ -9,8 +9,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $root := .root -}}
 {{- with required "element-io.matrix-authentication-service.validations missing context" .context -}}
 {{ $messages := list }}
-{{- if not .ingress.host -}}
-{{ $messages = append $messages "matrixAuthenticationService.ingress.host is required when matrixAuthenticationService.enabled=true" }}
+{{- with include "element-io.ess-library.inboundTrafficHandler.validateHost" (dict "root" $root "context" (dict "component" . "componentName" "matrixAuthenticationService")) }}
+{{ $messages = append $messages . }}
 {{- end }}
 {{- if and (not $root.Values.postgres.enabled) (not .postgres) -}}
 {{ $messages = append $messages "matrixAuthenticationService.postgres is required when matrixAuthenticationService.enabled=true but postgres.enabled=false" }}
@@ -280,5 +280,15 @@ env:
       name: "{{ $root.Release.Name }}-markers"
       key: MATRIX_STACK_MSC3861
 {{- end }}
+{{- end -}}
+{{- end -}}
+
+{{- define "element-io.matrix-authentication-service.inboundTrafficHandler.paths" -}}
+{{- $root := .root -}}
+{{- with required "element-io.matrix-authentication-service.inboundTrafficHandler.paths missing context" .context -}}
+- path: /
+  serviceName: {{ $root.Release.Name }}-matrix-authentication-service
+  servicePortName: http
+  servicePortNumber: 8080
 {{- end -}}
 {{- end -}}

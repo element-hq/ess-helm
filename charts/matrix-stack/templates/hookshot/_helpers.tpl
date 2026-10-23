@@ -11,8 +11,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- if not $root.Values.serverName -}}
 {{ $messages = append $messages "serverName is required when hookshot.enabled=true" }}
 {{- end }}
-{{- if and (not $root.Values.synapse.enabled) (not .ingress.host) -}}
-{{ $messages = append $messages "hookshot.ingress.host is required when hookshot.enabled=true and synapse.enabled=false" }}
+{{- with include "element-io.ess-library.inboundTrafficHandler.validateHost" (dict "root" $root "context" (dict "component" . "componentName" "hookshot" "when" "hookshot.enabled=true, synapse.enabled=false" "check" (not $root.Values.synapse.enabled))) }}
+{{ $messages = append $messages . }}
 {{- end }}
 {{- with .additional }}
   {{- range $key := (. | keys | uniq | sortAlpha) }}
@@ -201,6 +201,20 @@ user-{{ $key }}: {{ (tpl $prop.config $root) | b64enc }}
     {{- end }}
   {{- end }}
 {{- end }}
+{{- end -}}
+
+{{- define "element-io.hookshot.inboundTrafficHandler.paths" -}}
+{{- $root := .root -}}
+{{- with required "element-io.hookshot.inboundTrafficHandler.paths missing context" .context -}}
+- path: /widgetapi/v1
+  serviceName: {{ $root.Release.Name }}-hookshot
+  servicePortName: widgets
+  servicePortNumber: 7778
+- path: /
+  serviceName: {{ $root.Release.Name }}-hookshot
+  servicePortName: webhooks
+  servicePortNumber: 7775
+{{- end -}}
 {{- end -}}
 
 {{- define "element-io.hookshot.pvcName" -}}

@@ -1,43 +1,16 @@
 {{- /*
 Copyright 2024-2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 
 {{- with $.Values.wellKnownDelegation -}}
-{{- if .enabled -}}
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-{{- include "element-io.ess-library.ingress.annotations" (dict "root" $ "context" (dict "ingress" .ingress)) | nindent 2 }}
-  labels:
-    {{- include "element-io.well-known-delegation-ingress.labels" (dict "root" $ "context" $.Values.haproxy) | nindent 4 }}
-  name: {{ $.Release.Name }}-well-known
-  namespace: {{ $.Release.Namespace }}
-spec:
-{{- include "element-io.ess-library.ingress.tls" (dict "root" $ "context" (dict "host" $.Values.serverName "ingress" .ingress "ingressName" "well-known")) | nindent 2 }}
-{{- include "element-io.ess-library.ingress.className" (dict "root" $ "context" .ingress.className) | nindent 2 }}
-  rules:
-  - host: "{{ tpl $.Values.serverName $ }}"
-    http:
-      paths:
-{{- if and .baseDomainRedirect.enabled (or $.Values.elementWeb.enabled .baseDomainRedirect.url) }}
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: "{{ $.Release.Name }}-well-known"
-            port:
-              name: haproxy-wkd
-{{- else }}
-      - path: /.well-known/matrix
-        pathType: {{ include "element-io.ess-library.ingress.ingress-nginx-dot-path-type" (dict "root" $ "context" .ingress.controllerType) }}
-        backend:
-          service:
-            name: "{{ $.Release.Name }}-well-known"
-            port:
-              name: haproxy-wkd
-{{- end -}}
-{{- end -}}
+{{- include "element-io.ess-library.inboundTrafficHandler.ingress" (dict "root" $ "context" (dict
+  "component" .
+  "componentName" "well-known-delegation"
+  "ingressName" "well-known"
+  "host" $.Values.serverName
+  "labels" (include "element-io.well-known-delegation-ingress.labels" (dict "root" $ "context" $.Values.haproxy))
+)) }}
 {{- end -}}
