@@ -62,7 +62,7 @@ jobs:
       run: |
         echo "output_dir=$RUNNER_TEMP" | tee -a "$GITHUB_OUTPUT"
         header="# dyff of changes in rendered templates of CI manifests\n\n"
-        comment_body=$(scripts/dyff_ci_manifests.sh comment "$RUNNER_TEMP/old" "$RUNNER_TEMP/new")
+        comment_body=$(scripts/dyff_all_ci_values_files_manifests.sh comment "$RUNNER_TEMP/old" "$RUNNER_TEMP/new")
         if [ -z "$comment_body" ]; then
           comment_body="No changes in rendered templates"
         else

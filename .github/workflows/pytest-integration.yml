@@ -66,7 +66,7 @@ jobs:
       run: |
         set -euo pipefail
 
-        scripts/dyff_ci_manifests.sh list \
+        scripts/dyff_all_ci_values_files_manifests.sh list \
           "$RUNNER_TEMP/old" "$RUNNER_TEMP/new" \
           > "$RUNNER_TEMP/changed_values_files"
 
