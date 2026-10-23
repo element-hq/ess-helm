@@ -32,6 +32,7 @@
         "go",
         "golang"
       ],
+      "allowedVersions": "/^1\\.26\\./",
       "minimumReleaseAge": "4 hours",
       "groupName": "golang",
       "rangeStrategy": "bump"
