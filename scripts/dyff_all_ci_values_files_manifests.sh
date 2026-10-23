@@ -8,7 +8,7 @@
 # manifests, as written by render_ci_manifests.sh. The values files are found
 # through their rendered manifests directories, which render_ci_manifests.sh
 # names after the values files.
-# usage: dyff_ci_manifests.sh MODE OLD_MANIFESTS_DIR NEW_MANIFESTS_DIR
+# usage: dyff_all_ci_values_files_manifests.sh MODE OLD_MANIFESTS_DIR NEW_MANIFESTS_DIR
 # MODE "list": print the name of each values file whose rendered manifests
 #   differ, one per line. Print nothing when they are all the same.
 # MODE "comment": print the body of a comment describing the differences of
@@ -20,7 +20,7 @@
 set -euo pipefail
 
 if [ $# -ne 3 ]; then
-  echo "usage: dyff_ci_manifests.sh MODE OLD_MANIFESTS_DIR NEW_MANIFESTS_DIR" >&2
+  echo "usage: dyff_all_ci_values_files_manifests.sh MODE OLD_MANIFESTS_DIR NEW_MANIFESTS_DIR" >&2
   exit 1
 fi
 

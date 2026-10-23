@@ -108,7 +108,7 @@ jobs:
       run: |
         set -euo pipefail
 
-        changed_values_files=$(scripts/dyff_ci_manifests.sh list "$RUNNER_TEMP/old" "$RUNNER_TEMP/new")
+        changed_values_files=$(scripts/dyff_all_ci_values_files_manifests.sh list "$RUNNER_TEMP/old" "$RUNNER_TEMP/new")
         # The name of a values file is the name of its rendered manifests
         # directory with the .yaml extension. They are joined with " or " so the
         # result can be used as a pytest -k expression.
