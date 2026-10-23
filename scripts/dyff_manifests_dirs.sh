@@ -11,7 +11,7 @@
 set -euo pipefail
 
 if [ $# -ne 2 ]; then
-  echo "usage: dyff_manifests.sh OLD_MANIFEST NEW_MANIFEST" >&2
+  echo "usage: dyff_manifests_dirs.sh OLD_MANIFEST NEW_MANIFEST" >&2
   exit 2
 fi
 
