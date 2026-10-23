@@ -67,8 +67,7 @@ jobs:
         set -euo pipefail
 
         scripts/dyff_ci_manifests.sh list \
-          "$RUNNER_TEMP/base-tree/charts/matrix-stack" "$RUNNER_TEMP/old" \
-          charts/matrix-stack "$RUNNER_TEMP/new" \
+          "$RUNNER_TEMP/old" "$RUNNER_TEMP/new" \
           > "$RUNNER_TEMP/changed_values_files"
 
     - id: data
