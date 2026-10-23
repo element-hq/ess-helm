@@ -35,9 +35,9 @@ render_values_file() {
 export -f render_values_file
 export chart_dir output_dir
 
-shopt -s nullglob
-values_files=("$chart_dir"/ci*/*values.yaml)
-shopt -u nullglob
+readarray -d '' values_files < <(
+  find "$chart_dir"/ci* -type f -name "*-values.yaml" -print0
+)
 
 if [ "${#values_files[@]}" -eq 0 ]; then
   echo "No values files found in $chart_dir/ci*" >&2
@@ -47,5 +47,5 @@ fi
 # Rendering the manifests is the slow part of a dyff. We render the
 # values files in parallel to use all the CPU cores of the machine.
 # shellcheck disable=SC2016  # $1 is filled in by xargs
-printf '%s\n' "${values_files[@]}" | \
-  xargs -P "$(nproc)" -n1 bash -c 'set -euo pipefail; render_values_file "$1"' _
+printf '%s\0' "${values_files[@]}" | \
+  xargs -0 -P "$(nproc)" -n1 bash -c 'set -euo pipefail; render_values_file "$1"' _
