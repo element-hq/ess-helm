@@ -5,9 +5,10 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 # Compare the CI values files of two repositories through their rendered
-# manifests, as written by render_ci_manifests.sh. Only the values files of
-# the two charts are checked.
-# usage: dyff_ci_manifests.sh MODE OLD_CHART_DIR OLD_MANIFESTS_DIR NEW_CHART_DIR NEW_MANIFESTS_DIR
+# manifests, as written by render_ci_manifests.sh. The values files are found
+# through their rendered manifests directories, which render_ci_manifests.sh
+# names after the values files.
+# usage: dyff_ci_manifests.sh MODE OLD_MANIFESTS_DIR NEW_MANIFESTS_DIR
 # MODE "list": print the name of each values file whose rendered manifests
 #   differ, one per line. Print nothing when they are all the same.
 # MODE "comment": print the body of a comment describing the differences of
@@ -18,16 +19,14 @@
 
 set -euo pipefail
 
-if [ $# -ne 5 ]; then
-  echo "usage: dyff_ci_manifests.sh MODE OLD_CHART_DIR OLD_MANIFESTS_DIR NEW_CHART_DIR NEW_MANIFESTS_DIR" >&2
+if [ $# -ne 3 ]; then
+  echo "usage: dyff_ci_manifests.sh MODE OLD_MANIFESTS_DIR NEW_MANIFESTS_DIR" >&2
   exit 1
 fi
 
 mode=$1
-old_chart_dir=$2
-old_manifests_dir=$3
-new_chart_dir=$4
-new_manifests_dir=$5
+old_manifests_dir=$2
+new_manifests_dir=$3
 
 if [ "$mode" != "list" ] && [ "$mode" != "comment" ]; then
   echo "MODE must be 'list' or 'comment'" >&2
@@ -36,11 +35,13 @@ fi
 
 scripts_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-# The values files of both repositories, without duplicates.
+# The values files of both repositories, without duplicates. Each rendered
+# manifests directory is named after its values file.
 values_names=()
 shopt -s nullglob
-for values in "$old_chart_dir"/ci*/*values.yaml "$new_chart_dir"/ci*/*values.yaml; do
-  values_names+=("$(basename "$values" ".yaml")")
+for dir in "$old_manifests_dir"/* "$new_manifests_dir"/*; do
+  [ -d "$dir" ] || continue
+  values_names+=("$(basename "$dir")")
 done
 shopt -u nullglob
 
