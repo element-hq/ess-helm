@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 import re
+from copy import deepcopy
 from hashlib import sha1
 
 import pytest
@@ -151,3 +152,59 @@ async def test_labels_values_are_valid(templates):
     for template in templates:
         for label_value in template["metadata"]["labels"].values():
             assert label_regex.match(label_value), f"{template_id(template)} : {label_value} is not a valid label"
+
+
+def _merge_values(defaults, overrides):
+    merged = deepcopy(defaults)
+    for key, value in overrides.items():
+        if isinstance(merged.get(key), dict) and isinstance(value, dict):
+            merged[key] = _merge_values(merged[key], value)
+        else:
+            merged[key] = deepcopy(value)
+    return merged
+
+
+def _set_all_image_tags(values, image_tag):
+    for key, value in values.items():
+        if key == "image" and isinstance(value, dict) and "tag" in value:
+            value["tag"] = image_tag
+        if isinstance(value, dict):
+            _set_all_image_tags(value, image_tag)
+        elif isinstance(value, list):
+            for item in value:
+                if isinstance(item, dict):
+                    _set_all_image_tags(item, image_tag)
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.parametrize(
+    ("image_tag", "expected_label"),
+    [
+        pytest.param(f"_{'a' * 63}", "a" * 63, id="trim-leading-before-truncation"),
+        pytest.param(
+            f"{'a' * 62}@sha256:da32e88c8dafe2c3d4f40ca5e90ab2f43a7c9ac35f0977ec7662dcb4fdcd56d8",
+            "a" * 62,
+            id="trim-trailing-after-truncation",
+        ),
+    ],
+)
+@pytest.mark.asyncio_cooperative
+async def test_sanitized_image_tags_have_valid_version_labels(
+    values, base_values, make_templates, image_tag, expected_label
+):
+    # Trimming before truncation preserves 63 valid characters after a leading underscore.
+    # Trimming after truncation removes the underscore substituted for '@' at character 63.
+    values = _merge_values(base_values, values)
+    _set_all_image_tags(values, image_tag)
+
+    templates = await make_templates(values)
+    label_regex = re.compile(r"^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$")
+    version_labels = [
+        template["metadata"]["labels"]["app.kubernetes.io/version"]
+        for template in templates
+        if "app.kubernetes.io/version" in template.get("metadata", {}).get("labels", {})
+    ]
+
+    assert version_labels
+    assert all(label == expected_label for label in version_labels)
+    assert all(label_regex.match(label) for label in version_labels)

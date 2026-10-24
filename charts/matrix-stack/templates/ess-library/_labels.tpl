@@ -6,7 +6,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 {{- define "element-io.ess-library.labels.makeSafe" -}}
 {{- if . -}}
-{{ . | replace  "+" "_" | trunc 63 | trimSuffix "-" | quote }}
+{{- /* Trim edge punctuation before truncation to retain the full 63 valid characters, then trim again if truncation exposes punctuation at the end. */ -}}
+{{ regexReplaceAll "[^A-Za-z0-9_.-]" . "_" | trimAll "-_." | trunc 63 | trimAll "-_." | quote }}
 {{- end -}}
 {{- end -}}
 
