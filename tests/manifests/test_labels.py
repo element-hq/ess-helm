@@ -179,10 +179,23 @@ def _set_all_image_tags(values, image_tag):
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.parametrize(
+    ("image_tag", "expected_label"),
+    [
+        pytest.param(f"_{'a' * 63}", "a" * 63, id="trim-leading-before-truncation"),
+        pytest.param(
+            f"{'a' * 62}@sha256:da32e88c8dafe2c3d4f40ca5e90ab2f43a7c9ac35f0977ec7662dcb4fdcd56d8",
+            "a" * 62,
+            id="trim-trailing-after-truncation",
+        ),
+    ],
+)
 @pytest.mark.asyncio_cooperative
-async def test_image_tag_with_digest_has_valid_version_labels(values, base_values, make_templates):
-    # Truncation ends on the underscore replacing '@', so the final trim is needed.
-    image_tag = f"{'a' * 62}@sha256:da32e88c8dafe2c3d4f40ca5e90ab2f43a7c9ac35f0977ec7662dcb4fdcd56d8"
+async def test_sanitized_image_tags_have_valid_version_labels(
+    values, base_values, make_templates, image_tag, expected_label
+):
+    # Trimming before truncation preserves 63 valid characters after a leading underscore.
+    # Trimming after truncation removes the underscore substituted for '@' at character 63.
     values = _merge_values(base_values, values)
     _set_all_image_tags(values, image_tag)
 
@@ -194,7 +207,6 @@ async def test_image_tag_with_digest_has_valid_version_labels(values, base_value
         if "app.kubernetes.io/version" in template.get("metadata", {}).get("labels", {})
     ]
 
-    expected_label = "a" * 62
     assert version_labels
     assert all(label == expected_label for label in version_labels)
     assert all(label_regex.match(label) for label in version_labels)
