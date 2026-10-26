@@ -12,6 +12,7 @@ dialog
 Distroless
 dockerhub
 ELEMENTSEC
+eMudhra
 Famedly
 Gematik
 GHSA
