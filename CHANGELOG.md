@@ -7,6 +7,75 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.10.3 (2026-10-23)
+
+## Changed
+
+- The `values.schema.json` compilation now uses `$defs` and `$ref` instead of inlining every referenced sub-schema. (#1693)
+- Allow configuration of `matrix-tools` `initContainer` resources independently of the component they're being used for.
+
+  * `matrixTools.resources.renderConfig` for all `render-config` `initContainers`
+  * `matrixTools.resources.tcpWait` for all `initContainers` that wait for Postgres or Redis/Valkey
+
+  (#1711)
+- Upgrade Element Admin to v0.1.18.
+
+  Highlights:
+  - Upgrade base image to `nginx-unprivileged` v1.31.7
+  - Use the stable endpoint for discovering the authentication server metadata
+
+  Full Changelogs:
+  - [v0.1.17](https://github.com/element-hq/element-admin/releases/tag/v0.1.17)
+  - [v0.1.18](https://github.com/element-hq/element-admin/releases/tag/v0.1.18)
+
+  (#1712, #1730)
+- Upgrade `matrix-tools` to v0.10.5.
+
+  Highlights:
+  - Refresh dependencies and base-image
+
+  (#1713)
+- Components depending on Redis or Valkey now wait for it to be up using `tcpwait` matrix-tools command. (#1714, #1720)
+- Allow configuration of `matrix-tools` `initContainer` resources independently of the component they're being used for.
+
+  * `matrixTools.resources.renderConfig` for all `render-config` `initContainers`
+  * `matrixTools.resources.tcpWait` for all `initContainers` that wait for Postgres
+
+  (#1720)
+- Upgrade Synapse to v1.163.1.
+
+  Highlights:
+  - Update certificate authorities trust stores
+
+  Full Changelogs:
+  - [v1.163.1](https://github.com/element-hq/synapse/blob/release-v1.163/CHANGES.md)
+
+  (#1728)
+- Upgrade Matrix Authentication Service to v1.27.1.
+
+  Highlights:
+  - Update certificate authorities trust stores
+
+  Full Changelogs
+  - [v1.27.1](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.27.1)
+
+  (#1729)
+
+## Internal
+
+- CI: Implement a helper function to actively wait for chart resources in order to Helm v4 flakes. (#1687)
+- CI: Replace `pytest-kubernetes` `Kubectl` exec and wait with `lightkube` `AsyncClient` exec and wait to profit from native async semantics. (#1689)
+- CI: Retry using curl instead of kubernetes container restarts. (#1695)
+- CI: Check a release's Deployments, StatefulSets and CRDs concurrently and allow up to 5 minutes for them to become ready, instead of 1 minute for its CRDs. (#1696)
+- Exclude `renovate[bot]` from changelog and copyright headers workflow jobs. (#1699)
+- CI: Do not rollback k3d on setup failure, in order to get container logs. (#1702)
+- Don't manage `values.yaml` with Renovate as we assemble it from fragments. (#1707)
+- CI: Build matrix-tools on every pytest CI run. (#1708, #1709)
+- CI: Split manifests and integration tests in 2 distinct workflow. (#1715)
+- CI: Validate that components depending on postgres have a `db-wait` init container. (#1717)
+- CI: Maintain go version for matrix-tools using renovate. (#1726)
+
+
 # ESS Community Helm Chart 26.10.2 (2026-10-16)
 
 ## Changed
