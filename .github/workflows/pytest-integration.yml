@@ -69,7 +69,6 @@ jobs:
         if grep -Eq -e '^tests/integration/' \
                   -e '^charts/[^/]*/templates/ess-library/' \
                   <<< "$non_env_files"; then
-        run_all="false"
           run_all="true"
         fi
 
