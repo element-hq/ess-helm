@@ -4,20 +4,22 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# Render the manifests of all the CI values files of a chart, one directory
+# Render the manifests of the CI values files of a chart, one directory
 # per values file. The manifests of a values file are written to
-# OUTPUT_DIR/<values file name>/.
-# usage: render_ci_manifests.sh CHART_DIR OUTPUT_DIR
+# OUTPUT_DIR/<values file name>/. Only the values files whose name matches
+# VALUES_FILES_PATTERN are rendered. It defaults to every values file.
+# usage: render_ci_manifests.sh CHART_DIR OUTPUT_DIR [VALUES_FILES_PATTERN]
 
 set -euo pipefail
 
-if [ $# -ne 2 ]; then
-  echo "usage: render_ci_manifests.sh CHART_DIR OUTPUT_DIR" >&2
+if [ $# -lt 2 ] || [ $# -gt 3 ]; then
+  echo "usage: render_ci_manifests.sh CHART_DIR OUTPUT_DIR [VALUES_FILES_PATTERN]" >&2
   exit 1
 fi
 
 chart_dir=$1
 output_dir=$2
+values_files_pattern=${3:-'*-values.yaml'}
 
 render_values_file() {
   values=$1
@@ -36,7 +38,7 @@ export -f render_values_file
 export chart_dir output_dir
 
 readarray -d '' values_files < <(
-  find "$chart_dir"/ci* -type f -name "*-values.yaml" -print0
+  find "$chart_dir"/ci* -type f -name "$values_files_pattern" -print0
 )
 
 if [ "${#values_files[@]}" -eq 0 ]; then
