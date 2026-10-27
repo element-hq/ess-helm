@@ -69,7 +69,6 @@ jobs:
         if grep -Eq -e '^tests/integration/' \
                   -e '^charts/[^/]*/templates/ess-library/' \
                   <<< "$non_env_files"; then
-        run_all="false"
           run_all="true"
         fi
 
@@ -91,11 +90,11 @@ jobs:
 
     - name: Render the CI manifests of the PR
       if: ${{ github.event_name == 'pull_request' && steps.changes.outputs.runAll == 'false' }}
-      run: scripts/render_ci_manifests.sh charts/matrix-stack "$RUNNER_TEMP/new"
+      run: scripts/render_ci_manifests.sh charts/matrix-stack "$RUNNER_TEMP/new" 'pytest-*-values.yaml'
 
     - name: Render the CI manifests of the base
       if: ${{ github.event_name == 'pull_request' && steps.changes.outputs.runAll == 'false' }}
-      run: scripts/render_ci_manifests.sh "$RUNNER_TEMP/base-tree/charts/matrix-stack" "$RUNNER_TEMP/old"
+      run: scripts/render_ci_manifests.sh "$RUNNER_TEMP/base-tree/charts/matrix-stack" "$RUNNER_TEMP/old" 'pytest-*-values.yaml'
 
     - name: Find the values files with a dyff
       if: ${{ github.event_name == 'pull_request' && steps.changes.outputs.runAll == 'false' }}
@@ -121,7 +120,7 @@ jobs:
           # files. A test suite runs when its values file has a dyff. The name
           # of the test suite is not always the name of its values file, e.g.
           # pytest-well-known-values.yaml belongs to well-known-delegation.
-          changed_pytest_values=$(grep '^pytest-' "$RUNNER_TEMP/changed_values_files" || true)
+          changed_pytest_values=$(cat "$RUNNER_TEMP/changed_values_files")
           env_files=""
           for rc_file in tests/integration/env/*.rc; do
             test_suite=$(basename "$rc_file" .rc)
