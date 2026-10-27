@@ -284,7 +284,7 @@ jobs:
         username: ${{ env.GHCR_USERNAME }}
         password: ${{ env.GHCR_TOKEN }}
 
-    - uses: ./.github/actions/asdf-cache
+    - uses: $/.github/actions/asdf-cache
       with:
         # The comment inside tool-versions is used by Renovate to update the k3d version.
         # asdf supports comments in .tool-versions files.
