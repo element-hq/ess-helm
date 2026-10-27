@@ -81,7 +81,7 @@ jobs:
       with:
         tool-versions: |
           # renovate: datasource=github-releases depName=dyff packageName=homeport/dyff
-          dyff 1.10.1
+          dyff 1.12.0
 
     - name: Checkout the base branch
       if: ${{ github.event_name == 'pull_request' && steps.changes.outputs.runAll == 'false' }}
