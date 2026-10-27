@@ -59,15 +59,17 @@ jobs:
         # branch is only reachable through its full ref.
         base_ref_path="refs/remotes/origin/$BASE_REF"
         changed_files=$(git diff --name-only "$base_ref_path" -- tests/integration/ charts/)
+        non_env_files=$(grep -v -e '^tests/integration/env$' <<< "$changed_files")
 
         run_all="false"
         # A python file of the integration tests can be used by any test suite.
         # ess-library is used by every component. When one of them changed,
         # every test suite must run. In the patterns, . also matches the / of
         # a path.
-        if grep -Eq -e '^tests/integration/.*\.py$' \
+        if grep -Eq -e '^tests/integration/' \
                   -e '^charts/[^/]*/templates/ess-library/' \
-                  <<< "$changed_files"; then
+                  <<< "$non_env_files"; then
+        run_all="false"
           run_all="true"
         fi
 
