@@ -23,7 +23,7 @@ jobs:
         persist-credentials: false
         fetch-depth: 0
 
-    - uses: ./.github/actions/asdf-cache  # zizmor: ignore[self-repository]  The $/ form is better, but actionlint rejects it for now. https://github.com/rhysd/actionlint/issues/760
+    - uses: $/.github/actions/asdf-cache
       with:
         tool-versions: |
           # renovate: datasource=github-releases depName=dyff packageName=homeport/dyff
