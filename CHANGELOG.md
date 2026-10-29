@@ -7,6 +7,98 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.10.4 (2026-10-29)
+
+## Security
+
+- Upgrade Hookshot to v7.6.0.
+
+  Highlights:
+  - Serve the compiled OpenProject `element-web` module in Docker under `/modules/v1/static/openproject.js`.
+  - Update `matrix-bot-sdk` / `matrix-appservice-bridge` to latest versions.
+  - Update `rustls-webpki` and `webpki-root-certs` to stop trusting compromised eMudhra intermediate certificates
+    (`RUSTSEC-2026-0382`, `RUSTSEC-2026-0383`).
+  - Update the base Node.js images to address the following high/medium/low CVE's `CVE-2026-105482`,
+    `CVE-2026-105483`, `CVE-2026-106069`, `CVE-2026-111497`, `CVE-2026-105481`, `CVE-2026-106072`, `CVE-2026-106074`,
+    `CVE-2026-106070`, `CVE-2026-106071` and `CVE-2026-106073`.
+
+  (#1734)
+- Upgrade Valkey to 9.1.3.
+
+  Highlights:
+  - `GHSA-f4q9-j22m-xqq9`: Fix a heap buffer overflow in cluster Pub/Sub message construction that could allow an authenticated client to potentially execute arbitrary code by publishing an oversized message
+
+  (#1735)
+- Upgrade Synapse to v1.164.1.
+
+  Highlights:
+  - Bump pillow to 13.0.0 to address critical security vulnerabilities.
+  - Bump msgpack to 1.2.4 to address `GHSA-j586-36cw-2gc2`
+
+  Full Changelogs:
+  - [v1.163.2](https://github.com/element-hq/synapse/blob/release-v1.163/CHANGES.md)
+  - [v1.164.0](https://github.com/element-hq/synapse/blob/release-v1.164/CHANGES.md)
+  - [v1.164.1](https://github.com/element-hq/synapse/blob/release-v1.164/CHANGES.md)
+
+  (#1742, #1745)
+
+## Changed
+
+- Upgrade MatrixRTC SFU to v1.13.11.
+
+  Full Changelogs:
+  - [v1.13.11](https://github.com/livekit/livekit/releases/tag/v1.13.11)
+
+  (#1733)
+- Upgrade Redis Exporter to v1.96.0.
+
+  Full Changelogs:
+  - [v1.95.0](https://github.com/oliver006/redis_exporter/releases/tag/v1.95.0)
+  - [v1.96.0](https://github.com/oliver006/redis_exporter/releases/tag/v1.96.0)
+
+  (#1736)
+- Upgrade Element Web to v1.12.33.
+
+  Highlights:
+  - Don't allow to skip device verification by default
+  - Feed thread replies to widgets
+
+  Full Changelogs:
+  - [v1.12.33](https://github.com/element-hq/element-web/releases/tag/v1.12.33)
+
+  (#1740)
+- Upgrade Synapse to v1.164.1.
+
+  Highlights:
+  - Advertise support for Matrix v1.17
+  - Require authentication for the [MSC4140](https://github.com/matrix-org/matrix-spec-proposals/pull/4140) delayed event management endpoints, restrict them to the requesting user's own delayed events, and allow guests to use them
+  - Add the `m.preview_url` capability (stabilizes support for [MSC4452](https://github.com/matrix-org/matrix-spec-proposals/pull/4452))
+
+  Full Changelogs:
+  - [v1.163.2](https://github.com/element-hq/synapse/blob/release-v1.163/CHANGES.md)
+  - [v1.164.0](https://github.com/element-hq/synapse/blob/release-v1.164/CHANGES.md)
+  - [v1.164.1](https://github.com/element-hq/synapse/blob/release-v1.164/CHANGES.md)
+
+  (#1742, #1745)
+- Upgrade Matrix Authentication Service to v1.28.0.
+
+  Highlights:
+  - Interactive feedback for username availability in the registration form
+  - Handle concurrent registrations of identical public clients
+
+  Full Changelogs:
+  - [v1.28.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.28.0)
+
+  (#1743)
+
+## Internal
+
+- CI: The manifests workflow now only runs pytest against the CI values files with a dyff in their rendered manifests. The tests that don't depend on a values file, e.g. the test infrastructure tests, always run. (#1720)
+- CI: In PR, only run manifests & integration tests when their relevant values files have changed. (#1721, #1739)
+- CI: Update `actionlint` to 1.7.12 and make sure renovate is able to update it in the future. (#1738)
+- CI: Use new `$/` github actions syntax for local composite actions. (#1738)
+
+
 # ESS Community Helm Chart 26.10.3 (2026-10-23)
 
 ## Changed
