@@ -255,6 +255,9 @@ networking:
   ## Whether components should attempt to bind IPv4 (ipv4) /IPv6 (ipv6) / both (dual-stack)
   ipFamily: dual-stack
 
+## Set the default inbound traffic handler type. Options are ingress | none
+inboundTrafficHandler: ingress
+
 ## Components
 initSecrets:
   enabled: true

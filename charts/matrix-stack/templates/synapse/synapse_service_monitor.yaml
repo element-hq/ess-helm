@@ -23,7 +23,7 @@ spec:
     relabelings:
     - targetLabel: instance
       action: replace
-      replacement: {{ tpl .ingress.host $ }}
+      replacement: {{ include "element-io.ess-library.inboundTrafficHandler.host" (dict "root" $ "context" (dict "component" .)) }}
     - sourceLabels: [__meta_kubernetes_pod_name]
       targetLabel: index
       regex: '.*-([0-9]+)'
