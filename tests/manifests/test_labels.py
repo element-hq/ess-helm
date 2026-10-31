@@ -4,13 +4,12 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 import re
-from copy import deepcopy
 from hashlib import sha1
 
 import pytest
 
-from . import PropertyType, secret_values_files_to_test, values_files_to_test
-from .utils import PERSISTENT_WORKLOAD_KINDS, iterate_pod_template, template_id
+from . import DeployableDetails, PropertyType, secret_values_files_to_test, values_files_to_test
+from .utils import PERSISTENT_WORKLOAD_KINDS, iterate_deployables_parts, iterate_pod_template, template_id
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -156,28 +155,6 @@ async def test_labels_values_are_valid(templates):
             assert label_regex.match(label_value), f"{template_id(template)} : {label_value} is not a valid label"
 
 
-def _merge_values(defaults, overrides):
-    merged = deepcopy(defaults)
-    for key, value in overrides.items():
-        if isinstance(merged.get(key), dict) and isinstance(value, dict):
-            merged[key] = _merge_values(merged[key], value)
-        else:
-            merged[key] = deepcopy(value)
-    return merged
-
-
-def _set_all_image_tags(values, image_tag):
-    for key, value in values.items():
-        if key == "image" and isinstance(value, dict) and "tag" in value:
-            value["tag"] = image_tag
-        if isinstance(value, dict):
-            _set_all_image_tags(value, image_tag)
-        elif isinstance(value, list):
-            for item in value:
-                if isinstance(item, dict):
-                    _set_all_image_tags(item, image_tag)
-
-
 @pytest.mark.parametrize("values_file", values_files_to_test)
 @pytest.mark.parametrize(
     ("image_tag", "expected_label"),
@@ -191,22 +168,20 @@ def _set_all_image_tags(values, image_tag):
     ],
 )
 @pytest.mark.asyncio_cooperative
-async def test_sanitized_image_tags_have_valid_version_labels(
-    values, base_values, make_templates, image_tag, expected_label
-):
-    # Trimming before truncation preserves 63 valid characters after a leading underscore.
-    # Trimming after truncation removes the underscore substituted for '@' at character 63.
-    values = _merge_values(base_values, values)
-    _set_all_image_tags(values, image_tag)
-
-    templates = await make_templates(values)
+async def test_sanitized_image_tags_have_valid_version_labels(values, make_templates, image_tag, expected_label):
     label_regex = re.compile(r"^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$")
-    version_labels = [
-        template["metadata"]["labels"]["app.kubernetes.io/version"]
-        for template in templates
-        if "app.kubernetes.io/version" in template.get("metadata", {}).get("labels", {})
-    ]
 
-    assert version_labels
-    assert all(label == expected_label for label in version_labels)
-    assert all(label_regex.match(label) for label in version_labels)
+    values.setdefault("matrixTools", {}).setdefault("image", {}).update(
+        {
+            "tag": image_tag,
+        }
+    )
+
+    def set_tag(deployable_details: DeployableDetails):
+        deployable_details.set_helm_values(values, PropertyType.Image, {"tag": image_tag})
+
+    iterate_deployables_parts(set_tag, lambda deployable_details: deployable_details.has_image)
+    for pod_template_details in iterate_pod_template(await make_templates(values)):
+        version_label = pod_template_details.manifest["metadata"]["labels"]["app.kubernetes.io/version"]
+        assert label_regex.match(version_label), f"{pod_template_details.manifest_id} has an invalid version label"
+        assert version_label == expected_label, f"{pod_template_details.manifest_id} has unexpected version label"
