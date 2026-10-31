@@ -33,6 +33,13 @@ spec:
     spec:
 {{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "matrix-rtc-authorisation-service" "kind" "Deployment" "makesOutboundRequests" true "usesMatrixTools" true)) | nindent 6 }}
       initContainers:
+{{- if $.Values.synapse.enabled }}
+      {{- include "element-io.ess-library.pods.tcpWait" (dict "root" $ "context" (dict
+            "name" "http-wait-syn"
+            "address" (include "element-io.synapse.internal-hostport" (dict "root" $))
+            "containersSecurityContext" .containersSecurityContext
+            "extraVolumeMounts" .extraVolumeMounts)) | nindent 6 }}
+{{- end }}
       {{- include "element-io.ess-library.pods.valkeyTcpWait" (dict "root" $ "context" .) | nindent 6 }}
 {{- with .extraInitContainers }}
       {{- toYaml . | nindent 6 }}
