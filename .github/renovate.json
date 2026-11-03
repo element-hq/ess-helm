@@ -1,16 +1,42 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "dependencyDashboard": true,
   "minimumReleaseAge": "7 days",
+  "ignorePaths": [
+    "charts/*/values.yaml"
+  ],
   "customManagers": [
     {
       "customType": "regex",
       "description": "Update the last word of the line following a '# renovate: datasource=... depName=...' comment.",
-      "fileMatch": [
-        "^\\.github/.*\\.ya?ml$"
+      "managerFilePatterns": [
+        "/^\\.github/.*\\.ya?ml$/"
       ],
       "matchStrings": [
         "renovate: datasource=(?<datasource>[a-z0-9-]+) depName=(?<depName>[^\\s]+)(?: packageName=(?<packageName>[^\\s]+))?(?: versioning=(?<versioning>[a-z0-9-]+))?\\n[^\\n]* (?<currentValue>[^\\s]+)"
       ]
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Update the Go version of matrix-tools in lockstep with the go directive in matrix-tools/go.mod, in a single PR.",
+      "matchFileNames": [
+        "matrix-tools/go.mod",
+        "matrix-tools/Dockerfile",
+        ".github/workflows/matrix-tools.yml"
+      ],
+      "matchDatasources": [
+        "golang-version",
+        "docker"
+      ],
+      "matchPackageNames": [
+        "go",
+        "golang"
+      ],
+      "allowedVersions": "/^1\\.26\\./",
+      "minimumReleaseAge": "4 hours",
+      "groupName": "golang",
+      "rangeStrategy": "bump"
     }
   ]
 }

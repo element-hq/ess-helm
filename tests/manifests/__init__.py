@@ -23,6 +23,7 @@ class PropertyType(Enum):
     ExposedServices = "exposedServices"
     HostAliases = "hostAliases"
     Image = "image"
+    InboundTrafficHandler = "inboundTrafficHandler"
     Ingress = "ingress"
     InitContainers = "extraInitContainers"
     Labels = "labels"
@@ -77,7 +78,7 @@ class ValuesFilePath:
         if msg_details:
             error_msg += f": {msg_details}"
 
-        assert expected_path in str(err), f"{expected_path} did not cause any failure in {str(err)}"
+        assert expected_path in str(err), f"{expected_path} did not cause any failure in {str(err)}"
         assert error_msg in str(err), f"{expected_path} did not cause {error_msg} in {str(err)}"
 
 
@@ -139,6 +140,9 @@ class DeployableDetails(abc.ABC):
     # True when the workload handles its graceful shutdown itself, like HAProxy with its
     # grace and hard-stop-after configuration. Such workloads do not need the preStop sleep.
     has_native_graceful_shutdown: bool = field(default=False, hash=False)
+    # True when the component's workloads connect to Redis/Valkey. They must wait for it
+    # to be available with a valkey-wait init container before starting.
+    has_redis: bool = field(default=False, hash=False)
 
     # Use this to skip mounts point we expect not to be referenced in commands, configs, etc
     # The format is expected to be `container_name: <list of mounts to ignore>`
@@ -407,6 +411,7 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
         PropertyType.PreStopSleepSeconds: ValuesFilePath.read_write("synapse", "preStopSleepSeconds"),
         PropertyType.Affinity: ValuesFilePath.read_elsewhere("synapse", "affinity"),
         PropertyType.NodeSelector: ValuesFilePath.read_elsewhere("synapse", "nodeSelector"),
+        PropertyType.Postgres: ValuesFilePath.read_elsewhere("synapse", "postgres"),
         PropertyType.ContainersSecurityContext: ValuesFilePath.read_elsewhere("synapse", "containersSecurityContext"),
         PropertyType.PodSecurityContext: ValuesFilePath.read_elsewhere("synapse", "podSecurityContext"),
         PropertyType.PriorityClassName: ValuesFilePath.read_elsewhere("synapse", "priorityClassName"),
@@ -426,6 +431,8 @@ def make_synapse_worker_sub_component(worker_name: str, worker_type: str) -> Sub
         values_file_path_overrides=values_file_path_overrides,
         has_ingress=False,
         is_synapse_process=True,
+        has_redis=True,
+        has_db=True,
         is_singleton=(worker_type != "scalable"),
         has_mount_context=True,
         ignore_unreferenced_mounts={
@@ -601,6 +608,7 @@ all_components_details = [
         is_singleton=True,
         has_additional_config=False,
         has_ephemeral_storage=False,
+        has_redis=True,
         has_service_monitor=False,
         sub_components=(
             SubComponentDetails(
@@ -608,6 +616,7 @@ all_components_details = [
                 values_file_path=ValuesFilePath.read_write("matrixRTC", "sfu"),
                 has_exposed_services=True,
                 has_ingress=False,
+                has_redis=True,
                 is_singleton=True,
             ),
         ),
@@ -660,6 +669,7 @@ all_components_details = [
     ComponentDetails(
         name="hookshot",
         has_storage=True,
+        has_redis=True,
         values_file_path_overrides={
             PropertyType.Storage: ValuesFilePath.read_write("hookshot", "storage"),
         },
@@ -667,7 +677,7 @@ all_components_details = [
         ignore_paths_mismatches={
             "hookshot": ("/bin/matrix-hookshot/App/BridgeApp.js",),
         },
-        additional_values_files=("hookshot-encryption-enabled-values.yaml",),
+        additional_values_files=("hookshot-encryption-enabled-values.yaml", "synapse-hookshot-values.yaml"),
         ephemeral_storages={"tmp": "tmp"},
     ),
     ComponentDetails(
@@ -708,11 +718,14 @@ all_components_details = [
                     PropertyType.StartupProbe: ValuesFilePath.not_supported(),
                     # Job so no replicas
                     PropertyType.Replicas: ValuesFilePath.not_supported(),
+                    # The postgres database is owned by the parent component
+                    PropertyType.Postgres: ValuesFilePath.read_elsewhere("matrixAuthenticationService", "postgres"),
                 },
                 has_ingress=False,
                 has_automount_service_account_token=True,
                 has_service_monitor=False,
                 is_hook=True,
+                has_db=True,
                 has_mount_context=False,
                 makes_outbound_requests=False,
                 ephemeral_storages={"tmp-mas-cli": "tmpMasCli"},
@@ -725,6 +738,7 @@ all_components_details = [
             PropertyType.Storage: ValuesFilePath.read_write("synapse", "media", "storage"),
         },
         has_db=True,
+        has_redis=True,
         has_storage=True,
         is_synapse_process=True,
         additional_values_files=("synapse-worker-example-values.yaml",),

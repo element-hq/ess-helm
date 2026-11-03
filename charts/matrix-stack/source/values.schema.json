@@ -57,6 +57,17 @@
               "$ref": "file://common/ephemeralStorage.json"
             }
           }
+        },
+        "resources": {
+          "type": "object",
+          "properties": {
+            "renderConfig": {
+              "$ref": "file://common/resources.json"
+            },
+            "tcpWait": {
+              "$ref": "file://common/resources.json"
+            }
+          }
         }
       }
     },
@@ -83,6 +94,9 @@
           }
         }
       }
+    },
+    "inboundTrafficHandler": {
+      "$ref": "file://common/inboundTrafficHandler.json"
     },
     "ingress": {
       "$ref": "file://common/ingress_global.json"

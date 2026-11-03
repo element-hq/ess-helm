@@ -3,7 +3,8 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-FROM --platform=${BUILDPLATFORM} golang:1.26 AS buildstage
+ARG GO_VERSION=1.26.10
+FROM --platform=${BUILDPLATFORM} golang:${GO_VERSION} AS buildstage
 
 WORKDIR /app
 COPY . /app

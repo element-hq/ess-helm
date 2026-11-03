@@ -7,7 +7,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 {{- $root := .root -}}
 {{- if $root.Values.elementWeb.enabled }}
-web_client_location: https://{{ $root.Values.elementWeb.ingress.host }}/
+web_client_location: https://{{ include "element-io.ess-library.inboundTrafficHandler.host" (dict "root" $root "context" (dict "component" $root.Values.elementWeb)) }}/
 {{- end }}
 
 report_stats: false

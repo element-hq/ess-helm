@@ -222,3 +222,22 @@ async def test_component_ingressClassName_beats_global(values, make_templates):
         if template["kind"] == "Ingress":
             assert "ingressClassName" in template["spec"]
             assert template["spec"]["ingressClassName"] == "component"
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test - services_values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_no_ingress_inboundTrafficHandler_global(make_templates, values):
+    values["inboundTrafficHandler"] = "none"
+    for template in await make_templates(values):
+        assert template["kind"] != "Ingress"
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test - services_values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_no_ingress_inboundTrafficHandler_beats_global(make_templates, values):
+    def set_inbound_traffic_handler_none(deployable_details: DeployableDetails):
+        deployable_details.set_helm_values(values, PropertyType.InboundTrafficHandler, "none")
+
+    iterate_deployables_ingress_parts(set_inbound_traffic_handler_none)
+    for template in await make_templates(values):
+        assert template["kind"] != "Ingress"

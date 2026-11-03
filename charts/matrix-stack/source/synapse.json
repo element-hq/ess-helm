@@ -152,6 +152,9 @@
       "maximum": 1,
       "type": "integer"
     },
+    "inboundTrafficHandler": {
+      "$ref": "file://common/inboundTrafficHandler.json"
+    },
     "ingress": {
       "$ref": "file://synapse/ingress_with_additional_paths.json"
     },

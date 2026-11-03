@@ -9,8 +9,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $root := .root -}}
 {{- with required "element-io.element-web.validations missing context" .context -}}
 {{ $messages := list }}
-{{- if not .ingress.host -}}
-{{ $messages = append $messages "elementWeb.ingress.host is required when elementWeb.enabled=true" }}
+{{- with include "element-io.ess-library.inboundTrafficHandler.validateHost" (dict "root" $root "context" (dict "component" . "componentName" "elementWeb")) }}
+{{ $messages = append $messages . }}
 {{- end }}
 {{- with .additional }}
   {{- range $key := (. | keys | uniq | sortAlpha) }}
@@ -51,6 +51,16 @@ env:
 {{- end -}}
 {{- end -}}
 
+
+{{- define "element-io.element-web.inboundTrafficHandler.paths" -}}
+{{- $root := .root -}}
+{{- with required "element-io.element-web.inboundTrafficHandler.paths missing context" .context -}}
+- path: /
+  serviceName: {{ $root.Release.Name }}-element-web
+  servicePortName: web
+  servicePortNumber: 80
+{{- end -}}
+{{- end -}}
 
 {{- define "element-io.element-web.nginx-configmap-data" }}
 {{- $root := .root }}

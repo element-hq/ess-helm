@@ -52,7 +52,7 @@ async def test_pod_have_cpu_and_memory_requests_and_memory_limits_by_default(val
 async def test_pod_resources_are_configurable(values, make_templates):
     counter = 1
 
-    def set_resources(deployable_details: DeployableDetails):
+    def next_resources():
         nonlocal counter
         resources = {
             "requests": {
@@ -67,7 +67,14 @@ async def test_pod_resources_are_configurable(values, make_templates):
             },
         }
         counter += 1
-        deployable_details.set_helm_values(values, PropertyType.Resources, resources)
+        return resources
+
+    values.setdefault("matrixTools", {}).setdefault("resources", {})
+    values["matrixTools"]["resources"]["renderConfig"] = next_resources()
+    values["matrixTools"]["resources"]["tcpWait"] = next_resources()
+
+    def set_resources(deployable_details: DeployableDetails):
+        deployable_details.set_helm_values(values, PropertyType.Resources, next_resources())
 
     iterate_deployables_workload_parts(set_resources)
     for pod_template_details in iterate_pod_template(await make_templates(values)):
@@ -83,3 +90,35 @@ async def test_pod_resources_are_configurable(values, make_templates):
                 f"{pod_template_details.manifest_id} has container {container['name']} "
                 "which doesn't have the expected resources"
             )
+
+        for container in pod_template_details.pod_template["spec"].get("initContainers", []):
+            assert "resources" in container, (
+                f"{pod_template_details.manifest_id} has container {container['name']} without resources"
+            )
+
+            deployable_details = pod_template_details.deployable_details(container["name"])
+            component_resources = deployable_details.get_helm_values(values, PropertyType.Resources)
+
+            is_matrix_tools = "/matrix-tools" in container["image"]
+
+            if is_matrix_tools:
+                assert component_resources != container["resources"], (
+                    f"{pod_template_details.manifest_id} has initContainer {container['name']} "
+                    "which doesn't set its resources independently of the component"
+                )
+                if container["args"][0] == "render-config":
+                    expected_resources = values["matrixTools"]["resources"]["renderConfig"]
+                elif container["args"][0] == "tcpwait":
+                    expected_resources = values["matrixTools"]["resources"]["tcpWait"]
+                else:
+                    raise AssertionError(f"matrix-tools command {container['args'][0]} not handled")
+
+                assert expected_resources == container["resources"], (
+                    f"{pod_template_details.manifest_id} has initContainer {container['name']} "
+                    "which doesn't use the expected matrix-tools resources"
+                )
+            else:
+                assert component_resources == container["resources"], (
+                    f"{pod_template_details.manifest_id} has initContainer {container['name']} "
+                    "which doesn't use the resources of the component"
+                )

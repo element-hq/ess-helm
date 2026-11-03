@@ -1,0 +1,17 @@
+# Copyright 2026 Element Creations Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# actionlint 1.7.12 does not know the `$/` self-repository `uses:` form
+# (rhysd/actionlint#760).
+paths:
+  .github/workflows/actions-linting.yml:
+    ignore:
+      - '^specifying action "\$/.github/actions/asdf-cache" in invalid format'
+  .github/workflows/pytest-integration.yml:
+    ignore:
+      - '^specifying action "\$/.github/actions/asdf-cache" in invalid format'
+  .github/workflows/templates-dyff.yml:
+    ignore:
+      - '^specifying action "\$/.github/actions/asdf-cache" in invalid format'
+

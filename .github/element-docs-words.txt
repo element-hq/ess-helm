@@ -11,7 +11,9 @@ deployables
 dialog
 Distroless
 dockerhub
+dyff
 ELEMENTSEC
+eMudhra
 Famedly
 Gematik
 GHSA

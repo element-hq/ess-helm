@@ -1,5 +1,5 @@
 # Copyright 2024 New Vector Ltd
-# Copyright 2025 Element Creations Ltd
+# Copyright 2025-2026 Element Creations Ltd
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
@@ -12,7 +12,7 @@ import pytest
 from .construct_helm_schema import (
     construct_helm_schema,
     default_additionalProperties_to_off,
-    inline_sub_schemas,
+    move_sub_schemas_to_defs,
     schema_walker,
 )
 
@@ -109,32 +109,114 @@ def test_leaves_schema_part_for_non_object_alone():
     assert "additionalProperties" not in default_additionalProperties_to_off(None, {"type": "array"})
 
 
-def test_inline_sub_schema_returns_referenced_sub_schema():
+def test_leaves_schema_part_for_a_ref_alone():
+    schema_part = {"$ref": "#/$defs/something"}
+    assert default_additionalProperties_to_off(None, schema_part) == schema_part
+
+
+def test_move_sub_schemas_to_defs_returns_reference_to_the_sub_schema():
     source_root = Path(__file__).parent / "testdata" / "schema_construction"
-    sub_schema = inline_sub_schemas(source_root / "schema.json", {"$ref": "file://sub_schema1.json"})
-    assert sub_schema["type"] == "object"
-    assert sub_schema["properties"].keys() == set(["first", "second"])
+    sub_schemas = {}
+    sub_schema_refs = {}
+
+    schema_part = move_sub_schemas_to_defs(
+        source_root / "schema.json", {"$ref": "file://sub_schema1.json"}, sub_schemas, sub_schema_refs
+    )
+
+    assert schema_part == {"$ref": "#/$defs/sub_schema1"}
+    assert sub_schemas["sub_schema1"]["type"] == "object"
+    assert sub_schemas["sub_schema1"]["properties"].keys() == set(["first", "second"])
 
 
-def test_inline_sub_schemas_disallows_other_properties_on_attachment_point():
+def test_move_sub_schemas_to_defs_stores_each_sub_schema_once():
+    source_root = Path(__file__).parent / "testdata" / "schema_construction"
+    sub_schemas = {}
+    sub_schema_refs = {}
+
+    first_reference = move_sub_schemas_to_defs(
+        source_root / "schema.json", {"$ref": "file://sub_schema1.json"}, sub_schemas, sub_schema_refs
+    )
+    second_reference = move_sub_schemas_to_defs(
+        source_root / "schema.json", {"$ref": "file://sub_schema1.json"}, sub_schemas, sub_schema_refs
+    )
+
+    assert first_reference == second_reference == {"$ref": "#/$defs/sub_schema1"}
+    assert sub_schemas.keys() == {"sub_schema1"}
+
+
+def test_move_sub_schemas_to_defs_moves_nested_sub_schemas_too():
+    source_root = Path(__file__).parent / "testdata" / "schema_construction"
+    sub_schemas = {}
+    sub_schema_refs = {}
+
+    schema_part = move_sub_schemas_to_defs(
+        source_root / "schema.json", {"$ref": "file://sub_schema2.json"}, sub_schemas, sub_schema_refs
+    )
+
+    assert schema_part == {"$ref": "#/$defs/sub_schema2"}
+    assert sub_schemas["sub_schema2"]["properties"]["nested"] == {"$ref": "#/$defs/sub_schema1"}
+    assert sub_schemas["sub_schema1"]["properties"].keys() == set(["first", "second"])
+
+
+def test_move_sub_schemas_to_defs_strips_the_sub_schema_identity():
+    source_root = Path(__file__).parent / "testdata" / "schema_construction"
+    sub_schemas = {}
+    sub_schema_refs = {}
+
+    move_sub_schemas_to_defs(
+        source_root / "schema.json", {"$ref": "file://sub_schema2.json"}, sub_schemas, sub_schema_refs
+    )
+
+    # The compiled schema is a single document so the $def cannot have its own identity
+    assert "$id" not in sub_schemas["sub_schema2"]
+    assert "$schema" not in sub_schemas["sub_schema2"]
+
+
+def test_move_sub_schemas_to_defs_disallows_other_properties_on_reference_point():
     source_root = Path(__file__).parent / "testdata" / "schema_construction"
     with pytest.raises(AssertionError):
-        inline_sub_schemas(
+        move_sub_schemas_to_defs(
             source_root / "schema.json",
             {"$ref": "file://sub_schema1.json", "other": "disallowed"},
+            {},
+            {},
         )
 
 
-def test_inline_sub_schemas_disallows_non_object_sub_schemas():
+def test_move_sub_schemas_to_defs_disallows_non_object_sub_schemas():
     source_root = Path(__file__).parent / "testdata" / "schema_construction"
     with pytest.raises(AssertionError):
-        inline_sub_schemas(source_root / "schema.json", {"$ref": "file://invalid_sub_schema1.json"})
+        move_sub_schemas_to_defs(
+            source_root / "schema.json",
+            {"$ref": "file://invalid_sub_schema1.json"},
+            {},
+            {},
+        )
 
 
-def test_inline_sub_schemas_disallows_immediately_referencing_another_sub_schema():
+def test_move_sub_schemas_to_defs_disallows_immediately_referencing_another_sub_schema():
     source_root = Path(__file__).parent / "testdata" / "schema_construction"
     with pytest.raises(AssertionError):
-        inline_sub_schemas(source_root / "schema.json", {"$ref": "file://invalid_sub_schema2.json"})
+        move_sub_schemas_to_defs(
+            source_root / "schema.json",
+            {"$ref": "file://invalid_sub_schema2.json"},
+            {},
+            {},
+        )
+
+
+def test_move_sub_schemas_to_defs_rejects_sub_schemas_with_the_same_name():
+    source_root = Path(__file__).parent / "testdata" / "schema_construction"
+    sub_schemas = {}
+    sub_schema_refs = {}
+
+    move_sub_schemas_to_defs(
+        source_root / "schema.json", {"$ref": "file://collision/sub.json"}, sub_schemas, sub_schema_refs
+    )
+    with pytest.raises(Exception, match="Multiple sub-schemas would be named"):
+        move_sub_schemas_to_defs(
+            source_root / "schema.json", {"$ref": "file://collision_sub.json"}, sub_schemas, sub_schema_refs
+        )
 
 
 def test_sets_additionalProperties_false_for_objects_where_unspecified():
@@ -158,11 +240,31 @@ def test_constructs_merged_schema():
 
         destination_schema_contents = json.loads(destination_schema.read_text(encoding="UTF-8"))
 
-        # Property directly in the referenced
-        assert "presentDirectly" in destination_schema_contents["properties"]
-        assert destination_schema_contents["properties"]["presentDirectly"]["type"] == "object"
+        # Property directly in the source schema
+        assert destination_schema_contents["properties"]["presentDirectly"] == {
+            "type": "object",
+            "additionalProperties": False,
+        }
 
-        assert "merged" in destination_schema_contents["properties"]
-        assert "type" in destination_schema_contents["properties"]["merged"]
-        assert destination_schema_contents["properties"]["merged"]["type"] == "object"
-        assert "properties" in destination_schema_contents["properties"]["merged"]
+        # The referenced sub-schema is referenced through an internal $ref
+        assert destination_schema_contents["properties"]["merged"] == {"$ref": "#/$defs/sub_schema1"}
+        assert destination_schema_contents["$defs"]["sub_schema1"]["properties"].keys() == set(["first", "second"])
+        # Objects in $defs also have additionalProperties defaulted to false
+        assert destination_schema_contents["$defs"]["sub_schema1"]["additionalProperties"] is False
+
+
+def test_constructs_schema_storing_repeated_sub_schemas_once():
+    with tempfile.TemporaryDirectory() as destination_folder:
+        source_schema = Path(__file__).parent / "testdata" / "schema_construction" / "schema_with_repeated_refs.json"
+        destination_schema = Path(destination_folder) / "values.schema.json"
+
+        construct_helm_schema(source_schema, destination_schema)
+
+        destination_schema_contents = json.loads(destination_schema.read_text(encoding="UTF-8"))
+
+        assert destination_schema_contents["properties"]["first"] == {"$ref": "#/$defs/sub_schema2"}
+        assert destination_schema_contents["properties"]["second"] == {"$ref": "#/$defs/sub_schema2"}
+        assert destination_schema_contents["$defs"]["sub_schema2"]["properties"]["nested"] == {
+            "$ref": "#/$defs/sub_schema1"
+        }
+        assert list(destination_schema_contents["$defs"].keys()) == ["sub_schema2", "sub_schema1"]

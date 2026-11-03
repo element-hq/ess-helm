@@ -61,6 +61,7 @@ spec:
               "extraEnv" .extraEnv
               "extraVolumeMounts" .extraVolumeMounts
               )) | nindent 6 }}
+      {{- include "element-io.ess-library.pods.valkeyTcpWait" (dict "root" $ "context" .) | nindent 6 }}
 {{- with .extraInitContainers }}
       {{- toYaml . | nindent 6 }}
 {{- end }}

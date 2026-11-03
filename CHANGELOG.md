@@ -7,6 +7,186 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.11.0 (2026-11-03)
+
+## Changed
+
+- Centralize component exposure paths in `inboundTrafficHandler.paths` helpers and render Ingress manifests from that shared list. (#1694)
+- Matrix RTC Authorization Service: Wait for Synapse to be up before starting up. (#1751)
+- Update Synapse to v1.164.2.
+
+  Highlights:
+   - Restore the unstable MSC2965 `/auth_metadata` endpoint, which Element X clients still request after upgrading from Synapse 1.162 or earlier, causing them to fail to refresh their access token.
+
+   Changelogs:
+   - [v1.164.2](https://github.com/element-hq/synapse/blob/release-v1.164/CHANGES.md#synapse-11642-2026-11-02) (#1752)
+
+## Fixed
+
+- Fix instances of Element Web and MatrixRTC SFU URLs not being properly templated. (#1694)
+
+
+# ESS Community Helm Chart 26.10.4 (2026-10-29)
+
+## Security
+
+- Upgrade Hookshot to v7.6.0.
+
+  Highlights:
+  - Serve the compiled OpenProject `element-web` module in Docker under `/modules/v1/static/openproject.js`.
+  - Update `matrix-bot-sdk` / `matrix-appservice-bridge` to latest versions.
+  - Update `rustls-webpki` and `webpki-root-certs` to stop trusting compromised eMudhra intermediate certificates
+    (`RUSTSEC-2026-0382`, `RUSTSEC-2026-0383`).
+  - Update the base Node.js images to address the following high/medium/low CVE's `CVE-2026-105482`,
+    `CVE-2026-105483`, `CVE-2026-106069`, `CVE-2026-111497`, `CVE-2026-105481`, `CVE-2026-106072`, `CVE-2026-106074`,
+    `CVE-2026-106070`, `CVE-2026-106071` and `CVE-2026-106073`.
+
+  (#1734)
+- Upgrade Valkey to 9.1.3.
+
+  Highlights:
+  - `GHSA-f4q9-j22m-xqq9`: Fix a heap buffer overflow in cluster Pub/Sub message construction that could allow an authenticated client to potentially execute arbitrary code by publishing an oversized message
+
+  (#1735)
+- Upgrade Synapse to v1.164.1.
+
+  Highlights:
+  - Bump pillow to 13.0.0 to address critical security vulnerabilities.
+  - Bump msgpack to 1.2.4 to address `GHSA-j586-36cw-2gc2`
+
+  Full Changelogs:
+  - [v1.163.2](https://github.com/element-hq/synapse/blob/release-v1.163/CHANGES.md)
+  - [v1.164.0](https://github.com/element-hq/synapse/blob/release-v1.164/CHANGES.md)
+  - [v1.164.1](https://github.com/element-hq/synapse/blob/release-v1.164/CHANGES.md)
+
+  (#1742, #1745)
+
+## Changed
+
+- Upgrade MatrixRTC SFU to v1.13.11.
+
+  Full Changelogs:
+  - [v1.13.11](https://github.com/livekit/livekit/releases/tag/v1.13.11)
+
+  (#1733)
+- Upgrade Redis Exporter to v1.96.0.
+
+  Full Changelogs:
+  - [v1.95.0](https://github.com/oliver006/redis_exporter/releases/tag/v1.95.0)
+  - [v1.96.0](https://github.com/oliver006/redis_exporter/releases/tag/v1.96.0)
+
+  (#1736)
+- Upgrade Element Web to v1.12.33.
+
+  Highlights:
+  - Don't allow to skip device verification by default
+  - Feed thread replies to widgets
+
+  Full Changelogs:
+  - [v1.12.33](https://github.com/element-hq/element-web/releases/tag/v1.12.33)
+
+  (#1740)
+- Upgrade Synapse to v1.164.1.
+
+  Highlights:
+  - Advertise support for Matrix v1.17
+  - Require authentication for the [MSC4140](https://github.com/matrix-org/matrix-spec-proposals/pull/4140) delayed event management endpoints, restrict them to the requesting user's own delayed events, and allow guests to use them
+  - Add the `m.preview_url` capability (stabilizes support for [MSC4452](https://github.com/matrix-org/matrix-spec-proposals/pull/4452))
+
+  Full Changelogs:
+  - [v1.163.2](https://github.com/element-hq/synapse/blob/release-v1.163/CHANGES.md)
+  - [v1.164.0](https://github.com/element-hq/synapse/blob/release-v1.164/CHANGES.md)
+  - [v1.164.1](https://github.com/element-hq/synapse/blob/release-v1.164/CHANGES.md)
+
+  (#1742, #1745)
+- Upgrade Matrix Authentication Service to v1.28.0.
+
+  Highlights:
+  - Interactive feedback for username availability in the registration form
+  - Handle concurrent registrations of identical public clients
+
+  Full Changelogs:
+  - [v1.28.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.28.0)
+
+  (#1743)
+
+## Internal
+
+- CI: The manifests workflow now only runs pytest against the CI values files with a dyff in their rendered manifests. The tests that don't depend on a values file, e.g. the test infrastructure tests, always run. (#1720)
+- CI: In PR, only run manifests & integration tests when their relevant values files have changed. (#1721, #1739)
+- CI: Update `actionlint` to 1.7.12 and make sure renovate is able to update it in the future. (#1738)
+- CI: Use new `$/` github actions syntax for local composite actions. (#1738)
+
+
+# ESS Community Helm Chart 26.10.3 (2026-10-23)
+
+## Changed
+
+- The `values.schema.json` compilation now uses `$defs` and `$ref` instead of inlining every referenced sub-schema. (#1693)
+- Allow configuration of `matrix-tools` `initContainer` resources independently of the component they're being used for.
+
+  * `matrixTools.resources.renderConfig` for all `render-config` `initContainers`
+  * `matrixTools.resources.tcpWait` for all `initContainers` that wait for Postgres or Redis/Valkey
+
+  (#1711)
+- Upgrade Element Admin to v0.1.18.
+
+  Highlights:
+  - Upgrade base image to `nginx-unprivileged` v1.31.7
+  - Use the stable endpoint for discovering the authentication server metadata
+
+  Full Changelogs:
+  - [v0.1.17](https://github.com/element-hq/element-admin/releases/tag/v0.1.17)
+  - [v0.1.18](https://github.com/element-hq/element-admin/releases/tag/v0.1.18)
+
+  (#1712, #1730)
+- Upgrade `matrix-tools` to v0.10.5.
+
+  Highlights:
+  - Refresh dependencies and base-image
+
+  (#1713)
+- Components depending on Redis or Valkey now wait for it to be up using `tcpwait` matrix-tools command. (#1714, #1720)
+- Allow configuration of `matrix-tools` `initContainer` resources independently of the component they're being used for.
+
+  * `matrixTools.resources.renderConfig` for all `render-config` `initContainers`
+  * `matrixTools.resources.tcpWait` for all `initContainers` that wait for Postgres
+
+  (#1720)
+- Upgrade Synapse to v1.163.1.
+
+  Highlights:
+  - Update certificate authorities trust stores
+
+  Full Changelogs:
+  - [v1.163.1](https://github.com/element-hq/synapse/blob/release-v1.163/CHANGES.md)
+
+  (#1728)
+- Upgrade Matrix Authentication Service to v1.27.1.
+
+  Highlights:
+  - Update certificate authorities trust stores
+
+  Full Changelogs
+  - [v1.27.1](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.27.1)
+
+  (#1729)
+
+## Internal
+
+- CI: Implement a helper function to actively wait for chart resources in order to Helm v4 flakes. (#1687)
+- CI: Replace `pytest-kubernetes` `Kubectl` exec and wait with `lightkube` `AsyncClient` exec and wait to profit from native async semantics. (#1689)
+- CI: Retry using curl instead of kubernetes container restarts. (#1695)
+- CI: Check a release's Deployments, StatefulSets and CRDs concurrently and allow up to 5 minutes for them to become ready, instead of 1 minute for its CRDs. (#1696)
+- Exclude `renovate[bot]` from changelog and copyright headers workflow jobs. (#1699)
+- CI: Do not rollback k3d on setup failure, in order to get container logs. (#1702)
+- Don't manage `values.yaml` with Renovate as we assemble it from fragments. (#1707)
+- CI: Build matrix-tools on every pytest CI run. (#1708, #1709)
+- CI: Split manifests and integration tests in 2 distinct workflow. (#1715)
+- CI: Validate that components depending on postgres have a `db-wait` init container. (#1717)
+- CI: Maintain go version for matrix-tools using renovate. (#1726)
+
+
 # ESS Community Helm Chart 26.10.2 (2026-10-16)
 
 ## Changed
@@ -488,7 +668,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 - Upgrade `matrix-tools` to to 0.10.0.
 
-  - Introduces a new `randbytes` init-secrets generator, which replaces the `hex32` generator.
+  - Introduces a new `randbytes` init-secrets generator, which replaces the `hex32` generator.
   - Introduces a new `x25519` init-secrets generator, supporting `der` and `paddedBase64` outputs.
 
   (#1528, #1529, #1533, #1543)
@@ -1300,7 +1480,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 - CI: Publish ESS tests as a python package for use in external projects and developers environments. (#1185, #1192, #1193, #1196, #1197, #1199)
 - CI: Use a python script to generate logs. (#1192)
-- CI: Cache `pyhelm` pulled chart relatively to the runner directory, not to the script install path. (#1198)
+- CI: Cache `pyhelm` pulled chart relatively to the runner directory, not to the script install path. (#1198)
 - Developers: Move `.ca` to `~/.config/ess-helm-ca`. (#1198, #1201)
 - CI: Log the content of the cache when `pyhelm` cache fails to hit. (#1200)
 
@@ -1739,10 +1919,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 - Add support to customize `nodePort` of exposed services.
 
   `nodePort` property of `exposedServices.*` is now a string template taking two parameters:
-  - `context`: The exposed service values context `*.exposedServices.<svc>`
+  - `context`: The exposed service values context `*.exposedServices.<svc>`
   - `root` : The helm $ root values context
 
-  On Matrix RTC values, the `nodePort` template defaults to `{{ .context.port }}` so that the `nodePort`
+  On Matrix RTC values, the `nodePort` template defaults to `{{ .context.port }}` so that the `nodePort`
   is the same as `port`. Setting the template to an empty string will skip setting `nodePort`
   on the service.
 

@@ -5,67 +5,19 @@ Copyright 2025-2026 Element Creations Ltd
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 {{- with .Values.matrixRTC -}}
-{{- if .enabled -}}
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-{{- $extraAnnotations := dict }}
-{{- if .sfu.enabled }}
-{{- if eq "ingress-nginx" (include "element-io.ess-library.ingress-controller-type" (dict "root" $ "context" .ingress.controllerType)) }}
-{{- $_ := set $extraAnnotations "nginx.ingress.kubernetes.io/proxy-send-timeout" "120" }}
-{{- $_ := set $extraAnnotations "nginx.ingress.kubernetes.io/proxy-read-timeout" "120" }}
-{{- $_ := set $extraAnnotations "nginx.ingress.kubernetes.io/proxy-buffering" "off" }}
-{{- end }}
-{{- end }}
-{{- include "element-io.ess-library.ingress.annotations" (dict "root" $ "context" (dict "ingress" .ingress "extraAnnotations" $extraAnnotations)) | nindent 2 }}
-  labels:
-    {{- include "element-io.matrix-rtc-ingress.labels" (dict "root" $ "context" .) | nindent 4 }}
-  name: {{ $.Release.Name }}-matrix-rtc
-  namespace: {{ $.Release.Namespace }}
-spec:
-{{- include "element-io.ess-library.ingress.tls" (dict "root" $ "context" (dict "ingress" .ingress "ingressName" "matrix-rtc")) | nindent 2 }}
-{{- include "element-io.ess-library.ingress.className" (dict "root" $ "context" .ingress.className) | nindent 2 }}
-  rules:
-  - host: {{ (tpl .ingress.host $) | quote }}
-    http:
-      paths:
-      - path: /sfu/get
-        pathType: Prefix
-        backend:
-          service:
-            name: "{{ $.Release.Name }}-matrix-rtc-authorisation-service"
-            port:
-              name: http
-      - path: /get_token
-        pathType: Prefix
-        backend:
-          service:
-            name: "{{ $.Release.Name }}-matrix-rtc-authorisation-service"
-            port:
-              name: http
-      - path: /delegate_delayed_leave
-        pathType: Prefix
-        backend:
-          service:
-            name: "{{ $.Release.Name }}-matrix-rtc-authorisation-service"
-            port:
-              name: http
-{{- if .sfu.enabled }}
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: "{{ $.Release.Name }}-matrix-rtc-sfu"
-            port:
-              name: http
-{{- else }}
-      - path: /sfu_webhook
-        pathType: Prefix
-        backend:
-          service:
-            name: "{{ $.Release.Name }}-matrix-rtc-authorisation-service"
-            port:
-              name: http
-{{- end }}
-{{- end }}
-{{- end }}
+{{- $extraAnnotations := dict -}}
+{{- if .sfu.enabled -}}
+{{- if eq "ingress-nginx" (include "element-io.ess-library.ingress-controller-type" (dict "root" $ "context" .ingress.controllerType)) -}}
+{{- $_ := set $extraAnnotations "nginx.ingress.kubernetes.io/proxy-send-timeout" "120" -}}
+{{- $_ := set $extraAnnotations "nginx.ingress.kubernetes.io/proxy-read-timeout" "120" -}}
+{{- $_ := set $extraAnnotations "nginx.ingress.kubernetes.io/proxy-buffering" "off" -}}
+{{- end -}}
+{{- end -}}
+{{- include "element-io.ess-library.inboundTrafficHandler.ingress" (dict "root" $ "context" (dict
+  "component" .
+  "componentName" "matrix-rtc"
+  "ingressName" "matrix-rtc"
+  "extraAnnotations" $extraAnnotations
+  "labels" (include "element-io.matrix-rtc-ingress.labels" (dict "root" $ "context" .))
+)) }}
+{{- end -}}

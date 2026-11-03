@@ -35,7 +35,7 @@ frontend well-known-in
   http-request redirect code 301 location {{ .baseDomainRedirect.url }} unless well-known
 {{- else if $root.Values.elementWeb.enabled }}
 {{- with $root.Values.elementWeb }}
-  http-request redirect code 301 location https://{{ tpl .ingress.host $root }} unless well-known
+  http-request redirect code 301 location https://{{ include "element-io.ess-library.inboundTrafficHandler.host" (dict "root" $root "context" (dict "component" .)) }} unless well-known
 {{- end }}
 {{- end }}
 {{- end }}

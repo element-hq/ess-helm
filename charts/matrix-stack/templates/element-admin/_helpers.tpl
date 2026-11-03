@@ -9,8 +9,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $root := .root -}}
 {{- with required "element-io.element-admin.validations missing context" .context -}}
 {{ $messages := list }}
-{{- if not .ingress.host -}}
-{{ $messages = append $messages "elementAdmin.ingress.host is required when elementAdmin.enabled=true" }}
+{{- with include "element-io.ess-library.inboundTrafficHandler.validateHost" (dict "root" $root "context" (dict "component" . "componentName" "elementAdmin")) }}
+{{ $messages = append $messages . }}
 {{- end }}
 {{ $messages | toJson }}
 {{- end }}
@@ -37,5 +37,15 @@ env:
 {{- else -}}
 env: []
 {{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "element-io.element-admin.inboundTrafficHandler.paths" -}}
+{{- $root := .root -}}
+{{- with required "element-io.element-admin.inboundTrafficHandler.paths missing context" .context -}}
+- path: /
+  serviceName: {{ $root.Release.Name }}-element-admin
+  servicePortName: http
+  servicePortNumber: 8080
 {{- end -}}
 {{- end -}}

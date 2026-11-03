@@ -12,7 +12,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 - Fix an issue where dynamically discovered secrets would still be logged as initialized by ESS. (#1296)
 - Fix an issue where underrides would be logged as overrides. (#1297)
-- Fix `database` not being removed from Synapse & MAS `additional` discovered configuration when selecting ESS-managed database. (#1307)
+- Fix `database` not being removed from Synapse & MAS `additional` discovered configuration when selecting ESS-managed database. (#1307)
 - Fix an issue where Matrix Authentication Service might be using the wrong password when using an existing database. (#1350, #1352)
 - Add some missing configuration keys to override detection. (#1351)
 
@@ -24,7 +24,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 - Add support for migrating Well Known delegation configuration files (client.json, server.json, support.json) to ESS. Users can now specify well-known files via `--well-known-dir` for a directory containing the files, or individual files via `--well-known-client`, `--well-known-server`, and `--well-known-support`. Files can be with or without the `.json` extension. (#1274)
 - Add support for migrating Hookshot `config.yaml` to ESS Community. (#1275)
 - Lazy load extra files instead of loading them in memory before dumping them into our output directory. (#1298)
-- Trigger a values conflict resolution if Synapse `homeserver.yaml` does not have `matrix_authentication_service` configured despite a MAS `config.yaml` being passed. (#1306)
+- Trigger a values conflict resolution if Synapse `homeserver.yaml` does not have `matrix_authentication_service` configured despite a MAS `config.yaml` being passed. (#1306)
 - Allow the migration process to discover MAS <-> Synapse shared secret from Synapse configuration, and resolve any conflicting configuration. (#1311, #1313)
 - Use Rich library to display formatted tables for migration mappings, workers, secrets, and warnings in the CLI output. (#1340, #1341, #1343, #1344, #1345, #1346, #1348, #1349)
 - Use Rich library to display formatted commands in the CLI output. (#1342)

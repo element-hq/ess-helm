@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+# Copyright 2026 Element Creations Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# Render the manifests of the CI values files of a chart, one directory
+# per values file. The manifests of a values file are written to
+# OUTPUT_DIR/<values file name>/. Only the values files whose name matches
+# VALUES_FILES_PATTERN are rendered. It defaults to every values file.
+# usage: render_ci_manifests.sh CHART_DIR OUTPUT_DIR [VALUES_FILES_PATTERN]
+
+set -euo pipefail
+
+if [ $# -lt 2 ] || [ $# -gt 3 ]; then
+  echo "usage: render_ci_manifests.sh CHART_DIR OUTPUT_DIR [VALUES_FILES_PATTERN]" >&2
+  exit 1
+fi
+
+chart_dir=$1
+output_dir=$2
+values_files_pattern=${3:-'*-values.yaml'}
+
+render_values_file() {
+  values=$1
+  values_file=$(basename "$values" ".yaml")
+  echo "Rendering the manifests of $values_file"
+  mkdir -p "$output_dir/$values_file"
+  (helm template \
+      -n ess-ci \
+      -a monitoring.coreos.com/v1/ServiceMonitor \
+      -a cert-manager.io/v1/Certificate \
+      -f "$values" "$chart_dir") | \
+  yq ea '[.] | .[] | splitDoc' | \
+  yq -s "\"$output_dir/$values_file/\" + ([.kind, .metadata.name] | join(\"-\") | downcase) + \".yaml\""
+}
+export -f render_values_file
+export chart_dir output_dir
+
+readarray -d '' values_files < <(
+  find "$chart_dir"/ci* -type f -name "$values_files_pattern" -print0
+)
+
+if [ "${#values_files[@]}" -eq 0 ]; then
+  echo "No values files found in $chart_dir/ci*" >&2
+  exit 1
+fi
+
+# Rendering the manifests is the slow part of a dyff. We render the
+# values files in parallel to use all the CPU cores of the machine.
+# shellcheck disable=SC2016  # $1 is filled in by xargs
+printf '%s\0' "${values_files[@]}" | \
+  xargs -0 -P "$(nproc)" -n1 bash -c 'set -euo pipefail; render_values_file "$1"' _

@@ -9,8 +9,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{ $root := .root }}
 {{- with required "element-io.synapse.validations missing context" .context -}}
 {{ $messages := list }}
-{{- if not .ingress.host -}}
-{{ $messages = append $messages "synapse.ingress.host is required when synapse.enabled=true" }}
+{{- with include "element-io.ess-library.inboundTrafficHandler.validateHost" (dict "root" $root "context" (dict "component" . "componentName" "synapse")) }}
+{{ $messages = append $messages . }}
 {{- end }}
 {{- if not $root.Values.serverName -}}
 {{ $messages = append $messages "serverName is required when synapse.enabled=true" }}
@@ -138,22 +138,25 @@ env:
     name: "{{ $root.Release.Name }}-matrix-authentication-service"
     port:
       name: http
+      number: 8080
 {{- end }}
 {{- end }}
 {{- end }}
-{{- if and $root.Values.hookshot.enabled (not $root.Values.hookshot.ingress.host) }}
+{{- if and $root.Values.hookshot.enabled (not (include "element-io.ess-library.inboundTrafficHandler.host" (dict "root" $root "context" (dict "component" $root.Values.hookshot)))) }}
 - path: "/_matrix/hookshot/widgetapi/v1"
   availability: only_externally
   service:
     name: "{{ $root.Release.Name }}-hookshot"
     port:
       name: widgets
+      number: 7778
 - path: "/_matrix/hookshot"
   availability: only_externally
   service:
     name: "{{ $root.Release.Name }}-hookshot"
     port:
       name: webhooks
+      number: 7775
 {{- end -}}
 {{- range $root.Values.synapse.ingress.additionalPaths }}
 - {{ . | toYaml | indent 2 | trim }}
@@ -346,6 +349,31 @@ ess-version.json: |
 {{- end }}
 {{- end }}
 
+
+{{- define "element-io.synapse.inboundTrafficHandler.paths" -}}
+{{- $root := .root -}}
+{{- with required "element-io.synapse.inboundTrafficHandler.paths missing context" .context -}}
+{{- $paths := list -}}
+{{- range (include "element-io.synapse.ingress.additionalPaths" (dict "root" $root "context" .)) | fromYamlArray -}}
+{{- if eq .availability "blocked" -}}
+{{- $paths = append $paths (dict "path" .path "availability" .availability "serviceName" (printf "%s-synapse" $root.Release.Name) "servicePortName" "haproxy-403" "servicePortNumber" 8009) -}}
+{{- else -}}
+{{- $entry := dict "path" .path "availability" .availability "serviceName" (tpl .service.name $root) -}}
+{{- with .service.port.name -}}
+{{- $_ := set $entry "servicePortName" . -}}
+{{- end -}}
+{{- with .service.port.number -}}
+{{- $_ := set $entry "servicePortNumber" . -}}
+{{- end -}}
+{{- $paths = append $paths $entry -}}
+{{- end -}}
+{{- end -}}
+{{- range $synapsePath := list "/_matrix" "/_synapse" -}}
+{{- $paths = append $paths (dict "path" $synapsePath "availability" "catch_all" "serviceName" (printf "%s-synapse" $root.Release.Name) "servicePortName" "haproxy-synapse" "servicePortNumber" 8008) -}}
+{{- end -}}
+{{- $paths | toYaml -}}
+{{- end -}}
+{{- end -}}
 
 {{- define "element-io.synapse.internal-hostport" -}}
 {{- $root := .root -}}
