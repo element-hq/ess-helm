@@ -41,7 +41,7 @@ kubectl scale deploy -l "app.kubernetes.io/component=matrix-authentication" -n e
 4. The chart will generate some credentials in a `Secret` if you do not provide them. To copy them to a local file, you can run the following command: `kubectl get secrets -l "app.kubernetes.io/managed-by=matrix-tools-init-secrets"  -n ess -o yaml > secrets.yaml`. Adjust to your own kubernetes namespace if required.
 5. The chart will generate some flags/markers in a `ConfigMap` to ensure that `helm upgrade` with different values doesn't put the installation in an invalid state. To copy them to a local file, you can run the following command: `kubectl get configmap -l "app.kubernetes.io/managed-by=matrix-tools-deployment-markers"  -n ess -o yaml > configmaps.yaml`. Adjust to your own kubernetes namespace if required.
 6. The media files: Synapse stores media in a persistent volume that should be backed up. On a default K3s setup, you can find where synapse media is stored on your node using the command `kubectl get pv -n ess -o yaml | grep synapse-media`.
-7. Run the `helm upgrade --install....` command again to restore your workload's pods.
+7. Run the `helm upgrade --install....` command again to restore your workload's pods.
 
 ### Restore
 
@@ -71,7 +71,7 @@ kubectl exec -n ess sts/ess-postgres -- psql -U postgres -d synapse -c 'TRUNCATE
 Adjust to your own kubernetes namespace and release name if required.
 
 4. Restore the synapse media files using `kubectl cp` to copy them in Synapse pod. If you are using K3s, you can find where the new persistent volume has been mounted with `kubectl get pv -n ess -o yaml | grep synapse-media` and copy your files in the destination path.
-5. Run the `helm upgrade --install....` command again to restore your workload's pods.
+5. Run the `helm upgrade --install....` command again to restore your workload's pods.
 
 
 ## Installation State
@@ -148,7 +148,7 @@ Even if the above doesn't apply, if you never ran a version of ESS Community bet
   ```yml
   synapse:
     signingKey:
-      ## Adjust according to how you configure your signing key in the chart
+      ## Adjust according to how you configure your signing key in the chart
       ## It can either be provided inline in the Helm chart e.g.:
       ## value: ed25519 1 BUIaPW...
       ##
@@ -187,7 +187,7 @@ Even if the above doesn't apply, if you never ran a version of ESS Community bet
 6. Apply the new values using `helm` and wait for Synapse to be restarted. Run the following command to check that the new signing key `ed25519:1` is now advertised properly by Synapse, and the old key id `ed25519:0` is marked as revoked:
 
   ```json
-  curl -s https://<your synapse host>/_matrix/key/v2/server | jq
+  curl -s https://<your synapse host>/_matrix/key/v2/server | jq
   {
     "old_verify_keys": {
       "ed25519:0": {

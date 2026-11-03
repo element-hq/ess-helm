@@ -78,7 +78,7 @@ class ValuesFilePath:
         if msg_details:
             error_msg += f": {msg_details}"
 
-        assert expected_path in str(err), f"{expected_path} did not cause any failure in {str(err)}"
+        assert expected_path in str(err), f"{expected_path} did not cause any failure in {str(err)}"
         assert error_msg in str(err), f"{expected_path} did not cause {error_msg} in {str(err)}"
 
 
