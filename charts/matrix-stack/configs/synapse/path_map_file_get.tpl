@@ -19,7 +19,7 @@ when the related workers are not enabled. To keep things simple, we don't suppor
 this optimization here and we invite the chart user to directly deploy the related
 workers instead if these requests path are under high load.
 
-# push-rules
+# push-rules
 ^/\_matrix/client/(api/v1|r0|v3|unstable)/pushrules/
 
 # account-data

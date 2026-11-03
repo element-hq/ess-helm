@@ -117,7 +117,7 @@ experimental_features:
 {{- end }}
 {{- if $root.Values.hookshot.enabled }}
   # MSCs required for Hookshot encryption support
-  # https://matrix-org.github.io/matrix-hookshot/latest/advanced/encryption.html
+  # https://matrix-org.github.io/matrix-hookshot/latest/advanced/encryption.html
   msc2409_to_device_messages_enabled: true
   msc3202_device_masquerading: true
   msc3202_transaction_extensions: true

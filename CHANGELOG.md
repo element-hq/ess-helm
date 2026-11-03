@@ -668,7 +668,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 - Upgrade `matrix-tools` to to 0.10.0.
 
-  - Introduces a new `randbytes` init-secrets generator, which replaces the `hex32` generator.
+  - Introduces a new `randbytes` init-secrets generator, which replaces the `hex32` generator.
   - Introduces a new `x25519` init-secrets generator, supporting `der` and `paddedBase64` outputs.
 
   (#1528, #1529, #1533, #1543)
@@ -1480,7 +1480,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 - CI: Publish ESS tests as a python package for use in external projects and developers environments. (#1185, #1192, #1193, #1196, #1197, #1199)
 - CI: Use a python script to generate logs. (#1192)
-- CI: Cache `pyhelm` pulled chart relatively to the runner directory, not to the script install path. (#1198)
+- CI: Cache `pyhelm` pulled chart relatively to the runner directory, not to the script install path. (#1198)
 - Developers: Move `.ca` to `~/.config/ess-helm-ca`. (#1198, #1201)
 - CI: Log the content of the cache when `pyhelm` cache fails to hit. (#1200)
 
@@ -1919,10 +1919,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 - Add support to customize `nodePort` of exposed services.
 
   `nodePort` property of `exposedServices.*` is now a string template taking two parameters:
-  - `context`: The exposed service values context `*.exposedServices.<svc>`
+  - `context`: The exposed service values context `*.exposedServices.<svc>`
   - `root` : The helm $ root values context
 
-  On Matrix RTC values, the `nodePort` template defaults to `{{ .context.port }}` so that the `nodePort`
+  On Matrix RTC values, the `nodePort` template defaults to `{{ .context.port }}` so that the `nodePort`
   is the same as `port`. Setting the template to an empty string will skip setting `nodePort`
   on the service.
 
