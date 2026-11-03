@@ -7,6 +7,25 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.11.0 (2026-11-03)
+
+## Changed
+
+- Centralize component exposure paths in `inboundTrafficHandler.paths` helpers and render Ingress manifests from that shared list. (#1694)
+- Matrix RTC Authorization Service: Wait for Synapse to be up before starting up. (#1751)
+- Update Synapse to v1.164.2.
+
+  Highlights:
+   - Restore the unstable MSC2965 `/auth_metadata` endpoint, which Element X clients still request after upgrading from Synapse 1.162 or earlier, causing them to fail to refresh their access token.
+
+   Changelogs:
+   - [v1.164.2](https://github.com/element-hq/synapse/blob/release-v1.164/CHANGES.md#synapse-11642-2026-11-02) (#1752)
+
+## Fixed
+
+- Fix instances of Element Web and MatrixRTC SFU URLs not being properly templated. (#1694)
+
+
 # ESS Community Helm Chart 26.10.4 (2026-10-29)
 
 ## Security
