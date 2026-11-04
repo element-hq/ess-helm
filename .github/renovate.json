@@ -37,6 +37,16 @@
       "minimumReleaseAge": "4 hours",
       "groupName": "golang",
       "rangeStrategy": "bump"
+    },
+    {
+      "matchFileNames": [
+        "matrix-tools/*"
+      ],
+      "matchManagers": "gomod",
+      "postUpdateOptions": [
+        "gomodTidy",
+        "gomodUpdateImportPaths"
+      ]
     }
   ]
 }
