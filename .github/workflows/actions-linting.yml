@@ -65,7 +65,7 @@ jobs:
             | xargs -0 -I {} grep -E 'use[s]:' {} \
             | grep -vE 'use[s]:\s+./.+' \
             | grep -vE 'use[s]:\s+docker://[^@]+:[^@]+@sha256:[a-f0-9]{64}' \
-            | grep -vE 'use[s]:\s+[^#]*@[a-f0-9]{40}\s+#\s' || true)
+            | grep -vE 'use[s]:\s+[^#]*@[a-f0-9]{40}\s+#\sv[0-9]+\.[0-9]+\.[0-9]+' || true)
         if [ "$unpinned_actions" != "" ]; then
           echo "There are unpinned actions:"
           echo "$unpinned_actions"
