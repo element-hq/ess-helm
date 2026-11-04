@@ -1,0 +1,27 @@
+{
+  "type": "object",
+  "properties": {
+    "annotations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    },
+    "host": {
+      "type": "string"
+    },
+    "existingGateways": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "file://common/parentReference.json"
+      }
+    },
+    "service": {
+      "$ref": "file://common/service.json"
+    }
+  }
+}

@@ -51,6 +51,17 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- end }}
 {{- end }}
 
+{{- with $.Values.gateway }}
+{{- if .create }}
+{{- if not .className }}
+{{- $messages = append $messages "gateway.className is required when gateway.create is true" }}
+{{- end }}
+{{- if not (include "element-io.gateway.listeners" (dict "root" $)) }}
+{{- $messages = append $messages "gateway.create is true but no enabled component with inboundTrafficHandler routes has a host" }}
+{{- end }}
+{{- end }}
+{{- end }}
+
 {{- if gt (len $messages) 0 }}
 {{ fail (printf "\n- %s" ($messages | join "\n- " )) }}
 {{- end }}

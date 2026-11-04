@@ -1,0 +1,14 @@
+{{- /*
+Copyright 2026 Element Creations Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+
+{{- with .Values.matrixAuthenticationService -}}
+{{- include "element-io.ess-library.inboundTrafficHandler.httproute" (dict "root" $ "context" (dict
+  "component" .
+  "componentName" "matrix-authentication-service"
+  "routeName" "matrix-authentication-service"
+  "labels" (include "element-io.matrix-authentication-service.labels" (dict "root" $ "context" .))
+)) }}
+{{- end -}}

@@ -1,0 +1,55 @@
+{
+  "type": "object",
+  "properties": {
+    "annotations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "existingGateways": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "file://common/parentReference.json"
+      }
+    },
+    "service": {
+      "type": "object",
+      "required": [
+        "type",
+        "internalTrafficPolicy"
+      ],
+      "properties": {
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "ClusterIP",
+            "NodePort",
+            "LoadBalancer"
+          ]
+        },
+        "internalTrafficPolicy": {
+          "type": "string",
+          "enum": [
+            "Cluster",
+            "Local"
+          ]
+        },
+        "externalTrafficPolicy": {
+          "type": "string",
+          "enum": [
+            "Cluster",
+            "Local"
+          ]
+        }
+      }
+    }
+  }
+}

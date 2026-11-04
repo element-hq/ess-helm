@@ -123,6 +123,9 @@
     "ingress": {
       "$ref": "file://common/ingress.json"
     },
+    "routes": {
+      "$ref": "file://common/routes.json"
+    },
     "image": {
       "$ref": "file://common/image.json"
     },

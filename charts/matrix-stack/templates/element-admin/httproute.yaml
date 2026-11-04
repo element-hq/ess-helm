@@ -1,0 +1,13 @@
+{{- /*
+Copyright 2026 Element Creations Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+{{- with .Values.elementAdmin -}}
+{{- include "element-io.ess-library.inboundTrafficHandler.httproute" (dict "root" $ "context" (dict
+  "component" .
+  "componentName" "element-admin"
+  "routeName" "element-admin"
+  "labels" (include "element-io.element-admin.labels" (dict "root" $ "context" .))
+)) }}
+{{- end -}}

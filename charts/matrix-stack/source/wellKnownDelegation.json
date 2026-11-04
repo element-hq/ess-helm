@@ -12,6 +12,9 @@
     "ingress": {
       "$ref": "file://common/ingress_without_host.json"
     },
+    "routes": {
+      "$ref": "file://common/routes_without_host.json"
+    },
     "labels": {
       "$ref": "file://common/labels.json"
     },

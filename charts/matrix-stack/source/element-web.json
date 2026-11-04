@@ -34,6 +34,9 @@
     "ingress": {
       "$ref": "file://common/ingress.json"
     },
+    "routes": {
+      "$ref": "file://common/routes.json"
+    },
     "labels": {
       "$ref": "file://common/labels.json"
     },

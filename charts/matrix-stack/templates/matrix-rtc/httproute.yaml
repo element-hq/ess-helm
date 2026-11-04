@@ -1,0 +1,13 @@
+{{- /*
+Copyright 2026 Element Creations Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+{{- with .Values.matrixRTC -}}
+{{- include "element-io.ess-library.inboundTrafficHandler.httproute" (dict "root" $ "context" (dict
+  "component" .
+  "componentName" "matrix-rtc"
+  "routeName" "matrix-rtc"
+  "labels" (include "element-io.matrix-rtc-ingress.labels" (dict "root" $ "context" .))
+)) }}
+{{- end -}}

@@ -2,6 +2,7 @@
   "type": "string",
   "enum": [
     "ingress",
+    "routes",
     "none"
   ]
 }

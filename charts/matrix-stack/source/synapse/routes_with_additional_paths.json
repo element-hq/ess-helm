@@ -1,0 +1,95 @@
+{
+  "type": "object",
+  "properties": {
+    "annotations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    },
+    "host": {
+      "type": "string"
+    },
+    "existingGateways": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "file://common/parentReference.json"
+      }
+    },
+    "service": {
+      "$ref": "file://common/service.json"
+    },
+    "additionalPaths": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "availability"
+        ],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "availability": {
+            "type": "string",
+            "enum": [
+              "internally_and_externally",
+              "only_externally",
+              "blocked"
+            ]
+          },
+          "service": {
+            "type": "object",
+            "required": [
+              "name",
+              "port"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "port": {
+                "type": "object",
+                "oneOf": [
+                  {
+                    "required": [
+                      "name"
+                    ],
+                    "not": {
+                      "required": [
+                        "number"
+                      ]
+                    }
+                  },
+                  {
+                    "required": [
+                      "number"
+                    ],
+                    "not": {
+                      "required": [
+                        "name"
+                      ]
+                    }
+                  }
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "number": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

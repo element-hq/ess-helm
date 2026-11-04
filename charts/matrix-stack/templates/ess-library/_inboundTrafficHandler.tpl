@@ -21,7 +21,12 @@ true
 {{- $root := .root -}}
 {{- with required "element-io.ess-library.inboundTrafficHandler.host missing context" .context -}}
 {{- $component := required "element-io.ess-library.inboundTrafficHandler.host missing component" .component -}}
-{{- tpl (dig "ingress" "host" "" $component) $root -}}
+{{- $handler := include "element-io.ess-library.inboundTrafficHandler.name" (dict "root" $root "context" (dict "component" $component)) -}}
+{{- $valuesKey := "ingress" -}}
+{{- if eq $handler "routes" -}}
+{{- $valuesKey = "routes" -}}
+{{- end -}}
+{{- tpl (dig $valuesKey "host" "" $component) $root -}}
 {{- end -}}
 {{- end -}}
 

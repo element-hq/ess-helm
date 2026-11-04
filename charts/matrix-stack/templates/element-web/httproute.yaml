@@ -1,0 +1,13 @@
+{{- /*
+Copyright 2026 Element Creations Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+{{- with .Values.elementWeb -}}
+{{- include "element-io.ess-library.inboundTrafficHandler.httproute" (dict "root" $ "context" (dict
+  "component" .
+  "componentName" "element-web"
+  "routeName" "element-web"
+  "labels" (include "element-io.element-web.labels" (dict "root" $ "context" .))
+)) }}
+{{- end -}}

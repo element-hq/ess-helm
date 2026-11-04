@@ -1,0 +1,25 @@
+{{- /*
+Copyright 2026 Element Creations Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+{{- with .Values.gateway -}}
+{{- if .create -}}
+{{- $listeners := include "element-io.gateway.listeners" (dict "root" $) -}}
+{{- if $listeners }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+{{- include "element-io.gateway.annotations" (dict "root" $) | nindent 2 }}
+  labels:
+    {{- include "element-io.gateway.labels" (dict "root" $ "context" .) | trim | nindent 4 }}
+  name: {{ include "element-io.gateway.name" (dict "root" $) }}
+  namespace: {{ $.Release.Namespace }}
+spec:
+  gatewayClassName: {{ .className | quote }}
+  listeners:
+{{- $listeners | nindent 4 }}
+{{- include "element-io.gateway.redirectRoutes" (dict "root" $) }}
+{{- end -}}
+{{- end -}}
+{{- end -}}
