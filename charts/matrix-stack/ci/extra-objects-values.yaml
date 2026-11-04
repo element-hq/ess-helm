@@ -1,0 +1,59 @@
+# Copyright 2025-2026 Element Creations Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# source_fragments: extra-objects.yaml
+# DO NOT EDIT DIRECTLY. Edit the fragment files to add / modify / remove values
+
+# initSecrets, postgres don't have any required properties to be set and defaults to enabled
+deploymentMarkers:
+  enabled: false
+elementAdmin:
+  enabled: false
+elementWeb:
+  enabled: false
+extraObjects:
+  listOfStrings:
+    - |
+      apiVersion: v1
+      kind: LimitRange
+      metadata:
+        name: {{ $.Release.Name }}-limits
+        namespace: {{ $.Release.Namespace }}
+      spec:
+        limits:
+        - default:
+            cpu: 2
+          defaultRequest:
+            cpu: 2
+          type: Container
+    - |
+      apiVersion: v1
+      kind: ResourceQuota
+      metadata:
+        name: {{ $.Release.Name }}-limits
+        namespace: {{ $.Release.Namespace }}
+      spec:
+        hard:
+          requests.cpu: "1"
+          requests.memory: 1Gi
+          limits.cpu: "2"
+          limits.memory: 2Gi
+  onlyString: |
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: {{ $.Release.Name }}-extra
+      namespace: {{ $.Release.Namespace }}
+      labels:
+        {{- include "element-io.ess-library.labels.common" (dict "root" $ "context" .) | nindent 4 }}
+    data:
+      foo: bar
+matrixAuthenticationService:
+  enabled: false
+matrixRTC:
+  enabled: false
+synapse:
+  enabled: false
+wellKnownDelegation:
+  enabled: false

@@ -69,6 +69,26 @@ networking:
 
 ## Set the default inbound traffic handler type. Options are ingress | none
 inboundTrafficHandler: ingress
+
+## A dictionary of extra objects to be rendered into the cluster
+## Each dictionary item can either be a single object as a string, e.g.
+## extraObjects:
+##   fromString: |
+##     kind: ConfigMap
+##     ..
+##
+## or it can be a list of strings, e.g.
+## extraObjects:
+##   inList:
+##   - |
+##     kind: ConfigMap
+##     ...
+##   - |
+##     kind: Secret
+##     ...
+##
+## All strings are templated and so can use `$.Release`, `$.Values`, etc.
+extraObjects: {}
 {%- endmacro %}
 
 {% macro containersSecurityContext(key='containersSecurityContext') %}

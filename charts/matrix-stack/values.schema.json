@@ -148,6 +148,22 @@
       },
       "additionalProperties": false
     },
+    "extraObjects": {
+      "type": "object",
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
     "deploymentMarkers": {
       "$ref": "#/$defs/deployment-markers"
     },
