@@ -1,0 +1,22 @@
+{{- /*
+Copyright 2026 Element Creations Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+
+{{- range $key, $value := $.Values.extraObjects }}
+  {{- if kindIs "string" $value }}
+---
+{{ tpl $value $ }}
+  {{- else if kindIs "slice" $value }}
+    {{- range $idx, $innerValue := $value }}
+      {{- if not (kindIs "string" $innerValue) }}
+{{ fail (printf "extraObjects[%s][%d] is not a string or an array. It is a %s" $key $idx (typeOf $innerValue)) }}
+      {{- end }}
+---
+{{ tpl $innerValue $ }}
+    {{- end }}
+  {{- else -}}
+{{ fail (printf "extraObjects[%s] is not a string or an array. It is a %s" $key (typeOf $value)) }}
+  {{- end }}
+{{- end }}

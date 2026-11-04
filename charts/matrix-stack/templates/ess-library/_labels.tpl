@@ -1,6 +1,6 @@
 {{- /*
 Copyright 2024-2025 New Vector Ltd
-Copyright 2025 Element Creations Ltd
+Copyright 2025-2026 Element Creations Ltd
 
 SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
@@ -17,7 +17,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- end }}
 {{- $userLabels := dict }}
 {{- $userLabels = mustMergeOverwrite $userLabels ($root.Values.labels | deepCopy) }}
-{{- $userLabels = mustMergeOverwrite $userLabels (.context.labels | deepCopy) }}
+{{- $userLabels = mustMergeOverwrite $userLabels ((.context.labels | default dict) | deepCopy) }}
 {{- /* These labels are owned by the chart, don't allow overriding */}}
 {{- /* They must be skipped from pod templates to avoid restarting when unnecessary */}}
 {{- $userLabels = unset $userLabels "helm.sh/chart.sh" }}
