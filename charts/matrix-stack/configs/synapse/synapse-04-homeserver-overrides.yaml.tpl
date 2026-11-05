@@ -137,6 +137,8 @@ matrix_rtc:
   - type: livekit
     url: {{ include "element-io.matrix-rtc-sfu.url" (dict "root" $root) }}
     livekit_service_url: {{ (printf "https://%s" (include "element-io.ess-library.inboundTrafficHandler.host" (dict "root" $root "context" (dict "component" $root.Values.matrixRTC)))) }}
+  - type: m.livekit
+    url: {{ include "element-io.matrix-rtc-sfu.url" (dict "root" $root) }}
 {{- end }}
 
 {{- if dig "appservice" "enabled" false .workers }}
