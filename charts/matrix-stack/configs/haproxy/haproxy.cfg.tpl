@@ -110,8 +110,11 @@ frontend prometheus
 {{- if has $root.Values.networking.ipFamily (list "ipv6" "dual-stack") }}
   bind [::]:8405 {{ (eq $root.Values.networking.ipFamily "dual-stack") | ternary "v6only" "v4v6" }}
 {{- end }}
-  http-request use-service prometheus-exporter if { path /metrics }
+
   monitor-uri /haproxy_test
+  monitor fail if { stopping }
+
+  http-request use-service prometheus-exporter if { path /metrics }
   no log
 
 frontend http-blackhole
