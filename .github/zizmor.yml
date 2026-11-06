@@ -9,17 +9,17 @@ rules:
       - matrix-tools.yml:33
       # This job do not release any artifact, we do not care about cache poisoning
       - matrix-tools.yml:56
-      # We disable cache on releases
-      - releasing.yml:33
-      # We disable cache on releases
-      - releasing.yml:83
       # This job do not release any artifact, we do not care about cache poisoning
       - packages.yml:40
       # We disable cache on releases
       - packages.yml:85
       # We disable cache on releases
       - packages.yml:152
+      # We disable cache on releases
+      - releasing.yml:30
+      # We disable cache on releases
+      - releasing.yml:83
   superfluous-actions:
     ignore:
       # The high-level action-gh-release is preferred over the CLI
-      - releasing.yml:190
+      - releasing.yml:194
