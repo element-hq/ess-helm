@@ -29,6 +29,7 @@ jobs:
           - "3.12"
           - "3.13"
           - "3.14"
+          - "3.15"
 
     steps:
     - name: Checkout
@@ -106,13 +107,13 @@ jobs:
     # Check that basic features work and we didn't miss to include crucial files
     - name: Smoke test (wheel)
       run: |-
-        for version in 3.11 3.12 3.13 3.14; do
+        for version in 3.11 3.12 3.13 3.14 3.15; do
           uv run --python "$version" --isolated --resolution lowest --no-project --with dist/*.whl ess-migration-tool --help
         done
 
     - name: Smoke test (source distribution)
       run: |
-        for version in 3.11 3.12 3.13 3.14; do
+        for version in 3.11 3.12 3.13 3.14 3.15; do
           uv run --python "$version" --isolated --resolution lowest --no-project --with dist/*.tar.gz ess-migration-tool --help
         done
 
