@@ -1059,6 +1059,7 @@ dependencies = [
     { name = "pyyaml" },
     { name = "rapidfuzz" },
     { name = "rich" },
+    { name = "rpds-py" },
 ]
 
 [package.metadata]
@@ -1068,6 +1069,7 @@ requires-dist = [
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "rapidfuzz", specifier = ">=3.14.3" },
     { name = "rich", specifier = ">=13.0.0" },
+    { name = "rpds-py", specifier = ">=2026.5.1" },
 ]
 
 [[package]]
