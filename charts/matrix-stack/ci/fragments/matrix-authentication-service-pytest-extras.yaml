@@ -26,6 +26,13 @@ matrixAuthenticationService:
     - name: DEBUG_RENDERING
       value: "1"
 
+synapse:
+  workers:
+    # A Synapse worker for /auth_metadata
+    client-reader:
+      replicas: 2
+      enabled: true
+
 postgres:
   podSecurityContext:
     runAsGroup: 0
