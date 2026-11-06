@@ -8,8 +8,8 @@ from hashlib import sha1
 
 import pytest
 
-from . import PropertyType, secret_values_files_to_test, values_files_to_test
-from .utils import PERSISTENT_WORKLOAD_KINDS, iterate_pod_template, template_id
+from . import DeployableDetails, PropertyType, secret_values_files_to_test, values_files_to_test
+from .utils import PERSISTENT_WORKLOAD_KINDS, iterate_deployables_parts, iterate_pod_template, template_id
 
 
 @pytest.mark.parametrize("values_file", values_files_to_test)
@@ -151,3 +151,35 @@ async def test_labels_values_are_valid(templates):
     for template in templates:
         for label_value in template["metadata"]["labels"].values():
             assert label_regex.match(label_value), f"{template_id(template)} : {label_value} is not a valid label"
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.parametrize(
+    ("image_tag", "expected_label"),
+    [
+        pytest.param(f"_{'a' * 63}", "a" * 63, id="trim-leading-before-truncation"),
+        pytest.param(
+            f"{'a' * 62}@sha256:da32e88c8dafe2c3d4f40ca5e90ab2f43a7c9ac35f0977ec7662dcb4fdcd56d8",
+            "a" * 62,
+            id="trim-trailing-after-truncation",
+        ),
+    ],
+)
+@pytest.mark.asyncio_cooperative
+async def test_sanitized_image_tags_have_valid_version_labels(values, make_templates, image_tag, expected_label):
+    label_regex = re.compile(r"^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$")
+
+    values.setdefault("matrixTools", {}).setdefault("image", {}).update(
+        {
+            "tag": image_tag,
+        }
+    )
+
+    def set_tag(deployable_details: DeployableDetails):
+        deployable_details.set_helm_values(values, PropertyType.Image, {"tag": image_tag})
+
+    iterate_deployables_parts(set_tag, lambda deployable_details: deployable_details.has_image)
+    for pod_template_details in iterate_pod_template(await make_templates(values)):
+        version_label = pod_template_details.manifest["metadata"]["labels"]["app.kubernetes.io/version"]
+        assert label_regex.match(version_label), f"{pod_template_details.manifest_id} has an invalid version label"
+        assert version_label == expected_label, f"{pod_template_details.manifest_id} has unexpected version label"
