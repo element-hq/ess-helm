@@ -178,7 +178,7 @@ jobs:
     needs: pytest-setup
     # Nothing to test when we can only run filtered tests, no values file or
     # component changed and no test file changed.
-    if: ${{ needs.pytest-setup.outputs.runAll == 'true' || needs.pytest-setup.outputs.changedManifestTests != '[]' || needs.pytest-setup.outputs.pytestMatch != '' }}
+    if: ${{ needs.pytest-setup.outputs.runAll == 'true' || needs.pytest-setup.outputs.manifestTests != '{"manifestTests":[]}' || needs.pytest-setup.outputs.pytestMatch != '' }}
     strategy:
       fail-fast: false
       matrix:
