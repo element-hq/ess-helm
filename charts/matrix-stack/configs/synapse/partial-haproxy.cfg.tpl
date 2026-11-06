@@ -11,21 +11,22 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 frontend startup
 {{- if has $root.Values.networking.ipFamily (list "ipv4" "dual-stack") }}
-   bind *:8406
+  bind *:8406
 {{- end }}
 {{- /* v6only is here so that IPv4 mapped addresses don't show up, they go to the IPv4 bind */}}
 {{- if has $root.Values.networking.ipFamily (list "ipv6" "dual-stack") }}
-   bind [::]:8406 {{ (eq $root.Values.networking.ipFamily "dual-stack") | ternary "v6only" "v4v6" }}
+  bind [::]:8406 {{ (eq $root.Values.networking.ipFamily "dual-stack") | ternary "v6only" "v4v6" }}
 {{- end }}
-   acl synapse_dead nbsrv(synapse-main) lt 1
+  acl synapse_dead nbsrv(synapse-main) lt 1
 {{- range $workerType, $_ := $enabledWorkers}}
 {{- if not (include "element-io.synapse.process.canFallbackToMain" (dict "root" $root "context" $workerType)) }}
   acl synapse_dead nbsrv(synapse-{{ $workerType }}) lt 1
 {{- end }}
 {{- end }}
+  acl is_stopping stopping
 
-   monitor-uri   /synapse_ready
-   monitor fail  if synapse_dead
+  monitor-uri /synapse_ready
+  monitor fail if synapse_dead || is_stopping
 
 frontend synapse-http-in
 {{- if has $root.Values.networking.ipFamily (list "ipv4" "dual-stack") }}

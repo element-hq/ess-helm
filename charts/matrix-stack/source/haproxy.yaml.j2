@@ -13,10 +13,10 @@ replicas: 1
 ## This gives the Service time to update its iptables rules before the pod is killed
 grace: 5s
 
-## How long at most HAProxy takes to fully stop after the pod starts stopping, e.g. 25s
+## How long at most HAProxy takes to fully stop after the pod starts stopping, e.g. 10s
 ## HAProxy closes every remaining connection when this time is up
-## Keep this below the pod's terminationGracePeriodSeconds, which defaults to 30s
-hardStopAfter: 25s
+## Keep this + `grace` below the pod's terminationGracePeriodSeconds, which defaults to 30s
+hardStopAfter: 10s
 
 {{- sub_schema_values.image(registry='docker.io', repository='library/haproxy', tag='3.4.7-alpine') }}
 {{- sub_schema_values.labels() }}
