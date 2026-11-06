@@ -17,6 +17,7 @@ dependencies = [
   "pyyaml>=6.0.3",
   "rapidfuzz>=3.14.3",
   "rich>=13.0.0",
+  "rpds-py>=2026.5.1",
 ]
 
 [build-system]

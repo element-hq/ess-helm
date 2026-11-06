@@ -9,7 +9,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 # Developing
 
 Requirements for development:
-* Python 3.11, 3.12, 3.13 or 3.14
+* Python 3.11, 3.12, 3.13, 3.14 or 3.15
   * [`uv`](https://docs.astral.sh/uv/)
 * [`helm`](https://helm.sh/docs/intro/install/)
 * [`yq`](https://github.com/mikefarah/yq)
