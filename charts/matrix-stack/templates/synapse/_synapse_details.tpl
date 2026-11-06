@@ -289,6 +289,7 @@ responsibleForMedia
   "^/_matrix/client/unstable/org.matrix.msc4140/rooms/.*/delayed_event/"
   "^/_matrix/client/unstable/org.matrix.msc4140/delayed_events(/.*/restart)?$"
   "^/_synapse/admin/v1/rooms/[^/]+$"
+  "^/_matrix/client/(unstable/org.matrix.msc4143|v1)/rtc/transports$"
 ) }}
 
 {{- /* Registration/login requests */}}
