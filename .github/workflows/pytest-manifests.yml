@@ -61,7 +61,7 @@ jobs:
         # actions/checkout only leaves remote tracking branches, so the base
         # branch is only reachable through its full ref.
         base_ref_path="refs/remotes/origin/$BASE_REF"
-        changed_test_files=$(git diff --name-only "$base_ref_path" -- tests/manifests/)
+        changed_test_and_infrastructure_files=$(git diff --name-only "$base_ref_path" -- tests/manifests/ .python-version uv.lock .github/workflows/pytest-manifests.yml)
         changed_chart_files=$(git diff --name-only "$base_ref_path" -- charts/)
 
         run_all="false"
@@ -77,11 +77,11 @@ jobs:
               changed_manifest_tests+=("$(basename "$changed_file" .py)")
               ;;
             *)
-              # Not a test file, e.g. utils.py. It can affect all the tests.
+              # Not a specific component test file, e.g. utils.py or an infrastructure file. It can affect all the tests.
               run_all="true"
               ;;
           esac
-        done <<< "$changed_test_files"
+        done <<< "$changed_test_and_infrastructure_files"
 
         # A component is a directory child of configs or templates. The changed
         # file can be deeper in the component directory.

@@ -58,7 +58,7 @@ jobs:
         # actions/checkout only leaves remote tracking branches, so the base
         # branch is only reachable through its full ref.
         base_ref_path="refs/remotes/origin/$BASE_REF"
-        changed_files=$(git diff --name-only "$base_ref_path" -- tests/integration/ charts/)
+        changed_files=$(git diff --name-only "$base_ref_path" -- tests/integration/ charts/ .python-version uv.lock .github/workflows/pytest-integration.yml)
         non_env_files=$(grep -v -e '^tests/integration/env$' <<< "$changed_files")
 
         run_all="false"
@@ -67,7 +67,9 @@ jobs:
         # every test suite must run. In the patterns, . also matches the / of
         # a path.
         if grep -Eq -e '^tests/integration/' \
-                  -e '^charts/[^/]*/templates/ess-library/' \
+                    -e '^charts/[^/]*/templates/ess-library/' \
+                    -e '^(.python-version|uv.lock)$' \
+                    -e '^\.github/workflows/pytest-integration.yml' \
                   <<< "$non_env_files"; then
           run_all="true"
         fi
