@@ -6,7 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 
 {{- with $.Values.hookshot -}}
-{{- include "element-io.ess-library.inboundTrafficHandler.ingress" (dict "root" $ "context" (dict
+{{- include "element-io.ess-library.ingress.manifest" (dict "root" $ "context" (dict
   "component" .
   "componentName" "hookshot"
   "ingressName" "hookshot"

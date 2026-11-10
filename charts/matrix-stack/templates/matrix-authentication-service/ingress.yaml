@@ -6,7 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 
 {{- with .Values.matrixAuthenticationService -}}
-{{- include "element-io.ess-library.inboundTrafficHandler.ingress" (dict "root" $ "context" (dict
+{{- include "element-io.ess-library.ingress.manifest" (dict "root" $ "context" (dict
   "component" .
   "componentName" "matrix-authentication-service"
   "ingressName" "matrix-authentication-service"

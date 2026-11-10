@@ -10,7 +10,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- if eq (include "element-io.ess-library.ingress-controller-type" (dict "root" $ "context" .ingress.controllerType)) "ingress-nginx" -}}
 {{- $_ := set $extraAnnotations "nginx.ingress.kubernetes.io/proxy-body-size" .media.maxUploadSize -}}
 {{- end -}}
-{{- include "element-io.ess-library.inboundTrafficHandler.ingress" (dict "root" $ "context" (dict
+{{- include "element-io.ess-library.ingress.manifest" (dict "root" $ "context" (dict
   "component" .
   "componentName" "synapse"
   "ingressName" "synapse"
