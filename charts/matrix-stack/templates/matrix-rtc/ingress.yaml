@@ -13,7 +13,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $_ := set $extraAnnotations "nginx.ingress.kubernetes.io/proxy-buffering" "off" -}}
 {{- end -}}
 {{- end -}}
-{{- include "element-io.ess-library.inboundTrafficHandler.ingress" (dict "root" $ "context" (dict
+{{- include "element-io.ess-library.ingress.manifest" (dict "root" $ "context" (dict
   "component" .
   "componentName" "matrix-rtc"
   "ingressName" "matrix-rtc"

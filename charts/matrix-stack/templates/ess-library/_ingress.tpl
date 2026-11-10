@@ -134,13 +134,13 @@ Prefix
 {{- end -}}
 {{- end -}}
 
-{{- define "element-io.ess-library.inboundTrafficHandler.ingress" -}}
+{{- define "element-io.ess-library.ingress.manifest" -}}
 {{- $root := .root -}}
-{{- with required "element-io.ess-library.inboundTrafficHandler.ingress missing context" .context -}}
-{{- $component := required "element-io.ess-library.inboundTrafficHandler.ingress missing component" .component -}}
-{{- $componentName := required "element-io.ess-library.inboundTrafficHandler.ingress missing componentName" .componentName -}}
-{{- $ingressName := required "element-io.ess-library.inboundTrafficHandler.ingress missing ingressName" .ingressName -}}
-{{- $labels := required "element-io.ess-library.inboundTrafficHandler.ingress missing labels" .labels -}}
+{{- with required "element-io.ess-library.ingress.manifest missing context" .context -}}
+{{- $component := required "element-io.ess-library.ingress.manifest missing component" .component -}}
+{{- $componentName := required "element-io.ess-library.ingress.manifest missing componentName" .componentName -}}
+{{- $ingressName := required "element-io.ess-library.ingress.manifest missing ingressName" .ingressName -}}
+{{- $labels := required "element-io.ess-library.ingress.manifest missing labels" .labels -}}
 {{- $rawHost := .host | default (dig "ingress" "host" "" $component) -}}
 {{- $extraAnnotations := .extraAnnotations | default dict -}}
 {{- $render := and $component.enabled (eq (include "element-io.ess-library.inboundTrafficHandler.isEnabled" (dict "root" $root "context" (dict "component" $component "trafficHandler" "ingress"))) "true") -}}
