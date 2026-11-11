@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"go.yaml.in/yaml/v3"
+	"go.yaml.in/yaml/v4"
 )
 
 func generateExpiredKeys(existingSecretData map[string][]byte, generatedSecretsTypes map[string]SecretType) ([]byte, error) {

@@ -12,7 +12,7 @@ import (
 	"io"
 	"os"
 
-	"go.yaml.in/yaml/v3"
+	"go.yaml.in/yaml/v4"
 )
 
 type RegistrationFile struct {
