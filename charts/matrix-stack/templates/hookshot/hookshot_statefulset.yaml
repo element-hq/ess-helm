@@ -77,7 +77,6 @@ spec:
           {{- toYaml . | nindent 10 }}
 {{- end }}
         args:
-        - "/bin/matrix-hookshot/App/BridgeApp.js"
         - /conf/hookshot-config.yaml
         - /secrets/{{
                 include "element-io.ess-library.init-secret-path" (
