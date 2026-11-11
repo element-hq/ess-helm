@@ -7,6 +7,137 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.11.1 (2026-11-11)
+
+## Added
+
+- Add support for `extraObjects` to render arbitrary additional resources into the cluster.
+
+  e.g.
+  ```yaml
+  extraObjects:
+    onlyString: |
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: {{ $.Release.Name }}-extra
+        namespace: {{ $.Release.Namespace }}
+        labels:
+          {{- include "element-io.ess-library.labels.common" (dict "root" $ "context" .) | nindent 4 }}
+      data:
+        foo: bar
+
+    listOfStrings:
+    - |
+      apiVersion: v1
+      kind: LimitRange
+      metadata:
+        name: {{ $.Release.Name }}-limits
+        namespace: {{ $.Release.Namespace }}
+      spec:
+        limits:
+        - default:
+            cpu: 2
+          defaultRequest:
+            cpu: 2
+          type: Container
+    - |
+      apiVersion: v1
+      kind: ResourceQuota
+      metadata:
+        name: {{ $.Release.Name }}-limits
+        namespace: {{ $.Release.Namespace }}
+      spec:
+        hard:
+          requests.cpu: "1"
+          requests.memory: 1Gi
+          limits.cpu: "2"
+          limits.memory: 2Gi
+  ```
+
+  Would render a `ConfigMap`, a `LimitRange` and a `ResourceQuota` into the same `Namespace` as the ESS installation, with the same release name prefix. (#1763)
+
+## Changed
+
+- Stabilise support for [`MSC4452`](https://github.com/matrix-org/matrix-spec-proposals/pull/4452). (#1662)
+- Upgrade Element Web to v1.12.34.
+
+  Highlights:
+  - Persist active filter selection in the room list
+  - Add a softer reset warning screen if the user has no encrypted chats
+
+  Full Changelogs
+  - [v1.12.34](https://github.com/element-hq/element-web/releases/tag/v1.12.34)
+
+  (#1759)
+- Upgrade Synapse to v1.165.0.
+
+  Highlights:
+  - Add stable support for `/rtc/transports` and copy `m.rtc.slot` state events during room upgrades as per [`MSC4143`](https://github.com/matrix-org/matrix-spec-proposals/pull/4143) and [`MSC4195`](https://github.com/matrix-org/matrix-spec-proposals/pull/4195)
+  - Add initial, experimental support for server-wide announcement rooms
+
+  Full Changelogs:
+  - [v1.165.0](https://github.com/element-hq/synapse/blob/release-v1.165/CHANGES.md)
+
+  (#1770)
+- Reduce the default `haproxy.hardStopAfter` value from `25s` to `10s`.
+
+  `haproxy.grace` + `haproxy.hardStopAfter` should be under the default `terminationGracePeriodSeconds` of `30s`. (#1778)
+- Upgrade Redis Exporter to v1.97.0.
+
+  Full Changelogs
+  - [v1.97.0](https://github.com/oliver006/redis_exporter/releases/tag/v1.97.0)
+
+  (#1779)
+- Upgrade `matrix-tools` to `0.10.6`.
+
+  Highlights:
+  - Update dependencies
+
+  (#1780)
+- Upgrade Matrix Authentication Service to v1.29.0.
+
+  Highlights:
+  - Fix next and back buttons on device lists not working as expected
+  - Stop reporting handled and duplicated errors to Sentry
+
+  Full Changelogs:
+  - [v1.29.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.29.0)
+
+  (#1781)
+- Upgrade Hookshot to v7.6.1.
+
+  Highlights:
+  - Fix generic webhook connections being lost after restart
+  - Fix the "Show URL previews on messages" setting not being saved for Jira and OpenProject connections
+
+  Full Changelogs:
+  - [v7.6.1](https://github.com/matrix-org/matrix-hookshot/releases/tag/7.6.1)
+
+  (#1785)
+- Upgrade `matrix-tools` to v0.10.7.
+
+  Highlights:
+  - Refresh dependencies
+
+  (#1786)
+
+## Fixed
+
+- Allow image tags containing digests without producing invalid Kubernetes version labels. (#1691)
+- Ensure the HAProxy health check endpoints start failing when the process is stopping. (#1778)
+
+## Internal
+
+- Renovate: create the dependency dashboard issue. (#1755)
+- Remove unexpected `\u00A0` characters from the repository. (#1758)
+- CI: ensure all GitHub actions are pinned by a full version rather than a floating major version. (#1765)
+- Renovate: run `go mod tidy` and update import paths for major upgrades when upgrading modules. (#1766)
+- CI: don't mark the integration tests as failures in PRs if there's no integration tests to run. (#1773)
+- CI: run all manifest and integration tests if various infrastructure files change. (#1774, #1780)
+- CI: run with Python 3.15. (#1775)
+
+
 # ESS Community Helm Chart 26.11.0 (2026-11-03)
 
 ## Changed
