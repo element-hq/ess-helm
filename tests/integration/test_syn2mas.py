@@ -8,6 +8,7 @@ import aiohttp
 import pyhelm3
 import pytest
 from lightkube import AsyncClient
+from lightkube.resources.core_v1 import Pod
 
 from .fixtures import ESSData, User
 from .fixtures.users import create_mas_user, get_client_token
@@ -58,6 +59,58 @@ async def test_run_syn2mas_upgrade(
 
     # MAS should be reachable through its ingress
     await test_matrix_authentication_service_graphql_endpoint(ingress_ready, generated_data, ssl_context)
+
+    # Guest accounts produce preflight warnings, but must not block either migration mode.
+    revision, error = await deploy_with_values_patch(
+        generated_data,
+        helm_client,
+        {
+            "matrixAuthenticationService": {"enabled": False},
+            "synapse": {"additional": {"syn2mas-guests.yaml": {"config": "allow_guest_access: true"}}},
+        },
+    )
+    assert error is None, error
+    assert revision.status == pyhelm3.ReleaseRevisionStatus.DEPLOYED
+    await ingress_ready("synapse")
+
+    guest = await aiohttp_post_json(
+        f"https://synapse.{generated_data.server_name}/_matrix/client/v3/register?kind=guest",
+        {},
+        {},
+        ssl_context,
+    )
+    assert guest["user_id"]
+    assert guest["access_token"]
+
+    # Guest registration itself must be disabled for preflight checks to pass.
+    revision, error = await deploy_with_values_patch(
+        generated_data,
+        helm_client,
+        {
+            "matrixAuthenticationService": {"enabled": True},
+            "synapse": {"additional": {"syn2mas-guests.yaml": {"config": "allow_guest_access: false"}}},
+        },
+    )
+    assert error is None, error
+    assert revision.status == pyhelm3.ReleaseRevisionStatus.DEPLOYED
+
+    logs = ""
+    async for pod in kube_client.list(
+        Pod,
+        namespace=generated_data.ess_namespace,
+        labels={"job-name": f"{generated_data.release_name}-syn2mas"},
+    ):
+        assert pod.metadata
+        assert pod.metadata.name
+        async for line in kube_client.log(
+            pod.metadata.name, namespace=generated_data.ess_namespace, container="syn2mas-migrate"
+        ):
+            logs += line
+    assert "Synapse database contains 1 guests" in logs, logs
+    assert "Command failed with status: 11" in logs, logs
+    assert "syn2mas migrate --dry-run ended" in logs, logs
+    assert await get_deployment_marker(kube_client, generated_data, "MATRIX_STACK_MSC3861") == "legacy_auth"
+    await ingress_ready("synapse")
 
     # After the base chart is setup, we enable MAS to run the syn2mas actual migration
     revision, error = await deploy_with_values_patch(

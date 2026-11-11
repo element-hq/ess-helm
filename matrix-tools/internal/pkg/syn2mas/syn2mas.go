@@ -149,15 +149,17 @@ func CallSyn2Mas(description string, arg ...string) int {
 }
 
 func DryRunSyn2MAS(synapseConfigPath string, masConfigMap string) {
+	const checkWarningsExitCode = 11
+
 	// Run syn2mas check first
 	ret := CallSyn2Mas("syn2mas check", "syn2mas", "check", "--config", masConfigMap, "--synapse-config", synapseConfigPath)
-	if ret > 0 {
+	if ret != 0 && ret != checkWarningsExitCode {
 		os.Exit(ret)
 	}
 
 	// Then run migrate --dry-run
 	ret = CallSyn2Mas("syn2mas migrate --dry-run", "syn2mas", "migrate", "--dry-run", "--config", masConfigMap, "--synapse-config", synapseConfigPath)
-	if ret > 0 {
+	if ret != 0 {
 		os.Exit(ret)
 	}
 }
