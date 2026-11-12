@@ -13,7 +13,7 @@ from lightkube.resources.core_v1 import Pod
 from .fixtures import ESSData, User
 from .fixtures.users import create_mas_user, get_client_token
 from .lib.helpers import deploy_with_values_patch, get_deployment_marker
-from .lib.utils import aiohttp_get_json, aiohttp_post_json, value_file_has
+from .lib.utils import aiohttp_get_json, aiohttp_post_json, async_retry_with_timeout, value_file_has
 from .test_matrix_authentication_service import test_matrix_authentication_service_graphql_endpoint
 
 
@@ -49,11 +49,19 @@ async def test_run_syn2mas_upgrade(
     assert revision.status == pyhelm3.ReleaseRevisionStatus.DEPLOYED
     await ingress_ready("synapse")
 
-    guest = await aiohttp_post_json(
-        f"https://synapse.{generated_data.server_name}/_matrix/client/v3/register?kind=guest",
-        {},
-        {},
-        ssl_context,
+    # Synapse restarts to apply the config change, but its ingress was already ready,
+    # so retry on 429s until HAProxy sees the restarted backend
+    async def _register_guest():
+        return await aiohttp_post_json(
+            f"https://synapse.{generated_data.server_name}/_matrix/client/v3/register?kind=guest",
+            {},
+            {},
+            ssl_context,
+        )
+
+    guest = await async_retry_with_timeout(
+        _register_guest,
+        should_retry=lambda e: isinstance(e, aiohttp.ClientResponseError) and e.status == 429,
     )
     assert guest["user_id"]
     assert guest["access_token"]
