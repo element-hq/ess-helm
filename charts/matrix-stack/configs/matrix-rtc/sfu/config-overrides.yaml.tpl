@@ -84,6 +84,8 @@ redis:
 {{- if .password }}
   password: ${SFU_REDIS_PASSWORD}
 {{- end }}
+  tls:
+    enabled: {{ .tls | default false }}
 {{- end }}
 {{- else }}
   address: "{{ $root.Release.Name }}-valkey.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:6379"
