@@ -148,7 +148,7 @@ keys-template.yaml: |
 {{- range $key := (. | keys | uniq | sortAlpha) }}
 {{- $prop := index $root.Values.matrixRTC.sfu.additional $key }}
 {{- if $prop.config }}
-user-{{ $key }}: {{ $prop.config | b64enc }}
+user-{{ $key }}: {{ (tpl $prop.config $root) | b64enc }}
 {{- end }}
 {{- end }}
 {{- end }}

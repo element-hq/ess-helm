@@ -64,6 +64,26 @@ async def test_config_json_override(values, make_templates):
 
 @pytest.mark.parametrize("values_file", ["element-web-minimal-values.yaml"])
 @pytest.mark.asyncio_cooperative
+async def test_additional_config_is_templatable(release_name, values, make_templates):
+    values["elementWeb"]["additional"] = {
+        "config.json": json.dumps(
+            {
+                "release-name": "{{ .Release.Name }}",
+            }
+        )
+    }
+
+    for template in await make_templates(values):
+        if template["kind"] == "ConfigMap" and "element-web" in template["metadata"]["name"]:
+            config_json = json.loads(template["data"]["config.json"])
+            assert config_json["release-name"] == release_name
+            break
+    else:
+        raise RuntimeError("Could not find config.json")
+
+
+@pytest.mark.parametrize("values_file", ["element-web-minimal-values.yaml"])
+@pytest.mark.asyncio_cooperative
 async def test_invalid_json_in_element_web_additional_fails(values, make_templates):
     values["elementWeb"]["additional"] = {"invalid.json": "// not json"}
 

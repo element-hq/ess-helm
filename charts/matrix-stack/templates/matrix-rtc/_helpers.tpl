@@ -27,7 +27,7 @@ SPDX-License-Identifier: AGPL-3.0-only
       {{- range $key := (. | keys | uniq | sortAlpha) }}
         {{- $prop := index $root.Values.matrixRTC.sfu.additional $key }}
         {{- if $prop.config }}
-          {{- $fragment := $prop.config | fromYaml }}
+          {{- $fragment := (tpl $prop.config $root) | fromYaml }}
           {{- if hasKey $fragment "Error" }}
 {{- $messages = append $messages (printf "matrixRTC.sfu.additional['%s'] is invalid: %s" $key $fragment.Error) }}
           {{- end }}

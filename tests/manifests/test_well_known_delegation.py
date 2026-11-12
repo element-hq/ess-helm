@@ -75,6 +75,33 @@ async def test_synapse_injected_in_server_and_client_well_known(release_name, va
 
 @pytest.mark.parametrize("values_file", ["well-known-minimal-values.yaml"])
 @pytest.mark.asyncio_cooperative
+async def test_additional_config_is_templatable(release_name, values, make_templates):
+    templated_config = json.dumps(
+        {
+            "release-name": "{{ .Release.Name }}",
+        }
+    )
+    values["wellKnownDelegation"].setdefault("additional", {})
+    values["wellKnownDelegation"]["additional"]["client"] = templated_config
+    values["wellKnownDelegation"]["additional"]["server"] = templated_config
+    values["wellKnownDelegation"]["additional"]["support"] = templated_config
+
+    expected_config = {
+        "release-name": release_name,
+    }
+    for template in await make_templates(values):
+        if template["kind"] == "ConfigMap" and template["metadata"]["name"] == f"{release_name}-well-known-haproxy":
+            for well_known_file in ["client", "server", "support"]:
+                assert json.loads(template["data"][well_known_file]) == expected_config, (
+                    f"{template['metadata']['name']}.{well_known_file} does not look like it was templated with gotpl"
+                )
+            break
+    else:
+        raise AssertionError("Unable to find WellKnownDelegationConfigMap")
+
+
+@pytest.mark.parametrize("values_file", ["well-known-minimal-values.yaml"])
+@pytest.mark.asyncio_cooperative
 async def test_invalid_json_in_wellKnown_additional_fails(values, make_templates):
     values["wellKnownDelegation"]["additional"] = {}
 
