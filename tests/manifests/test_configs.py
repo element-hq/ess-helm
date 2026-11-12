@@ -108,3 +108,41 @@ async def test_user_provided_inline_configs_change_hashes(values, make_templates
 
     if should_see_some_hashes_changed:
         assert has_any_hash_changed, "No hashes changed after setting some additional config"
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_user_provided_inline_configs_are_templatable(release_name, values, make_templates):
+    user_config_filename = "user-gotpl-templated.yaml"
+
+    def _supports_inline_config_key(deployable_details: DeployableDetails) -> bool:
+        # Element Web and Well-Known Delegation provide their in-line config as a bare string
+        # rather than under a `config` key. Their gotpl support is asserted in their dedicated tests.
+        return deployable_details.has_additional_config and deployable_details.name not in ["element-web", "well-known"]
+
+    def set_templatable_inline_config(deployable_details: DeployableDetails):
+        deployable_details.set_helm_values(
+            values,
+            PropertyType.AdditionalConfig,
+            {user_config_filename: {"config": 'some: "{{ .Release.Name }}"'}},
+        )
+
+    iterate_deployables_parts(set_templatable_inline_config, _supports_inline_config_key)
+
+    expected_rendered_config = f'some: "{release_name}"'
+    for template in await make_templates(values):
+        if template["kind"] != "Secret":
+            continue
+
+        if not _supports_inline_config_key(template_to_deployable_details(template)):
+            continue
+
+        secret_key = f"user-{user_config_filename}"
+        assert secret_key in (template.get("data") or {}), (
+            f"{template_id(template)} is missing {secret_key} in its data"
+        )
+
+        rendered_config = base64.b64decode(template["data"][secret_key]).decode("utf-8")
+        assert rendered_config == expected_rendered_config, (
+            f"{template_id(template)} has {secret_key} which does not look like it was templated with gotpl"
+        )

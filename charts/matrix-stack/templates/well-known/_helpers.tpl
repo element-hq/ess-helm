@@ -15,7 +15,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- with .additional }}
   {{ range $key := list "client" "server" "support" }}
     {{- with ($root.Values.wellKnownDelegation.additional | dig $key "{}") }}
-      {{- $additional := . | fromJson -}}
+      {{- $additional := (tpl . $root) | fromJson -}}
       {{- if hasKey $additional "Error" }}
 {{ $messages = append $messages (printf "wellKnownDelegation.additional.%s is invalid: %s" $key $additional.Error) }}
       {{- end }}
@@ -64,7 +64,7 @@ k8s.element.io/target-instance: {{ $root.Release.Name }}-haproxy
 {{- if $root.Values.matrixRTC.enabled -}}
 {{- $_ := set $config "org.matrix.msc4143.rtc_foci" (list (dict "type" "livekit" "livekit_service_url" (printf "https://%s" (include "element-io.ess-library.inboundTrafficHandler.host" (dict "root" $root "context" (dict "component" $root.Values.matrixRTC)))))) -}}
 {{- end -}}
-{{- $additional := .additional.client | fromJson -}}
+{{- $additional := (tpl .additional.client $root) | fromJson -}}
 {{- tpl (toPrettyJson (mustMergeOverwrite $additional $config)) $root -}}
 {{- end -}}
 {{- end }}
@@ -78,7 +78,7 @@ k8s.element.io/target-instance: {{ $root.Release.Name }}-haproxy
 {{- $_ := set $config "m.server" (printf "%s:443" .) -}}
 {{- end -}}
 {{- end -}}
-{{- $additional := .additional.server | fromJson -}}
+{{- $additional := (tpl .additional.server $root) | fromJson -}}
 {{- tpl (toPrettyJson (mustMergeOverwrite $additional $config)) $root -}}
 {{- end -}}
 {{- end }}
@@ -87,7 +87,7 @@ k8s.element.io/target-instance: {{ $root.Release.Name }}-haproxy
 {{- $root := .root -}}
 {{- with required "element-io.well-known-delegation.support missing context" .context -}}
 {{- $config := dict -}}
-{{- $additional := .additional.support | fromJson -}}
+{{- $additional := (tpl .additional.support $root) | fromJson -}}
 {{- tpl (toPrettyJson (mustMergeOverwrite $additional $config)) $root -}}
 {{- end -}}
 {{- end }}
