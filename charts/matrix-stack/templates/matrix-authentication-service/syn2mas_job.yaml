@@ -124,10 +124,17 @@ spec:
 {{- end }}
       containers:
       - name: syn2mas-migrate
+        args:
+        - syn2mas
+        - --config
+        - /conf/mas-config.yaml
+        - --synapse-config
+        - /conf/homeserver.yaml
 {{- if .dryRun }}
-        args: ["syn2mas", "--config", "/conf/mas-config.yaml", "--synapse-config", "/conf/homeserver.yaml", "--dry-run"]
-{{- else }}
-        args: ["syn2mas", "--config", "/conf/mas-config.yaml", "--synapse-config", "/conf/homeserver.yaml"]
+        - --dry-run
+{{- end }}
+{{- if .acceptWarnings }}
+        - --accept-warnings
 {{- end }}
         {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" $.Values.matrixTools.image) | nindent 8 }}
 {{- with .containersSecurityContext }}

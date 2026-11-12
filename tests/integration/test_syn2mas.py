@@ -59,12 +59,13 @@ async def test_run_syn2mas_upgrade(
     assert guest["access_token"]
 
     # After the base chart is setup, we enable MAS to run the syn2mas dry run job.
-    # Guest registration itself must be disabled for preflight checks to pass.
+    # Guest registration itself must be disabled for preflight checks to pass,
+    # and the guest warning only lets the migration proceed when acceptWarnings is set.
     revision, error = await deploy_with_values_patch(
         generated_data,
         helm_client,
         {
-            "matrixAuthenticationService": {"enabled": True},
+            "matrixAuthenticationService": {"enabled": True, "syn2mas": {"acceptWarnings": True}},
             "synapse": {"additional": {"syn2mas-guests.yaml": {"config": "allow_guest_access: false"}}},
         },
     )

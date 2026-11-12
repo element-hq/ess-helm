@@ -69,3 +69,24 @@ func TestScaleDown(t *testing.T) {
 		t.Errorf("Expected %v, got %v", expectedSts, scaledSts)
 	}
 }
+
+func TestCheckStatusCanProceed(t *testing.T) {
+	cases := []struct {
+		ret            int
+		acceptWarnings bool
+		want           bool
+	}{
+		{0, false, true},
+		{0, true, true},
+		{checkWarningsExitCode, false, false},
+		{checkWarningsExitCode, true, true},
+		{10, false, false},
+		{10, true, false},
+		{1, true, false},
+	}
+	for _, c := range cases {
+		if got := checkStatusCanProceed(c.ret, c.acceptWarnings); got != c.want {
+			t.Errorf("checkStatusCanProceed(%d, %v) = %v, want %v", c.ret, c.acceptWarnings, got, c.want)
+		}
+	}
+}

@@ -3587,6 +3587,11 @@ matrixAuthenticationService:
     ## This must be set to false and never switch again after the migration to MAS has been run or the deployment markers hooks will prevent redeploying.
     dryRun: true
 
+    ## Lets the syn2mas process proceed when its preflight check only reports warnings
+    ## (for example guest accounts or non-email third-party identifiers).
+    ## Warnings are fatal by default: review them in the job logs before enabling this.
+    acceptWarnings: false
+
 postgres:
   enabled: true
 

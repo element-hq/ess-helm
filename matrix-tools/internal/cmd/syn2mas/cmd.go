@@ -35,7 +35,7 @@ func Run(options *Syn2MasOptions) {
 	}
 
 	// Dry-run (and check) is always executed before doing a real migration
-	executor.DryRunSyn2MAS(options.SynapseConfig, options.MASConfig)
+	executor.DryRunSyn2MAS(options.SynapseConfig, options.MASConfig, options.AcceptWarnings)
 	if !options.DryRun {
 		executor.RunSyn2MAS(clientset, namespace, options.SynapseConfig, options.MASConfig)
 	}
