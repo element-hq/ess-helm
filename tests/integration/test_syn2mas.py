@@ -37,9 +37,36 @@ async def test_run_syn2mas_upgrade(
     access_token = users[0].access_token
     await ingress_ready("synapse")
     assert await get_deployment_marker(kube_client, generated_data, "MATRIX_STACK_MSC3861") == "legacy_auth"
-    # After the base chart is setup, we enable MAS to run the syn2mas dry run job
+
+    # Guest accounts produce preflight warnings, but must not block either migration mode.
+    # Register a guest before MAS is enabled, so syn2mas finds it on its first run.
     revision, error = await deploy_with_values_patch(
-        generated_data, helm_client, {"matrixAuthenticationService": {"enabled": True}}
+        generated_data,
+        helm_client,
+        {"synapse": {"additional": {"syn2mas-guests.yaml": {"config": "allow_guest_access: true"}}}},
+    )
+    assert error is None, error
+    assert revision.status == pyhelm3.ReleaseRevisionStatus.DEPLOYED
+    await ingress_ready("synapse")
+
+    guest = await aiohttp_post_json(
+        f"https://synapse.{generated_data.server_name}/_matrix/client/v3/register?kind=guest",
+        {},
+        {},
+        ssl_context,
+    )
+    assert guest["user_id"]
+    assert guest["access_token"]
+
+    # After the base chart is setup, we enable MAS to run the syn2mas dry run job.
+    # Guest registration itself must be disabled for preflight checks to pass.
+    revision, error = await deploy_with_values_patch(
+        generated_data,
+        helm_client,
+        {
+            "matrixAuthenticationService": {"enabled": True},
+            "synapse": {"additional": {"syn2mas-guests.yaml": {"config": "allow_guest_access: false"}}},
+        },
     )
     assert error is None, error
     assert revision.status == pyhelm3.ReleaseRevisionStatus.DEPLOYED
@@ -59,40 +86,6 @@ async def test_run_syn2mas_upgrade(
 
     # MAS should be reachable through its ingress
     await test_matrix_authentication_service_graphql_endpoint(ingress_ready, generated_data, ssl_context)
-
-    # Guest accounts produce preflight warnings, but must not block either migration mode.
-    revision, error = await deploy_with_values_patch(
-        generated_data,
-        helm_client,
-        {
-            "matrixAuthenticationService": {"enabled": False},
-            "synapse": {"additional": {"syn2mas-guests.yaml": {"config": "allow_guest_access: true"}}},
-        },
-    )
-    assert error is None, error
-    assert revision.status == pyhelm3.ReleaseRevisionStatus.DEPLOYED
-    await ingress_ready("synapse")
-
-    guest = await aiohttp_post_json(
-        f"https://synapse.{generated_data.server_name}/_matrix/client/v3/register?kind=guest",
-        {},
-        {},
-        ssl_context,
-    )
-    assert guest["user_id"]
-    assert guest["access_token"]
-
-    # Guest registration itself must be disabled for preflight checks to pass.
-    revision, error = await deploy_with_values_patch(
-        generated_data,
-        helm_client,
-        {
-            "matrixAuthenticationService": {"enabled": True},
-            "synapse": {"additional": {"syn2mas-guests.yaml": {"config": "allow_guest_access: false"}}},
-        },
-    )
-    assert error is None, error
-    assert revision.status == pyhelm3.ReleaseRevisionStatus.DEPLOYED
 
     logs = ""
     async for pod in kube_client.list(
