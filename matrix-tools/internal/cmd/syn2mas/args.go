@@ -15,9 +15,10 @@ const (
 )
 
 type Syn2MasOptions struct {
-	SynapseConfig string
-	MASConfig     string
-	DryRun        bool
+	SynapseConfig  string
+	MASConfig      string
+	DryRun         bool
+	AcceptWarnings bool
 }
 
 func ParseArgs(args []string) (*Syn2MasOptions, error) {
@@ -27,6 +28,7 @@ func ParseArgs(args []string) (*Syn2MasOptions, error) {
 	masConfig := syn2MasSet.String("config", "", "Path to MAS config file")
 	synapseConfig := syn2MasSet.String("synapse-config", "", "Path to Synapse config file")
 	dryRun := syn2MasSet.Bool("dry-run", false, "Whether this being run in dry-run mode or not")
+	acceptWarnings := syn2MasSet.Bool("accept-warnings", false, "Whether to proceed when syn2mas check only reports warnings")
 	err := syn2MasSet.Parse(args)
 	if err != nil {
 		return nil, err
@@ -42,5 +44,6 @@ func ParseArgs(args []string) (*Syn2MasOptions, error) {
 		return nil, fmt.Errorf("-synapse-config <file> is required")
 	}
 	options.DryRun = *dryRun
+	options.AcceptWarnings = *acceptWarnings
 	return &options, nil
 }

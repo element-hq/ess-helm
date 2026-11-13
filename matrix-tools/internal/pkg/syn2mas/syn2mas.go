@@ -148,16 +148,28 @@ func CallSyn2Mas(description string, arg ...string) int {
 	return 0
 }
 
-func DryRunSyn2MAS(synapseConfigPath string, masConfigMap string) {
+// syn2mas check exits with this status when it only found warnings
+const checkWarningsExitCode = 11
+
+// checkStatusCanProceed reports whether the migration can go on after syn2mas check
+// exited with ret. Warnings are fatal unless acceptWarnings is set.
+func checkStatusCanProceed(ret int, acceptWarnings bool) bool {
+	return ret == 0 || (acceptWarnings && ret == checkWarningsExitCode)
+}
+
+func DryRunSyn2MAS(synapseConfigPath string, masConfigMap string, acceptWarnings bool) {
 	// Run syn2mas check first
 	ret := CallSyn2Mas("syn2mas check", "syn2mas", "check", "--config", masConfigMap, "--synapse-config", synapseConfigPath)
-	if ret > 0 {
+	if !checkStatusCanProceed(ret, acceptWarnings) {
+		if ret == checkWarningsExitCode {
+			fmt.Println("syn2mas check only reported warnings. Review them, then set matrixAuthenticationService.syn2mas.acceptWarnings: true to proceed")
+		}
 		os.Exit(ret)
 	}
 
 	// Then run migrate --dry-run
 	ret = CallSyn2Mas("syn2mas migrate --dry-run", "syn2mas", "migrate", "--dry-run", "--config", masConfigMap, "--synapse-config", synapseConfigPath)
-	if ret > 0 {
+	if ret != 0 {
 		os.Exit(ret)
 	}
 }

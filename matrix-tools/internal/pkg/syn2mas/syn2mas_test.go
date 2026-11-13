@@ -1,5 +1,5 @@
 // Copyright 2025 New Vector Ltd
-// Copyright 2025 Element Creations Ltd
+// Copyright 2025-2026 Element Creations Ltd
 //
 // SPDX-License-Identifier: AGPL-3.0-only
 // internal/pkg/secret/secret.go
@@ -67,5 +67,26 @@ func TestScaleDown(t *testing.T) {
 	expectedSts := map[string]int32{"synapse": 1}
 	if !reflect.DeepEqual(scaledSts, expectedSts) {
 		t.Errorf("Expected %v, got %v", expectedSts, scaledSts)
+	}
+}
+
+func TestCheckStatusCanProceed(t *testing.T) {
+	cases := []struct {
+		ret            int
+		acceptWarnings bool
+		want           bool
+	}{
+		{0, false, true},
+		{0, true, true},
+		{checkWarningsExitCode, false, false},
+		{checkWarningsExitCode, true, true},
+		{10, false, false},
+		{10, true, false},
+		{1, true, false},
+	}
+	for _, c := range cases {
+		if got := checkStatusCanProceed(c.ret, c.acceptWarnings); got != c.want {
+			t.Errorf("checkStatusCanProceed(%d, %v) = %v, want %v", c.ret, c.acceptWarnings, got, c.want)
+		}
 	}
 }

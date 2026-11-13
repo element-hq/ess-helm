@@ -56,6 +56,10 @@
           "type": "boolean",
           "description": "Run the migration job in dry-run mode. Do not actually migrate the data."
         },
+        "acceptWarnings": {
+          "type": "boolean",
+          "description": "Let the migration job proceed when syn2mas check only reports warnings. Review the warnings before enabling this."
+        },
         "labels": {
           "$ref": "file://common/labels.json"
         },

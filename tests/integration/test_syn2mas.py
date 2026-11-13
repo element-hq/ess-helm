@@ -8,11 +8,12 @@ import aiohttp
 import pyhelm3
 import pytest
 from lightkube import AsyncClient
+from lightkube.resources.core_v1 import Pod
 
 from .fixtures import ESSData, User
 from .fixtures.users import create_mas_user, get_client_token
 from .lib.helpers import deploy_with_values_patch, get_deployment_marker
-from .lib.utils import aiohttp_get_json, aiohttp_post_json, value_file_has
+from .lib.utils import aiohttp_get_json, aiohttp_post_json, async_retry_with_timeout, value_file_has
 from .test_matrix_authentication_service import test_matrix_authentication_service_graphql_endpoint
 
 
@@ -36,9 +37,45 @@ async def test_run_syn2mas_upgrade(
     access_token = users[0].access_token
     await ingress_ready("synapse")
     assert await get_deployment_marker(kube_client, generated_data, "MATRIX_STACK_MSC3861") == "legacy_auth"
-    # After the base chart is setup, we enable MAS to run the syn2mas dry run job
+
+    # Guest accounts produce preflight warnings, but must not block either migration mode.
+    # Register a guest before MAS is enabled, so syn2mas finds it on its first run.
     revision, error = await deploy_with_values_patch(
-        generated_data, helm_client, {"matrixAuthenticationService": {"enabled": True}}
+        generated_data,
+        helm_client,
+        {"synapse": {"additional": {"syn2mas-guests.yaml": {"config": "allow_guest_access: true"}}}},
+    )
+    assert error is None, error
+    assert revision.status == pyhelm3.ReleaseRevisionStatus.DEPLOYED
+    await ingress_ready("synapse")
+
+    # Synapse restarts to apply the config change, but its ingress was already ready,
+    # so retry on 429s until HAProxy sees the restarted backend
+    async def _register_guest():
+        return await aiohttp_post_json(
+            f"https://synapse.{generated_data.server_name}/_matrix/client/v3/register?kind=guest",
+            {},
+            {},
+            ssl_context,
+        )
+
+    guest = await async_retry_with_timeout(
+        _register_guest,
+        should_retry=lambda e: isinstance(e, aiohttp.ClientResponseError) and e.status == 429,
+    )
+    assert guest["user_id"]
+    assert guest["access_token"]
+
+    # After the base chart is setup, we enable MAS to run the syn2mas dry run job.
+    # Guest registration itself must be disabled for preflight checks to pass,
+    # and the guest warning only lets the migration proceed when acceptWarnings is set.
+    revision, error = await deploy_with_values_patch(
+        generated_data,
+        helm_client,
+        {
+            "matrixAuthenticationService": {"enabled": True, "syn2mas": {"acceptWarnings": True}},
+            "synapse": {"additional": {"syn2mas-guests.yaml": {"config": "allow_guest_access: false"}}},
+        },
     )
     assert error is None, error
     assert revision.status == pyhelm3.ReleaseRevisionStatus.DEPLOYED
@@ -58,6 +95,24 @@ async def test_run_syn2mas_upgrade(
 
     # MAS should be reachable through its ingress
     await test_matrix_authentication_service_graphql_endpoint(ingress_ready, generated_data, ssl_context)
+
+    logs = ""
+    async for pod in kube_client.list(
+        Pod,
+        namespace=generated_data.ess_namespace,
+        labels={"job-name": f"{generated_data.release_name}-syn2mas"},
+    ):
+        assert pod.metadata
+        assert pod.metadata.name
+        async for line in kube_client.log(
+            pod.metadata.name, namespace=generated_data.ess_namespace, container="syn2mas-migrate"
+        ):
+            logs += line
+    assert "Synapse database contains 1 guests" in logs, logs
+    assert "Command failed with status: 11" in logs, logs
+    assert "syn2mas migrate --dry-run ended" in logs, logs
+    assert await get_deployment_marker(kube_client, generated_data, "MATRIX_STACK_MSC3861") == "legacy_auth"
+    await ingress_ready("synapse")
 
     # After the base chart is setup, we enable MAS to run the syn2mas actual migration
     revision, error = await deploy_with_values_patch(
