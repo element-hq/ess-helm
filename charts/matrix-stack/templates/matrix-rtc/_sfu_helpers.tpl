@@ -47,7 +47,7 @@ env:
             "context" (dict
               "secretPath" "matrixRTC.livekitAuth.secret"
               "initSecretKey" "ELEMENT_CALL_LIVEKIT_SECRET"
-              "defaultSecretName" (printf "%s-matrix-rtc-authorisation-service" $root.Release.Name)
+              "defaultSecretName" (printf "%s-matrix-rtc-authorisation" $root.Release.Name)
               "defaultSecretKey" "LIVEKIT_SECRET"
               )
             )
@@ -113,7 +113,7 @@ env:
 {{- end }}
 {{- end }}
 {{- end }}
-{{- $configSecrets := concat $configSecrets (include "element-io.matrix-rtc-authorisation-service.configSecrets" (dict "root" $root "context" .) | fromJsonArray) -}}
+{{- $configSecrets := concat $configSecrets (include "element-io.matrix-rtc-authorisation.configSecrets" (dict "root" $root "context" .) | fromJsonArray) -}}
 {{ $configSecrets | uniq | toJson }}
 {{- end }}
 

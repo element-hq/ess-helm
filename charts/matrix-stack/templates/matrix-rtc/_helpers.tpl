@@ -51,7 +51,7 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- end }}
 {{- end }}
 
-{{- define "element-io.matrix-rtc-authorisation-service.labels" -}}
+{{- define "element-io.matrix-rtc-authorisation.labels" -}}
 {{- $root := .root -}}
 {{- with required "element-io.matrix-rtc.labels missing context" .context -}}
 {{ include "element-io.ess-library.labels.common" (dict "root" $root "context" (dict "labels" .labels "withChartVersion" .withChartVersion)) }}
@@ -62,27 +62,27 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- end }}
 {{- end }}
 
-{{- define "element-io.matrix-rtc-authorisation-service.secret-name" -}}
+{{- define "element-io.matrix-rtc-authorisation.secret-name" -}}
 {{- $root := .root -}}
-{{- with required "element-io.matrix-rtc-authorisation-service.secret-name requires context" .context -}}
+{{- with required "element-io.matrix-rtc-authorisation.secret-name requires context" .context -}}
 {{- $isHook := .isHook }}
 {{- if $isHook -}}
-{{ $root.Release.Name }}-matrix-rtc-authorisation-service-pre
+{{ $root.Release.Name }}-matrix-rtc-authorisation-pre
 {{- else -}}
-{{ $root.Release.Name }}-matrix-rtc-authorisation-service
+{{ $root.Release.Name }}-matrix-rtc-authorisation
 {{- end }}
 {{- end }}
 {{- end }}
 
-{{- define "element-io.matrix-rtc-authorisation-service.appservice-registration-path" -}}
+{{- define "element-io.matrix-rtc-authorisation.appservice-registration-path" -}}
 {{- $root := .root -}}
-{{- with required "element-io.matrix-rtc-authorisation-service.appservice-registration-path requires context" .context -}}
+{{- with required "element-io.matrix-rtc-authorisation.appservice-registration-path requires context" .context -}}
 /secrets/{{- include "element-io.ess-library.init-secret-path" (
       dict "root" $root
       "context" (dict
         "secretPath" "matrixRTC.appserviceRegistration"
         "initSecretKey" "MATRIX_RTC_REGISTRATION"
-        "defaultSecretName" (include "element-io.matrix-rtc-authorisation-service.secret-name" (dict "root" $root "context" (dict "isHook" .isHook)))
+        "defaultSecretName" (include "element-io.matrix-rtc-authorisation.secret-name" (dict "root" $root "context" (dict "isHook" .isHook)))
         "defaultSecretKey" "REGISTRATION"
       )
     ) -}}
@@ -90,9 +90,9 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- end -}}
 
 
-{{- define "element-io.matrix-rtc-authorisation-service.overrideEnv" }}
+{{- define "element-io.matrix-rtc-authorisation.overrideEnv" }}
 {{- $root := .root -}}
-{{- with required "element-io.matrix-rtc-authorisation-service.overrideEnv missing context" .context -}}
+{{- with required "element-io.matrix-rtc-authorisation.overrideEnv missing context" .context -}}
 env:
 {{- if .redisOrValkey }}
 {{- with .redisOrValkey }}
@@ -103,7 +103,7 @@ env:
   valueFrom:
     secretKeyRef:
 {{ if .value }}
-      name: {{ (printf "%s-matrix-rtc-authorisation-service" $root.Release.Name) | quote }}
+      name: {{ (printf "%s-matrix-rtc-authorisation" $root.Release.Name) | quote }}
       key: REDIS_PASSWORD
 {{- else }}
       name: {{ (tpl .secret $root) | quote }}
@@ -123,7 +123,7 @@ env:
         dict "root" $root "context" (
           dict "secretPath" "matrixRTC.livekitAuth.secret"
               "initSecretKey" "ELEMENT_CALL_LIVEKIT_SECRET"
-              "defaultSecretName" (printf "%s-matrix-rtc-authorisation-service" $root.Release.Name)
+              "defaultSecretName" (printf "%s-matrix-rtc-authorisation" $root.Release.Name)
               "defaultSecretKey" "LIVEKIT_SECRET"
               )
         )) }}
@@ -136,28 +136,28 @@ env:
   value: "{{ tpl $root.Values.serverName $root }}=http://{{ include "element-io.synapse.internal-hostport" (dict "root" $root) }}"
 {{- end }}
 - name: "LIVEKIT_AS_REGISTRATION_FILE"
-  value: {{ include "element-io.matrix-rtc-authorisation-service.appservice-registration-path" (dict "root" $root "context" (dict "isHook" false)) }}
+  value: {{ include "element-io.matrix-rtc-authorisation.appservice-registration-path" (dict "root" $root "context" (dict "isHook" false)) }}
 - name: "LIVEKIT_HS_SERVER_NAME"
   value: {{ tpl $root.Values.serverName $root | quote }}
 {{- end -}}
 {{- end -}}
 
-{{- define "element-io.matrix-rtc-authorisation-service.configSecrets" -}}
+{{- define "element-io.matrix-rtc-authorisation.configSecrets" -}}
 {{- $root := .root -}}
-{{- with required "element-io.matrix-rtc-authorisation-service.configSecrets missing context" .context -}}
+{{- with required "element-io.matrix-rtc-authorisation.configSecrets missing context" .context -}}
 {{- $configSecrets := list -}}
 {{- if and $root.Values.initSecrets.enabled (include "element-io.init-secrets.generated-secrets" (dict "root" $root)) }}
 {{ $configSecrets = append $configSecrets (printf "%s-generated" $root.Release.Name) }}
 {{- end }}
 {{- with $root.Values.matrixRTC -}}
 {{- if (.livekitAuth.secret).value -}}
-{{ $configSecrets = append $configSecrets (printf "%s-matrix-rtc-authorisation-service" $root.Release.Name) }}
+{{ $configSecrets = append $configSecrets (printf "%s-matrix-rtc-authorisation" $root.Release.Name) }}
 {{- end -}}
 {{- with (.livekitAuth.secret).secret -}}
 {{ $configSecrets = append $configSecrets (tpl . $root) }}
 {{- end -}}
 {{- if (.appserviceRegistration).value -}}
-{{ $configSecrets = append $configSecrets (include "element-io.matrix-rtc-authorisation-service.secret-name" (dict "root" $root "context" (dict "isHook" false))) }}
+{{ $configSecrets = append $configSecrets (include "element-io.matrix-rtc-authorisation.secret-name" (dict "root" $root "context" (dict "isHook" false))) }}
 {{- end -}}
 {{- with (.appserviceRegistration).secret -}}
 {{ $configSecrets = append $configSecrets (tpl . $root) }}
@@ -171,7 +171,7 @@ env:
 {{- end }}
 
 
-{{- define "element-io.matrix-rtc-authorisation-service.secret-data" -}}
+{{- define "element-io.matrix-rtc-authorisation.secret-data" -}}
 {{- $root := .root -}}
 {{- with required "element-io.matrix-rtc-authorisation-service secret missing context" .context -}}
 {{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "matrixRTC.livekitAuth.secret" "initIfAbsent" $root.Values.matrixRTC.sfu.enabled)) }}
@@ -194,7 +194,7 @@ REDIS_PASSWORD: {{ . | b64enc | quote }}
 {{- define "element-io.matrix-rtc.inboundTrafficHandler.paths" -}}
 {{- $root := .root -}}
 {{- with required "element-io.matrix-rtc.inboundTrafficHandler.paths missing context" .context -}}
-{{- $authService := printf "%s-matrix-rtc-authorisation-service" $root.Release.Name -}}
+{{- $authService := printf "%s-matrix-rtc-authorisation" $root.Release.Name -}}
 {{- range $path := list "/sfu/get" "/get_token" "/delegate_delayed_leave" }}
 - path: {{ $path }}
   serviceName: {{ $authService }}

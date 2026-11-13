@@ -15,23 +15,23 @@ metadata:
     {{- toYaml . | nindent 4 }}
 {{- end }}
   labels:
-    {{- include "element-io.matrix-rtc-authorisation-service.labels" (dict "root" $ "context" .) | nindent 4 }}
-    k8s.element.io/matrix-rtc-authorisation-service-secret-hash: {{ include "element-io.matrix-rtc-authorisation-service.secret-data" (dict "root" $ "context" .) | sha1sum }}
-  name: {{ $.Release.Name }}-matrix-rtc-authorisation-service
+    {{- include "element-io.matrix-rtc-authorisation.labels" (dict "root" $ "context" .) | nindent 4 }}
+    k8s.element.io/matrix-rtc-authorisation-service-secret-hash: {{ include "element-io.matrix-rtc-authorisation.secret-data" (dict "root" $ "context" .) | sha1sum }}
+  name: {{ $.Release.Name }}-matrix-rtc-authorisation
   namespace: {{ $.Release.Namespace }}
 spec:
   {{ include "element-io.ess-library.workloads.commonSpec" (dict "root" $ "context" (dict "nameSuffix" "matrix-rtc-authorisation-service" "kind" "Deployment" "componentValues" .)) | nindent 2 }}
   template:
     metadata:
       labels:
-        {{- include "element-io.matrix-rtc-authorisation-service.labels" (dict "root" $ "context" (dict "image" .image "labels" .labels "withChartVersion" false)) | nindent 8 }}
-        k8s.element.io/matrix-rtc-authorisation-service-secret-hash: {{ include "element-io.matrix-rtc-authorisation-service.secret-data" (dict "root" $ "context" .) | sha1sum }}
+        {{- include "element-io.matrix-rtc-authorisation.labels" (dict "root" $ "context" (dict "image" .image "labels" .labels "withChartVersion" false)) | nindent 8 }}
+        k8s.element.io/matrix-rtc-authorisation-service-secret-hash: {{ include "element-io.matrix-rtc-authorisation.secret-data" (dict "root" $ "context" .) | sha1sum }}
 {{- with .annotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
 {{- end }}
     spec:
-{{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "matrix-rtc-authorisation-service" "kind" "Deployment" "makesOutboundRequests" true "usesMatrixTools" true)) | nindent 6 }}
+{{- include "element-io.ess-library.pods.commonSpec" (dict "root" $ "context" (dict "componentValues" . "instanceSuffix" "matrix-rtc-authorisation-service" "serviceAccountNameSuffix" "matrix-rtc-authorisation" "kind" "Deployment" "makesOutboundRequests" true "usesMatrixTools" true)) | nindent 6 }}
       initContainers:
 {{- if $.Values.synapse.enabled }}
       {{- include "element-io.ess-library.pods.tcpWait" (dict "root" $ "context" (dict
@@ -53,7 +53,7 @@ spec:
         securityContext:
           {{- toYaml . | nindent 10 }}
 {{- end }}
-        {{- include "element-io.ess-library.pods.env" (dict "root" $ "context" (dict "componentValues" . "componentName" "matrix-rtc-authorisation-service")) | nindent 8 }}
+        {{- include "element-io.ess-library.pods.env" (dict "root" $ "context" (dict "componentValues" . "componentName" "matrix-rtc-authorisation")) | nindent 8 }}
         ports:
         - containerPort: 8080
           name: http
@@ -75,7 +75,7 @@ spec:
           {{- toYaml . | nindent 10 }}
 {{- end }}
         volumeMounts:
-{{- range $secret := include "element-io.matrix-rtc-authorisation-service.configSecrets" (dict "root" $ "context" $.Values.matrixRTC) | fromJsonArray }}
+{{- range $secret := include "element-io.matrix-rtc-authorisation.configSecrets" (dict "root" $ "context" $.Values.matrixRTC) | fromJsonArray }}
 {{- with (tpl $secret $) }}
         - mountPath: /secrets/{{ . }}
           name: "secret-{{ . | sha256sum | trunc 12 }}"
@@ -86,7 +86,7 @@ spec:
         - {{ (. | toYaml) | nindent 10 }}
 {{- end }}
       volumes:
-{{- range $secret := include "element-io.matrix-rtc-authorisation-service.configSecrets" (dict "root" $ "context" $.Values.matrixRTC) | fromJsonArray }}
+{{- range $secret := include "element-io.matrix-rtc-authorisation.configSecrets" (dict "root" $ "context" $.Values.matrixRTC) | fromJsonArray }}
 {{- with (tpl $secret $) }}
       - secret:
           defaultMode: 288

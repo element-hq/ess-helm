@@ -21,4 +21,4 @@ io.element.msc4502.scopes:
 - "urn:matrix:client:io.element.msc4502:rooms:is_joined"
 # MSC4512: Synapse proxies the rtc/livekit endpoints of the C-S and S-S APIs to the service
 io.element.msc4512.proxy_prefix: rtc/livekit
-io.element.msc4512.proxy_url: "http://{{ $root.Release.Name }}-matrix-rtc-authorisation-service.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:8080"
+io.element.msc4512.proxy_url: "http://{{ $root.Release.Name }}-matrix-rtc-authorisation.{{ $root.Release.Namespace }}.svc.{{ $root.Values.clusterDomain }}:8080"

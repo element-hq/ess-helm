@@ -225,7 +225,7 @@ responsibleForMedia
   {{- if .enabled }}
     {{- with .appserviceRegistration }}
       {{- with .value }}
-        {{- $configSecrets = append $configSecrets (include "element-io.matrix-rtc-authorisation-service.secret-name" (dict "root" $root "context" (dict "isHook" $isHook))) -}}
+        {{- $configSecrets = append $configSecrets (include "element-io.matrix-rtc-authorisation.secret-name" (dict "root" $root "context" (dict "isHook" $isHook))) -}}
       {{- end }}
       {{- with .secret }}
         {{- $configSecrets = append $configSecrets (tpl . $root) -}}
