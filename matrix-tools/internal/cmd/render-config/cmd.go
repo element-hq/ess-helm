@@ -12,7 +12,7 @@ import (
 	"os"
 
 	"github.com/element-hq/ess-helm/matrix-tools/internal/pkg/renderer"
-	yaml "gopkg.in/yaml.v3"
+	yaml "go.yaml.in/yaml/v4"
 )
 
 func readFiles(paths []string) ([]io.Reader, []func() error, error) {
