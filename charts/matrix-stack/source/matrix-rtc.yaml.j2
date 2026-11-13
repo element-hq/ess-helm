@@ -10,6 +10,7 @@ enabled: true
 
 # Allows restricting room creation to local users only
 # Remote federated users can still join the room
+# Deprecated, will be removed when legacy MatrixRTC authoriser endpoints are removed
 restrictRoomCreationToLocalUsers: true
 
 # LiveKit Authentication Configuration
@@ -34,7 +35,7 @@ user:
 replicas: 1
 
 {{- sub_schema_values.ingress() }}
-{{- sub_schema_values.image(registry='oci.element.io', repository='lk-jwt-service', tag='0.9.0') }}
+{{- sub_schema_values.image(registry='oci.element.io', repository='lk-jwt-service', tag='0.10.0') }}
 {{- sub_schema_values.labels() }}
 {{- sub_schema_values.workloadAnnotations() }}
 {{- sub_schema_values.containersSecurityContext() }}
