@@ -128,6 +128,16 @@ only001Key: only_001`)),
 			err:      true,
 		},
 		{
+			name: "Multiple Documents Rejected",
+			readers: []io.Reader{
+				bytes.NewBuffer([]byte(`key1: value1
+---
+key2: value2`)),
+			},
+			expected: nil,
+			err:      true,
+		},
+		{
 			name: "Indent Function Test",
 			readers: []io.Reader{
 				bytes.NewBuffer([]byte(`
