@@ -315,7 +315,7 @@ ess-version.json: |
 {{- end -}}
 {{- if $root.Values.matrixRTC.enabled -}}
 {{- $appservicesFiles = append $appservicesFiles
-                (include "element-io.matrix-rtc-authorisation-service.appservice-registration-path" (dict "root" $root "context" (dict "isHook" $isHook))) -}}
+                (include "element-io.matrix-rtc-authorisation.appservice-registration-path" (dict "root" $root "context" (dict "isHook" $isHook))) -}}
 {{- end -}}
 {{- $appservicesFiles | toJson -}}
 {{- end }}

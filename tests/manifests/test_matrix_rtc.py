@@ -246,7 +246,7 @@ def get_template(templates, kind, name):
 
 
 def authorisation_service_env(templates, release_name):
-    deployment = get_template(templates, "Deployment", f"{release_name}-matrix-rtc-authorisation-service")
+    deployment = get_template(templates, "Deployment", f"{release_name}-matrix-rtc-authorisation")
     return {env["name"]: env.get("value") for env in deployment["spec"]["template"]["spec"]["containers"][0]["env"]}
 
 
@@ -280,10 +280,10 @@ async def test_appservice_registration_is_generated_and_loaded_by_synapse(releas
     assert registration["io.element.msc4502.scopes"] == ["urn:matrix:client:io.element.msc4502:rooms:is_joined"]
     assert registration["io.element.msc4512.proxy_prefix"] == "rtc/livekit"
     assert registration["io.element.msc4512.proxy_url"] == (
-        f"http://{release_name}-matrix-rtc-authorisation-service.{namespace}.svc.cluster.local.:8080"
+        f"http://{release_name}-matrix-rtc-authorisation.{namespace}.svc.cluster.local.:8080"
     )
     # The proxy_url must target the authorisation service port
-    service = get_template(templates, "Service", f"{release_name}-matrix-rtc-authorisation-service")
+    service = get_template(templates, "Service", f"{release_name}-matrix-rtc-authorisation")
     assert {"name": "http", "port": 8080, "targetPort": "http"} in service["spec"]["ports"]
 
     registration_path = f"/secrets/{release_name}-generated/MATRIX_RTC_REGISTRATION"
@@ -334,23 +334,23 @@ async def test_appservice_registration_from_external_secret(release_name, values
 @pytest.mark.asyncio_cooperative
 async def test_appservice_registration_from_helm_values(release_name, namespace, templates):
     for secret_name in [
-        f"{release_name}-matrix-rtc-authorisation-service",
-        f"{release_name}-matrix-rtc-authorisation-service-pre",
+        f"{release_name}-matrix-rtc-authorisation",
+        f"{release_name}-matrix-rtc-authorisation-pre",
     ]:
         secret = get_template(templates, "Secret", secret_name)
         # The registration provided in the values is templated
         registration = yaml.safe_load(base64.b64decode(secret["data"]["REGISTRATION"]).decode("utf-8"))
         assert registration["io.element.msc4512.proxy_url"] == (
-            f"http://{release_name}-matrix-rtc-authorisation-service.{namespace}.svc.cluster.local.:8080"
+            f"http://{release_name}-matrix-rtc-authorisation.{namespace}.svc.cluster.local.:8080"
         )
 
-    registration_path = f"/secrets/{release_name}-matrix-rtc-authorisation-service/REGISTRATION"
+    registration_path = f"/secrets/{release_name}-matrix-rtc-authorisation/REGISTRATION"
     homeserver_overrides = synapse_homeserver_overrides(templates, f"{release_name}-synapse")
     assert registration_path in homeserver_overrides["app_service_config_files"]
     assert authorisation_service_env(templates, release_name)["LIVEKIT_AS_REGISTRATION_FILE"] == registration_path
 
     # The check-config hook runs before the non-hook Secret exists
-    hook_registration_path = f"/secrets/{release_name}-matrix-rtc-authorisation-service-pre/REGISTRATION"
+    hook_registration_path = f"/secrets/{release_name}-matrix-rtc-authorisation-pre/REGISTRATION"
     hook_homeserver_overrides = synapse_homeserver_overrides(templates, f"{release_name}-synapse-hook")
     assert hook_registration_path in hook_homeserver_overrides["app_service_config_files"]
 
