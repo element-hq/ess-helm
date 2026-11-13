@@ -11,7 +11,7 @@ import aiohttp
 import pytest
 from lightkube import AsyncClient
 
-from .utils import aiohttp_client, aiohttp_get_json, aiohttp_post_json
+from .utils import aiohttp_client, aiohttp_get_json, aiohttp_post_json, async_retry_with_timeout
 
 
 async def get_nonce(synapse_fqdn: str, ssl_context) -> str:
@@ -74,16 +74,21 @@ async def create_synapse_user(
         # least now we're succeeding in the case that this is a run against a new DB. `pytest --cache-clear` would
         # be helpful in this scenario.
 
-    nonce = await get_nonce(synapse_fqdn, ssl_context)
-    mac = generate_mac(username, password, admin, registration_shared_secret, nonce)
-    data = {
-        "nonce": nonce,
-        "username": username,
-        "password": password,
-        "admin": admin,
-        "mac": mac,
-    }
-    response = await aiohttp_post_json(f"https://{synapse_fqdn}/_synapse/admin/v1/register", data, {}, ssl_context)
+    async def _register_user():
+        nonce = await get_nonce(synapse_fqdn, ssl_context)
+        mac = generate_mac(username, password, admin, registration_shared_secret, nonce)
+        data = {
+            "nonce": nonce,
+            "username": username,
+            "password": password,
+            "admin": admin,
+            "mac": mac,
+        }
+        return await aiohttp_post_json(f"https://{synapse_fqdn}/_synapse/admin/v1/register", data, {}, ssl_context)
+
+    response = await async_retry_with_timeout(
+        _register_user, should_retry=lambda e: type(e) is aiohttp.ClientResponseError and e.status == 400
+    )
     pytestconfig.cache.set(f"ess-helm/cached-tokens/{username}", response["access_token"])
     return response["access_token"]
 

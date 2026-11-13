@@ -34,7 +34,12 @@ from lightkube.resources.core_v1 import Pod
 
 retry_options = JitterRetry(
     attempts=12,
-    statuses=set(int(code) for code in os.environ.get("PYTEST_EXPECTED_HTTP_STATUS_CODES", "").split(",") if code),
+    statuses={
+        429,
+        500,
+        503,
+    }
+    | set(int(code) for code in os.environ.get("PYTEST_EXPECTED_HTTP_STATUS_CODES", "").split(",") if code),
     retry_all_server_errors=False,
 )
 
