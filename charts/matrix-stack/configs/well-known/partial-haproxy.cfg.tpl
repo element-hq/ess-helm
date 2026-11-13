@@ -24,7 +24,7 @@ frontend well-known-in
   http-request capture req.fhdr(user-agent) len 200
 
   acl is_delete_put_post_method method DELETE POST PUT
-  http-request deny status 405 if is_delete_put_post_method
+  http-request deny status 405 content-type "application/json" string '{"errcode":"M_UNRECOGNIZED","error":"This endpoint is implemented, but the method is not supported."}' if is_delete_put_post_method
 
   acl well-known path /.well-known/matrix/server
   acl well-known path /.well-known/matrix/client
