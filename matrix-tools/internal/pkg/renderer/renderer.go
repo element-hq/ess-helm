@@ -140,7 +140,9 @@ func RenderConfig(sourceConfigs []io.Reader, arrayOverwriteKeys []string) (map[s
 		fileContent = escapedEnvVarsRe.ReplaceAll(fileContent, []byte("$1"))
 
 		var data map[string]any
-		if err := yaml.Unmarshal(fileContent, &data); err != nil {
+		// yaml.Load rejects files containing more than one YAML document instead
+		// of silently dropping everything after the first "---"
+		if err := yaml.Load(fileContent, &data); err != nil {
 			if os.Getenv("DEBUG_RENDERING") == "1" {
 				fmt.Println(string(fileContent))
 			}
