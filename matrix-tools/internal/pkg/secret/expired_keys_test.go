@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"go.yaml.in/yaml/v3"
+	"go.yaml.in/yaml/v4"
 )
 
 func TestGenerateExpiredKeys(t *testing.T) {
