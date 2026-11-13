@@ -25,6 +25,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{ $deprecations = append $deprecations "synapse.redis is deprecated in favour of synapse.redisOrValkey. All user values should be moved across" -}}
 {{- end }}
 
+{{- if not $root.Values.matrixRTC.restrictRoomCreationToLocalUsers }}
+{{ $deprecations = append $deprecations "matrixRTC.restrictRoomCreationToLocalUsers will be removed when MatrixRTC authoriser removes the legacy endpoints." -}}
+{{- end }}
+
 {{- if gt (len $deprecations) 0 }}
 DEPRECATIONS. Please read me and update
 {{- printf "\n- %s" ($deprecations | join "\n- " ) }}
