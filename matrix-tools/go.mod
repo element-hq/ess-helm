@@ -7,8 +7,6 @@ module github.com/element-hq/ess-helm/matrix-tools
 
 go 1.26.11
 
-require gopkg.in/yaml.v3 v3.0.1
-
 require (
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.12.1
