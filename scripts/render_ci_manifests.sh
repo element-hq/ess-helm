@@ -32,7 +32,7 @@ render_values_file() {
       -a cert-manager.io/v1/Certificate \
       -f "$values" "$chart_dir") | \
   yq ea '[.] | .[] | splitDoc' | \
-  yq -s "\"$output_dir/$values_file/\" + ([.kind, .metadata.name] | join(\"-\") | downcase) + \".yaml\""
+  (cd "$output_dir/$values_file" && yq -s "([.kind, .metadata.name] | join(\"-\") | downcase) + \".yaml\"")
 }
 export -f render_values_file
 export chart_dir output_dir
