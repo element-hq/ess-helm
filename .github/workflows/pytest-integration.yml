@@ -287,6 +287,11 @@ jobs:
         username: ${{ env.GHCR_USERNAME }}
         password: ${{ env.GHCR_TOKEN }}
 
+    - name: Have PRs on forks build `matrix-tools` in each integration test
+      if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != 'element-hq/ess-helm' }}
+      run: |
+        echo "BUILD_MATRIX_TOOLS=1" >> "$GITHUB_ENV"
+
     - uses: $/.github/actions/asdf-cache
       with:
         # The comment inside tool-versions is used by Renovate to update the k3d version.
