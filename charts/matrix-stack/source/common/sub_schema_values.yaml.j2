@@ -34,6 +34,7 @@ certManager: {}
 # serverName: ess.localhost
 {{ labels(global=true) }}
 {{ ingress(global=true) }}
+{{ httpService(global=true) }}
 
 ## Common image properties that are applied as defaults to all components.
 image:
@@ -206,6 +207,34 @@ extraObjects: {}
   pullSecrets: []
 {%- endmacro %}
 
+{% macro httpService(global=false, key='httpService') %}
+{%- if global %}
+## Default configuration of the Service handling inbound HTTP(S) traffic.
+## `<component>.httpService` takes precedence, then `<component>.ingress.service`, then `ingress.service`.
+{{ key }}:
+  type: ClusterIP
+  ## Annotations to be added to all component Services. Will be merged with more specific Service annotations
+  annotations: {}
+  # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
+  externalTrafficPolicy: Cluster
+  internalTrafficPolicy: Cluster
+  # External IPs addresses of this service.
+  # externalIPs: []
+{%- else %}
+## Configuration of the Service handling inbound HTTP(S) traffic for this component.
+## Takes precedence over `ingress.service` and the global `httpService`. Leave empty to inherit `httpService`.
+# {{ key }}:
+#   type: ClusterIP
+#   annotations: {}
+#   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
+#   externalTrafficPolicy: Cluster
+#   internalTrafficPolicy: Cluster
+#   # External IPs addresses of this service.
+#   externalIPs: []
+{{ key }}: {}
+{%- endif %}
+{%- endmacro %}
+
 {% macro ingress(global=false, key='ingress') %}
 {%- if  global %}
 ## How all ingresses should be constructed by default, unless overridden
@@ -229,16 +258,8 @@ extraObjects: {}
   ## The name of the Secret containing the TLS certificate and the key that should be used for {{ 'all Ingresses by default' if global else 'this Ingress' }}
   # tlsSecret:
 
-  ## How the {{ 'Services' if global else 'Service' }} behind {{ 'all Ingresses' if global else 'this Ingress' }} is constructed{{ ' by default' if global else '' }}
-{%- if global %}
-  service:
-    type: ClusterIP
-    ## Annotations to be added to {{ 'all Ingresses services. Will be merged with component specific Ingress services annotations' if global else 'this Ingress' }}
-    annotations: {}
-    # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
-    externalTrafficPolicy: Cluster
-    internalTrafficPolicy: Cluster
-{%- else %}
+  ## Optional Service override for {{ 'all Ingresses' if global else 'this Ingress' }}.
+  ## When a field is set, it overrides `httpService`. `<component>.httpService` takes precedence over this.
   # service:
   #   type: ClusterIP
   #   annotations: {}
@@ -248,7 +269,6 @@ extraObjects: {}
   #   # External IPs addresses of this service.
   #   externalIPs: []
   service: {}
-{%- endif %}
   ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
   ## This can be set to `ingress-nginx`.
   # controllerType:

@@ -107,17 +107,32 @@ ingress:
   ## The name of the Secret containing the TLS certificate and the key that should be used for all Ingresses by default
   # tlsSecret:
 
-  ## How the Services behind all Ingresses is constructed by default
-  service:
-    type: ClusterIP
-    ## Annotations to be added to all Ingresses services. Will be merged with component specific Ingress services annotations
-    annotations: {}
-    # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
-    externalTrafficPolicy: Cluster
-    internalTrafficPolicy: Cluster
+  ## Optional Service override for all Ingresses.
+  ## When a field is set, it overrides `httpService`. `<component>.httpService` takes precedence over this.
+  # service:
+  #   type: ClusterIP
+  #   annotations: {}
+  #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
+  #   externalTrafficPolicy: Cluster
+  #   internalTrafficPolicy: Cluster
+  #   # External IPs addresses of this service.
+  #   externalIPs: []
+  service: {}
   ## If set, some tweaks will be applied automatically to ingresses based on the controller type here.
   ## This can be set to `ingress-nginx`.
   # controllerType:
+
+## Default configuration of the Service handling inbound HTTP(S) traffic.
+## `<component>.httpService` takes precedence, then `<component>.ingress.service`, then `ingress.service`.
+httpService:
+  type: ClusterIP
+  ## Annotations to be added to all component Services. Will be merged with more specific Service annotations
+  annotations: {}
+  # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
+  externalTrafficPolicy: Cluster
+  internalTrafficPolicy: Cluster
+  # External IPs addresses of this service.
+  # externalIPs: []
 
 ## Common image properties that are applied as defaults to all components.
 image:
@@ -725,6 +740,17 @@ matrixRTC:
 
   # Use 0 replicas to stop the MatrixRTC authoriser
   replicas: 1
+  ## Configuration of the Service handling inbound HTTP(S) traffic for this component.
+  ## Takes precedence over `ingress.service` and the global `httpService`. Leave empty to inherit `httpService`.
+  # httpService:
+  #   type: ClusterIP
+  #   annotations: {}
+  #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
+  #   externalTrafficPolicy: Cluster
+  #   internalTrafficPolicy: Cluster
+  #   # External IPs addresses of this service.
+  #   externalIPs: []
+  httpService: {}
   ## How this ingress should be constructed
   ingress:
     ## What hostname should be used for this Ingress
@@ -742,7 +768,8 @@ matrixRTC:
     ## The name of the Secret containing the TLS certificate and the key that should be used for this Ingress
     # tlsSecret:
 
-    ## How the Service behind this Ingress is constructed
+    ## Optional Service override for this Ingress.
+    ## When a field is set, it overrides `httpService`. `<component>.httpService` takes precedence over this.
     # service:
     #   type: ClusterIP
     #   annotations: {}
@@ -1570,6 +1597,17 @@ elementAdmin:
     ## pullSecrets:
     ## - name: dockerhub
     pullSecrets: []
+  ## Configuration of the Service handling inbound HTTP(S) traffic for this component.
+  ## Takes precedence over `ingress.service` and the global `httpService`. Leave empty to inherit `httpService`.
+  # httpService:
+  #   type: ClusterIP
+  #   annotations: {}
+  #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
+  #   externalTrafficPolicy: Cluster
+  #   internalTrafficPolicy: Cluster
+  #   # External IPs addresses of this service.
+  #   externalIPs: []
+  httpService: {}
   ## How this ingress should be constructed
   ingress:
     ## What hostname should be used for this Ingress
@@ -1587,7 +1625,8 @@ elementAdmin:
     ## The name of the Secret containing the TLS certificate and the key that should be used for this Ingress
     # tlsSecret:
 
-    ## How the Service behind this Ingress is constructed
+    ## Optional Service override for this Ingress.
+    ## When a field is set, it overrides `httpService`. `<component>.httpService` takes precedence over this.
     # service:
     #   type: ClusterIP
     #   annotations: {}
@@ -1879,6 +1918,17 @@ elementWeb:
     ## pullSecrets:
     ## - name: dockerhub
     pullSecrets: []
+  ## Configuration of the Service handling inbound HTTP(S) traffic for this component.
+  ## Takes precedence over `ingress.service` and the global `httpService`. Leave empty to inherit `httpService`.
+  # httpService:
+  #   type: ClusterIP
+  #   annotations: {}
+  #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
+  #   externalTrafficPolicy: Cluster
+  #   internalTrafficPolicy: Cluster
+  #   # External IPs addresses of this service.
+  #   externalIPs: []
+  httpService: {}
   ## How this ingress should be constructed
   ingress:
     ## What hostname should be used for this Ingress
@@ -1896,7 +1946,8 @@ elementWeb:
     ## The name of the Secret containing the TLS certificate and the key that should be used for this Ingress
     # tlsSecret:
 
-    ## How the Service behind this Ingress is constructed
+    ## Optional Service override for this Ingress.
+    ## When a field is set, it overrides `httpService`. `<component>.httpService` takes precedence over this.
     # service:
     #   type: ClusterIP
     #   annotations: {}
@@ -2526,6 +2577,18 @@ hookshot:
     ## Enable TLS for Redis/Valkey connection
     # tls: false
 
+  ## Configuration of the Service handling inbound HTTP(S) traffic for this component.
+  ## Takes precedence over `ingress.service` and the global `httpService`. Leave empty to inherit `httpService`.
+  # httpService:
+  #   type: ClusterIP
+  #   annotations: {}
+  #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
+  #   externalTrafficPolicy: Cluster
+  #   internalTrafficPolicy: Cluster
+  #   # External IPs addresses of this service.
+  #   externalIPs: []
+  httpService: {}
+
   ## How this ingress should be constructed
   ingress:
     ## What hostname should be used for this Ingress
@@ -2543,7 +2606,8 @@ hookshot:
     ## The name of the Secret containing the TLS certificate and the key that should be used for this Ingress
     # tlsSecret:
 
-    ## How the Service behind this Ingress is constructed
+    ## Optional Service override for this Ingress.
+    ## When a field is set, it overrides `httpService`. `<component>.httpService` takes precedence over this.
     # service:
     #   type: ClusterIP
     #   annotations: {}
@@ -3041,6 +3105,18 @@ matrixAuthenticationService:
     # ecdsaSecp384r1: {}
 
 
+  ## Configuration of the Service handling inbound HTTP(S) traffic for this component.
+  ## Takes precedence over `ingress.service` and the global `httpService`. Leave empty to inherit `httpService`.
+  # httpService:
+  #   type: ClusterIP
+  #   annotations: {}
+  #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
+  #   externalTrafficPolicy: Cluster
+  #   internalTrafficPolicy: Cluster
+  #   # External IPs addresses of this service.
+  #   externalIPs: []
+  httpService: {}
+
   ## How this ingress should be constructed
   ingress:
     ## What hostname should be used for this Ingress
@@ -3058,7 +3134,8 @@ matrixAuthenticationService:
     ## The name of the Secret containing the TLS certificate and the key that should be used for this Ingress
     # tlsSecret:
 
-    ## How the Service behind this Ingress is constructed
+    ## Optional Service override for this Ingress.
+    ## When a field is set, it overrides `httpService`. `<component>.httpService` takes precedence over this.
     # service:
     #   type: ClusterIP
     #   annotations: {}
@@ -6065,6 +6142,17 @@ synapse:
   # Extra initContainers to add to Synapse, as a yaml array
   extraInitContainers: []
 
+  ## Configuration of the Service handling inbound HTTP(S) traffic for this component.
+  ## Takes precedence over `ingress.service` and the global `httpService`. Leave empty to inherit `httpService`.
+  # httpService:
+  #   type: ClusterIP
+  #   annotations: {}
+  #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
+  #   externalTrafficPolicy: Cluster
+  #   internalTrafficPolicy: Cluster
+  #   # External IPs addresses of this service.
+  #   externalIPs: []
+  httpService: {}
   ## How this ingress should be constructed
   ingress:
     ## What hostname should be used for this Ingress
@@ -6082,7 +6170,8 @@ synapse:
     ## The name of the Secret containing the TLS certificate and the key that should be used for this Ingress
     # tlsSecret:
 
-    ## How the Service behind this Ingress is constructed
+    ## Optional Service override for this Ingress.
+    ## When a field is set, it overrides `httpService`. `<component>.httpService` takes precedence over this.
     # service:
     #   type: ClusterIP
     #   annotations: {}
@@ -6363,6 +6452,18 @@ wellKnownDelegation:
   ## Labels to add to all manifest for this component
   labels: {}
 
+  ## Configuration of the Service handling inbound HTTP(S) traffic for this component.
+  ## Takes precedence over `ingress.service` and the global `httpService`. Leave empty to inherit `httpService`.
+  # httpService:
+  #   type: ClusterIP
+  #   annotations: {}
+  #   # External traffic policy will be configured on services of type `NodePort` and `LoadBalancer`
+  #   externalTrafficPolicy: Cluster
+  #   internalTrafficPolicy: Cluster
+  #   # External IPs addresses of this service.
+  #   externalIPs: []
+  httpService: {}
+
   ## How this ingress should be constructed
   ingress:
     ## What hostname should be used for this Ingress
@@ -6380,7 +6481,8 @@ wellKnownDelegation:
     ## The name of the Secret containing the TLS certificate and the key that should be used for this Ingress
     # tlsSecret:
 
-    ## How the Service behind this Ingress is constructed
+    ## Optional Service override for this Ingress.
+    ## When a field is set, it overrides `httpService`. `<component>.httpService` takes precedence over this.
     # service:
     #   type: ClusterIP
     #   annotations: {}

@@ -35,6 +35,7 @@ class PropertyType(Enum):
     PriorityClassName = "priorityClassName"
     RuntimeClassName = "runtimeClassName"
     SchedulerName = "schedulerName"
+    HttpService = "httpService"
     Replicas = "replicas"
     ReadinessProbe = "readinessProbe"
     Resources = "resources"

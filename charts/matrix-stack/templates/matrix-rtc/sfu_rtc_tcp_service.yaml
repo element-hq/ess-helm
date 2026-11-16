@@ -21,7 +21,7 @@ metadata:
   name: {{ $.Release.Name }}-matrix-rtc-sfu-tcp
   namespace: {{ $.Release.Namespace }}
 spec:
-  {{- include "element-io.ess-library.service.spec" (dict "root" $ "exposedService" .exposedServices.rtcTcp) | nindent 2 }}
+  {{- include "element-io.ess-library.exposed-service.spec" (dict "root" $ "exposedService" .exposedServices.rtcTcp) | nindent 2 }}
   ports:
   - name: "rtc-tcp"
     protocol: "TCP"

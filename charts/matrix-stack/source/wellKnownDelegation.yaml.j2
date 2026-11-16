@@ -9,6 +9,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 enabled: true
 
 {{ sub_schema_values.labels() }}
+{{ sub_schema_values.httpService() }}
 {{ sub_schema_values.ingress() }}
 
 ## If ElementWeb is deployed, the base domain will redirect to it's ingress host by default

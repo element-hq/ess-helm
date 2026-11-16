@@ -29,6 +29,18 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{ $deprecations = append $deprecations "matrixRTC.restrictRoomCreationToLocalUsers will be removed when MatrixRTC authoriser removes the legacy endpoints." -}}
 {{- end }}
 
+{{- with $root.Values.ingress.service }}
+{{ $deprecations = append $deprecations "ingress.service is deprecated in favour of httpService. All user values should be moved to httpService" -}}
+{{- end }}
+
+{{- range $componentName := list "elementAdmin" "elementWeb" "hookshot" "matrixAuthenticationService" "matrixRTC" "synapse" "wellKnownDelegation" }}
+{{- with (index $root.Values $componentName).ingress }}
+{{- with .service }}
+{{ $deprecations = append $deprecations (printf "%s.ingress.service is deprecated in favour of %s.httpService. All user values should be moved across" $componentName $componentName) -}}
+{{- end }}
+{{- end }}
+{{- end }}
+
 {{- if gt (len $deprecations) 0 }}
 DEPRECATIONS. Please read me and update
 {{- printf "\n- %s" ($deprecations | join "\n- " ) }}

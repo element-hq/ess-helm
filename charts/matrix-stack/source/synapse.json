@@ -155,6 +155,9 @@
     "inboundTrafficHandler": {
       "$ref": "file://common/inboundTrafficHandler.json"
     },
+    "httpService": {
+      "$ref": "file://common/service.json"
+    },
     "ingress": {
       "$ref": "file://synapse/ingress_with_additional_paths.json"
     },

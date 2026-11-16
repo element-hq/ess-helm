@@ -21,7 +21,7 @@ metadata:
   name: {{ $.Release.Name }}-matrix-rtc-sfu-muxed-udp
   namespace: {{ $.Release.Namespace }}
 spec:
-  {{- include "element-io.ess-library.service.spec" (dict "root" $ "exposedService" .exposedServices.rtcMuxedUdp) | nindent 2 }}
+  {{- include "element-io.ess-library.exposed-service.spec" (dict "root" $ "exposedService" .exposedServices.rtcMuxedUdp) | nindent 2 }}
   ports:
   - name: "rtc-muxed-udp"
     protocol: "UDP"
