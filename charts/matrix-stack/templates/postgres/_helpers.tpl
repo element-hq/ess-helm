@@ -171,8 +171,6 @@ env:
 {{- $root := .root -}}
 {{- with required "element-io.postgres-exporter.overrideEnv missing context" .context -}}
 env:
-- name: "DATA_SOURCE_URI"
-  value: "localhost?sslmode=disable"
 - name: "DATA_SOURCE_USER"
   value: "postgres"
 {{- end -}}

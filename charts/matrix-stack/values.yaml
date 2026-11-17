@@ -3685,7 +3685,7 @@ postgres:
 
       ## The tag of the container image to use.
       ## One of tag or digest must be provided.
-      tag: "v0.20.1"
+      tag: "v0.21.1"
 
       ## Container digest to use. Used to pull the image instead of the image tag if set
       ## The tag will still be set as the app.kubernetes.io/version label
