@@ -61,6 +61,9 @@
     "inboundTrafficHandler": {
       "$ref": "file://common/inboundTrafficHandler.json"
     },
+    "httpService": {
+      "$ref": "file://common/service.json"
+    },
     "ingress": {
       "$ref": "file://common/ingress.json"
     },

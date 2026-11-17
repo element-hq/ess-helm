@@ -27,7 +27,7 @@ metadata:
   name: {{ $.Release.Name }}-matrix-rtc-sfu-udp-range-{{ $port_segment }}
   namespace: {{ $.Release.Namespace }}
 spec:
-  {{- include "element-io.ess-library.service.spec" (dict "root" $ "exposedService" $.Values.matrixRTC.sfu.exposedServices.rtcUdp) | nindent 2 }}
+  {{- include "element-io.ess-library.exposed-service.spec" (dict "root" $ "exposedService" $.Values.matrixRTC.sfu.exposedServices.rtcUdp) | nindent 2 }}
   ports:
 {{- $segment_start := ((add $range_start (mul 250 $port_segment)) | int) }}
 {{- $segment_end := ((min (add $range_end 1) (add $segment_start 250)) | int) }}

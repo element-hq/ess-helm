@@ -204,7 +204,7 @@ We are not going to expose every single application configuration option.
 
 The chart changelog is built using `towncrier`. Every PR requires a newsfragment created using : `towncrier create`. The fragment number should match the PR number.
 
-Each newsfragment accepts on type of ArtifactHub kind changes : `added`, `changed`, `removed`, `fixed`, `security`. The `internal` type
+Each newsfragment accepts on type of ArtifactHub kind changes : `added`, `changed`, `deprecated`, `removed`, `fixed`, `security`. The `internal` type
 is accepted but will not be shown in ArtifactHub.
 
 The changelog is built on release time using `towncrier build` in the chart directory. The changelog is also injected into the `Chart.yaml` under the annotation `artifacthub.io/changes`.

@@ -26,6 +26,7 @@ privateKeys: {}
 {{ sub_schema_values.credential("ECDSA Secp256k1 Private Key", "ecdsaSecp256k1") | indent(2) }}
 {{ sub_schema_values.credential("ECDSA Secp384r1 Private Key", "ecdsaSecp384r1") | indent(2) }}
 
+{{ sub_schema_values.httpService() }}
 {{ sub_schema_values.ingress() }}
 {{ sub_schema_values.resources(requests_memory='50Mi', requests_cpu='50m', limits_memory='350Mi') }}
 {{ sub_schema_values.labels() }}

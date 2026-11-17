@@ -31,45 +31,6 @@ annotations:
 {{- end -}}
 {{- end -}}
 
-{{- define "element-io.ess-library.ingress-service.annotations" -}}
-{{- $root := .root -}}
-{{- with required "element-io.ess-library.ingress-service.annotations missing context" .context -}}
-{{- $ingressService := .service -}}
-{{- $annotations := .extraAnnotations | default dict -}}
-{{- $annotations = mustMergeOverwrite $annotations ($root.Values.ingress.service.annotations | deepCopy) -}}
-{{- if $ingressService.annotations }}
-{{- $annotations = mustMergeOverwrite $annotations ($ingressService.annotations | deepCopy) -}}
-{{- end -}}
-{{- with $annotations -}}
-annotations:
-  {{- toYaml . | nindent 2 }}
-{{- end -}}
-{{- end -}}
-{{- end -}}
-
-
-{{- define "element-io.ess-library.ingress-service.spec" -}}
-{{- $root := .root -}}
-{{- with required "element-io.ess-library.ingress-service.spec missing context" .context -}}
-{{- $headlessService := .headlessService | default false -}}
-{{- $ingressService := .service -}}
-{{ with $ingressService.type | default $root.Values.ingress.service.type }}
-type: {{ . }}
-{{ if and $headlessService (eq . "ClusterIP") }}
-clusterIP: None
-{{- end }}
-{{- if (list "LoadBalancer" "NodePort") | has . }}
-externalTrafficPolicy: {{ $ingressService.externalTrafficPolicy | default $root.Values.ingress.service.externalTrafficPolicy }}
-{{- end }}
-{{- end }}
-{{- if hasKey $ingressService "externalIPs" }}
-externalIPs: {{ $ingressService.externalIPs | toYaml | nindent 4 }}
-{{- end }}
-internalTrafficPolicy: {{ $ingressService.internalTrafficPolicy | default $root.Values.ingress.service.internalTrafficPolicy }}
-ipFamilyPolicy: PreferDualStack
-{{- end }}
-{{- end }}
-
 {{- define "element-io.ess-library.ingress.tls" -}}
 {{- $root := .root -}}
 {{- with required "element-io.ess-library.ingress.tls missing context" .context -}}
