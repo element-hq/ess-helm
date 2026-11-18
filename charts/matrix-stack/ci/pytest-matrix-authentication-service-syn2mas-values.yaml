@@ -29,6 +29,19 @@ matrixAuthenticationService:
     000-pytest-admin:
       configSecret: "{{ $.Release.Name }}-pytest-admin"
       configSecretKey: "admin.yaml"
+    001-playwright-ratelimits:
+      config: |
+        # Playwright tests log in many users from the same IP. The default
+        # limits are too low for that.
+        rate_limiting:
+          login:
+            per_ip:
+              burst: 1000
+              per_second: 10
+
+            per_account:
+              burst: 1800
+              per_second: 10
     password-scheme.yml:
       config: |
         passwords:
