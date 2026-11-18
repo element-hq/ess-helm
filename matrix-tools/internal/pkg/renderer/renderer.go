@@ -64,6 +64,7 @@ func readfile(path string) (string, error) {
 	return string(content), nil
 }
 
+// XXX I'm unclear if this filter is actually still used
 func replace(old, new, src string) string {
 	return strings.ReplaceAll(src, old, new)
 }
