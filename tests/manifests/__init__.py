@@ -13,6 +13,7 @@ import pyhelm3
 
 class PropertyType(Enum):
     AdditionalConfig = "additional"
+    AppServiceRegistration = "appserviceRegistration"
     Affinity = "affinity"
     ContainersSecurityContext = "containersSecurityContext"
     DNSPolicy = "dnsPolicy"

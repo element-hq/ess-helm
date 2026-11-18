@@ -62,6 +62,20 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- end }}
 {{- end }}
 
+
+{{- define "element-io.matrix-rtc-authorisation.appservice-hash-label" -}}
+{{- $root := .root -}}
+{{- with required "element-io.matrix-rtc-authorisation.appservice-hash-label requires context" .context -}}
+{{- $destination := required "element-io.matrix-rtc-authorisation.appservice-hash-labell context missing destination" .destination -}}
+{{- include "element-io.ess-library.appservice-hash-label"
+      (dict "root" $root "context" (dict "componentValues" $root.Values.matrixRTC
+                                         "componentName" "matrix-rtc"
+                                         "templatePath" "configs/matrix-rtc/registration.yaml.tpl"
+                                         "destination" $destination)) -}}
+{{- end }}
+{{- end }}
+
+
 {{- define "element-io.matrix-rtc-authorisation.secret-name" -}}
 {{- $root := .root -}}
 {{- with required "element-io.matrix-rtc-authorisation.secret-name requires context" .context -}}

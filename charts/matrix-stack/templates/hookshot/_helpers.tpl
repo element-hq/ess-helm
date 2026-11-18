@@ -41,6 +41,19 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- end }}
 
 
+{{- define "element-io.hookshot.appservice-hash-label" -}}
+{{- $root := .root -}}
+{{- with required "element-io.hookshot.appservice-hash-label requires context" .context -}}
+{{- $destination := required "element-io.hookshot.appservice-hash-label context missing destination" .destination -}}
+{{- include "element-io.ess-library.appservice-hash-label"
+      (dict "root" $root "context" (dict "componentValues" $root.Values.hookshot
+                                         "componentName" "hookshot"
+                                         "templatePath" "configs/hookshot/registration.yaml.tpl"
+                                         "destination" $destination)) -}}
+{{- end -}}
+{{- end -}}
+
+
 {{- define "element-io.hookshot.configmap-name" -}}
 {{- $root := .root -}}
 {{- with required "element-io.hookshot.configmap-name requires context" .context -}}
