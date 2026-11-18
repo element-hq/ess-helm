@@ -56,8 +56,8 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- with required "element-io.matrix-rtc.labels missing context" .context -}}
 {{ include "element-io.ess-library.labels.common" (dict "root" $root "context" (dict "labels" .labels "withChartVersion" .withChartVersion)) }}
 app.kubernetes.io/component: matrix-rtc-authorisation-service
-app.kubernetes.io/name: matrix-rtc-authorisation-service
-app.kubernetes.io/instance: {{ $root.Release.Name }}-matrix-rtc-authorisation-service
+app.kubernetes.io/name: matrix-rtc-authorisation-service{{- (.appservice | default false) | ternary "-as" "" }}
+app.kubernetes.io/instance: {{ $root.Release.Name }}-matrix-rtc-authorisation-service{{- (.appservice | default false) | ternary "-as" "" }}
 app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .image.tag }}
 {{- end }}
 {{- end }}

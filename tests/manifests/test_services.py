@@ -15,6 +15,7 @@ from .utils import (
     PERSISTENT_WORKLOAD_KINDS,
     iterate_pod_template,
     template_id,
+    template_to_deployable_details,
 )
 
 
@@ -301,18 +302,56 @@ async def test_publishNotReadyAddresses_only_on_appservice_services(templates):
     request back to them. As they aren't fully started up a standard Service isn't publishing addresses
     for the app service yet, hence publishNotReadyAddresses: true. However we don't want to route any
     other traffic (HTTPS Ingress, Metrics), until the app service is fully started up.
-
-    It does not assert the other side of the link: that all app services use publishNotReadyAddresses: true
-    as this doesn't appear to be required for all app services at this time
     """
+    seen_appservices = set()
+    appservices_with_correct_service_setup = set()
     for template in templates:
+        deployable_details = template_to_deployable_details(template)
+        if deployable_details.is_appservice:
+            seen_appservices.add(deployable_details.name)
+
         if template["kind"] == "Service":
-            if not template["spec"].get("publishNotReadyAddresses", False):
+            if not deployable_details.is_appservice:
+                continue
+            name_label = template["metadata"]["labels"]["app.kubernetes.io/name"]
+            instance_label = template["metadata"]["labels"]["app.kubernetes.io/instance"]
+            # The MatrixRTC authorisation AS service ends with -as due to name length restrictions
+            if not template["metadata"]["name"].endswith("-appservice") and not template["metadata"]["name"].endswith(
+                "-as"
+            ):
+                assert not template["spec"].get("publishNotReadyAddresses", False), (
+                    f"{template_id(template)} publishNotReadyAddresses: true for a non-AppService Service"
+                )
+
+                # ruff: ignore[PT018]
+                assert not (name_label.endswith("-appservice") or name_label.endswith("-as")), (
+                    f"{template_id(template)} is incorrectly labelled as an AppService Service"
+                )
+                # ruff: ignore[PT018]
+                assert not (instance_label.endswith("-appservice") or instance_label.endswith("-as")), (
+                    f"{template_id(template)} is incorrectly labelled as an AppService Service"
+                )
                 continue
 
-            assert len(template["spec"]["ports"]) == 1, (
-                f"{template_id(template)} has publishNotReadyAddresses=True but has more ports than just 'appservice'"
+            assert name_label.endswith("-appservice") or name_label.endswith("-as"), (
+                f"{template_id(template)} isn't labelled as an AppService Service"
             )
-            assert template["spec"]["ports"][0]["name"] == "appservice", (
+            assert instance_label.endswith("-appservice") or instance_label.endswith("-as"), (
+                f"{template_id(template)} isn't labelled as an AppService Service"
+            )
+
+            assert template["spec"]["publishNotReadyAddresses"], (
+                f"{template_id(template)} does not set publishNotReadyAddresses: true for the AppService Service"
+            )
+            assert len(template["spec"]["ports"]) == 1, (
+                f"{template_id(template)} is an AppService Service but has more ports than just 'appservice'"
+            )
+            assert template["spec"]["ports"][0]["name"].startswith("appservice"), (
                 f"{template_id(template)} is directing non-appservice traffic"
             )
+            appservices_with_correct_service_setup.add(deployable_details.name)
+
+    assert seen_appservices == appservices_with_correct_service_setup, (
+        "The AppServices seen in the manifests differed from those which had setup their Service with "
+        "publishNotReadyAddresses and a port named appservice"
+    )
