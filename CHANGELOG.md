@@ -7,6 +7,117 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.11.2 (2026-11-19)
+
+## Deprecated
+
+- Deprecated `matrixRTC.restrictRoomCreationToLocalUsers`.
+
+  The stable client-server endpoints for MatrixRTC rely on setting up the MatrixRTC authoriser as an application service against a specific homeserver (which ESS requires and configures)
+  When using the stable endpoints this setting has no effect.
+  Only the legacy endpoints for MatrixRTC, which don't require setting up the MatrixRTC authoriser as an application service, are impacted by this setting
+  This setting will be removed in a subsequent release. (#1799)
+- Deprecated `ingress.service` and `<component>.ingress.service` in favour of `httpService` and `<component>.httpService`. (#1808)
+
+## Changed
+
+- The inline `config` of `additional` values such as `synapse.additional` is now rendered with Go templates, like `hookshot.additional` already was. This lets you reference values, e.g. `{{ .Values.serverName }}`, in the additional configuration of Synapse, Matrix Authentication Service and Matrix RTC SFU. (#1790)
+- Upgrade Hookshot to v7.6.2.
+
+  Highlights:
+  - Update dependencies to resolve `GHSA-pqp6-f7wc-6498`.
+
+  Full Changelogs
+  - [v7.6.2](https://github.com/matrix-org/matrix-hookshot/releases/tag/7.6.2)
+
+  (#1791)
+- Fix `matrixRTC.sfu.{redis,redisOrValkey}.tls` not being respected. (#1793)
+- Upgrade Postgres to 17.12.
+
+  Full Changelogs:
+  - [17.12](https://www.postgresql.org/about/news/postgresql-187-1712-1616-1520-1425-and-19-rc-2-released-3442/)
+
+  (#1798)
+- Upgrade MatrixRTC Authoriser to v0.10.0.
+
+  Highlights:
+  - Add stable [MSC4195](https://github.com/matrix-org/matrix-spec-proposals/pull/4195) client-server endpoints and identifiers
+  - Allow control over which federated homeservers may have their users publish tokens on the SFU via `LIVEKIT_REMOTE_CAN_PUBLISH_HOMESERVERS` (defaults to allowing)
+  - Allow control over whether users can update their own participant metadata via `LIVEKIT_CAN_UPDATE_OWN_METADATA` (defaults to disallowing)
+
+  Full Changelogs
+  - [v0.10.0](https://github.com/element-hq/lk-jwt-service/releases/tag/v0.10.0)
+
+  (#1799)
+- Return a Matrix formatted JSON error when using the wrong method against well-known Matrix endpoints. (#1803)
+- Upgrade `matrix-tools` to v0.10.9.
+
+  Highlights:
+  - Refresh dependencies
+  - Allow accepting of `syn2mas` warnings
+
+  (#1805, #1819)
+- matrix-rtc: Rename workloads to `<release_name>-matrix-rtc-authorisation` from `<release_name>-matrix-rtc-authorisation-service`. Labels are unchanged. (#1806)
+- Component Services default to `httpService` and `<component>.httpService`. Precedence is `<component>.httpService`, then `<component>.ingress.service`, then `ingress.service`, then the global `httpService`.
+
+  Renamed template variable "element-io.ess-library.ingress-service.annotations" to "element-io.ess-library.http-service.annotations". Exposed Service specs render through "element-io.ess-library.ingress-service.spec". Component Service specs render through "element-io.ess-library.http-service.spec". (#1808)
+- Upgrade Postgres Exporter to v0.21.1.
+
+  Full Changelogs
+  - [v0.21.0](https://github.com/prometheus-community/postgres_exporter/releases/tag/v0.21.0)
+  - [v0.21.1](https://github.com/prometheus-community/postgres_exporter/releases/tag/v0.21.1)
+
+  (#1820)
+- Split the MatrixRTC authoriser appservice out to using a distinct `Service`.
+
+  This allows it to set `spec.publishNotReadyAddress: true`.
+
+  For deployments providing their own registration file via `matrixRTC.appserviceRegistration.{value,secret+secretKey}` the `io.element.msc4512.proxy_url` key should be updated to be `http://{{ $.Release.Name }}-matrix-rtc-authorisation-as.{{ $.Release.Namespace }}.svc.{{ $.Values.clusterDomain }}:8080`. (#1825)
+- Upgrade Valkey to 9.1.4.
+
+  Full Changelogs:
+  - [v9.1.4](https://github.com/valkey-io/valkey/releases/tag/9.1.4)
+
+  (#1826)
+- Upgrade HAProxy to v3.4.8.
+
+  Full Changelogs:
+  - [v3.4.8](https://fossies.org/linux/haproxy/CHANGELOG)
+
+  (#1827)
+- Upgrade Element Admin to v0.1.19.
+
+  Highlights:
+  - Check ESS Pro releases against the ESS Pro release notes feed
+  - Upgrade base image to Nginx 1.31.9
+
+  Full Changelogs:
+  - [v0.1.19](https://github.com/element-hq/element-admin/releases/tag/v0.1.19)
+
+  (#1828)
+
+## Fixed
+
+- Add `matrixAuthenticationService.syn2mas.acceptWarnings` so syn2mas preflight warnings, such as guest accounts or non-email third-party identifiers, can proceed with dry-run and real migrations. Warnings stay fatal by default. (#1788)
+- Fix Synapse not restarting if Hookshot or MatrixRTC authoriser have their appservice registration changed. (#1825)
+- Fix Hookshot and MatrixRTC authoriser not restarting if their appservice registration changes. (#1825)
+
+## Internal
+
+- CI: retry user registration in integration tests if a 400 is received. (#1798)
+- CI: retry HTTP 429, 500 and 503 by default. (#1798)
+- CI: Fix `yq` must `split-expr` in the target directory directly. (#1800)
+- Renovate: enable lock file maintenance.
+
+  This should impact `uv.lock` and `go.sum`. (#1810)
+- Pin playwright to a specific version as container images aren't released entirely in sync. (#1813)
+- CI: automatically set `BUILD_MATRIX_TOOLS=1` on the integration tests for PRs from forks. (#1814)
+- CI: increase Matrix Authentication Service login rate-limits so that Playwright tests aren't throttled. (#1823)
+- CI: fix caching on `matrix-tools` `actions/setup-go` steps. (#1824)
+- CI: fix `matrix-tools` rendering test intermittently failing. (#1824)
+- CI: assert that all appservices have a distinct `Service` setup in a consistent manner. (#1825)
+
+
 # ESS Community Helm Chart 26.11.1 (2026-11-11)
 
 ## Added
