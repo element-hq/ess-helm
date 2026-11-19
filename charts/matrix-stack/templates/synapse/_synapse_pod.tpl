@@ -37,11 +37,12 @@ template:
       k8s.element.io/as-registration-{{ $index }}-hash: "{{ (lookup "v1" "Secret" $root.Release.Namespace (tpl $appservice.secret $root)) | toJson | sha1sum }}"
 {{- end }}
 {{- end }}
-      {{ include "element-io.ess-library.postgres-label" (dict "root" $root "context" (dict
-                                                              "essPassword" "synapse"
-                                                              "postgresProperty" .postgres
-                                                              )
-                                          ) -}}
+      {{- with (include "element-io.hookshot.appservice-hash-label" (dict "root" $root "context" (dict "destination" "synapse"))) }}{{. | nindent 6 }}{{- end }}
+      {{- with (include "element-io.matrix-rtc-authorisation.appservice-hash-label" (dict "root" $root "context" (dict "destination" "synapse"))) }}{{. | nindent 6 }}{{- end }}
+      {{- include "element-io.ess-library.postgres-label" (dict "root" $root "context" (dict
+                                                                        "essPassword" "synapse"
+                                                                        "postgresProperty" .postgres
+                                                                  )) | nindent 6 }}
 {{- with .annotations }}
     annotations:
       {{- toYaml . | nindent 6 }}

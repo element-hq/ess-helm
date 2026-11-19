@@ -13,6 +13,7 @@ import pyhelm3
 
 class PropertyType(Enum):
     AdditionalConfig = "additional"
+    AppServiceRegistration = "appserviceRegistration"
     Affinity = "affinity"
     ContainersSecurityContext = "containersSecurityContext"
     DNSPolicy = "dnsPolicy"
@@ -144,6 +145,7 @@ class DeployableDetails(abc.ABC):
     # True when the component's workloads connect to Redis/Valkey. They must wait for it
     # to be available with a valkey-wait init container before starting.
     has_redis: bool = field(default=False, hash=False)
+    is_appservice: bool = field(default=False, hash=False)
 
     # Use this to skip mounts point we expect not to be referenced in commands, configs, etc
     # The format is expected to be `container_name: <list of mounts to ignore>`
@@ -611,6 +613,7 @@ all_components_details = [
         has_ephemeral_storage=False,
         has_redis=True,
         has_service_monitor=False,
+        is_appservice=True,
         sub_components=(
             SubComponentDetails(
                 name="matrix-rtc-sfu",
@@ -671,6 +674,7 @@ all_components_details = [
         name="hookshot",
         has_storage=True,
         has_redis=True,
+        is_appservice=True,
         values_file_path_overrides={
             PropertyType.Storage: ValuesFilePath.read_write("hookshot", "storage"),
         },

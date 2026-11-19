@@ -56,11 +56,25 @@ app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .
 {{- with required "element-io.matrix-rtc.labels missing context" .context -}}
 {{ include "element-io.ess-library.labels.common" (dict "root" $root "context" (dict "labels" .labels "withChartVersion" .withChartVersion)) }}
 app.kubernetes.io/component: matrix-rtc-authorisation-service
-app.kubernetes.io/name: matrix-rtc-authorisation-service
-app.kubernetes.io/instance: {{ $root.Release.Name }}-matrix-rtc-authorisation-service
+app.kubernetes.io/name: matrix-rtc-authorisation-service{{- (.appservice | default false) | ternary "-as" "" }}
+app.kubernetes.io/instance: {{ $root.Release.Name }}-matrix-rtc-authorisation-service{{- (.appservice | default false) | ternary "-as" "" }}
 app.kubernetes.io/version: {{ include "element-io.ess-library.labels.makeSafe" .image.tag }}
 {{- end }}
 {{- end }}
+
+
+{{- define "element-io.matrix-rtc-authorisation.appservice-hash-label" -}}
+{{- $root := .root -}}
+{{- with required "element-io.matrix-rtc-authorisation.appservice-hash-label requires context" .context -}}
+{{- $destination := required "element-io.matrix-rtc-authorisation.appservice-hash-labell context missing destination" .destination -}}
+{{- include "element-io.ess-library.appservice-hash-label"
+      (dict "root" $root "context" (dict "componentValues" $root.Values.matrixRTC
+                                         "componentName" "matrix-rtc"
+                                         "templatePath" "configs/matrix-rtc/registration.yaml.tpl"
+                                         "destination" $destination)) -}}
+{{- end }}
+{{- end }}
+
 
 {{- define "element-io.matrix-rtc-authorisation.secret-name" -}}
 {{- $root := .root -}}

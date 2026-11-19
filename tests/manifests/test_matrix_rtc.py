@@ -280,11 +280,11 @@ async def test_appservice_registration_is_generated_and_loaded_by_synapse(releas
     assert registration["io.element.msc4502.scopes"] == ["urn:matrix:client:io.element.msc4502:rooms:is_joined"]
     assert registration["io.element.msc4512.proxy_prefix"] == "rtc/livekit"
     assert registration["io.element.msc4512.proxy_url"] == (
-        f"http://{release_name}-matrix-rtc-authorisation.{namespace}.svc.cluster.local.:8080"
+        f"http://{release_name}-matrix-rtc-authorisation-as.{namespace}.svc.cluster.local.:8080"
     )
     # The proxy_url must target the authorisation service port
-    service = get_template(templates, "Service", f"{release_name}-matrix-rtc-authorisation")
-    assert {"name": "http", "port": 8080, "targetPort": "http"} in service["spec"]["ports"]
+    service = get_template(templates, "Service", f"{release_name}-matrix-rtc-authorisation-as")
+    assert {"name": "appservice", "port": 8080, "targetPort": "http"} in service["spec"]["ports"]
 
     registration_path = f"/secrets/{release_name}-generated/MATRIX_RTC_REGISTRATION"
     for configmap_name in [f"{release_name}-synapse", f"{release_name}-synapse-hook"]:
@@ -341,7 +341,7 @@ async def test_appservice_registration_from_helm_values(release_name, namespace,
         # The registration provided in the values is templated
         registration = yaml.safe_load(base64.b64decode(secret["data"]["REGISTRATION"]).decode("utf-8"))
         assert registration["io.element.msc4512.proxy_url"] == (
-            f"http://{release_name}-matrix-rtc-authorisation.{namespace}.svc.cluster.local.:8080"
+            f"http://{release_name}-matrix-rtc-authorisation-as.{namespace}.svc.cluster.local.:8080"
         )
 
     registration_path = f"/secrets/{release_name}-matrix-rtc-authorisation/REGISTRATION"

@@ -1,0 +1,30 @@
+{{- /*
+Copyright 2024-2025 New Vector Ltd
+Copyright 2025-2026 Element Creations Ltd
+
+SPDX-License-Identifier: AGPL-3.0-only
+*/ -}}
+
+{{- with $.Values.matrixRTC -}}
+{{- if .enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+{{- include "element-io.ess-library.http-service.annotations" (dict "root" $ "context" .) | nindent 2 }}
+  labels:
+    {{- include "element-io.matrix-rtc-authorisation.labels" (dict "root" $ "context" (set (. | deepCopy) "appservice" true)) | nindent 4 }}
+  name: {{ $.Release.Name }}-matrix-rtc-authorisation-as
+  namespace: {{ $.Release.Namespace }}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ipFamilyPolicy: PreferDualStack
+  publishNotReadyAddresses: true
+  ports:
+  - name: appservice
+    port: 8080
+    targetPort: http
+  selector:
+    app.kubernetes.io/instance: "{{ $.Release.Name }}-matrix-rtc-authorisation-service"
+{{- end -}}
+{{- end -}}

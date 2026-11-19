@@ -17,7 +17,8 @@ metadata:
   labels:
     k8s.element.io/hookshot-config-hash: "{{ include "element-io.hookshot.configmap-data"  (dict "root" $ "context" .) | sha1sum }}"
     k8s.element.io/hookshot-secret-hash: "{{ include "element-io.hookshot.secret-data"  (dict "root" $ "context" .) | sha1sum }}"
-    {{ include "element-io.hookshot.labels" (dict "root" $ "context" (dict "image" .image "labels" .labels)) | nindent 4 }}
+    {{- include "element-io.hookshot.appservice-hash-label" (dict "root" $ "context" (dict "destination" "self")) | nindent 4 }}
+    {{- include "element-io.hookshot.labels" (dict "root" $ "context" (dict "image" .image "labels" .labels)) | nindent 4 }}
   name: {{ $.Release.Name }}-hookshot
   namespace: {{ $.Release.Namespace }}
 spec:
@@ -27,6 +28,7 @@ spec:
       labels:
         k8s.element.io/hookshot-secret-hash: "{{ include "element-io.hookshot.secret-data" (dict "root" $ "context" .) | sha1sum }}"
         k8s.element.io/hookshot-config-hash: "{{ include "element-io.hookshot.configmap-data" (dict "root" $ "context" .) | sha1sum }}"
+        {{- include "element-io.hookshot.appservice-hash-label" (dict "root" $ "context" (dict "destination" "self")) | nindent 8 }}
         {{- include "element-io.hookshot.labels" (dict "root" $ "context" (dict "image" .image "labels" .labels "withChartVersion" false)) | nindent 8 }}
 {{- with .annotations }}
       annotations:

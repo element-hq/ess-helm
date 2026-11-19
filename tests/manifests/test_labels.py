@@ -112,7 +112,8 @@ async def test_pod_spec_labels_are_consistent_with_parent_labels(templates):
 @pytest.mark.asyncio_cooperative
 async def test_our_labels_are_named_consistently(templates):
     acceptable_matches = [
-        "k8s.element.io/as-registration-[0-9]+-hash",
+        "k8s.element.io/as-registration-[0-9]+-hash",  # external ASes
+        "k8s.element.io/as-registration-[a-z-]+-hash",  # chart managed ASes
         "k8s.element.io/([a-z0-9-]+)-(config|secret)-hash",
         "k8s.element.io/hook-for",
         "k8s.element.io/postgres-password-([a-z]+)-hash",

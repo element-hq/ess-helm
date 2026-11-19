@@ -49,7 +49,7 @@ k8s.element.io/postgres-password-{{ ($essPassword | lower) | trunc 24 }}-hash: {
     {{- else -}}
     {{- (printf "%s-%s" (tpl $postgresProperty.password.secret $root) $postgresProperty.password.secretKey) | sha1sum -}}
     {{- end -}}
-{{- else if (index $root.Values.postgres.essPasswords $essPassword) }}
+{{- else if (index $root.Values.postgres.essPasswords $essPassword) -}}
     {{- if (index $root.Values.postgres.essPasswords $essPassword).value -}}
     {{- (index $root.Values.postgres.essPasswords $essPassword).value | sha1sum -}}
     {{- else -}}
@@ -57,10 +57,40 @@ k8s.element.io/postgres-password-{{ ($essPassword | lower) | trunc 24 }}-hash: {
     {{- end -}}
 {{- else -}}
   {{- if $root.Values.initSecrets.enabled -}}
-  {{- (printf "%s-generated" $root.Release.Name) | sha1sum  -}}
+  {{- (printf "%s-generated" $root.Release.Name) | sha1sum -}}
   {{- else -}}
   {{- fail "No postgres password set and initSecrets not set" -}}
   {{- end -}}
 {{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "element-io.ess-library.appservice-hash-label" -}}
+{{- $root := .root -}}
+{{- with required "element-io.ess-library.appservice-hash-label requires context" .context -}}
+    {{- $componentValues := required "element-io.ess-library.appservice-hash-label context missing componentValues" .componentValues -}}
+    {{- $templatePath := required "element-io.ess-library.appservice-hash-label context missing templatePath" .templatePath -}}
+    {{- $label := "" -}}
+    {{- $value := "" -}}
+    {{- if eq (required "element-io.ess-library.appservice-hash-label context missing destination" .destination) "synapse" -}}
+        {{- $label = printf "k8s.element.io/as-registration-%s-hash" (required "element-io.ess-library.appservice-hash-label context missing componentName" .componentName) -}}
+    {{- else -}}
+        {{- $label = "k8s.element.io/as-registration-self-hash" -}}
+    {{- end -}}
+    {{- with $componentValues -}}
+        {{- if .enabled -}}
+            {{- with .appserviceRegistration -}}
+                {{- with .value -}}
+                    {{- $value = tpl . $root -}}
+                {{- else -}}
+                    {{- /* This is best effort as lookup might not work (return nothing) or will return more than just the key in question */ -}}
+                    {{- $value = (lookup "v1" "Secret" $root.Release.Namespace (tpl .secret $root)) | toJson -}}
+                {{- end -}}
+            {{- else -}}
+                {{- $value = tpl ($root.Files.Get $templatePath) (dict "root" $root) -}}
+            {{- end -}}
+            {{- $label }}: {{ $value | sha1sum -}}
+        {{- end -}}
+    {{- end -}}
 {{- end -}}
 {{- end -}}
