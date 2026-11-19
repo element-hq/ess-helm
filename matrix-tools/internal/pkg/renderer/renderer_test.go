@@ -11,6 +11,7 @@ import (
 	"io"
 	"os"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -32,19 +33,24 @@ func TestRenderConfig(t *testing.T) {
 				bytes.NewBuffer([]byte(`key: ${TEST_ENV}
 quotedValue: ${SPECIAL_CHARS}
 secretKey: ${SECRET_KEY}
-hostname: ${THIS_HOSTNAME}`)),
+replacedHostname: ${REPLACED_HOSTNAME}
+rawHostname: ${THIS_HOSTNAME}`)),
 			},
 			env: map[string]string{
-				"TEST_ENV":      "value",
-				"SPECIAL_CHARS": "{{ \"!ayamltype\" | quote }}",
-				"SECRET_KEY":    "{{ readfile \"testdata/secret_key\" }}",
-				"THIS_HOSTNAME": fmt.Sprintf("{{ hostname | replace \"%s\" \"\" }}", droppedFromHostname),
+				"TEST_ENV":          "value",
+				"SPECIAL_CHARS":     "{{ \"!ayamltype\" | quote }}",
+				"SECRET_KEY":        "{{ readfile \"testdata/secret_key\" }}",
+				"REPLACED_HOSTNAME": fmt.Sprintf("{{ hostname | replace \"%s\" \"\" }}", droppedFromHostname),
+				"THIS_HOSTNAME":     "{{ hostname }}",
 			},
 			expected: map[string]any{
 				"key":         "value",
 				"secretKey":   "secret_value",
 				"quotedValue": "!ayamltype",
-				"hostname":    hostname[0:2] + hostname[4:],
+				// the replace filter is strings.ReplaceAll under the hood.
+				// Unless we hard-code the hostname we don't know whether just 2 chars will be dropped or more (as there's multiple matches)
+				"replacedHostname": strings.ReplaceAll(hostname, droppedFromHostname, ""),
+				"rawHostname":      hostname,
 			},
 			err: false,
 		},
