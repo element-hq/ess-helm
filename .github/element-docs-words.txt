@@ -36,6 +36,7 @@ Muxed
 mypy
 newsfragment
 newsfragments
+Nginx
 OpenProject
 passthrough
 Playwright
