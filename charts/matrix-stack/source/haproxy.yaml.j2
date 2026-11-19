@@ -18,7 +18,7 @@ grace: 5s
 ## Keep this + `grace` below the pod's terminationGracePeriodSeconds, which defaults to 30s
 hardStopAfter: 10s
 
-{{- sub_schema_values.image(registry='docker.io', repository='library/haproxy', tag='3.4.7-alpine') }}
+{{- sub_schema_values.image(registry='docker.io', repository='library/haproxy', tag='3.4.8-alpine') }}
 {{- sub_schema_values.labels() }}
 {{- sub_schema_values.workloadAnnotations() }}
 {{- sub_schema_values.containersSecurityContext() }}
