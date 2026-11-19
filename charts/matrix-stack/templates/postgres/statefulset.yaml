@@ -162,6 +162,8 @@ spec:
           mountPath: /var/lib/postgres/data
 {{- with .postgresExporter }}
       - name: postgres-exporter
+        args:
+        - --datasource.uri=localhost?sslmode=disable
         {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" .image) | nindent 8 }}
 {{- with .containersSecurityContext }}
         securityContext:
