@@ -7,7 +7,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 {{- with .Values.synapse -}}
 {{- if .enabled -}}
-{{- if not .media.storage.existingClaim }}
+{{- if and .media.persistent (not .media.storage.existingClaim) }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:

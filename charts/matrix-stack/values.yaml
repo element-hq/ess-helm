@@ -4615,6 +4615,12 @@ synapse:
     # password: {}
   ## Configures the media store for Synapse
   media:
+    ## Whether the media store is kept on the PersistentVolumeClaim configured in synapse.media.storage.
+    ## Set to false only if every file is also kept elsewhere, e.g. by a media storage provider such as
+    ## synapse-s3-storage-provider configured via synapse.additional. The media store then is an emptyDir
+    ## (synapse.media.ephemeralStorages.store), whose contents are lost whenever the Pod is replaced. Size its
+    ## sizeLimit to what accumulates locally between cleanups of the media store, as the Pod is evicted once it is reached.
+    persistent: true
     ## Configures the PersistentVolumeClaim to be used for storage
     storage:
       ## Name of an existing PersistentVolumeClaim in this namespace that should be used
@@ -4648,6 +4654,10 @@ synapse:
       tmp:
         sizeLimit: 1Gi
         medium: Memory
+      ## media store directory, used instead of the PersistentVolumeClaim when synapse.media.persistent is false
+      store:
+        sizeLimit: 1Gi
+        medium: ""
 
     ## The maximum size (in bytes ending in M or K) that Synapse will accept for media uploads
     ## You may need to adjust your ingress controller to also allow uploads of this size
