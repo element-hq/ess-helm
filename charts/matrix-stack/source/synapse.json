@@ -38,6 +38,9 @@
     "media": {
       "type": "object",
       "properties": {
+        "persistent": {
+          "type": "boolean"
+        },
         "storage": {
           "$ref": "file://common/persistentVolumeClaim.json"
         },
@@ -45,6 +48,9 @@
           "type": "object",
           "properties": {
             "tmp": {
+              "$ref": "file://common/ephemeralStorage.json"
+            },
+            "store": {
               "$ref": "file://common/ephemeralStorage.json"
             }
           }

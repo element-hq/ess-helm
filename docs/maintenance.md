@@ -103,6 +103,10 @@ This behaviour can be changed by setting `synapse.media.storage.resourcePolicy: 
 
 Alternatively, an existing `PersistentVolumeClaim`, that is not managed by the chart, can be used by specifying `synapse.media.storage.existingClaim`.
 
+If every file is also kept elsewhere by a media storage provider (for example `synapse-s3-storage-provider`, configured through `synapse.additional` in a Synapse image that includes it), the media store doesn't need to persist.
+Setting `synapse.media.persistent: false` then mounts an `emptyDir` instead and constructs no `PersistentVolumeClaim`.
+Its contents are lost whenever the Pod is replaced, and the Pod is evicted once the store reaches `synapse.media.ephemeralStorages.store.sizeLimit`, so size that limit to what accumulates locally between cleanups.
+
 ### Generated Secrets
 
 By default (`initSecrets.enabled: true`) the chart will run a pre-install / pre-upgrade Helm hook to generate a variety of credentials that don't relate to external resources.

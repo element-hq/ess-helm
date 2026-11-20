@@ -203,9 +203,14 @@ We have an init container to render & merge the config for several reasons:
 {{- end }}
 {{- end }}
 {{- if (include "element-io.synapse.process.responsibleForMedia" (dict "root" $root "context" (dict "processType" $processType "enabledWorkerTypes" (keys $enabledWorkers)))) }}
+{{- if $root.Values.synapse.media.persistent }}
     - persistentVolumeClaim:
         claimName: {{ include "element-io.synapse.pvcName" (dict "root" $root "context" .) }}
       name: "media"
+{{- else }}
+    - emptyDir: {{- $root.Values.synapse.media.ephemeralStorages.store | toYaml | nindent 8 }}
+      name: "media"
+{{- end }}
     - emptyDir: {{- $root.Values.synapse.media.ephemeralStorages.tmp | toYaml | nindent 8 }}
       name: tmp
 {{- else }}

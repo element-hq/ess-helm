@@ -3347,6 +3347,9 @@
         "media": {
           "type": "object",
           "properties": {
+            "persistent": {
+              "type": "boolean"
+            },
             "storage": {
               "$ref": "#/$defs/common_persistentVolumeClaim"
             },
@@ -3354,6 +3357,9 @@
               "type": "object",
               "properties": {
                 "tmp": {
+                  "$ref": "#/$defs/common_ephemeralStorage"
+                },
+                "store": {
                   "$ref": "#/$defs/common_ephemeralStorage"
                 }
               },
