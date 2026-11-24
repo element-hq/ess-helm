@@ -7,6 +7,24 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.11.3 (2026-11-24)
+
+## Changed
+
+- Upgrade Element Web to v1.12.36.
+
+  Highlights:
+  - Take document previews out of labs
+  - Improve message retention (labs)
+  - Fix Sign in with QR out of band confirmation logic
+
+  Full Changelogs:
+  - [v1.12.35](https://github.com/element-hq/element-web/releases/tag/v1.12.35)
+  - [v1.12.36](https://github.com/element-hq/element-web/releases/tag/v1.12.36)
+
+  (#1818)
+
+
 # ESS Community Helm Chart 26.11.2 (2026-11-19)
 
 ## Deprecated
