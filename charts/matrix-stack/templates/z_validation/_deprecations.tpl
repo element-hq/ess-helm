@@ -9,10 +9,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $root := .root }}
 {{- $deprecations := list }}
 
-{{- with $root.redis }}
-{{ $deprecations = append $deprecations "redis is deprecated in favour of valkey. All user values should be moved to valkey" -}}
-{{- end }}
-
 {{- with $root.Values.hookshot.redis }}
 {{ $deprecations = append $deprecations "hookshot.redis is deprecated in favour of hookshot.redisOrValkey. All user values should be moved across" -}}
 {{- end }}

@@ -230,9 +230,6 @@
     "valkey": {
       "$ref": "file://valkey.json"
     },
-    "redis": {
-      "$ref": "file://redis.json"
-    },
     "synapse": {
       "$ref": "file://synapse.json"
     },

@@ -4546,10 +4546,6 @@ valkey:
       ## Number of seconds after which the probe times out
       timeoutSeconds: 1
 
-# Temporarily left for backwards compatibility with existing installations that override values here but the charts now sets no defaults
-# Everything will come from Valkey
-redis: {}
-
 synapse:
   enabled: true
 
