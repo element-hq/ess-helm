@@ -144,14 +144,7 @@ keys-template.yaml: |
 {{- define "element-io.matrix-rtc-sfu.secret-data" }}
 {{- $root := .root -}}
 {{- with required "element-io.matrix-rtc-sfu.secret-data" .context -}}
-{{- with $root.Values.matrixRTC.sfu.additional }}
-{{- range $key := (. | keys | uniq | sortAlpha) }}
-{{- $prop := index $root.Values.matrixRTC.sfu.additional $key }}
-{{- if $prop.config }}
-user-{{ $key }}: {{ (tpl $prop.config $root) | b64enc }}
-{{- end }}
-{{- end }}
-{{- end }}
+{{- include "element-io.ess-library.inline-additional-config-secret-entries" (dict "root" $root "context" (dict "additional" $root.Values.matrixRTC.sfu.additional)) }}
 {{- if $root.Values.matrixRTC.sfu.redisOrValkey }}
 {{- with $root.Values.matrixRTC.sfu.redisOrValkey.password }}
 {{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "matrixRTC.sfu.redisOrValkey.password" "initIfAbsent" false)) -}}

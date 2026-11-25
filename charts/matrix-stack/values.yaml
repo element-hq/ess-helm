@@ -1101,6 +1101,10 @@ matrixRTC:
     ##   0-customConfig:
     ##     config: |
     ##       <any valid configuration>
+    ##     # Whether the value of config above is templated by Helm or not
+    ##     # Defaults to true.
+    ##     # Set to false if the value should contain e.g. Jinja templates
+    ##     templateInlineConfig: true/false
     ##   1-customConfig:
     ##     configSecret: custom-config
     ##     configSecretKey: shared.yaml
@@ -1884,6 +1888,7 @@ elementWeb:
 
   ## Arbitrary extra config to inject into Element Web's config.json.
   ## Each key under additional is an additional config to merge into Element Web's config.json.
+  ## All properties are unconditionally Helm templated
   ##
   ## Full details on available configuration options can be found at https://github.com/element-hq/element-web/blob/develop/docs/config.md
   ## Most settings are configurable but some settings are owned by the chart and can't be overwritten
@@ -2632,6 +2637,10 @@ hookshot:
   ##   0-customConfig:
   ##     config: |
   ##       <any valid configuration>
+  ##     # Whether the value of config above is templated by Helm or not
+  ##     # Defaults to true.
+  ##     # Set to false if the value should contain e.g. Jinja templates
+  ##     templateInlineConfig: true/false
   ##   1-customConfig:
   ##     configSecret: custom-config
   ##     configSecretKey: shared.yaml
@@ -3047,6 +3056,10 @@ matrixAuthenticationService:
   ##   0-customConfig:
   ##     config: |
   ##       <any valid configuration>
+  ##     # Whether the value of config above is templated by Helm or not
+  ##     # Defaults to true.
+  ##     # Set to false if the value should contain e.g. Jinja templates
+  ##     templateInlineConfig: true/false
   ##   1-customConfig:
   ##     configSecret: custom-config
   ##     configSecretKey: shared.yaml
@@ -4723,6 +4736,10 @@ synapse:
   ##   0-customConfig:
   ##     config: |
   ##       <any valid configuration>
+  ##     # Whether the value of config above is templated by Helm or not
+  ##     # Defaults to true.
+  ##     # Set to false if the value should contain e.g. Jinja templates
+  ##     templateInlineConfig: true/false
   ##   1-customConfig:
   ##     configSecret: custom-config
   ##     configSecretKey: shared.yaml
@@ -6501,6 +6518,7 @@ wellKnownDelegation:
 
   ## Additional configuration to provide to all WellKnown static file
   ## Configuration should be provided as JSON strings
+  ## Each string is unconditionally Helm templated
   additional:
     client: "{}"
     server: "{}"

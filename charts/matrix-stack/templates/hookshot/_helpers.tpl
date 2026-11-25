@@ -14,17 +14,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- with include "element-io.ess-library.inboundTrafficHandler.validateHost" (dict "root" $root "context" (dict "component" . "componentName" "hookshot" "when" "hookshot.enabled=true, synapse.enabled=false" "check" (not $root.Values.synapse.enabled))) }}
 {{ $messages = append $messages . }}
 {{- end }}
-{{- with .additional }}
-  {{- range $key := (. | keys | uniq | sortAlpha) }}
-    {{- $prop := index $root.Values.hookshot.additional $key }}
-    {{- if $prop.config }}
-      {{- $fragment := (tpl $prop.config $root) | fromYaml }}
-      {{- if hasKey $fragment "Error" }}
-{{- $messages = append $messages (printf "hookshot.additional['%s'] is invalid: %s" $key $fragment.Error) }}
-      {{- end }}
-    {{- end }}
-  {{- end }}
-{{- end }}
+{{ $messages = concat $messages (include "element-io.ess-library.inline-additional-config-validation" (dict "root" $root "context" (dict "additional" .additional "path" "hookshot.additional")) | fromJsonArray) }}
 {{ $messages | toJson }}
 {{- end }}
 {{- end }}
@@ -205,14 +195,7 @@ REDIS_PASSWORD: {{ . | b64enc | quote }}
   {{- end }}
   {{- end }}
   {{- end }}
-  {{- with .additional }}
-    {{- range $key := (. | keys | uniq | sortAlpha) }}
-      {{- $prop := index $root.Values.hookshot.additional $key }}
-      {{- if $prop.config }}
-user-{{ $key }}: {{ (tpl $prop.config $root) | b64enc }}
-      {{- end }}
-    {{- end }}
-  {{- end }}
+{{- include "element-io.ess-library.inline-additional-config-secret-entries" (dict "root" $root "context" (dict "additional" .additional)) }}
 {{- end }}
 {{- end -}}
 

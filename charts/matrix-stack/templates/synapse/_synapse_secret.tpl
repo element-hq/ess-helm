@@ -21,14 +21,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- $root := .root }}
 {{- with required "element-io.synapse.secret-data requires context" .context }}
 data:
-{{- with .additional }}
-{{- range $key := (. | keys | uniq | sortAlpha) }}
-{{- $prop := index $root.Values.synapse.additional $key }}
-{{- if $prop.config }}
-  user-{{ $key }}: {{ (tpl $prop.config $root) | b64enc }}
-{{- end }}
-{{- end }}
-{{- end }}
+{{- include "element-io.ess-library.inline-additional-config-secret-entries" (dict "root" $root "context" (dict "additional" .additional)) | indent 2 }}
 {{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "synapse.macaroon" "initIfAbsent" true)) -}}
 {{- with (.macaroon).value }}
   MACAROON: {{ . | b64enc }}

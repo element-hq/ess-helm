@@ -18,17 +18,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- if and (not $root.Values.postgres.enabled) (not .postgres) -}}
 {{ $messages = append $messages "synapse.postgres is required when synapse.enabled=true but postgres.enabled=false" }}
 {{- end }}
-{{- with .additional }}
-  {{- range $key := (. | keys | uniq | sortAlpha) }}
-    {{- $prop := index $root.Values.synapse.additional $key }}
-    {{- if $prop.config }}
-      {{- $fragment := (tpl $prop.config $root) | fromYaml }}
-      {{- if hasKey $fragment "Error" }}
-{{- $messages = append $messages (printf "synapse.additional['%s'] is invalid: %s" $key $fragment.Error) }}
-      {{- end }}
-    {{- end }}
-  {{- end }}
-{{- end }}
+{{ $messages = concat $messages (include "element-io.ess-library.inline-additional-config-validation" (dict "root" $root "context" (dict "additional" .additional "path" "synapse.additional")) | fromJsonArray) }}
 {{- /* Deliberately not using element-io.matrix-authentication-service.readyToHandleAuth here as we want this to be enableable before syn2mas is initially run */}}
 {{- if and (dig "mas-helper" "enabled" false .workers) (not $root.Values.matrixAuthenticationService.enabled) }}
 {{ $messages = append $messages "synapse.workers.mas-helpers can't be enabled without matrixAuthenticationService.enabled=false" }}

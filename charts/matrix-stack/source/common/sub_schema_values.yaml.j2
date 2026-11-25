@@ -669,6 +669,10 @@ preStopSleepSeconds: {{ default_seconds }}
 ##   0-customConfig:
 ##     config: |
 ##       <any valid configuration>
+##     # Whether the value of config above is templated by Helm or not
+##     # Defaults to true.
+##     # Set to false if the value should contain e.g. Jinja templates
+##     templateInlineConfig: true/false
 ##   1-customConfig:
 ##     configSecret: custom-config
 ##     configSecretKey: shared.yaml

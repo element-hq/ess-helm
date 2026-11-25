@@ -139,10 +139,48 @@ async def test_user_provided_inline_configs_are_templatable(release_name, values
 
         secret_key = f"user-{user_config_filename}"
         assert secret_key in (template.get("data") or {}), (
-            f"{template_id(template)} is missing {secret_key} in its data"
+            f"{template_id(template)} is missing {secret_key} in its data."
         )
 
         rendered_config = base64.b64decode(template["data"][secret_key]).decode("utf-8")
         assert rendered_config == expected_rendered_config, (
             f"{template_id(template)} has {secret_key} which does not look like it was templated with gotpl"
+        )
+
+
+@pytest.mark.parametrize("values_file", values_files_to_test)
+@pytest.mark.asyncio_cooperative
+async def test_user_provided_inline_configs_can_chose_not_to_be_templated(values, make_templates):
+    user_config_filename = "user-gotpl-not-templated.yaml"
+
+    def _supports_inline_config_key(deployable_details: DeployableDetails) -> bool:
+        # Element Web and Well-Known Delegation provide their in-line config as a bare string
+        # However we also make them unconditionally templated and so they are skipped here for multiple reasons
+        return deployable_details.has_additional_config and deployable_details.name not in ["element-web", "well-known"]
+
+    def set_templatable_inline_config(deployable_details: DeployableDetails):
+        deployable_details.set_helm_values(
+            values,
+            PropertyType.AdditionalConfig,
+            {user_config_filename: {"config": 'template: "{{ user.name }}"', "templateInlineConfig": False}},
+        )
+
+    iterate_deployables_parts(set_templatable_inline_config, _supports_inline_config_key)
+
+    expected_rendered_config = 'template: "{{ user.name }}"'
+    for template in await make_templates(values):
+        if template["kind"] != "Secret":
+            continue
+
+        if not _supports_inline_config_key(template_to_deployable_details(template)):
+            continue
+
+        secret_key = f"user-{user_config_filename}"
+        assert secret_key in (template.get("data") or {}), (
+            f"{template_id(template)} is missing {secret_key} in its data."
+        )
+
+        rendered_config = base64.b64decode(template["data"][secret_key]).decode("utf-8")
+        assert rendered_config == expected_rendered_config, (
+            f"{template_id(template)} has {secret_key} which is not passed through exactly as provided"
         )
