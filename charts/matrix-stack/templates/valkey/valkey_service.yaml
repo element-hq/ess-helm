@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 
 {{- if (include "element-io.valkey.internalValkeyEnabled" (dict "root" $)) -}}
-{{- with (mustMergeOverwrite ($.Values.valkey | deepCopy) ($.Values.redis | deepCopy)) -}}
+{{- with $.Values.valkey -}}
 apiVersion: v1
 kind: Service
 metadata:

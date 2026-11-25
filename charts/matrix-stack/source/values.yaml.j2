@@ -50,10 +50,6 @@ valkey:
   {% macro valkeyValues() %}{% include 'valkey.yaml.j2'%}{% endmacro %}
   {{- valkeyValues() | trim | indent(2) }}
 
-# Temporarily left for backwards compatibility with existing installations that override values here but the charts now sets no defaults
-# Everything will come from Valkey
-redis: {}
-
 synapse:
   {% macro synapseValues() %}{% include 'synapse.yaml.j2'%}{% endmacro %}
   {{- synapseValues() | trim | indent(2) }}

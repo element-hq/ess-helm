@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 */ -}}
 
 {{- if (include "element-io.valkey.internalValkeyEnabled" (dict "root" $)) -}}
-{{- with (mustMergeOverwrite ($.Values.valkey | deepCopy) ($.Values.redis | deepCopy)) -}}
+{{- with $.Values.valkey -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -72,7 +72,7 @@ spec:
 {{- range .extraVolumeMounts }}
         - {{ (. | toYaml) | nindent 10 }}
 {{- end }}
-{{- with (mustMergeOverwrite (.valkeyExporter | deepCopy) ((.redisExporter | default dict) | deepCopy)) }}
+{{- with .valkeyExporter }}
       - name: valkey-exporter
         {{- include "element-io.ess-library.pods.image" (dict "root" $ "context" .image) | nindent 8 }}
 {{- with .containersSecurityContext }}
