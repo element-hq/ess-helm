@@ -20,8 +20,14 @@ checkConfigHook:
 {{- sub_schema_values.postgresLibPQ() }}
 ## Configures the media store for Synapse
 media:
+  ## Whether the media store is kept on the PersistentVolumeClaim configured in synapse.media.storage.
+  ## Set to false only if every file is also kept elsewhere, e.g. by a media storage provider such as
+  ## synapse-s3-storage-provider configured via synapse.additional. The media store then is an emptyDir
+  ## (synapse.media.ephemeralStorages.store), whose contents are lost whenever the Pod is replaced. Size its
+  ## sizeLimit to what accumulates locally between cleanups of the media store, as the Pod is evicted once it is reached.
+  persistent: true
 {{- sub_schema_values.persistentVolumeClaim("storage") | indent(2) }}
-{{- sub_schema_values.ephemeralStorages([("tmp", "media tmp directory, used to upload files larger than 100KB", "1Gi", "Memory"),]) | indent(2) }}
+{{- sub_schema_values.ephemeralStorages([("tmp", "media tmp directory, used to upload files larger than 100KB", "1Gi", "Memory"), ("store", "media store directory, used instead of the PersistentVolumeClaim when synapse.media.persistent is false", "1Gi", '""'),]) | indent(2) }}
 
   ## The maximum size (in bytes ending in M or K) that Synapse will accept for media uploads
   ## You may need to adjust your ingress controller to also allow uploads of this size

@@ -196,3 +196,43 @@ async def test_invalid_yaml_in_synapse_additional_fails(values, make_templates):
         pyhelm3.errors.FailedToRenderChartError, match="synapse.additional\\['invalid.yaml'\\] is invalid:"
     ):
         await make_templates(values)
+
+
+def _media_volumes(templates, release_name):
+    return [
+        volume
+        for template in templates
+        if template["metadata"]["name"].startswith(f"{release_name}-synapse")
+        and template["kind"] in PERSISTENT_WORKLOAD_KINDS
+        for volume in template["spec"]["template"]["spec"]["volumes"]
+        if volume["name"] == "media"
+    ]
+
+
+@pytest.mark.parametrize("values_file", ["synapse-minimal-values.yaml", "synapse-worker-example-values.yaml"])
+@pytest.mark.asyncio_cooperative
+async def test_media_store_is_a_pvc_by_default(release_name, templates):
+    pvcs = [template for template in templates if template["kind"] == "PersistentVolumeClaim"]
+    assert f"{release_name}-synapse-media" in [pvc["metadata"]["name"] for pvc in pvcs]
+
+    media_volumes = _media_volumes(templates, release_name)
+    assert len(media_volumes) == 1, "Exactly one Synapse process should mount the media store"
+    assert media_volumes[0]["persistentVolumeClaim"]["claimName"] == f"{release_name}-synapse-media"
+
+
+@pytest.mark.parametrize("values_file", ["synapse-minimal-values.yaml", "synapse-worker-example-values.yaml"])
+@pytest.mark.asyncio_cooperative
+async def test_media_store_is_an_empty_dir_when_not_persistent(release_name, values, make_templates):
+    values["synapse"].setdefault("media", {})["persistent"] = False
+    values["synapse"]["media"].setdefault("ephemeralStorages", {})["store"] = {"sizeLimit": "3Gi", "medium": ""}
+
+    templates = await make_templates(values)
+    for template in templates:
+        assert not (template["kind"] == "PersistentVolumeClaim" and template["metadata"]["name"].endswith("-media")), (
+            "No media PersistentVolumeClaim should be constructed when synapse.media.persistent is false"
+        )
+
+    media_volumes = _media_volumes(templates, release_name)
+    assert len(media_volumes) == 1, "Exactly one Synapse process should mount the media store"
+    assert "persistentVolumeClaim" not in media_volumes[0]
+    assert media_volumes[0]["emptyDir"] == {"sizeLimit": "3Gi", "medium": ""}
