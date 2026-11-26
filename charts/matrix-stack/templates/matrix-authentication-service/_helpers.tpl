@@ -18,17 +18,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- if and (not $root.Values.synapse.enabled) (.syn2mas.enabled) -}}
 {{ $messages = append $messages "synapse.enabled is required when matrixAuthenticationService.syn2mas.enabled=true" }}
 {{- end }}
-{{- with .additional }}
-  {{- range $key := (. | keys | uniq | sortAlpha) }}
-    {{- $prop := index $root.Values.matrixAuthenticationService.additional $key }}
-    {{- if $prop.config }}
-      {{- $fragment := (tpl $prop.config $root) | fromYaml }}
-      {{- if hasKey $fragment "Error" }}
-{{- $messages = append $messages (printf "matrixAuthenticationService.additional['%s'] is invalid: %s" $key $fragment.Error) }}
-      {{- end }}
-    {{- end }}
-  {{- end }}
-{{- end }}
+{{ $messages = concat $messages (include "element-io.ess-library.inline-additional-config-validation" (dict "root" $root "context" (dict "additional" .additional "path" "matrixAuthenticationService.additional")) | fromJsonArray) }}
 {{ $messages | toJson }}
 {{- end }}
 {{- end }}
@@ -172,14 +162,7 @@ mas-config-overrides.yaml: |
 {{- with (include "element-io.matrix-authentication-service.synapse-secret-data" (dict "root" $root "context" .)) }}
 {{- . | nindent 2 }}
 {{- end }}
-{{- with .additional }}
-{{- range $key := (. | keys | uniq | sortAlpha) }}
-{{- $prop := index $root.Values.matrixAuthenticationService.additional $key }}
-{{- if $prop.config }}
-  user-{{ $key }}: {{ (tpl $prop.config $root) | b64enc }}
-{{- end }}
-{{- end }}
-{{- end }}
+{{- include "element-io.ess-library.inline-additional-config-secret-entries" (dict "root" $root "context" (dict "additional" .additional)) | indent 2 }}
 {{- with (.postgres).password }}
 {{- include "element-io.ess-library.check-credential" (dict "root" $root "context" (dict "secretPath" "matrixAuthenticationService.postgres.password" "initIfAbsent" false)) }}
 {{- with .value }}

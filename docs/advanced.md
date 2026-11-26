@@ -14,6 +14,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 - [Monitoring](#monitoring)
 - [Components Configuration](#configuration)
    - [Configuring Element Web](#configuring-element-web)
+   - [Configuring Well-Known Delegation](#configuring-well-known-delegation)
    - [Configuring Hookshot](#configuring-hookshot)
    - [Configuring Synapse](#configuring-synapse)
    - [Configuring Matrix Authentication Service](#configuring-matrix-authentication-service)
@@ -104,6 +105,25 @@ Attempting to change these configuration options by the mechanism described belo
 
 **If you have created new values files for custom configuration, make sure to apply them by passing them with the helm upgrade command (see [Setting up the stack](../README.md#setting-up-the-stack)).**
 
+Additional configuration for components other than Element Web and Well-Known Delegation can be provided as both inline as a Helm string or referencing an existing `Secret` in the cluster using the following common pattern.
+
+```yaml
+<component>:
+  additional:
+    <arbitrary unique filename>:
+      config: |
+        # application specific configuration
+    <another unique filename>:
+      configSecret: existing-secret
+      configSecretKey: key-in-secret
+```
+
+Configuration provided inline as a Helm string is Helm templated by default.
+This behaviour can be changed by setting `<component>.additional.<name>.templateInlineConfig: false`.
+
+Element Web and Well-Known Delegation have simpler structures (documented below) as all configuration is available to anyone who is able to access their domains.
+Both unconditionally Helm template all values in their configuration
+
 ### Configuring Element Web
 
 Element Web configuration is written in JSON. The documentation can be found in the [Element Web repository.](https://github.com/element-hq/element-web/blob/develop/docs/config.md)
@@ -118,6 +138,30 @@ elementWeb:
         "some": "settings"
       }
 ```
+
+### Configuring Well-Known Delegation
+
+Well-Known Delegation exposes a number of JSON endpoints, each of which can have independent additional configuration.
+
+To configure Well-Known Delegation, create a values file with the JSON config to inject as a string under “additional”:
+
+```yml
+wellKnownDelegation:
+  additional:
+    client: |
+      {
+        "some": "settings"
+      }
+    server: |
+      {
+        "more": "values"
+      }
+    support: |
+      {
+        "even": "more"
+      }
+```
+
 
 ### Configuring Hookshot
 

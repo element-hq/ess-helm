@@ -126,3 +126,54 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- end }}
 {{- end -}}
 {{- end -}}
+
+
+{{- define "element-io.ess-library.inline-additional-config-validation" -}}
+{{- $root := .root -}}
+{{- with required "element-io.ess-library.inline-additional-config-validation" .context -}}
+{{- $messages := list }}
+{{- $additional := required "element-io.ess-library.inline-additional-config-validation context.additional" .additional -}}
+{{- $path := required "element-io.ess-library.inline-additional-config-validation context.path" .path -}}
+{{- with $additional }}
+  {{- range $key := (. | keys | uniq | sortAlpha) }}
+    {{- $prop := index $additional $key }}
+    {{- if $prop.config }}
+      {{- $fragment := (include "element-io.ess-library.inline-additional-config-values" (dict "root" $root "context" $prop)) | fromYaml }}
+      {{- if hasKey $fragment "Error" }}
+{{- $messages = append $messages (printf "%s['%s'] is invalid: %s" $path $key $fragment.Error) }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{ $messages | toJson }}
+{{- end -}}
+{{- end -}}
+
+
+{{- define "element-io.ess-library.inline-additional-config-secret-entries" -}}
+{{- $root := .root -}}
+{{- with required "element-io.ess-libraryinline-additional-config-secret-entries" .context -}}
+{{- $messages := list }}
+{{- $additional := required "element-io.ess-library.inline-additional-config-secret-entries" .additional -}}
+{{- with $additional }}
+  {{- range $key := ($additional | keys | uniq | sortAlpha) }}
+    {{- $prop := index $additional $key }}
+    {{- if $prop.config }}
+user-{{ $key }}: {{ (include "element-io.ess-library.inline-additional-config-values" (dict "root" $root "context" $prop)) | b64enc }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- end -}}
+{{- end -}}
+
+
+{{- define "element-io.ess-library.inline-additional-config-values" -}}
+{{- $root := .root -}}
+{{- with required "element-io.ess-library.inline-additional-config-values" .context -}}
+{{- if . | dig "templateInlineConfig" true -}}
+{{- tpl .config $root }}
+{{- else -}}
+{{- .config -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}

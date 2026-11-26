@@ -23,17 +23,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 {{- end }}
 {{- with .sfu }}
   {{- if .enabled }}
-    {{- with .additional }}
-      {{- range $key := (. | keys | uniq | sortAlpha) }}
-        {{- $prop := index $root.Values.matrixRTC.sfu.additional $key }}
-        {{- if $prop.config }}
-          {{- $fragment := (tpl $prop.config $root) | fromYaml }}
-          {{- if hasKey $fragment "Error" }}
-{{- $messages = append $messages (printf "matrixRTC.sfu.additional['%s'] is invalid: %s" $key $fragment.Error) }}
-          {{- end }}
-        {{- end }}
-      {{- end }}
-    {{- end }}
+{{ $messages = concat $messages (include "element-io.ess-library.inline-additional-config-validation" (dict "root" $root "context" (dict "additional" .additional "path" "matrixRTC.sfu.additional")) | fromJsonArray) }}
   {{- end }}
 {{- end }}
 {{ $messages | toJson }}

@@ -1925,6 +1925,9 @@
             "config": {
               "type": "string"
             },
+            "templateInlineConfig": {
+              "type": "boolean"
+            },
             "configSecret": {
               "type": "string"
             },
