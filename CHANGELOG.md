@@ -7,6 +7,69 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <!-- towncrier release notes start -->
 
+# ESS Community Helm Chart 26.11.4 (2026-11-26)
+
+## Removed / Breaking Changes
+
+- Remove the top-level `redis` key in favour of `valkey`.
+
+  `valkey` was introduced in ESS 26.9.1 and `redis` was deprecated at the same time.
+
+  Please move any values under `redis` to `valkey`, for the most part with the same name.
+  `redis.redisExporter` values should move to `valkey.valkeyExporter`. (#1837)
+
+## Changed
+
+- Upgrade Synapse to v1.166.0.
+
+  Highlights:
+  - Allow guest user access to `/rtc/transports` and `/rtc/livekit/*`
+  - Add experimental support for [MSC4536](https://github.com/matrix-org/matrix-spec-proposals/pull/4536) profiles query endpoint
+
+  Full Changelogs
+  - [v1.166.0](https://github.com/element-hq/synapse/blob/release-v1.166/CHANGES.md)
+
+  (#1821)
+- Upgrade Matrix Authentication Service to v1.30.0.
+
+  Highlights:
+  - Translation updates
+
+  Full Changelogs:
+  - [v1.30.0](https://github.com/element-hq/matrix-authentication-service/releases/tag/v1.30.0)
+
+  (#1822)
+- Whether inline additional configuration is Helm templated is now configurable.
+
+  `<component>.additional.<name>.templateInlineConfig: {true,false}` can be set to configure whether a given piece of inline additional configuration is Helm templated or not.
+  It defaults to `true` but may be set to `false` if, e.g. the configuration contains a Jinja template that would otherwise need escaping.
+
+  This only impacts `<component>.additional.<name>.config` as `<component>.additional.<name>.config{Secret,SecretKey}` are not and can not be Helm templated.
+
+  `elementWeb.additional` and `wellKnownDelegation.additional.{client,server,support}` are unconditionally Helm templated. (#1838)
+- Upgrade Valkey Exporter to v1.99.0.
+
+  Full Changelogs
+  - [v1.98.0](https://github.com/oliver006/redis_exporter/releases/tag/v1.98.0)
+  - [v1.99.0](https://github.com/oliver006/redis_exporter/releases/tag/v1.99.0)
+
+  (#1839)
+- Upgrade Element Admin to v0.1.20.
+
+  Highlights:
+  - Sign out and show a notice when the server rejects the session
+  - Fix compatibility issues with older MAS and Synapse responses
+
+  Full Changelogs:
+  - [v0.1.20](https://github.com/element-hq/element-admin/releases/tag/v0.1.20)
+
+  (#1841)
+
+## Documentation
+
+- Document how Well-Known Delegation can be configured. (#1838)
+
+
 # ESS Community Helm Chart 26.11.3 (2026-11-24)
 
 ## Changed
