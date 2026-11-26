@@ -19,7 +19,7 @@ dependencies = []
 # on every host: on glibc hosts it runs `uv sync --group browser`, on musl hosts it uses a
 # workaround (see the script header).
 browser = [
-  "playwright==1.65.1",
+  "playwright==1.65.2",
 ]
 dev = [
   "aiohttp>=3.14.3",
