@@ -44,6 +44,7 @@ hookshot:
           enableHttpGet: false
           allowedIpRanges:
           - 10.0.0.0/8
+        widgets:
           openIdOverrides:
             {{ $.Values.serverName | quote }}: "http://{{- $.Release.Name }}-synapse.{{ $.Release.Namespace }}.svc.{{ $.Values.clusterDomain }}:8008"
   enableEncryption: true
