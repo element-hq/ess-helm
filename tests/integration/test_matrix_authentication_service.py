@@ -8,6 +8,7 @@ import pytest
 
 from .fixtures import ESSData
 from .lib.helpers import deploy_with_values_patch, get_deployment_marker
+from .lib.matrix_authentication_service import get_client_token
 from .lib.utils import aiohttp_post_json, value_file_has
 
 
@@ -16,15 +17,19 @@ from .lib.utils import aiohttp_post_json, value_file_has
 @pytest.mark.asyncio_cooperative
 async def test_matrix_authentication_service_graphql_endpoint(ingress_ready, generated_data: ESSData, ssl_context):
     await ingress_ready("matrix-authentication-service")
+    admin_token = await get_client_token(f"mas.{generated_data.server_name}", generated_data, ssl_context)
     mas_query = {
         "query": "query UserByUsername($username: String!) { userByUsername(username: $username) { id lockedAt } }",
         "variables": {"username": "test"},
     }
     json_content = await aiohttp_post_json(
-        f"https://mas.{generated_data.server_name}/graphql", mas_query, {}, ssl_context
+        f"https://mas.{generated_data.server_name}/graphql",
+        mas_query,
+        {"Authorization": f"Bearer {admin_token}"},
+        ssl_context,
     )
     assert "errors" not in json_content or len(json_content["errors"]) == 0, json_content
-    # When not authenticated, the userByUsername will return an empty result whatever the username queried
+    # The test user does not exist, so userByUsername returns an empty result
     assert json_content["data"] == {"userByUsername": None}
 
 
